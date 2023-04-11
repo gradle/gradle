@@ -121,6 +121,21 @@ public interface BuildLifecycleController {
      */
     void addListener(Object listener);
 
+    /**
+     * Restarts the lifecycle of this build.
+     */
+    void resetModel();
+
+    /**
+     * Runs whatever work is required prior to discarding the model for this build. This is called prior to calling {@link #resetModel()}.
+     */
+    ExecutionResult<Void> beforeModelReset();
+
+    /**
+     * Runs whatever work is required prior to discarding the model for this build. This is called at the end of the build, after {@link #finishBuild(Throwable)}.
+     */
+    ExecutionResult<Void> beforeModelDiscarded(boolean failed);
+
     interface WorkGraphBuilder {
         /**
          * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.

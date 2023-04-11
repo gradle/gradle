@@ -25,6 +25,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.reflect.Instantiator;
@@ -55,7 +56,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
  */
-public class EclipseWtpPlugin extends IdePlugin {
+public abstract class EclipseWtpPlugin extends IdePlugin {
 
     public static final String ECLIPSE_WTP_COMPONENT_TASK_NAME = "eclipseWtpComponent";
     public static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet";
@@ -158,7 +159,7 @@ public class EclipseWtpPlugin extends IdePlugin {
 
                 Set<Configuration> libConfigurations = component.getLibConfigurations();
 
-                libConfigurations.add(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+                libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getMainFeature().getRuntimeClasspathConfiguration());
                 component.setClassesDeployPath("/");
                 ((IConventionAware) component).getConventionMapping().map("libDeployPath", new Callable<String>() {
                     @Override
@@ -181,7 +182,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                 Set<Configuration> libConfigurations = component.getLibConfigurations();
                 Set<Configuration> minusConfigurations = component.getMinusConfigurations();
 
-                libConfigurations.add(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+                libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getMainFeature().getRuntimeClasspathConfiguration());
                 minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
                 component.setClassesDeployPath("/WEB-INF/classes");
                 ConventionMapping convention = ((IConventionAware) component).getConventionMapping();

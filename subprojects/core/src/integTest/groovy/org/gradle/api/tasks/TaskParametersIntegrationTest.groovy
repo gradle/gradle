@@ -150,7 +150,10 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
                 @OutputDirectory File outputs1
                 @OutputDirectory File outputs2
 
-                @TaskAction void action() {}
+                @TaskAction void action() {
+                    new File(outputs1, "output1.txt").text = "output1"
+                    new File(outputs2, "output2.txt").text = "output2"
+                }
             }
         """
 
@@ -188,6 +191,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         then:
         executedAndNotSkipped ':test'
         outputContains "Output property 'outputs1' file ${file("build/output1")} has been removed."
+        outputContains "Output property 'outputs1' file ${file("build/output1/output1.txt")} has been removed."
         outputContains "Output property 'outputs2' file ${file("build/output2")} has been removed."
 
         when:
@@ -763,9 +767,9 @@ task someTask(type: SomeTask) {
         })
 
         where:
-        method  | path
-        "dir"   | "output-file.txt"
-        "dirs"  | "output-file.txt"
+        method | path
+        "dir"  | "output-file.txt"
+        "dirs" | "output-file.txt"
     }
 
     @ValidationTestFor(
@@ -853,12 +857,14 @@ task someTask(type: SomeTask) {
 
         when:
         fails "failingTask"
+
         then:
-        failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
-        failureHasCause("BOOM")
         if (GradleContextualExecuter.isConfigCache()) {
-            failureDescriptionContains("Configuration cache problems found in this build.")
+            failureDescriptionContains("Configuration cache state could not be cached: field `__stringInput__` of task `:failingTask` of type `FailingTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
+        } else {
+            failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
         }
+        failureHasCause("BOOM")
     }
 
     @ToBeFixedForConfigurationCache
@@ -959,47 +965,45 @@ task someTask(type: SomeTask) {
                 evaluationCountService = evaluationCount
             }
 
-            task assertInputCounts {
+            task printCounts {
                 dependsOn myTask
-                def propertyNames = ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount']
-                def gradleProperties = propertyNames.collectEntries { [(it) : providers.gradleProperty(it)]}
                 doLast {
-                    ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
+                    println(['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].collect { name ->
                         def actualCount = evaluationCount.get()."\$name"
-                        def expectedCount = gradleProperties[name].get() as Integer
-                        assert actualCount == expectedCount : name
-                    }
+                        return "\$name = \$actualCount"
+                    }.join(", "))
                 }
             }
         """
         def inputFile = file('input.txt')
         inputFile.text = "input"
-        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
-        def expectedIncrementalCounts = expectedCounts
-        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
-        def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
-        def incrementalBuildArguments = ["assertInputCounts"] + expectedIncrementalCounts.collect { name, count -> "-P${name}Count=${count}" }
-        def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }
         def localCache = new TestBuildCache(file('cache-dir'))
         settingsFile << localCache.localCacheConfiguration()
 
-        expect:
-        succeeds(*arguments)
+        when:
+        succeeds("printCounts")
+        then:
         executedAndNotSkipped(':myTask')
+        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
 
         when:
         inputFile.text = "changed"
+        withBuildCache().succeeds("printCounts")
         then:
-        withBuildCache().succeeds(*incrementalBuildArguments)
         executedAndNotSkipped(':myTask')
-        and:
-        succeeds(*upToDateArguments)
+        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
+
+        when:
+        succeeds("printCounts")
+        then:
         skipped(':myTask')
+        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
 
         when:
         file('build').deleteDir()
+        withBuildCache().succeeds("printCounts")
         then:
-        withBuildCache().succeeds(*upToDateArguments)
         skipped(':myTask')
+        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
     }
 }

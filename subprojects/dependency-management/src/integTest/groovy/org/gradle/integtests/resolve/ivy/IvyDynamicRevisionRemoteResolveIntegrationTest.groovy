@@ -142,7 +142,6 @@ dependencies {
         identifier << Identifier.all
     }
 
-    @ToBeFixedForConfigurationCache
     def "determines latest version with jar only if artifact metadata source is configured"() {
         given:
         useRepository ivyHttpRepo
@@ -189,7 +188,6 @@ dependencies {
             "group:projectB:latest.integration": "group:projectB:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses latest version with correct status for latest.release and latest.milestone"() {
         given:
         useRepository ivyHttpRepo
@@ -239,7 +237,6 @@ dependencies {
         checkResolve "group:projectA:latest.milestone": ["group:projectA:2.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "reuses cached meta-data when resolving latest.status"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -262,7 +259,9 @@ dependencies {
     staticVersions group: "group", name: "projectA", version: "1.1"
     compile group: "group", name: "projectA", version: "latest.milestone"
 }
-task cache { doLast { configurations.staticVersions.files } }
+task cache {
+    def files = configurations.staticVersions
+    doLast { files*.name } }
 """
 
         and:
@@ -294,7 +293,6 @@ task cache { doLast { configurations.staticVersions.files } }
         checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use latest version from different remote repositories"() {
         def repo1 = ivyHttpRepo("ivy1")
         def repo2 = ivyHttpRepo("ivy2")
@@ -328,7 +326,6 @@ task cache { doLast { configurations.staticVersions.files } }
         checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "checks new repositories before returning any cached value"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -412,7 +409,6 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses and caches latest of versions obtained from multiple HTTP repositories"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -497,7 +493,7 @@ dependencies {
     }
 
     @Issue("gradle/gradle#3019")
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Does not check for updates to remote artifact")
     def "should honour dynamic version cache expiry for subsequent resolutions in the same build"() {
         given:
         useRepository ivyHttpRepo
@@ -514,8 +510,10 @@ dependencies {
 }
 
 task resolveStaleThenFresh {
+    def stale = configurations.stale
+    def fresh = configurations.fresh
     doFirst {
-        println 'stale:' + configurations.stale.collect { it.name } + ',fresh:' + configurations.fresh.collect { it.name }
+        println 'stale:' + stale.collect { it.name } + ',fresh:' + fresh.collect { it.name }
     }
 }
 """
@@ -572,7 +570,10 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:1.2").byReason("didn't match version 2.1")
+                edge("org.test:projectA:1.+", "org.test:projectA:1.2") {
+                    notRequested()
+                    byReason("didn't match version 2.1")
+                }
             }
         }
 
@@ -592,8 +593,11 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:2.1").byConflictResolution("between versions 1.2 and 2.1")
-                edge("org.test:projectA:2.+", "org.test:projectA:2.1").byConflictResolution("between versions 1.2 and 2.1")
+                edge("org.test:projectA:1.+", "org.test:projectA:2.1") {
+                    byConflictResolution("between versions 1.2 and 2.1")
+                    byReason("didn't match version 2.1")
+                }
+                edge("org.test:projectA:2.+", "org.test:projectA:2.1")
             }
         }
 
@@ -615,14 +619,19 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
-                edge("org.test:projectA:2.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
-                edge("org.test:projectA:3.+", "org.test:projectA:3.0").byConflictResolution("between versions 3.0, 1.2 and 2.1")
+                edge("org.test:projectA:1.+", "org.test:projectA:3.0") {
+                    notRequested()
+                    byConflictResolution("between versions 3.0, 1.2 and 2.1")
+                    byReason("didn't match versions 2.1, 1.2, 1.1")
+                    byReason("didn't match versions 3.0, 2.1")
+                    byReason("didn't match version 3.0")
+                }
+                edge("org.test:projectA:2.+", "org.test:projectA:3.0")
+                edge("org.test:projectA:3.+", "org.test:projectA:3.0")
             }
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "caches resolved revisions until cache expiry"() {
         given:
         useRepository ivyHttpRepo
@@ -664,7 +673,6 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses and caches dynamic revisions for transitive dependencies"() {
         given:
         useRepository ivyHttpRepo
@@ -746,7 +754,6 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -825,7 +832,6 @@ dependencies {
         checkResolve "org.test:a:[1.0,2.0)": "org.test:a:1.1:runtime"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve dynamic versions from repository with multiple ivy patterns"() {
         given:
         def repo1versions = [:]
@@ -1286,7 +1292,7 @@ dependencies {
             root(":", ":test:") {
                 edges.each { from, to ->
                     if (to instanceof List) {
-                        edge(from, to[0]).byReason(to[1])
+                        edge(from, to[0]).byReason(to[1]).notRequested()
                     } else {
                         edge(from, to)
                     }

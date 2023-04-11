@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
@@ -27,6 +28,7 @@ import org.gradle.internal.Factory;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
 import static org.gradle.util.internal.ConfigureUtil.configure;
@@ -35,8 +37,12 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * A {@link FileTree} that contains the union of zero or more file trees.
  */
 public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
-    public CompositeFileTree(Factory<PatternSet> patternSetFactory) {
-        super(patternSetFactory);
+    public CompositeFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        super(taskDependencyFactory, patternSetFactory);
+    }
+
+    public CompositeFileTree(TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
     }
 
     public CompositeFileTree() {
@@ -50,12 +56,12 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTree plus(FileTree fileTree) {
-        return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
+        return new UnionFileTree(taskDependencyFactory, this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
     @Override
     public FileTree matching(final Closure filterConfigClosure) {
-        return new FilteredFileTree(this, patternSetFactory, () -> {
+        return newFilteredFileTree(() -> {
             // For backwards compatibility, run the closure each time the file tree contents are queried
             return configure(filterConfigClosure, patternSetFactory.create());
         });
@@ -63,7 +69,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTree matching(final Action<? super PatternFilterable> filterConfigAction) {
-        return new FilteredFileTree(this, patternSetFactory, () -> {
+        return newFilteredFileTree(() -> {
             // For backwards compatibility, run the action each time the file tree contents are queried
             PatternSet patternSet = patternSetFactory.create();
             filterConfigAction.execute(patternSet);
@@ -73,7 +79,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTreeInternal matching(final PatternFilterable patterns) {
-        return new FilteredFileTree(this, patternSetFactory, () -> {
+        return newFilteredFileTree(() -> {
             if (patterns instanceof PatternSet) {
                 return (PatternSet) patterns;
             }
@@ -112,5 +118,9 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     @Override
     public void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
         visitChildren(child -> visitor.accept((FileTreeInternal) child));
+    }
+
+    private FileTreeInternal newFilteredFileTree(Supplier<? extends PatternSet> patternSetSupplier) {
+        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, patternSetSupplier);
     }
 }

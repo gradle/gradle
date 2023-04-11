@@ -19,26 +19,19 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -77,26 +70,10 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = executeDelegateBroadcastingChanges(work, context);
-        Duration duration = result.getDuration();
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
-            .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, duration));
+            .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, result.getDuration()));
 
-        return new AfterExecutionResult() {
-            @Override
-            public Optional<AfterExecutionState> getAfterExecutionState() {
-                return afterExecutionState;
-            }
-
-            @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return result.getExecutionResult();
-            }
-
-            @Override
-            public Duration getDuration() {
-                return duration;
-            }
-        };
+        return new AfterExecutionResult(result, afterExecutionState.orElse(null));
     }
 
     private Result executeDelegateBroadcastingChanges(UnitOfWork work, C context) {
@@ -120,7 +97,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         ImmutableList<String> outputsToBeChanged = builder.build();
         outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         try {
-            return delegate.execute(work, wrapInChangesOutputsContext(context));
+            return delegate.execute(work, new ChangingOutputsContext(context));
         } finally {
             outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         }
@@ -129,22 +106,18 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
     private AfterExecutionState captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
         return operation(
             operationContext -> {
-                try {
-                    Timer timer = Time.startTimer();
-                    ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = captureOutputs(work, context, beforeExecutionState);
-                    long snapshotOutputDuration = timer.getElapsedMillis();
+                Timer timer = Time.startTimer();
+                ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = captureOutputs(work, context, beforeExecutionState);
+                long snapshotOutputDuration = timer.getElapsedMillis();
 
-                    // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
-                    // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
-                    // which is currently the _only_ thing this value is used for.
-                    Duration originExecutionTime = duration.plus(Duration.ofMillis(snapshotOutputDuration));
-                    OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
-                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata, false);
-                    operationContext.setResult(Operation.Result.INSTANCE);
-                    return afterExecutionState;
-                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    throw work.decorateOutputFileSnapshottingException(e);
-                }
+                // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
+                // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
+                // which is currently the _only_ thing this value is used for.
+                Duration originExecutionTime = duration.plus(Duration.ofMillis(snapshotOutputDuration));
+                OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
+                AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata, false);
+                operationContext.setResult(Operation.Result.INSTANCE);
+                return afterExecutionState;
             },
             BuildOperationDescriptor
                 .displayName("Snapshot outputs after executing " + work.getDisplayName())
@@ -168,70 +141,6 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         } else {
             return unfilteredOutputSnapshotsAfterExecution;
         }
-    }
-
-    private ChangingOutputsContext wrapInChangesOutputsContext(C context) {
-        return new ChangingOutputsContext() {
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<ExecutionHistoryStore> getHistory() {
-                return context.getHistory();
-            }
-
-            @Override
-            public Optional<ValidationResult> getValidationProblems() {
-                return context.getValidationProblems();
-            }
-
-            @Override
-            public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                return context.getPreviousExecutionState();
-            }
-
-            @Override
-            public Optional<InputChangesInternal> getInputChanges() {
-                return context.getInputChanges();
-            }
-
-            @Override
-            public boolean isIncrementalExecution() {
-                return context.isIncrementalExecution();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return context.getInputProperties();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return context.getInputFileProperties();
-            }
-
-            @Override
-            public UnitOfWork.Identity getIdentity() {
-                return context.getIdentity();
-            }
-
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
-
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
-
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
-            }
-        };
     }
 
     /*

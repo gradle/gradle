@@ -33,6 +33,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +43,7 @@ import java.util.Locale;
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
  */
-public class JacocoTaskExtension {
+public abstract class JacocoTaskExtension {
 
     /**
      * The types of output that the agent can use for execution data.
@@ -85,6 +86,7 @@ public class JacocoTaskExtension {
      * @param agent the agent JAR to use for analysis
      * @param task the task we extend
      */
+    @Inject
     public JacocoTaskExtension(ObjectFactory objects, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
@@ -304,7 +306,7 @@ public class JacocoTaskExtension {
         StringBuilder builder = new StringBuilder();
         ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
         builder.append("-javaagent:");
-        builder.append(RelativePathUtil.relativePath(task.getWorkingDir(), agent.getJar()));
+        builder.append(agent.getJar().getAbsolutePath());
         builder.append('=');
         argument.append("destfile", getDestinationFile());
         argument.append("append", true);

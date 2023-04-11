@@ -20,6 +20,8 @@ import java.util.List;
 
 /**
  * Immutable metadata for the artifacts of a variant instance that is used to perform dependency graph resolution.
+ * This is a separate from {@link VariantGraphResolveMetadata} because calculating the artifacts for a variant may be expensive, and is
+ * used during graph resolution only in very specific cases.
  *
  * <p>Note: only provides a limited view of the artifact metadata, exposing only that required to perform graph resolution.</p>
  */

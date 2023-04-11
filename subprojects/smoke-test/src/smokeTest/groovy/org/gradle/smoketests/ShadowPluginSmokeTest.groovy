@@ -16,14 +16,13 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+
 class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
-    @UnsupportedWithConfigurationCache(iterationMatchers = ["shadow plugin [45].*", "shadow plugin 6\\.0.*"])
     def 'shadow plugin #version'() {
         given:
         buildFile << """

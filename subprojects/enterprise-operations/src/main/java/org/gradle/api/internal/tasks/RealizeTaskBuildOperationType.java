@@ -31,7 +31,7 @@ public final class RealizeTaskBuildOperationType implements BuildOperationType<R
         String getTaskPath();
 
         /**
-         * @see org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId
+         * See {@code org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId}.
          */
         long getTaskId();
 

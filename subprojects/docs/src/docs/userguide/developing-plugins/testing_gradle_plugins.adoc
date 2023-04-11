@@ -20,8 +20,8 @@ The following build script assumes that the plugin JAR file has been published t
 In a nutshell, the script demonstrates how to apply the plugin to the project and configure its exposed extension.
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="build.gradle[]"]
 ====
 <1> Applies the plugin to the project
 <2> Configures the URL to be verified through the exposed extension
@@ -117,8 +117,8 @@ By using the method `includeBuild` in `settings.gradle`.
 The following code snippet demonstrates the use of the settings file.
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
 ====
 
 The command line output of task `verifyUrl` from the project `include-plugin-build` <<verify-url-cmd-output,looks exactly the same as shown in the introduction>> except that it now executed as part of a composite build.
@@ -181,8 +181,8 @@ The source set automatically registers _configurations_ to define dependencies f
 We use that to define an `integrationTestImplementation` dependency to the project itself, which represents the "main" variant of our project (i.e. the compiled plugin code).
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-source-set]"]
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-source-set]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-source-set]"]
 ====
 
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
@@ -191,8 +191,8 @@ The following listing shows the setup for executing integration tests.
 As you can see below, the task references the classes and runtime classpath of the integration test source set.
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-task]"]
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-task]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-task]"]
 ====
 
 === Configuring a test framework
@@ -204,8 +204,8 @@ The following code snippet shows how to use Spock for implementing tests.
 We choose to use it for all our three test types (_test_, _integrationTest_ and _functionalTest_) and thus define a dependency for each of them.
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-framework]"]
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-framework]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-framework]"]
 ====
 
 NOTE: Spock is a Groovy-based BDD test framework that even includes APIs for creating Stubs and Mocks.
@@ -281,8 +281,8 @@ By applying the plugin development plugin, the test source set is preconfigured 
 If we want to use a custom source set for functional tests and leave the default test source set for only unit tests, we can configure the plugin development plugin to look for TestKit tests elsewhere.
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=source-set-config]"]
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=source-set-config]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=source-set-config]"]
 ====
 
 Functional tests for Gradle plugins use an instance of `GradleRunner` to execute the build under test.

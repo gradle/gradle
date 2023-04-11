@@ -17,26 +17,27 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import spock.lang.Specification
+
+import java.nio.file.Paths
 
 class JavaToolchainTest extends Specification {
     def "java version is reported as specified in metadata"() {
         given:
         def javaHome = new File("/jvm/$javaVersion").absoluteFile
         def metadata = JvmInstallationMetadata.from(javaHome, javaVersion, "vendor", "runtimeName", runtimeVersion, "jvmName", jvmVersion, "jvmVendor", "archName")
-        def compilerFactory = Mock(JavaCompilerFactory)
-        def toolFactory = Mock(ToolchainToolFactory)
 
         when:
-        def javaToolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), Mock(JavaToolchainInput) {
+        def javaToolchain = new JavaToolchain(metadata, TestFiles.fileFactory(), Mock(JavaToolchainInput) {
             getLanguageVersion() >> JavaLanguageVersion.of(languageVersion)
             getVendor() >> DefaultJvmVendorSpec.any().toString()
             getImplementation() >> JvmImplementation.VENDOR_SPECIFIC.toString()
-        }, Stub(BuildOperationProgressEventEmitter))
+        }, false)
         then:
         javaToolchain.languageVersion.asInt() == languageVersion
         javaToolchain.javaRuntimeVersion == runtimeVersion
@@ -47,5 +48,26 @@ class JavaToolchainTest extends Specification {
         "1.8.0_292" | "1.8.0_292-b10" | "25.292-b10" | 8
         "11.0.11"   | "11.0.9+11"     | "11.0.9+11"  | 11
         "16"        | "16+36"         | "16+36"      | 16
+    }
+
+    def "installation metadata identifies whether it is a #description JVM"() {
+        def javaHome = new File(javaHomePath).absolutePath
+        def metadata = Mock(JvmInstallationMetadata) {
+            getJavaHome() >> Paths.get(javaHome)
+            getLanguageVersion() >> Jvm.current().javaVersion
+        }
+
+        when:
+        def javaToolchain = new JavaToolchain(metadata, TestFiles.fileFactory(), Stub(JavaToolchainInput), false)
+        def installationMetadata = javaToolchain as JavaInstallationMetadata
+
+        then:
+        installationMetadata.installationPath.toString() == javaHome
+        installationMetadata.isCurrentJvm() == isCurrentJvm
+
+        where:
+        description   | isCurrentJvm | javaHomePath
+        "current"     | true         | Jvm.current().javaHome.toString()
+        "not current" | false        | "/some/path"
     }
 }

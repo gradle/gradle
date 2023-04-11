@@ -13,9 +13,9 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.submit
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
+import org.gradle.kotlin.dsl.*
 import org.gradle.workers.WorkerExecutor
-
 import javax.inject.Inject
 
 
@@ -49,9 +49,9 @@ abstract class IncubatingApiReportTask : DefaultTask() {
     @TaskAction
     fun analyze() = workerExecutor.noIsolation().submit(IncubatingApiReportWorkAction::class) {
         srcDirs.from(this@IncubatingApiReportTask.sources)
-        htmlReportFile.set(this@IncubatingApiReportTask.htmlReportFile)
-        textReportFile.set(this@IncubatingApiReportTask.textReportFile)
-        title.set(this@IncubatingApiReportTask.title)
-        releasedVersionsFile.set(this@IncubatingApiReportTask.releasedVersionsFile)
+        htmlReportFile = this@IncubatingApiReportTask.htmlReportFile
+        textReportFile = this@IncubatingApiReportTask.textReportFile
+        title = this@IncubatingApiReportTask.title
+        releasedVersionsFile = this@IncubatingApiReportTask.releasedVersionsFile
     }
 }

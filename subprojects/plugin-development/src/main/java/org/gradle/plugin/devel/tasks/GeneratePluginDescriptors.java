@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * Generates plugin descriptors from plugin declarations.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class GeneratePluginDescriptors extends DefaultTask {
+public abstract class GeneratePluginDescriptors extends DefaultTask {
 
     private final ListProperty<PluginDeclaration> declarations;
     private final Provider<Map<String, String>> implementationClassById;

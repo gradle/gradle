@@ -460,9 +460,10 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 Circular dependency between the following tasks:
 :pluginDependencyA:compileJava
 \\--- :pluginDependencyB:jar
-     \\--- :pluginDependencyB:classes
-          \\--- :pluginDependencyB:compileJava
-               \\--- :pluginDependencyA:compileJava (*)
+     +--- :pluginDependencyB:classes
+     |    \\--- :pluginDependencyB:compileJava
+     |         \\--- :pluginDependencyA:compileJava (*)
+     \\--- :pluginDependencyB:compileJava (*)
 
 (*) - details omitted (listed previously)
 """.trim())
@@ -661,8 +662,9 @@ dependencies {
     implementation project(':a')
 }
 task resolve {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        configurations.compileClasspath.files
+        compileClasspath.files
     }
 }
 """
@@ -674,8 +676,9 @@ dependencies {
     implementation project(':b')
 }
 task resolve {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        configurations.compileClasspath.files
+        compileClasspath.files
     }
 }
 """

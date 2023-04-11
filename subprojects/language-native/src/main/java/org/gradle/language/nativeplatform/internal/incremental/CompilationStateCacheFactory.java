@@ -16,8 +16,8 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.ObjectHolder;
 
 public interface CompilationStateCacheFactory {
-    PersistentStateCache<CompilationState> create(String taskPath);
+    ObjectHolder<CompilationState> create(String taskPath);
 }

@@ -71,7 +71,7 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     @Override
-    public SetProperty<T> convention(Iterable<? extends T> elements) {
+    public SetProperty<T> convention(@Nullable Iterable<? extends T> elements) {
         super.convention(elements);
         return this;
     }

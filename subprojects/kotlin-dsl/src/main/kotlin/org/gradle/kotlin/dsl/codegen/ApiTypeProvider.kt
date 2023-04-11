@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.codegen
 
-import com.google.common.annotations.VisibleForTesting
-
 import org.gradle.api.Incubating
 
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
@@ -33,7 +31,6 @@ import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.Attribute
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_CODE
-import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_DEBUG
 import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_ABSTRACT
@@ -57,7 +54,7 @@ import java.util.ArrayDeque
 import javax.annotation.Nullable
 
 
-@VisibleForTesting
+internal
 fun apiTypeProviderFor(
     classPath: List<File>,
     classPathDependencies: List<File> = emptyList(),
@@ -71,9 +68,11 @@ private
 typealias ApiTypeSupplier = () -> ApiType
 
 
+internal
 typealias ParameterNamesSupplier = (String) -> List<String>?
 
 
+private
 fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: String, parameterTypeNames: List<String>): List<String>? =
     this("$typeName.$functionName(${parameterTypeNames.joinToString(",")})")
 
@@ -90,7 +89,7 @@ fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: Str
  * - does not support nested Java arrays as method parameters
  * - does not support generics with multiple bounds
  */
-@VisibleForTesting
+internal
 class ApiTypeProvider internal constructor(
     private val repository: ClassBytesRepository,
     parameterNamesSupplier: ParameterNamesSupplier
@@ -134,7 +133,7 @@ class ApiTypeProvider internal constructor(
     private
     fun classNodeFor(classBytesSupplier: () -> ByteArray) = {
         ApiTypeClassNode().also {
-            ClassReader(classBytesSupplier()).accept(it, SKIP_DEBUG or SKIP_CODE or SKIP_FRAMES)
+            ClassReader(classBytesSupplier()).accept(it, SKIP_CODE or SKIP_FRAMES)
         }
     }
 
@@ -157,7 +156,7 @@ class ApiTypeProvider internal constructor(
 }
 
 
-@VisibleForTesting
+internal
 class ApiType internal constructor(
     val sourceName: String,
     private val delegateSupplier: () -> ClassNode,
@@ -254,13 +253,12 @@ class ApiType internal constructor(
 }
 
 
-@VisibleForTesting
+internal
 class ApiFunction internal constructor(
     val owner: ApiType,
     private val delegate: MethodNode,
     private val context: ApiTypeProvider.Context
 ) {
-
     val name: String =
         delegate.name
 
@@ -297,7 +295,7 @@ class ApiFunction internal constructor(
 }
 
 
-@VisibleForTesting
+internal
 data class ApiTypeUsage internal constructor(
     val sourceName: String,
     val isNullable: Boolean = false,
@@ -311,7 +309,7 @@ data class ApiTypeUsage internal constructor(
 }
 
 
-@VisibleForTesting
+internal
 enum class Variance {
 
     /**
@@ -336,7 +334,7 @@ enum class Variance {
 }
 
 
-@VisibleForTesting
+internal
 data class ApiFunctionParameter internal constructor(
     val index: Int,
     val isVarargs: Boolean,
@@ -412,7 +410,9 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             ApiFunctionParameter(
                 index = idx,
                 isVarargs = idx == parameterTypesBinaryNames.lastIndex && delegate.access.isVarargs,
-                nameSupplier = { names?.get(idx) },
+                nameSupplier = {
+                    names?.get(idx) ?: delegate.parameters?.get(idx)?.name
+                },
                 type = apiTypeUsageFor(parameterTypeName, isNullable, variance, typeArguments)
             )
         }

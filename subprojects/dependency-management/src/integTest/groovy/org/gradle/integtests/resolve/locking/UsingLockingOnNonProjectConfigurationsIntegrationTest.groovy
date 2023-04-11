@@ -150,8 +150,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.foo
     doLast {
-        println configurations.foo.files
+        println files.files
     }
 }
 """

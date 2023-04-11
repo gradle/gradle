@@ -12,8 +12,8 @@ repositories {
 
 dependencies {
     implementation(files("libs/our-custom.jar"))  // <2>
-    implementation(":log4j:1.2.8")     // <3>
-    implementation(":commons-io:2.1")  // <3>
+    implementation(":awesome-framework:2.0")     // <3>
+    implementation(":utility-library:1.0")  // <3>
 }
 // end::file-deps[]
 

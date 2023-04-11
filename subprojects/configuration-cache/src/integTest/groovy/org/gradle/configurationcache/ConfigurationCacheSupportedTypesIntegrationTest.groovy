@@ -27,6 +27,7 @@ import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
+import spock.lang.Issue
 
 import javax.inject.Inject
 import java.util.logging.Level
@@ -330,21 +331,11 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         """
 
         when:
-        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "broken"
-
-        then:
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems("Task `:broken` of type `SomeTask`: $problem")
-            withProblemsWithStackTraceCount(1)
-        }
-
-        when:
         configurationCacheFails "broken"
 
         then:
-        configurationCache.assertStateLoaded()
-        failure.assertTasksExecuted(":broken")
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        configurationCache.assertStateStoreFailed()
+        failure.assertHasDescription("Configuration cache state could not be cached: field `value` of task `:broken` of type `SomeTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProvider'")
         failure.assertHasCause("broken!")
 
         where:
@@ -514,5 +505,47 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         'an uri'           | 'fromUri(project.uri(project.file("resource.txt")))'
         'an insecure uri'  | 'fromInsecureUri(project.uri(project.file("resource.txt")))'
         'an archive entry' | 'fromArchiveEntry("resource.zip", "resource.txt")'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/22255')
+    def "finalizeValueOnRead property provider is evaluated only once"() {
+        given:
+        buildFile << """
+            class Oracle extends DefaultTask {
+
+                @Internal final Property<String> answer
+
+                Oracle() {
+                    answer = project.objects.property(String)
+                    answer.finalizeValueOnRead()
+                    answer.set(
+                        project.provider {
+                            println 'Thinking...'
+                            '42'
+                        }
+                    )
+                }
+
+                @TaskAction
+                def answer() {
+                    println('The answer is ' + answer.get())
+                }
+            }
+
+            tasks.register('oracle', Oracle)
+        """
+
+        when:
+        configurationCacheRun 'oracle'
+
+        then:
+        output.count('Thinking...') == 1
+
+        when:
+        configurationCacheRun 'oracle'
+
+        then:
+        output.count('Thinking...') == 0
+        outputContains 'The answer is 42'
     }
 }

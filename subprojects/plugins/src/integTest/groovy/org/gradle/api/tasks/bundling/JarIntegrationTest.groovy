@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -506,6 +507,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         manifest.contains('moji: bak€')
     }
 
+    @ToBeFixedForConfigurationCache
     @Issue('GRADLE-3374')
     def "write manifests using a user defined character set"() {
         given:

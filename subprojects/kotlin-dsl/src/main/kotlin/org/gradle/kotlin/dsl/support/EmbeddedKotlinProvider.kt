@@ -22,7 +22,7 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import java.util.Properties
 
 
-class EmbeddedKotlinProvider {
+class EmbeddedKotlinProvider internal constructor() {
 
     fun addDependenciesTo(
         dependencies: DependencyHandler,

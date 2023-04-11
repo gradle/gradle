@@ -218,15 +218,14 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
         when:
         executer.withStackTraceChecksDisabled()
-        runAndFail "producer", "--info"
+        runAndFail "producer"
         then:
         executedAndNotSkipped(":producer")
-        outputContains("Cannot access output property 'outputDir' of task ':producer'")
-        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
-        failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
+        failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
+        failureHasCause("java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)
@@ -249,14 +248,14 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
         when:
         executer.withStackTraceChecksDisabled()
-        runAndFail "producer", "--info"
+        runAndFail "producer"
         then:
         executedAndNotSkipped(":producer")
-        outputContains("Cannot access output property 'outputDir' of task ':producer'")
-        failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
+        failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
+        failureHasCause("java.io.IOException: Cannot snapshot ${namedPipe}: not a regular file")
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -277,14 +276,13 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
         when:
         executer.withStackTraceChecksDisabled()
-        runAndFail "consumer", "--info"
+        runAndFail "consumer"
         then:
-        outputContains("Cannot access input property 'inputDir' of task ':consumer'")
-        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
-        failure.assertHasDocumentedCause("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
+        failure.assertHasDocumentedCause("Cannot access input property 'inputDir' of task ':consumer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
+        failureHasCause("java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)

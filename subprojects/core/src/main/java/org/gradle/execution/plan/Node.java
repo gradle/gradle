@@ -83,16 +83,16 @@ public abstract class Node {
             return this + " (state=" + state + ")";
         } else {
             StringBuilder specificState = new StringBuilder();
+            dependencyNodes.healthDiagnostics(specificState);
             nodeSpecificHealthDiagnostics(specificState);
             return this + " (state=" + state
                 + ", dependencies=" + dependenciesState
                 + ", group=" + group
-                + ", dependencies=" + formatNodes(dependencyNodes.getDependencySuccessors())
-                + specificState + " )";
+                + ", " + specificState + " )";
         }
     }
 
-    protected String formatNodes(Iterable<? extends Node> nodes) {
+    public static String formatNodes(Iterable<? extends Node> nodes) {
         StringBuilder builder = new StringBuilder();
         builder.append('[');
         boolean first = true;
@@ -102,10 +102,7 @@ public abstract class Node {
             } else {
                 builder.append(", ");
             }
-            builder.append(node);
-            if (node.isComplete()) {
-                builder.append(" (complete)");
-            }
+            builder.append(node).append(" (").append(node.getState()).append(")");
         }
         builder.append(']');
         return builder.toString();
@@ -134,23 +131,15 @@ public abstract class Node {
     /**
      * Potentially update the ordinal group of this node when it is reachable from the given group.
      */
-    public void maybeInheritOrdinalAsDependency(NodeGroup candidate) {
-        // This is called prior to updating the groups of finalizers and their dependencies. So both this node and the candidate can be:
-        // - in the "default" group (ie not-a-group) -> use the candidate
-        // - in an ordinal group -> use the group with the lowest ordinal
-        //
-        if (group == candidate || candidate == NodeGroup.DEFAULT_GROUP) {
+    public void maybeInheritOrdinalAsDependency(@Nullable OrdinalGroup candidateOrdinal) {
+        if (group == candidateOrdinal || candidateOrdinal == null) {
+            // Ignore candidate groups that have no ordinal value
             return;
         }
-        if (group == NodeGroup.DEFAULT_GROUP) {
-            setGroup(candidate);
-            return;
-        }
-
-        OrdinalGroup candidateOrdinal = (OrdinalGroup) candidate;
-        OrdinalGroup currentOrdinal = (OrdinalGroup) group;
-        if (candidateOrdinal.getOrdinal() < currentOrdinal.getOrdinal()) {
-            setGroup(candidate);
+        OrdinalGroup currentOrdinal = group.asOrdinal();
+        if (currentOrdinal == null || candidateOrdinal.getOrdinal() < currentOrdinal.getOrdinal()) {
+            // Currently has no ordinal value or candidate has a smaller ordinal value - merge the candidate into the current group
+            setGroup(group.reachableFrom(candidateOrdinal));
         }
     }
 
@@ -614,6 +603,10 @@ public abstract class Node {
 
     /**
      * Returns the resources which should be locked before starting this node.
+     *
+     * This operation should complete quickly,
+     * must not run user code, and
+     * should not need to acquire additional locks.
      */
     public List<? extends ResourceLock> getResourcesToLock() {
         return Collections.emptyList();

@@ -32,6 +32,7 @@ class BroadcastDispatchTest extends Specification {
         expect:
         def dispatch = BroadcastDispatch.empty(TestListener)
         dispatch.empty
+        dispatch.size() == 0
         dispatch.dispatch(new MethodInvocation(method, ["param"] as Object[]))
     }
 
@@ -42,6 +43,7 @@ class BroadcastDispatchTest extends Specification {
         when:
         def dispatch = BroadcastDispatch.empty(TestListener).add(listener)
         !dispatch.empty
+        dispatch.size() == 1
         dispatch.dispatch(invocation)
 
         then:
@@ -175,6 +177,7 @@ class BroadcastDispatchTest extends Specification {
         when:
         def dispatch = BroadcastDispatch.empty(TestListener).add(listener1).add(listener2)
         !dispatch.empty
+        dispatch.size() == 2
         dispatch.dispatch(invocation)
 
         then:
@@ -194,6 +197,7 @@ class BroadcastDispatchTest extends Specification {
         when:
         def dispatch = BroadcastDispatch.empty(TestListener).addAll([listener1, listener2])
         !dispatch.empty
+        dispatch.size() == 2
         dispatch.dispatch(invocation)
 
         then:
@@ -204,6 +208,7 @@ class BroadcastDispatchTest extends Specification {
         when:
         dispatch = BroadcastDispatch.empty(TestListener).add(listener1).addAll([listener2, listener3])
         !dispatch.empty
+        dispatch.size() == 3
         dispatch.dispatch(invocation)
 
         then:
@@ -215,6 +220,7 @@ class BroadcastDispatchTest extends Specification {
         when:
         dispatch = BroadcastDispatch.empty(TestListener).add(listener1).add(listener2).addAll([listener3])
         !dispatch.empty
+        dispatch.size() == 3
         dispatch.dispatch(invocation)
 
         then:
@@ -233,6 +239,7 @@ class BroadcastDispatchTest extends Specification {
         when:
         def dispatch = BroadcastDispatch.empty(TestListener).addAll([listener1, listener1])
         !dispatch.empty
+        dispatch.size() == 1
         dispatch.dispatch(invocation)
 
         then:
@@ -242,6 +249,7 @@ class BroadcastDispatchTest extends Specification {
         when:
         dispatch = dispatch.addAll([listener2, listener1, listener2])
         !dispatch.empty
+        dispatch.size() == 2
         dispatch.dispatch(invocation)
 
         then:
@@ -252,6 +260,7 @@ class BroadcastDispatchTest extends Specification {
         when:
         dispatch = dispatch.addAll([listener3, listener2, listener3])
         !dispatch.empty
+        dispatch.size() == 3
         dispatch.dispatch(invocation)
 
         then:

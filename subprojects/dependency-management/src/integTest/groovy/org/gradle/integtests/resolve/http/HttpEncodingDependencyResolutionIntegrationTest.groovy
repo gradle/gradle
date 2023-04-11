@@ -17,8 +17,8 @@ package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-public class HttpEncodingDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    public void "handles gzip encoded content"() {
+class HttpEncodingDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def "handles gzip encoded content"() {
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
@@ -32,8 +32,9 @@ repositories {
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+        assert files*.name == ['projectA-1.2.jar']
     }
 }
 """

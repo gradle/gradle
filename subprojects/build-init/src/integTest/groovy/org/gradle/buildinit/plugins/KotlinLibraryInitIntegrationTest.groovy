@@ -22,13 +22,10 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
-class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
+class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.kt"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.kt"
-
-    @Override
-    String subprojectName() { 'lib' }
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -67,6 +64,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         run ('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating')
+
         then:
         subprojectDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
         subprojectDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
@@ -76,7 +74,24 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.assertHasTestSuite('test')
 
         when:
+        run('test')
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run ('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
         succeeds('test')
+
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 

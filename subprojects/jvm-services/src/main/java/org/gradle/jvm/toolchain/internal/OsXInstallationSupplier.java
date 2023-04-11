@@ -47,6 +47,11 @@ public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
     }
 
     @Override
+    public String getSourceName() {
+        return "MacOS java_home";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         if (os.isMacOsX()) {
             try {
@@ -66,7 +71,7 @@ public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
     }
 
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, "macOS java_home");
+        return new InstallationLocation(javaHome, getSourceName());
     }
 
     private Reader executeJavaHome() {

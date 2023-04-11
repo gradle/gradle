@@ -48,6 +48,7 @@ abstract class PrintAccessors : DefaultTask() {
 
     @Suppress("unused")
     @TaskAction
+    internal
     fun printExtensions() {
         printAccessorsFor(schema.get())
     }

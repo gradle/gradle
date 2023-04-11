@@ -29,37 +29,6 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    def "plugin runtime configuration is deprecated for consumption"() {
-        given:
-        file("producer/build.gradle") << """
-            plugins {
-                id("$plugin")
-            }
-        """
-
-        when:
-        file("consumer/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-            dependencies {
-                implementation(project(path: ":producer", configuration: "$configuration"))
-            }
-        """
-
-        then:
-        executer.expectDocumentedDeprecationWarning("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#plugin_configuration_consumption")
-        succeeds("test")
-
-        where:
-        plugin       | configuration
-        'jacoco'     | 'jacocoAgent'
-        'jacoco'     | 'jacocoAnt'
-        'scala'      | 'zinc'
-        'war'        | 'providedRuntime'
-        'war'        | 'providedCompile'
-    }
-
     def "plugin runtime configuration is not consumable"() {
         given:
         file("producer/build.gradle") << """
@@ -80,14 +49,19 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
 
         then:
         fails("test")
-        result.hasErrorOutput("Selected configuration '$configuration' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
+        result.assertHasErrorOutput("Selected configuration '$configuration' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
 
         where:
         plugin       | configuration
         'antlr'      | 'antlr'
         'codenarc'   | 'codenarc'
+        'jacoco'     | 'jacocoAgent'
+        'jacoco'     | 'jacocoAnt'
         'pmd'        | 'pmd'
         'checkstyle' | 'checkstyle'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
+        'war'        | 'providedCompile'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {
@@ -99,7 +73,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
             configurations {
                 ${configuration}Consumable {
                     extendsFrom($configuration)
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                     attributes {
                         attribute(Attribute.of("test", String), "test")
@@ -113,7 +87,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
             configurations {
                 consumer {
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                     attributes {
                         attribute(Attribute.of("test", String), "test")
                         ${plugin == 'codenarc' ?
@@ -128,8 +102,9 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                 consumer(project(":producer"))
             }
             tasks.register("resolve") {
+                def consumerFiles = configurations.consumer.files
                 doLast {
-                    configurations.consumer.files.forEach {
+                    consumerFiles.forEach {
                         println(it.name)
                     }
                 }

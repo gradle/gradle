@@ -24,9 +24,13 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class IdeaProjectTest extends AbstractProjectBuilderSpec {
-    ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-    private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
-    private final ProjectInternal anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
+    private ProjectInternal childProject
+    private ProjectInternal anotherChildProject
+
+    def setup() {
+        childProject = TestUtil.createChildProject(project, "child", new File("."))
+        anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
+    }
 
     def "location tracks change to outputFile property"() {
         when:
@@ -34,7 +38,7 @@ class IdeaProjectTest extends AbstractProjectBuilderSpec {
         def location = project.idea.project.location
 
         then:
-        project.idea.project.outputFile == project.file("test.ipr")
+        project.idea.project.outputFile == project.file("test-project.ipr")
         location.get().asFile == project.idea.project.outputFile
 
         when:

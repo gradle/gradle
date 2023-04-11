@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.transform.TransformationStep;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
  * Registration of an artifact transform.
@@ -26,15 +26,15 @@ public interface ArtifactTransformRegistration {
     /**
      * Attributes that match the variant that is consumed.
      */
-    AttributeContainerInternal getFrom();
+    ImmutableAttributes getFrom();
 
     /**
      * Attributes that match the variant that is produced.
      */
-    AttributeContainerInternal getTo();
+    ImmutableAttributes getTo();
 
     /**
-     * Transformation for artifacts of the variant.
+     * Transformation step for artifacts of the variant.
      */
     TransformationStep getTransformationStep();
 }

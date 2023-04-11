@@ -19,6 +19,7 @@ package org.gradle.plugins.ear
 import groovy.xml.XmlSlurper
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.hamcrest.CoreMatchers
@@ -83,6 +84,7 @@ ear {
         ear.assertFileContent("META-INF/application.xml", CoreMatchers.containsString("cool ear"))
     }
 
+    @ToBeFixedForConfigurationCache(because = "jar is missing from deployment descriptor")
     void "includes modules in deployment descriptor"() {
         file('moduleA.jar').createFile()
         file('moduleB.war').createFile()
@@ -100,7 +102,7 @@ dependencies {
 
         then:
         def appXml = new XmlSlurper().parse(
-                file('unzipped/META-INF/application.xml'))
+            file('unzipped/META-INF/application.xml'))
         def modules = appXml.module
         modules[0].ejb.text() == 'moduleA.jar'
         modules[1].web.'web-uri'.text() == 'moduleB.war'
@@ -160,6 +162,7 @@ ear {
         ear.assertNotContainsFile("META-INF/application.xml")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     void "uses content found in #location app folder, ignoring descriptor modification"() {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
@@ -176,7 +179,7 @@ apply plugin: 'ear'
 ear {
     ${descriptorConfig}
     deploymentDescriptor {
-        applicationName = 'descriptor modification will not have any affect when application.xml already exists in source'
+        applicationName = 'descriptor modification will not have any effect when application.xml already exists in source'
     }
 }
 """
@@ -191,11 +194,12 @@ ear {
         ear.assertFileContent("META-INF/application.xml", applicationXml)
 
         where:
-        location    | descriptorConfig   | appDirectory
-        "specified" | "appDirName 'app'" | "app"
-        "default"   | ""                 | "src/main/application"
+        location    | descriptorConfig             | appDirectory
+        "specified" | "appDirectory = file('app')" | "app"
+        "default"   | ""                           | "src/main/application"
     }
 
+    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     void "works with existing descriptor containing a doctype declaration"() {
         // We serve the DTD locally because the parser actually pulls on this URL,
         // and we don't want it reaching out to the Internet in our tests
@@ -274,7 +278,7 @@ ear {
 
         then:
         def appXml = new XmlSlurper().parse(
-                file('unzipped/META-INF/application.xml'))
+            file('unzipped/META-INF/application.xml'))
         def roles = appXml."security-role"
         roles[0]."role-name".text() == 'superman'
         roles[0].description.text() == 'This is the SUPERMAN role'
@@ -315,6 +319,7 @@ ear {
         module."context-root" == "anywhere"
     }
 
+    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     @Issue("GRADLE-3486")
     def "does not fail when provided with an existing descriptor without a version attribute"() {
         given:
@@ -356,6 +361,7 @@ ear {
         ear.assertContainsFile("META-INF/application.xml")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     @Issue("GRADLE-3497")
     def "does not fail when provided with an existing descriptor with security roles without description"() {
         given:
@@ -383,6 +389,7 @@ ear {
         ear.assertContainsFile("META-INF/application.xml")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     @Issue("GRADLE-3497")
     def "does not fail when provided with an existing descriptor with a web module without #missing"() {
         given:

@@ -133,7 +133,7 @@ class Resolve extends Copy {
                         counter = buildScriptCounter
                     }
                 }
-                buildScriptCounter.increment()
+                buildScriptCounter.increment() // should not be captured during registration
                 registerTransform(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'secondCount')
@@ -186,18 +186,40 @@ class Resolve extends Copy {
         and:
         outputContains("variants: [{artifactType=secondCount, org.gradle.status=release}, {artifactType=secondCount, org.gradle.status=release}]")
         file("build/libs2").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs2/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
-        file("build/libs2/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            file("build/libs1/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+            file("build/libs1/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            file("build/libs2/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+            file("build/libs2/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        }
 
         and:
         outputContains("variants: [{artifactType=thirdCount, org.gradle.status=release}, {artifactType=thirdCount, org.gradle.status=release}]")
         file("build/libs3").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs3/test-1.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
-        file("build/libs3/test2-2.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            file("build/libs1/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+            file("build/libs1/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            file("build/libs3/test-1.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+            file("build/libs3/test2-2.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+        }
 
         and:
-        output.count("Transforming") == 6
-        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 3
-        output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 3
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            output.count("Transforming") == 2
+            output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
+            output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            output.count("Transforming") == 6
+            output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 3
+            output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 3
+        }
     }
 }

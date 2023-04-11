@@ -16,11 +16,13 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
+import static org.hamcrest.CoreMatchers.containsString
 import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
 
@@ -109,6 +111,8 @@ class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegratio
         fails "test"
 
         and:
-        failure.assertHasCause("The version of TestNG used does not support setting config failure policy to 'continue'.")
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClassStartsWith('Gradle Test Executor').assertExecutionFailedWithCause(
+            containsString("The version of TestNG used does not support setting config failure policy to 'continue'."))
     }
 }

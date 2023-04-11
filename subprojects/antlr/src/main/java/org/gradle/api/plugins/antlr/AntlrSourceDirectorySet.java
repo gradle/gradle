@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
@@ -26,7 +25,6 @@ import org.gradle.api.file.SourceDirectorySet;
  *
  * @since 7.1
  */
-@Incubating
 public interface AntlrSourceDirectorySet extends SourceDirectorySet {
 
     /**

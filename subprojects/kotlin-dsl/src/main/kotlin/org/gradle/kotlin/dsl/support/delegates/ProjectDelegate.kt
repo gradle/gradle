@@ -44,7 +44,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -54,6 +53,8 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -66,7 +67,18 @@ import java.util.concurrent.Callable
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
  */
+@Deprecated("Will be removed in Gradle 9.0")
 abstract class ProjectDelegate : Project {
+
+    init {
+        @Suppress("DEPRECATION")
+        if (!org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript::class.java.isAssignableFrom(this::class.java)) {
+            DeprecationLogger.deprecateType(ProjectDelegate::class.java)
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser()
+        }
+    }
 
     internal
     abstract val delegate: Project
@@ -84,7 +96,7 @@ abstract class ProjectDelegate : Project {
         delegate.defaultTasks
 
     @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-    override fun getConvention(): Convention =
+    override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention =
         @Suppress("deprecation")
         delegate.convention
 
@@ -226,6 +238,9 @@ abstract class ProjectDelegate : Project {
     override fun getComponents(): SoftwareComponentContainer =
         delegate.components
 
+    override fun components(configuration: Action<in SoftwareComponentContainer>) =
+        delegate.components(configuration)
+
     override fun setBuildDir(path: File) {
         delegate.buildDir = path
     }
@@ -251,7 +266,7 @@ abstract class ProjectDelegate : Project {
     override fun getDependencyLocking(): DependencyLockingHandler =
         delegate.dependencyLocking
 
-    override fun <T : Any?> provider(value: Callable<T>): Provider<T> =
+    override fun <T : Any> provider(value: Callable<out T?>): Provider<T> =
         delegate.provider(value)
 
     override fun findProperty(propertyName: String): Any? =
@@ -356,6 +371,7 @@ abstract class ProjectDelegate : Project {
     override fun javaexec(action: Action<in JavaExecSpec>): ExecResult =
         delegate.javaexec(action)
 
+    @AllowUsingApiForExternalUse
     override fun getChildProjects(): MutableMap<String, Project> =
         delegate.childProjects
 

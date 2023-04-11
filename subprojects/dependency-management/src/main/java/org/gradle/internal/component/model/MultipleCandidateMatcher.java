@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
@@ -114,7 +113,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         compatible.set(0, candidates.size());
     }
 
-    public List<T> getMatches() {
+    public int[] getMatches() {
         findCompatibleCandidates();
         if (compatible.cardinality() <= 1) {
             return getCandidates(compatible);
@@ -122,7 +121,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         if (longestMatchIsSuperSetOfAllOthers()) {
             T o = candidates.get(candidateWithLongestMatch);
             explanationBuilder.candidateIsSuperSetOfAllOthers(o);
-            return Collections.singletonList(o);
+            return new int[] {candidateWithLongestMatch};
         }
         return disambiguateCompatibleCandidates();
     }
@@ -218,7 +217,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         return true;
     }
 
-    private List<T> disambiguateCompatibleCandidates() {
+    private int[] disambiguateCompatibleCandidates() {
         remaining = new BitSet(candidates.size());
         remaining.or(compatible);
 
@@ -306,7 +305,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
 
         Set<Object> matches = schema.disambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
-        if (matches.size() < candidateValues.size()) {
+        if (matches != null && matches.size() < candidateValues.size()) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
                 if (!matches.contains(getCandidateValue(c, a))) {
@@ -316,14 +315,23 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
     }
 
-    private void disambiguateExtraAttribute(Attribute<?> attribute) {
-        Set<Object> candidateValues = getCandidateValues(compatible, c -> getCandidateValue(c, attribute));
-        if (candidateValues.size() <= 1) {
+    /**
+     * @param attribute The attribute to disambiguate.
+     * @param candidates The set of candidate attribute sets to extract values from during disambiguation.
+     */
+    private void disambiguateExtraAttribute(Attribute<?> attribute, BitSet candidates) {
+        Set<Object> candidateValues = getCandidateValues(candidates, c -> getCandidateValue(c, attribute));
+
+        // We continue disambiguation for attributes with only one value since we may have some candidates with
+        // no value for this attribute in addition to those with a value. Since we do not include `null` in the
+        // candidate values, we must continue to execute the disambiguation rule in case the rule specifies a
+        // default value and thus removes the candidates which do not have a value for this attribute.
+        if (candidateValues.size() < 1) {
             return;
         }
 
         Set<Object> matches = schema.disambiguate(attribute, null, candidateValues);
-        if (matches.size() < candidateValues.size()) {
+        if (matches != null) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
                 if (!matches.contains(getCandidateValue(c, attribute))) {
@@ -380,7 +388,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(Arrays.asList(extraAttributes));
 
         for (int a : precedenceResult.getSortedOrder()) {
-            disambiguateExtraAttribute(extraAttributes[a]);
+            disambiguateExtraAttribute(extraAttributes[a], remaining);
             if (remaining.cardinality() == 0) {
                 return;
             } else if (remaining.cardinality() == 1) {
@@ -390,28 +398,35 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             }
         }
 
+        // When disambiguating in unknown precedence order, we always use the same set of candidates
+        // so that this step is not affected by the order in which we iterate.
+        BitSet candidates = new BitSet();
+        candidates.or(remaining);
+
         // If the attribute does not have a known precedence, then we cannot stop
         // until we've disambiguated all of the attributes.
         for (int a : precedenceResult.getUnsortedOrder()) {
-            disambiguateExtraAttribute(extraAttributes[a]);
+            disambiguateExtraAttribute(extraAttributes[a], candidates);
             if (remaining.cardinality() == 0) {
                 return;
             }
         }
     }
 
-    private List<T> getCandidates(BitSet liveSet) {
+    private int[] getCandidates(BitSet liveSet) {
         if (liveSet.cardinality() == 0) {
-            return Collections.emptyList();
+            return new int[0];
         }
         if (liveSet.cardinality() == 1) {
-            return Collections.singletonList(this.candidates.get(liveSet.nextSetBit(0)));
+            return new int[] {liveSet.nextSetBit(0)};
         }
-        ImmutableList.Builder<T> builder = ImmutableList.builder();
+
+        int i = 0;
+        int[] result = new int[liveSet.cardinality()];
         for (int c = liveSet.nextSetBit(0); c >= 0; c = liveSet.nextSetBit(c + 1)) {
-            builder.add(this.candidates.get(c));
+            result[i++] = c;
         }
-        return builder.build();
+        return result;
     }
 
     @Nullable

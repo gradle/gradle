@@ -18,13 +18,16 @@ package org.gradle.integtests.composite
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import spock.lang.IgnoreIf
 
 import java.util.regex.Pattern
 
@@ -63,6 +66,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
     }
 
+    // Also covered by tests in configuration cache project
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
@@ -73,7 +78,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         execute(buildA, ":jar", [])
 
         then:
-        executed ":${buildName}:jar"
+        executed ":buildB:jar"
 
         and:
         def root = operations.root(RunBuildBuildOperationType)
@@ -84,16 +89,21 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
         loadOps[1].displayName == "Load build (:buildB)"
-        loadOps[1].details.buildPath == ":${buildName}"
+        loadOps[1].details.buildPath == ":buildB"
         loadOps[1].parentId == loadOps[0].id
+
+        def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 2
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ":buildB"
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
         configureOps[0].displayName == "Configure build"
         configureOps[0].details.buildPath == ":"
         configureOps[0].parentId == root.id
-        configureOps[1].displayName == "Configure build (:${buildName})"
-        configureOps[1].details.buildPath == ":${buildName}"
+        configureOps[1].displayName == "Configure build (:buildB)"
+        configureOps[1].details.buildPath == ":buildB"
         configureOps[1].parentId == configureOps[0].id
 
         def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
@@ -106,8 +116,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[0].displayName == "Calculate task graph"
         taskGraphOps[0].details.buildPath == ":"
         taskGraphOps[0].parentId == treeTaskGraphOps[0].id
-        taskGraphOps[1].displayName == "Calculate task graph (:${buildName})"
-        taskGraphOps[1].details.buildPath == ":${buildName}"
+        taskGraphOps[1].displayName == "Calculate task graph (:buildB)"
+        taskGraphOps[1].details.buildPath == ":buildB"
         taskGraphOps[1].parentId == treeTaskGraphOps[0].id
 
         def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
@@ -116,25 +126,27 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2
         // Build operations are run in parallel, so can appear in either order
-        [runTasksOps[0].displayName, runTasksOps[1].displayName].sort() == ["Run tasks", "Run tasks (:${buildName})"]
+        [runTasksOps[0].displayName, runTasksOps[1].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[0].parentId == runMainTasks.id
         runTasksOps[1].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 2
-        graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:${buildName})"
-        graphNotifyOps[0].details.buildPath == ":${buildName}"
+        graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:buildB)"
+        graphNotifyOps[0].details.buildPath == ":buildB"
         graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
         graphNotifyOps[1].displayName == 'Notify task graph whenReady listeners'
         graphNotifyOps[1].details.buildPath == ':'
         graphNotifyOps[1].parentId == treeTaskGraphOps[0].id
 
         where:
-        settings                     | buildName | dependencyName | display
-        ""                           | "buildB"  | "buildB"       | "default root project name"
-        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
+        settings                     | dependencyName | display
+        ""                           | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "someLib"      | "configured root project name"
     }
 
+    // Also covered by tests in configuration cache project
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for multiple included builds"() {
         given:
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
@@ -188,6 +200,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[2].parentId == treeTaskGraphOps[0].id
     }
 
+    // Also covered by tests in configuration cache project
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for multiple included builds used as buildscript dependencies"() {
         given:
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
@@ -251,6 +265,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[2].parentId == treeTaskGraphOps[1].id
     }
 
+    // Also covered by tests in configuration cache project
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
         given:
         buildA.buildFile.text = """
@@ -279,6 +295,11 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[1].displayName == "Load build (:buildB)"
         loadOps[1].details.buildPath == ":buildB"
         loadOps[1].parentId == loadOps[0].id
+
+        def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 2
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildB'
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2

@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
@@ -28,7 +29,16 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
-public interface ConfigurationMetadata extends ConfigurationGraphResolveMetadata, VariantArtifactGraphResolveMetadata {
+/**
+ * <p>Note that this type is being replaced by several other interfaces that separate out the data and state required at various stages of dependency resolution.
+ * You should try to use those interfaces instead of using this interface or introduce a new interface that provides a view over this type but exposes only the
+ * data required.
+ * </p>
+ *
+ * @see VariantGraphResolveMetadata
+ * @see ConfigurationGraphResolveMetadata
+ */
+public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetadata, HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      *

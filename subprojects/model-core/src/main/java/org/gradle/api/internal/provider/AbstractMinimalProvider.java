@@ -34,12 +34,13 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
 
     @Override
-    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<>(transformer, this);
+    public <S> ProviderInternal<S> map(final Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer) {
+        // Could do a better job of inferring the type
+        return new TransformBackedProvider<>(null, this, transformer);
     }
 
     @Override
-    public <S> Provider<S> flatMap(final Transformer<? extends Provider<? extends S>, ? super T> transformer) {
+    public <S> Provider<S> flatMap(final Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends S>, ? super T> transformer) {
         return new FlatMapProvider<>(this, transformer);
     }
 

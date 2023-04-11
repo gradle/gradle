@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.problems
 
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.DisplayName
 import kotlin.reflect.KClass
 
@@ -37,6 +36,7 @@ enum class DocumentationSection(val anchor: String) {
     NotYetImplementedSourceDependencies("config_cache:not_yet_implemented:source_dependencies"),
     NotYetImplementedJavaSerialization("config_cache:not_yet_implemented:java_serialization"),
     NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
+    NotYetImplementedBuildServiceInFingerprint("config_cache:not_yet_implemented:build_services_in_fingerprint"),
     RequirementsBuildListeners("config_cache:requirements:build_listeners"),
     RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
     RequirementsExternalProcess("config_cache:requirements:external_processes"),
@@ -104,7 +104,8 @@ sealed class PropertyTrace {
     object Gradle : PropertyTrace()
 
     class BuildLogic(
-        val displayName: DisplayName
+        val source: DisplayName,
+        val lineNumber: Int? = null
     ) : PropertyTrace()
 
     class BuildLogicClass(
@@ -127,6 +128,14 @@ sealed class PropertyTrace {
     class Property(
         val kind: PropertyKind,
         val name: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace() {
+        override val containingUserCode: String
+            get() = trace.containingUserCode
+    }
+
+    class Project(
+        val path: String,
         val trace: PropertyTrace
     ) : PropertyTrace() {
         override val containingUserCode: String
@@ -184,7 +193,11 @@ sealed class PropertyTrace {
                 quoted(trace.type.name)
             }
             is BuildLogic -> {
-                append(trace.displayName.displayName)
+                append(trace.source.displayName)
+                trace.lineNumber?.let {
+                    append(": line ")
+                    append(it)
+                }
             }
             is BuildLogicClass -> {
                 append("class ")
@@ -192,6 +205,11 @@ sealed class PropertyTrace {
             }
             is Unknown -> {
                 append("unknown location")
+            }
+            is Project -> {
+                append("project ")
+                quoted(trace.path)
+                append(" in ")
             }
         }
     }
@@ -218,26 +236,18 @@ sealed class PropertyTrace {
             is Bean -> trace
             is Property -> trace
             is SystemProperty -> trace
+            is Project -> trace
             else -> null
         }
-}
-
-
-fun UserCodeApplicationContext.location(consumer: String?): PropertyTrace {
-    val currentApplication = current()
-    return if (currentApplication != null) {
-        PropertyTrace.BuildLogic(currentApplication.displayName)
-    } else if (consumer != null) {
-        PropertyTrace.BuildLogicClass(consumer)
-    } else {
-        PropertyTrace.Unknown
-    }
 }
 
 
 enum class PropertyKind {
     Field {
         override fun toString() = "field"
+    },
+    PropertyUsage {
+        override fun toString() = "property usage"
     },
     InputProperty {
         override fun toString() = "input property"

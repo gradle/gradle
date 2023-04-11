@@ -22,16 +22,16 @@ Imagine the following dependencies declaration:
 
 .Direct dependency version not matching a transitive version
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 Then by default Gradle would upgrade `commons-lang3`, but it is possible to _fail_ the build:
 
 .Fail on version conflict
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-version-conflict]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/kotlin",files="build.gradle.kts[tags=fail-on-version-conflict]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-version-conflict]"]
 ====
 
 [[reproducible-resolution]]
@@ -50,16 +50,16 @@ However, it is possible to prevent the use of dynamic versions altogether, which
 
 .Failing on dynamic versions
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-dynamic]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/kotlin",files="build.gradle.kts[tags=fail-on-dynamic]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-dynamic]"]
 ====
 
 Likewise, it's possible to prevent the use of changing versions by activating this flag:
 
 .Failing on changing versions
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-changing]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/kotlin",files="build.gradle.kts[tags=fail-on-changing]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-changing]"]
 ====
 
 It's a good practice to fail on changing versions at release time.
@@ -68,8 +68,8 @@ Eventually, it's possible to combine both failing on dynamic versions and changi
 
 .Failing on non-reproducible resolution
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-unstable]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/kotlin",files="build.gradle.kts[tags=fail-on-unstable]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-unstable]"]
 ====
 
 [[resolution_consistency]]
@@ -95,8 +95,8 @@ For example, imagine that your Java library depends on the following libraries:
 
 .First-level dependencies
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 Then resolving the `compileClasspath` configuration would resolve the `groovy` library to version `3.0.1` as expected.
@@ -114,8 +114,8 @@ In the example above, we can declare that we want, at runtime, the same versions
 
 .Declaring consistency between configurations
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=explicit-configuration]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=explicit-configuration]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=explicit-configuration]"]
 ====
 
 As a result, both the `runtimeClasspath` and `compileClasspath` will resolve Groovy 3.0.1.
@@ -136,8 +136,8 @@ To make this easier, Gradle provides a way to configure consistent resolution fo
 
 .Declaring consistency in the Java ecosystem
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=java-convention]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=java-convention]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=java-convention]"]
 ====
 
 Please refer to the link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html[Java Plugin Extension docs] for more configuration options.

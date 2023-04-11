@@ -52,6 +52,17 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    /**
+     * Note that the JUnit XML schema currently does not support both name and display name, so this extra data is effectively ignored for
+     * XML test reports.  See https://github.com/junit-team/junit5/issues/373 for further information.
+     *
+     * This method exists for compatibility purposes, but is equivalent to {@link #assertTestsExecuted(java.lang.String[])}.
+     */
+    @Override
+    TestClassExecutionResult assertTestsExecuted(TestCase... testCases) {
+        return assertTestsExecuted(testCases.collect { it.displayName } as String[])
+    }
+
     TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
         assert testClassNode.@tests == tests
         assert testClassNode.@failures == failures

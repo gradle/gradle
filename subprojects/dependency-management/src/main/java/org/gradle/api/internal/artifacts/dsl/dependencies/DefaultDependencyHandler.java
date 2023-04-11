@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
+import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
@@ -45,6 +46,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -54,9 +56,8 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
@@ -203,6 +204,16 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Nullable
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
+        if (dependencyNotation instanceof ProviderInternal<?>) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
+            if (provider.getType() != null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+                ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
+                for (MinimalExternalModuleDependency dependency : bundle) {
+                    doAddRegularDependency(configuration, dependency, configureClosure);
+                }
+                return null;
+            }
+        }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
@@ -344,8 +355,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     public Dependency enforcedPlatform(Object notation) {
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
-            ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
-            DeprecationLogger.whileDisabled(() -> externalModuleDependency.setForce(true));
+            AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
+            MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
+            constraint.strictly(externalModuleDependency.getVersion());
             platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
         } else if (platformDependency instanceof HasConfigurableAttributes) {
             platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
@@ -368,7 +380,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
         } else if (testFixturesDependency instanceof ModuleDependency) {
             ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
-            moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new ImmutableCapability(
+            moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(
                 moduleDependency.getGroup(),
                 moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
                 null)));
@@ -441,7 +453,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
         @Override
         public void testFixtures() {
-            this.capabilitiesMutator = capabilities -> capabilities.requireCapability(new ImmutableCapability(dep.getModule().getGroup(), dep.getModule().getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+            this.capabilitiesMutator = capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(dep.getModule().getGroup(), dep.getModule().getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
         }
 
         @Override

@@ -19,13 +19,13 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.hash.ChecksumService;
@@ -37,12 +37,12 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
-    private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
+    private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
 
     public PersistentModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
-                                         ArtifactCacheLockingManager artifactCacheLockingManager,
+                                         ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
                                          ArtifactCacheMetadata artifactCacheMetadata,
                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                          AttributeContainerSerializer attributeContainerSerializer,
@@ -53,23 +53,23 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
                                          ChecksumService checksumService) {
         super(timeProvider);
         moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(checksumService, artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), moduleIdentifierFactory, stringInterner);
-        this.artifactCacheLockingManager = artifactCacheLockingManager;
+        this.artifactCacheLockingManager = cacheAccessCoordinator;
     }
 
-    private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
+    private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
         return cache;
     }
 
-    private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> initCache() {
+    private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> initCache() {
         return artifactCacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
     }
 
     @Override
     protected CachedMetadata get(ModuleComponentAtRepositoryKey key) {
-        final PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
+        final IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
         return artifactCacheLockingManager.useCache(() -> {
             ModuleMetadataCacheEntry entry = cache.getIfPresent(key);
             if (entry == null) {

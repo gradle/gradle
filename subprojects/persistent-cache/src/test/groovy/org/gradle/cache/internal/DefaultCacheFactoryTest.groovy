@@ -17,6 +17,7 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
@@ -202,6 +203,56 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         IllegalStateException e = thrown()
         e.message == "Cache '${tmpDir.testDirectory}' is already open with different lock target."
+
+        cleanup:
+        factory.close()
+    }
+
+    void "can visit all caches created by factory"() {
+        def visited = [] as Set
+
+        when:
+        factory.open(tmpDir.testDirectory.file('foo'), "foo", [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
+        factory.open(tmpDir.testDirectory.file('bar'), "bar", [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
+        factory.open(tmpDir.testDirectory.file('baz'), "baz", [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
+
+        and:
+        factory.visitCaches(new CacheVisitor() {
+            @Override
+            void visit(PersistentCache cache) {
+                visited << cache.displayName.split(' ')[0]
+            }
+        })
+
+        then:
+        visited.containsAll(['foo', 'bar', 'baz'])
+
+        cleanup:
+        factory.close()
+    }
+
+    void "does not visit caches that have been closed"() {
+        def visited = [] as Set
+
+        when:
+        factory.open(tmpDir.testDirectory.file('foo'), "foo", [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
+        def bar = factory.open(tmpDir.testDirectory.file('bar'), "bar", [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
+        factory.open(tmpDir.testDirectory.file('baz'), "baz", [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
+
+        and:
+        bar.close()
+
+        and:
+        factory.visitCaches(new CacheVisitor() {
+            @Override
+            void visit(PersistentCache cache) {
+                visited << cache.displayName.split(' ')[0]
+            }
+        })
+
+        then:
+        visited.containsAll(['foo', 'baz'])
+        ! visited.contains('bar')
 
         cleanup:
         factory.close()

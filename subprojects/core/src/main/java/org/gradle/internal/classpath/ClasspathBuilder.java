@@ -17,8 +17,8 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.hash.Hashing;
-import org.apache.tools.zip.ZipEntry;
-import org.apache.tools.zip.ZipOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -63,7 +63,7 @@ public class ClasspathBuilder {
         File tmpFile = temporaryFileProvider.createTemporaryFile(jarFile.getName(), ".tmp");
         try {
             Files.createDirectories(parentDir.toPath());
-            try (ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile), BUFFER_SIZE))) {
+            try (ZipArchiveOutputStream outputStream = new ZipArchiveOutputStream(new BufferedOutputStream(new FileOutputStream(tmpFile), BUFFER_SIZE))) {
                 outputStream.setLevel(0);
                 action.execute(new ZipEntryBuilder(outputStream));
             }
@@ -85,31 +85,31 @@ public class ClasspathBuilder {
     }
 
     private static class ZipEntryBuilder implements EntryBuilder {
-        private final ZipOutputStream outputStream;
+        private final ZipArchiveOutputStream outputStream;
         private final Set<String> dirs = new HashSet<>();
 
-        public ZipEntryBuilder(ZipOutputStream outputStream) {
+        public ZipEntryBuilder(ZipArchiveOutputStream outputStream) {
             this.outputStream = outputStream;
         }
 
         @Override
         public void put(String name, byte[] content, CompressionMethod compressionMethod) throws IOException {
             maybeAddParent(name);
-            ZipEntry zipEntry = newZipEntryWithFixedTime(name);
+            ZipArchiveEntry zipEntry = newZipEntryWithFixedTime(name);
             configureCompression(zipEntry, compressionMethod, content);
             outputStream.setEncoding("UTF-8");
-            outputStream.putNextEntry(zipEntry);
+            outputStream.putArchiveEntry(zipEntry);
             outputStream.write(content);
-            outputStream.closeEntry();
+            outputStream.closeArchiveEntry();
         }
 
         private void maybeAddParent(String name) throws IOException {
             String dir = dir(name);
             if (dir != null && dirs.add(dir)) {
                 maybeAddParent(dir);
-                ZipEntry zipEntry = newZipEntryWithFixedTime(dir);
-                outputStream.putNextEntry(zipEntry);
-                outputStream.closeEntry();
+                ZipArchiveEntry zipEntry = newZipEntryWithFixedTime(dir);
+                outputStream.putArchiveEntry(zipEntry);
+                outputStream.closeArchiveEntry();
             }
         }
 
@@ -126,17 +126,17 @@ public class ClasspathBuilder {
             }
         }
 
-        private ZipEntry newZipEntryWithFixedTime(String name) {
-            ZipEntry entry = new ZipEntry(name);
+        private ZipArchiveEntry newZipEntryWithFixedTime(String name) {
+            ZipArchiveEntry entry = new ZipArchiveEntry(name);
             entry.setTime(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
             return entry;
         }
 
-        private void configureCompression(ZipEntry entry, CompressionMethod compressionMethod, byte[] contents) {
+        private void configureCompression(ZipArchiveEntry entry, CompressionMethod compressionMethod, byte[] contents) {
             if (shouldCompress(compressionMethod)) {
-                entry.setMethod(ZipEntry.DEFLATED);
+                entry.setMethod(ZipArchiveEntry.DEFLATED);
             } else {
-                entry.setMethod(ZipEntry.STORED);
+                entry.setMethod(ZipArchiveEntry.STORED);
                 // A stored ZipEntry requires setting size and CRC32 upfront.
                 // See https://stackoverflow.com/q/1206970.
                 entry.setSize(contents.length);

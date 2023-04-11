@@ -1,0 +1,13 @@
+plugins {
+    id("java-gradle-plugin")
+}
+
+
+gradlePlugin {
+    plugins {
+        soundPlugin {
+            id = "org.gradle.sample.sound-feedback-plugin"
+            implementationClass = "org.gradle.sample.sound.SoundFeedbackPlugin"
+        }
+    }
+}

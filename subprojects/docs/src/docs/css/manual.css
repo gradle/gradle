@@ -1119,6 +1119,11 @@ body.book #header > h1 {
     padding: 1em 1em 0;
 }
 
+.exampleblock > .title > a {
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.8);
+}
+
 .exampleblock .listingblock {
     margin: 0;
 }
@@ -1504,7 +1509,6 @@ div.screenshot {
 /* Side Navigation styles */
 /* Docs Navigation */
 .docs-navigation {
-    display: none;
     padding-left: 5px;
     padding: 20px 20px 20px 26px;
     background: #f8f8f7;
@@ -1666,8 +1670,7 @@ div.screenshot {
 }
 
 .docs-navigation a.active {
-    text-decoration: underline;
-    color: #06A0CE; 
+    color: #06A0CE;
     outline: 0;
     border: none;
     -moz-outline-style: none;
@@ -1748,7 +1751,6 @@ div.screenshot {
 /* User guide navigation appears for desktops */
 @media screen and (min-width: 64rem) {
     .docs-navigation {
-        display: block;
         flex: 0 0 auto;
         width: 13.75rem;
     }
@@ -1758,6 +1760,34 @@ div.screenshot {
     .main-content > .chapter {
         flex: 0 0 auto;
         margin: 0 auto;
+    }
+}
+
+/**
+ * For mobile devices, we show navigation at bottom of page.
+ *
+ * This is the simplest solution to this issue.
+ */
+@media not screen and (min-width: 64rem) {
+    /* Repeat the class twice to prioritize our mobile classes! */
+
+    .content.content {
+        /* Make the height equal to
+           the real height of content */
+        overflow: visible;
+    }
+
+    .main-content {
+        /* Main content show first */
+        flex-direction: column-reverse;
+    }
+
+    .docs-navigation.docs-navigation {
+        /* Fill the main container */
+        width: 100%;
+
+        /* Don't clip the navigation container */
+        overflow: visible;
     }
 }
 
@@ -1804,7 +1834,14 @@ div.screenshot {
     padding: 30px 12px;
     max-width: 62.5rem;
     margin: 0 auto;
-    padding-left: 5rem
+    padding-left: 5rem;
+}
+
+@media not screen and (min-width: 64rem) {
+    .site-footer__navigation {
+        /* same to nav.docs-navigation for mobiles */
+        padding: 20px 20px 20px 26px;
+    }
 }
 
 .site-footer__links {

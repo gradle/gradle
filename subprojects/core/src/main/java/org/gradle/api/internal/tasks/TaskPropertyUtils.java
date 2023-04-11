@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 @NonNullApi
@@ -28,6 +29,8 @@ public class TaskPropertyUtils {
      * Visits both properties declared via annotations on the properties of the task type as well as
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
+    // TODO Move this to some test fixture like TaskPropertyTestUtils
+    @VisibleForTesting
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, PropertyVisitor visitor) {
         visitProperties(propertyWalker, task, TypeValidationContext.NOOP, visitor);
     }
@@ -39,22 +42,19 @@ public class TaskPropertyUtils {
      * Reports errors and warnings to the given validation context.
      */
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
-        propertyWalker.visitProperties(task, validationContext, visitor);
+        visitAnnotatedProperties(propertyWalker, task, validationContext, visitor);
+        visitRegisteredProperties(task, visitor);
+    }
+
+    private static void visitRegisteredProperties(TaskInternal task, PropertyVisitor visitor) {
         task.getInputs().visitRegisteredProperties(visitor);
         task.getOutputs().visitRegisteredProperties(visitor);
         ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(visitor);
         ((TaskLocalStateInternal) task.getLocalState()).visitRegisteredProperties(visitor);
+        // build services declared via Task#usesService are not visited as there is no use case for that
     }
 
-    /**
-     * Checks if the given string can be used as a property name.
-     *
-     * @throws IllegalArgumentException if given name is an empty string.
-     */
-    public static String checkPropertyName(String propertyName) {
-        if (propertyName.isEmpty()) {
-            throw new IllegalArgumentException("Property name must not be empty string");
-        }
-        return propertyName;
+    static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
+        propertyWalker.visitProperties(task, validationContext, visitor);
     }
 }

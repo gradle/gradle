@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.server.health.gc
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
@@ -24,7 +25,7 @@ import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
+import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy
 
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE
@@ -34,12 +35,24 @@ import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WI
 @MultiVersionTestCategory
 class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     static def version
+    static final String MEMORY_URL = new DocumentationRegistry().getDocumentationFor("build_environment", "sec:configuring_jvm_memory")
     GarbageCollectorUnderTest garbageCollector
 
     def setup() {
         garbageCollector = version
         executer.withBuildJvmOpts(garbageCollector.configuration.jvmArgs.split(" "))
-        executer.withEnvironmentVars(JAVA_TOOL_OPTIONS: "-D${DefaultGarbageCollectionMonitor.DISABLE_POLLING_SYSTEM_PROPERTY}=true -D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true")
+        executer.withEnvironmentVars(JAVA_TOOL_OPTIONS: "-D${DefaultGarbageCollectionMonitor.DISABLE_POLLING_SYSTEM_PROPERTY}=true")
+    }
+
+    def "does not expire daemon when performance monitoring is disabled"() {
+        given:
+        configureGarbageCollectionHeapEventsFor(256, 512, 35, garbageCollector.monitoringStrategy.gcRateThreshold + 0.2)
+
+        when:
+        run "injectEvents", "-D${HealthExpirationStrategy.ENABLE_PERFORMANCE_MONITORING}=false"
+
+        then:
+        !daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
     }
 
     def "expires daemon when heap leaks slowly"() {
@@ -54,6 +67,13 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
+        output.contains("""The Daemon will expire after the build after running out of JVM heap space.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The daemon will restart for the next build, which may increase subsequent build times.
+These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
+The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
+For more information on how to set these values, visit the user guide at ${MEMORY_URL}
+To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.""")
     }
 
     def "expires daemon immediately when garbage collector is thrashing"() {
@@ -70,13 +90,21 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         fails "injectEvents"
 
         then:
-        failure.assertHasDescription("Gradle build daemon has been stopped: JVM garbage collector thrashing and after running out of JVM memory")
+        failure.assertHasDescription("Gradle build daemon has been stopped: since the JVM garbage collector is thrashing")
 
         and:
         daemons.daemon.stops()
 
         and:
         daemons.daemon.log.contains(DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
+        // We do not check the regular build output since sometimes it is not written before the daemon is killed.
+        daemons.daemon.log.contains("""The Daemon will expire immediately since the JVM garbage collector is thrashing.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The memory settings for this project must be adjusted to avoid this failure.
+These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
+The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
+For more information on how to set these values, visit the user guide at ${MEMORY_URL}
+To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.""")
     }
 
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
@@ -106,6 +134,13 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
+        output.contains("""The Daemon will expire after the build after running out of JVM heap space.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The daemon will restart for the next build, which may increase subsequent build times.
+These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
+The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
+For more information on how to set these values, visit the user guide at ${MEMORY_URL}
+To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.""")
     }
 
     def "expires daemon when metaspace leaks"() {
@@ -120,6 +155,13 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
+        output.contains("""The Daemon will expire after the build after running out of JVM Metaspace.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The daemon will restart for the next build, which may increase subsequent build times.
+These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
+The currently configured max heap space is 'unknown' and the configured max metaspace is '512 MiB'.
+For more information on how to set these values, visit the user guide at ${MEMORY_URL}
+To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.""")
     }
 
     def "does not expire daemon when leak does not consume heap threshold"() {
@@ -131,6 +173,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         daemons.daemon.becomesIdle()
+        !output.contains("The Daemon will expire")
     }
 
     def "does not expire daemon when leak does not cause excessive garbage collection"() {
@@ -142,6 +185,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         daemons.daemon.becomesIdle()
+        !output.contains("The Daemon will expire")
     }
 
     def "does not expire daemon when leak does not consume metaspace threshold"() {
@@ -153,6 +197,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         daemons.daemon.becomesIdle()
+        !output.contains("The Daemon will expire")
     }
 
     void configureGarbageCollectionHeapEventsFor(long initial, long max, long leakRate, double gcRate) {

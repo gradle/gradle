@@ -19,9 +19,12 @@ package org.gradle.api.tasks.diagnostics
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
+import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def jvmVersion = JavaVersion.current().majorVersion
@@ -36,7 +39,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
 
     def "requires use of configuration flag if Java plugin isn't applied"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -62,7 +65,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java'
 
             repositories {
@@ -92,7 +95,7 @@ No dependencies matching given input were found in configuration ':compileClassp
         mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java'
 
             repositories {
@@ -124,7 +127,7 @@ No dependencies matching given input were found in configuration ':conf'
 
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -183,7 +186,7 @@ org:leaf2:1.0
 
         mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -240,7 +243,7 @@ org:leaf2:1.5 -> 2.5
             def c = module('org', 'c').dependsOn(a).publish()
             def d = module('org', 'd').dependsOn(leaf).publish()
         }
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -300,6 +303,8 @@ org:leaf:1.0
 """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24356")
+    @ToBeFixedForConfigurationCache(because = "ResolutionErrorRenderer is not CC compatible")
     def "displays information about conflicting modules when failOnVersionConflict is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -320,7 +325,7 @@ org:leaf:1.0
 
         mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -339,7 +344,7 @@ org:leaf:1.0
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
+        outputContains """Dependency resolution failed because of conflict on the following module:
    - org:leaf2 between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
@@ -371,6 +376,8 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24356")
+    @ToBeFixedForConfigurationCache(because = "ResolutionErrorRenderer is not CC compatible")
     def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -391,7 +398,7 @@ org:leaf2:1.5 -> 2.5
 
         mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -414,7 +421,7 @@ org:leaf2:1.5 -> 2.5
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
+        outputContains """Dependency resolution failed because of conflict on the following module:
    - org:leaf2 between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
@@ -564,7 +571,7 @@ org:foo:1.+ FAILED
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -633,50 +640,6 @@ org:leaf:2.0 -> 1.0
 """
     }
 
-    def "shows forced dynamic version"() {
-        given:
-        mavenRepo.module("org", "leaf", "1").publish()
-        mavenRepo.module("org", "leaf", "2").publish()
-        mavenRepo.module("org", "leaf", "3").publish()
-
-        file("build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:leaf:[1,2]') {
-                    because 'testing stuff'
-                    force true
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        run "dependencyInsight", "--configuration", "conf", "--dependency", "leaf"
-
-        then:
-        outputContains """
-org:leaf:2
-  Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-   Selection reasons:
-      - Was requested: didn't match version 3 because testing stuff
-      - Forced
-
-org:leaf:[1,2] -> 2
-\\--- conf
-"""
-    }
-
     def "shows multiple outgoing dependencies"() {
         given:
         ivyRepo.module("org", "leaf", "1.0").publish()
@@ -691,7 +654,7 @@ org:leaf:[1,2] -> 2
             .dependsOn("org", "middle", "latest.integration")
             .publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 ivy { url "${ivyRepo.uri}" }
             }
@@ -742,7 +705,7 @@ org:leaf:latest.integration -> 1.0
         given:
         mavenRepo.module("org", "bar", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -806,7 +769,7 @@ org:foo:1.0 -> org:bar:2.0
         mavenRepo.module("org.test", "bar", "2.0").publish()
         mavenRepo.module("org", "baz", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -892,7 +855,7 @@ org:foo:1.0 -> 2.0
         mavenRepo.module("org", "bar", "1.0").publish()
         mavenRepo.module("org", "baz", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -955,7 +918,7 @@ org:foo:1.0 -> org:bar:1.0
         mavenRepo.module("org", "foo", "2.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1008,7 +971,7 @@ org:leaf:2.0 -> org:new-leaf:77
         mavenRepo.module("org", "bar", "1.0").publish()
         mavenRepo.module("org", "bar", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1073,7 +1036,7 @@ org:foo:1.0 -> 2.0
             .dependsOn("org", "leaf", "1.+")
             .publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 ivy { url "${ivyRepo.uri}" }
             }
@@ -1123,7 +1086,7 @@ org:leaf:latest.integration -> 1.6
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1174,7 +1137,7 @@ org:leaf:1.0 -> 2.0
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1216,66 +1179,12 @@ org:leaf:2.0 -> 1.5
 """
     }
 
-    def "forced version at dependency level"() {
-        given:
-        mavenRepo.module("org", "leaf", "1.0").publish()
-        mavenRepo.module("org", "leaf", "2.0").publish()
-
-        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
-
-        file("build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf 'org:foo:1.0', 'org:bar:1.0'
-                conf('org:leaf:1.0') {
-                  force = true
-                }
-            }
-            task insight(type: DependencyInsightReportTask) {
-                showingAllVariants = false
-                configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        run "insight"
-
-        then:
-        outputContains """
-org:leaf:1.0 (forced)
-  Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-
-org:leaf:1.0
-+--- conf
-\\--- org:foo:1.0
-     \\--- conf
-
-org:leaf:2.0 -> 1.0
-\\--- org:bar:1.0
-     \\--- conf
-"""
-    }
-
     def "forced version combined with constraint"() {
         given:
         mavenRepo.module("org", "leaf", "2.0").publish()
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1324,7 +1233,7 @@ org:leaf:1.4 -> 2.0
 
     def "shows decent failure when inputs missing"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 setDependencySpec { it.requested.module == 'leaf2' }
@@ -1340,7 +1249,7 @@ org:leaf:1.4 -> 2.0
 
     def "informs that there are no dependencies"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             configurations {
                 conf
             }
@@ -1362,7 +1271,7 @@ org:leaf:1.4 -> 2.0
         given:
         mavenRepo.module("org", "top").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1390,7 +1299,7 @@ org:leaf:1.4 -> 2.0
         given:
         mavenRepo.module("org", "top").dependsOnModules("middle").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1423,7 +1332,7 @@ org:middle:1.0 FAILED
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
         mavenRepo.module("org", "middle", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1453,7 +1362,7 @@ org:middle:1.0 FAILED
       - Could not find org:middle:2.0.
         Searched in the following locations:
           - ${mavenRepoURL}/org/middle/2.0/middle-2.0.pom
-        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
+        ${repositoryHint("Maven POM")}
 
 org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
@@ -1466,7 +1375,7 @@ org:middle:1.0 -> 2.0 FAILED
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
         mavenRepo.module("org", "middle", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1503,7 +1412,7 @@ org:middle:1.0 -> 2.0 FAILED
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
         mavenRepo.module("org", "middle", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1550,7 +1459,7 @@ org:middle:1.0 -> 2.0+ FAILED
             .dependsOn("org", "leaf", "1.6+")
             .publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 ivy { url "${ivyRepo.uri}" }
             }
@@ -1577,7 +1486,7 @@ org:leaf:1.0 FAILED
       - Could not find org:leaf:1.0.
         Searched in the following locations:
           - ${ivyRepoURL}/org/leaf/1.0/ivy-1.0.xml
-        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
+        ${repositoryHint("ivy.xml")}
 
 org:leaf:1.0 FAILED
 \\--- org:top:1.0
@@ -1605,9 +1514,9 @@ org:leaf:[1.5,2.0] FAILED
 
     void "marks project dependencies that cannot be resolved as 'FAILED'"() {
         given:
-        file("settings.gradle") << "include 'A', 'B', 'C'; rootProject.name='root'"
+        settingsFile << "include 'A', 'B', 'C'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             configurations.create('conf')
             dependencies {
               conf project(':A')
@@ -1656,7 +1565,7 @@ project :C FAILED
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf1").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1696,9 +1605,9 @@ org:leaf2:1.0
 
     def "deals with dependency cycle to root"() {
         given:
-        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+        settingsFile << "include 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1759,9 +1668,9 @@ project :
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
-        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+        settingsFile << "include 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1815,9 +1724,9 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
-        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+        settingsFile << "include 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1851,7 +1760,6 @@ project :impl
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.category            | library  | library      |
-    | org.gradle.compile-view        | java-api | java-api     |
     | org.gradle.dependency.bundling | external | external     |
     | org.gradle.jvm.version         | ${jvmVersion.padRight("java-api".length())} | ${jvmVersion.padRight("standard-jvm".length())} |
     | org.gradle.libraryelements     | jar      | classes      |
@@ -1870,9 +1778,9 @@ project :impl
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+        settingsFile << "include 'api', 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1904,16 +1812,15 @@ project :impl
         outputContains """
 org:leaf4:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
 org:leaf4:1.0
 \\--- project :impl
@@ -1926,7 +1833,7 @@ org:leaf4:1.0
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
                 apply plugin: 'java-library'
                 repositories {
                     maven { url "${mavenRepo.uri}" }
@@ -1944,16 +1851,15 @@ org:leaf4:1.0
         outputContains """
 org:leaf1:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
 org:leaf1:1.0
 \\--- compileClasspath
@@ -1966,16 +1872,15 @@ org:leaf1:1.0
         outputContains """
 org:leaf2:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
 org:leaf2:1.0
 \\--- compileClasspath
@@ -1989,9 +1894,9 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        file("settings.gradle") << "include 'api', 'impl', 'some:deeply:nested'; rootProject.name='root'"
+        settingsFile << "include 'api', 'impl', 'some:deeply:nested'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -2032,7 +1937,6 @@ project :api
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.category            | library  | library      |
-    | org.gradle.compile-view        | java-api | java-api     |
     | org.gradle.dependency.bundling | external | external     |
     | org.gradle.jvm.version         | ${jvmVersion.padRight("java-api".length())} | ${jvmVersion.padRight("standard-jvm".length())} |
     | org.gradle.libraryelements     | jar      | classes      |
@@ -2054,7 +1958,6 @@ project :some:deeply:nested
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.category            | library  | library      |
-    | org.gradle.compile-view        | java-api | java-api     |
     | org.gradle.dependency.bundling | external | external     |
     | org.gradle.jvm.version         | ${jvmVersion.padRight("java-api".length())} | ${jvmVersion.padRight("standard-jvm".length())} |
     | org.gradle.libraryelements     | jar      | classes      |
@@ -2075,7 +1978,6 @@ project :some:deeply:nested
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.category            | library  | library      |
-    | org.gradle.compile-view        | java-api | java-api     |
     | org.gradle.dependency.bundling | external | external     |
     | org.gradle.jvm.version         | ${jvmVersion.padRight("java-api".length())} | ${jvmVersion.padRight("standard-jvm".length())} |
     | org.gradle.libraryelements     | jar      | classes      |
@@ -2093,9 +1995,9 @@ project :some:deeply:nested
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
-        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+        settingsFile << "include 'api', 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -2127,16 +2029,15 @@ project :some:deeply:nested
         outputContains """
 org:leaf3:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
 org:leaf3:1.0
 \\--- org:leaf2:1.0
@@ -2153,7 +2054,7 @@ org:leaf3:1.0
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
@@ -2173,9 +2074,7 @@ org:leaf3:1.0
 
         then:
         failure.assertHasCause("Resolving dependency configuration 'api' is not allowed as it is defined as 'canBeResolved=false'.")
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertHasFailures(2)
-        }
+        failure.assertHasFailures(1)
 
         when:
         run "dependencyInsight", "--dependency", "foo", "--configuration", "compile"
@@ -2216,7 +2115,7 @@ foo:foo:1.0
         mavenRepo.module("org", "foo", "1.5").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2239,16 +2138,15 @@ foo:foo:1.0
         then:
         outputContains """org:foo:$selected
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - By constraint: $rejected
 
@@ -2272,7 +2170,7 @@ org:foo -> $selected
         mavenRepo.module("org", "foo", "1.5").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2296,16 +2194,15 @@ org:foo -> $selected
         then:
         outputContains """org:foo:$selected
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - By constraint: ${rejected}${reason}
 
@@ -2329,7 +2226,7 @@ org:foo -> $selected
         mavenRepo.module("org", "foo", "1.5").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2350,16 +2247,15 @@ org:foo -> $selected
         then:
         outputContains """org:foo:$selected
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Was requested: ${rejected}${reason}
 
@@ -2383,7 +2279,7 @@ org:foo:${displayVersion} -> $selected
         mavenRepo.module("org", "foo", "1.5").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.1,1.3]').publish()
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2402,16 +2298,15 @@ org:foo:${displayVersion} -> $selected
         then:
         outputContains """org:foo:1.3
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Was requested: didn't match versions 2.0, 1.5, 1.4
 
@@ -2431,7 +2326,7 @@ org:foo:[1.1,1.3] -> 1.3
         mavenRepo.module("org", "bar", "1.1").publish()
         mavenRepo.module("org", "bar", "1.2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2460,16 +2355,15 @@ org:foo:[1.1,1.3] -> 1.3
         then:
         outputContains """org:bar:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Was requested: rejected versions 1.2, 1.1
 
@@ -2478,16 +2372,15 @@ org:bar:{require [1.0,); reject [1.1, 1.2]} -> 1.0
 
 org:foo:1.1
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Was requested: rejected version 1.2
 
@@ -2505,7 +2398,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
         mavenRepo.module("org", "bar", "1.1").publish()
         mavenRepo.module("org", "bar", "1.2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2540,16 +2433,15 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
         outputContains """Task :dependencyInsight
 org:bar:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Rejection: 1.2 by rule because version 1.2 is bad
       - Rejection: 1.1 by rule because version 1.1 is bad
@@ -2559,16 +2451,15 @@ org:bar:[1.0,) -> 1.0
 
 org:foo:1.1
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Was requested: rejected version 1.2
 
@@ -2585,7 +2476,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
         bom.dependencyConstraint(leaf)
         bom.publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2605,16 +2496,15 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
         outputContains """
 org:leaf:1.0 (by constraint)
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
 org:leaf:1.0
 \\--- org:bom:1.0
@@ -2640,7 +2530,7 @@ org:leaf -> 1.0
 
         }
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2659,16 +2549,15 @@ org:leaf -> 1.0
         outputContains """
 org.test:leaf:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Was requested: first reason
 
@@ -2687,7 +2576,7 @@ org.test:leaf:1.0
 
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -2724,7 +2613,7 @@ org:leaf2:1.0
 |         \\--- conf
 \\--- org:top:1.0 (*)
 
-(*) - dependencies omitted (listed previously)
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 
 A web-based, searchable dependency report is available by adding the --scan option.
 """
@@ -2740,7 +2629,7 @@ A web-based, searchable dependency report is available by adding the --scan opti
         mavenRepo.module("org", "bar", "1.2").publish()
 
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2816,7 +2705,7 @@ org:foo:[1.0,) FAILED
         mavenRepo.module("org", "foo", "1.2").publish()
 
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2846,16 +2735,15 @@ org:foo:[1.0,) FAILED
         outputContains """
 org:foo:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - By constraint
       - Was requested: rejected versions 1.2, 1.1
@@ -2884,7 +2772,7 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
                 .publish()
         }
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2903,16 +2791,15 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
         then:
         outputContains """org.test:leaf:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Was requested: first reason
       - Was requested: transitive reason
@@ -2937,7 +2824,7 @@ org.test:leaf:1.0
                     }
                 }"""
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             def COLOR = Attribute.of('color', String)
@@ -2969,22 +2856,20 @@ org.test:leaf:1.0
         outputContains """Task :dependencyInsight
 org:foo:1.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | color                          | blue          | blue         |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | color                          | blue     | blue         |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - Rejection: version 1.2:
           - Attribute 'color' didn't match. Requested 'blue', was: 'red'
           - Attribute 'org.gradle.category' didn't match. Requested 'library', was: not found
-          - Attribute 'org.gradle.compile-view' didn't match. Requested 'java-api', was: not found
           - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
           - Attribute 'org.gradle.jvm.environment' didn't match. Requested 'standard-jvm', was: not found
           - Attribute 'org.gradle.jvm.version' didn't match. Requested '${JavaVersion.current().majorVersion}', was: not found
@@ -2993,7 +2878,6 @@ org:foo:1.0
       - Rejection: version 1.1:
           - Attribute 'color' didn't match. Requested 'blue', was: 'green'
           - Attribute 'org.gradle.category' didn't match. Requested 'library', was: not found
-          - Attribute 'org.gradle.compile-view' didn't match. Requested 'java-api', was: not found
           - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
           - Attribute 'org.gradle.jvm.environment' didn't match. Requested 'standard-jvm', was: not found
           - Attribute 'org.gradle.jvm.version' didn't match. Requested '${JavaVersion.current().majorVersion}', was: not found
@@ -3034,7 +2918,7 @@ org:foo:[1.0,) -> 1.0
             module('planet', 'pluto', '1.0.0').publish()
         }
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -3055,16 +2939,15 @@ org:foo:[1.0,) -> 1.0
         outputContains """> Task :dependencyInsight
 planet:mercury:1.0.2
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - By conflict resolution: between versions 1.0.2 and 1.0.1
 
@@ -3088,16 +2971,15 @@ planet:mercury:1.0.1 -> 1.0.2
         outputContains """> Task :dependencyInsight
 planet:venus:2.0.1
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - By conflict resolution: between versions 2.0.1, 2.0.0 and 1.0
 
@@ -3121,16 +3003,15 @@ planet:venus:2.0.0 -> 2.0.1
         outputContains """> Task :dependencyInsight
 planet:pluto:1.0.0
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
 planet:pluto:1.0.0
 \\--- planet:mercury:1.0.2
@@ -3172,16 +3053,15 @@ planet:pluto:1.0.0
         outputContains("""> Task :dependencyInsight
 org:foo:1.5
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | ${jvmVersion.padRight("standard-jvm".length())} |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
       - By constraint
       - By ancestor

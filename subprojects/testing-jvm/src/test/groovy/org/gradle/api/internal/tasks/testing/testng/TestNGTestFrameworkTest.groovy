@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.testing.Test
@@ -45,7 +44,6 @@ public class TestNGTestFrameworkTest extends Specification {
 
         then:
         processor instanceof TestNGTestClassProcessor
-        framework.testTaskPath == testTask.path
         framework.detector
     }
 
@@ -60,6 +58,6 @@ public class TestNGTestFrameworkTest extends Specification {
     }
 
     TestNGTestFramework createFramework() {
-        new TestNGTestFramework(testTask, Stub(FileCollection), new DefaultTestFilter(), objects)
+        new TestNGTestFramework(testTask, new DefaultTestFilter(), objects)
     }
 }

@@ -27,7 +27,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -213,7 +213,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import ${DefaultModuleIdentifier.name}
             import ${DefaultModuleVersionIdentifier.name}
             import ${DefaultModuleComponentIdentifier.name}
-            import ${ImmutableCapability.name}
+            import ${DefaultImmutableCapability.name}
             import ${DefaultModuleComponentArtifactIdentifier.name}
             import ${ImmutableAttributesFactory.name}
             import ${DefaultResolvedVariantResult.name}
@@ -265,10 +265,10 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         // For ResolvedArtifactResult
         "Attribute"                    | "Attribute.of(System.getProperty('n'), String)"
         "AttributeContainer"           | "services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n'))"
-        "Capability"                   | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
+        "Capability"                   | "new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')"
         "ModuleComponentIdentifier"    | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
         "ComponentArtifactIdentifier"  | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
-        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
+        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
         // For ResolvedComponentResult
         "ModuleVersionIdentifier"      | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
 //        "ResolvedComponentResult"      | "null"
@@ -649,7 +649,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             if (Boolean.getBoolean("externalDependency")) {
                 dependencies { implementation 'org.external:external-tool:1.0' }
             }
-            configurations.runtimeClasspath.returnAllVariants = true
+            configurations.runtimeClasspath.resolutionStrategy.returnAllVariants = true
         """
 
         when: "Task without changes is executed & not skipped"

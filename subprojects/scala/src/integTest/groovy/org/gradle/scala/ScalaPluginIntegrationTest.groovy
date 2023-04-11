@@ -16,22 +16,28 @@
 package org.gradle.scala
 
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 
-class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
+
+@TargetCoverage({ ScalaCoverage.LATEST_IN_MAJOR })
+class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
+
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
     def "can apply scala plugin"() {
         file("build.gradle") << """
-apply plugin: "scala"
+            apply plugin: "scala"
 
-task someTask
-"""
+            task someTask
+        """
 
         expect:
         succeeds("someTask")
@@ -50,7 +56,7 @@ task someTask
                 ${mavenCentralRepository()}
                 plugins.withId("scala") {
                     dependencies {
-                        implementation("org.scala-lang:scala-library:2.12.6")
+                        implementation("${scalaDependency(version.toString())}")
                     }
                 }
             }
@@ -75,6 +81,7 @@ task someTask
         """
 
         expect:
+        executer.noDeprecationChecks()
         succeeds(":a:classes", "--parallel")
         true
     }
@@ -94,7 +101,7 @@ task someTask
             project(":scala") {
                 apply plugin: 'scala'
                 dependencies {
-                    implementation("org.scala-lang:scala-library:2.12.6")
+                    implementation("${scalaDependency(version.toString())}")
                     implementation(project(":java").sourceSets.main.output)
                 }
             }
@@ -139,7 +146,7 @@ task someTask
                 apply plugin: 'scala'
 
                 dependencies {
-                    implementation("org.scala-lang:scala-library:2.12.6")
+                    implementation("${scalaDependency(version.toString())}")
                 }
             }
         """
@@ -162,7 +169,7 @@ task someTask
                 apply plugin: 'scala'
 
                 dependencies {
-                    implementation("org.scala-lang:scala-library:2.12.6")
+                    implementation("${scalaDependency(version.toString())}")
                 }
             }
             project(":war") {
@@ -186,6 +193,7 @@ task someTask
     }
 
     def "forcing an incompatible version of Scala fails with a clear error message"() {
+        def fixedScalaVersion = "2.10.7"
         settingsFile << """
             rootProject.name = "scala"
         """
@@ -197,7 +205,7 @@ task someTask
                 implementation("org.scala-lang:scala-library")
             }
             configurations.all {
-                resolutionStrategy.force "org.scala-lang:scala-library:2.10.7"
+                resolutionStrategy.force "org.scala-lang:scala-library:${fixedScalaVersion}"
             }
         """
         file("src/main/scala/Foo.scala") << """
@@ -208,7 +216,7 @@ task someTask
 
         then:
         def expectedMessage = "The version of 'scala-library' was changed while using the default Zinc version." +
-            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.13:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
+            " Version ${fixedScalaVersion} is not compatible with org.scala-sbt:zinc_2.13:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
         failureHasCause(expectedMessage)
     }
 
@@ -223,7 +231,7 @@ task someTask
 
             dependencies {
                 zinc("com.typesafe.zinc:zinc:0.3.6")
-                implementation("org.scala-lang:scala-library:2.12.6")
+                implementation("${scalaDependency(version.toString())}")
             }
         """
         file("src/main/scala/Foo.scala") << """
@@ -262,7 +270,7 @@ task someTask
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation('org.scala-lang:scala-library:2.12.6')
+                implementation("${scalaDependency(version.toString())}")
             }
 
             tasks.withType(AbstractScalaCompile) {

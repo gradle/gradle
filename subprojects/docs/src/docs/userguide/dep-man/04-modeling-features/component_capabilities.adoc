@@ -30,8 +30,8 @@ For example, if your build file contains the following dependencies:
 
 .A build file with an implicit conflict of logging frameworks
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 As is, it's pretty hard to figure out that you will end up with two logging frameworks on the classpath.
@@ -40,8 +40,8 @@ We can preemptively detect the conflict by adding a rule which will declare that
 
 .A build file with an implicit conflict of logging frameworks
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
 ====
 
 By adding this rule, we will make sure that Gradle _will_ detect conflicts and properly fail:
@@ -72,8 +72,8 @@ This is convenient whenever a library published at different GAV coordinates is 
 
 .Declaring capabilities of a component
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/kotlin",files="build.gradle.kts[tags=declare-outgoing-capabilities]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
 ====
 
 Capabilities must be attached to _outgoing configurations_, which are <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.

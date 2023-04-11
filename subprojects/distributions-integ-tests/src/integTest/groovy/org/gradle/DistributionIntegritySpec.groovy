@@ -35,7 +35,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 118 * 1024 * 1024
+        return 125 * 1024 * 1024
     }
 
     @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])

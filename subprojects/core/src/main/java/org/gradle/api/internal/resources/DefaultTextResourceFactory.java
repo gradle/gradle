@@ -19,6 +19,7 @@ package org.gradle.api.internal.resources;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.internal.deprecation.Documentation;
@@ -32,12 +33,14 @@ import java.nio.charset.Charset;
 public class DefaultTextResourceFactory implements TextResourceFactory {
     private final FileOperations fileOperations;
     private final TemporaryFileProvider tempFileProvider;
+    private final TaskDependencyFactory taskDependencyFactory;
     private ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory;
 
-    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory) {
+    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory, TaskDependencyFactory taskDependencyFactory) {
         this.fileOperations = fileOperations;
         this.tempFileProvider = tempFileProvider;
         this.apiTextResourcesAdapterFactory = apiTextResourcesAdapterFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromArchiveEntry(Object archive, String entryPath, String charset) {
-        return new FileCollectionBackedArchiveTextResource(fileOperations, tempFileProvider, fileOperations.immutableFiles(archive), entryPath, Charset.forName(charset));
+        return new FileCollectionBackedArchiveTextResource(fileOperations, taskDependencyFactory, tempFileProvider, fileOperations.immutableFiles(archive), entryPath, Charset.forName(charset));
     }
 
     @Override

@@ -16,11 +16,8 @@
 
 package org.gradle.api.reporting.model
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
@@ -222,7 +219,6 @@ model {
 
     // nb: specifically doesn't use the parsing fixture, so that the output is visualised
     //If you're changing this you will also need to change: src/snippets/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
-    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "displays a report in the correct format"() {
         given:
         settingsFile << "rootProject.name = 'test'"
@@ -411,7 +407,6 @@ model {
 ''')
     }
 
-    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "method rule sources have simple type names and correct order"() {
         given:
         buildFile << """

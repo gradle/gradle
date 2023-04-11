@@ -25,18 +25,22 @@ import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.provider.PropertyInternal;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -58,6 +62,7 @@ import org.gradle.model.internal.asm.ClassVisitorScope;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.util.internal.ConfigureUtil;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -69,6 +74,11 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -76,6 +86,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +104,9 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ACC_TRANSIENT;
+import static org.objectweb.asm.Opcodes.H_INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.H_INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.V1_8;
 import static org.objectweb.asm.Type.BOOLEAN_TYPE;
 import static org.objectweb.asm.Type.INT_TYPE;
@@ -385,6 +399,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String SERVICES_METHOD = "$gradleServices";
         private static final String FACTORY_METHOD = "$gradleFactory";
         private static final String INIT_METHOD = "$gradleInit";
+        private static final String INIT_WORK_METHOD = INIT_METHOD + "Work";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = getDescriptor(ConventionMapping.class);
         private static final String META_CLASS_TYPE_DESCRIPTOR = getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = getType(MetaClass.class);
@@ -400,7 +415,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final static Type DYNAMIC_OBJECT_TYPE = getType(DynamicObject.class);
         private final static Type CONVENTION_MAPPING_TYPE = getType(ConventionMapping.class);
         private final static Type GROOVY_OBJECT_TYPE = getType(GroovyObject.class);
-        private final static Type CONVENTION_TYPE = getType(Convention.class);
+        @SuppressWarnings("deprecation")
+        private final static Type CONVENTION_TYPE = getType(org.gradle.api.plugins.Convention.class);
         private final static Type ASM_BACKED_CLASS_GENERATOR_TYPE = getType(AsmBackedClassGenerator.class);
         private final static Type ABSTRACT_DYNAMIC_OBJECT_TYPE = getType(AbstractDynamicObject.class);
         private final static Type EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = getType(MixInExtensibleDynamicObject.class);
@@ -411,6 +427,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type SERVICE_REGISTRY_TYPE = getType(ServiceRegistry.class);
         private static final Type SERVICE_LOOKUP_TYPE = getType(ServiceLookup.class);
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
+        private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
+        private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
         private static final Type JAVA_LANG_REFLECT_TYPE = getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = getType(Object.class);
         private static final Type CLASS_TYPE = getType(Class.class);
@@ -421,22 +439,31 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type META_CLASS_REGISTRY_TYPE = getType(MetaClassRegistry.class);
         private static final Type OBJECT_ARRAY_TYPE = getType(Object[].class);
         private static final Type ACTION_TYPE = getType(Action.class);
-        private static final Type PROPERTY_INTERNAL_TYPE = getType(PropertyInternal.class);
+        private static final Type LAZY_GROOVY_SUPPORT_TYPE = getType(LazyGroovySupport.class);
+        private static final Type FILE_COLLECTION_TYPE = getType(FileCollection.class);
         private static final Type MANAGED_TYPE = getType(Managed.class);
         private static final Type EXTENSION_CONTAINER_TYPE = getType(ExtensionContainer.class);
         private static final Type DESCRIBABLE_TYPE = getType(Describable.class);
         private static final Type DISPLAY_NAME_TYPE = getType(DisplayName.class);
         private static final Type INJECT_TYPE = getType(Inject.class);
-
+        private static final Type RUNNABLE_TYPE = getType(Runnable.class);
+        private static final Type FACTORY_TYPE = getType(Factory.class);
+        private static final Type LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class);
+        private static final Type METHOD_HANDLES_TYPE = getType(MethodHandles.class);
+        private static final Type METHOD_HANDLES_LOOKUP_TYPE = getType(MethodHandles.Lookup.class);
+        private static final Type METHOD_TYPE_TYPE = getType(MethodType.class);
+        private static final Type DEPRECATION_LOGGER_TYPE = getType(DeprecationLogger.class);
         private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
         private static final String RETURN_DESCRIBABLE = getMethodDescriptor(DESCRIBABLE_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
+        private static final String RETURN_VOID_FROM_OBJECT_ARRAY = getMethodDescriptor(Type.VOID_TYPE, OBJECT_ARRAY_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_SERVICE_LOOKUP = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE, SERVICE_LOOKUP_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, BOOLEAN_TYPE);
         private static final String RETURN_CLASS = getMethodDescriptor(CLASS_TYPE);
         private static final String RETURN_BOOLEAN = getMethodDescriptor(BOOLEAN_TYPE);
         private static final String RETURN_VOID = getMethodDescriptor(Type.VOID_TYPE);
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
+        private static final String RETURN_VOID_FROM_FILE_COLLECTION = getMethodDescriptor(Type.VOID_TYPE, FILE_COLLECTION_TYPE);
         private static final String RETURN_CONVENTION = getMethodDescriptor(CONVENTION_TYPE);
         private static final String RETURN_CONVENTION_MAPPING = getMethodDescriptor(CONVENTION_MAPPING_TYPE);
         private static final String RETURN_OBJECT = getMethodDescriptor(OBJECT_TYPE);
@@ -455,6 +482,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_META_CLASS = getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_MODEL_OBJECT = getMethodDescriptor(VOID_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE);
+        private static final String RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING = getMethodDescriptor(VOID_TYPE, DEFAULT_PROPERTY_TYPE, SERVICE_LOOKUP_TYPE, STRING_TYPE);
         private static final String RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME = getMethodDescriptor(VOID_TYPE, MODEL_OBJECT_TYPE, DISPLAY_NAME_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
         private static final String RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE);
@@ -462,6 +490,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(VOID_TYPE, STRING_TYPE);
+        private static final String LAMBDA_METAFACTORY_METHOD = getMethodDescriptor(getType(CallSite.class), METHOD_HANDLES_LOOKUP_TYPE, STRING_TYPE, METHOD_TYPE_TYPE, METHOD_TYPE_TYPE, getType(MethodHandle.class), METHOD_TYPE_TYPE);
+        private static final String DEPRECATION_LOGGER_WHILE_DISABLED_RUNNABLE_METHOD = getMethodDescriptor(Type.VOID_TYPE, RUNNABLE_TYPE);
+        private static final String DEPRECATION_LOGGER_WHILE_DISABLED_FACTORY_METHOD = getMethodDescriptor(OBJECT_TYPE, FACTORY_TYPE);
+        private static final Handle LAMBDA_BOOTSTRAP_HANDLE = new Handle(H_INVOKESTATIC, LAMBDA_METAFACTORY_TYPE.getInternalName(), "metafactory", LAMBDA_METAFACTORY_METHOD, false);
+        private static final Type RETURN_VOID_METHOD_TYPE = Type.getMethodType(RETURN_VOID);
+        private static final Type RETURN_OBJECT_METHOD_TYPE = Type.getMethodType(RETURN_OBJECT);
+        private static final Type RETURN_CONVENTION_METHOD_TYPE = Type.getMethodType(RETURN_CONVENTION);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -665,8 +700,28 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
+        /**
+         * Generates the init method with deprecation logging disabled.
+         *
+         * This is necessary because the initialization work invokes property getters on the decorated instance.
+         */
         private void generateInitMethod() {
+
+            // private void $gradleInit() { DeprecationLogger.whileDisabled(this::$gradleInitWork) }
+            visitInnerClass(METHOD_HANDLES_LOOKUP_TYPE.getInternalName(), METHOD_HANDLES_TYPE.getInternalName(), "Lookup", ACC_PRIVATE | ACC_SYNTHETIC);
             privateSyntheticMethod(INIT_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                _ALOAD(0);
+                _INVOKEDYNAMIC("run", getMethodDescriptor(RUNNABLE_TYPE, generatedType), LAMBDA_BOOTSTRAP_HANDLE, Arrays.asList(
+                    RETURN_VOID_METHOD_TYPE,
+                    new Handle(H_INVOKESPECIAL, generatedType.getInternalName(), INIT_WORK_METHOD, RETURN_VOID, false),
+                    RETURN_VOID_METHOD_TYPE
+                ));
+                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_RUNNABLE_METHOD);
+                _RETURN();
+            }});
+
+            // private void $gradleInitWork() { ... do the work ... }
+            privateSyntheticMethod(INIT_WORK_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
                 // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
                 _ALOAD(0);
@@ -725,12 +780,30 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addExtensionsProperty() {
-            // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
-            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // GENERATE getConvention()
+        public void addNoDeprecationConventionPrivateGetter() {
+            // GENERATE private Convention getConventionWhileDisabledDeprecationLogger() {
+            //     return DeprecationLogger.whileDisabled { getConvention() }
+            // }
+            privateSyntheticMethod("getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, "getConvention", RETURN_CONVENTION);
+                _INVOKEDYNAMIC("create", getMethodDescriptor(FACTORY_TYPE, generatedType), LAMBDA_BOOTSTRAP_HANDLE, Arrays.asList(
+                    RETURN_OBJECT_METHOD_TYPE,
+                    new Handle(H_INVOKEVIRTUAL, generatedType.getInternalName(), "getConvention", RETURN_CONVENTION, false),
+                    RETURN_CONVENTION_METHOD_TYPE
+                ));
+                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_FACTORY_METHOD);
+                _CHECKCAST(CONVENTION_TYPE);
+                _ARETURN();
+            }});
+        }
+
+        @Override
+        public void addExtensionsProperty() {
+            // GENERATE public ExtensionContainer getExtensions() { return getConventionWhileDisabledDeprecationLogger(); }
+            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                // GENERATE getConventionWhileDisabledDeprecationLogger()
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, "getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION);
             }});
         }
 
@@ -808,26 +881,27 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public ConventionMapping getConventionMapping() {
             //     if (mapping == null) {
-            //         mapping = new ConventionAwareHelper(this, getConvention());
+            //         mapping = new ConventionAwareHelper(this, getConventionWhileDisabledDeprecationLogger());
+            //         ineligibleProperties.forEach { mapping.ineligible(it.name) }
             //     }
             //     return mapping;
             // }
             addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, null, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // GENERATE new ConventionAwareHelper(this, getConvention())
+                // GENERATE new ConventionAwareHelper(this, getConventionWhileDisabledDeprecationLogger())
                 _NEW(CONVENTION_AWARE_HELPER_TYPE);
                 _DUP();
                 _ALOAD(0);
 
                 // GENERATE getConvention()
                 _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, "getConvention", RETURN_CONVENTION);
+                _INVOKEVIRTUAL(generatedType, "getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION);
                 // END
 
                 _INVOKESPECIAL(CONVENTION_AWARE_HELPER_TYPE, "<init>", RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION);
                 // END
 
                 for (PropertyMetadata property : ineligibleProperties) {
-                    // GENERATE convention.ineligible(__property.getName()__)
+                    // GENERATE mapping.ineligible(__property.getName()__)
                     _DUP();
                     _LDC(property.getName());
                     _INVOKEINTERFACE(CONVENTION_MAPPING_TYPE, "ineligible", RETURN_VOID_FROM_STRING);
@@ -884,20 +958,20 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter) {
+        public void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter) {
             if (!mixInDsl) {
                 return;
             }
 
             // GENERATE public void set<Name>(Object p) {
-            //    ((PropertyInternal)<getter>()).setFromAnyValue(p);
+            //    ((LazyGroovySupport)<getter>()).setFromAnyValue(p);
             // }
             addSetter(getSetterName(property.getName()), RETURN_VOID_FROM_OBJECT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                _CHECKCAST(PROPERTY_INTERNAL_TYPE);
+                _CHECKCAST(LAZY_GROOVY_SUPPORT_TYPE);
                 _ALOAD(1);
-                _INVOKEINTERFACE(PROPERTY_INTERNAL_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
+                _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
             }});
         }
 
@@ -936,6 +1010,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public void addDynamicMethods() {
             if (!mixInDsl) {
+                return;
+            }
+
+            // DefaultProject has its own implementation of GroovyObject's methods, and we want to keep those implementations.
+            // TODO: introduce a better way to communicate this for classes that don't need generated dynamic-object methods?
+            if (type.getName().equals("org.gradle.api.internal.project.DefaultProject")) {
                 return;
             }
 
@@ -1137,6 +1217,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     applyRole();
                 }
 
+                String buildServiceName = getBuildServiceName(property);
+                if (buildServiceName != null) {
+                    // property is a service reference
+                    _DUP();
+                    setBuildServiceConvention(buildServiceName);
+                }
+
                 _CHECKCAST(propType);
             }});
         }
@@ -1158,6 +1245,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _SWAP();
                 _ALOAD(0);
                 _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "applyRole", RETURN_VOID_FROM_OBJECT_MODEL_OBJECT);
+            }
+
+            // Caller should place property value on the top of the stack
+            protected void setBuildServiceConvention(@Nullable String serviceName) {
+                // GENERATE BuildServiceProvider.setBuildServiceAsConvention(defaultProperty, getServices(), "<serviceName>")
+                _CHECKCAST(DEFAULT_PROPERTY_TYPE);
+                putServiceRegistryOnStack();
+                _LDC(serviceName);
+                _INVOKESTATIC(BUILD_SERVICE_PROVIDER_TYPE, "setBuildServiceAsConvention", RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING);
             }
 
             protected void putServiceRegistryOnStack() {
@@ -1739,6 +1835,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
+    @Nullable
+    private static String getBuildServiceName(PropertyMetadata property) {
+        ServiceReference annotation = property.findAnnotation(ServiceReference.class);
+        if (annotation != null) {
+            return annotation.value();
+        }
+        return null;
+    }
+
     @Nonnull
     private static String descriptorOf(Class<?> type) {
         return getType(type).getDescriptor();
@@ -1800,6 +1905,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void mixInDynamicAware() {
+        }
+
+        @Override
+        public void addNoDeprecationConventionPrivateGetter() {
         }
 
         @Override
@@ -1883,7 +1992,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter) {
+        public void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter) {
         }
 
         @Override

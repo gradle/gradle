@@ -59,9 +59,4 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
             }
         };
     }
-
-    @Override
-    public IsolationMode getIsolationMode() {
-        return IsolationMode.CLASSLOADER;
-    }
 }

@@ -34,7 +34,7 @@ class JUnitAssumptionsIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         executer.noExtraLogging()
         buildFile << """
 dependencies {
-    testImplementation '$dependencyNotation'
+    ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')}
 }
 """
 

@@ -21,15 +21,10 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
@@ -40,12 +35,18 @@ import org.gradle.internal.enterprise.test.TestTaskFilters;
 import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
 import org.gradle.internal.enterprise.test.TestTaskPropertiesService;
-import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -82,7 +83,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     public TestTaskProperties collectProperties(Test task) {
         ImmutableList.Builder<InputFileProperty> inputFileProperties = ImmutableList.builder();
         ImmutableList.Builder<OutputFileProperty> outputFileProperties = ImmutableList.builder();
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
             @Override
             public void visitInputFileProperty(
                 String propertyName,
@@ -90,7 +91,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
                 InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
-                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                @Nullable FileNormalizer fileNormalizer,
                 PropertyValue value,
                 InputFilePropertyType filePropertyType
             ) {
@@ -123,6 +124,11 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         );
     }
 
+    @Override
+    public void doNotStoreInCache(Test task) {
+        ((TaskOutputsEnterpriseInternal) task.getOutputs()).doNotStoreInCache();
+    }
+
     private ImmutableList<CandidateClassFile> collectCandidateClassFiles(Test task) {
         ImmutableList.Builder<CandidateClassFile> builder = ImmutableList.builder();
         task.getCandidateClassFiles().visit(new EmptyFileVisitor() {
@@ -136,7 +142,9 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
 
     private FileCollection resolveLeniently(PropertyValue value) {
         Object sources = value.call();
-        return sources == null ? fileCollectionFactory.empty() : fileCollectionFactory.resolvingLeniently(sources);
+        return sources == null
+            ? FileCollectionFactory.empty()
+            : fileCollectionFactory.resolvingLeniently(sources);
     }
 
     private TestTaskFilters collectFilters(Test task) {

@@ -228,8 +228,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
-
+        JavaVersion.VERSION_1_7 | "2.14.1"
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
@@ -246,10 +245,6 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(gradleDaemonJdk!=null)
 
-        if (gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
-            executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
-        }
-
         when:
         succeeds("buildAction",
             "-PclientJdk=" + clientJdkVersion.majorVersion,
@@ -262,8 +257,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
-
+        JavaVersion.VERSION_1_7 | "2.14.1"
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 

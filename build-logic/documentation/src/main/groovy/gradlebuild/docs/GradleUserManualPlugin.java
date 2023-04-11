@@ -260,7 +260,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("toc-title", "Contents");
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");
-            attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+            attributes.put("kotlinDslPath", "../kotlin-dsl");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
             // TODO: This breaks the provider
             attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
@@ -326,6 +326,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
             task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
             task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation());
+            task.getJavadocRoot().convention(layout.getBuildDirectory().dir("javadoc"));
+            task.dependsOn(tasks.named("javadocAll"));
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));

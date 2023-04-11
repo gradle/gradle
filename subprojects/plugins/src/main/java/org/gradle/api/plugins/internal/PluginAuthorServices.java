@@ -15,15 +15,13 @@
  */
 package org.gradle.api.plugins.internal;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -52,19 +50,16 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeServices {
-        JvmPluginServices createJvmPluginServices(ConfigurationContainer configurations,
-                                                  ObjectFactory objectFactory,
-                                                  TaskContainer tasks,
-                                                  SoftwareComponentContainer components,
+        JvmPluginServices createJvmPluginServices(ObjectFactory objectFactory,
+                                                  ProviderFactory providerFactory,
                                                   InstantiatorFactory instantiatorFactory) {
             InstanceGenerator instantiator = instantiatorFactory.decorateScheme().instantiator();
             return instantiator.newInstanceWithDisplayName(DefaultJvmPluginServices.class,
                 Describables.of("JVM Plugin Services"),
-                configurations,
                 objectFactory,
-                tasks,
-                components,
-                instantiator);
+                providerFactory,
+                instantiator
+            );
         }
 
         SourceSetContainer createSourceSetContainer(ObjectFactory objectFactory) {

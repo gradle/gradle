@@ -26,6 +26,8 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import spock.lang.Specification
 
+import static java.util.Optional.empty
+
 class TemplateFactoryTest extends Specification {
 
     Directory targetDir = Mock()
@@ -36,8 +38,8 @@ class TemplateFactoryTest extends Specification {
     def "generates from template within sourceSet"() {
         setup:
         def targetAsFile = new File(target)
-        def settings = new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, "", BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir)
-        def factory = new TemplateFactory(settings, Language.withName(language), templateOperationFactory)
+        def settings = createInitSettings("")
+        def factory = new TemplateFactory(settings, language, templateOperationFactory)
 
         when:
         factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", sourceSet)
@@ -55,16 +57,16 @@ class TemplateFactoryTest extends Specification {
 
         where:
         language        | sourceSet   | target
-        "somelang"      | "main"      | "app/src/main/somelang/SomeClazz.somelang"
-        "someotherlang" | "test"      | "app/src/test/someotherlang/SomeClazz.somelang"
-        "somelang"      | "integTest" | "app/src/integTest/somelang/SomeClazz.somelang"
+        Language.JAVA   | "main"      | "app/src/main/java/SomeClazz.somelang"
+        Language.GROOVY | "test"      | "app/src/test/groovy/SomeClazz.somelang"
+        Language.JAVA   | "integTest" | "app/src/integTest/java/SomeClazz.somelang"
     }
 
     def "generates source file with package from template"() {
         setup:
         def targetAsFile = new File(target)
-        def settings = new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir)
-        def factory = new TemplateFactory(settings, Language.withName(language), templateOperationFactory)
+        def settings = createInitSettings("my.lib")
+        def factory = new TemplateFactory(settings, language, templateOperationFactory)
 
         when:
         factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", sourceSet)
@@ -82,16 +84,16 @@ class TemplateFactoryTest extends Specification {
 
         where:
         language        | sourceSet   | target
-        "somelang"      | "main"      | "app/src/main/somelang/my/lib/SomeClazz.somelang"
-        "someotherlang" | "test"      | "app/src/test/someotherlang/my/lib/SomeClazz.somelang"
-        "somelang"      | "integTest" | "app/src/integTest/somelang/my/lib/SomeClazz.somelang"
+        Language.JAVA   | "main"      | "app/src/main/java/my/lib/SomeClazz.somelang"
+        Language.GROOVY | "test"      | "app/src/test/groovy/my/lib/SomeClazz.somelang"
+        Language.JAVA   | "integTest" | "app/src/integTest/java/my/lib/SomeClazz.somelang"
     }
 
     def "can specify output class name"() {
         setup:
         def targetAsFile = new File(target)
-        def settings = new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, packageName, BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir)
-        def factory = new TemplateFactory(settings, Language.withName("somelang"), templateOperationFactory)
+        def settings = createInitSettings(packageName)
+        def factory = new TemplateFactory(settings, Language.JAVA, templateOperationFactory)
 
         when:
         factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template") {
@@ -112,8 +114,13 @@ class TemplateFactoryTest extends Specification {
 
         where:
         packageName | className | target
-        ""          | "Main"    | "app/src/main/somelang/Main.somelang"
-        "a.b"       | "Main"    | "app/src/main/somelang/a/b/Main.somelang"
+        ""          | "Main"    | "app/src/main/java/Main.java"
+        "a.b"       | "Main"    | "app/src/main/java/a/b/Main.java"
+    }
+
+    private createInitSettings(String packageName) {
+        new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.KOTLIN, packageName,
+            BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir, empty())
     }
 
     def "whenNoSourcesAvailable creates template operation checking for sources"() {
@@ -121,17 +128,17 @@ class TemplateFactoryTest extends Specification {
         def mainSourceDirectory = Mock(Directory)
         def testSourceDirectory = Mock(Directory)
         def mainSourceFileTree = Mock(FileTreeInternal)
-        def testSourceFileTree  = Mock(FileTreeInternal)
+        def testSourceFileTree = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
-        def settings = new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir)
-        def factory = new TemplateFactory(settings, Language.withName("somelang"), templateOperationFactory)
+        def settings = createInitSettings( "my.lib")
+        def factory = new TemplateFactory(settings, Language.JAVA, templateOperationFactory)
 
         when:
         factory.whenNoSourcesAvailable(delegate).generate()
 
         then:
-        1 * targetDir.dir("app/src/main/somelang") >> mainSourceDirectory
-        1 * targetDir.dir("app/src/test/somelang") >> testSourceDirectory
+        1 * targetDir.dir("app/src/main/java") >> mainSourceDirectory
+        1 * targetDir.dir("app/src/test/java") >> testSourceDirectory
         1 * mainSourceDirectory.asFileTree >> mainSourceFileTree
         1 * testSourceDirectory.asFileTree >> testSourceFileTree
         1 * mainSourceFileTree.empty >> noMainSources

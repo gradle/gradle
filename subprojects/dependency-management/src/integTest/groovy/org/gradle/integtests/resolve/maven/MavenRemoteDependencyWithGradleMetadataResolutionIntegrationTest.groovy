@@ -21,6 +21,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration("runtime")
@@ -34,7 +39,6 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "downloads and caches the module metadata when present"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
@@ -93,7 +97,6 @@ dependencies {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "skips module metadata when not present and caches result"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").publish()
 
@@ -546,10 +549,12 @@ dependencies {
     release 'test:a:1.2'
 }
 task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
+    def files = configurations.debug
+    doLast { assert files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
 }
 task checkRelease {
-    doLast { assert configurations.release.files*.name == [] }
+    def files = configurations.release
+    doLast { assert files*.name == [] }
 }
 """
 
@@ -684,9 +689,13 @@ dependencies {
         failure.assertHasCause("""Could not find test:a:1.2.
 Searched in the following locations:
   - ${m.pom.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
+        failure.assertHasResolutions(repositoryHint("Maven POM"),
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
 
         when:
         server.resetExpectations()

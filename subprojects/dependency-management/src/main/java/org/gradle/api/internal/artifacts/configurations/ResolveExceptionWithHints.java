@@ -16,24 +16,23 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
-class ResolveExceptionWithHints extends ResolveException {
+import java.util.List;
 
-    private final String[] hints;
+class ResolveExceptionWithHints extends ResolveException implements ResolutionProvider {
 
-    public ResolveExceptionWithHints(String resolveContext, Iterable<? extends Throwable> causes, String... hints) {
+    private List<String> resolutions;
+
+    public ResolveExceptionWithHints(String resolveContext, Iterable<? extends Throwable> causes, String resolution) {
         super(resolveContext, causes);
-        this.hints = hints;
+        this.resolutions = ImmutableList.of(resolution);
     }
 
     @Override
-    public String getMessage() {
-        StringBuilder sb = new StringBuilder(super.getMessage());
-        for (String hint : hints) {
-            sb.append("\n");
-            sb.append(hint);
-        }
-        return sb.toString();
+    public List<String> getResolutions() {
+        return resolutions;
     }
 }

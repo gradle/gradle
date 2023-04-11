@@ -61,13 +61,18 @@ public class BasicProjectGenerator implements ProjectGenerator {
     }
 
     @Override
+    public boolean isJvmLanguage() {
+        return false;
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
         return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
     }
 
     @Override
     public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
+        return BuildInitDsl.KOTLIN;
     }
 
     @Override

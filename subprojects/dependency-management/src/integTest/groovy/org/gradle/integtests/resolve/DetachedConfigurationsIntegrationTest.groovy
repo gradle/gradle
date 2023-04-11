@@ -27,6 +27,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2889")
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "detached configurations may have separate dependencies"() {
+        given:
         settingsFile << "include 'a', 'b'"
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
@@ -64,5 +65,90 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         run "checkDependencies"
+    }
+
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    def "detached configurations may have dependencies on other projects"() {
+        given:
+        settingsFile << "include 'other'"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            def detached = project.configurations.detachedConfiguration()
+            detached.dependencies.add(project.dependencies.create(project(':other')))
+
+            task checkDependencies {
+                doLast {
+                    assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('other')
+                    assert detached.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }.contains("other.jar")
+                }
+            }
+        """
+
+        file("other/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+        """
+
+        expect:
+        run "checkDependencies"
+    }
+
+    // This behavior will be removed in Gradle 9.0
+    @Deprecated
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    def "detached configurations can contain artifacts and resolve them during a self-dependency scenario"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            def detached = project.configurations.detachedConfiguration()
+            detached.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            detached.dependencies.add(project.dependencies.create(project))
+
+            task makeArtifact(type: Zip) {
+                archiveFileName = "artifact.zip"
+                from "artifact.txt"
+            }
+
+            detached.outgoing.artifact(tasks.makeArtifact)
+
+            task checkDependencies {
+                doLast {
+                    assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('test')
+                    assert detached.resolvedConfiguration.resolvedArtifacts.collect { it.file.name }.contains("artifact.zip")
+                }
+            }
+        """
+
+        file("artifact.txt") << "sample artifact"
+
+        expect:
+        run "checkDependencies"
+    }
+
+    def "configurations container reserves name #name for detached configurations"() {
+        given:
+        buildFile << """
+            configurations {
+                $name
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Creating a configuration with a name that starts with 'detachedConfiguration' has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a different name for the configuration '$name'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#reserved_configuration_names")
+        succeeds "help"
+
+        where:
+        name << ["detachedConfiguration", "detachedConfiguration1", "detachedConfiguration22902"]
     }
 }

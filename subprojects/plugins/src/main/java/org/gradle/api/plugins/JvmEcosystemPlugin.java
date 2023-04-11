@@ -39,7 +39,7 @@ import javax.inject.Inject;
  * @since 6.7
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
  */
-public class JvmEcosystemPlugin implements Plugin<Project> {
+public abstract class JvmEcosystemPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final JvmPluginServices jvmPluginServices;
     private final SourceSetContainer sourceSets;
@@ -57,7 +57,7 @@ public class JvmEcosystemPlugin implements Plugin<Project> {
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", sourceSets);
         configureVariantDerivationStrategy(p);
         configureSchema(p);
-        jvmPluginServices.inject(p, sourceSets);
+        jvmPluginServices.inject(p);
     }
 
     private void configureVariantDerivationStrategy(ProjectInternal project) {

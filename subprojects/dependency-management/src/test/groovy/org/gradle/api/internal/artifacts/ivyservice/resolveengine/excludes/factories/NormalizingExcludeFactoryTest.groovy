@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories
 
+import groovy.json.JsonSlurper
+import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.internal.component.model.DefaultIvyArtifactName
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -112,6 +115,9 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         everything()                       | group("foo")          | group("foo")
         nothing()                          | group("foo")          | nothing()
         group("foo")                       | group("foo")          | group("foo")
+        group("foo")                       | module("bar")         | moduleId("foo", "bar")
+        groupSet("foo", "foz")             | module("bar")         | moduleIdSet("foo:bar", "foz:bar")
+        groupSet("foo", "foz")             | moduleSet("bar", "baz")         | moduleIdSet("foo:bar", "foz:bar", "foo:baz", "foz:baz")
         allOf(group("foo"), group("foo2")) | module("bar")         | nothing()
         allOf(group("foo"), module("bar")) | module("bar")         | moduleId("foo", "bar")
         moduleSet("m1", "m2", "m3")        | moduleSet("m1", "m3") | moduleSet("m1", "m3")
@@ -270,6 +276,28 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
 
         expect:
         operation
+    }
 
+    @Ignore("to be used adhoc when analyzing specific issue")
+    def 'replay content from shared json formatted log'() {
+        def input = new File('/path/to/log.json')
+        def converter = new ExcludeJsonLogToCode()
+
+        def slurper = new JsonSlurper()
+
+        def compilerConf = new CompilerConfiguration()
+        compilerConf.scriptBaseClass = DelegatingScript.class.name
+
+        def shell = new GroovyShell(this.class.classLoader, new Binding(), compilerConf)
+
+        expect:
+        input.readLines().eachWithIndex { line, index ->
+            def parsedLine = slurper.parse(line.trim().getBytes("utf-8"))
+            def script = shell.parse(converter.toCodeFromSlurpedJson(parsedLine))
+            script.setDelegate(this)
+            def result = script.run()
+
+            assert "$index" + slurper.parse(result.toString().getBytes("utf-8")).toString() == "$index" + parsedLine.operation.result.toString()
+        }
     }
 }

@@ -31,8 +31,24 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
     }
 
     File sourceForProject(String project, String... classBodies) {
+        return sourceForLanguageWithSuffixForProject(language, language.name, project, classBodies)
+    }
+
+    File sourceWithFileSuffix(String suffix, String... classBodies) {
+        return sourceForLanguageWithSuffixForProject(language, suffix, "", classBodies)
+    }
+
+    File sourceWithFileSuffixForProject(String suffix, String project, String... classBodies) {
+        return sourceForLanguageWithSuffixForProject(language, suffix, project, classBodies)
+    }
+
+    File sourceForLanguageForProject(CompiledLanguage language, String project, String... classBodies) {
+        return sourceForLanguageWithSuffixForProject(language, language.name, project, classBodies)
+    }
+
+    private File sourceForLanguageWithSuffixForProject(CompiledLanguage language, String suffix, String project, String... classBodies) {
         File out = null
-        def basePath = project.isEmpty() ? "src/main/${language.name}" : "$project/src/main/${language.name}"
+        def basePath = project.isEmpty() ? "src/main/$language.name" : "$project/src/main/$language.name"
         for (String body : classBodies) {
             def packageGroup = (body =~ "\\s*package ([\\w.]+).*")
             String packageName = packageGroup.size() > 0 ? packageGroup[0][1] : ""
@@ -41,9 +57,9 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
             assert className: "unable to find class name"
             def f
             if (packageFolder.isEmpty()) {
-                f = file("$basePath/${className}.${language.name}")
+                f = file("$basePath/${className}.$suffix")
             } else {
-                f = file("$basePath/${packageFolder}/${className}.${language.name}")
+                f = file("$basePath/${packageFolder}/${className}.$suffix")
             }
             f.createFile()
             f.text = body

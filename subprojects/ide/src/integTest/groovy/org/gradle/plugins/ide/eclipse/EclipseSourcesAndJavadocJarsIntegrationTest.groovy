@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
-import org.gradle.test.fixtures.server.http.HttpArtifact
 
 class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
     @Override
@@ -63,11 +62,5 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         lib.assertHasNoJavadoc()
     }
 
-    @Override
-    void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact) {
-        httpArtifact.expectHead()
-    }
 
-    @Override
-    void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact) {}
 }
