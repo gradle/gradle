@@ -27,6 +27,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 
+@org.gradle.api.NonNullApi
 public class NaggingJavaPluginConvention extends JavaPluginConvention {
     private final JavaPluginConvention delegate;
 
