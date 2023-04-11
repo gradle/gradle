@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.internal;
+package org.gradle.api.internal.plugins;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.BasePluginConvention;
-import org.gradle.api.plugins.WarPluginConvention;
+import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+@NonNullApi
 public class NaggingBasePluginConvention extends BasePluginConvention {
 
     private final BasePluginConvention delegate;
@@ -78,7 +80,7 @@ public class NaggingBasePluginConvention extends BasePluginConvention {
     }
 
     private static void logDeprecation() {
-        DeprecationLogger.deprecateType(WarPluginConvention.class)
+        DeprecationLogger.deprecateType(DefaultBasePluginConvention.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "base_convention_deprecation")
             .nagUser();
