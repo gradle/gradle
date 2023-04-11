@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junitvintage
+package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.junit4.AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
 
-@TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest implements JUnitVintageMultiVersionTest {
-    String singularCategoryOrTagName = "tag"
-    String pluralCategoryOrTagName = "tags"
+@TargetCoverage({ JUNIT_4_LATEST })
+class JUnit4TestListenerBuildOperationAdapterIntegrationTest extends AbstractJUnit4TestListenerBuildOperationAdapterIntegrationTest implements JUnit4MultiVersionTest {
+    boolean emitsTestClassOperations = false
 
     @Override
-    boolean supportsCategoryOnNestedClass() {
-        return true
+    String testMethodName(String testMethod) {
+        return testMethod
     }
 }

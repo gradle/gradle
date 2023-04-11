@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.testing
+package org.gradle.testing.junit4
+
+import org.gradle.testing.AbstractTestTaskIntegrationTest
 
 abstract class AbstractJUnit4TestTaskIntegrationTest extends AbstractTestTaskIntegrationTest {
     @Override

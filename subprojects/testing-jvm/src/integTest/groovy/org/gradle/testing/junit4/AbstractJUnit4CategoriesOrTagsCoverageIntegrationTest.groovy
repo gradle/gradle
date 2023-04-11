@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.junit.AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec
 
 abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec {
     @Override
@@ -119,7 +120,7 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
 
         buildFile << """
             test {
-                ${testFrameworkConfigurationMethod} {
+                ${configureTestFramework} {
                     ${includeCategoryOrTag('CategoryA')}
                     ${excludeCategoryOrTag('CategoryC')}
                 }
@@ -270,7 +271,7 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
 
         buildFile << """
             test {
-                ${testFrameworkConfigurationMethod} {
+                ${configureTestFramework} {
                     ${excludeCategoryOrTag('CategoryA')}
                 }
             }
@@ -391,7 +392,7 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
 
         buildFile << """
             test {
-                ${testFrameworkConfigurationMethod} {
+                ${configureTestFramework} {
                     ${includeCategoryOrTag('SomeCategory')}
                 }
             }

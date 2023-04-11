@@ -24,15 +24,19 @@ trait JUnitJupiterMultiVersionTest {
         return new JUnitJupiterBuildScriptConfiguration()
     }
 
+    String getDependencyVersion() {
+        return JUnitJupiterBuildScriptConfiguration.getDependencyVersion()
+    }
+
     static class JUnitJupiterBuildScriptConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
-        String testFrameworkConfigurationMethod = "useJUnitPlatform()"
+        String configureTestFramework = "useJUnitPlatform()"
 
-        List<String> getTestFrameworkImplementationDependencies() {
-            return ["org.junit.jupiter:junit-jupiter-api:${dependencyVersion}"]
-        }
-
-        List<String> getTestFrameworkRuntimeDependencies() {
-            return ["org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"]
+        @Override
+        String getTestFrameworkDependencies() {
+            return """
+                testImplementation 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
+                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
+            """
         }
 
         static String getDependencyVersion() {

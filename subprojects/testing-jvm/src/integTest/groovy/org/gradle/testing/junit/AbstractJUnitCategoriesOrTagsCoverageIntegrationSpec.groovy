@@ -36,8 +36,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
             }
 
             dependencies {
-                ${testFrameworkImplementationDependencies.collect { "testImplementation '$it'" }.join('\n')}
-                ${testFrameworkRuntimeDependencies.collect { "testRuntimeOnly '$it'" }.join('\\n')}
+                ${testFrameworkDependencies}
             }
         """
     }
@@ -79,7 +78,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
 
         buildFile << """
             test {
-                ${testFrameworkConfigurationMethod} {
+                ${configureTestFramework} {
                     ${excludeCategoryOrTag('CategoryA')}
                 }
             }
@@ -136,7 +135,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
 
         buildFile << """
             test {
-                ${testFrameworkConfigurationMethod} {
+                ${configureTestFramework} {
                     ${includeCategoryOrTag('CategoryA')}
                 }
             }
@@ -180,7 +179,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
 
         buildFile << """
             test {
-                ${testFrameworkConfigurationMethod} {
+                ${configureTestFramework} {
                     ${includeCategoryOrTag('CategoryA')}
                     ${includeCategoryOrTag('CategoryC')}
                     ${excludeCategoryOrTag('CategoryC')}
@@ -227,7 +226,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
 
         buildFile << """
             test {
-                ${testFrameworkConfigurationMethod} {
+                ${configureTestFramework} {
                     ${includeCategoryOrTag('CategoryA')}
                     ${includeCategoryOrTag('CategoryC')}
                     ${excludeCategoryOrTag('CategoryA')}

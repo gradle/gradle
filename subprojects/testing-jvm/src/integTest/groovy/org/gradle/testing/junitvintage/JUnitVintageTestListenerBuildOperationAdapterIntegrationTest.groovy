@@ -17,17 +17,16 @@
 package org.gradle.testing.junitvintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.junit4.AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest
+import org.gradle.testing.junit4.AbstractJUnit4TestListenerBuildOperationAdapterIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest implements JUnitVintageMultiVersionTest {
-    String singularCategoryOrTagName = "tag"
-    String pluralCategoryOrTagName = "tags"
+class JUnitVintageTestListenerBuildOperationAdapterIntegrationTest extends AbstractJUnit4TestListenerBuildOperationAdapterIntegrationTest implements JUnitVintageMultiVersionTest {
+    boolean emitsTestClassOperations = true
 
     @Override
-    boolean supportsCategoryOnNestedClass() {
-        return true
+    String testMethodName(String testMethod) {
+        return testMethod
     }
 }

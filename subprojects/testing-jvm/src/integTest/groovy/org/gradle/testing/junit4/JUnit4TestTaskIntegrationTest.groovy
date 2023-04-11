@@ -17,12 +17,8 @@
 package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractJUnit4TestTaskIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
-import org.junit.Assume
 
 import static org.gradle.testing.fixture.JUnitCoverage.CATEGORIES
-import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 
 @TargetCoverage({ CATEGORIES })
 class JUnit4TestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTest implements JUnit4MultiVersionTest {
@@ -37,7 +33,7 @@ class JUnit4TestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTes
                 options {
                     excludeCategories = ["Slow"]
                 }
-                $testFrameworkConfigurationMethod
+                $configureTestFramework
             }
         """.stripIndent()
 
@@ -46,8 +42,6 @@ class JUnit4TestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTes
     }
 
     def "options can be set prior to setting same test framework for a custom test task"() {
-        Assume.assumeTrue(version in CATEGORIES)
-
         given:
         file('src/customTest/java/MyTest.java') << standaloneTestClass
 
@@ -58,7 +52,7 @@ class JUnit4TestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTes
             }
 
             dependencies {
-                ${testFrameworkImplementationDependencies.collect { "customTestImplementation '$it'" }.join('\n')}
+                customTestImplementation 'junit:junit:${version}'
             }
 
             tasks.create('customTest', Test) {
@@ -67,7 +61,7 @@ class JUnit4TestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTes
                 options {
                     excludeCategories = ["MyTest\\\$Slow"]
                 }
-                $testFrameworkConfigurationMethod
+                $configureTestFramework
             }
         """.stripIndent()
 

@@ -17,7 +17,6 @@
 package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.junit.AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.CATEGORIES
 
