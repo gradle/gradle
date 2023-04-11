@@ -2207,22 +2207,6 @@ since users cannot create non-legacy configurations and there is no current publ
         return roleAtCreation;
     }
 
-    @Deprecated
-    @Override
-    public void assertHasNoDeclarations() {
-        if (!dependencies.isEmpty()) {
-            throw new GradleException("Dependency declarations are present on a configuration that does not allow them: " + getName() + ".");
-        }
-    }
-
-    @Deprecated
-    @Override
-    public void assertHasNoConstraintDeclarations() {
-        if (!dependencyConstraints.isEmpty()) {
-            throw new GradleException("Dependency constraint declarations are present on a configuration that does not allow them: " + getName() + ".");
-        }
-    }
-
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
         @Override
