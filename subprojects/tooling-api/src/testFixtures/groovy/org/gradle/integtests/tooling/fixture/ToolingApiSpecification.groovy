@@ -370,13 +370,6 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
 //        return result
 //    }
 
-    def <T> T loadValidatedToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
-        def result = loadToolingLeanModel(modelClass, configurator)
-        validateOutput()
-        result
-    }
-
-
     protected GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)
     }

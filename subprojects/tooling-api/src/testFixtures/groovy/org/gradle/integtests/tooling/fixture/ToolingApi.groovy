@@ -158,6 +158,12 @@ class ToolingApi implements TestRule {
         return result
     }
 
+    def <T> T loadValidatedToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
+        def result = loadToolingLeanModel(modelClass, configurator)
+        validateOutput()
+        result
+    }
+
     void collectOutputs(LongRunningOperation op) {
         op.setStandardOutput(new TeeOutputStream(stdout, System.out))
         op.setStandardError(new TeeOutputStream(stderr, System.err))

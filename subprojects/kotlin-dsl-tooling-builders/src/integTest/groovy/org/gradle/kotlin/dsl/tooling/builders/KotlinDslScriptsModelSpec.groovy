@@ -44,7 +44,7 @@ class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements TestP
         spec.scripts["b"] << "throw RuntimeException(\"ex2\")"
 
 
-        def model = loadToolingLeanModel(KotlinDslScriptsModel) {
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
             KotlinScriptModulParameters.setModelParameters(it, true, true, [])
         }
 

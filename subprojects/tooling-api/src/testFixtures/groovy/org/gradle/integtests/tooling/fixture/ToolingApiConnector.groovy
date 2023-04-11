@@ -20,7 +20,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 
-class ToolingApiConnector extends GradleConnector {
+class ToolingApiConnector extends GradleConnector implements UpwardsSearchable {
     @Delegate
     DefaultGradleConnector connector
     private final OutputStream stdout
@@ -36,8 +36,13 @@ class ToolingApiConnector extends GradleConnector {
         new ToolingApiConnection(connector.connect(), stdout, stderr)
     }
 
-    def searchUpwards(boolean searchUpwards) {
+    GradleConnector searchUpwards(boolean searchUpwards) {
         connector.searchUpwards(searchUpwards)
         this
     }
+
+//    @Override
+//    void connectionClosed(ProjectConnection connection){
+//        connector.connectionClosed(connection)
+//    }
 }
