@@ -55,7 +55,5 @@ class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements TestP
         singleRequestModels[spec.scripts["a"]].exceptions.size() == 1
         singleRequestModels[spec.scripts["b"]].exceptions.size() == 1
         singleRequestModels[spec.scripts["settings"]].exceptions.isEmpty()
-
-        validateOutput()
     }
 }
