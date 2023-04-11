@@ -266,6 +266,16 @@ The <<configuration_cache#config_cache:requirements:external_processes,configura
 
 Builds that do not use the configuration cache, or only start external processes at execution time are not affected by this change.
 
+==== Boolean task options now generate opposite option
+
+Task options of type `boolean`, `Boolean` and `Property<Boolean>` now generate an opposite option.
+For example, `--no-foo` is created for the provided option `--foo` or `--bar` is created for `--no-bar`.
+Options whose name starts with "--no" are 'disable options' and set the option value to false.
+
+This is a potentially breaking change if you pass an option with the same name as the automatically generated option.
+
+See the <<custom_tasks#sec:declaring_and_using_command_line_options, task options>> section for more information.
+
 === Deprecations
 
 [[configurations_allowed_usage]]
