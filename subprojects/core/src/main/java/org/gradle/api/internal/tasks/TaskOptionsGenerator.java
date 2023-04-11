@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.options.BooleanOptionElement;
 import org.gradle.api.internal.tasks.options.BuiltInOptionElement;
 import org.gradle.api.internal.tasks.options.InstanceOptionDescriptor;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionElement;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.specs.Specs;
+import org.gradle.cli.CommandLineParser;
 import org.gradle.internal.Pair;
 import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
@@ -36,50 +38,45 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * This class is responsible for supplying the built-in options and
+ * This class is responsible for generating the built-in options and
  * the {@link BooleanOptionElement mutually exclusive options} of a task,
  * based on the task options provided by the {@link OptionReader}.
  */
-public class TaskOptionsSupplier {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskOptionsSupplier.class);
+public class TaskOptionsGenerator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskOptionsGenerator.class);
 
     @VisibleForTesting
-    static final List<BuiltInOptionElement> BUILT_IN_OPTIONS = Stream.of(
+    static final List<BuiltInOptionElement> BUILT_IN_OPTIONS = Collections.singletonList(
         new BuiltInOptionElement(
             "Causes the task to be re-run even if up-to-date.",
             "rerun",
             task -> task.getOutputs().upToDateWhen(Specs.satisfyNone())
         )
-    ).collect(Collectors.toList());
+    );
 
     /**
      * Builds a list of implicit built-in options available for every task.
      */
-    private static List<OptionDescriptor> getBuiltInOptions(Object target, Collection<String> reserved) {
-        List<OptionDescriptor> allBuiltInOptions = BUILT_IN_OPTIONS.stream().map(optionElement ->
-            new InstanceOptionDescriptor(target, optionElement, null, reserved.contains(optionElement.getOptionName()))
-        ).collect(Collectors.toList());
+    private static List<OptionDescriptor> generateBuiltInOptions(Object target, Collection<String> reserved) {
         List<OptionDescriptor> validBuiltInOptions = new ArrayList<>();
-        for (OptionDescriptor builtInOption : allBuiltInOptions) {
-            // built-in options only enabled if they do not clash with task-declared ones
-            if (builtInOption.isClashing()) {
-                LOGGER.warn("Built-in option '{}' in task {} was disabled for clashing with another option of same name", builtInOption.getName(), target);
+        for (BuiltInOptionElement builtInOption : BUILT_IN_OPTIONS) {
+            OptionDescriptor optionDescriptor = new InstanceOptionDescriptor(target, builtInOption, null, reserved.contains(builtInOption.getOptionName()));
+            if (optionDescriptor.isClashing()) {
+                LOGGER.warn("Built-in option '{}' in task {} was disabled for clashing with another option of same name", optionDescriptor.getName(), target);
             } else {
-                validBuiltInOptions.add(builtInOption);
+                validBuiltInOptions.add(optionDescriptor);
             }
         }
         return validBuiltInOptions;
     }
 
     /**
-     * Builds a map of generated opposite options and
-     * add pairs of mutually exclusive options to the {@link TaskOptions taskOptions}.
+     * Generates a map of opposite options and, based on these, adds {@link Pair pairs}
+     * of mutually exclusive options to the {@link TaskOptions#mutuallyExclusiveOptions taskOptions} argument.
      */
-    private static Map<String, OptionDescriptor> getOppositeOptions(Object target, Map<String, OptionDescriptor> options, TaskOptions taskOptions) {
+    private static Map<String, OptionDescriptor> generateOppositeOptions(Object target, Map<String, OptionDescriptor> options, TaskOptions taskOptions) {
         Map<String, OptionDescriptor> oppositeOptions = new HashMap<>();
         List<Pair<OptionDescriptor, OptionDescriptor>> mutuallyExclusiveOptions = new LinkedList<>();
 
@@ -103,12 +100,19 @@ public class TaskOptionsSupplier {
         return oppositeOptions;
     }
 
-    public static TaskOptions get(Object target, OptionReader optionReader) {
+    /**
+     * Generates the {@link TaskOptions taskOptions} for the given task.
+     *
+     * @param task the task, must implement {@link Task}
+     * @param optionReader the optionReader
+     * @return the generated taskOptions
+     */
+    public static TaskOptions generate(Object task, OptionReader optionReader) {
         TaskOptions taskOptions = new TaskOptions();
-        Map<String, OptionDescriptor> options = optionReader.getOptions(target);
-        options.putAll(getOppositeOptions(target, options, taskOptions));
+        Map<String, OptionDescriptor> options = optionReader.getOptions(task);
+        options.putAll(generateOppositeOptions(task, options, taskOptions));
         List<OptionDescriptor> sortedOptions = CollectionUtils.sort(options.values());
-        sortedOptions.addAll(getBuiltInOptions(target, options.keySet()));
+        sortedOptions.addAll(generateBuiltInOptions(task, options.keySet()));
         taskOptions.allTaskOptions = Collections.unmodifiableList(sortedOptions);
         return taskOptions;
     }
@@ -122,8 +126,8 @@ public class TaskOptionsSupplier {
             return allTaskOptions;
         }
 
-        public List<Pair<OptionDescriptor, OptionDescriptor>> getMutuallyExclusive() {
-            return mutuallyExclusiveOptions;
+        public void addMutualExclusions(CommandLineParser parser) {
+            mutuallyExclusiveOptions.forEach(pair -> parser.allowOneOf(pair.getLeft().getName(), pair.getRight().getName()));
         }
     }
 }

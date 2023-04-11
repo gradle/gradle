@@ -17,15 +17,14 @@
 package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskOptionsSupplier;
-import org.gradle.api.internal.tasks.TaskOptionsSupplier.TaskOptions;
+import org.gradle.api.internal.tasks.TaskOptionsGenerator;
+import org.gradle.api.internal.tasks.TaskOptionsGenerator.TaskOptions;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
-import org.gradle.internal.Pair;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.TypeConversionException;
@@ -53,7 +52,7 @@ public class CommandLineTaskConfigurer {
         List<String> remainingArguments = null;
         for (Task task : tasks) {
             CommandLineParser parser = new CommandLineParser();
-            TaskOptions taskOptions = TaskOptionsSupplier.get(task, optionReader);
+            TaskOptions taskOptions = TaskOptionsGenerator.generate(task, optionReader);
             List<OptionDescriptor> commandLineOptions = taskOptions.getAll();
             for (OptionDescriptor optionDescriptor : commandLineOptions) {
                 String optionName = optionDescriptor.getName();
@@ -61,7 +60,7 @@ public class CommandLineTaskConfigurer {
                 option.hasDescription(optionDescriptor.getDescription());
                 option.hasArgument(optionDescriptor.getArgumentType());
             }
-            allowOneOfEach(parser, taskOptions.getMutuallyExclusive());
+            taskOptions.addMutualExclusions(parser);
 
             ParsedCommandLine parsed;
             try {
@@ -88,9 +87,5 @@ public class CommandLineTaskConfigurer {
             remainingArguments = parsed.getExtraArguments();
         }
         return remainingArguments;
-    }
-
-    private void allowOneOfEach(CommandLineParser parser, List<Pair<OptionDescriptor, OptionDescriptor>> oppositeOptions) {
-        oppositeOptions.forEach(pair -> parser.allowOneOf(pair.getLeft().getName(), pair.getRight().getName()));
     }
 }

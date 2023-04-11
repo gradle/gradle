@@ -22,7 +22,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.TaskOptionsSupplier;
+import org.gradle.api.internal.tasks.TaskOptionsGenerator;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
 
@@ -139,7 +139,7 @@ class TaskDetails {
     public static TaskDetails from(Task task, OptionReader optionReader) {
         String path = task.getPath();
         int projectDepth = StringUtils.countMatches(path, Project.PATH_SEPARATOR);
-        List<OptionDetails> options = TaskOptionsSupplier.get(task, optionReader).getAll().stream().map(OptionDetails::from).collect(Collectors.toList());
+        List<OptionDetails> options = TaskOptionsGenerator.generate(task, optionReader).getAll().stream().map(OptionDetails::from).collect(Collectors.toList());
         Class<?> declaredTaskType = getDeclaredTaskType(task);
         String taskType = declaredTaskType.getName();
         String shortTypeName = declaredTaskType.getSimpleName();

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.internal.tasks.TaskOptionsGenerator;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
@@ -26,7 +27,7 @@ import java.util.Set;
 /**
  * A flag, does not take an argument.
  *
- * If a command line option is provided, the {@link org.gradle.api.internal.tasks.TaskOptionsSupplier} automatically creates an opposite option.
+ * If a command line option is provided, the {@link TaskOptionsGenerator} automatically creates an opposite option.
  * For example, {@code "--no-foo"} is created for the provided option {@code "--foo"} or {@code "--bar"} for the provided option {@code "--no-bar"}.
  *
  * Options whose names starts with "--no" are 'disable options' and set the option value to false.
@@ -72,6 +73,6 @@ public class BooleanOptionElement extends AbstractOptionElement {
     }
 
     private static String removeDisablePrefix(String optionName) {
-        return optionName.substring(3);
+        return optionName.substring(DISABLE_NAME_PREFIX.length());
     }
 }

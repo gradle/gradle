@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
 
-    def "if not passed, boolean options have default value"() {
+    def "if not passed, boolean options have default value with #optionName=#value"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithBooleanOptions()
         buildFile << sampleTask()
@@ -39,7 +39,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         'myFieldOption'            | 'null'
     }
 
-    def "can pass boolean option"() {
+    def "can pass boolean option with #option=#value"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithBooleanOptions()
         buildFile << sampleTask()
@@ -58,7 +58,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         'myFieldOption'            | 'true'
     }
 
-    def "can pass boolean disable option"() {
+    def "can pass boolean disable option #option=#value"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithBooleanOptions()
         buildFile << sampleTask()
@@ -70,14 +70,14 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Value of $option: $value")
 
         where:
-        option                        | value
+        option                     | value
         'myBooleanPrimitiveOption' | 'false'
         'myBooleanObjectOption'    | 'false'
         'myBooleanPropertyOption'  | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, false))'
         'myFieldOption'            | 'false'
     }
 
-    def "cannot pass boolean option value"() {
+    def "cannot pass boolean option value with #option"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithBooleanOptions()
         buildFile << sampleTask()
@@ -87,17 +87,18 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Command-line option '$option' does not take an argument.")
 
         where:
-        option                          | _
-        '--myBooleanPrimitiveOption'    | _
-        '--myBooleanObjectOption'       | _
-        '--myBooleanPropertyOption'     | _
-        '--no-myBooleanPrimitiveOption' | _
-        '--no-myBooleanObjectOption'    | _
-        '--no-myBooleanPropertyOption'  | _
-        '--no-myFieldOption'            | _
+        option  << ['--myBooleanPrimitiveOption',
+                    '--myBooleanObjectOption',
+                    '--myBooleanPropertyOption',
+                    '--myFieldOption',
+                    '--no-myBooleanPrimitiveOption',
+                    '--no-myBooleanObjectOption',
+                    '--no-myBooleanPropertyOption',
+                    '--no-myFieldOption'
+        ]
     }
 
-    def "if option and disable option are passed multiple times, last one wins"() {
+    def "if option and disable option are passed multiple times, last one wins with #option value1=#value1 value2=#value2"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithBooleanOptions()
         buildFile << sampleTask()
@@ -120,6 +121,21 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         'myBooleanObjectOption'    | 'false'                                                              | 'true'
         'myBooleanPropertyOption'  | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, false))' | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, true))'
         'myFieldOption'            | 'false'                                                              | 'true'
+    }
+
+    def "options of a task shadow clash with generated opposite options"() {
+        given:
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithBooleanOppositeOptionNameClashing()
+        buildFile << sampleTask()
+
+        when:
+        run('sample', "--my-option")
+
+        then:
+        outputContains("Value of my-option: true")
+        outputContains("Value of no-my-option: null")
+        outputContains("Opposite option 'my-option' in task task ':sample' was disabled for clashing with another option of same name")
+        outputContains("Opposite option 'no-my-option' in task task ':sample' was disabled for clashing with another option of same name")
     }
 
     def "can render boolean options with help task"() {
@@ -178,7 +194,6 @@ Group
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.api.tasks.options.Option;
-            import org.gradle.api.tasks.options.OptionValues;
 
             public class SampleTask extends DefaultTask {
                 private boolean myBooleanPrimitiveOption;
@@ -215,6 +230,40 @@ Group
                     System.out.println("Value of myBooleanObjectOption: " + myBooleanObjectOption);
                     System.out.println("Value of myBooleanPropertyOption: " + myBooleanPropertyOption);
                     System.out.println("Value of myFieldOption: " + myFieldOption);
+                }
+            }
+        """
+    }
+
+    static String taskWithBooleanOppositeOptionNameClashing() {
+        """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.tasks.options.Option;
+
+            public class SampleTask extends DefaultTask {
+
+                @Option(option = "my-option", description = "Option to trigger generation of opposite option")
+                private Boolean myOption;
+
+                @Option(option = "no-my-option", description = "Option clashing with generated opposite option")
+                private Boolean noMyOption;
+
+                public void setMyOption(Boolean myOption) {
+                    this.myOption = myOption;
+                }
+
+                public void setNoMyOption(Boolean noMyOption) {
+                    this.noMyOption = noMyOption;
+                }
+
+                public SampleTask() {}
+
+                @TaskAction
+                public void renderOptionValue() {
+                    System.out.println("Value of my-option: " + myOption);
+                    System.out.println("Value of no-my-option: " + noMyOption);
                 }
             }
         """
