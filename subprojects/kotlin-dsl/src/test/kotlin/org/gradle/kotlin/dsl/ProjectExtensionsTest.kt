@@ -12,7 +12,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.plugins.Convention
 import org.gradle.api.reflect.TypeOf
 
 import org.junit.Assert.fail
@@ -22,11 +21,13 @@ import org.junit.Test
 @Suppress("deprecation")
 class ProjectExtensionsTest {
 
+    abstract class CustomConvention
+
     @Test
     fun `can get generic project extension by type`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val extension = mock<NamedDomainObjectContainer<List<String>>>()
         val extensionType = typeOf<NamedDomainObjectContainer<List<String>>>()
 
@@ -47,7 +48,7 @@ class ProjectExtensionsTest {
     fun `can configure generic project extension by type`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val extension = mock<NamedDomainObjectContainer<List<String>>>()
         val extensionType = typeOf<NamedDomainObjectContainer<List<String>>>()
 
@@ -68,19 +69,19 @@ class ProjectExtensionsTest {
     fun `can get convention by type`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
-        val javaConvention = mock<org.gradle.api.plugins.JavaPluginConvention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
+        val javaConvention = mock<CustomConvention>()
 
         whenever(project.convention)
             .thenReturn(convention)
-        whenever(convention.findPlugin(eq(org.gradle.api.plugins.JavaPluginConvention::class.java)))
+        whenever(convention.findPlugin(eq(CustomConvention::class.java)))
             .thenReturn(javaConvention)
 
-        project.the<org.gradle.api.plugins.JavaPluginConvention>()
+        project.the<CustomConvention>()
 
         inOrder(convention) {
-            verify(convention).findByType(any<TypeOf<org.gradle.api.plugins.JavaPluginConvention>>())
-            verify(convention).findPlugin(eq(org.gradle.api.plugins.JavaPluginConvention::class.java))
+            verify(convention).findByType(any<TypeOf<CustomConvention>>())
+            verify(convention).findPlugin(eq(CustomConvention::class.java))
             verifyNoMoreInteractions()
         }
     }
@@ -89,21 +90,21 @@ class ProjectExtensionsTest {
     fun `can configure convention by type`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
-        val javaConvention = mock<org.gradle.api.plugins.JavaPluginConvention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
+        val javaConvention = mock<CustomConvention>()
 
         whenever(project.convention)
             .thenReturn(convention)
         whenever(convention.findByType(any<TypeOf<*>>()))
             .thenReturn(null)
-        whenever(convention.findPlugin(eq(org.gradle.api.plugins.JavaPluginConvention::class.java)))
+        whenever(convention.findPlugin(eq(CustomConvention::class.java)))
             .thenReturn(javaConvention)
 
-        project.configure<org.gradle.api.plugins.JavaPluginConvention> {}
+        project.configure<CustomConvention> {}
 
         inOrder(convention) {
-            verify(convention).findByType(any<TypeOf<org.gradle.api.plugins.JavaPluginConvention>>())
-            verify(convention).findPlugin(eq(org.gradle.api.plugins.JavaPluginConvention::class.java))
+            verify(convention).findByType(any<TypeOf<CustomConvention>>())
+            verify(convention).findPlugin(eq(CustomConvention::class.java))
             verifyNoMoreInteractions()
         }
     }
@@ -112,8 +113,8 @@ class ProjectExtensionsTest {
     fun `the() falls back to throwing getByType when not found`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
-        val conventionType = typeOf<org.gradle.api.plugins.JavaPluginConvention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
+        val conventionType = typeOf<CustomConvention>()
 
         whenever(project.convention)
             .thenReturn(convention)
@@ -121,7 +122,7 @@ class ProjectExtensionsTest {
             .thenThrow(UnknownDomainObjectException::class.java)
 
         try {
-            project.the<org.gradle.api.plugins.JavaPluginConvention>()
+            project.the<CustomConvention>()
             fail("UnknownDomainObjectException not thrown")
         } catch (ex: UnknownDomainObjectException) {
             // expected
@@ -129,7 +130,7 @@ class ProjectExtensionsTest {
 
         inOrder(convention) {
             verify(convention).findByType(eq(conventionType))
-            verify(convention).findPlugin(eq(org.gradle.api.plugins.JavaPluginConvention::class.java))
+            verify(convention).findPlugin(eq(CustomConvention::class.java))
             verify(convention).getByType(eq(conventionType))
             verifyNoMoreInteractions()
         }
@@ -139,16 +140,16 @@ class ProjectExtensionsTest {
     fun `configure() falls back to throwing configure when not found`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
-        val conventionType = typeOf<org.gradle.api.plugins.JavaPluginConvention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
+        val conventionType = typeOf<CustomConvention>()
 
         whenever(project.convention)
             .thenReturn(convention)
-        whenever(convention.configure(eq(conventionType), any<Action<org.gradle.api.plugins.JavaPluginConvention>>()))
+        whenever(convention.configure(eq(conventionType), any<Action<CustomConvention>>()))
             .thenThrow(UnknownDomainObjectException::class.java)
 
         try {
-            project.configure<org.gradle.api.plugins.JavaPluginConvention> {}
+            project.configure<CustomConvention> {}
             fail("UnknownDomainObjectException not thrown")
         } catch (ex: UnknownDomainObjectException) {
             // expected
@@ -156,8 +157,8 @@ class ProjectExtensionsTest {
 
         inOrder(convention) {
             verify(convention).findByType(eq(conventionType))
-            verify(convention).findPlugin(eq(org.gradle.api.plugins.JavaPluginConvention::class.java))
-            verify(convention).configure(eq(conventionType), any<Action<org.gradle.api.plugins.JavaPluginConvention>>())
+            verify(convention).findPlugin(eq(CustomConvention::class.java))
+            verify(convention).configure(eq(conventionType), any<Action<CustomConvention>>())
             verifyNoMoreInteractions()
         }
     }

@@ -42,6 +42,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -61,10 +62,14 @@ class ConfigurationCacheIO internal constructor(
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val beanStateReaderLookup: BeanStateReaderLookup,
-    private val beanStateWriterLookup: BeanStateWriterLookup
+    private val beanStateWriterLookup: BeanStateWriterLookup,
+    private val eventEmitter: BuildOperationProgressEventEmitter
 ) {
     private
     val codecs = codecs()
+
+    private
+    val encryptionService by lazy { service<EncryptionService>() }
 
     internal
     fun writeCacheEntryDetailsTo(
@@ -135,10 +140,10 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(graph, host::createBuild)
+                readRootBuildState(graph, loadAfterStore)
             }
         }
     }
@@ -147,7 +152,7 @@ class ConfigurationCacheIO internal constructor(
     fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
-                writeBuildState(host.currentBuild, buildTreeState)
+                writeBuildContent(host.currentBuild, buildTreeState)
             }
         }
     }
@@ -156,7 +161,7 @@ class ConfigurationCacheIO internal constructor(
     fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
         readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readBuildState(includedBuild)
+                readBuildContent(includedBuild)
             }
         }
 
@@ -165,8 +170,8 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
     ): T {
-        return withReadContextFor(stateFile.inputStream()) { codecs ->
-            ConfigurationCacheState(codecs, stateFile).run {
+        return withReadContextFor(encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
+            ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
                 action(this)
             }
         }
@@ -177,11 +182,12 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
+
         val build = host.currentBuild
-        val (context, codecs) = writerContextFor(stateFile.outputStream(), build.gradle.owner.displayName.displayName + " state")
+        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream), build.gradle.owner.displayName.displayName + " state")
         return context.useToRun {
             runWriteOperation {
-                action(ConfigurationCacheState(codecs, stateFile))
+                action(ConfigurationCacheState(codecs, stateFile, eventEmitter, host))
             }
         }
     }
@@ -323,7 +329,9 @@ class ConfigurationCacheIO internal constructor(
             includedTaskGraph = service(),
             buildStateRegistry = service(),
             documentationRegistry = service(),
-            javaSerializationEncodingLookup = service()
+            javaSerializationEncodingLookup = service(),
+            flowProviders = service(),
+            transformationNodeFactory = service(),
         )
 
     private

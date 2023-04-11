@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
@@ -31,6 +32,13 @@ dependencies {
     testImplementation("org.junit.vintage:junit-vintage-engine")
 }
 
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        // Can be set to true when assignment plugin becomes stable
+        allWarningsAsErrors = false
+    }
+}
+
 ktlint {
     filter {
         exclude("gradle/kotlin/dsl/accessors/_*/**")
@@ -47,8 +55,8 @@ tasks.named("codeQuality") {
 }
 
 tasks.validatePlugins {
-    failOnWarning.set(true)
-    enableStricterValidation.set(true)
+    failOnWarning = true
+    enableStricterValidation = true
 }
 
 tasks.withType<Test>().configureEach {

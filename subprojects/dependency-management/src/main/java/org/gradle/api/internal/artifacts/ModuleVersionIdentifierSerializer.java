@@ -23,6 +23,10 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
+/**
+ * A thread-safe and reusable serializer for {@link ModuleVersionIdentifier} if and only if the passed in
+ * {@link ImmutableModuleIdentifierFactory} is itself thread-safe.
+ */
 public class ModuleVersionIdentifierSerializer implements Serializer<ModuleVersionIdentifier> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 

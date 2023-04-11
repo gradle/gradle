@@ -16,8 +16,10 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.provider.Provider
 
 import java.io.File
 
@@ -37,7 +39,11 @@ interface PrecompiledScriptPluginsSupport {
     fun collectScriptPluginFilesOf(project: Project): List<File>
 
     interface Target {
+
         val project: Project
+
+        val jvmTarget: Provider<JavaVersion>
+
         val kotlinSourceDirectorySet: SourceDirectorySet
     }
 }

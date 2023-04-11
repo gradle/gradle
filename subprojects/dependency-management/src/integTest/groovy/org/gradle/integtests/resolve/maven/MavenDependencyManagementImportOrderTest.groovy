@@ -37,8 +37,9 @@ dependencies {
 	}
 }
 task verifyUndertowVersion {
-	doLast {	
-		def fileNames = configurations.test.files.collect { it.name }
+    def files = configurations.test
+	doLast {
+		def fileNames = files.collect { it.name }
 		assert fileNames.contains('undertow-servlet-1.4.11.Final.jar')
 		assert !fileNames.contains('undertow-servlet-1.2.9.Final.jar')
 	}
@@ -166,8 +167,9 @@ dependencies {
 	test 'group:level1:1'
 }
 task verifyVersion {
+    def files = configurations.test
 	doLast {
-		def fileNames = configurations.test.files.collect { it.name }
+		def fileNames = files.collect { it.name }
 		assert fileNames.contains('level1-1.jar')
 		assert fileNames.contains('level2-1.jar')
 		assert !fileNames.contains('level2-2.jar')
@@ -178,6 +180,4 @@ task verifyVersion {
 		then:
 		succeeds 'verifyVersion'
 	}
-
-
 }

@@ -280,9 +280,10 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
                 }
 
                 task undeclared {
+                    def runtimeClasspath = configurations.runtimeClasspath
                     doLast {
                         ${blockingServer.callFromBuild("before-resolve")}
-                        configurations.runtimeClasspath.files.each { }
+                        runtimeClasspath.files.each { }
                         ${blockingServer.callFromBuild("after-resolve")}
                     }
                 }
@@ -645,11 +646,11 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
             }
             subprojects {
                 configurations.create("myconfig1") {
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
                 }
                 configurations.create("myconfig2") {
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
                 }
 

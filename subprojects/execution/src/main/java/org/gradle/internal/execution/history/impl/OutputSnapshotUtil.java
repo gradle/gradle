@@ -44,7 +44,7 @@ import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformEntries;
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
-import static org.gradle.internal.snapshot.SnapshotUtil.index;
+import static org.gradle.internal.snapshot.SnapshotUtil.indexByAbsolutePath;
 
 public class OutputSnapshotUtil {
 
@@ -79,7 +79,7 @@ public class OutputSnapshotUtil {
 
     @VisibleForTesting
     static FileSystemSnapshot findOutputPropertyStillPresentSincePreviousExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
-        Map<String, FileSystemLocationSnapshot> previousIndex = index(previous);
+        Map<String, FileSystemLocationSnapshot> previousIndex = indexByAbsolutePath(previous);
         return filterSnapshot(current, (currentSnapshot, isRoot) ->
             // Include only outputs that we already considered outputs after the previous execution
             previousIndex.containsKey(currentSnapshot.getAbsolutePath())
@@ -120,13 +120,13 @@ public class OutputSnapshotUtil {
 
     @VisibleForTesting
     static FileSystemSnapshot filterOutputAfterExecution(@Nullable FileSystemSnapshot previous, FileSystemSnapshot unfilteredBeforeExecution, FileSystemSnapshot unfilteredAfterExecution) {
-        Map<String, FileSystemLocationSnapshot> beforeExecutionIndex = index(unfilteredBeforeExecution);
+        Map<String, FileSystemLocationSnapshot> beforeExecutionIndex = indexByAbsolutePath(unfilteredBeforeExecution);
         if (beforeExecutionIndex.isEmpty()) {
             return unfilteredAfterExecution;
         }
 
         Map<String, FileSystemLocationSnapshot> previousIndex = previous != null
-            ? index(previous)
+            ? indexByAbsolutePath(previous)
             : ImmutableMap.of();
 
         return filterSnapshot(unfilteredAfterExecution, (afterExecutionSnapshot, isRoot) ->

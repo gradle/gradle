@@ -24,44 +24,33 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavadocTool;
-import org.gradle.util.internal.VersionNumber;
-
-import java.nio.file.Path;
 
 public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
-    private final JavaCompilerFactory compilerFactory;
-    private final ToolchainToolFactory toolFactory;
+    static JavaLanguageVersion getJavaLanguageVersion(JvmInstallationMetadata metadata) {
+        return JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
+    }
+
     private final Directory javaHome;
-    private final VersionNumber toolchainVersion;
     private final JavaLanguageVersion javaVersion;
     private final JvmInstallationMetadata metadata;
     private final JavaToolchainInput input;
-    private final BuildOperationProgressEventEmitter eventEmitter;
+    private final boolean isFallbackToolchain;
 
     public JavaToolchain(
         JvmInstallationMetadata metadata,
-        JavaCompilerFactory compilerFactory,
-        ToolchainToolFactory toolFactory,
         FileFactory fileFactory,
         JavaToolchainInput input,
-        BuildOperationProgressEventEmitter eventEmitter
+        boolean isFallbackToolchain
     ) {
-        this.javaHome = fileFactory.dir(computeEnclosingJavaHome(metadata.getJavaHome()).toFile());
-        this.javaVersion = JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
-        this.compilerFactory = compilerFactory;
-        this.toolFactory = toolFactory;
-        this.toolchainVersion = VersionNumber.withPatchNumber().parse(metadata.getJavaVersion());
+        this.javaHome = fileFactory.dir(metadata.getJavaHome().toFile());
+        this.javaVersion = getJavaLanguageVersion(metadata);
         this.metadata = metadata;
         this.input = input;
-        this.eventEmitter = eventEmitter;
+        this.isFallbackToolchain = isFallbackToolchain;
     }
 
     @Nested
@@ -69,22 +58,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return input;
     }
 
-    @Internal
-    public JavaCompiler getJavaCompiler() {
-        return new DefaultToolchainJavaCompiler(this, compilerFactory);
-    }
-
-    @Internal
-    public JavaLauncher getJavaLauncher() {
-        return new DefaultToolchainJavaLauncher(this);
-    }
-
-    @Internal
-    public JavadocTool getJavadocTool() {
-        return toolFactory.create(JavadocTool.class, this);
-    }
-
-    @Internal
+    @Override
     public JavaLanguageVersion getLanguageVersion() {
         return javaVersion;
     }
@@ -101,21 +75,12 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     }
 
     @Internal
-    public VersionNumber getToolchainVersion() {
-        return toolchainVersion;
-    }
-
-    @Internal
     public Directory getInstallationPath() {
         return javaHome;
     }
 
     @Internal
-    public boolean isJdk() {
-        return metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER);
-    }
-
-    @Internal
+    @Override
     public boolean isCurrentJvm() {
         return javaHome.getAsFile().equals(Jvm.current().getJavaHome());
     }
@@ -136,21 +101,18 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return javaHome.toString();
     }
 
+    @Internal
+    public boolean isFallbackToolchain() {
+        return isFallbackToolchain;
+    }
+
     public RegularFile findExecutable(String toolName) {
         return getInstallationPath().file(getBinaryPath(toolName));
     }
 
-    public void emitUsageEvent(DefaultJavaToolchainUsageProgressDetails.JavaTool javaTool) {
-        eventEmitter.emitNowForCurrent(new DefaultJavaToolchainUsageProgressDetails(javaTool, metadata));
-    }
-
-    private Path computeEnclosingJavaHome(Path home) {
-        final Path parentPath = home.getParent();
-        final boolean isEmbeddedJre = home.getFileName().toString().equalsIgnoreCase("jre");
-        if (isEmbeddedJre && parentPath.resolve(getBinaryPath("java")).toFile().exists()) {
-            return parentPath;
-        }
-        return home;
+    @Override
+    public String toString() {
+        return "JavaToolchain(javaHome=" + getDisplayName() + ")";
     }
 
     private String getBinaryPath(String java) {

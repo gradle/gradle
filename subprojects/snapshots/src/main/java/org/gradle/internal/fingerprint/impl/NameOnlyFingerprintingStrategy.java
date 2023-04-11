@@ -25,10 +25,7 @@ import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
-import org.gradle.internal.snapshot.SnapshotVisitResult;
 
-import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -54,12 +51,11 @@ public class NameOnlyFingerprintingStrategy extends AbstractDirectorySensitiveFi
     @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
-        HashSet<String> processedEntries = new HashSet<>();
-        roots.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
+        roots.accept(new MissingRootAndDuplicateIgnoringFileSystemSnapshotVisitor() {
             @Override
-            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
+            public void visitAcceptedEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
-                if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
+                if (getDirectorySensitivity().shouldFingerprint(snapshot)) {
                     if (isRoot && snapshot.getType() == FileType.Directory) {
                         builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.DIRECTORY);
                     } else {
@@ -69,7 +65,6 @@ public class NameOnlyFingerprintingStrategy extends AbstractDirectorySensitiveFi
                         }
                     }
                 }
-                return SnapshotVisitResult.CONTINUE;
             }
         });
         return builder.build();

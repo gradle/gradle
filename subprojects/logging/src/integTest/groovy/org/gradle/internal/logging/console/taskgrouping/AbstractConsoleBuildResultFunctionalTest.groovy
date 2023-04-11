@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.LogContent
 
+import static org.hamcrest.CoreMatchers.containsString
+
 abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     protected final StyledOutput buildFailed = styled(Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD).text('BUILD FAILED').off()
     protected final StyledOutput buildSuccessful = styled(Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD).text('BUILD SUCCESSFUL').off()
@@ -112,7 +114,11 @@ BUILD SUCCESSFUL in [ \\dms]+
 
         and:
         // Ensure the failure is a location that the fixtures can see
-        failure.assertHasDescription("Execution failed for task ':broken'")
+        if (level == LogLevel.DEBUG) {
+            failure.assertThatDescription(containsString("Execution failed for task ':broken'"))
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'")
+        }
         failure.assertHasCause("broken")
 
         // Check that the failure text appears either stdout or stderr

@@ -270,17 +270,20 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
 
     def buildsWithBuildSrc() {
         buildSrc(projectDir)
+        def child = "child"
         settingsFile << """
-            includeBuild("child")
+            includeBuild("$child")
         """
 
-        def childBuild = file("child")
+
+        def childBuild = file(child)
         buildSrc(childBuild)
+        def nested = "nested"
         childBuild.file("settings.gradle") << """
-            includeBuild("nested")
+            includeBuild("$nested")
         """
 
-        def nestedBuild = childBuild.file("nested")
+        def nestedBuild = childBuild.file(nested)
         buildSrc(nestedBuild)
     }
 

@@ -21,16 +21,15 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.InstallationLocation;
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 
 import javax.inject.Inject;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -42,10 +41,10 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 @UntrackedTask(because = "Produces only non-cacheable console output")
-public class ShowToolchainsTask extends DefaultTask {
+public abstract class ShowToolchainsTask extends DefaultTask {
 
-    private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
-        .<ReportableToolchain, String>comparing(t -> t.metadata.getDisplayName())
+    private static final Comparator<JvmToolchainMetadata> TOOLCHAIN_COMPARATOR = Comparator
+        .<JvmToolchainMetadata, String>comparing(t -> t.metadata.getDisplayName())
         .thenComparing(t -> t.metadata.getLanguageVersion());
 
     private final ToolchainReportRenderer toolchainRenderer = new ToolchainReportRenderer();
@@ -59,9 +58,9 @@ public class ShowToolchainsTask extends DefaultTask {
         StyledTextOutput output = getTextOutputFactory().create(getClass());
         toolchainRenderer.setOutput(output);
         output.println();
-        List<ReportableToolchain> toolchains = allReportableToolchains();
-        List<ReportableToolchain> validToolchains = validToolchains(toolchains);
-        List<ReportableToolchain> invalidToolchains = invalidToolchains(toolchains);
+        List<JvmToolchainMetadata> toolchains = allReportableToolchains();
+        List<JvmToolchainMetadata> validToolchains = validToolchains(toolchains);
+        List<JvmToolchainMetadata> invalidToolchains = invalidToolchains(toolchains);
         printOptions(output);
         validToolchains.forEach(toolchainRenderer::printToolchain);
         toolchainRenderer.printInvalidToolchains(invalidToolchains);
@@ -82,36 +81,25 @@ public class ShowToolchainsTask extends DefaultTask {
         return getProviderFactory().gradleProperty(propertyKey).map(Boolean::parseBoolean).getOrElse(true);
     }
 
-    private List<ReportableToolchain> invalidToolchains(List<ReportableToolchain> toolchains) {
+    private List<JvmToolchainMetadata> invalidToolchains(List<JvmToolchainMetadata> toolchains) {
         return toolchains.stream().filter(t -> !isValidToolchain().test(t)).collect(Collectors.toList());
     }
 
-    private List<ReportableToolchain> validToolchains(List<ReportableToolchain> toolchains) {
+    private List<JvmToolchainMetadata> validToolchains(Collection<JvmToolchainMetadata> toolchains) {
         return toolchains.stream().filter(isValidToolchain()).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
     }
 
-    private Predicate<? super ReportableToolchain> isValidToolchain() {
+    private Predicate<? super JvmToolchainMetadata> isValidToolchain() {
         return t -> t.metadata.isValidInstallation();
     }
 
-    private List<ReportableToolchain> allReportableToolchains() {
-        return getInstallationRegistry().listInstallations().parallelStream()
-            .map(this::asReportableToolchain)
-            .collect(Collectors.toList());
-    }
-
-    private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location);
-        return new ReportableToolchain(metadata, location);
+    private List<JvmToolchainMetadata> allReportableToolchains() {
+        return getInstallationRegistry()
+            .toolchains();
     }
 
     @Inject
     protected JavaInstallationRegistry getInstallationRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JvmMetadataDetector getMetadataDetector() {
         throw new UnsupportedOperationException();
     }
 

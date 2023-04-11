@@ -60,7 +60,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         taskName = input[1]
         taskType = taskName.capitalize()
         fileExtension = taskName
-        expectedHash = taskName == 'tar' ? 'eff4909fee3367f576fe26537ff6403a' : '62b93684c0b891fcf905b4a6eaf32976'
+        expectedHash = taskName == 'tar' ? 'e700ead57290d37d0950a9c87689e6e4' : '002ed122f6f71124e244151251037162'
     }
 
     def "timestamps are ignored in #taskName"() {
@@ -124,8 +124,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         // Reason for different gzip checksum on JDK16: https://jdk.java.net/16/release-notes#JDK-8244706
         where:
         compression | md5
-        'gzip'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? 'c4d89909b123359774c0a5dfd3cc8e46' : 'a9339a2b2bb7f96057c480834d00e29e')
-        'bzip2'     | '3da0b978d23f0a774ea7cf07d73f3283'
+        'gzip'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? '022ce6c9bfb4705481fafdbe0d3c0334' : '7b86e679a3c6cda52736e1f167cc04f5')
+        'bzip2'     | '54615d3194655da3f7f72c8859f66fa5'
     }
 
     def "#taskName preserves order of child specs"() {

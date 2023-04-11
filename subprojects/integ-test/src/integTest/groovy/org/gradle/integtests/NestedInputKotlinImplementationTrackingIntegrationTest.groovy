@@ -19,9 +19,13 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
+
+import static org.junit.Assume.assumeFalse
 
 @LeaksFileHandles
 class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -133,13 +137,15 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
-    def "task action defined in Kotlin 1.7 can be tracked when using language version #kotlinVersion"() {
+    def "task action defined in latest Kotlin can be tracked when using language version #kotlinVersion"() {
+        assumeFalse(GradleContextualExecuter.embedded)
         file("buildSrc/build.gradle.kts") << """
             plugins {
-                kotlin("jvm") version("1.7.10")
+                kotlin("jvm") version("${new KotlinGradlePluginVersions().latestStableOrRC}")
                 `java-gradle-plugin`
             }
 
+            import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
             repositories {
@@ -156,9 +162,9 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
             }
 
             tasks.withType<KotlinCompile>().configureEach {
-                kotlinOptions {
-                    apiVersion = "${kotlinVersion}"
-                    languageVersion = "${kotlinVersion}"
+                compilerOptions {
+                    apiVersion.set(KotlinVersion.fromVersion("${kotlinVersion}"))
+                    languageVersion.set(KotlinVersion.fromVersion("${kotlinVersion}"))
                 }
             }
         """
@@ -193,12 +199,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         executedAndNotSkipped(":myTask")
 
         where:
-        kotlinVersion << [
-            "1.4",
-            "1.5",
-            "1.6",
-            "1.7",
-        ]
+        kotlinVersion << KotlinGradlePluginVersions.LANGUAGE_VERSIONS
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {

@@ -21,4 +21,6 @@ dependencies {
     implementation(kotlin("gradle-plugin") as String) {
         because("For manually defined KotlinSourceSet accessor - sourceSets.main.get().kotlin")
     }
+
+    testImplementation("org.junit.jupiter:junit-jupiter-engine")
 }

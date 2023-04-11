@@ -18,7 +18,8 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
-import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
+import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -52,14 +53,14 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     def services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
             .parent(NativeServicesTestFixture.getInstance())
             .provider(LoggingServiceRegistry.NO_OP)
-            .provider(new GlobalScopeServices(false))
+            .provider(new GlobalScopeServices(false, AgentStatus.disabled()))
             .build()
 
     def factory = services.get(CacheFactory.class)
     def currentGradleVersion = GradleVersion.current()
     def scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, currentGradleVersion)
-    def cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
-    def globalScopedCache = new DefaultGlobalScopedCache(tmpDir.testDirectory, cacheRepository)
+    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(scopeMapping, factory)
+    def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(tmpDir.testDirectory, cacheRepository)
     def defaultGeneratedGradleJarCache = new DefaultGeneratedGradleJarCache(globalScopedCache, currentGradleVersion.getVersion())
 
     def cleanup() {
@@ -106,7 +107,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     def "only generates single JAR in cache when invoked by concurrent threads"() {
         given:
         def jarGenerationInvocations = 10
-        def triggeredJarFileGeneration = new AtomicInteger(0)
+        def triggeredJarFileGeneration = new AtomicInteger()
         def jarFiles = Collections.synchronizedList(new ArrayList<File>())
 
         when:

@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.tooling.r30
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -23,6 +24,8 @@ import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseClasspathContainer
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
+
+import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=3.0')
@@ -148,7 +151,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
         buildFile <<
         """apply plugin: 'java'
            apply plugin: 'eclipse'
-           targetCompatibility = 1.4
+           ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
         """
 
         when:
@@ -182,7 +185,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
         buildFile <<
         """apply plugin: 'java'
            apply plugin: 'eclipse'
-           targetCompatibility = 1.4
+           ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
            eclipse {
                jdt {
                     javaRuntimeName = "customJavaRuntime"

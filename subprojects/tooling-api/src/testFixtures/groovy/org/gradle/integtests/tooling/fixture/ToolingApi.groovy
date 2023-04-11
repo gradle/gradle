@@ -186,6 +186,8 @@ class ToolingApi implements TestRule {
             connector.useInstallation(dist.gradleHomeDir.absoluteFile)
         }
         connector.embedded(embedded)
+
+//        this.
         if (GradleVersion.version(dist.getVersion().version) < GradleVersion.version("6.0")) {
             connector.searchUpwards(false)
         } else {

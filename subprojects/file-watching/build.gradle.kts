@@ -9,6 +9,7 @@ dependencies {
 
     implementation(project(":base-annotations"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":functional"))
 
     implementation(libs.guava)
     implementation(libs.nativePlatform)
@@ -28,4 +29,9 @@ dependencies {
     testImplementation(libs.commonsIo)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

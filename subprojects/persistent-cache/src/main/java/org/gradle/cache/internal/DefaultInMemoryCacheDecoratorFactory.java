@@ -22,7 +22,7 @@ import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
     private CacheDetails getCache(final String cacheId, final int maxSize) {
         CacheDetails cacheDetails = caches.get(cacheId, () -> {
             Cache<Object, Object> entries = createInMemoryCache(cacheId, maxSize);
-            CacheDetails details = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<>(null));
+            CacheDetails details = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<>());
             LOG.debug("Creating in-memory store for cache {} (max size: {})", cacheId, maxSize);
             return details;
         });
@@ -109,10 +109,10 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
         }
 
         @Override
-        public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
-            MultiProcessSafeAsyncPersistentIndexedCache<K, V> asyncCache = new AsyncCacheAccessDecoratedCache<>(asyncCacheAccess, persistentCache);
+        public <K, V> MultiProcessSafeIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafeIndexedCache<K, V> indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+            MultiProcessSafeAsyncPersistentIndexedCache<K, V> asyncCache = new AsyncCacheAccessDecoratedCache<>(asyncCacheAccess, indexedCache);
             MultiProcessSafeAsyncPersistentIndexedCache<K, V> memCache = applyInMemoryCaching(cacheId, asyncCache, maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
-            return new CrossProcessSynchronizingCache<>(memCache, crossProcessCacheAccess);
+            return new CrossProcessSynchronizingIndexedCache<>(memCache, crossProcessCacheAccess);
         }
     }
 

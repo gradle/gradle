@@ -32,7 +32,7 @@ import java.io.File
 import java.util.function.Function
 
 
-@VisibleForTesting
+internal
 sealed class GradleInstallation {
 
     data class Local(val dir: File) : GradleInstallation()
@@ -47,7 +47,7 @@ sealed class GradleInstallation {
 }
 
 
-@VisibleForTesting
+internal
 data class KotlinBuildScriptModelRequest(
     val projectDir: File,
     val scriptFile: File? = null,

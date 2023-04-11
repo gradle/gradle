@@ -183,7 +183,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
                 // node in the queue
                 node.resolveDependencies(dependencyResolver);
                 for (Node successor : node.getHardSuccessors()) {
-                    successor.maybeInheritOrdinalAsDependency(node.getGroup());
+                    successor.maybeInheritOrdinalAsDependency(node.getGroup().asOrdinal());
                 }
                 ListIterator<Node> insertPoint = queue.listIterator();
                 for (Node successor : node.getDependencySuccessors()) {

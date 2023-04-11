@@ -66,13 +66,16 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.asciidoctor.jvm.convert',
                 'com.gradle.plugin-publish',
                 'kotlin',
-                'com.autonomousapps.dependency-analysis'
+                'com.autonomousapps.dependency-analysis',
+                'dev.adamko.dokkatoo.DokkatooBasePlugin$Inject',
+                'dev.adamko.dokkatoo.adapters.DokkatooJavaAdapter$Inject',
+                'dev.adamko.dokkatoo.adapters.DokkatooKotlinAdapter$Inject',
+                'dev.adamko.dokkatoo.formats.DokkatooHtmlPlugin$Inject',
             ]
         }
 
         then:
         validatePlugins()
-
     }
 
     void passingPlugins(Closure<Boolean> spec) {
@@ -81,7 +84,6 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
 
     void validatePlugins() {
         allPlugins.performValidation([
-            "-Dorg.gradle.internal.validate.external.plugins=true",
             "--no-parallel" // make sure we have consistent execution ordering as we skip cached tasks
         ])
     }
@@ -104,8 +106,4 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
             allPlugins.onPlugin(id, projectPath, spec)
         }
     }
-
 }
-
-
-

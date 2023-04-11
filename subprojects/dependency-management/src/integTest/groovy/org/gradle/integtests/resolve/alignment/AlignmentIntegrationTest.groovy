@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class AlignmentIntegrationTest extends AbstractAlignmentSpec {
@@ -54,9 +53,14 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    module('org:core:1.1')
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
             }
@@ -101,13 +105,19 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    module('org:core:1.1')
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
                 module("outside:module:1.0") {
-                    edge('org:core:1.0', 'org:core:1.1').byConflictResolution("between versions 1.1 and 1.0")
+                    byConstraint("belongs to platform outside:platform:1.0")
+                    edge('org:core:1.0', 'org:core:1.1')
                 }
             }
         }
@@ -147,10 +157,15 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
+                    byConflictResolution("between versions 1.1 and 1.0")
                 }
                 edge("org:json:1.0", "org:json:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    module('org:core:1.1')
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module('org:core:1.1')
             }
@@ -186,11 +201,14 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:xml:1.0") {
-                    edge('org:core:1.0', 'org:core:1.1')
-                        .byConflictResolution("between versions 1.1 and 1.0")
-                        .byConstraint("belongs to platform org:platform:1.1")
+                    byConstraint("belongs to platform org:platform:1.1")
+                    edge('org:core:1.0', 'org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
             }
@@ -227,10 +245,14 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
-                    module('org:core:1.0')
                     byConstraint("belongs to platform org:platform:1.1")
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org:core:1.0') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                    }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.0')
                 }
             }
@@ -277,12 +299,22 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:core:2.9.4')
-                edge('org:databind:2.7.9', 'org:databind:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
+                module('org:core:2.9.4') {
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
+                }
+                edge('org:databind:2.7.9', 'org:databind:2.9.4') {
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
+                }
                 module('org:kt:2.9.4.1') {
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
                     module('org:databind:2.9.4') {
-                        module('org:core:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
-                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
+                        module('org:core:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4') {
+                            byConstraint("belongs to platform org:platform:2.9.4.1")
+                            byConflictResolution("between versions 2.9.4 and 2.9.0")
+                        }
                     }
                 }
             }
@@ -327,12 +359,22 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:core:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
-                edge('org:databind:2.7.9', 'org:databind:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
+                module('org:core:2.9.4') {
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
+                }
+                edge('org:databind:2.7.9', 'org:databind:2.9.4') {
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
+                }
                 module('org:kt:2.9.4.1') {
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
                     module('org:databind:2.9.4') {
                         module('org:core:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
-                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4').byConstraint("belongs to platform org:platform:2.9.4.1")
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4') {
+                            byConstraint("belongs to platform org:platform:2.9.4.1")
+                            byConflictResolution("between versions 2.9.4 and 2.9.0")
+                        }
                     }
                 }
             }
@@ -421,9 +463,15 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:core:2.9.4') {
-                    edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                    byConstraint()
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
+                    edge("org:platform:2.9.4", "org:platform:2.9.4.1") {
+                        byConflictResolution("between versions 2.9.4.1 and 2.9.4")
+                    }
                 }
                 edge('org:databind:2.7.9', 'org:databind:2.9.4') {
+                    byConstraint()
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
                     edge("org:platform:2.9.4", "org:platform:2.9.4.1")
                 }
                 module('org:kt:2.9.4.1') {
@@ -437,6 +485,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module('org:databind:2.9.4') {
                         module('org:core:2.9.4')
                         edge('org:annotations:2.9.0', 'org:annotations:2.9.4') {
+                            byConstraint()
+                            byConflictResolution("between versions 2.9.4 and 2.9.0")
                             edge("org:platform:2.9.4", "org:platform:2.9.4.1")
                         }
                     }
@@ -487,17 +537,27 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    module('org:core:1.1')
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
 
                 edge("org2:xml:1.0", "org2:xml:1.1") {
                     byConstraint("belongs to platform org2:platform:1.1")
-                    module('org2:core:1.1')
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org2:core:1.1') {
+                        byConstraint("belongs to platform org2:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module("org2:json:1.1") {
+                    byConstraint("belongs to platform org2:platform:1.1")
                     module('org2:core:1.1')
                 }
             }
@@ -543,7 +603,10 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:xml:1.0') {
-                    module('org:core:1.0')
+                    byConstraint("belongs to platform org:platform:1.0")
+                    module('org:core:1.0') {
+                        byConstraint("belongs to platform org:platform:1.0")
+                    }
                 }
                 module('org2:foo:1.0') {
                     edge('org4:a:1.0', 'org4:a:1.1') {
@@ -612,12 +675,13 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.0") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    // byReason("version 1.1 is buggy") // TODO CC: uncomment when we collect rejection from component selection rule
                     edge('org:core:1.0', 'org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
                         byConflictResolution("between versions 1.1 and 1.0")
                     }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
             }
@@ -658,9 +722,16 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
                     byConstraint("belongs to platform org:platform2:1.1")
-                    module('org:core:1.1')
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        byConstraint("belongs to platform org:platform2:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                    byConstraint("belongs to platform org:platform2:1.1")
                     module('org:core:1.1')
                 }
             }
@@ -742,8 +813,13 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.apache.groovy:xml:2.4", "org.apache.groovy:xml:2.5") {
+                    byConstraint()
+                    byConflictResolution("between versions 2.5 and 2.4")
                     module("org.apache.groovy:core:2.5") {
+                        byConstraint()
+                        byConflictResolution("between versions 2.5 and 2.4")
                         module("org.apache.groovy:platform:2.5") {
+                            byConflictResolution("between versions 2.5 and 2.4")
                             noArtifacts()
                             module("org.apache.groovy:platform:2.5")          // The way the rule is defined, it is applied to the platform itself.
                             module("org.springframework:spring-platform:1.0") // This is not good practice, but we keep this to describe the current behavior.
@@ -761,11 +837,13 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module("org.springframework:spring-platform:1.0")
                 }
                 module("org.apache.groovy:json:2.5") {
+                    byConstraint()
                     module("org.apache.groovy:core:2.5")
                     module("org.apache.groovy:platform:2.5")
                     module("org.springframework:spring-platform:1.0")
                 }
                 edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
+                    byConstraint()
                     byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
@@ -839,7 +917,12 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.apache.groovy:xml:2.4", "org.apache.groovy:xml:2.5") {
+                    byConstraint("belongs to platform org.apache.groovy:platform:2.5")
+                    byConflictResolution("between versions 2.5 and 2.4")
                     module("org.apache.groovy:core:2.5") {
+                        byConstraint()
+                        byConstraint("belongs to platform org.apache.groovy:platform:2.5")
+                        byConflictResolution("between versions 2.5 and 2.4")
                         module("org.springframework:spring-platform:1.0") {
                             noArtifacts()
                             constraint("org.apache.groovy:core:2.4", "org.apache.groovy:core:2.5")
@@ -849,10 +932,12 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module("org.springframework:spring-platform:1.0")
                 }
                 module("org.apache.groovy:json:2.5") {
+                    byConstraint("belongs to platform org.apache.groovy:platform:2.5")
                     module("org.apache.groovy:core:2.5")
                     module("org.springframework:spring-platform:1.0")
                 }
                 edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
+                    byConstraint()
                     byConflictResolution("between versions 1.1 and 1.0")
                 }
             }
@@ -862,7 +947,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     // We only need to test one flavor
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForConfigurationCache
     def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -898,9 +982,14 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    module('org:core:1.1')
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
             }
@@ -915,9 +1004,14 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:xml:1.0", "org:xml:1.1") {
                     byConstraint("belongs to platform org:platform:1.1")
-                    module('org:core:1.1')
+                    byConflictResolution("between versions 1.1 and 1.0")
+                    module('org:core:1.1') {
+                        byConstraint("belongs to platform org:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 module("org:json:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
                     module('org:core:1.1')
                 }
             }
@@ -926,7 +1020,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     // Platforms cannot be published with plain Ivy
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForConfigurationCache
     def "published platform can be found in a different repository"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -1022,13 +1115,18 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:core:2.9.4') {
+                    byConstraint()
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
                     edge("org:platform:2.9.4", "org:platform:2.9.4.1")
                 }
                 edge('org:databind:2.7.9', 'org:databind:2.9.4') {
+                    byConstraint()
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
                     edge("org:platform:2.9.4", "org:platform:2.9.4.1")
                 }
                 module('org:kt:2.9.4.1') {
                     module("org:platform:2.9.4.1") {
+                        byConflictResolution("between versions 2.9.4.1 and 2.9.4")
                         noArtifacts()
                         constraint("org:core:2.9.4")
                         constraint("org:databind:2.9.4")
@@ -1038,6 +1136,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module('org:databind:2.9.4') {
                         module('org:core:2.9.4')
                         edge('org:annotations:2.9.0', 'org:annotations:2.9.4') {
+                            byConstraint()
+                            byConflictResolution("between versions 2.9.4 and 2.9.0")
                             edge("org:platform:2.9.4", "org:platform:2.9.4.1")
                         }
                     }
@@ -1054,13 +1154,18 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:core:2.9.4') {
+                    byConstraint()
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
                     edge("org:platform:2.9.4", "org:platform:2.9.4.1")
                 }
                 edge('org:databind:2.7.9', 'org:databind:2.9.4') {
+                    byConstraint()
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
                     edge("org:platform:2.9.4", "org:platform:2.9.4.1")
                 }
                 module('org:kt:2.9.4.1') {
                     module("org:platform:2.9.4.1") {
+                        byConflictResolution("between versions 2.9.4.1 and 2.9.4")
                         noArtifacts()
                         constraint("org:core:2.9.4")
                         constraint("org:databind:2.9.4")
@@ -1070,6 +1175,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     module('org:databind:2.9.4') {
                         module('org:core:2.9.4')
                         edge('org:annotations:2.9.0', 'org:annotations:2.9.4') {
+                            byConstraint()
+                            byConflictResolution("between versions 2.9.4 and 2.9.0")
                             edge("org:platform:2.9.4", "org:platform:2.9.4.1")
                         }
                     }
@@ -1111,7 +1218,10 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:member2:1.1") {
-                    module("org:member1:1.1")
+                    byConstraint("belongs to platform org:platform:1.1")
+                    module("org:member1:1.1") {
+                        byConstraint("belongs to platform org:platform:1.1")
+                    }
                 }
             }
         }
@@ -1149,6 +1259,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo:1.0", "org:foo:1.1") {
+                    byConflictResolution("between versions 1.1 and 1.0")
                     byConstraint("belongs to platform org:platform:1.1")
                 }
             }
@@ -1198,6 +1309,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 module("start:start:1.0") {
                     edge("org:foo:1.0", "org:foo:1.1") {
                         byConstraint("belongs to platform org:platform:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
                         module("org:bar:1.1") {
                             byConstraint("belongs to platform org:platform:1.1")
                         }
@@ -1285,14 +1397,22 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 module("start:start:1.0") {
                     edge("org:foo:1.2", "org:foo:1.5") {
                         byConstraint("belongs to platform org:platform:1.5")
+                        selectedByRule("substitution from 'org:foo:[1.2,)' to 'org:foo:1.0'")
+                        byConflictResolution("between versions 1.0 and 1.5")
                         module("org:bar:1.5") {
+                            selectedByRule("substitution from 'org:bar:[1.2,)' to 'org:bar:1.0'")
+                            byConflictResolution("between versions 1.5 and 1.0")
                             byConstraint("belongs to platform org:platform:1.5")
                         }
                         module("org:baz:1.5") {
                             module("org:fooBar:1.5") {
                                 byConstraint("belongs to platform org:platform:1.5")
+                                selectedByRule("substitution from 'org:fooBar:[1.2,)' to 'org:fooBar:1.0'")
+                                byConflictResolution("between versions 1.5 and 1.0")
                             }
                             byConstraint("belongs to platform org:platform:1.5")
+                            selectedByRule("substitution from 'org:baz:[1.2,)' to 'org:baz:1.0'")
+                            byConflictResolution("between versions 1.5 and 1.0")
                         }
                     }
                 }
@@ -1444,11 +1564,19 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 module("org:a:1.0") {
                     edge('proto:java:1.0', "nebula:java:2.0")
                     module('proto:java-util:1.0') {
+                        byConstraint("belongs to platform aligned-group:proto:1.0")
                         edge('proto:java:1.0', "nebula:java:2.0")
                     }
                 }
-                module('align:first:2.0')
-                module('nebula:java:2.0')
+                module('align:first:2.0') {
+                    byConstraint("belongs to platform aligned-group:align:2.0")
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
+                module('nebula:java:2.0') {
+                    byConstraint("belongs to platform aligned-group:nebula:2.0")
+                    selectedByRule("proto:java replaced with nebula:java")
+                    byConflictResolution("between versions 2.0 and 1.1")
+                }
                 module('org:b:1.0') {
                     module('org:c:1.0') {
                         module('org:d:1.0') {
@@ -1456,7 +1584,11 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                                 edge('nebula:java:1.1', 'nebula:java:2.0')
                             }
                             edge('align:second:1.0', 'align:second:2.0') {
-                                module('align:third:2.0')
+                                byConstraint("belongs to platform aligned-group:align:2.0")
+                                byConflictResolution("between versions 2.0 and 1.0")
+                                module('align:third:2.0') {
+                                    byConstraint("belongs to platform aligned-group:align:2.0")
+                                }
                                 edge('align:first:1.0', 'align:first:2.0')
                                 module('org:f:1.0') {
                                     edge('proto:java:0.5', 'nebula:java:2.0')

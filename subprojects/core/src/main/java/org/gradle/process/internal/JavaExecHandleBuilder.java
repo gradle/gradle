@@ -25,6 +25,7 @@ import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -63,6 +64,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final JavaModuleDetector javaModuleDetector;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
+    private final ListProperty<String> jvmArguments;
     private ConfigurableFileCollection classpath;
     private final JavaForkOptions javaOptions;
     private final ProcessArgumentsSpec applicationArgsSpec = new ProcessArgumentsSpec(this);
@@ -85,6 +87,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         this.classpath = fileCollectionFactory.configurableFiles("classpath");
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class);
+        this.jvmArguments = objectFactory.listProperty(String.class);
         this.javaOptions = javaOptions;
         this.modularity = new DefaultModularitySpec(objectFactory);
         executable(javaOptions.getExecutable());
@@ -183,6 +186,11 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     public JavaExecHandleBuilder jvmArgs(Object... arguments) {
         javaOptions.jvmArgs(arguments);
         return this;
+    }
+
+    @Override
+    public ListProperty<String> getJvmArguments() {
+        return jvmArguments;
     }
 
     @Override

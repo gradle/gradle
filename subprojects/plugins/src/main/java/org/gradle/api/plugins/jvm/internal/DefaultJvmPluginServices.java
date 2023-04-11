@@ -15,48 +15,38 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.AdhocComponentWithVariants;
-import org.gradle.api.component.ConfigurationVariantDetails;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.ImmutableCapability;
-import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,46 +55,57 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DefaultJvmPluginServices implements JvmPluginServices {
-    private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
-    private final TaskContainer tasks;
-    private final SoftwareComponentContainer components;
+    private final ProviderFactory providerFactory;
     private final InstanceGenerator instanceGenerator;
     private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // ? is really AbstractCompile & HasCompileOptions
 
-    private SourceSetContainer sourceSets;
     private ProjectInternal project; // would be great to avoid this but for lazy capabilities it's hard to avoid!
 
     @Inject
-    public DefaultJvmPluginServices(ConfigurationContainer configurations,
-                                    ObjectFactory objectFactory,
-                                    TaskContainer tasks,
-                                    SoftwareComponentContainer components,
+    public DefaultJvmPluginServices(ObjectFactory objectFactory,
+                                    ProviderFactory providerFactory,
                                     InstanceGenerator instanceGenerator) {
-        this.configurations = configurations;
         this.objectFactory = objectFactory;
-        this.tasks = tasks;
-        this.components = components;
+        this.providerFactory = providerFactory;
         this.instanceGenerator = instanceGenerator;
         configurationToCompileTasks = new HashMap<>(5);
     }
 
     @Override
-    public void inject(ProjectInternal project, SourceSetContainer sourceSets) {
+    public void inject(ProjectInternal project) {
         this.project = project;
-        this.sourceSets = sourceSets;
     }
 
     @Override
-    public <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().apiCompileView());
+    public void configureAsCompileClasspath(HasConfigurableAttributes<?> configuration) {
+        configureAttributes(
+            configuration,
+            details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM()
+        );
     }
 
     @Override
-    public <T> void configureAsRuntimeClasspath(HasConfigurableAttributes<T> configuration) {
+    public void configureAsRuntimeClasspath(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
             details -> details.library().runtimeUsage().asJar().withExternalDependencies().preferStandardJVM()
+        );
+    }
+
+    @Override
+    public void configureAsApiElements(HasConfigurableAttributes<?> configuration) {
+        configureAttributes(
+            configuration,
+            details -> details.library().apiUsage().asJar().withExternalDependencies()
+        );
+    }
+
+    @Override
+    public void configureAsRuntimeElements(HasConfigurableAttributes<?> configuration) {
+        configureAttributes(
+            configuration,
+            details -> details.library().runtimeUsage().asJar().withExternalDependencies()
         );
     }
 
@@ -181,7 +182,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
         DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
         if (resourcesContribution != null) {
-            variant.artifact(new JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
+            variant.artifact(new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
         }
         return variant;
     }
@@ -193,11 +194,9 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(() ->  {
-            DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
-            List<DefaultSourceSetOutput.DirectoryContribution> classesContributors = output.getClassesContributors();
-
-            return classesContributors.stream().map(contribution ->
-                    new JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, contribution.getTask(), contribution.getDirectory()))
+            FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
+            return classesDirs.getFiles().stream()
+                .map(file -> new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
                 .collect(Collectors.toList());
         });
         return variant;
@@ -228,43 +227,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         };
     }
 
-    @Override
-    public Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> configuration) {
-        DefaultElementsConfigurationBuilder builder = instanceGenerator.newInstance(DefaultElementsConfigurationBuilder.class,
-            name,
-            this,
-            configurations,
-            components,
-            tasks);
-        configuration.execute(builder);
-        return builder.build();
-    }
-
-    @Override
-    public Configuration createResolvableConfiguration(String name, Action<? super ResolvableConfigurationBuilder> action) {
-        DefaultResolvableConfigurationBuilder builder = instanceGenerator.newInstance(DefaultResolvableConfigurationBuilder.class,
-            name,
-            this,
-            configurations);
-        action.execute(builder);
-        return builder.build();
-    }
-
-    @Override
-    public void createJvmVariant(String name, Action<? super JvmVariantBuilder> configuration) {
-        DefaultJvmVariantBuilder builder = instanceGenerator.newInstance(DefaultJvmVariantBuilder.class,
-            name,
-            new ProjectDerivedCapability(project, name),
-            this,
-            sourceSets,
-            configurations,
-            tasks,
-            components,
-            project);
-        configuration.execute(builder);
-        builder.build();
-    }
-
     private static int getReleaseOption(List<String> compilerArgs) {
         int flagIndex = compilerArgs.indexOf("--release");
         if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
@@ -273,255 +235,54 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         return 0;
     }
 
-    public static class DefaultElementsConfigurationBuilder extends AbstractConfigurationBuilder<DefaultElementsConfigurationBuilder> implements OutgoingElementsBuilder {
-        final SoftwareComponentContainer components;
-        private final TaskContainer tasks;
-        boolean api;
-        SourceSet sourceSet;
-        List<Object> artifactProducers;
-        List<Capability> capabilities;
-        boolean classDirectory;
-        private boolean published;
+    /**
+     * A custom artifact type which allows the getFile call to be done lazily only when the
+     * artifact is actually needed.
+     */
+    private static class LazyJavaDirectoryArtifact extends AbstractPublishArtifact {
+        private final String type;
+        private final Provider<File> fileProvider;
 
-        @Inject
-        public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components, TaskContainer tasks) {
-            super(name, jvmEcosystemUtilities, configurations);
-            this.components = components;
-            this.tasks = tasks;
+        public LazyJavaDirectoryArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
+            super(taskDependencyFactory, dependency);
+            this.type = type;
+            this.fileProvider = fileProvider;
         }
 
         @Override
-        Configuration build() {
-            Configuration cnf = configurations.maybeCreate(name);
-            if (description != null) {
-                cnf.setDescription(description);
-            }
-            cnf.setVisible(false);
-            cnf.setCanBeConsumed(true);
-            cnf.setCanBeResolved(false);
-            Configuration[] extendsFrom = buildExtendsFrom();
-            if (extendsFrom != null) {
-                cnf.extendsFrom(extendsFrom);
-            }
-            jvmEcosystemUtilities.configureAttributes(cnf, details -> {
-                    details.library()
-                        .withExternalDependencies();
-                    if (api) {
-                        details.apiUsage();
-                    } else {
-                        details.runtimeUsage();
-                    }
-                    if (attributesRefiner != null) {
-                        attributesRefiner.execute(details);
-                    }
-                    if (Category.LIBRARY.equals(cnf.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE).getName())) {
-                        if (!cnf.getAttributes().contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
-                            details.asJar();
-                        }
-                    }
-                }
-            );
-            if (sourceSet != null) {
-                jvmEcosystemUtilities.useDefaultTargetPlatformInference(cnf, tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class));
-            }
-            ConfigurationPublications outgoing = cnf.getOutgoing();
-            if (artifactProducers != null) {
-                for (Object provider : artifactProducers) {
-                    outgoing.artifact(provider);
-                }
-            }
-            if (capabilities != null) {
-                for (Capability capability : capabilities) {
-                    outgoing.capability(capability);
-                }
-            }
-            if (classDirectory) {
-                if (!api) {
-                    throw new IllegalStateException("Cannot add a class directory variant for a runtime outgoing variant");
-                }
-                if (sourceSet == null) {
-                    throw new IllegalStateException("Cannot add a class directory variant without specifying the source set");
-                }
-                jvmEcosystemUtilities.configureClassesDirectoryVariant(cnf, sourceSet);
-            }
-            if (published) {
-                AdhocComponentWithVariants component = findJavaComponent();
-                if (component != null) {
-                    component.addVariantsFromConfiguration(cnf, ConfigurationVariantDetails::mapToOptional);
-                }
-            }
-            return cnf;
+        public String getName() {
+            return getFile().getName();
         }
 
         @Override
-        public OutgoingElementsBuilder providesApi() {
-            this.api = true;
-            return this;
+        public String getExtension() {
+            return "";
         }
 
         @Override
-        public OutgoingElementsBuilder providesRuntime() {
-            this.api = false;
-            return this;
-        }
-
-        @Override
-        public OutgoingElementsBuilder fromSourceSet(SourceSet sourceSet) {
-            this.sourceSet = sourceSet;
-            return this;
-        }
-
-        @Override
-        public OutgoingElementsBuilder artifact(Object producer) {
-            if (artifactProducers == null) {
-                artifactProducers = Lists.newArrayList();
-            }
-            artifactProducers.add(producer);
-            return this;
-        }
-
-        @Override
-        public OutgoingElementsBuilder providesAttributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
-            return attributes(refiner);
-        }
-
-        @Override
-        public OutgoingElementsBuilder withCapabilities(List<Capability> capabilities) {
-            this.capabilities = capabilities;
-            return this;
-        }
-
-        @Override
-        public OutgoingElementsBuilder capability(String group, String name, String version) {
-            if (capabilities == null) {
-                capabilities = Lists.newArrayList();
-            }
-            ImmutableCapability capability = new ImmutableCapability(group, name, version);
-            if (capability.getVersion() == null) {
-                throw new InvalidUserDataException("Capabilities declared on outgoing variants must have a version");
-            }
-            capabilities.add(capability);
-            return this;
-        }
-
-        @Override
-        public OutgoingElementsBuilder withClassDirectoryVariant() {
-            this.classDirectory = true;
-            return this;
-        }
-
-        @Override
-        public OutgoingElementsBuilder published() {
-            this.published = true;
-            return this;
+        public String getType() {
+            return type;
         }
 
         @Nullable
-        public AdhocComponentWithVariants findJavaComponent() {
-            SoftwareComponent component = components.findByName("java");
-            if (component instanceof AdhocComponentWithVariants) {
-                return (AdhocComponentWithVariants) component;
-            }
+        @Override
+        public String getClassifier() {
             return null;
         }
-    }
 
-    public static class DefaultResolvableConfigurationBuilder extends AbstractConfigurationBuilder<DefaultResolvableConfigurationBuilder> implements ResolvableConfigurationBuilder {
-        private Boolean libraryApi;
-        private Boolean libraryRuntime;
-        private Map<String, String> buckets;
-
-        @Inject
-        public DefaultResolvableConfigurationBuilder(String name,
-                                                     JvmPluginServices jvmEcosystemUtilities,
-                                                     ConfigurationContainer configurations) {
-            super(name, jvmEcosystemUtilities, configurations);
+        @Override
+        public Date getDate() {
+            return null;
         }
 
         @Override
-        public ResolvableConfigurationBuilder usingDependencyBucket(String name) {
-            return usingDependencyBucket(name, null);
+        public boolean shouldBePublished() {
+            return false;
         }
 
         @Override
-        public ResolvableConfigurationBuilder usingDependencyBucket(String name, String description) {
-            if (buckets == null) {
-                buckets = Maps.newLinkedHashMap();
-            }
-            buckets.put(name, description);
-            return this;
-        }
-
-        @Override
-        Configuration build() {
-            if (buckets != null) {
-                for (Map.Entry<String, String> entry : buckets.entrySet()) {
-                    String bucketName = entry.getKey();
-                    String description = entry.getValue();
-                    Configuration bucket = configurations.maybeCreate(bucketName);
-                    if (description != null) {
-                        bucket.setDescription(description);
-                    } else if (this.description != null) {
-                        bucket.setDescription("Dependencies for " + this.description);
-                    }
-                    bucket.setVisible(false);
-                    bucket.setCanBeConsumed(false);
-                    bucket.setCanBeResolved(false);
-                    extendsFrom(bucket);
-                }
-            }
-            Configuration resolvable = configurations.maybeCreate(name);
-            if (description != null) {
-                resolvable.setDescription(description);
-            }
-            resolvable.setVisible(false);
-            resolvable.setCanBeConsumed(false);
-            resolvable.setCanBeResolved(true);
-
-            Configuration[] extendsFrom = buildExtendsFrom();
-            if (extendsFrom != null) {
-                resolvable.extendsFrom(extendsFrom);
-            }
-            jvmEcosystemUtilities.configureAttributes(resolvable, details -> {
-                    if (libraryApi != null && libraryApi) {
-                        details.library()
-                            .asJar()
-                            .withExternalDependencies()
-                            .apiUsage();
-                    } else if (libraryRuntime != null && libraryRuntime) {
-                        details.library()
-                            .asJar()
-                            .withExternalDependencies()
-                            .runtimeUsage();
-                    }
-                    if (libraryRuntime == null && libraryApi == null && attributesRefiner == null) {
-                        throw new IllegalStateException("You didn't tell what kind of component to look for. You need to configure at least one attribute");
-                    }
-                    if (attributesRefiner != null) {
-                        attributesRefiner.execute(details);
-                    }
-                }
-            );
-            return resolvable;
-        }
-
-        @Override
-        public ResolvableConfigurationBuilder requiresJavaLibrariesRuntime() {
-            this.libraryApi = null;
-            this.libraryRuntime = true;
-            return this;
-        }
-
-        @Override
-        public ResolvableConfigurationBuilder requiresJavaLibrariesAPI() {
-            this.libraryRuntime = null;
-            this.libraryApi = true;
-            return this;
-        }
-
-        @Override
-        public ResolvableConfigurationBuilder requiresAttributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
-            return attributes(refiner);
+        public File getFile() {
+            return fileProvider.get();
         }
     }
 }

@@ -29,28 +29,18 @@ import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
-import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.DisableCachingByDefaultTypeAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.InputFilesPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.LocalStatePropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.NestedBeanAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoriesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
@@ -75,13 +65,25 @@ import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.DefaultTaskExecutionTracker;
-import org.gradle.internal.execution.TaskExecutionTracker;
+import org.gradle.internal.execution.DefaultWorkExecutionTracker;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.execution.WorkInputListeners;
+import org.gradle.internal.execution.model.annotations.DisableCachingByDefaultTypeAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.InputDirectoryPropertyAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.InputFilePropertyAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.InputFilesPropertyAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.InputPropertyAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
+import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.properties.annotations.NestedBeanAnnotationHandler;
+import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
@@ -112,7 +114,8 @@ public class ExecutionGlobalServices {
         OutputDirectories.class,
         OutputDirectory.class,
         OutputFile.class,
-        OutputFiles.class
+        OutputFiles.class,
+        ServiceReference.class
     );
 
     @VisibleForTesting
@@ -121,8 +124,8 @@ public class ExecutionGlobalServices {
         ReplacedBy.class
     );
 
-    TaskExecutionTracker createTaskExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
-        return new DefaultTaskExecutionTracker(ancestryTracker, operationListenerManager);
+    WorkExecutionTracker createWorkExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
+        return new DefaultWorkExecutionTracker(ancestryTracker, operationListenerManager);
     }
 
     AnnotationHandlerRegistar createAnnotationRegistry(List<AnnotationHandlerRegistration> registrations) {
@@ -196,6 +199,7 @@ public class ExecutionGlobalServices {
             Console.class,
             ReplacedBy.class,
             Internal.class,
+            ServiceReference.class,
             OptionValues.class
         ));
         annotationRegistry.registerPropertyTypeAnnotations(allPropertyTypes);
@@ -241,6 +245,10 @@ public class ExecutionGlobalServices {
 
     PropertyAnnotationHandler createInternalAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(Internal.class);
+    }
+
+    PropertyAnnotationHandler createServiceReferenceAnnotationHandler() {
+        return new ServiceReferencePropertyAnnotationHandler();
     }
 
     PropertyAnnotationHandler createReplacedByAnnotationHandler() {
@@ -292,7 +300,7 @@ public class ExecutionGlobalServices {
     }
 
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
-        return new NestedBeanAnnotationHandler();
+        return new NestedBeanAnnotationHandler(ImmutableSet.of(Optional.class));
     }
 
     WorkInputListeners createWorkInputListeners(ListenerManager listenerManager) {

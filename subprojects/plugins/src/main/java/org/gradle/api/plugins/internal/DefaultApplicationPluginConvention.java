@@ -22,11 +22,12 @@ import org.gradle.api.plugins.ApplicationPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
+public abstract class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
     private String applicationName;
     private String mainClassName;
     private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
@@ -35,6 +36,7 @@ public class DefaultApplicationPluginConvention extends ApplicationPluginConvent
 
     private final Project project;
 
+    @Inject
     public DefaultApplicationPluginConvention(Project project) {
         this.project = project;
         applicationDistribution = project.copySpec();

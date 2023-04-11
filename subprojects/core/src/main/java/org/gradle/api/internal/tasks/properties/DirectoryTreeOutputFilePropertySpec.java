@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.execution.model.OutputNormalizer;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.OutputNormalizer;
 
 import java.io.File;
 
@@ -29,7 +29,7 @@ public class DirectoryTreeOutputFilePropertySpec extends AbstractFilePropertySpe
     private final File root;
 
     public DirectoryTreeOutputFilePropertySpec(String propertyName, FileCollectionInternal files, File root) {
-        super(propertyName, OutputNormalizer.class, files);
+        super(propertyName, OutputNormalizer.INSTANCE, files);
         this.root = root;
     }
 

@@ -24,12 +24,24 @@ import javax.annotation.Nullable;
  * Defines a variant that is the result of applying a transformation chain to produce a variant with the given attributes.
  */
 public interface VariantDefinition {
+    /**
+     * @return This variant's attributes after transformations are applied.
+     */
     ImmutableAttributes getTargetAttributes();
 
-    Transformation getTransformation();
+    /**
+     * @return The transformation chain which transforms the root variant to this variant.
+     */
+    TransformationChain getTransformationChain();
 
+    /**
+     * The single transformation step which transforms the previous variant to this variant.
+     */
     TransformationStep getTransformationStep();
 
+    /**
+     * @return The previous variant in the transformation chain. If null, this variant uses the producer variant as its root.
+     */
     @Nullable
-    VariantDefinition getSourceVariant();
+    VariantDefinition getPrevious();
 }

@@ -503,6 +503,9 @@
                 <td>org.gradle.api.plugins.quality.Pmd</td>
             </tr>
             <tr>
+                <td>org.gradle.language.jvm.tasks.ProcessResources</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
             </tr>
             <tr>
@@ -580,10 +583,10 @@
                 <td>org.gradle.api.artifacts.dsl.GradleDependencies</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers</td>
+                <td>org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.dsl.PlatformDependencyModifiers</td>
+                <td>org.gradle.api.plugins.jvm.PlatformDependencyModifiers</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>

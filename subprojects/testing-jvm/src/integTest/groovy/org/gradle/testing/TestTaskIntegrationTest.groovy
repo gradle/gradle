@@ -16,8 +16,8 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -27,6 +27,7 @@ import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.NEWEST
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
@@ -113,7 +114,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
             test {
                 maxParallelForks = $maxParallelForks
             }
@@ -141,7 +142,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 ${mavenCentralRepository()}
             }
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
                 testImplementation project(":dependency")
             }
         """
@@ -182,7 +183,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
         """
         file("src/test/java/MyTest.java") << """
@@ -246,7 +247,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                testImplementation 'junit:junit:${NEWEST}'
             }
 
             test {
@@ -282,18 +283,48 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         extraArgs << [[], ["--tests", "MyTest"]]
     }
 
-    def "options set prior to setting same test framework will warn and have no effect"() {
+    def "test framework can be set to the same value (#frameworkName) twice"() {
         ignoreWhenJUnitPlatform()
 
         given:
-        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file('src/test/java/MyTest.java') << (frameworkName == "JUnit" ? standaloneTestClass() : junitJupiterStandaloneTestClass())
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """apply plugin: 'java'
 
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                testImplementation $frameworkDeps
+            }
+
+            test {
+                $useMethod
+                $useMethod
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("test")
+
+        where:
+        frameworkName       | useMethod                 | frameworkDeps
+        "JUnit"             | "useJUnit()"              | "'junit:junit:${NEWEST}'"
+        "JUnit Platform"    | "useJUnitPlatform()"      | "'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'"
+    }
+
+    def "options can be set prior to setting same test framework for the default test task"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file("src/test/java/Slow.java") << """public interface Slow {}"""
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'junit:junit:${NEWEST}'
             }
 
             test {
@@ -302,94 +333,44 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 }
                 useJUnit()
             }
-
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitOptions
-                    assert !tasks.getByName("test").getOptions().getExcludeCategories().contains("Slow")
-                }
-            }
         """.stripIndent()
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
-
         expect:
-        succeeds("test", "verifyTestOptions", "--warn")
+        succeeds("test")
     }
 
-    def "options set prior to changing test framework will produce additional warning and have no effect"() {
+    def "options can be set prior to setting same test framework for a custom test task"() {
         ignoreWhenJUnitPlatform()
 
         given:
-        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+        file('src/customTest/java/MyTest.java') << standaloneTestClass()
+        file("src/customTest/java/Slow.java") << """public interface Slow {}"""
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """apply plugin: 'java'
 
             ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+
+            sourceSets {
+                customTest
             }
 
-            test {
+            dependencies {
+                customTestImplementation 'junit:junit:${NEWEST}'
+            }
+
+            tasks.create('customTest', Test) {
+                classpath = sourceSets.customTest.runtimeClasspath
+                testClassesDirs = sourceSets.customTest.output.classesDirs
                 options {
                     excludeCategories = ["Slow"]
                 }
-            }
-
-            test {
-                useJUnitPlatform()
-            }
-
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
-                }
+                useJUnit()
             }
         """.stripIndent()
-
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
-
-        when:
-        succeeds("test", "verifyTestOptions", "--warn")
-
-        then:
-        outputContains("Test framework is changing from 'JUnitTestFramework', previous option configuration would not be applicable.")
-    }
-
-    def "options accessed and not explicitly configured prior to setting test framework will also warn"() {
-        given:
-        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
-
-        settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """
-            import org.gradle.api.internal.tasks.testing.*
-
-            apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
-            }
-
-            def options = test.getOptions()
-
-            test {
-                useJUnitPlatform()
-            }
-
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert options.getClass() == JUnitOptions
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
-                }
-            }
-        """.stripIndent()
-
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
 
         expect:
-        succeeds("test", "verifyTestOptions", "--warn")
+        succeeds("customTest")
     }
 
     def "options configured after setting test framework works"() {
@@ -423,6 +404,42 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         expect:
         succeeds("test", "verifyTestOptions", "--warn")
+    }
+
+    def "setForkEvery null emits deprecation warning"() {
+        given:
+        buildScript """
+            plugins {
+                id 'java'
+            }
+            tasks.withType(Test).configureEach {
+                forkEvery = null
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Setting Test.forkEvery to null. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Set Test.forkEvery to 0 instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery for more details.")
+
+        then:
+        succeeds "test", "--dry-run"
+    }
+
+    def "setForkEvery Long emits deprecation warning"() {
+        given:
+        buildScript """
+            plugins {
+                id 'java'
+            }
+            tasks.withType(Test).configureEach {
+                setForkEvery(Long.valueOf(1))
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Test.setForkEvery(Long) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the Test.setForkEvery(long) method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery for more details.")
+
+        then:
+        succeeds "test", "--dry-run"
     }
 
     private static String standaloneTestClass() {
@@ -461,18 +478,20 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """.stripIndent()
     }
 
-    private static String java9Build() {
+    private String java9Build() {
         """
             apply plugin: 'java'
 
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
 
-            sourceCompatibility = 1.9
-            targetCompatibility = 1.9
+            java {
+                sourceCompatibility = 1.9
+                targetCompatibility = 1.9
+            }
         """
     }
 

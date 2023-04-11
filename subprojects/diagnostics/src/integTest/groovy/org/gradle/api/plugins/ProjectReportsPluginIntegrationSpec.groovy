@@ -17,7 +17,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -26,7 +25,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "produces report files"() {
         when:
         succeeds("projectReport")
@@ -38,7 +36,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         file("build/reports/project/dependencies").assertIsDir()
     }
 
-    @ToBeFixedForConfigurationCache
     def "produces report files in custom directory"() {
         given:
         buildFile << """
@@ -46,6 +43,12 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
         succeeds("projectReport")
 
         then:
@@ -55,7 +58,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         file("build/reports/custom/dependencies").assertIsDir()
     }
 
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*dependencyReport", ".*htmlDependencyReport"])
     def "prints link to default #task"(String task) {
         when:
         succeeds(task)
@@ -85,7 +87,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         task << ["taskReport", "propertyReport", "dependencyReport"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "given no HTML report, does not print link to default HTML dependency report"() {
         given:
         buildFile << """

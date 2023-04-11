@@ -18,62 +18,90 @@ package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Map;
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Predicate;
 
+@ServiceScope(Scopes.Project.class) //TODO #24353: should be much higher scoped, as many other toolchain related services, but is bogged down by the scope of services it depends on
 public class JavaToolchainQueryService {
 
+    // A key that matches only the fallback toolchain
+    private static final JavaToolchainSpecInternal.Key FALLBACK_TOOLCHAIN_KEY = new JavaToolchainSpecInternal.Key() {
+        @Override
+        public String toString() {
+            return "FallbackToolchainSpecKey";
+        }
+    };
+
     private final JavaInstallationRegistry registry;
-    private final JavaToolchainFactory toolchainFactory;
+    private final FileFactory fileFactory;
+    private final JvmMetadataDetector detector;
     private final JavaToolchainProvisioningService installService;
-    private final Provider<Boolean> detectEnabled;
-    private final Provider<Boolean> downloadEnabled;
-    private final Map<JavaToolchainSpecInternal.Key, JavaToolchain> matchingToolchains;
+    // Map values are either `JavaToolchain` or `Exception`
+    private final ConcurrentMap<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
+    private final CurrentJvmToolchainSpec fallbackToolchainSpec;
+    private final File currentJavaHome;
 
     @Inject
     public JavaToolchainQueryService(
         JavaInstallationRegistry registry,
-        JavaToolchainFactory toolchainFactory,
+        JvmMetadataDetector detector,
+        FileFactory fileFactory,
         JavaToolchainProvisioningService provisioningService,
-        ProviderFactory factory
+        ObjectFactory objectFactory
     ) {
-        this.registry = registry;
-        this.toolchainFactory = toolchainFactory;
-        this.installService = provisioningService;
-        this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
-        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
-        this.matchingToolchains = new ConcurrentHashMap<>();
-    }
-
-    <T> Provider<T> toolFor(
-        JavaToolchainSpec spec,
-        Transformer<T, JavaToolchain> toolFunction,
-        DefaultJavaToolchainUsageProgressDetails.JavaTool requestedTool
-    ) {
-        return findMatchingToolchain(spec)
-            .withSideEffect(toolchain -> toolchain.emitUsageEvent(requestedTool))
-            .map(toolFunction);
+        this(registry, detector, fileFactory, provisioningService, objectFactory, Jvm.current().getJavaHome());
     }
 
     @VisibleForTesting
-    ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
-        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
-        if (!filterInternal.isValid()) {
+    JavaToolchainQueryService(
+        JavaInstallationRegistry registry,
+        JvmMetadataDetector detector,
+        FileFactory fileFactory,
+        JavaToolchainProvisioningService provisioningService,
+        ObjectFactory objectFactory,
+        File currentJavaHome
+    ) {
+        this.registry = registry;
+        this.detector = detector;
+        this.fileFactory = fileFactory;
+        this.installService = provisioningService;
+        this.matchingToolchains = new ConcurrentHashMap<>();
+        this.fallbackToolchainSpec = objectFactory.newInstance(CurrentJvmToolchainSpec.class);
+        this.currentJavaHome = currentJavaHome;
+    }
+
+    public ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) Objects.requireNonNull(filter);
+        return new DefaultProvider<>(() -> resolveToolchain(filterInternal));
+    }
+
+    private JavaToolchain resolveToolchain(JavaToolchainSpecInternal requestedSpec) throws Exception {
+        requestedSpec.finalizeProperties();
+
+        if (!requestedSpec.isValid()) {
             throw DocumentedFailure.builder()
                 .withSummary("Using toolchain specifications without setting a language version is not supported.")
                 .withAdvice("Consider configuring the language version.")
@@ -81,49 +109,85 @@ public class JavaToolchainQueryService {
                 .build();
         }
 
-        return new DefaultProvider<>(() -> {
-            if (!filterInternal.isConfigured()) {
-                return null;
-            }
+        boolean useFallback = !requestedSpec.isConfigured();
+        JavaToolchainSpecInternal actualSpec = useFallback ? fallbackToolchainSpec : requestedSpec;
+        // We can't use the key of the fallback toolchain spec, because it is a spec that can match configured requests as well
+        JavaToolchainSpecInternal.Key actualKey = useFallback ? FALLBACK_TOOLCHAIN_KEY : requestedSpec.toKey();
 
-            return matchingToolchains.computeIfAbsent(filterInternal.toKey(), k -> query(filterInternal));
+        Object resolutionResult = matchingToolchains.computeIfAbsent(actualKey, key -> {
+            try {
+                return query(actualSpec, useFallback);
+            } catch (Exception e) {
+                return e;
+            }
         });
+
+        if (resolutionResult instanceof Exception) {
+            throw (Exception) resolutionResult;
+        } else {
+            return (JavaToolchain) resolutionResult;
+        }
     }
 
-    private JavaToolchain query(JavaToolchainSpec filter) {
-        if (filter instanceof CurrentJvmToolchainSpec) {
-            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), filter).get();
-        }
-        if (filter instanceof SpecificInstallationToolchainSpec) {
-            return asToolchain(new InstallationLocation(((SpecificInstallationToolchainSpec) filter).getJavaHome(), "specific installation"), filter).get();
+    private JavaToolchain query(JavaToolchainSpec spec, boolean isFallback) {
+        if (spec instanceof CurrentJvmToolchainSpec) {
+            return asToolchainOrThrow(new InstallationLocation(currentJavaHome, "current JVM"), spec, isFallback);
         }
 
-        return registry.listInstallations().stream()
-            .map(javaHome -> asToolchain(javaHome, filter))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .filter(new ToolchainMatcher(filter))
-            .min(new JavaToolchainComparator())
-            .orElseGet(() -> downloadToolchain(filter));
+        if (spec instanceof SpecificInstallationToolchainSpec) {
+            return asToolchainOrThrow(new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec, false);
+        }
+
+        return findInstalledToolchain(spec).orElseGet(() -> downloadToolchain(spec));
+    }
+
+    private Optional<JavaToolchain> findInstalledToolchain(JavaToolchainSpec spec) {
+        Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(spec);
+
+        return registry.toolchains().stream()
+            .filter(result -> result.metadata.isValidInstallation())
+            .filter(result -> matcher.test(result.metadata))
+            .min(Comparator.comparing(result -> result.metadata, new JvmInstallationMetadataComparator(currentJavaHome)))
+            .map(result -> {
+                warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(result.location);
+                return new JavaToolchain(result.metadata, fileFactory, new JavaToolchainInput(spec), false);
+            });
+    }
+
+    private void warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(InstallationLocation javaHome) {
+        boolean autoDetectedToolchain = javaHome.isAutoProvisioned();
+        if (autoDetectedToolchain && installService.isAutoDownloadEnabled() && !installService.hasConfiguredToolchainRepositories()) {
+            DeprecationLogger.warnOfChangedBehaviour(
+                "Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured",
+                "Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
+                "see " + Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl()
+            )
+            .withUserManual("toolchains", "sub:download_repositories") //has no effect due to bug in DeprecationLogger.warnOfChangedBehaviour
+            .nagUser();
+        }
     }
 
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
-        final Optional<File> installation = installService.tryInstall(spec);
-        final Optional<JavaToolchain> toolchain = installation
-            .map(home -> asToolchain(new InstallationLocation(home, "provisioned toolchain"), spec))
-            .orElseThrow(noToolchainAvailable(spec));
-        return toolchain.orElseThrow(provisionedToolchainIsInvalid(installation::get));
+        File installation;
+        try {
+            installation = installService.tryInstall(spec);
+        } catch (ToolchainDownloadFailedException e) {
+            throw new NoToolchainAvailableException(spec, e);
+        }
+
+        InstallationLocation downloadedInstallation = new InstallationLocation(installation, "provisioned toolchain", true);
+        JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec, false);
+        registry.addInstallation(downloadedInstallation);
+        return downloadedToolchain;
     }
 
-    private Supplier<GradleException> noToolchainAvailable(JavaToolchainSpec spec) {
-        return () -> new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
-    }
+    private JavaToolchain asToolchainOrThrow(InstallationLocation javaHome, JavaToolchainSpec spec, boolean isFallback) {
+        final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
 
-    private Supplier<GradleException> provisionedToolchainIsInvalid(Supplier<File> javaHome) {
-        return () -> new GradleException("Provisioned toolchain '" + javaHome.get() + "' could not be probed.");
-    }
-
-    private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {
-        return toolchainFactory.newInstance(javaHome, new JavaToolchainInput(spec));
+        if (metadata.isValidInstallation()) {
+            return new JavaToolchain(metadata, fileFactory, new JavaToolchainInput(spec), isFallback);
+        } else {
+            throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
+        }
     }
 }

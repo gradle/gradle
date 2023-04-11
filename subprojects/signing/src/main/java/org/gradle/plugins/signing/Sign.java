@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -37,19 +38,28 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.serialization.Transient;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * A task for creating digital signature files for one or more; tasks, files, publishable artifacts or configurations.
@@ -58,17 +68,34 @@ import static java.util.stream.Collectors.toMap;
  * tasks signatory and signature type.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class Sign extends DefaultTask implements SignatureSpec {
+public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private SignatureType signatureType;
     private Signatory signatory;
     private boolean required = true;
-    private final DomainObjectSet<Signature> signatures = getProject().getObjects().domainObjectSet(Signature.class);
+    private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getProject().getObjects().domainObjectSet(Signature.class));
+
+    private final Cached<Collection<Signature.Generator>> generators = Cached.of(this::computeCachedSignatures);
+
+    private List<Signature.Generator> computeCachedSignatures() {
+        if (getSignatory() == null) {
+            // The task will fail, so we don't need any state.
+            return Collections.emptyList();
+        }
+        return signatureStream()
+            .map(Signature::getGenerator)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    }
+
+    private Stream<Signature> signatureStream() {
+        return getSignatures().stream();
+    }
 
     @Inject
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
-        onlyIf("Signing is required, or signatory is set", task -> isRequired() || getSignatory() != null);
+        onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));
     }
 
     /**
@@ -82,7 +109,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
             signTask((AbstractArchiveTask) task);
         }
-
     }
 
     private void signTask(final AbstractArchiveTask archiveTask) {
@@ -97,7 +123,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
         for (PublishArtifact publishArtifact : publishArtifacts) {
             signArtifact(publishArtifact);
         }
-
     }
 
     private void signArtifact(PublishArtifact publishArtifact) {
@@ -141,7 +166,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private boolean hasSignatureFor(Buildable source) {
-        return signatures.stream().anyMatch(hasSource(source));
+        return signatureStream().anyMatch(hasSource(source));
     }
 
     /**
@@ -169,11 +194,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void addSignature(Signature signature) {
-        signatures.add(signature);
+        getSignatures().add(signature);
     }
 
     private void removeSignature(final Buildable source) {
-        signatures.removeIf(hasSource(source));
+        getSignatures().removeIf(hasSource(source));
     }
 
     private Predicate<Signature> hasSource(Buildable source) {
@@ -203,7 +228,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             throw new InvalidUserDataException("Cannot perform signing task \'" + getPath() + "\' because it has no configured signatory");
         }
 
-        for (Signature signature : sanitizedSignatures().values()) {
+        for (Signature.Generator signature : sanitizedGenerators().values()) {
             signature.generate();
         }
     }
@@ -213,24 +238,44 @@ public class Sign extends DefaultTask implements SignatureSpec {
      */
     @Internal
     public DomainObjectSet<Signature> getSignatures() {
-        return signatures;
+        return signatures.get();
+    }
+
+    /**
+     * The signature generators for this task mapped by a unique key used for up-to-date checking.
+     *
+     * @since 8.1
+     */
+    @Nested
+    @Incubating
+    public Map<String, Signature.Generator> getGeneratorsByKey() {
+        return sanitizedGenerators();
     }
 
     /**
      * The signatures generated by this task mapped by a unique key used for up-to-date checking.
+     *
      * @since 5.1
      */
-    @Nested
+    @Internal
     public Map<String, Signature> getSignaturesByKey() {
         return sanitizedSignatures();
     }
 
+    private Map<String, Signature.Generator> sanitizedGenerators() {
+        return sanitize(
+            signatures.isPresent()
+                ? computeCachedSignatures()
+                : generators.get()
+        );
+    }
+
     /**
-     * Returns signatures mapped by their key with duplicated and non-existing inputs removed.
+     * Returns signature generators mapped by their key with duplicated and non-existing inputs removed.
      */
-    private Map<String, Signature> sanitizedSignatures() {
-        return signatures.matching(signature -> signature.getToSign().exists())
-            .stream()
+    private static Map<String, Signature.Generator> sanitize(Collection<Signature.Generator> generators) {
+        return generators.stream()
+            .filter(signature -> signature.getToSign().exists())
             .collect(
                 toMap(
                     signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
@@ -255,6 +300,18 @@ public class Sign extends DefaultTask implements SignatureSpec {
         throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains " + sanitizedSignatures.size() + " signatures.");
     }
 
+    private Map<String, Signature> sanitizedSignatures() {
+        return getSignatures().matching(signature -> signature.getToSign().exists())
+            .stream()
+            .collect(
+                toMap(
+                    signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
+                    identity(),
+                    (signature, duplicate) -> signature
+                )
+            );
+    }
+
     @Inject
     protected FileCollectionFactory getFileCollectionFactory() {
         // Implementation provided by decoration
@@ -267,7 +324,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Internal
     public FileCollection getFilesToSign() {
         return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' files to sign",
-            Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, Signature::getToSign), Predicates.notNull())));
+            Lists.newLinkedList(Iterables.filter(Iterables.transform(getSignatures(), Signature::getToSign), Predicates.notNull())));
     }
 
     /**
@@ -276,7 +333,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Internal
     public FileCollection getSignatureFiles() {
         return getFileCollectionFactory().fixed("Task \'" + getPath() + "\' signature files",
-            Lists.newLinkedList(Iterables.filter(Iterables.transform(signatures, Signature::getFile), Predicates.notNull())));
+            Lists.newLinkedList(Iterables.filter(Iterables.transform(getSignatures(), Signature::getFile), Predicates.notNull())));
     }
 
     @Override
@@ -293,6 +350,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     /**
      * Returns the signatory for this signing task.
+     *
      * @return the signatory
      */
     @Override
@@ -329,7 +387,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
      * @since 5.1
      */
     @Inject
-    protected CollectionCallbackActionDecorator  getCallbackActionDecorator() {
+    protected CollectionCallbackActionDecorator getCallbackActionDecorator() {
         throw new UnsupportedOperationException();
     }
 }

@@ -19,20 +19,26 @@ package org.gradle.launcher.daemon.configuration;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
+
 import java.util.List;
 import java.util.Properties;
 
 public class BuildProcess extends CurrentProcess {
+    private final AgentStatus agentStatus;
 
     public BuildProcess(FileCollectionFactory fileCollectionFactory) {
         super(fileCollectionFactory);
+        // For purposes of this class, it is better to check if the agent is actually applied, regardless of the feature flag status.
+        this.agentStatus = AgentStatus.allowed();
     }
 
-    protected BuildProcess(JavaInfo jvm, JvmOptions effectiveJvmOptions) {
+    protected BuildProcess(JavaInfo jvm, JvmOptions effectiveJvmOptions, AgentStatus agentStatus) {
         super(jvm, effectiveJvmOptions);
+        this.agentStatus = agentStatus;
     }
 
     /**
@@ -42,6 +48,8 @@ public class BuildProcess extends CurrentProcess {
      */
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
         boolean javaHomeMatch = getJvm().equals(requiredBuildParameters.getEffectiveJvm());
+        // Even if the agent is applied to this process, it is possible to run the build with the legacy instrumentation mode.
+        boolean javaAgentStateMatch = agentStatus.isAgentInstrumentationEnabled() || !requiredBuildParameters.shouldApplyInstrumentationAgent();
 
         boolean immutableJvmArgsMatch = true;
         if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {
@@ -52,7 +60,7 @@ public class BuildProcess extends CurrentProcess {
             );
             immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(effectiveSingleUseJvmArgs);
         }
-        if (javaHomeMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters)) {
+        if (javaHomeMatch && javaAgentStateMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters)) {
             // Set the system properties and use this process
             Properties properties = new Properties();
             properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());

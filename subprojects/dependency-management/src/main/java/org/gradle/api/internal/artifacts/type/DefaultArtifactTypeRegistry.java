@@ -51,13 +51,13 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
 
     @Override
     public void visitArtifactTypes(Consumer<? super ImmutableAttributes> action) {
-        Set<ImmutableAttributes> seen = new HashSet<>();
+        Set<String> seen = new HashSet<>();
 
         if (artifactTypeDefinitions != null) {
             for (ArtifactTypeDefinition artifactTypeDefinition : artifactTypeDefinitions) {
-                ImmutableAttributes attributes = ((AttributeContainerInternal) artifactTypeDefinition.getAttributes()).asImmutable();
-                attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, artifactTypeDefinition.getName()), attributes);
-                if (seen.add(attributes)) {
+                if (seen.add(artifactTypeDefinition.getName())) {
+                    ImmutableAttributes attributes = ((AttributeContainerInternal) artifactTypeDefinition.getAttributes()).asImmutable();
+                    attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, artifactTypeDefinition.getName()), attributes);
                     action.accept(attributes);
                 }
             }
@@ -66,13 +66,16 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         for (ArtifactTransformRegistration transform : transformRegistry.getTransforms()) {
             AttributeContainerInternal sourceAttributes = transform.getFrom();
             String format = sourceAttributes.getAttribute(ARTIFACT_TYPE_ATTRIBUTE);
-            // Some format that is not already registered
-            if (format != null) {
-                ImmutableAttributes attributes = sourceAttributes.asImmutable();
-                if (seen.add(attributes)) {
-                    action.accept(attributes);
-                }
+            if (format != null && seen.add(format)) {
+                // Some artifact type that has not already been visited
+                ImmutableAttributes attributes = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, format);
+                action.accept(attributes);
             }
+        }
+
+        if (seen.add(ArtifactTypeDefinition.DIRECTORY_TYPE)) {
+            ImmutableAttributes directory = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+            action.accept(directory);
         }
     }
 
@@ -86,17 +89,16 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
 
     @Override
     public ImmutableAttributes mapAttributesFor(File file) {
-        ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
         if (file.isDirectory()) {
-            attributes = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+            return attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
         } else {
+            ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
             String extension = Files.getFileExtension(file.getName());
             if (artifactTypeDefinitions != null) {
                 attributes = applyForExtension(attributes, extension);
             }
-            attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, extension), attributes);
+            return attributesFactory.concat(attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, extension), attributes);
         }
-        return attributes;
     }
 
     @Override

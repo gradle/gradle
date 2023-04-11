@@ -26,8 +26,9 @@ tasks.withType(Test) {
 
 tasks.register('checkJavadocOutput') {
     dependsOn javadoc
+    def docsDir = java.docsDir
     doLast {
-        assert new File(docsDir, 'javadoc/org/gradle/Person.html').text.contains('<p>Represents a person.</p>')
+        assert new File(docsDir.get().asFile, 'javadoc/org/gradle/Person.html').text.contains('<p>Represents a person.</p>')
     }
 }
 

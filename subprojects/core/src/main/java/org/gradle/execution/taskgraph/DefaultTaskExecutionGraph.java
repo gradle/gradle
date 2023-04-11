@@ -52,6 +52,8 @@ import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -71,7 +73,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private FinalizedExecutionPlan executionPlan;
-    private List<Task> allTasks;
+    private List<Task> allTasks = Collections.emptyList();
     private boolean hasFiredWhenReady;
 
     public DefaultTaskExecutionGraph(
@@ -101,7 +103,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public void populate(FinalizedExecutionPlan plan) {
         executionPlan.close();
         executionPlan = plan;
-        allTasks = null;
+        // Take a snapshot of all tasks, as nodes are removed from the plan as they execute
+        allTasks = ImmutableList.copyOf(executionPlan.getContents().getTasks());
         if (!hasFiredWhenReady) {
             fireWhenReady();
             hasFiredWhenReady = true;
@@ -242,14 +245,20 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         return executionPlan.getContents().getTasks().contains(task);
     }
 
+    @Nullable
     @Override
-    public boolean hasTask(String path) {
+    public Task findTask(String path) {
         for (Task task : executionPlan.getContents().getTasks()) {
             if (task.getPath().equals(path)) {
-                return true;
+                return task;
             }
         }
-        return false;
+        return null;
+    }
+
+    @Override
+    public boolean hasTask(String path) {
+        return findTask(path) != null;
     }
 
     @Override
@@ -259,9 +268,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public List<Task> getAllTasks() {
-        if (allTasks == null) {
-            allTasks = ImmutableList.copyOf(executionPlan.getContents().getTasks());
-        }
         return allTasks;
     }
 
@@ -280,6 +286,15 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             }
         }
         return builder.build();
+    }
+
+    @Override
+    public void resetState() {
+        graphListeners.removeAll();
+        taskListeners.removeAll();
+        executionPlan.close();
+        executionPlan = FinalizedExecutionPlan.EMPTY;
+        allTasks = Collections.emptyList();
     }
 
     /**

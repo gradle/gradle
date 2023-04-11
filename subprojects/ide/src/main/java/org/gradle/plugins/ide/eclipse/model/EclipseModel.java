@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.xml.XmlTransformer;
@@ -64,7 +65,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * More examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
  */
-public class EclipseModel {
+public abstract class EclipseModel {
 
     private EclipseProject project;
 
@@ -88,9 +89,11 @@ public class EclipseModel {
      *
      * @since 5.4
      */
+    @Inject
     public EclipseModel(Project project) {
-        this.synchronizationTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
-        this.autoBuildTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
+        TaskDependencyFactory taskDependencyFactory = ((ProjectInternal) project).getTaskDependencyFactory();
+        this.synchronizationTasks = taskDependencyFactory.configurableDependency();
+        this.autoBuildTasks = taskDependencyFactory.configurableDependency();
     }
 
     /**

@@ -19,9 +19,11 @@ package org.gradle.kotlin.dsl.execution
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequests
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CollectProjectScriptDependencies
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
@@ -93,11 +95,21 @@ class PartialEvaluator(
 
     private
     fun reduceBuildscriptProgram(program: Program.Buildscript): Static =
-        Static(
-            SetupEmbeddedKotlin,
-            Eval(fragmentHolderSourceFor(program)),
-            defaultStageTransition()
-        )
+
+        when (programTarget) {
+
+            ProgramTarget.Project -> Static(
+                SetupEmbeddedKotlin,
+                CollectProjectScriptDependencies(fragmentHolderSourceFor(program)),
+                defaultStageTransition()
+            )
+
+            else -> Static(
+                SetupEmbeddedKotlin,
+                Eval(fragmentHolderSourceFor(program)),
+                defaultStageTransition()
+            )
+        }
 
     private
     fun fragmentHolderSourceFor(program: Program.FragmentHolder): ProgramSource {
@@ -168,7 +180,7 @@ class PartialEvaluator(
 
                 ProgramTarget.Project -> Static(
                     SetupEmbeddedKotlin,
-                    Eval(fragmentHolderSourceFor(stage1)),
+                    CollectProjectScriptDependencies(fragmentHolderSourceFor(stage1)),
                     ApplyDefaultPluginRequests,
                     ApplyBasePlugins
                 )
@@ -181,17 +193,54 @@ class PartialEvaluator(
 
     private
     fun stage1WithPlugins(stage1: Program.Stage1): Static =
+        static(optimizedPluginsBlock(stage1) ?: ApplyPluginRequestsOf(stage1))
+
+    private
+    fun optimizedPluginsBlock(stage1: Program.Stage1): ApplyPluginRequests? =
+        when (stage1) {
+            is Program.Plugins -> optimize(stage1)
+            else -> null
+        }
+
+    private
+    fun optimize(program: Program.Plugins): ApplyPluginRequests? =
+        when (val interpretation = interpret(program)) {
+            is PluginsBlockInterpretation.Static -> {
+                ApplyPluginRequests(interpretation.plugins, program)
+            }
+
+            is PluginsBlockInterpretation.Dynamic -> {
+                logUnoptimized(program, interpretation)
+                null
+            }
+        }
+
+    private
+    fun static(applyPlugins: ResidualProgram.Instruction): Static =
         when (programTarget) {
             ProgramTarget.Project -> Static(
                 SetupEmbeddedKotlin,
-                ApplyPluginRequestsOf(stage1),
+                applyPlugins,
                 ApplyBasePlugins
             )
+
             else -> Static(
                 SetupEmbeddedKotlin,
-                ApplyPluginRequestsOf(stage1)
+                applyPlugins
             )
         }
+
+    private
+    fun logUnoptimized(plugins: Program.Plugins, interpretation: PluginsBlockInterpretation.Dynamic) {
+        interpreterLogger.run {
+            if (isDebugEnabled) {
+                debug(
+                    "Unable to interpret plugins block in '${plugins.fragment.source.path}', Kotlin compiler will be used: " +
+                        interpretation.reason
+                )
+            }
+        }
+    }
 
     private
     fun stage1WithPluginManagement(program: Program.PluginManagement): Static {

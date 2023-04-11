@@ -43,7 +43,7 @@ import org.gradle.process.internal.ExecActionFactory;
  */
 @Incubating
 @NonNullApi
-public class ClangCompilerPlugin implements Plugin<Project> {
+public abstract class ClangCompilerPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {

@@ -238,19 +238,12 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     protected
-    fun assumeJava11() {
+    fun assumeJava11OrHigher() {
         assumeTrue("Test requires Java 11 or higher", JavaVersion.current().isJava11Compatible)
     }
 
     protected
     fun assumeNonEmbeddedGradleExecuter() {
         assumeFalse(GradleContextualExecuter.isEmbedded())
-    }
-
-    protected
-    fun ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16() {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            executer.noDeprecationChecks()
-        }
     }
 }

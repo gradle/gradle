@@ -23,11 +23,37 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 
-public interface TaskDependencyInternal extends TaskDependency, TaskDependencyContainer {
-    TaskDependencyInternal EMPTY = new TaskDependencyInternal() {
+public interface TaskDependencyInternal extends TaskDependency {
+    /**
+     * {@inheritDoc}
+     *
+     * This method inherited from the internal interface should only be used by external code, such as plugins or build scripts,
+     * as it may trigger warnings on usages that are considered "invalid" in the third-party code. If the usages
+     * are still valid in the Gradle codebase, they should be changed to {@link TaskDependencyInternal#getDependenciesForInternalUse(Task)}.
+     *
+     * @see TaskDependencyUtil#getDependenciesForInternalUse(TaskDependency, Task)
+     */
+    @Override
+    Set<? extends Task> getDependencies(@Nullable Task task);
+
+    /**
+     * This function is intended for calling from the Gradle implementation code. The implementation of this function should not perform
+     * any validation that is specific to calls from third-party code.
+     *
+     * Semantically this function should be equivalent to {@link TaskDependency#getDependencies(Task)} without the additional contract of
+     * {@link TaskDependencyInternal#getDependencies(Task)}.
+     */
+    Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task);
+
+    TaskDependencyInternal EMPTY = new TaskDependencyContainerInternal() {
+        @Override
+        public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
+            return Collections.emptySet();
+        }
+
         @Override
         public Set<? extends Task> getDependencies(@Nullable Task task) {
-            return Collections.emptySet();
+            return getDependenciesForInternalUse(task);
         }
 
         @Override
@@ -35,3 +61,4 @@ public interface TaskDependencyInternal extends TaskDependency, TaskDependencyCo
         }
     };
 }
+

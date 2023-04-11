@@ -31,7 +31,7 @@ import java.util.concurrent.Callable
 abstract class PropertySpec<T> extends ProviderSpec<T> {
     @Override
     PropertyInternal<T> providerWithValue(T value) {
-        return propertyWithDefaultValue().value(value)
+        return propertyWithNoValue().value(value)
     }
 
     @Override
@@ -43,11 +43,6 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
      * Returns a property with _no_ value.
      */
     abstract PropertyInternal<T> propertyWithNoValue()
-
-    /**
-     * Returns a property with its default value.
-     */
-    abstract PropertyInternal<T> propertyWithDefaultValue()
 
     @Override
     String getDisplayName() {
@@ -151,7 +146,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "reports failure to query value from provider and property has display name"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(brokenSupplier())
         property.attachOwner(owner(), displayName("<property>"))
 
@@ -220,7 +215,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "convention value is used before value has been set"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         assert property.getOrNull() != someValue()
 
         expect:
@@ -234,7 +229,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "can use null convention value"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         assert property.getOrNull() != someValue()
 
         expect:
@@ -247,7 +242,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "convention provider is used before value has been set"() {
         def provider = supplierWithValues(someOtherValue(), someValue(), someValue())
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         when:
         property.convention(provider)
@@ -267,7 +262,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "property has no value when convention provider has no value"() {
         def provider = supplierWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         when:
         property.convention(provider)
@@ -285,7 +280,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "reports the source of convention provider when value is missing and source is known"() {
         def provider = supplierWithNoValue(Describables.of("<source>"))
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         given:
         property.convention(provider)
@@ -301,7 +296,7 @@ The value of this property is derived from: <source>""")
 
     def "can replace convention value before value has been set"() {
         def provider = supplierWithValues(someOtherValue())
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         when:
         property.convention(someValue())
@@ -329,7 +324,7 @@ The value of this property is derived from: <source>""")
     }
 
     def "convention value ignored after value has been set"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
 
         expect:
@@ -340,7 +335,7 @@ The value of this property is derived from: <source>""")
     def "convention provider ignored after value has been set"() {
         def provider = brokenSupplier()
 
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
 
         expect:
@@ -349,7 +344,7 @@ The value of this property is derived from: <source>""")
     }
 
     def "convention value is used after value has been set to null"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         property.convention(someOtherValue())
         setToNull(property)
@@ -366,7 +361,7 @@ The value of this property is derived from: <source>""")
     def "convention provider is used after value has been set to null"() {
         def provider = supplierWithValues(someOtherValue(), someOtherValue())
 
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.convention(provider)
         property.set(someValue())
         setToNull(property)
@@ -377,7 +372,7 @@ The value of this property is derived from: <source>""")
     }
 
     def "convention value ignored after value has been set using provider with no value"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(Providers.notDefined())
 
         expect:
@@ -389,7 +384,7 @@ The value of this property is derived from: <source>""")
     def "convention provider ignored after value has been set using provider with no value"() {
         def provider = brokenSupplier()
 
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(Providers.notDefined())
 
         expect:
@@ -604,7 +599,7 @@ The value of this provider is derived from:
     }
 
     def "can finalize value when using convention"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         when:
         property.convention(someValue())
@@ -644,7 +639,7 @@ The value of this provider is derived from:
     }
 
     def "reports failure to query provider value when finalizing and property has display name"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         given:
         property.set(brokenSupplier())
@@ -677,8 +672,8 @@ The value of this provider is derived from:
     }
 
     def "does not finalize upstream property on finalize"() {
-        def upstream = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream = propertyWithNoValue()
+        def property = propertyWithNoValue()
         property.set(upstream)
         upstream.set(someValue())
 
@@ -695,7 +690,7 @@ The value of this provider is derived from:
 
     def "does not finalize upstream property with no value on finalize"() {
         def upstream = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(upstream)
 
         given:
@@ -710,8 +705,8 @@ The value of this provider is derived from:
     }
 
     def "does not finalize mapped upstream property on finalize"() {
-        def upstream = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream = propertyWithNoValue()
+        def property = propertyWithNoValue()
         upstream.set(someValue())
         property.set(upstream.map { someOtherValue() })
 
@@ -727,8 +722,8 @@ The value of this provider is derived from:
     }
 
     def "does not finalize flatMapped upstream property on finalize"() {
-        def upstream = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream = propertyWithNoValue()
+        def property = propertyWithNoValue()
         upstream.set(someValue())
         property.set(upstream.flatMap { supplierWithValues(someOtherValue()) })
 
@@ -745,7 +740,7 @@ The value of this provider is derived from:
 
     def "does not finalize orElse upstream property on finalize"() {
         def upstream = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(upstream.orElse(someValue()))
 
         given:
@@ -761,8 +756,8 @@ The value of this provider is derived from:
 
     def "does not finalize orElse upstream properties on finalize"() {
         def upstream1 = propertyWithNoValue()
-        def upstream2 = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream2 = propertyWithNoValue()
+        def property = propertyWithNoValue()
         property.set(upstream1.orElse(upstream2))
         upstream2.set(someValue())
 
@@ -1021,7 +1016,7 @@ The value of this provider is derived from:
     }
 
     def "can read value while finalizing property value"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
         property.set(provider)
@@ -1047,7 +1042,7 @@ The value of this provider is derived from:
     }
 
     def "can read value while finalizing property value on read when finalize on read enabled"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
         property.set(provider)
@@ -1737,7 +1732,7 @@ The value of this property is derived from:
 
     def "cannot set convention value after value finalized"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.finalizeValue()
 
         when:
@@ -1758,7 +1753,7 @@ The value of this property is derived from:
 
     def "cannot set convention value after value finalized implicitly"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.implicitFinalizeValue()
 
@@ -1780,7 +1775,7 @@ The value of this property is derived from:
 
     def "cannot set convention value after value queried and value finalized on read"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValueOnRead()
         property.get()
@@ -1803,7 +1798,7 @@ The value of this property is derived from:
 
     def "cannot set convention value after changes disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowChanges()
 
         when:
@@ -1913,7 +1908,7 @@ The value of this property is derived from:
 
     def "cannot read value until host is ready when unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.disallowUnsafeRead()
 
@@ -1960,8 +1955,8 @@ The value of this property is derived from:
     def "cannot read value with upstream task output until host is ready and task completed when unsafe read disallowed"() {
         given:
         def producer = owner()
-        def upstream = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream = propertyWithNoValue()
+        def property = propertyWithNoValue()
 
         upstream.set(someValue())
         upstream.attachOwner(owner(), displayName("<upstream>"))
@@ -2037,7 +2032,7 @@ The value of this property is derived from:
 
     def "cannot finalize a property when host is not ready and unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowUnsafeRead()
         property.set(someValue())
 
@@ -2083,7 +2078,7 @@ The value of this property is derived from:
 
     def "finalizes value after read when unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowUnsafeRead()
 
         when:
@@ -2114,7 +2109,7 @@ The value of this property is derived from:
 
     def "can finalize on next read when host is not ready when unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowUnsafeRead()
         property.set(someValue())
 
@@ -2136,7 +2131,7 @@ The value of this property is derived from:
 
     def "can disallow changes when host is not ready when unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowUnsafeRead()
         property.set(someValue())
 
@@ -2159,7 +2154,7 @@ The value of this property is derived from:
     def "finalizes upstream property when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         property.set(b)
         property.disallowUnsafeRead()
@@ -2195,7 +2190,7 @@ The value of this property is derived from:
     def "finalizes upstream property with no value when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         property.set(b)
         property.disallowUnsafeRead()
@@ -2228,9 +2223,9 @@ The value of this property is derived from:
     }
 
     def "finalizes upstream mapped property when value read using #method and unsafe read disallowed"() {
-        def b = propertyWithDefaultValue()
-        def c = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithNoValue()
 
         property.set(b.map { someOtherValue2() })
         property.disallowUnsafeRead()
@@ -2264,9 +2259,9 @@ The value of this property is derived from:
     }
 
     def "finalizes upstream flatmapped property when value read using #method and unsafe read disallowed"() {
-        def b = propertyWithDefaultValue()
-        def c = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithNoValue()
 
         property.set(b.flatMap { supplierWithValues(someOtherValue2()) })
         property.disallowUnsafeRead()
@@ -2302,7 +2297,7 @@ The value of this property is derived from:
     def "finalizes upstream orElse fixed value property when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         property.set(b.orElse(someOtherValue2()))
         property.disallowUnsafeRead()
@@ -2336,8 +2331,8 @@ The value of this property is derived from:
 
     def "finalizes upstream orElse properties when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
-        def c = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithNoValue()
 
         property.set(b.orElse(c))
         property.disallowUnsafeRead()
@@ -2572,7 +2567,7 @@ The value of this provider is derived from:
 
     def "mapped value has changing execution time value when producer task attached to original property"() {
         def task = Mock(Task)
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         def mapped = property.map { someOtherValue() }
 
@@ -2592,7 +2587,7 @@ The value of this provider is derived from:
 
     def "mapped value has no execution time value when producer task attached to original property with no value"() {
         def task = Mock(Task)
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         setToNull(property)
         def mapped = property.map { it }
 
@@ -2608,7 +2603,7 @@ The value of this provider is derived from:
 
     def "chain of mapped value has value producer when producer task attached to original property"() {
         def task = Mock(Task)
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         def mapped = property.map { it }.map { it }.map { someOtherValue() }
 

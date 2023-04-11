@@ -21,7 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 /**
@@ -60,6 +60,15 @@ public interface TaskProperties {
     ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties();
 
     /**
+     * Service reference properties (those annotated with {@link org.gradle.api.services.ServiceReference}).
+     *
+     * It is guaranteed that all the {@link ServiceReferenceSpec}s have a name and that the names are unique.
+     *
+     * @see org.gradle.api.services.ServiceReference
+     */
+    ImmutableSortedSet<ServiceReferenceSpec> getServiceReferences();
+
+    /**
      * Whether output properties have been declared.
      */
     boolean hasDeclaredOutputs();
@@ -82,5 +91,5 @@ public interface TaskProperties {
     /**
      * Validations for the properties.
      */
-    void validate(TaskValidationContext validationContext);
+    void validate(PropertyValidationContext validationContext);
 }

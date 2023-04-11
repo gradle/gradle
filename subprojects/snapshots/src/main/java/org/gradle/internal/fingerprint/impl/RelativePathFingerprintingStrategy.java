@@ -63,10 +63,10 @@ public class RelativePathFingerprintingStrategy extends AbstractDirectorySensiti
             if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
-                    if (snapshot.getType() == FileType.Directory) {
-                        return SnapshotVisitResult.CONTINUE;
-                    } else {
+                    if (snapshot.getType() == FileType.RegularFile) {
                         fingerprint = fingerprint(snapshot.getName(), snapshot.getType(), snapshot);
+                    } else {
+                        return SnapshotVisitResult.CONTINUE;
                     }
                 } else {
                     fingerprint = fingerprint(stringInterner.intern(relativePath.toRelativePath()), snapshot.getType(), snapshot);

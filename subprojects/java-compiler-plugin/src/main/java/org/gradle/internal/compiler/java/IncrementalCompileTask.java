@@ -46,15 +46,18 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     private final Function<File, Optional<String>> relativize;
     private final Consumer<Map<String, Set<String>>> classNameConsumer;
+    private final Consumer<String> classBackupService;
     private final ConstantDependentsConsumer constantDependentsConsumer;
     private final JavacTask delegate;
 
     public IncrementalCompileTask(JavaCompiler.CompilationTask delegate,
                                   Function<File, Optional<String>> relativize,
+                                  Consumer<String> classBackupService,
                                   Consumer<Map<String, Set<String>>> classNamesConsumer,
                                   BiConsumer<String, String> publicDependentDelegate,
                                   BiConsumer<String, String> privateDependentDelegate) {
         this.relativize = relativize;
+        this.classBackupService = classBackupService;
         this.classNameConsumer = classNamesConsumer;
         this.constantDependentsConsumer = new ConstantDependentsConsumer(publicDependentDelegate, privateDependentDelegate);
         if (delegate instanceof JavacTask) {
@@ -81,7 +84,7 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
     @Override
     public Boolean call() {
-        ClassNameCollector classNameCollector = new ClassNameCollector(relativize, delegate.getElements());
+        ClassNameCollector classNameCollector = new ClassNameCollector(relativize, classBackupService, delegate.getElements());
         ConstantsCollector constantsCollector = new ConstantsCollector(delegate, constantDependentsConsumer);
         delegate.addTaskListener(classNameCollector);
         delegate.addTaskListener(constantsCollector);

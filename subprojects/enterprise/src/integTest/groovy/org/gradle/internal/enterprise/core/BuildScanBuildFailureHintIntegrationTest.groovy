@@ -23,8 +23,8 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.BUILD_SCAN_ERROR_MESSAGE_HINT
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.StacktraceOption
 
@@ -52,7 +52,7 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
         succeeds(DUMMY_TASK_NAME)
 
         then:
-        result.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        result.assertNotOutput(SCAN)
     }
 
     def "renders hint for failing build without applied plugin and #description"() {
@@ -64,7 +64,7 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.notApplied(output)
-        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(SCAN)
 
         where:
         options                                             | description
@@ -86,7 +86,7 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.appliedOnce(output)
-        failure.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertNotOutput(SCAN)
     }
 
     def "never renders hint for failing build if plugin was applied in plugins DSL and not requested for generation"() {
@@ -99,7 +99,7 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.appliedOnce(output)
-        failure.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertNotOutput(SCAN)
 
         where:
         tasks << [ DUMMY_TASK_ONLY, DUMMY_TASK_AND_BUILD_SCAN ]

@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
@@ -45,12 +46,12 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
             EclipseModel model = p.getExtensions().findByType(EclipseModel.class);
             if (model != null) {
                 if (isSyncModel) {
-                    for (Task t : model.getSynchronizationTasks().getDependencies(null)) {
+                    for (Task t : TaskDependencyUtil.getDependenciesForInternalUse(model.getSynchronizationTasks(), null)) {
                         taskPaths.add(t.getPath());
                     }
                 }
                 if (isAutoBuildModel) {
-                    for (Task t : model.getAutoBuildTasks().getDependencies(null)) {
+                    for (Task t : TaskDependencyUtil.getDependenciesForInternalUse(model.getAutoBuildTasks(), null)) {
                         taskPaths.add(t.getPath());
                     }
                 }

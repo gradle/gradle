@@ -18,7 +18,7 @@ package org.gradle.configuration;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Transformer;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
@@ -100,7 +100,7 @@ public class TaskDetailPrinter {
         printTaskAttribute(output, "Group", tasks, TaskDetails::getGroup);
     }
 
-    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<TaskDetails> tasks, Transformer<String, TaskDetails> transformer) {
+    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<TaskDetails> tasks, InternalTransformer<String, TaskDetails> transformer) {
         int count = collect(tasks, new HashSet<>(), transformer).size();
         final LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
         if (count == 1) {

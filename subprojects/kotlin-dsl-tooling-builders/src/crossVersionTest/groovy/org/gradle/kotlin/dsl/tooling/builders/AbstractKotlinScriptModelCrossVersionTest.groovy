@@ -17,18 +17,17 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.build.ProjectSourceRoots
+import org.gradle.integtests.fixtures.build.TestProjectInitiation
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.test.fixtures.file.TestFile
-
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
-
+import org.gradle.util.GradleVersion
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.TypeSafeMatcher
@@ -36,10 +35,8 @@ import org.hamcrest.TypeSafeMatcher
 import java.util.function.Consumer
 import java.util.function.Predicate
 import java.util.regex.Pattern
-import java.util.zip.ZipOutputStream
 
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.fetchKotlinBuildScriptModelFor
-
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.hasItem
@@ -47,25 +44,10 @@ import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 
-
-class ProjectSourceRoots {
-
-    final File projectDir
-    final List<String> sourceSets
-    final List<String> languages
-
-    ProjectSourceRoots(File projectDir, List<String> sourceSets, List<String> languages) {
-        this.projectDir = projectDir
-        this.sourceSets = sourceSets
-        this.languages = languages
-    }
-}
-
-
 @ToolingApiVersion(">=4.1")
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
 @CompileStatic
-abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification {
+abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification  implements TestProjectInitiation, KotlinScriptsModelFetcher {
 
     def setup() {
         // Required for the lenient classpath mode
@@ -73,15 +55,13 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         // Only Kotlin settings scripts
         settingsFile.delete()
         file("settings.gradle.kts").touch()
-    }
-
-    private String defaultSettingsScript = ""
-
-    protected String repositoriesBlock = """
-        repositories {
-            ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+        // Gradle 6.5.1 instrumented jar cache has concurrency issues causing flakiness
+        // This is exacerbated by those cross-version tests running concurrently
+        // This isolates the Gradle user home for this version only
+        if (GradleVersion.version(releasedGradleVersion) == GradleVersion.version("6.5.1")) {
+            toolingApi.requireIsolatedUserHome()
         }
-    """.stripIndent()
+    }
 
     private String targetKotlinVersion
 
@@ -97,96 +77,6 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
             it.name.startsWith("gradle-kotlin-dsl-${targetVersion.baseVersion.version}")
         }).content("gradle-kotlin-dsl-versions.properties")
         return new Properties().tap { load(new StringReader(props)) }.getProperty("kotlin")
-    }
-
-    protected TestFile withDefaultSettings() {
-        return withSettings(defaultSettingsScript)
-    }
-
-    protected TestFile withSettings(String script) {
-        return withSettingsIn(".", script)
-    }
-
-    protected TestFile withDefaultSettingsIn(String baseDir) {
-        return withSettingsIn(baseDir, defaultSettingsScript)
-    }
-
-    private TestFile withSettingsIn(String baseDir, String script) {
-        return withFile("$baseDir/settings.gradle.kts", script)
-    }
-
-    protected TestFile withBuildScript(String script = "") {
-        return withBuildScriptIn(".", script)
-    }
-
-    protected TestFile withBuildScriptIn(String baseDir, String script = "") {
-        return withFile("$baseDir/build.gradle.kts", script)
-    }
-
-    protected TestFile withFile(String path, String content = "") {
-        return file(path).tap { text = content.stripIndent() }
-    }
-
-    protected TestFile withEmptyJar(String path) {
-        return file(path).tap { jarFile ->
-            jarFile.parentFile.mkdirs()
-            new ZipOutputStream(jarFile.newOutputStream()).close()
-        }
-    }
-
-    protected void withBuildSrc() {
-        projectDir.createFile("buildSrc/src/main/groovy/build/Foo.groovy") << """
-            package build
-            class Foo {}
-        """.stripIndent()
-    }
-
-    protected void withKotlinBuildSrc() {
-        withDefaultSettingsIn("buildSrc")
-        withBuildScriptIn("buildSrc", """
-            plugins {
-                `kotlin-dsl`
-            }
-
-            $repositoriesBlock
-        """)
-    }
-
-    protected ProjectSourceRoots[] withMultiProjectKotlinBuildSrc() {
-        withDefaultSettingsIn("buildSrc").append("""
-            include(":a", ":b", ":c")
-        """)
-        withFile("buildSrc/build.gradle.kts", """
-            plugins {
-                java
-                `kotlin-dsl` apply false
-            }
-
-            val kotlinDslProjects = listOf(project.project(":a"), project.project(":b"))
-
-            kotlinDslProjects.forEach {
-                it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-            }
-
-            dependencies {
-                kotlinDslProjects.forEach {
-                    "runtimeOnly"(project(it.path))
-                }
-            }
-
-            allprojects {
-                $repositoriesBlock
-            }
-        """)
-        withFile("buildSrc/b/build.gradle.kts", """dependencies { implementation(project(":c")) }""")
-        withFile("buildSrc/c/build.gradle.kts", "plugins { java }")
-
-        return [
-            withMainSourceSetJavaIn("buildSrc"),
-            withMainSourceSetJavaKotlinIn("buildSrc/a"),
-            withMainSourceSetJavaKotlinIn("buildSrc/b"),
-            withMainSourceSetJavaIn("buildSrc/c")
-        ] as ProjectSourceRoots[]
     }
 
     protected List<File> canonicalClassPath() {
@@ -287,14 +177,6 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         hasItem("buildSrc.jar")
     }
 
-    private ProjectSourceRoots withMainSourceSetJavaIn(String projectDir) {
-        return new ProjectSourceRoots(file(projectDir), ["main"], ["java"])
-    }
-
-    protected ProjectSourceRoots withMainSourceSetJavaKotlinIn(String projectDir) {
-        return new ProjectSourceRoots(file(projectDir), ["main"], ["java", "kotlin"])
-    }
-
     protected static Matcher<Iterable<? super File>> matchesProjectsSourceRoots(ProjectSourceRoots... projectSourceRoots) {
         return allOf(projectSourceRoots.findAll { !it.languages.isEmpty() }.collectMany { sourceRoots ->
 
@@ -346,28 +228,6 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
     protected static String normalizedPathOf(File file) {
         return TextUtil.normaliseFileSeparators(file.path)
-    }
-
-    protected static class BuildSpec {
-        Map<String, TestFile> scripts
-        Map<String, TestFile> appliedScripts
-        Map<String, TestFile> jars
-    }
-
-    protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, File... scripts) {
-        return kotlinDslScriptsModelFor(lenient, true, scripts.toList())
-    }
-
-    protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, boolean explicitlyRequestPreparationTasks = true, Iterable<File> scripts) {
-        return withConnection { connection ->
-            new KotlinDslScriptsModelClient().fetchKotlinDslScriptsModel(
-                connection,
-                new KotlinDslScriptsModelRequest(
-                    scripts.toList(),
-                    null, null, [], [], lenient, explicitlyRequestPreparationTasks
-                )
-            )
-        }
     }
 
     protected static List<File> canonicalClasspathOf(KotlinDslScriptsModel model, File script) {

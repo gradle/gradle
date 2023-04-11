@@ -67,7 +67,7 @@ public class OutputsCleaner {
      */
     public void cleanupOutputs(FileSystemSnapshot snapshot) throws IOException {
         // TODO We could make this faster by visiting the snapshot
-        for (Map.Entry<String, FileSystemLocationSnapshot> entry : SnapshotUtil.index(snapshot).entrySet()) {
+        for (Map.Entry<String, FileSystemLocationSnapshot> entry : SnapshotUtil.indexByAbsolutePath(snapshot).entrySet()) {
             cleanupOutput(new File(entry.getKey()), entry.getValue().getType());
         }
         cleanupDirectories();

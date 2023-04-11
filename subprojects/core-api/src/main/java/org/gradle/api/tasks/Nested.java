@@ -27,6 +27,9 @@ import java.lang.annotation.Target;
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
+ * <p>Gradle will attempt to instantiate a nested bean on abstract getter methods annotated with this annotation.
+ * This creates a <a href="https://docs.gradle.org/current/userguide/custom_gradle_types.html#read_only_managed_nested_properties">read-only managed nested property</a>.</p>
+ *
  * <p>The implementation of the nested bean is tracked as an input, too.
  * This allows tracking behavior such as {@link org.gradle.api.Action}s as task inputs.</p>
  *

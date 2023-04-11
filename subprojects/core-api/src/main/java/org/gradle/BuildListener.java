@@ -15,8 +15,10 @@
  */
 package org.gradle;
 
+import org.gradle.api.flow.FlowProviders;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.DeprecatedInGradleScope;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
@@ -26,6 +28,7 @@ import org.gradle.internal.service.scopes.Scopes;
  * @see org.gradle.api.invocation.Gradle#addListener(Object)
  */
 @EventScope(Scopes.Build.class)
+@DeprecatedInGradleScope
 public interface BuildListener {
 
     /**
@@ -65,6 +68,7 @@ public interface BuildListener {
      *
      * @param result The result of the build. Never null.
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @see FlowProviders#getBuildWorkResult()
      */
     @Deprecated
     void buildFinished(BuildResult result);

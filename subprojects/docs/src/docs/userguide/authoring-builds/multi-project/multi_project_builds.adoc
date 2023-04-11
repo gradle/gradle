@@ -33,18 +33,6 @@ This is a structure of a multi-project build that contains a single subproject c
 [.multi-language-sample]
 =====
 .Project layout
-[source, groovy]
-----
-.
-├── app
-│   ...
-│   └── build.gradle
-└── settings.gradle
-----
-=====
-[.multi-language-sample]
-=====
-.Project layout
 [source, kotlin]
 ----
 .
@@ -54,6 +42,18 @@ This is a structure of a multi-project build that contains a single subproject c
 └── settings.gradle.kts
 ----
 =====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
 ====
 
 This is the recommended project structure for starting any Gradle project.
@@ -61,8 +61,8 @@ The <<build_init_plugin#build_init_plugin,build init plugin>> also generates ske
 
 Note that the root project does not have a Gradle build file, only a settings file that defines the subprojects to include.
 ====
-include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="settings.gradle[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="settings.gradle[]"]
 ====
 
 In this case, Gradle will look for a build file in the `app` directory.
@@ -75,8 +75,8 @@ include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
 
 Let's say the `app` subproject is a Java application by applying the <<application_plugin#application_plugin,application plugin>> and configuring the main class:
 ====
-include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
 .app/src/main/java/com/example/Hello.java
 [source, java]
 ----
@@ -98,29 +98,14 @@ And that's how simple it is to create a basic multi-project build.
 Let's say we want to add another subproject called `lib` to the previously created project.
 All we need to do is add another `include` statement in the root settings file:
 ====
-include::sample[dir="snippets/multiproject/multiple-subprojects/groovy",files="settings.gradle[]"]
 include::sample[dir="snippets/multiproject/multiple-subprojects/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/multiple-subprojects/groovy",files="settings.gradle[]"]
 ====
 
 Gradle will then look for the build file for the new subproject in the `lib/` subdirectory of the project:
 
 .Multi-project build with two subprojects
 ====
-[.multi-language-sample]
-=====
-.Project layout
-[source, groovy]
-----
-.
-├── app
-│   ...
-│   └── build.gradle
-├── lib
-│   ...
-│   └── build.gradle
-└── settings.gradle
-----
-=====
 [.multi-language-sample]
 =====
 .Project layout
@@ -134,6 +119,21 @@ Gradle will then look for the build file for the new subproject in the `lib/` su
 │   ...
 │   └── build.gradle.kts
 └── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   ...
+│   └── build.gradle
+└── settings.gradle
 ----
 =====
 ====
@@ -159,3 +159,5 @@ Besides, Gradle supports <<command_line_interface.adoc#sec:name_abbreviation,nam
 3. _Define the root project name in the settings file_:
 The ´rootProject.name´ effectively assigns a name to the build as a whole, which is used in reports like build scans.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e. you can check out your project to any directory).
+If the root project name is not set and it is checked out to a root of a file system (e.g. `/` or `C:\`), the name will be generated randomly.
+

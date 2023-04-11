@@ -16,13 +16,11 @@
 
 package org.gradle.smoketests
 
-import org.gradle.internal.reflect.validation.Severity
+
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
@@ -32,35 +30,73 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
             plugins {
                 id "application"
                 id "org.springframework.boot" version "${TestedVersions.springBoot}" // TODO:Finalize Upload Removal - Issue #21439
+                id "io.spring.dependency-management" version "${TestedVersions.springDependencyManagement}"
             }
 
-            bootRun {
-                sourceResources sourceSets.main
+            ${mavenCentralRepository()}
+
+            application {
+                applicationDefaultJvmArgs = ['-DFOO=42']
+            }
+
+            dependencies {
+                implementation 'org.springframework.boot:spring-boot-starter'
+                testImplementation 'org.springframework.boot:spring-boot-starter-test'
+            }
+
+            tasks.named('test') {
+                useJUnitPlatform()
             }
         """.stripIndent()
 
         file('src/main/java/example/Application.java') << """
             package example;
 
+            import org.springframework.boot.SpringApplication;
+            import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+            @SpringBootApplication
             public class Application {
-                public static void main(String[] args) {}
+                public static void main(String[] args) {
+                    SpringApplication.run(Application.class, args);
+                    System.out.println("FOO: " + System.getProperty("FOO"));
+                }
             }
         """.stripIndent()
+        file("src/test/java/example/ApplicationTest.java") << """
+            package example;
+
+            import org.junit.jupiter.api.Test;
+            import org.springframework.boot.test.context.SpringBootTest;
+
+            @SpringBootTest
+            class ApplicationTest {
+                @Test
+                void contextLoads() {
+                }
+            }
+        """
 
         when:
-        def buildResult = runner('assembleBootDist', 'check')
-            .build()
+        def smokeTestRunner = runner('assembleBootDist', 'check')
+        // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+        def buildResult = smokeTestRunner.build()
 
         then:
         buildResult.task(':assembleBootDist').outcome == SUCCESS
-        buildResult.task(':check').outcome == UP_TO_DATE // no tests
+        buildResult.task(':check').outcome == SUCCESS
 
         when:
-        def runResult = runner('bootRun')
-            .build()
+        smokeTestRunner = runner('bootRun')
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+        def runResult = smokeTestRunner.build()
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS
+        runResult.output.contains("FOO: 42")
     }
 
     @Override
@@ -68,23 +104,5 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         [
             'org.springframework.boot': Versions.of(TestedVersions.springBoot)
         ]
-    }
-
-    @Override
-    void configureValidation(String pluginId, String version) {
-        Map<String, Severity> messages = [:]
-
-        validatePlugins {
-            onPlugin(pluginId) {
-                messages[incorrectUseOfInputAnnotation {
-                    type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
-                    property 'archiveFile'
-                    propertyType 'RegularFileProperty'
-                    includeLink()
-                }] = ERROR
-
-                failsWith messages
-            }
-        }
     }
 }

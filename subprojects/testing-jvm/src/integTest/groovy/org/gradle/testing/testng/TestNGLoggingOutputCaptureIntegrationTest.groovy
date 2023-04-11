@@ -22,15 +22,12 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testing.fixture.TestNGCoverage.providesClassListener
 import static org.hamcrest.CoreMatchers.is
 
 @TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-@Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
 class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {

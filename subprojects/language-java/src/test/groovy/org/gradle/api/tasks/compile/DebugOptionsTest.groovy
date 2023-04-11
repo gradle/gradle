@@ -16,16 +16,19 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.util.TestUtil
 import org.junit.Test
 
 class DebugOptionsTest {
-    DebugOptions debugOptions = new DebugOptions()
+    DebugOptions debugOptions = TestUtil.newInstance(DebugOptions)
 
-    @Test public void testDebugOptions() {
+    @Test
+    void testDebugOptions() {
         assert debugOptions.debugLevel == null
     }
 
-    @Test public void testDefine() {
+    @Test
+    void testDefine() {
         debugOptions.debugLevel = null
         debugOptions.define(debugLevel: "extreme")
         assert debugOptions.debugLevel == "extreme"

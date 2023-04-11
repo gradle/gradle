@@ -19,17 +19,16 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -37,6 +36,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
@@ -62,7 +62,7 @@ import java.io.File
 import javax.inject.Inject
 
 
-class ProjectAccessorsClassPathGenerator @Inject constructor(
+class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,
     private val executionEngine: ExecutionEngine,
@@ -89,7 +89,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                 workspaceProvider
             )
             val result = executionEngine.createRequest(work).execute()
-            result.executionResult.get().output as AccessorsClassPath
+            result.execution.get().output as AccessorsClassPath
         }
     }
 
@@ -104,6 +104,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
 }
 
 
+internal
 class GenerateProjectAccessors(
     private val project: Project,
     private val projectSchema: TypedProjectSchema,
@@ -133,11 +134,11 @@ class GenerateProjectAccessors(
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadRestoredOutput(workspace)
+            override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }
     }
 
-    override fun loadRestoredOutput(workspace: File) = AccessorsClassPath(
+    override fun loadAlreadyProducedOutput(workspace: File) = AccessorsClassPath(
         DefaultClassPath.of(getClassesOutputDir(workspace)),
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
@@ -163,7 +164,7 @@ class GenerateProjectAccessors(
             NON_INCREMENTAL,
             InputFileValueSupplier(
                 classPath,
-                ClasspathNormalizer::class.java,
+                InputNormalizer.RUNTIME_CLASSPATH,
                 DirectorySensitivity.IGNORE_DIRECTORIES,
                 LineEndingSensitivity.DEFAULT,
             ) { fileCollectionFactory.fixed(classPath.asFiles) }
@@ -173,8 +174,8 @@ class GenerateProjectAccessors(
     override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
     }
 }
 
@@ -629,10 +630,12 @@ import org.gradle.kotlin.dsl.accessors.runtime.*
 /**
  * Location of the discontinued project schema snapshot, relative to the root project.
  */
+internal
 const val projectSchemaResourcePath =
     "gradle/project-schema.json"
 
 
+internal
 const val projectSchemaResourceDiscontinuedWarning =
     "Support for $projectSchemaResourcePath was removed in Gradle 5.0. The file is no longer used and it can be safely deleted."
 

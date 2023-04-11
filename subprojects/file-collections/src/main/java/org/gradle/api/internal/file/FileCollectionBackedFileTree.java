@@ -21,6 +21,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -35,9 +36,11 @@ import java.util.function.Consumer;
 
 public class FileCollectionBackedFileTree extends AbstractFileTree {
     private final AbstractFileCollection collection;
+    private final TaskDependencyFactory taskDependencyFactory;
 
-    public FileCollectionBackedFileTree(Factory<PatternSet> patternSetFactory, AbstractFileCollection collection) {
-        super(patternSetFactory);
+    public FileCollectionBackedFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, AbstractFileCollection collection) {
+        super(taskDependencyFactory, patternSetFactory);
+        this.taskDependencyFactory = taskDependencyFactory;
         this.collection = collection;
     }
 
@@ -55,7 +58,7 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
 
     @Override
     public FileTreeInternal matching(PatternFilterable patterns) {
-        return new FilteredFileTree(this, patternSetFactory, () -> {
+        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, () -> {
             PatternSet patternSet = patternSetFactory.create();
             patternSet.copyFrom(patterns);
             return patternSet;
@@ -98,7 +101,7 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
                 PatternSet patterns = patternSetFactory.create();
                 for (File file : contents) {
                     if (seen.add(file)) {
-                        new FileTreeAdapter(new DirectoryFileTree(file, patterns, FileSystems.getDefault()), patternSetFactory).visitStructure(visitor);
+                        new FileTreeAdapter(new DirectoryFileTree(file, patterns, FileSystems.getDefault()), taskDependencyFactory, patternSetFactory).visitStructure(visitor);
                     }
                 }
             }

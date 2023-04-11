@@ -17,8 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -35,7 +35,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
 
-    String kotlinVersion = TestedVersions.kotlin.latestStable()
+    String kotlinVersion = KOTLIN_VERSIONS.latestStable
 
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")
@@ -52,7 +52,21 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
+            if (GradleContextualExecuter.notConfigCache) {
+                expectProjectConventionDeprecationWarning(agpVersion)
+                expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            }
+        }.build()
+    }
+
+    protected BuildResult buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(File location, String agpVersion) {
+        return runnerForLocation(location, agpVersion,"assembleDebug")
+            .deprecations(SantaTrackerDeprecations) {
+                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+                expectProjectConventionDeprecationWarning(agpVersion)
+                expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            }.build()
     }
 
     protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
@@ -69,19 +83,23 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "clean").build()
+        return runnerForLocation(projectDir, agpVersion, "clean").deprecations(SantaTrackerDeprecations) {
+            expectProjectConventionDeprecationWarning(agpVersion)
+            expectAndroidConventionTypeDeprecationWarning(agpVersion)
+        }.build()
     }
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runnerArgs = [["-DagpVersion=$agpVersion", "-DkotlinVersion=$kotlinVersion", "--stacktrace"], tasks].flatten()
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            // fall back to using Java 11 (LTS) for Android tests
-            // Kapt is not compatible with JDK 16+, https://youtrack.jetbrains.com/issue/KT-45545,
-            // or Java 17 for now: https://youtrack.jetbrains.com/issue/KT-47583
-            // perhaps we should always run Android tests on Java 11 instead of having some of them skipped by a precondition
-            def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
-            runnerArgs += "-Dorg.gradle.java.home=${jdk.javaHome}"
-        }
+        def runnerArgs = [[
+            // TODO: the versions of KGP we use still access Task.project from a cacheIf predicate
+            // A workaround for this has been added to TaskExecutionAccessCheckers;
+            // TODO once we remove it, uncomment the flag below or upgrade AGP
+            // "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
+            "-DagpVersion=$agpVersion",
+            "-DkotlinVersion=$kotlinVersion",
+            "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
+            "--stacktrace"],
+        tasks].flatten()
         def runner = runner(*runnerArgs)
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)

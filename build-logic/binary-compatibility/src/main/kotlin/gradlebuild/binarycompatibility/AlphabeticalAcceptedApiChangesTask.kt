@@ -16,14 +16,8 @@
 
 package gradlebuild.binarycompatibility
 
-import com.google.gson.Gson
-import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 
@@ -33,38 +27,24 @@ import org.gradle.api.tasks.TaskAction
  * any changes that are not.
  */
 @CacheableTask
-abstract class AlphabeticalAcceptedApiChangesTask : DefaultTask() {
-    @get:InputFile
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val apiChangesFile: RegularFileProperty
-
+abstract class AlphabeticalAcceptedApiChangesTask : AbstractAcceptedApiChangesMaintenanceTask() {
     @TaskAction
     fun execute() {
-        val jsonString = apiChangesFile.get().asFile.readText()
-        val json = Gson().fromJson(jsonString, AcceptedApiChanges::class.java)
-
-        val originalChanges = json.acceptedApiChanges!!
-        val sortedChanges = originalChanges.toMutableList().sortedBy { it.type + '#' + it.member }
+        val originalChanges = loadChanges()
+        val sortedChanges = sortChanges(originalChanges)
 
         val mismatches = originalChanges.filterIndexed { index, acceptedApiChange -> sortedChanges[index] != acceptedApiChange }
         if (mismatches.isNotEmpty()) {
             val formattedMismatches = mismatches.joinToString(separator = "\n", transform = { "\t" + it })
-            throw GradleException("API changes in file '${apiChangesFile.get().asFile.name}' should be in alphabetical order (by type and member), yet these changes were not:\n$formattedMismatches")
+            throw GradleException(buildErrorMessage(formattedMismatches))
         }
     }
 
     private
-    data class AcceptedApiChange(
-        val type: String?,
-        val member: String?,
-        val acceptation: String?,
-        val changes: List<String>?
-    ) {
-        override fun toString(): String = "Type: '$type', Member: '$member'"
+    fun buildErrorMessage(formattedMismatches: String): String {
+        return "API changes in file '${apiChangesFile.get().asFile.name}' should be in alphabetical order (by type and member), yet these changes were not:\n" +
+            "$formattedMismatches\n" +
+            "\n" +
+            "To automatically alphabetize these changes run: 'gradlew :architecture-test:sortAcceptedApiChanges'"
     }
-
-    private
-    data class AcceptedApiChanges(
-        val acceptedApiChanges: List<AcceptedApiChange>?
-    )
 }

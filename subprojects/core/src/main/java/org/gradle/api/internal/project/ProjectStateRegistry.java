@@ -64,7 +64,7 @@ public interface ProjectStateRegistry {
     /**
      * Registers the projects of a build.
      */
-    void registerProjects(BuildState build, ProjectRegistry<DefaultProjectDescriptor> projectRegistry);
+    void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry);
 
     /**
      * Registers a single project.
@@ -77,4 +77,9 @@ public interface ProjectStateRegistry {
      * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
      */
     <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory);
+
+    /**
+     * Discards all projects for the given build.
+     */
+    void discardProjectsFor(BuildState build);
 }

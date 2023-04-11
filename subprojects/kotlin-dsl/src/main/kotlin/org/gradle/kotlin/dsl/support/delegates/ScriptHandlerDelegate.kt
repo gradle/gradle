@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import java.io.File
 
@@ -31,10 +32,17 @@ import java.net.URI
 
 /**
  * Facilitates the implementation of the [ScriptHandler] interface by delegation via subclassing.
- *
- * See [GradleDelegate] for why this is currently necessary.
  */
+@Deprecated("Will be removed in Gradle 9.0")
 abstract class ScriptHandlerDelegate : ScriptHandler {
+
+    init {
+        @Suppress("DEPRECATION")
+        DeprecationLogger.deprecateType(ScriptHandlerDelegate::class.java)
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser()
+    }
 
     internal
     abstract val delegate: ScriptHandler

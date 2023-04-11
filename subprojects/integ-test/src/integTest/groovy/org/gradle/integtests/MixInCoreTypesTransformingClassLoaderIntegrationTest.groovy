@@ -25,23 +25,25 @@ class MixInCoreTypesTransformingClassLoaderIntegrationTest extends AbstractInteg
             import org.gradle.api.internal.tasks.*
 
             class CustomTask extends DefaultTask {}
-            
-            def assertReturnTypesFor(Object object, String methodName, Class... returnTypes) {
-                assert object.getClass().methods.findAll { it.name == methodName }*.returnType.name.sort() == returnTypes*.name.sort()
+
+            class Assert {
+                static def returnTypesFor(Object object, String methodName, Class... returnTypes) {
+                    assert object.getClass().methods.findAll { it.name == methodName }*.returnType.name.sort() == returnTypes*.name.sort()
+                }
             }
 
             task customTask(type: CustomTask) {
                 doFirst { task ->
                     // Internal return type leaked in Gradle 0.9
-                    assertReturnTypesFor task, "getOutputs", TaskOutputs, TaskOutputsInternal
-                    
+                    Assert.returnTypesFor task, "getOutputs", TaskOutputs, TaskOutputsInternal
+
                     // Internal return type leaked in Gradle 3.2
-                    assertReturnTypesFor task, "getInputs", TaskInputs, TaskInputsInternal
+                    Assert.returnTypesFor task, "getInputs", TaskInputs, TaskInputsInternal
 
                     // Internal return types leaked in Gradle 3.2
-                    assertReturnTypesFor task.inputs, "dir", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
-                    assertReturnTypesFor task.inputs, "file", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
-                    assertReturnTypesFor task.inputs, "files", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
+                    Assert.returnTypesFor task.inputs, "dir", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
+                    Assert.returnTypesFor task.inputs, "file", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
+                    Assert.returnTypesFor task.inputs, "files", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
                 }
             }
         """

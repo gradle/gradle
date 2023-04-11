@@ -47,7 +47,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildO
  *
  * @since 4.5
  */
-public class SwiftApplicationPlugin implements Plugin<Project> {
+public abstract class SwiftApplicationPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;

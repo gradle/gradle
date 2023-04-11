@@ -23,6 +23,7 @@ tasks.register('intTestJar', Jar) {
 // tag::javadoc[]
 tasks.register('intTestJavadoc', Javadoc) {
     source sourceSets.intTest.allJava
+    classpath = sourceSets.intTest.compileClasspath
 }
 // end::javadoc[]
 
@@ -32,3 +33,11 @@ tasks.register('intTest', Test) {
     classpath = sourceSets.intTest.runtimeClasspath
 }
 // end::test[]
+
+tasks.named('test') {
+    dependsOn 'intTest'
+}
+
+tasks.named('build') {
+    dependsOn 'intTestJavadoc'
+}

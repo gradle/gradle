@@ -53,7 +53,7 @@ import javax.inject.Inject;
  * Assembles a static library from object files.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
+public abstract class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
 
     private final ConfigurableFileCollection source;
     private final RegularFileProperty outputFile;

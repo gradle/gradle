@@ -1,7 +1,7 @@
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[understanding-variant-selection]]
-= Understanding variant selection 
+= Understanding variant selection
 
 In other dependency management engines, like Apache Maven™, dependencies and artifacts are bound to a component that is published at a particular GAV (group-artifact-version) coordinates.
 The set of dependencies for this component are always the same, regardless of which artifact may be used from the component.
@@ -52,11 +52,11 @@ Not all configurations are variants because they may be used for declaring or re
 
 The consumer can define any number of attributes.
 Each attribute helps narrow the possible variants that can be selected.
-Attribute values do not need to be exact matches. 
+Attribute values do not need to be exact matches.
 
 The variant can also define any number of attributes.
 The attributes should describe how the variant is intended to be used.
-For example, Gradle uses an attribute named `org.gradle.usage` to describe with how a component is used by the consumer (for compilation, for runtime execution, etc). 
+For example, Gradle uses an attribute named `org.gradle.usage` to describe with how a component is used by the consumer (for compilation, for runtime execution, etc).
 It is not unusual for a variant to have more attributes than the consumer needs to provide to select it.
 
 [[sec:variant-aware-matching]]
@@ -84,7 +84,7 @@ There are two exceptions to this rule that bypass variant aware resolution:
 
 == A simple example
 
-Let's consider an example where a consumer is trying to use a library for compilation. 
+Let's consider an example where a consumer is trying to use a library for compilation.
 
 First, the consumer needs to explain how it's going to use the result of dependency resolution. This is done by setting _attributes_ on the resolvable configuration of the consumer.
 
@@ -93,7 +93,7 @@ The consumer wants to resolve a variant that matches:
 
 Second, the producer needs to expose the different variants of the component.
 
-The producer component exposes 2 variants: 
+The producer component exposes 2 variants:
 - its API (named `apiElements`) with attribute `org.gradle.usage=JAVA_API`
 - its runtime (named `runtimeElements`) with attribute `org.gradle.usage=JAVA_RUNTIME`
 
@@ -234,14 +234,15 @@ All _compatible_ candidate variants are displayed with their attributes.
 * Incompatible attributes are presented first, as they usually are the key in understanding why a variant could not be selected.
 * Other attributes are presented second, this includes _required_ and _compatible_ ones as well as all extra _producer_ attributes that are not requested by the consumer.
 
-Similar to the ambiguous variant error, the goal is to understand which variant should be selected. In some cases, there may not be any compatible variants from the producer (e.g., trying to run on Java 8 with a library built for Java 11). 
+Similar to the ambiguous variant error, the goal is to understand which variant should be selected. In some cases, there may not be any compatible variants from the producer (e.g., trying to run on Java 8 with a library built for Java 11).
 
 [[sec:variant-visual]]
 == Visualizing variant information
 
+[[outgoing_variants_report]]
 === Outgoing variants report
 
-The report task `outgoingVariants` shows the list of variants available for selection by consumers of the project. It displays the capabilities, attributes and artifacts for each variant. 
+The report task `outgoingVariants` shows the list of variants available for selection by consumers of the project. It displays the capabilities, attributes and artifacts for each variant.
 
 This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,reporting task>>.
 
@@ -257,7 +258,7 @@ Here is the output of the `outgoingVariants` task on a freshly generated `java-l
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - new-java-library:lib:unspecified (default capability)
@@ -304,7 +305,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - new-java-library:lib:unspecified (default capability)
@@ -373,6 +374,14 @@ As they indicate, this is where the difference is made between what needs to be 
 
 It also shows _secondary_ variants, which are exclusive to Gradle projects and not published.
 For example, the secondary variant `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
+
+==== Information about invalid consumable configurations
+
+A project cannot have multiple configurations with the same attributes and capabilities.
+In that case, the project will fail to build.
+
+In order to be able to visualize such issues, the outgoing variant reports handle those errors in a lenient fashion.
+This allows the report to display information about the issue.
 
 === Resolvable configurations report
 
@@ -565,8 +574,8 @@ If you know that all the Ivy modules your are consuming have been published with
 
 .Deriving compile and runtime variants for Ivy metadata
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
 ====
 
 The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.

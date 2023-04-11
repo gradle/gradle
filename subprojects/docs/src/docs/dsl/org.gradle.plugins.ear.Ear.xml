@@ -9,10 +9,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>extension</td>
-                <td><literal>ear</literal></td>
-            </tr>
-            <tr>
                 <td>source</td>
                 <td><literal>[project.appDir]</literal>, not transitive</td>
             </tr>

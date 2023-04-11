@@ -62,7 +62,7 @@ import javax.inject.Inject;
  * }
  * </pre>
  */
-public class EclipseJdt {
+public abstract class EclipseJdt {
 
     private JavaVersion sourceCompatibility = JavaVersion.current();
 

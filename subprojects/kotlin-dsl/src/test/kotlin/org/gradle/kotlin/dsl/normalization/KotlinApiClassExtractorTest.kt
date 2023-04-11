@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.normalization
 
+import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -310,6 +311,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
         val binDir = newFolder("bin")
         compileToDirectory(
             binDir,
+            JavaVersion.current(),
             "test",
             listOf(sourceFile),
             loggerFor<KotlinApiClassExtractorTest>(),

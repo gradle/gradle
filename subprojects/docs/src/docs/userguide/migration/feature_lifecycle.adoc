@@ -78,8 +78,25 @@ Gradle provides backwards compatibility across major versions (e.g. `1.x`, `2.x`
 [[eol_support]]
 == Release end-of-life Policy
 
-Every day, a new nightly build of Gradle is created.  This contains all of the changes that have made it through Gradle's extensive continuous integration tests during that day.  Not every nightly may contain new changes and not every nightly may be stable.
+Every day, a new nightly build of Gradle is created.
+This contains all of the changes that have made it through Gradle's extensive continuous integration tests during that day.
+Not every nightly may contain new changes and not every nightly may be stable.
 
-For each minor or major release, the Gradle team creates a pre-release distribution called a release candidate (RC). When no problems are found after a short period of time (usually a week), the release candidate is promoted to a final/general availability (GA) release. If a regression is found in the release candidate, a new RC distribution is created and the process repeats.  Release candidates are supported for as long as the release window is open, but they are not intended to be used long term for production use. Bug reports are greatly appreciated during the RC phase.
+For each minor or major release, the Gradle team creates a pre-release distribution called a release candidate (RC).
+When no problems are found after a short period of time (usually a week), the release candidate is promoted to a final/general availability (GA) release.
+If a regression is found in the release candidate, a new RC distribution is created and the process repeats.
+Release candidates are supported for as long as the release window is open, but they are not intended to be used long term for production use.
+Bug reports are greatly appreciated during the RC phase.
 
-After a final release, the Gradle team may create additional patch releases that are intended to replace the previous final release due to an important bugfix or regression.  For instance, Gradle 5.2.1 replaces the Gradle 5.2 release.  Once a release candidate has been made, all feature development moves on to the next release.  As such, each Gradle release causes the previous release to become end-of-line (EOL) and that release will not receive any new bugfixes or feature backports.
+After a final release, the Gradle team may create additional patch releases that are intended to replace the previous final release due to an important bugfix or regression.
+For instance, Gradle 5.2.1 replaces the Gradle 5.2 release.
+Once a release candidate has been made, all feature development moves on to the next release for the most recent major version.
+As such, each minor Gradle release causes the previous minor releases in the same major version to become end-of-life (EOL), and these releases will not receive any new bugfixes or feature backports.
+
+For major versions, Gradle will backport critical fixes and security fixes to the last minor in the previous major version.
+For example, while Gradle 7 was the latest version, there were several releases in the 6.x line: the 6.9 and subsequent releases.
+
+As such, each major Gradle release causes:
+
+* The previous major version becomes maintenance only and it will only receive critical bug fixes and security fixes.
+* The major version before the previous one to become end-of-life (EOL), and that release line will not receive any new fixes.

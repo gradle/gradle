@@ -20,8 +20,10 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.FileUtils
-import org.gradle.test.fixtures.file.ClassFile
+import org.gradle.util.GradleVersion
 import org.junit.Assume
+
+import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
 
 class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -78,9 +80,12 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        if (["1.6", "1.7"].contains(version)) {
+            executer.expectDeprecationWarning("Running tests on Java versions earlier than 8 has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_test_jvm_version")
+        }
         succeeds 'test'
-        new ClassFile(javaClassFile("Thing.class")).javaVersion == toJavaVersion(version)
-        new ClassFile(classFile("java", "test", "ThingTest.class")).javaVersion == toJavaVersion(version)
+        getClassMajorVersion(javaClassFile("Thing.class")) == getClassMajorVersion(toJavaVersion(version))
+        getClassMajorVersion(classFile("java", "test", "ThingTest.class")) == getClassMajorVersion(toJavaVersion(version))
 
         where:
         version << javaVersionsToCrossCompileAgainst()
@@ -105,6 +110,9 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        if (["1.6", "1.7"].contains(version)) {
+            executer.expectDeprecationWarning("Running tests on Java versions earlier than 8 has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_test_jvm_version")
+        }
         succeeds 'test'
 
         where:

@@ -18,20 +18,23 @@ package org.gradle.testfixtures.internal;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.CacheVisitor;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.internal.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,12 +45,12 @@ public class TestInMemoryCacheFactory implements CacheFactory {
      * In case multiple threads is accessing the cache, for example when running JUnit 5 tests in parallel,
      * the map must be protected from concurrent modification.
      */
-    final Map<Pair<File, String>, PersistentIndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
+    final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, CleanupAction cleanup) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
-        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cleanup);
+        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
         if (initializer != null) {
             initializer.execute(cache);
         }
@@ -58,13 +61,18 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         return new InMemoryCache(cacheDir, displayName, CleanupAction.NO_OP);
     }
 
+    @Override
+    public void visitCaches(CacheVisitor visitor) {
+        throw new UnsupportedOperationException();
+    }
+
     private class InMemoryCache implements PersistentCache {
         private final File cacheDir;
         private final String displayName;
         private boolean closed;
         private final CleanupAction cleanup;
 
-        public InMemoryCache(File cacheDir, String displayName, CleanupAction cleanup) {
+        public InMemoryCache(File cacheDir, String displayName, @Nullable CleanupAction cleanup) {
             this.cacheDir = cacheDir;
             this.displayName = displayName;
             this.cleanup = cleanup;
@@ -72,12 +80,17 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
         @Override
         public void close() {
+            cleanup();
+            closed = true;
+        }
+
+        @Override
+        public void cleanup() {
             if (cleanup!=null) {
                 synchronized (this) {
                     cleanup.clean(this, CleanupProgressMonitor.NO_OP);
                 }
             }
-            closed = true;
         }
 
         public boolean isClosed() {
@@ -101,27 +114,27 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
             assertNotClosed();
-            return createCache(name, valueSerializer);
+            return createIndexedCache(name, valueSerializer);
         }
 
         @Override
-        public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+        public <K, V> boolean indexedCacheExists(IndexedCacheParameters<K, V> parameters) {
             return true;
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
+        public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
             assertNotClosed();
-            return createCache(parameters.getCacheName(), parameters.getValueSerializer());
+            return createIndexedCache(parameters.getCacheName(), parameters.getValueSerializer());
         }
 
-        private <K, V> PersistentIndexedCache<K, V> createCache(String name, Serializer<V> valueSerializer) {
+        private <K, V> IndexedCache<K, V> createIndexedCache(String name, Serializer<V> valueSerializer) {
             assertNotClosed();
-            PersistentIndexedCache<?, ?> indexedCache = caches.get(Pair.of(cacheDir, name));
+            IndexedCache<?, ?> indexedCache = caches.get(Pair.of(cacheDir, name));
             if (indexedCache == null) {
-                indexedCache = new TestInMemoryPersistentIndexedCache<K, V>(valueSerializer);
+                indexedCache = new TestInMemoryIndexedCache<K, V>(valueSerializer);
                 caches.put(Pair.of(cacheDir, name), indexedCache);
             }
             return Cast.uncheckedCast(indexedCache);
@@ -149,7 +162,10 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         @Override
         public void useCache(Runnable action) {
             assertNotClosed();
-            action.run();
+            // The contract of useCache() means we have to provide some basic synchronization.
+            synchronized (this) {
+                action.run();
+            }
         }
 
         @Override

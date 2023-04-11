@@ -22,7 +22,7 @@ import org.gradle.api.file.CopySpec;
 /**
  * <p>The {@link Convention} used for configuring the {@link ApplicationPlugin}.</p>
  *
- * @deprecated Use {@link JavaApplication} instead. This class is scheduled for removal in Gradle 8.0.
+ * @deprecated Use {@link JavaApplication} instead. This class is scheduled for removal in Gradle 9.0.
  */
 @Deprecated
 public abstract class ApplicationPluginConvention {
@@ -79,8 +79,10 @@ public abstract class ApplicationPluginConvention {
      *     id 'application'
      * }
      *
-     * applicationDistribution.from("some/dir") {
-     *   include "*.txt"
+     * application {
+     *     applicationDistribution.from("some/dir") {
+     *       include "*.txt"
+     *     }
      * }
      * </pre>
      * <p>

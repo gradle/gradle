@@ -16,7 +16,6 @@
 
 package common
 
-import configurations.buildScanTag
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -31,7 +30,8 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, arch: Arch = Arch.
     """.trimIndent()
     detectHangingBuilds = false
     requirements {
-        requiresNoEc2Agent()
+        requiresNotEc2Agent()
+        requiresNotSharedHost()
     }
     params {
         param("env.JPROFILER_HOME", os.jprofilerHome)
@@ -44,9 +44,8 @@ fun performanceTestCommandLine(
     baselines: String,
     extraParameters: String = "",
     os: Os = Os.LINUX,
-    arch: Arch = Arch.AMD64,
     testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
-    testJavaVendor: String = os.perfTestJavaVendor,
+    testJavaVendor: String = os.perfTestJavaVendor.toString(),
 ) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
@@ -90,8 +89,6 @@ fun BuildSteps.substDirOnWindows(os: Os) {
             """.trimIndent()
             skipConditionally()
         }
-        cleanBuildLogicBuild("P:/build-logic-commons")
-        cleanBuildLogicBuild("P:/build-logic")
     }
 }
 
@@ -103,26 +100,5 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os) {
             scriptContent = """dir p: && subst p: /d"""
             skipConditionally()
         }
-        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons")
-        cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic")
-    }
-}
-
-private fun BuildSteps.cleanBuildLogicBuild(buildDir: String) {
-    // Gradle detects overlapping outputs when running first on a subst drive and then in the original location.
-    // Even when running clean builds on CI, we don't run clean in buildSrc, so there may be stale leftover files there.
-    // This means that we need to clean buildSrc before running for the first time on the subst drive
-    // and before running the first time on the original location again.
-    gradleWrapper {
-        name = "CLEAN_${buildDir.uppercase().replace("[:/%.]".toRegex(), "_")}"
-        tasks = "clean"
-        workingDir = buildDir
-        executionMode = BuildStep.ExecutionMode.ALWAYS
-        gradleWrapperPath = "../"
-        gradleParams = (
-            buildToolGradleParameters() +
-                buildScanTag("PerformanceTest")
-            ).joinToString(separator = " ")
-        skipConditionally()
     }
 }
