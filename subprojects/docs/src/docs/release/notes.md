@@ -113,6 +113,13 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+### Improved console output
+
+A series of small improvements were added to the console output when the build fails:
+suggestions are moved from the error message to the `* Try` section, a link help.gradle.org is not shown for recoverable errors (e.g. upon compilation failure), just to name a few.
+The complete list of suggestions is available [here](https://github.com/gradle/gradle/issues?q=is%3Aissue+sort%3Aupdated-desc+milestone%3A%228.2+RC1%22+label%3Ain%3Aconsole+is%3Aclosed).
+This change is a first step towards implementing the [clean and actionable error reporting](https://github.com/gradle/build-tool-roadmap/issues/49) item in the public roadmap.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
