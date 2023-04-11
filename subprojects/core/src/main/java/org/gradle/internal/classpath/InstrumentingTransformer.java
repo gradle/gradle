@@ -24,6 +24,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
@@ -332,9 +333,11 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor methodVisitor) {
             try {
+                //noinspection Convert2MethodRef
+                InstrumentationMetadata metadata = (type, superType) -> type.equals(superType); // TODO implement properly
                 return (JvmBytecodeCallInterceptor) Class.forName(className)
-                    .getConstructor(MethodVisitor.class)
-                    .newInstance(methodVisitor);
+                    .getConstructor(MethodVisitor.class, InstrumentationMetadata.class)
+                    .newInstance(methodVisitor, metadata);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
