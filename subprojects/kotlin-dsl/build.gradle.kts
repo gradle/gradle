@@ -8,10 +8,9 @@ description = "Kotlin DSL Provider"
 
 dependencies {
 
-    compileOnlyApi(libs.futureKotlin("reflect"))
-
     api(project(":kotlin-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib-jdk8"))
+    api(libs.futureKotlin("reflect"))
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
@@ -64,6 +63,9 @@ dependencies {
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
+    implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
+        isTransitive = false
+    }
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
         isTransitive = false
     }
@@ -74,7 +76,7 @@ dependencies {
     testImplementation(project(":platform-native")) {
         because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
     }
-    testImplementation(project(":plugins"))
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":version-control"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.ant)
@@ -84,7 +86,9 @@ dependencies {
     testImplementation(libs.kotlinCoroutines)
     testImplementation(libs.awaitility)
 
-    integTestImplementation(project(":language-groovy"))
+    integTestImplementation(project(":build-option")) {
+        because("KotlinSettingsScriptIntegrationTest makes uses of FeatureFlag")
+    }
     integTestImplementation(project(":language-groovy")) {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
@@ -121,7 +125,7 @@ packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 strictCompile {
     ignoreDeprecations()

@@ -26,6 +26,7 @@ import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -49,19 +50,21 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         // Setup classloader for root project, all other projects will be derived from this.
         SettingsInternal settings = gradle.getSettings();
         ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
-        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]");
+        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]", null);
         gradle.setBaseProjectClassLoaderScope(buildSrcClassLoaderScope);
         generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, buildSrcClassLoaderScope);
         // attaches root project
         buildLoader.load(gradle.getSettings(), gradle);
-        // Makes included build substitutions available
-        if (gradle.isRootBuild()) {
-            coordinator.registerGlobalLibrarySubstitutions();
-        }
+
+        // Makes included build substitutions available for this build
+        coordinator.registerSubstitutionsAvailableFor(gradle.getOwner());
+
         // Build buildSrc and export classpath to root project
         buildBuildSrcAndLockClassloader(gradle, buildSrcClassLoaderScope);
 
         delegate.prepareProjects(gradle);
+
+        coordinator.registerSubstitutionsProvidedBy(gradle.getOwner());
     }
 
     private void buildBuildSrcAndLockClassloader(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
@@ -75,6 +78,8 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         dm.getDefaultLibrariesExtensionName().finalizeValue();
         String defaultLibrary = dm.getDefaultLibrariesExtensionName().get();
         File dependenciesFile = new File(settings.getSettingsDir(), "gradle/libs.versions.toml");
+        // Notify the CC
+        Instrumented.fileObserved(dependenciesFile, getClass().getName());
         if (dependenciesFile.exists()) {
             dm.versionCatalogs(catalogs -> {
                 VersionCatalogBuilder builder = catalogs.findByName(defaultLibrary);

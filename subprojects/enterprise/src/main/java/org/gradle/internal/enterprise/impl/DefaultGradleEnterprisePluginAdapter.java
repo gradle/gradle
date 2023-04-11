@@ -19,7 +19,6 @@ package org.gradle.internal.enterprise.impl;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginEndOfBuildListener;
-import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.enterprise.GradleEnterprisePluginService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
@@ -31,7 +30,7 @@ import javax.annotation.Nullable;
 public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePluginAdapter {
 
     private final GradleEnterprisePluginConfig config;
-    private final GradleEnterprisePluginRequiredServices requiredServices;
+    private final DefaultGradleEnterprisePluginRequiredServices requiredServices;
     private final GradleEnterprisePluginBuildState buildState;
     private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
 
@@ -43,7 +42,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
     public DefaultGradleEnterprisePluginAdapter(
         GradleEnterprisePluginConfig config,
-        GradleEnterprisePluginRequiredServices requiredServices,
+        DefaultGradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
         DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
         BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
@@ -72,14 +71,10 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     }
 
     @Override
-    public void executionPhaseStarted() {
-        if (pluginService != null) {
-            pluginService.executionPhaseStarted();
-        }
-    }
-
-    @Override
     public void buildFinished(@Nullable Throwable buildFailure) {
+        // Ensure that all tasks are complete prior to the buildFinished callback.
+        requiredServices.getBackgroundJobExecutors().stop();
+
         if (pluginService != null) {
             pluginService.getEndOfBuildListener().buildFinished(new GradleEnterprisePluginEndOfBuildListener.BuildResult() {
                 @Nullable

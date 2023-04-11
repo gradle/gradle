@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -62,16 +63,16 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(variants, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
+        attributeMatcher.matches(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, false, dependenciesResolver).select(set, factory)
         result == variant1Artifacts
     }
 
     def "fails when multiple producer variants match"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
+        def variant1 = resolvedVariant()
+        def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
 
@@ -85,11 +86,11 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(variants, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1, variant2]
+        attributeMatcher.matches(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1, variant2]
         attributeMatcher.isMatching(_, _, _) >> true
 
         when:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, false, dependenciesResolver).select(set, factory)
         visit(result)
 
         then:
@@ -99,21 +100,13 @@ class DefaultArtifactTransformsTest extends Specification {
   - <variant2> declares attribute 'artifactType' with value 'jar'""")
     }
 
-    private ResolvedVariant resolvedVariant() {
-        Stub(ResolvedVariant)
-    }
-
-    private ResolvedVariantSet resolvedVariantSet() {
-        Stub(ResolvedVariantSet) {
-            getOverriddenAttributes() >> ImmutableAttributes.EMPTY
-        }
-    }
-
     def "fails when multiple transforms match"() {
+        def requested = typeAttributes("dll")
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
+        def transformedVariants = variants.collect { transformedVariant(it, requested)}
 
         given:
         set.schema >> producerSchema
@@ -125,13 +118,11 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.asDescribable() >> Describables.of('<variant2>')
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(_, _, _) >> []
+        attributeMatcher.matches(ImmutableList.copyOf(variants), _, _) >> []
+        attributeMatcher.matches(transformedVariants, _, _) >> transformedVariants
+        matchingCache.findTransformedVariants(_, _) >> transformedVariants
 
-        matchingCache.collectConsumerVariants(_, _) >> { ImmutableAttributes from, ImmutableAttributes to ->
-            match(to, Stub(TransformationStep), 1)
-        }
-
-        def selector = transforms.variantSelector(typeAttributes("dll"), true, dependenciesResolver)
+        def selector = transforms.variantSelector(requested, true, false, dependenciesResolver)
 
         when:
         def result = selector.select(set, factory)
@@ -167,10 +158,10 @@ Found the following transforms:
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _, _) >> []
 
-        matchingCache.collectConsumerVariants(_, _) >> new MutableConsumerVariantMatchResult(0)
+        matchingCache.findTransformedVariants(_, _) >> []
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("dll"), true, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("dll"), true, false, dependenciesResolver).select(set, factory)
         result == ResolvedArtifactSet.EMPTY
     }
 
@@ -192,10 +183,10 @@ Found the following transforms:
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _, _) >> []
 
-        matchingCache.collectConsumerVariants(_, _) >> new MutableConsumerVariantMatchResult(0)
+        matchingCache.findTransformedVariants(_, _) >> []
 
         when:
-        def result = transforms.variantSelector(typeAttributes("dll"), false, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("dll"), false, false, dependenciesResolver).select(set, factory)
         visit(result)
 
         then:
@@ -205,6 +196,16 @@ Found the following transforms:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
   - <variant2>:
       - Incompatible because this component declares attribute 'artifactType' with value 'classes' and the consumer needed attribute 'artifactType' with value 'dll'""")
+    }
+
+    private ResolvedVariant resolvedVariant() {
+        Stub(ResolvedVariant)
+    }
+
+    private ResolvedVariantSet resolvedVariantSet() {
+        Stub(ResolvedVariantSet) {
+            getOverriddenAttributes() >> ImmutableAttributes.EMPTY
+        }
     }
 
     def visit(ResolvedArtifactSet set) {
@@ -221,9 +222,15 @@ Found the following transforms:
         attributeContainer.asImmutable()
     }
 
-    static MutableConsumerVariantMatchResult match(ImmutableAttributes output, TransformationStep trn, int depth) {
-        def result = new MutableConsumerVariantMatchResult(2)
-        result.matched(output, trn, null, depth)
-        result
+    TransformedVariant transformedVariant(ResolvedVariant root, AttributeContainerInternal attributes) {
+        ImmutableAttributes attrs = attributes.asImmutable()
+        TransformationStep step = Mock(TransformationStep) {
+            getDisplayName() >> ""
+        }
+        VariantDefinition definition = Mock(VariantDefinition) {
+            getTransformationChain() >> new TransformationChain(null, step)
+            getTargetAttributes() >> attrs
+        }
+        return new TransformedVariant(root, definition)
     }
 }

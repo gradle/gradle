@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
-class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.scala"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppSuite.scala"
@@ -64,6 +64,29 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         and:
         commonJvmFilesGenerated(scriptDsl)
         dslFixtureFor(scriptDsl).assertHasTestSuite("test")
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppSuite", "App has a greeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello, world!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
 
         when:
         run("build")

@@ -16,29 +16,26 @@
 
 package org.gradle.configurationcache.serialization.codecs.jos
 
-import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
-import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.EncodingProvider
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
-import org.gradle.configurationcache.serialization.codecs.BrokenValue
 import org.gradle.configurationcache.serialization.codecs.Decoding
 import org.gradle.configurationcache.serialization.codecs.Encoding
 import org.gradle.configurationcache.serialization.codecs.EncodingProducer
+import org.gradle.configurationcache.serialization.codecs.SerializedLambdaParametersCheckingCodec
 import org.gradle.configurationcache.serialization.decodeBean
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodeBean
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
-import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readEnum
-import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withBeanTrace
 import org.gradle.configurationcache.serialization.withImmediateMode
 import org.gradle.configurationcache.serialization.writeEnum
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.lang.invoke.SerializedLambda
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier.isPrivate
 import java.lang.reflect.Modifier.isStatic
@@ -82,7 +79,7 @@ class JavaObjectSerializationCodec(
             lookup.encodingFor(serializableType)
         }
 
-    override suspend fun ReadContext.decode(): Any? =
+    override suspend fun ReadContext.decode(): Any =
         decodePreservingIdentity { id ->
             when (readEnum<Format>()) {
                 Format.WriteObject -> {
@@ -112,13 +109,9 @@ class JavaObjectSerializationCodec(
                     readResolve(decodeBean())
                         .also { putIdentity(id, it) }
                 }
-                Format.Broken -> {
-                    decodingBeanWithId(id) { bean, _, _ ->
-                        val brokenValue = readNonNull<BrokenValue>()
-                        logPropertyProblem("deserialize", brokenValue.failure, NotYetImplementedJavaSerialization) {
-                            failedJOS(bean)
-                        }
-                    }
+                Format.SerializedLambda -> {
+                    readResolve(SerializedLambdaParametersCheckingCodec.run { decode() })
+                        .also { putIdentity(id, it) }
                 }
             }
         }
@@ -132,25 +125,10 @@ class JavaObjectSerializationCodec(
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val beanType = value.javaClass
-                runCatching {
-                    // Exceptions during the recording phase can be safely recovered from
-                    // because recording doesn't affect the WriteContext.
-                    recordWritingOf(beanType, value)
-                }.apply {
-                    onSuccess { record ->
-                        writeEnum(Format.WriteObject)
-                        writeClass(beanType)
-                        record.run { playback() }
-                    }
-                    onFailure { ex ->
-                        logPropertyProblem("serialize", ex, NotYetImplementedJavaSerialization) {
-                            failedJOS(value)
-                        }
-                        writeEnum(Format.Broken)
-                        writeClass(beanType)
-                        write(BrokenValue(ex))
-                    }
-                }
+                val record = recordWritingOf(beanType, value)
+                writeEnum(Format.WriteObject)
+                writeClass(beanType)
+                record.run { playback() }
             }
         }
 
@@ -178,8 +156,15 @@ class JavaObjectSerializationCodec(
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
-                writeEnum(Format.ReadResolve)
-                encodeBean(replacement)
+                if (replacement is SerializedLambda) {
+                    writeEnum(Format.SerializedLambda)
+                    SerializedLambdaParametersCheckingCodec.run {
+                        encode(replacement)
+                    }
+                } else {
+                    writeEnum(Format.ReadResolve)
+                    encodeBean(replacement)
+                }
             }
         }
     }
@@ -199,7 +184,7 @@ class JavaObjectSerializationCodec(
         ReadResolve,
         WriteObject,
         ReadObject,
-        Broken
+        SerializedLambda
     }
 
     private
@@ -250,15 +235,7 @@ fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterT
 
 
 private
-fun StructuredMessage.Builder.failedJOS(value: Any) {
-    text("value ")
-    reference(value.toString())
-    text(" failed Java Object Serialization")
-}
-
-
-private
-inline fun ReadContext.decodingBeanWithId(id: Int, decode: (Any, Class<*>, BeanStateReader) -> Unit): Any? {
+inline fun ReadContext.decodingBeanWithId(id: Int, decode: (Any, Class<*>, BeanStateReader) -> Unit): Any {
     val beanType = readClass()
     return withBeanTrace(beanType) {
         val beanStateReader = beanStateReaderFor(beanType)

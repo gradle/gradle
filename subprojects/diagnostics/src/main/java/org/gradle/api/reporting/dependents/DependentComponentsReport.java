@@ -47,11 +47,15 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
  */
 @Deprecated
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class DependentComponentsReport extends DefaultTask {
+public abstract class DependentComponentsReport extends DefaultTask {
 
     private boolean showNonBuildable;
     private boolean showTestSuites;
     private List<String> components;
+
+    {
+        notCompatibleWithConfigurationCache("Requires access to the component model at execution time.");
+    }
 
     /**
      * Should this include non-buildable components in the report?

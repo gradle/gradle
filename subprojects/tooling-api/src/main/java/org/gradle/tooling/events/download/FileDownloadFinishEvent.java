@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.download;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.FinishEvent;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.events.FinishEvent;
  *
  * @since 7.3
  */
-@Incubating
 public interface FileDownloadFinishEvent extends FileDownloadProgressEvent, FinishEvent {
     @Override
     FileDownloadResult getResult();

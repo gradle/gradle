@@ -120,7 +120,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         outputs.noneRecompiled()
 
         when: 'second build'
-        applyGroovyFileSet(secondChange)
+        outputs.snapshot { applyGroovyFileSet(secondChange) }
         run "compileGroovy", "--info"
 
         then:
@@ -128,8 +128,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         outputs.recompiledClasses(secondChangeRecompiledClasses as String[])
 
         when: 'third build'
-        outputs.snapshot()
-        applyGroovyFileSet(thirdChange)
+        outputs.snapshot { applyGroovyFileSet(thirdChange) }
         run "compileGroovy", "--info"
 
         then:
@@ -157,7 +156,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         outputs.noneRecompiled()
 
         when: 'second build'
-        applyMixFileSet(secondChange)
+        outputs.snapshot { applyMixFileSet(secondChange)  }
         run "compileGroovy", "--info"
 
         then:
@@ -166,8 +165,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         outputs.recompiledClasses(secondChangeRecompiledClasses as String[])
 
         when: 'third build'
-        outputs.snapshot()
-        applyMixFileSet(thirdChange)
+        outputs.snapshot { applyMixFileSet(thirdChange) }
         run "compileGroovy", "--info"
 
         then:

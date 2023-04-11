@@ -59,7 +59,7 @@ compile
      |    \\--- project :c (*)
      \\--- project :c (*)
 """
-        output.contains '(*) - dependencies omitted (listed previously)'
+        output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }
 
     def "marks project dependency that can't be resolved as 'FAILED'"() {
@@ -237,8 +237,9 @@ config
             }
 
             task resolveConf {
+                def foo = configurations.foo
                 doLast {
-                    configurations.foo.each { println it }
+                    foo.each { println it }
                 }
             }
         """
@@ -393,7 +394,7 @@ conf
         run "dependencies"
 
         then:
-        output.contains """(*) - dependencies omitted (listed previously)
+        output.contains """(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 
 A web-based, searchable dependency report is available by adding the --scan option."""
     }
@@ -897,7 +898,7 @@ compile
 +--- foo:foo:1.0
 \\--- foo:bar:2.0
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
 
         when:
@@ -908,7 +909,7 @@ compile
 api (n)
 \\--- foo:foo:1.0 (n)
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
     }
 
@@ -1025,24 +1026,18 @@ compileClasspath - Compile classpath for source set 'main'.
      \\--- group:moduleB:1.0
           \\--- group:moduleC:1.0
 
-(c) - dependency constraint
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
 """
     }
 
-    def "excludes fully deprecated configurations"() {
-        executer.expectDeprecationWarning()
-
+    def "adding declarations to deprecated configurations for declaration will warn"() {
         given:
         file("settings.gradle") << "include 'a', 'b'"
 
         buildFile << """
             subprojects {
                 configurations {
-                    compile.deprecateForDeclaration('implementation')
-                    compile.deprecateForConsumption { builder ->
-                        builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
-                    }
-                    compile.deprecateForResolution('compileClasspath')
+                    compile.deprecateForDeclarationAgainst('implementation')
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1053,12 +1048,34 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
-        when:
-        run ":a:dependencies"
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
-        then:
-        !output.contains("\ncompile\n")
+        expect:
+        succeeds ':a:dependencies'
     }
+
+    def "adding declarations to invalid configurations for declaration will fail"() {
+        given:
+        file("settings.gradle") << "include 'a', 'b'"
+
+        buildFile << """
+            subprojects {
+                configurations {
+                    compile.canBeDeclaredAgainst = false
+                    'default' { extendsFrom compile }
+                }
+                group = "group"
+                version = 1.0
+            }
+            project(":a") {
+                dependencies { compile project(":b") }
+            }
+        """
+        expect:
+        fails ':a:dependencies'
+        result.assertHasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
+    }
+
 
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
@@ -1071,7 +1088,7 @@ compileClasspath - Compile classpath for source set 'main'.
             configurations {
                 compileOnly.deprecateForResolution("compileClasspath")
                 compileOnly.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                    builder.willBecomeAnErrorInGradle9().withUpgradeGuideSection(8, "foo")
                 }
                 implementation.extendsFrom compileOnly
             }
@@ -1093,7 +1110,7 @@ implementation
 +--- foo:foo:1.0
 \\--- foo:bar:2.0
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
 
         when:
@@ -1104,7 +1121,7 @@ implementation
 compileOnly (n)
 \\--- foo:foo:1.0 (n)
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
     }
 }

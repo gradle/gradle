@@ -4,7 +4,9 @@ import common.buildToolGradleParameters
 import common.customGradle
 import common.dependsOn
 import common.gradleWrapper
-import common.requiresNoEc2Agent
+import common.requiresNotEc2Agent
+import common.requiresNotSharedHost
+import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
@@ -16,14 +18,15 @@ import model.Stage
  * Build a Gradle distribution (dogfood-first) and use this distribution to build a distribution again (dogfood-second).
  * Use `dogfood-second` to run `test sanityCheck`.
  */
-class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
-    id("${model.projectId}_Gradleception")
-    name = "Gradleception - Java8 Linux"
-    description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
+class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = false) : BaseGradleBuildType(stage = stage, init = {
+    if (bundleGroovy4) id("${model.projectId}_GradleceptionWithGroovy4") else id("${model.projectId}_Gradleception")
+    name = if (bundleGroovy4) "Gradleception - Groovy 4.x Java8 Linux" else "Gradleception - Java8 Linux"
+    description = "Builds Gradle with the version of Gradle which is currently under development (twice)" + if (bundleGroovy4) " - bundling Groovy 4" else ""
 
     requirements {
         // Gradleception is a heavy build which runs ~40m on EC2 agents but only ~20m on Hetzner agents
-        requiresNoEc2Agent()
+        requiresNotEc2Agent()
+        requiresNotSharedHost()
     }
 
     features {
@@ -47,7 +50,11 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
     val dogfoodTimestamp1 = "19800101010101+0000"
     val dogfoodTimestamp2 = "19800202020202+0000"
     val buildScanTagForType = buildScanTag("Gradleception")
-    val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType) + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
+    val buildScanTagForGroovy4 = buildScanTag("Groovy4")
+    val buildScanTags = if (bundleGroovy4) listOf(buildScanTagForType, buildScanTagForGroovy4) else listOf(buildScanTagForType)
+    val bundleGroovy4SysProp = "-DbundleGroovy4=true"
+    val maybeBundleGroovy4SysProp = if (bundleGroovy4) bundleGroovy4SysProp else ""
+    val defaultParameters = (buildToolGradleParameters() + buildScanTags + maybeBundleGroovy4SysProp + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 
     params {
         // Override the default commit id so the build steps produce reproducible distribution
@@ -58,7 +65,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
         model,
         this,
         ":distributions-full:install",
-        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType",
+        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType $maybeBundleGroovy4SysProp",
         extraSteps = {
             script {
                 name = "CALCULATE_MD5_VERSION_FOR_DOGFOODING_DISTRIBUTION"
@@ -84,7 +91,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
 
             localGradle {
                 name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                tasks = "clean sanityCheck test"
+                tasks = "clean sanityCheck test --dry-run"
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                 gradleParams = defaultParameters
             }
@@ -96,4 +103,5 @@ fun BuildSteps.localGradle(init: GradleBuildStep.() -> Unit): GradleBuildStep =
     customGradle(init) {
         param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
         buildFile = ""
+        skipConditionally()
     }

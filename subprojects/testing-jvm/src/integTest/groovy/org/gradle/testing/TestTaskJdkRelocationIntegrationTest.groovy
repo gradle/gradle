@@ -68,8 +68,10 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
                 testImplementation "junit:junit:4.13"
             }
 
-            sourceCompatibility = "1.7"
-            targetCompatibility = "1.7"
+            java {
+                sourceCompatibility = "1.7"
+                targetCompatibility = "1.7"
+            }
 
             test {
                 executable "${TextUtil.escapeString(originalJavaExecutable)}"

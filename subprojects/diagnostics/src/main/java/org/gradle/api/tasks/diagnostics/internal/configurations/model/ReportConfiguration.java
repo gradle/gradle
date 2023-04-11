@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.GradleException;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -30,6 +31,8 @@ public final class ReportConfiguration {
     private final String description;
     @Nullable
     private final Type type;
+
+    private final List<? extends GradleException> lenientErrors;
     private final ImmutableList<ReportAttribute> attributes;
     private final ImmutableList<ReportCapability> capabilities;
     private final ImmutableList<ReportArtifact> artifacts;
@@ -37,6 +40,7 @@ public final class ReportConfiguration {
     private final ImmutableList<ReportConfiguration> extendedConfigurations;
 
     ReportConfiguration(String name, @Nullable String description, @Nullable Type type,
+                                List<? extends GradleException> lenientErrors,
                                 List<ReportAttribute> attributes,
                                 List<ReportCapability> capabilities,
                                 List<ReportArtifact> artifacts,
@@ -45,6 +49,7 @@ public final class ReportConfiguration {
         this.name = name;
         this.description = description;
         this.type = type;
+        this.lenientErrors = ImmutableList.copyOf(lenientErrors);
         this.attributes = ImmutableList.copyOf(attributes);
         this.capabilities = ImmutableList.copyOf(capabilities);
         this.artifacts = ImmutableList.copyOf(artifacts);
@@ -64,6 +69,10 @@ public final class ReportConfiguration {
     @Nullable
     public Type getType() {
         return type;
+    }
+
+    public List<? extends GradleException> getLenientErrors() {
+        return lenientErrors;
     }
 
     public List<ReportAttribute> getAttributes() {

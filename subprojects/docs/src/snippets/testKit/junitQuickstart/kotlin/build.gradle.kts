@@ -13,7 +13,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
-tasks.withType<Test>().configureEach {
+tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 // end::declare-junit-dependency[]

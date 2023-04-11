@@ -40,6 +40,7 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 
@@ -48,7 +49,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 /**
  * Extension including common properties and methods for Jacoco.
  */
-public class JacocoPluginExtension {
+public abstract class JacocoPluginExtension {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
@@ -69,6 +70,7 @@ public class JacocoPluginExtension {
      * @param project the project the extension is attached to
      * @param agent the agent JAR to be used by Jacoco
      */
+    @Inject
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.agent = agent;
         this.providers = project.getProviders();

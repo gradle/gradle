@@ -16,10 +16,10 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,7 +32,7 @@ public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollect
     }
 
     @Override
-    public Class<? extends FileNormalizer> getRegisteredType() {
-        return AbsolutePathInputNormalizer.class;
+    public FileNormalizer getNormalizer() {
+        return InputNormalizer.ABSOLUTE_PATH;
     }
 }

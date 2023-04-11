@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import org.gradle.internal.Combiners;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -37,7 +38,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.watch.registry.impl.Combiners.nonCombining;
+import static org.gradle.internal.Combiners.nonCombining;
 
 public class WatchableHierarchies {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchableHierarchies.class);

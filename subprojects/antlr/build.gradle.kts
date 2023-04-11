@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":plugins"))
+    implementation(project(":platform-jvm"))
     implementation(project(":workers"))
     implementation(project(":files"))
     implementation(project(":file-collections"))

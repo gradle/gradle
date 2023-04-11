@@ -27,10 +27,19 @@ import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
-    public static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
+    public static Map<String, FileSystemLocationSnapshot> indexByAbsolutePath(FileSystemSnapshot snapshot) {
         HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
         snapshot.accept(entrySnapshot -> {
             index.put(entrySnapshot.getAbsolutePath(), entrySnapshot);
+            return SnapshotVisitResult.CONTINUE;
+        });
+        return index;
+    }
+
+    public static Map<String, FileSystemLocationSnapshot> indexByRelativePath(FileSystemSnapshot snapshot) {
+        HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
+        snapshot.accept(new RelativePathTracker(), (entrySnapshot, relativePath) -> {
+            index.put(relativePath.toRelativePath(), entrySnapshot);
             return SnapshotVisitResult.CONTINUE;
         });
         return index;
@@ -103,5 +112,27 @@ public class SnapshotUtil {
             return SnapshotVisitResult.SKIP_SUBTREE;
         });
         return builder.build();
+    }
+
+    /**
+     * For a {@link RegularFileSnapshot} returns the file length, otherwise {@code 0}.
+     */
+    public static long getLength(FileSystemLocationSnapshot snapshot) {
+        return snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer<Long>() {
+            @Override
+            public Long visitDirectory(DirectorySnapshot directorySnapshot) {
+                return 0L;
+            }
+
+            @Override
+            public Long visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                return fileSnapshot.getMetadata().getLength();
+            }
+
+            @Override
+            public Long visitMissing(MissingFileSnapshot missingSnapshot) {
+                return 0L;
+            }
+        });
     }
 }

@@ -55,6 +55,6 @@ public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryB
 
     @Override
     public FileCollection getRuntimeFiles() {
-        return fileCollectionFactory.empty("runtime files for " + getDisplayName());
+        return FileCollectionFactory.empty("runtime files for " + getDisplayName());
     }
 }

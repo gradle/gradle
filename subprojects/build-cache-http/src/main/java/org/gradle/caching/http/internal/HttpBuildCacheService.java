@@ -22,15 +22,16 @@ import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.protocol.HTTP;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpClientResponse;
@@ -47,7 +48,7 @@ import java.util.Set;
 /**
  * Build cache implementation that delegates to a service accessible via HTTP.
  */
-public class HttpBuildCacheService implements BuildCacheService {
+public class HttpBuildCacheService implements NextGenBuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
     static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v1";
 
@@ -70,11 +71,33 @@ public class HttpBuildCacheService implements BuildCacheService {
     public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
         this.requestCustomizer = requestCustomizer;
         this.useExpectContinue = useExpectContinue;
-        if (!url.getPath().endsWith("/")) {
-            throw new IllegalArgumentException("HTTP cache root URI must end with '/'");
-        }
-        this.root = url;
+        this.root = withTrailingSlash(url);
         this.httpClientHelper = httpClientHelper;
+    }
+
+    @Override
+    public boolean contains(BuildCacheKey key) {
+        final URI uri = root.resolve("./" + key.getHashCode());
+        HttpHead httpHead = new HttpHead(uri);
+        requestCustomizer.customize(httpHead);
+
+        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpHead)) {
+            StatusLine statusLine = response.getStatusLine();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Response for HEAD {}: {}", safeUri(uri), statusLine);
+            }
+            int statusCode = statusLine.getStatusCode();
+            if (isHttpSuccess(statusCode)) {
+                return true;
+            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                return false;
+            } else {
+                String defaultMessage = String.format("Checking entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                return throwHttpStatusCodeException(statusCode, defaultMessage);
+            }
+        } catch (IOException e) {
+            throw wrap(e);
+        }
     }
 
     @Override
@@ -105,7 +128,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
+    public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
         if (useExpectContinue) {
@@ -122,7 +145,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
             @Override
             public long getContentLength() {
-                return output.getSize();
+                return writer.getSize();
             }
 
             @Override
@@ -132,7 +155,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
             @Override
             public void writeTo(OutputStream outstream) throws IOException {
-                output.writeTo(outstream);
+                writer.writeTo(outstream);
             }
 
             @Override
@@ -191,6 +214,23 @@ public class HttpBuildCacheService implements BuildCacheService {
     private static URI safeUri(URI uri) {
         try {
             return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Add a trailing slash to the given URI's path if necessary.
+     *
+     * @param uri the original URI
+     * @return a URI guaranteed to have a trailing slash in the path
+     */
+    private static URI withTrailingSlash(URI uri) {
+        if (uri.getPath().endsWith("/")) {
+            return uri;
+        }
+        try {
+            return new URIBuilder(uri).setPath(uri.getPath() + "/").build();
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

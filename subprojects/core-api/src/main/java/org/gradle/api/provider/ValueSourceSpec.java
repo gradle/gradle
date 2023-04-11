@@ -17,7 +17,6 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.api.Incubating;
  * @param <P> The value source specific parameter type.
  * @since 6.1
  */
-@Incubating
 public interface ValueSourceSpec<P extends ValueSourceParameters> {
 
     /**

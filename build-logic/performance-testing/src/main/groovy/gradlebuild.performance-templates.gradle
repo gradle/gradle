@@ -397,19 +397,19 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     // From android-73 branch
-    ref = "ba684f8f6015d86f117e5839dec0986d7e9ef5d0"
+    ref = "54eef7cc87e9eb1e89fce0d2de8d12e60c694080"
 }
 
 performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large-2.git'
     // Pinned from android-73-kotlin-16 branch
-    ref = "f5c8e98e9f577e419a0d7c84fd555004bc383c5f"
+    ref = "a67ceb08a7b4e4a71e3c151a3abd72a9abe5d703"
 }
 
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = '1513dc23b6026c000f80b872b4346b1ba0f6dfa1'
+    ref = '70b2fec935b82d8783579290512690fe2eca8884'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
@@ -530,14 +530,14 @@ private void addGoogleServicesJson(File outputDirectory) {
 performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "aa321f693adc9af8962209c7c21bbb1d918650d2"
+    ref = "b0eb05ab058e55e3aad5935d499c9079284c2592"
     subdirectory = 'exclude-merging'
 }
 
 performanceTest.registerTestProject("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "f93d2e6d7057f4cdf379a817bdf036e85e97429a"
+    ref = "e53dc7182fafcf9fedf07920cbbea8b40ee4eef4"
     subdirectory = 'parallel-downloads'
 }
 

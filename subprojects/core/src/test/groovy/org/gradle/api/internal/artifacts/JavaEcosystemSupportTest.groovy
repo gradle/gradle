@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.CompileView
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult
@@ -52,19 +51,19 @@ class JavaEcosystemSupportTest extends Specification {
         }
 
         where:
-        consumer                     | producer                     | compatible
-        null                         | Usage.JAVA_API               | true
-        null                         | Usage.JAVA_RUNTIME           | true
+        consumer                     | producer                                             | compatible
+        null                         | Usage.JAVA_API                                       | true
+        null                         | Usage.JAVA_RUNTIME                                   | true
 
-        Usage.JAVA_API               | Usage.JAVA_API               | true
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_API               | Usage.JAVA_API                                       | true
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME                                   | true
 
-        Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME           | Usage.JAVA_API                                       | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME                                   | true
 
         // Temporary compatibility
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
+        Usage.JAVA_API               | JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | true
+        Usage.JAVA_RUNTIME           | JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | true
     }
 
     @Issue("gradle/gradle#8700")
@@ -72,9 +71,9 @@ class JavaEcosystemSupportTest extends Specification {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
             usage(Usage.JAVA_API),
-            usage(Usage.JAVA_API_JARS),
+            usage(JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS),
             usage(Usage.JAVA_RUNTIME),
-            usage(Usage.JAVA_RUNTIME_JARS)
+            usage(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS)
         )
         MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
 
@@ -89,71 +88,17 @@ class JavaEcosystemSupportTest extends Specification {
         details
 
         where: // not exhaustive, tests pathological cases
-        consumer                | candidates                                     | preferred
-        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
+        consumer                | candidates                                                                                                        | preferred
+        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]                                                                              | Usage.JAVA_API
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]                                                                              | Usage.JAVA_RUNTIME
 
         //Temporary compatibility
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]      | Usage.JAVA_RUNTIME_JARS
+        Usage.JAVA_API          | [JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS, JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS]                | JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_API, JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS]                                               | JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS
 
         // while unlikely that a candidate would expose both JAVA_API_JARS and JAVA_API,
         // this confirms that JAVA_API_JARS takes precedence, per JavaEcosystemSupport
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-    }
-
-    def "check compile-view compatibility rules consumer=#consumer producer=#producer compatible=#compatible"() {
-        CompatibilityCheckDetails details = Mock(CompatibilityCheckDetails)
-
-        when:
-        new JavaEcosystemSupport.CompileViewCompatibilityRules().execute(details)
-
-        then:
-        1 * details.getConsumerValue() >> compileView(consumer)
-        1 * details.getProducerValue() >> compileView(producer)
-
-        if (compatible && !(consumer == producer)) {
-            1 * details.compatible()
-        } else {
-            0 * _
-        }
-
-        where:
-        consumer                  | producer                  | compatible
-        null                      | CompileView.JAVA_API      | true
-        null                      | CompileView.JAVA_COMPLETE | true
-
-        CompileView.JAVA_API      | CompileView.JAVA_API      | true
-        CompileView.JAVA_API      | CompileView.JAVA_COMPLETE | true
-
-        CompileView.JAVA_COMPLETE | CompileView.JAVA_API      | false
-        CompileView.JAVA_COMPLETE | CompileView.JAVA_COMPLETE | true
-    }
-
-    def "check compile-view disambiguation rules consumer=#consumer and candidates=#candidates chooses=#expected"() {
-        MultipleCandidatesDetails details = Mock(MultipleCandidatesDetails)
-
-        when:
-        new JavaEcosystemSupport.CompileViewDisambiguationRules(
-            compileView(CompileView.JAVA_API),
-            compileView(CompileView.JAVA_COMPLETE)
-        ).execute(details)
-
-        then:
-        1 * details.getConsumerValue() >> compileView(consumer)
-        1 * details.getCandidateValues() >> candidates.collect { compileView(it) }
-        1 * details.closestMatch({ assert it.name == expected })
-
-        where:
-        consumer                  | candidates                                        | expected
-        null                      | [CompileView.JAVA_API]                            | CompileView.JAVA_API
-        null                      | [CompileView.JAVA_API, CompileView.JAVA_COMPLETE] | CompileView.JAVA_API
-
-        CompileView.JAVA_API      | [CompileView.JAVA_API]                            | CompileView.JAVA_API
-        CompileView.JAVA_API      | [CompileView.JAVA_API, CompileView.JAVA_COMPLETE] | CompileView.JAVA_API
-
-        CompileView.JAVA_COMPLETE | [CompileView.JAVA_COMPLETE]                       | CompileView.JAVA_COMPLETE
-        CompileView.JAVA_COMPLETE | [CompileView.JAVA_API, CompileView.JAVA_COMPLETE] | CompileView.JAVA_COMPLETE
+        Usage.JAVA_API          | [JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS, Usage.JAVA_API, JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS] | JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS
     }
 
     def "check bundling compatibility rules consumer=#consumer producer=#producer compatible=#compatible"() {
@@ -223,14 +168,6 @@ class JavaEcosystemSupportTest extends Specification {
             null
         } else {
             TestUtil.objectFactory().named(Usage, value)
-        }
-    }
-
-    private CompileView compileView(String value) {
-        if (value == null) {
-            null
-        } else {
-            TestUtil.objectFactory().named(CompileView, value)
         }
     }
 

@@ -21,7 +21,8 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.Destroys
@@ -72,7 +73,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, options.shouldRunAfter ?: [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
         _ * task.sharedResources >> (options.resources ?: [])
-        _ * task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
+        _ * task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project as ProjectInternal)
         TaskStateInternal state = Mock()
         _ * task.state >> state
         if (options.failure != null) {
@@ -1785,6 +1786,24 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def invalidTask = selectNextTask()
         then:
         invalidTask == second
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22320")
+    def "task in an included build can depend on a finalizer dependency in an earlier ordinal group"() {
+        given:
+        def commonDep = task("commonDep", type: Async)
+        def finalizer1 = task("finalizer1", type: Async, dependsOn: [commonDep])
+        def finalizer2 = task("finalizer2", type: Async, dependsOn: [commonDep])
+        def entry1 = task("entry1", type: Async, finalizedBy: [finalizer1, finalizer2])
+        def entry2 = task("entry2", type: Async, dependsOn: [commonDep])
+
+        when:
+        addToGraph(entry1)
+        executionPlan.determineExecutionPlan() // this is called between entry groups for an included build (but not the root build) and this call triggers the issue
+        addToGraph(entry2)
+
+        then:
+        noExceptionThrown()
     }
 
     def "runs priority node before other nodes even when scheduled later"() {

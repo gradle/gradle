@@ -33,14 +33,3 @@ import org.gradle.plugin.use.PluginDependencySpec
  */
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
     get() = this.id(AutoAppliedGradleEnterprisePlugin.ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
-
-
-/**
- * The `build-scan` plugin.
- *
- * Please use `gradle-enterprise` instead.
- */
-@Suppress("unused")
-@Deprecated("replaced by `gradle-enterprise`", ReplaceWith("`gradle-enterprise`"))
-val PluginDependenciesSpec.`build-scan`: PluginDependencySpec
-    get() = this.id(AutoAppliedGradleEnterprisePlugin.BUILD_SCAN_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)

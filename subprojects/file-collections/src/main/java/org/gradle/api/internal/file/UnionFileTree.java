@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.Cast;
 
 import java.util.Arrays;
@@ -29,15 +30,16 @@ public class UnionFileTree extends CompositeFileTree {
     private final Set<FileTreeInternal> sourceTrees;
     private final String displayName;
 
-    public UnionFileTree(FileTreeInternal... sourceTrees) {
-        this("file tree", Arrays.asList(sourceTrees));
+    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, FileTreeInternal... sourceTrees) {
+        this(taskDependencyFactory, "file tree", Arrays.asList(sourceTrees));
     }
 
-    public UnionFileTree(String displayName, FileTreeInternal... sourceTrees) {
-        this(displayName, Arrays.asList(sourceTrees));
+    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, String displayName, FileTreeInternal... sourceTrees) {
+        this(taskDependencyFactory, displayName, Arrays.asList(sourceTrees));
     }
 
-    public UnionFileTree(String displayName, Collection<? extends FileTreeInternal> sourceTrees) {
+    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, String displayName, Collection<? extends FileTreeInternal> sourceTrees) {
+        super(taskDependencyFactory);
         this.displayName = displayName;
         this.sourceTrees = Sets.newLinkedHashSet(sourceTrees);
     }

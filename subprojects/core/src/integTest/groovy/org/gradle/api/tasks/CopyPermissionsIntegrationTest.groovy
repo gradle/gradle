@@ -280,17 +280,17 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         executer.withStackTraceChecksDisabled()
-        runAndFail "copy", "--info"
+        runAndFail "copy"
         then:
-        outputContains("Cannot access output property 'destinationDir' of task ':copy'")
         expectUnreadableCopyDestinationFailure()
+        failureHasCause(expectedError(unreadableOutput))
 
         cleanup:
         unreadableOutput.makeReadable()
 
         where:
         type        | create              | expectedError
-        'file'      | { it.createFile() } | { "java.io.UncheckedIOException: Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
+        'file'      | { it.createFile() } | { "Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
         'directory' | { it.createDir() }  | { "java.nio.file.AccessDeniedException: ${it.absolutePath}" }
     }
 

@@ -16,15 +16,18 @@
 package org.gradle.java.compile
 
 class InProcessJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
-    def compilerConfiguration() {
-        '''
-compileJava.options.with {
-    fork = false
-}
-'''
+
+    @Override
+    String compilerConfiguration() {
+        """
+            compileJava.options.with {
+                fork = false
+            }
+        """
     }
 
-    def logStatement() {
+    @Override
+    String logStatement() {
         "Java compiler API"
     }
 }

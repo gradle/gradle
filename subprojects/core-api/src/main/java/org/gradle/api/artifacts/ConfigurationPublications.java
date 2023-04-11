@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
@@ -28,7 +27,7 @@ import java.util.Collection;
 /**
  * Represents the outgoing artifacts associated with a configuration. These artifacts are used when the configuration is referenced during dependency resolution.
  *
- * <p>You can use this interface associate artifacts with a configuration using the {@link #artifact(Object)} methods. You can also define several <em>variants</em> of the configuration's artifacts. Each variant represents a set of artifacts that form some mutually exclusive usage of the component.</p>
+ * <p>You can use this interface to associate artifacts with a configuration using the {@link #artifact(Object)} methods. You can also define several <em>variants</em> of the configuration's artifacts. Each variant represents a set of artifacts that form some mutually exclusive usage of the component.</p>
  *
  * <p>An implicit variant is defined for a configuration whenever any artifacts are attached directly to this object or inherited from another configuration.</p>
  *
@@ -60,8 +59,7 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      * @param provider The provider of the artifacts to add.
      * @since 7.4
      */
-    @Incubating
-    void artifacts(Provider<? extends Iterable<? extends Object>> provider);
+    void artifacts(Provider<? extends Iterable<?>> provider);
 
     /**
      * Lazily adds a collection of outgoing artifacts to this configuration, configuring each artifact using the given action. These artifacts are included in all variants.
@@ -69,8 +67,7 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      * @param provider The provider of the artifacts to add.
      * @since 7.4
      */
-    @Incubating
-    void artifacts(Provider<? extends Iterable<? extends Object>> provider, Action<? super ConfigurablePublishArtifact> configureAction);
+    void artifacts(Provider<? extends Iterable<?>> provider, Action<? super ConfigurablePublishArtifact> configureAction);
 
     /**
      * Returns the variants of this configuration, if any.

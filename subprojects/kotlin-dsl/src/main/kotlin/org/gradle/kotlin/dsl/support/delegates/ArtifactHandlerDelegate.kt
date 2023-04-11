@@ -26,8 +26,6 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 
 /**
  * Facilitates the implementation of the [ArtifactHandler] interface by delegation via subclassing.
- *
- * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class ArtifactHandlerDelegate : ArtifactHandler {
 

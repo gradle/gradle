@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
@@ -26,14 +25,14 @@ import spock.lang.Issue
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
+    @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender')
     @ToBeFixedForConfigurationCache
     def 'nebula recommender plugin'() {
         when:
         buildFile << """
             plugins {
                 id "java"
-                id "nebula.dependency-recommender" version "${TestedVersions.nebulaDependencyRecommender}"
+                id "com.netflix.nebula.dependency-recommender" version "${TestedVersions.nebulaDependencyRecommender}"
             }
 
             ${mavenCentralRepository()}
@@ -52,13 +51,13 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('build').build()
     }
 
-    @Ignore("Plugin incompatible with plugin-publish 1.0.0 and Gradle 8 - enable static check for this when removing ignore, see below - https://github.com/nebula-plugins/nebula-plugin-plugin/issues/71")
-    @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
+    @Ignore("Plugin incompatible with removal of MavenPlugin in Gradle 8 - enable static check for this when removing ignore, see below - https://github.com/nebula-plugins/gradle-extra-configurations-plugin/issues/53")
+    @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin')
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '${TestedVersions.nebulaPluginPlugin}'
+                id 'com.netflix.nebula.plugin-plugin' version '${TestedVersions.nebulaPluginPlugin}'
             }
         """
 
@@ -74,21 +73,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         """
 
         then:
-        runner('groovydoc')
-            .expectDeprecationWarning(
-                "The IdeaModule.testSourceDirs property has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0." +
-                " Please use the testSources property instead." +
-                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testSourceDirs for more details.",
-                ""
-            )
-            .expectDeprecationWarning(
-                "The Report.destination property has been deprecated." +
-                " This is scheduled to be removed in Gradle 9.0." +
-                " Please use the outputLocation property instead." +
-                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details.",
-                ""
-            )
+        runner('groovydoc', '-s')
             .build()
     }
 
@@ -135,13 +120,13 @@ testImplementation('junit:junit:4.7')""")
         buildFile.text.contains("testImplementation 'junit:junit:4.7'")
     }
 
-    @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
+    @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock')
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished, TaskExecutionGraph.addTaskExecutionListener and Task.project at execution time")
     def 'nebula dependency lock plugin #nebulaDepLockVersion'() {
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "$nebulaDepLockVersion"
+                id "com.netflix.nebula.dependency-lock" version "$nebulaDepLockVersion"
             }
         """.stripIndent()
 
@@ -159,7 +144,7 @@ testImplementation('junit:junit:4.7')""")
         buildFile << """
             plugins {
                 id 'java-library'
-                id 'nebula.dependency-lock' version '$version'
+                id 'com.netflix.nebula.dependency-lock' version '$version'
             }
 
             ${mavenCentralRepository()}
@@ -216,7 +201,7 @@ testImplementation('junit:junit:4.7')""")
         version << TestedVersions.nebulaDependencyLock
     }
 
-    @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
+    @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules')
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
     def 'nebula resolution rules plugin'() {
         when:
@@ -236,7 +221,7 @@ testImplementation('junit:junit:4.7')""")
         buildFile << """
             plugins {
                 id 'java-library'
-                id 'nebula.resolution-rules' version '${TestedVersions.nebulaResolutionRules}'
+                id 'com.netflix.nebula.resolution-rules' version '${TestedVersions.nebulaResolutionRules}'
             }
 
             ${mavenCentralRepository()}
@@ -256,12 +241,12 @@ testImplementation('junit:junit:4.7')""")
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'nebula.dependency-recommender': Versions.of(TestedVersions.nebulaDependencyRecommender),
+            'com.netflix.nebula.dependency-recommender': Versions.of(TestedVersions.nebulaDependencyRecommender),
             // Enable back once compatible, see @Ignore above
 //            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
             'nebula.lint': Versions.of(TestedVersions.nebulaLint),
-            'nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
-            'nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
+            'com.netflix.nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
+            'com.netflix.nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]
     }
 }

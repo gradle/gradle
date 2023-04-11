@@ -21,6 +21,11 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -371,7 +376,7 @@ Options
 ${builtInOptions}
 
 Description
-     Assembles a jar archive containing the main classes.
+     Assembles a jar archive containing the classes of the 'main' feature.
 
 Group
      build
@@ -394,7 +399,7 @@ Options
 ${builtInOptions}
 
 Description
-     Assembles a jar archive containing the main classes.
+     Assembles a jar archive containing the classes of the 'main' feature.
 
 Group
      build
@@ -524,8 +529,10 @@ BUILD SUCCESSFUL"""
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
         failure.assertHasResolutions(
             "Run gradle help --task :help to get task usage details.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP,
         )
     }
 

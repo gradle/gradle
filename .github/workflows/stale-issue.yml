@@ -14,7 +14,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v6
         with:
           # GLOBAL ------------------------------------------------------------
           operations-per-run: 30
@@ -26,13 +26,12 @@ jobs:
           stale-issue-label: stale
           stale-issue-message: >
             This issue has been automatically marked as stale because it has not had recent activity.
-            Given the limited bandwidth of the team, it will be automatically closed if no further
-            activity occurs. If you're interested in how we try to keep the backlog in a healthy state,
-            please read our [blog post on how we refine our backlog](https://blog.gradle.org/stale-issue-backlog).
-            If you feel this is something you could contribute, please have a look
+            Given the limited bandwidth of the team, it will be scheduled for a (potentially) final
+            review and might be closed afterwards (if no further activity occurs).
+            If you feel this is something you could contribute to, please have a look
             at our [Contributor Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
             Thank you for your contribution.
-          days-before-issue-close: 21
+          days-before-issue-close: -1
           close-issue-message: >
             This issue has been automatically closed due to inactivity. If you can reproduce this on a
             recent version of Gradle or if you have a good use case for this feature, please feel free
@@ -49,7 +48,7 @@ jobs:
             Given the limited bandwidth of the team, it will be closed if no further activity occurs.
             If you intend to work on this pull request, please ask the team to reopen the PR or push a new PR.
             Thank you for your contributions.
-          days-before-pr-close: 21
+          days-before-pr-close: -1
           close-pr-message: >
             This pull request has been automatically closed due to inactivity.
             If you are still interested in contributing this, please ensure that
@@ -58,7 +57,7 @@ jobs:
   stale-community-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v6
         with:
           # GLOBAL ------------------------------------------------------------
           operations-per-run: 30
@@ -86,9 +85,36 @@ jobs:
             Given the limited bandwidth of the team, it will be closed if no further activity occurs.
             If you intend to work on this pull request, please ask the team to reopen the PR or push a new PR.
             Thank you for your contributions.
-          days-before-pr-close: 21
+          days-before-pr-close: -1
           close-pr-message: >
             This pull request has been automatically closed due to inactivity.
             If you are still interested in contributing this, please ensure that
             it is rebased against the latest branch (usually `master`), all review
             comments have been addressed and the build is passing.
+  close-pending:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v6
+        with:
+          # GLOBAL ------------------------------------------------------------
+          operations-per-run: 30
+          exempt-all-milestones: true
+          days-before-stale: -1
+          only-issue-labels: 'pending:reproducer'
+          only-pr-labels: 'pending:dco'
+
+          # ISSUES ------------------------------------------------------------
+          days-before-issue-close: 7
+          stale-issue-label: 'pending:reproducer'
+          close-issue-label: 'closed:unreproducible'
+          close-issue-message: >
+            While we asked for a reproducer, none was provided. If you provide a valid reproducer, we will consider this issue again.
+            In the meantime, closing as unreproducible.
+
+          # PULL REQUESTS -----------------------------------------------------
+          days-before-pr-close: 7
+          stale-pr-label: 'pending:dco'
+          close-pr-label: 'closed:missing-dco'
+          close-pr-message: >
+            While we asked sign your commits, it has not been done. If you sign your commits, we will consider this pull request again.
+            In the meantime, closing as missing DCO (see the [Developer Certificate of Origin](https://probot.github.io/apps/dco/) GitHub app).

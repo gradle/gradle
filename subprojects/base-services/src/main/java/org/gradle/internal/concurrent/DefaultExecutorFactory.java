@@ -21,9 +21,11 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
@@ -66,6 +68,24 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return executor;
     }
 
+    @Override
+    public ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+        ThreadPoolExecutor executorService = createThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, newThreadFactory(displayName));
+        TrackedThreadPoolManagedExecutor executor = new TrackedThreadPoolManagedExecutor(executorService, new ExecutorPolicy.CatchAndRecordFailures());
+        executors.add(executor);
+        return executor;
+    }
+
+    private static ThreadPoolExecutor createThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory) {
+        return new ThreadPoolExecutor(
+            corePoolSize,
+            maximumPoolSize,
+            keepAliveTime,
+            timeUnit,
+            new LinkedBlockingQueue<Runnable>(),
+            threadFactory);
+    }
+
     protected ExecutorService createExecutor(String displayName, int fixedSize) {
         return Executors.newFixedThreadPool(fixedSize, newThreadFactory(displayName));
     }
@@ -103,6 +123,21 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     private class TrackedScheduledManagedExecutor extends ManagedScheduledExecutorImpl {
         TrackedScheduledManagedExecutor(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
             super(executor, executorPolicy);
+        }
+
+        @Override
+        public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
+            try {
+                super.stop(timeoutValue, timeoutUnits);
+            } finally {
+                executors.remove(this);
+            }
+        }
+    }
+
+    private class TrackedThreadPoolManagedExecutor extends ManagedThreadPoolExecutorImpl {
+        public TrackedThreadPoolManagedExecutor(ThreadPoolExecutor delegate, ExecutorPolicy executorPolicy) {
+            super(delegate, executorPolicy);
         }
 
         @Override

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.reflect.TypeOf
 
 
+internal
 fun kotlinTypeStringFor(type: TypeOf<*>): String = type.run {
     when {
         isArray ->
@@ -57,4 +58,5 @@ val primitiveTypeStrings =
     )
 
 
+internal
 val primitiveKotlinTypeNames = primitiveTypeStrings.values.toHashSet()

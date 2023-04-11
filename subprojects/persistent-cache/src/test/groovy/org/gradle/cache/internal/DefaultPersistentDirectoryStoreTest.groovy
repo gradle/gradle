@@ -16,7 +16,9 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.CacheBuilder
+import org.gradle.cache.CacheCleanupStrategy
 import org.gradle.cache.CleanupAction
+import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -42,6 +44,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
     def cacheDir = tmpDir.file("dir")
     def cleanupAction = Mock(CleanupAction)
+    def cacheCleanup = Mock(CacheCleanupStrategy)
     def lockManager = Mock(FileLockManager)
     def lock = Mock(FileLock)
     def progressLoggerFactory = Stub(ProgressLoggerFactory) {
@@ -53,7 +56,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     @Subject @AutoCleanup
-    def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemand), cleanupAction, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+    def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemand), cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
 
     def "has useful toString() implementation"() {
         expect:
@@ -157,6 +160,8 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
         then:
         gcFile.lastModified() > modificationTimeBefore
+        1 * cacheCleanup.cleanupAction >> cleanupAction
+        1 * cacheCleanup.cleanupFrequency >> CleanupFrequency.DAILY
         1 * cleanupAction.clean(store, _)
         0 * _
     }
@@ -176,6 +181,8 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.close()
 
         then:
+        1 * cacheCleanup.cleanupAction >> cleanupAction
+        1 * cacheCleanup.cleanupFrequency >> CleanupFrequency.DAILY
         1 * cleanupAction.clean(store, _) >> {
             throw new RuntimeException("Boom")
         }

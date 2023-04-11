@@ -129,7 +129,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class EclipseProject {
+public abstract class EclipseProject {
 
     public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
     private String name;

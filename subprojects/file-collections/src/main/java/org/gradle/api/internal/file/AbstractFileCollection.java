@@ -26,7 +26,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.provider.BuildableBackedSetProvider;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -51,15 +53,22 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
+    protected final TaskDependencyFactory taskDependencyFactory;
     protected final Factory<PatternSet> patternSetFactory;
 
-    protected AbstractFileCollection(Factory<PatternSet> patternSetFactory) {
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
     }
 
     @SuppressWarnings("deprecation")
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory) {
+        this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory());
+    }
+
+    @SuppressWarnings("deprecation")
     public AbstractFileCollection() {
-        this.patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
+        this(DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
 
     /**
@@ -93,17 +102,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public final TaskDependency getBuildDependencies() {
         assertCanCarryBuildDependencies();
-        return new AbstractTaskDependency() {
-            @Override
-            public String toString() {
-                return "Dependencies of " + getDisplayName();
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(AbstractFileCollection.this);
-            }
-        };
+        DefaultTaskDependency result = taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
+        result.setToStringProvider(() -> "Dependencies of " + getDisplayName());
+        return result;
     }
 
     protected void assertCanCarryBuildDependencies() {
@@ -204,7 +205,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection plus(FileCollection collection) {
-        return new UnionFileCollection(this, (FileCollectionInternal) collection);
+        return new UnionFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
     }
 
     @Override
@@ -343,7 +344,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileTreeInternal getAsFileTree() {
-        return new FileCollectionBackedFileTree(patternSetFactory, this);
+        return new FileCollectionBackedFileTree(taskDependencyFactory, patternSetFactory, this);
     }
 
     @Override

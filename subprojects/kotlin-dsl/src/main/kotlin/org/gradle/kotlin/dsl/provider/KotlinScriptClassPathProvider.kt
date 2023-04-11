@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.FileCollection
 
@@ -41,7 +40,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.util.internal.GFileUtils.moveFile
 
-import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 
 import java.io.File
@@ -53,6 +51,7 @@ import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 
+internal
 fun gradleKotlinDslOf(project: Project): List<File> =
     kotlinScriptClassPathProviderOf(project).run {
         gradleKotlinDsl.asFiles
@@ -93,19 +92,19 @@ typealias JarsProvider = () -> Collection<File>
 
 
 class KotlinScriptClassPathProvider(
-    val moduleRegistry: ModuleRegistry,
-    val classPathRegistry: ClassPathRegistry,
-    val coreAndPluginsScope: ClassLoaderScope,
-    val gradleApiJarsProvider: JarsProvider,
-    val jarCache: JarCache,
-    val temporaryFileProvider: TemporaryFileProvider,
-    val progressMonitorProvider: JarGenerationProgressMonitorProvider
+    private val moduleRegistry: ModuleRegistry,
+    private val classPathRegistry: ClassPathRegistry,
+    private val coreAndPluginsScope: ClassLoaderScope,
+    private val gradleApiJarsProvider: JarsProvider,
+    private val jarCache: JarCache,
+    private val temporaryFileProvider: TemporaryFileProvider,
+    private val progressMonitorProvider: JarGenerationProgressMonitorProvider
 ) {
 
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
-    @VisibleForTesting
+    internal
     val gradleKotlinDsl: ClassPath by lazy {
         gradleApi + gradleApiExtensions + gradleKotlinDslJars
     }
@@ -148,6 +147,7 @@ class KotlinScriptClassPathProvider(
         return gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
     }
 
+    internal
     fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
         require(scope.isLocked) {
             "$scope must be locked before it can be used to compute a classpath!"
@@ -215,11 +215,6 @@ class KotlinScriptClassPathProvider(
 internal
 fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactoryInternal): JarsProvider =
     { (dependencyFactory.gradleApi() as SelfResolvingDependency).resolve() }
-
-
-private
-fun DependencyFactoryInternal.gradleApi(): Dependency =
-    createDependency(gradleApiNotation)
 
 
 private

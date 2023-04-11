@@ -241,7 +241,21 @@
     "dirName": "docs",
     "name": "docs",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs-asciidoctor-extensions",
+    "name": "docs-asciidoctor-extensions",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs-asciidoctor-extensions-base",
+    "name": "docs-asciidoctor-extensions-base",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -350,18 +364,18 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "instrumentation-agent",
+    "name": "instrumentation-agent",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "integ-test",
     "name": "integ-test",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
-  },
-  {
-    "dirName": "internal-android-performance-testing",
-    "name": "internal-android-performance-testing",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
   },
   {
     "dirName": "internal-architecture-testing",
@@ -374,6 +388,20 @@
     "dirName": "internal-build-reports",
     "name": "internal-build-reports",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-instrumentation-api",
+    "name": "internal-instrumentation-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-instrumentation-processor",
+    "name": "internal-instrumentation-processor",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -438,12 +466,12 @@
     "name": "kotlin-dsl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "dirName": "kotlin-dsl-plugins",
     "name": "kotlin-dsl-plugins",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
@@ -753,6 +781,13 @@
     "name": "testing-jvm",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "testing-jvm-infrastructure",
+    "name": "testing-jvm-infrastructure",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

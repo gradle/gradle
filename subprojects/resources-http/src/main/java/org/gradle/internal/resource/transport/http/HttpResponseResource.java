@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Date;
 
 public class HttpResponseResource implements ExternalResourceReadResponse {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
@@ -43,7 +44,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag));
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.wasMissing());
     }
 
     public URI getURI() {
@@ -64,16 +65,46 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         return response.getStatusLine().getStatusCode();
     }
 
-    public long getLastModified() {
+    public Date getLastModified() {
         String responseHeader = response.getHeader(HttpHeaders.LAST_MODIFIED);
         if (responseHeader == null) {
-            return 0;
+            return new Date(0);
         }
         try {
-            return DateUtils.parseDate(responseHeader).getTime();
+            return DateUtils.parseDate(responseHeader);
         } catch (Exception e) {
-            return 0;
+            return new Date(0);
         }
+    }
+
+    private String getFilename() {
+        String disposition = response.getHeader("Content-Disposition");
+        if (disposition != null) {
+            // extracts file name from header field
+            int beginIndex = disposition.indexOf("filename=\"");
+            if (beginIndex > 0) {
+                int endIndex = disposition.indexOf(';', beginIndex + 11); // find the next semicolon
+                endIndex = endIndex < 0 ? disposition.length() : endIndex; // if no semicolon is found, then there is nothing else in the disposition
+                endIndex -= 1; // ignore the closing quotes
+                return disposition.substring(beginIndex + 10, endIndex);
+            }
+
+            beginIndex = disposition.indexOf("filename=");
+            if (beginIndex > 0) {
+                int endIndex = disposition.indexOf(';', beginIndex + 10); // find the next semicolon
+                endIndex = endIndex < 0 ? disposition.length() : endIndex; // if no semicolon is found, then there is nothing else in the disposition
+                return disposition.substring(beginIndex + 9, endIndex);
+            }
+        } else {
+            // extracts file name from URL
+            URI uri = response.getEffectiveUri() == null ? source : response.getEffectiveUri();
+            String sourceInStringForm = uri.toString();
+            int fileNameIndex = sourceInStringForm.lastIndexOf("/");
+            if (fileNameIndex >= 0) {
+                return sourceInStringForm.substring(fileNameIndex + 1);
+            }
+        }
+        return null;
     }
 
     public long getContentLength() {

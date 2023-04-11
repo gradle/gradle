@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r73
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import spock.lang.Ignore
 
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=7.3 <8.0")
@@ -67,6 +68,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         stdout.toString().contains("Deprecated Gradle features were used in this build")
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
     @TargetGradleVersion(">=8.0")
     def "fails when tooling model builder resolves configuration from a project other than its target post Gradle 8.0"() {
         settingsFile << """

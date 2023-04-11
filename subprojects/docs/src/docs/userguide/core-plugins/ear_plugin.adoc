@@ -15,6 +15,8 @@
 [[ear_plugin]]
 = The Ear Plugin
 
+WARNING: The Ear Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
+
 The Ear plugin adds support for assembling web application EAR files.
 It adds a default EAR archive task.
 It doesn't require the <<java_plugin.adoc#java_plugin,Java plugin>>, but for projects that also use the Java plugin it disables the default JAR archive generation.
@@ -27,8 +29,8 @@ To use the Ear plugin, include the following in your build script:
 
 .Using the Ear plugin
 ====
-include::sample[dir="snippets/ear/earWithWar/groovy",files="build.gradle[tags=use-ear-plugin]"]
 include::sample[dir="snippets/ear/earWithWar/kotlin",files="build.gradle.kts[tags=use-ear-plugin]"]
+include::sample[dir="snippets/ear/earWithWar/groovy",files="build.gradle[tags=use-ear-plugin]"]
 ====
 
 [[sec:ear_tasks]]
@@ -99,8 +101,8 @@ Here is an example with the most important customization options:
 
 .Customization of ear plugin
 ====
-include::sample[dir="snippets/ear/earCustomized/groovy/ear",files="build.gradle[]"]
 include::sample[dir="snippets/ear/earCustomized/kotlin/ear",files="build.gradle.kts[]"]
+include::sample[dir="snippets/ear/earCustomized/groovy/ear",files="build.gradle[]"]
 ====
 
 You can also use customization options that the link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task provides, such as `from` and `metaInf`.

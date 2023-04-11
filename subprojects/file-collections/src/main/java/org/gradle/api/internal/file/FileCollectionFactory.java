@@ -17,11 +17,16 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -32,6 +37,7 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 @ServiceScope(Scope.Global.class)
 public interface FileCollectionFactory {
@@ -39,6 +45,10 @@ public interface FileCollectionFactory {
      * Creates a copy of this factory that uses the given resolver to convert various types to File instances.
      */
     FileCollectionFactory withResolver(PathToFileResolver fileResolver);
+
+    FileCollectionFactory forChildScope(FileCollectionObservationListener listener);
+
+    FileCollectionFactory forChildScope(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost);
 
     /**
      * Creates a {@link FileCollection} with the given contents.
@@ -55,14 +65,33 @@ public interface FileCollectionFactory {
     FileCollectionInternal create(TaskDependency builtBy, MinimalFileSet contents);
 
     /**
-     * Creates an empty {@link FileCollection}
+     * Creates a {@link FileCollection} with the given contents, and visiting its task dependencies (the tasks that it is built by) in the specified way.
+     * <p>
+     * The collection is live, so that the contents are queried as required on query of the collection.
+     *
+     * @param contents The file set contents for the constructed file collection
+     * @param visitTaskDependencies The implementation of visiting dependencies for the constructed file collection's {@link Buildable#getBuildDependencies()}
+     * @see org.gradle.api.internal.tasks.TaskDependencyFactory#visitingDependencies(Consumer)
      */
-    FileCollectionInternal empty(String displayName);
+    FileCollectionInternal create(MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies);
 
     /**
      * Creates an empty {@link FileCollection}
      */
-    FileCollectionInternal empty();
+    static FileCollectionInternal empty(String displayName) {
+        if (FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME.equals(displayName)) {
+            return empty();
+        } else {
+            return new EmptyFileCollection(displayName);
+        }
+    }
+
+    /**
+     * Creates an empty {@link FileCollection}
+     */
+    static FileCollectionInternal empty() {
+        return EmptyFileCollection.INSTANCE;
+    }
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
@@ -156,4 +185,16 @@ public interface FileCollectionFactory {
     FileTreeInternal treeOf(List<? extends FileTreeInternal> fileTrees);
 
     FileTreeInternal treeOf(MinimalFileTree tree);
+
+    static FileTreeInternal emptyTree() {
+        return EmptyFileTree.INSTANCE;
+    }
+
+    static FileTreeInternal emptyTree(String displayName) {
+        if (FileTreeInternal.DEFAULT_TREE_DISPLAY_NAME.equals(displayName)) {
+            return emptyTree();
+        } else {
+            return new EmptyFileTree(displayName);
+        }
+    }
 }

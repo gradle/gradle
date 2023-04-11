@@ -2,7 +2,14 @@ plugins {
     id('java-library')
 }
 
-tasks.register("integTest", Test)
+sourceSets {
+    integTest
+}
+
+tasks.register("integTest", Test) {
+    classpath = sourceSets.integTest.runtimeClasspath
+    testClassesDirs = sourceSets.integTest.output.classesDirs
+}
 
 // tag::integTest[]
 tasks.named('integTest') {

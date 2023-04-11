@@ -34,9 +34,8 @@ import java.util.Set;
  * component or its variants, as this may be expensive to calculate and is only required in specific cases.
  * Information about the artifacts can be accessed via the methods of {@link ComponentGraphResolveState}.</p>
  *
- * <p>Implementations must be immutable, thread safe and "fast" (ie should not run user code, or touch the file system or network etc).
- * Expensive operations should live on {@link ComponentGraphResolveState} instead. Note that not all implementations currently honor this contract as a transitional step.</p>
- *
+ * <p>Implementations must be immutable, thread safe, "fast" (ie should not run user code, or touch the file system or network etc) and "reliable" (ie should not fail)
+ * Expensive operations should live on {@link ComponentGraphResolveState} instead. Note that as a transition step, not all implementations currently honor this contract.</p>
  */
 public interface ComponentGraphResolveMetadata {
     /**
@@ -60,18 +59,6 @@ public interface ComponentGraphResolveMetadata {
 
     @Nullable
     ConfigurationGraphResolveMetadata getConfiguration(String name);
-
-    /**
-     * Returns the synthetic dependencies for the root configuration with the supplied name.
-     * Synthetic dependencies are dependencies which are an internal implementation detail of Gradle,
-     * used for example in dependency locking or consistent resolution. They are not "real" dependencies
-     * in the sense that they are not added by users, and they are not always used during resolution
-     * based on which phase of execution we are (task dependencies, execution, ...)
-     *
-     * @param configuration the name of the configuration for which to get the synthetic dependencies
-     * @return the synthetic dependencies of the requested configuration
-     */
-    List<? extends DependencyMetadata> getSyntheticDependencies(String configuration);
 
     List<? extends VirtualComponentIdentifier> getPlatformOwners();
 

@@ -229,7 +229,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 configurations.create("toolsPath") {
                     extendsFrom(tools)
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                     attributes.attribute(attr, 'blue')
                 }
                 ext.inputFiles = configurations.toolsPath.incoming.artifactView {

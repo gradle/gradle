@@ -63,7 +63,7 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class WindowsResourceCompile extends DefaultTask {
+public abstract class WindowsResourceCompile extends DefaultTask {
 
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;

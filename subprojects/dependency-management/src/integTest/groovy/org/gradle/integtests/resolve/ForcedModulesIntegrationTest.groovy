@@ -17,12 +17,12 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Issue
 
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
+    private ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
 
     def setup() {
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "can force the version of a particular module"() {
@@ -42,8 +42,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.4.4.jar']
+        assert compileClasspath*.name == ['foo-1.4.4.jar']
     }
 }
 """
@@ -71,8 +72,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
+        assert compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
     }
 }
 """
@@ -161,18 +163,6 @@ project(':tool') {
 		implementation project(':api')
 		implementation project(':impl')
 	}
-    task checkDeps {
-        doLast {
-            assert configurations.runtimeClasspath*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
-            def metadata = configurations.runtimeClasspath.resolvedConfiguration
-            def api = metadata.firstLevelModuleDependencies.find { it.moduleName == 'api' }
-            assert api.children.size() == 1
-            assert api.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
-            def impl = metadata.firstLevelModuleDependencies.find { it.moduleName == 'impl' }
-            assert impl.children.size() == 1
-            assert impl.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
-        }
-    }
 }
 
 allprojects {
@@ -185,9 +175,23 @@ allprojects {
 }
 
 """
+        resolve.expectDefaultConfiguration("runtimeElements")
+        resolve.prepare("runtimeClasspath")
 
         expect:
         run(":tool:checkDeps")
+        resolve.expectGraph {
+            root(":tool", "org.foo.unittests:tool:1.0") {
+                project(":api", "org.foo.unittests:api:1.0") {
+                    edge("org:foo:1.4.4", "org:foo:1.5.5") {
+                        forced()
+                    }
+                }
+                project(":impl", "org.foo.unittests:impl:1.0") {
+                    edge("org:foo:1.3.3", "org:foo:1.5.5")
+                }
+            }
+        }
     }
 
     void "latest strategy respects forced modules"() {
@@ -226,8 +230,9 @@ project(':tool') {
 	    }
 	}
     task checkDeps {
+        def runtimeClasspath = configurations.runtimeClasspath
         doLast {
-            assert configurations.runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
+            assert runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
         }
     }
 }
@@ -235,78 +240,6 @@ project(':tool') {
 
         expect:
         run("tool:checkDeps")
-    }
-
-    void "strict conflict strategy can be used with forced modules"() {
-        mavenRepo.module("org", "foo", '1.3.3').publish()
-        mavenRepo.module("org", "foo", '1.4.4').publish()
-        mavenRepo.module("org", "foo", '1.5.5').publish()
-
-        settingsFile << "include 'api', 'impl', 'tool'"
-
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories {
-		maven { url "${mavenRepo.uri}" }
-	}
-}
-
-project(':api') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.4.4')
-	}
-}
-
-project(':impl') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
-
-project(':tool') {
-	dependencies {
-		implementation project(':api')
-		implementation project(':impl')
-		implementation('org:foo:1.5.5'){
-		    force = true
-		}
-	}
-
-	configurations.all { resolutionStrategy.failOnVersionConflict() }
-}
-"""
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("Using force on a dependency has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. Consider using strict version constraints instead (version { strictly ... } }). " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#forced_dependencies")
-        run("tool:dependencies")
-    }
-
-    void "can force the version of a direct dependency"() {
-        mavenRepo.module("org", "foo", '1.3.3').publish()
-        mavenRepo.module("org", "foo", '1.4.4').publish()
-
-        buildFile << """
-apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
-
-dependencies {
-    implementation 'org:foo:1.4.4'
-    implementation ('org:foo:1.3.3') { force = true }
-}
-
-task checkDeps {
-    doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar']
-    }
-}
-"""
-
-        expect:
-        executer.expectDeprecationWarning()
-        executer.withTasks("checkDeps").run()
     }
 
     void "forcing transitive dependency does not add extra dependency"() {
@@ -326,8 +259,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar']
+        assert compileClasspath*.name == ['foo-1.3.3.jar']
     }
 }
 """
@@ -356,8 +290,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.9.jar']
+        assert compileClasspath*.name == ['foo-1.9.jar']
     }
 }
 """
@@ -365,91 +300,4 @@ task checkDeps {
         expect:
         run("checkDeps")
     }
-
-    @Issue("gradle/gradle#5364")
-    void "if one module is forced, all same versions should be forced (forced = #forced)"() {
-        mavenRepo.module('org', 'foo', '1.0').publish()
-        mavenRepo.module('org', 'foo', '1.1').publish()
-
-        settingsFile << "rootProject.name = 'test'"
-        buildFile << """
-            repositories { maven { url "${mavenRepo.uri}" } }
-
-            configurations {
-                conf
-            }
-
-            def d1 = project.dependencies.create("org:foo:1.1")
-            def d2 = project.dependencies.create("org:foo:1.0")
-            def d3 = project.dependencies.create("org:foo:1.0")
-            ${forced}.force = true
-
-            dependencies {
-                conf d1
-                conf d2
-                conf d3
-            }
-
-        """
-        def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
-        resolve.prepare()
-
-
-        when:
-        executer.expectDeprecationWarning()
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(':', ':test:') {
-                edge('org:foo:1.1', 'org:foo:1.0').forced()
-                module('org:foo:1.0')
-            }
-        }
-
-        where:
-        forced << ['d3', 'd2']
-    }
-
-    void "first level force wins"() {
-        mavenRepo.module("org", "foo", '1.3.3').publish()
-
-        settingsFile << "include 'dep'"
-
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories {
-		maven { url "${mavenRepo.uri}" }
-	}
-}
-
-project(':dep') {
-    dependencies {
-        implementation('org:foo:1.4.4') {
-            force = true
-        }
-    }
-}
-
-dependencies {
-    implementation('org:foo:1.3.3') {
-        force = true
-    }
-    implementation project(':dep')
-}
-
-task checkDeps {
-    doLast {
-        assert configurations.runtimeClasspath*.name.contains('foo-1.3.3.jar')
-    }
-}
-"""
-
-        expect:
-        executer.expectDeprecationWarning()
-        run 'checkDeps'
-    }
-
-
 }

@@ -16,30 +16,36 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.fixtures.file.TestFile
-
-import static org.junit.Assume.assumeNotNull
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 /**
  * Tests to ensure toolchains specified by the {@code CodeNarcPlugin} and
  * {@code CodeNarc} tasks behave as expected.
  */
-@TargetCoverage({ CodeNarcCoverage.getSupportedVersionsByJdk() })
-class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpec{
+@TargetCoverage({ CodeNarcCoverage.ALL })
+class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
+
     def setup() {
         executer.withArgument("--info")
     }
 
     def "uses jdk from toolchains set through java plugin"() {
         given:
+        def jdk = setupExecutorForToolchains()
+        assumeToolchainJdkIsCompatibleWithCodeNarcVersion(jdk.javaVersion)
+
+        and:
         goodCode()
         writeRuleFile()
-        def jdk = setupExecutorForToolchains()
         writeBuildFileWithToolchainsFromJavaPlugin(jdk)
 
         when:
@@ -51,9 +57,12 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
 
     def "uses jdk from toolchains set through codenarc task"() {
         given:
+        def jdk = setupExecutorForToolchains()
+        assumeToolchainJdkIsCompatibleWithCodeNarcVersion(jdk.javaVersion)
+
+        and:
         goodCode()
         writeRuleFile()
-        def jdk = setupExecutorForToolchains()
         writeBuildFileWithToolchainsFromCodeNarcTask(jdk)
 
         when:
@@ -64,6 +73,8 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
     }
 
     def "uses current jdk if not specified otherwise"() {
+        assumeToolchainJdkIsCompatibleWithCodeNarcVersion(JavaVersion.current())
+
         given:
         goodCode()
         writeRuleFile()
@@ -77,6 +88,8 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
     }
 
     def "uses current jdk if codenarc plugin is not applied"() {
+        assumeToolchainJdkIsCompatibleWithCodeNarcVersion(JavaVersion.current())
+
         given:
         goodCode()
         writeRuleFile()
@@ -111,57 +124,54 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
         outputContains("Running codenarc with toolchain '${Jvm.current().javaHome.absolutePath}'.")
     }
 
+    private void assumeToolchainJdkIsCompatibleWithCodeNarcVersion(JavaVersion javaVersion) {
+        Assume.assumeTrue(versionNumber in CodeNarcCoverage.getSupportedVersionsByJdk(javaVersion).collect { VersionNumber.parse(it) })
+    }
+
     Jvm setupExecutorForToolchains() {
         Jvm jdk = AvailableJavaHomes.getDifferentVersion()
-        assumeNotNull(jdk)
-        executer.withArgument("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}")
+        withInstallations(jdk)
         return jdk
     }
 
     private void writeBuildFile() {
         buildFile << """
-    plugins {
-        id 'groovy'
-        id 'java'
-        id 'codenarc'
-    }
-    codenarc {
-        toolVersion = '$version'
-    }
-    ${mavenCentralRepository()}
-"""
+            plugins {
+                id 'groovy'
+                id 'java'
+                id 'codenarc'
+            }
+            codenarc {
+                toolVersion = '$version'
+            }
+            ${mavenCentralRepository()}
+        """
     }
 
     private void writeBuildFileWithoutApplyingCodeNarcPlugin() {
         buildFile << """
-    plugins {
-        id 'groovy'
-        id 'java'
-    }
-    ${mavenCentralRepository()}
-"""
+            plugins {
+                id 'groovy'
+                id 'java'
+            }
+            ${mavenCentralRepository()}
+        """
     }
 
     private void writeBuildFileWithToolchainsFromJavaPlugin(Jvm jvm) {
         writeBuildFile()
-        buildFile << """
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
-        }
-    }
-"""
+        configureJavaPluginToolchainVersion(jvm)
     }
 
     private void writeBuildFileWithToolchainsFromCodeNarcTask(Jvm jvm) {
         writeBuildFile()
         buildFile << """
-    tasks.withType(CodeNarc) {
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
-        }
-    }
-"""
+            tasks.withType(CodeNarc) {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
+                }
+            }
+        """
     }
 
     private goodCode() {

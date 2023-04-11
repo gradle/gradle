@@ -29,8 +29,8 @@ Using dynamic versions in a build bears the risk of potentially breaking it. As 
 
 .Declaring a dependency with a dynamic version
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
@@ -53,8 +53,8 @@ The following example demonstrates how to declare a snapshot version on the Spri
 
 .Declaring a dependency with a changing version
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 By default, Gradle caches changing versions of dependencies for 24 hours.
@@ -84,16 +84,16 @@ By default, Gradle caches dynamic versions for 24 hours. To change how long Grad
 
 .Dynamic version cache control
 ====
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
 ====
 
 By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
 
 .Changing module cache control
 ====
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
 ====
 
 [[sec:controlling_dependency_caching_command_line]]
@@ -157,8 +157,8 @@ The following example shows a rule that disallows a particular version of a modu
 
 .Component selection rule
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=reject-version-1-1]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=reject-version-1-1]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=reject-version-1-1]"]
 ====
 
 Note that version selection is applied starting with the highest version first.
@@ -170,8 +170,8 @@ Modules must be specified in the form of `group:module`.
 
 .Component selection rule with module target
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=targeted-component-selection]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=targeted-component-selection]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=targeted-component-selection]"]
 ====
 
 Component selection rules can also consider component metadata when selecting a version.
@@ -180,8 +180,8 @@ Note that this extra information may not always be available and thus should be 
 
 .Component selection rule with metadata
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=component-selection-with-metadata]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=component-selection-with-metadata]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=component-selection-with-metadata]"]
 ====
 
 Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as parameter when declaring a component selection rule.

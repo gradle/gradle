@@ -29,7 +29,7 @@ CI already built this commit -- why should you re-do that work?
 === Switching branches
 
 During local development, it is not uncommon to switch branches several times per day.
-This defeats <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build>> (i.e., `UP-TO-DATE` checks), but this issue is mitigated via use of the local build cache.
+This defeats <<incremental_build.adoc#incremental_build,incremental build>> (i.e., `UP-TO-DATE` checks), but this issue is mitigated via use of the local build cache.
 You might run a build on Branch A, which will populate the local cache.
 You then switch to Branch B to conduct a code review, help a colleague, or address feedback on an open PR.
 You then switch back to Branch A to continue your original work.
@@ -53,8 +53,8 @@ However, if you are using annotation processors (such as Dagger2 or Butterknife)
 https://blog.jetbrains.com/kotlin/2018/01/kotlin-1-2-20-is-out/[You can opt into it] (which is recommended) by adding the following to build scripts:
 
 ====
-include::sample[dir="snippets/buildCache/caching-android-projects/groovy",files="build.gradle[tags=cacheKapt]"]
 include::sample[dir="snippets/buildCache/caching-android-projects/kotlin",files="build.gradle.kts[tags=cacheKapt]"]
+include::sample[dir="snippets/buildCache/caching-android-projects/groovy",files="build.gradle[tags=cacheKapt]"]
 ====
 
 == Unit test execution
@@ -81,7 +81,7 @@ This is another reason to always use the latest version of the Android plugin!
 The https://docs.fabric.io/android/fabric/overview.html[Fabric] plugin, which is used to integrate the Crashlytics crash-reporting tool (among others), is very popular, yet imposes some hefty performance penalties during the build process.
 This is due to the need for each version of your app to have a unique identifier so that it can be identified in the Crashlytics dashboard.
 In practice, the default behavior of Crashlytics is to treat “each version” as synonymous with “each build”.
-This defeats <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build>>, because each build will be unique.
+This defeats <<incremental_build.adoc#incremental_build,incremental build>>, because each build will be unique.
 It also breaks the cacheability of certain tasks in the build, and for the same reason.
 This can be fixed by simply disabling Crashlytics in “debug” builds.
 You may find instructions for that in the https://docs.fabric.io/android/crashlytics/build-tools.html[Crashlytics documentation].

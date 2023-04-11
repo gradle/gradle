@@ -17,6 +17,12 @@
 package org.gradle.configurationcache.inputs.undeclared
 
 class UndeclaredBuildInputsKotlinBuildScriptPluginsBlockIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
+
+    @Override
+    boolean isRestrictedDsl() {
+        true
+    }
+
     @Override
     String getLocation() {
         return "Build file 'build.gradle.kts'"
@@ -25,6 +31,8 @@ class UndeclaredBuildInputsKotlinBuildScriptPluginsBlockIntegrationTest extends 
     @Override
     void buildLogicApplication(BuildInputRead read) {
         buildKotlinFile << """
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
             plugins {
                 println("apply = " + ${read.kotlinExpression})
             }

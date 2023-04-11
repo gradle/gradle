@@ -20,6 +20,7 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
@@ -67,6 +68,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        failure.assertHasResolutions(SCAN)
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
@@ -187,7 +189,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         buildFile << """
             pmd {
-                ruleSets = []
                 ruleSetFiles = files("customRuleSet.xml")
             }
         """
@@ -208,7 +209,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         buildFile << """
             pmd {
-                ruleSets = []
                 ruleSetFiles = files()
                 ruleSetFiles "customRuleSet.xml"
             }
@@ -227,7 +227,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         buildFile << """
             pmd {
-                ruleSets = []
                 ruleSetConfig = resources.text.fromString('''${customRuleSetText()}''')
             }
         """

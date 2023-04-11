@@ -37,7 +37,7 @@ Enjoy first-class Gradle support in your IDE of choice.
 ## Need Help?
 
 * Get familiar with the [Gradle User Manual](https://docs.gradle.org/current/userguide/userguide.html)
-* [Upcoming trainings](https://gradle.com/training/)
+* [Upcoming trainings](https://gradle.org/training/)
 * Ask on the [forum](https://discuss.gradle.org/) or [StackOverflow](https://stackoverflow.com/questions/tagged/gradle)
 * Have a look at the [Samples](https://docs.gradle.org/current/samples/index.html)
 * Checkout the [Community Resources](https://gradle.org/resources/) as well

@@ -20,12 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 // TODO: Also do this for FileCollection types eventually
 class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
-    private void expectDeprecationWarningForIneligibleTypes() {
-        executer.expectDocumentedDeprecationWarning("Using internal convention mapping with a Provider backed property. " +
-                "This behavior has been deprecated. " +
-                "This will fail with an error in Gradle 8.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#convention_mapping")
+    private void expectDocumentedFailure() {
+        failure.assertHasDocumentedCause('Using internal convention mapping with a Provider backed property. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#convention_mapping')
     }
 
     def "emits deprecation warning when convention mapping is used with Provider"() {
@@ -49,9 +45,10 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
                 other.convention("other")
             }
         """
-        expectDeprecationWarningForIneligibleTypes()
+
         expect:
-        succeeds("mytask")
+        runAndFail 'mytask'
+        expectDocumentedFailure()
     }
 
     def "emits deprecation warning when convention mapping is used with Property"() {
@@ -70,9 +67,10 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
                 foo.convention("other")
             }
         """
-        expectDeprecationWarningForIneligibleTypes()
+
         expect:
-        succeeds("mytask")
+        runAndFail 'mytask'
+        expectDocumentedFailure()
     }
 
     def "emits deprecation warning when convention mapping is used with MapProperty"() {
@@ -91,9 +89,10 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
                 foo.convention([other: "other"])
             }
         """
-        expectDeprecationWarningForIneligibleTypes()
+
         expect:
-        succeeds("mytask")
+        runAndFail 'mytask'
+        expectDocumentedFailure()
     }
 
     def "emits deprecation warning when convention mapping is used with ListProperty"() {
@@ -112,9 +111,10 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
                 foo.convention(["other"])
             }
         """
-        expectDeprecationWarningForIneligibleTypes()
+
         expect:
-        succeeds("mytask")
+        runAndFail 'mytask'
+        expectDocumentedFailure()
     }
 
     def "emits deprecation warning when convention mapping is used with Provider in a ConventionTask"() {
@@ -133,9 +133,10 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
                 foo.convention("other")
             }
         """
-        expectDeprecationWarningForIneligibleTypes()
+
         expect:
-        succeeds("mytask")
+        runAndFail 'mytask'
+        expectDocumentedFailure()
     }
 
     def "emits deprecation warning when convention mapping is used with Provider in domain object other than task"() {
@@ -154,8 +155,9 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
                 other.convention("other")
             }
         """
-        expectDeprecationWarningForIneligibleTypes()
+
         expect:
-        succeeds("help")
+        runAndFail 'help'
+        expectDocumentedFailure()
     }
 }

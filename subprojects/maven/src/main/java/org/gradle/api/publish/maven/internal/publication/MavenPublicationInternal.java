@@ -50,7 +50,9 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     Set<MavenDependencyInternal> getRuntimeDependencies();
 
-    Set<MavenDependencyInternal> getOptionalDependencies();
+    Set<MavenDependencyInternal> getOptionalApiDependencies();
+
+    Set<MavenDependencyInternal> getOptionalRuntimeDependencies();
 
     MavenNormalizedPublication asNormalisedPublication();
 
@@ -69,4 +71,3 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     boolean writeGradleMetadataMarker();
 }
-

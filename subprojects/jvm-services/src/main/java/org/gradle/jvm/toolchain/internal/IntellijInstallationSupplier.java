@@ -51,8 +51,13 @@ public class IntellijInstallationSupplier extends AutoDetectingInstallationSuppl
     }
 
     @Override
+    public String getSourceName() {
+        return "IntelliJ IDEA";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         File directory = fileResolver.resolve(ideaJdksDirectory.get());
-        return FileBasedInstallationFactory.fromDirectory(directory, "IntelliJ IDEA");
+        return FileBasedInstallationFactory.fromDirectory(directory, getSourceName());
     }
 }

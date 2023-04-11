@@ -72,7 +72,7 @@ enum class Check(private val extension: String) {
     JAVA(".java") {
         override fun runCheck(project: Project, filesToBeChecked: List<String>) {
             project.javaexec {
-                mainClass.set("com.puppycrawl.tools.checkstyle.Main")
+                mainClass = "com.puppycrawl.tools.checkstyle.Main"
                 args("-c")
                 args("config/checkstyle/checkstyle.xml")
                 filesToBeChecked.forEach { args(it) }
@@ -92,7 +92,7 @@ enum class Check(private val extension: String) {
             groovyDirs.forEach { groovyDir ->
                 val rulesets = if (groovyDir.contains("integTest")) "config/codenarc.xml" else "config/codenarc-integtests.xml"
                 project.javaexec {
-                    mainClass.set("org.codenarc.CodeNarc")
+                    mainClass = "org.codenarc.CodeNarc"
                     args("-basedir=$groovyDir")
                     args("-rulesetfiles=${project.file(rulesets).toURI()}")
                     args("-report=console")
@@ -130,7 +130,7 @@ enum class Check(private val extension: String) {
             }
 
             project.javaexec {
-                mainClass.set("com.pinterest.ktlint.Main")
+                mainClass = "com.pinterest.ktlint.Main"
                 nonTeamCityKtFiles.forEach { args(it) }
                 args("--reporter=plain")
                 args("--color")

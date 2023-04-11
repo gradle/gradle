@@ -17,14 +17,18 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class ConfigurationDefaultsIntegrationTest extends AbstractDependencyResolutionTest {
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
 
     def setup() {
         mavenRepo.module("org", "default-dependency").publish()
         mavenRepo.module("org", "explicit-dependency").publish()
-
+        settingsFile << """
+            rootProject.name = 'test'
+        """
         buildFile << """
 configurations {
     conf
@@ -34,58 +38,55 @@ repositories {
     maven { url '${mavenRepo.uri}' }
 }
 
-if (providers.systemProperty('explicitDeps').present) {
+if (System.getProperty('explicitDeps')) {
     dependencies {
         conf "org:explicit-dependency:1.0"
-    }
-}
-task checkDefault {
-    doLast {
-        if (System.getProperty('resolveChild')) {
-            configurations.child.resolve()
-        }
-
-        def deps = configurations.conf.incoming.resolutionResult.allDependencies
-        assert deps*.selected.id.displayName == ['org:default-dependency:1.0']
-
-        def files = configurations.conf.files
-        assert files*.name == ["default-dependency-1.0.jar"]
-    }
-}
-task checkExplicit {
-    doLast {
-        def deps = configurations.conf.incoming.resolutionResult.allDependencies
-        assert deps*.selected.id.displayName == ['org:explicit-dependency:1.0']
-
-        def files = configurations.conf.files
-        assert files*.name == ["explicit-dependency-1.0.jar"]
     }
 }
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use defaultDependencies to specify default dependencies"() {
         buildFile << """
 configurations.conf.defaultDependencies { deps ->
     deps.add project.dependencies.create("org:default-dependency:1.0")
 }
 """
-
-        expect:
-        succeeds "checkDefault"
+        resolve.prepare {
+            config("conf", "checkDeps")
+            config("child", "checkChild")
+        }
 
         when:
-        executer.withArgument("-DresolveChild=yes")
+        run "checkDeps"
 
         then:
-        succeeds "checkDefault"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:default-dependency:1.0")
+            }
+        }
+
+        when:
+        run "checkChild"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:default-dependency:1.0")
+            }
+        }
 
         when:
         executer.withArgument("-DexplicitDeps=yes")
+        run "checkDeps"
 
         then:
-        succeeds "checkExplicit"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:explicit-dependency:1.0")
+            }
+        }
     }
 
     @Issue("gradle/gradle#3908")
@@ -109,14 +110,22 @@ println configurations.other.files
 
 project.status = 'foo'
 """
+        resolve.prepare()
 
-        expect:
-        succeeds "checkDefault"
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:default-dependency:1.0")
+            }
+        }
     }
 
     @Issue("gradle/gradle#812")
     def "can use defaultDependencies in a multi-project build"() {
-        buildFile.text = """
+        buildFile << """
 subprojects {
     apply plugin: 'java'
 
@@ -145,33 +154,39 @@ project(":consumer") {
         implementation project(":producer")
     }
 }
-
-subprojects {
-    task resolve {
-        dependsOn configurations.compileClasspath
-
-        doLast {
-            def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
-            if (System.getProperty('explicitDeps')) {
-                assert "explicit-dependency-1.0.jar" in resolvedJars
-            } else {
-                assert "default-dependency-1.0.jar" in resolvedJars
-            }
-        }
-    }
-}
 """
+        resolve.prepare("runtimeClasspath")
+        resolve.expectDefaultConfiguration("runtimeElements")
         settingsFile << """
 include 'consumer', 'producer'
 """
-        expect:
-        // relying on explicit dependency
-        succeeds("resolve", "-DexplicitDeps=yes")
 
-        // relying on default dependency
-        succeeds("resolve")
+        when:
+        executer.withArgument("-DexplicitDeps=yes")
+        run ":consumer:checkDeps"
 
+        then:
+        resolve.expectGraph {
+            root(":consumer", "test:consumer:") {
+                project(":producer", "test:producer:") {
+                    module("org:explicit-dependency:1.0")
+                }
+            }
+        }
+
+        when:
+        run ":consumer:checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":consumer", "test:consumer:") {
+                project(":producer", "test:producer:") {
+                    module("org:default-dependency:1.0")
+                }
+            }
+        }
     }
+
     def "can use defaultDependencies in a composite build"() {
         buildTestFixture.withBuildInSubDir()
 
@@ -192,11 +207,10 @@ include 'consumer', 'producer'
 """
         }
 
-        def consumer = singleProjectBuild("consumer") {
-            settingsFile << """
+        settingsFile << """
     includeBuild '${producer.toURI()}'
 """
-            buildFile << """
+        buildFile << """
     apply plugin: 'java'
     repositories {
         maven { url '${mavenRepo.uri}' }
@@ -208,20 +222,22 @@ include 'consumer', 'producer'
     dependencies {
         implementation 'org.test:producer:1.0'
     }
-    task resolve {
-        dependsOn configurations.compileClasspath
-
-        doLast {
-            def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
-            assert "default-dependency-1.0.jar" in resolvedJars
-        }
-    }
 """
-        }
+        resolve.prepare("runtimeClasspath")
+        resolve.expectDefaultConfiguration("runtimeElements")
 
-        expect:
-        executer.inDirectory(consumer)
-        succeeds ":resolve"
+        when:
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:producer:1.0", ":producer", "org.test:producer:1.0") {
+                    compositeSubstitute()
+                    module("org:default-dependency:1.0")
+                }
+            }
+        }
     }
 
     def "can use beforeResolve to specify default dependencies"() {
@@ -232,38 +248,56 @@ configurations.conf.incoming.beforeResolve {
     }
 }
 """
+        resolve.prepare()
 
-        expect:
-        succeeds "checkDefault"
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:default-dependency:1.0")
+            }
+        }
 
         when:
         executer.withArgument("-DexplicitDeps=yes")
+        run "checkDeps"
 
         then:
-        succeeds "checkExplicit"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:explicit-dependency:1.0")
+            }
+        }
     }
 
     def "fails if beforeResolve used to add dependencies to observed configuration"() {
+        resolve.prepare()
         buildFile << """
 configurations.conf.incoming.beforeResolve {
     if (configurations.conf.dependencies.empty) {
         configurations.conf.dependencies.add project.dependencies.create("org:default-dependency:1.0")
     }
 }
+task broken {
+    def child = configurations.child
+    def conf = configurations.conf
+    doLast {
+        child.files
+        conf.files
+    }
+}
 """
 
-
         when:
-        executer.withArgument("-DresolveChild=yes")
+        fails "broken"
 
         then:
-        fails "checkDefault"
-
-        and:
         failure.assertHasCause "Cannot change dependencies of dependency configuration ':conf' after it has been included in dependency resolution."
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "copied configuration has independent set of listeners"() {
         buildFile << """
 configurations {
@@ -312,6 +346,7 @@ task check {
         succeeds ":check"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "copied configuration have unique names"() {
         buildFile << """
             configurations {
@@ -330,5 +365,20 @@ task check {
             """
         expect:
         succeeds ":check"
+    }
+
+    def "configuration getAll is deprecated"() {
+        given:
+        buildFile << """
+            configurations {
+                conf {
+                    getAll()
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Calling the Configuration.getAll() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use the configurations container to access the set of configurations instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_get_all")
+        succeeds "help"
     }
 }

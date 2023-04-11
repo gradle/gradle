@@ -1,3 +1,6 @@
+import groovy.lang.GroovySystem
+import org.gradle.util.internal.VersionNumber
+
 /*
  * Copyright 2022 the original author or authors.
  *
@@ -42,6 +45,10 @@ val rules by configurations.creating {
     }
 }
 
+val groovyVersion = GroovySystem.getVersion()
+val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
+val codenarcVersion = if (isAtLeastGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
+
 dependencies {
     rules("gradlebuild:code-quality-rules") {
         because("Provides rules defined in XML files")
@@ -49,11 +56,13 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:3.0.1")
+    codenarc("org.codenarc:CodeNarc:$codenarcVersion")
     codenarc(embeddedKotlin("stdlib"))
 
     components {
-        withModule<CodeNarcRule>("org.codenarc:CodeNarc")
+        withModule<CodeNarcRule>("org.codenarc:CodeNarc") {
+            params(groovyVersion)
+        }
     }
 }
 
@@ -63,7 +72,9 @@ checkstyle {
     toolVersion = "8.12"
     config = configFile("checkstyle.xml")
     val projectDirectory = layout.projectDirectory
-    configDirectory.set(rules.elements.map { projectDirectory.dir(it.single().asFile.absolutePath).dir("checkstyle") })
+    configDirectory = rules.elements.map {
+        projectDirectory.dir(it.single().asFile.absolutePath).dir("checkstyle")
+    }
 }
 
 plugins.withType<GroovyBasePlugin> {
@@ -72,7 +83,7 @@ plugins.withType<GroovyBasePlugin> {
             config = configFile("checkstyle-groovy.xml")
             source(allGroovy)
             classpath = compileClasspath
-            reports.xml.outputLocation.set(checkstyle.reportsDir.resolve("${this@all.name}-groovy.xml"))
+            reports.xml.outputLocation = checkstyle.reportsDir.resolve("${this@all.name}-groovy.xml")
         }
     }
 }
@@ -89,19 +100,23 @@ tasks.withType<CodeNarc>().configureEach {
 }
 
 val SourceSet.allGroovy: SourceDirectorySet
-    get() = withConvention(GroovySourceSet::class) { allGroovy }
+    get() = the<GroovySourceDirectorySet>()
 
-abstract class CodeNarcRule : ComponentMetadataRule {
+abstract class CodeNarcRule @Inject constructor(
+    private val groovyVersion: String
+): ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
             withDependencies {
-                removeAll { it.group == "org.codehaus.groovy" }
-                add("org.codehaus.groovy:groovy") {
-                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
+                val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
+                val groovyGroup = if(isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
+                removeAll { it.group == groovyGroup }
+                add("$groovyGroup:groovy") {
+                    version { prefer(groovyVersion) }
                     because("We use the packaged groovy")
                 }
-                add("org.codehaus.groovy:groovy-templates") {
-                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
+                add("$groovyGroup:groovy-templates") {
+                    version { prefer(groovyVersion) }
                     because("We use the packaged groovy")
                 }
             }

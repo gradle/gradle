@@ -16,6 +16,13 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableSet;
+
+import java.util.function.Consumer;
+
 public interface TaskDependencyFactory {
     DefaultTaskDependency configurableDependency();
+    DefaultTaskDependency configurableDependency(ImmutableSet<Object> dependencies);
+
+    DefaultTaskDependency visitingDependencies(Consumer<? super TaskDependencyResolveContext> visitDependencies);
 }

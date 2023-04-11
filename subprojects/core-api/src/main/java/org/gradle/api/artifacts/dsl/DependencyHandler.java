@@ -95,9 +95,11 @@ import java.util.Map;
  * }
  *
  * dependencies {
- *   implementation('org.hibernate:hibernate:3.1') {
+ *   implementation('org.hibernate:hibernate') {
  *     //in case of versions conflict '3.1' version of hibernate wins:
- *     force = true
+ *     version {
+ *       strictly('3.1')
+ *     }
  *
  *     //excluding a particular transitive dependency:
  *     exclude module: 'cglib' //by artifact name
@@ -288,6 +290,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency, or null if dependencyNotation is a provider.
      */
+    @Nullable
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
 
     /**

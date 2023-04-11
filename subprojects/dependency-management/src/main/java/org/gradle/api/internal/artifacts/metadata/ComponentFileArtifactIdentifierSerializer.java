@@ -25,6 +25,9 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+/**
+ * A thread-safe and reusable serializer for {@link ComponentFileArtifactIdentifier}.
+ */
 public class ComponentFileArtifactIdentifierSerializer implements Serializer<ComponentFileArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 

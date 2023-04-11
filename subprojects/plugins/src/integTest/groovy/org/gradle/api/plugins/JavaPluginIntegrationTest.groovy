@@ -16,32 +16,22 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.component.BuildableJavaComponent
-import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
-    def appliesBasePluginsAndAddsConventionObject() {
+    def "main component is java component"() {
         given:
         buildFile << """
             apply plugin: 'java'
 
             task expect {
-
-                def component = project.services.get(${ComponentRegistry.canonicalName}).mainComponent
-                assert component instanceof ${BuildableJavaComponent.canonicalName}
-                assert component.runtimeClasspath != null
-                assert component.compileDependencies == project.configurations.compileClasspath
-
-                def buildTasks = component.buildTasks as List
-                doLast {
-                    assert buildTasks == [ JavaBasePlugin.BUILD_TASK_NAME ]
-                }
+                assert project.components.mainComponent.get() == components.java
             }
         """
+
         expect:
         succeeds "expect"
     }
@@ -119,7 +109,7 @@ Artifacts
             // A resolvable configuration to collect source data
             def sourceElementsConfig = configurations.create("sourceElements") {
                 visible = true
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION))
@@ -131,11 +121,13 @@ Artifacts
                 sourceElements project
             }
 
-            def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
-
             def testResolve = tasks.register('testResolve') {
+                def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
+                def resolvedConfigFiles = provider {
+                    sourceElementsConfig.getResolvedConfiguration().files
+                }
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                    assert resolvedConfigFiles.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -207,7 +199,7 @@ Artifacts
             // A resolvable configuration to collect JaCoCo coverage data
             def sourceElementsConfig = configurations.create("sourceElements") {
                 visible = true
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {
@@ -222,8 +214,11 @@ Artifacts
                                          project(':subB').file("src/main/java")]
 
             def testResolve = tasks.register('testResolve') {
+                def actual = provider {
+                    sourceElementsConfig.getResolvedConfiguration().getFiles()
+                }
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                    assert actual.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -459,5 +454,84 @@ Artifacts
         succeeds ":subB:test"
         result.assertTaskOrder(":subA:jar", ":subB:test")
         result.assertTaskNotExecuted(":subA:test")
+    }
+
+    def "classes directories registered on source set output are included in runtime classes variant"() {
+        settingsFile << "include 'consumer'"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            TaskProvider<JavaCompile> taskProvider = tasks.register("customCompile", JavaCompile) {
+                source = files("src/custom/java/com/example/Example.java")
+                destinationDirectory = file("build/classes/custom")
+                classpath = files()
+            }
+
+            sourceSets.main.output.classesDirs.from(taskProvider.flatMap(it -> it.getDestinationDirectory()))
+        """
+        file("src/custom/java/com/example/Example.java") << """
+            package com.example;
+            public class Example {}
+        """
+
+        file("consumer/build.gradle") << """
+            configurations.register("config") {
+                attributes {
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                }
+            }
+            dependencies {
+                config project(":")
+            }
+            tasks.register("consumeRuntimeClasses") {
+                def config = configurations.config
+                dependsOn config
+                doLast {
+                    assert config.files*.name.contains("custom")
+                }
+            }
+        """
+
+        when:
+        succeeds "consumer:consumeRuntimeClasses"
+
+        then:
+        result.assertTaskExecuted(":customCompile")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22484")
+    def "executing task which depends on source set classes does not build resources"() {
+        buildFile("""
+            plugins {
+                id 'java'
+            }
+
+            def fooTask = tasks.register("foo") {
+                outputs.file(project.layout.buildDirectory.dir("fooOut"))
+            }
+
+            tasks.register("bar") {
+                inputs.files(java.sourceSets.main.output.classesDirs)
+            }
+
+            java {
+                sourceSets {
+                    main {
+                        resources.srcDir(fooTask.map { it.outputs.files.singleFile })
+                    }
+                }
+            }
+        """)
+
+        file("src/main/java/com/example/Main.java") << "package com.example; public class Main {}"
+
+        when:
+        succeeds "bar"
+
+        then:
+        result.assertTasksExecuted(":compileJava", ":bar")
     }
 }

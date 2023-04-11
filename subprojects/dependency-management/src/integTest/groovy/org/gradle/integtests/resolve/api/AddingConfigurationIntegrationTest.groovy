@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-
 class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "can add configurations" () {
         buildFile << """
@@ -36,9 +35,11 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task addConfigs {
+                def files1 = configurations.conf1
+                def files2 = configurations.conf2
                 doLast {
-                    FileCollection sum = configurations.conf1
-                    sum += configurations.conf2
+                    FileCollection sum = files1
+                    sum += files2
                     assert sum.files.sort() == [ file1, file2 ]
                 }
             }
@@ -67,10 +68,13 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task addConfigs {
+                def files1 = configurations.conf1
+                def files2 = configurations.conf2
+                def files3 = configurations.conf3
                 doLast {
-                    FileCollection difference = configurations.conf3
-                    difference -= configurations.conf2
-                    difference -= configurations.conf1
+                    FileCollection difference = files3
+                    difference -= files2
+                    difference -= files1
                     assert difference.files.sort() == [ file3 ]
                 }
             }
@@ -78,5 +82,30 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "addConfigs"
+    }
+
+    def "can remove and add configurations between resolutions"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+
+        buildFile << """
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            task resolve {
+                def conf = configurations.create("conf")
+                conf.dependencies.add(project.dependencies.create("org:foo:1.0"))
+                conf.files
+                configurations.remove(conf)
+
+                def conf2 = configurations.create("conf2")
+                conf2.dependencies.add(project.dependencies.create("org:foo:1.0"))
+                conf2.files
+            }
+        """
+
+        expect:
+        succeeds("resolve")
     }
 }

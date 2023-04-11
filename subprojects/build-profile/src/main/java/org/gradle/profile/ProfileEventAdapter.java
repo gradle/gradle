@@ -30,11 +30,13 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.InternalBuildListener;
 import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.service.scopes.ListenerService;
 import org.gradle.internal.time.Clock;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model.
  */
+@ListenerService
 public class ProfileEventAdapter implements InternalBuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, ArtifactTransformListener {
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;

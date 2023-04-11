@@ -29,7 +29,7 @@ import java.io.File;
  * Generates an IDEA project file for root project *only*. If you want to fine tune the idea configuration <p> At this moment nearly all configuration is done via {@link IdeaProject}.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
+public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
     private IdeaProject ideaProject;
 

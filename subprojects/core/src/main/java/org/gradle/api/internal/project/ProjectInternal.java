@@ -27,6 +27,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -48,7 +50,9 @@ import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Set;
 
 @UsedByScanPlugin("scan, test-retry")
@@ -101,6 +105,35 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     void subprojects(ProjectInternal referrer, Action<? super Project> configureAction);
 
+    /**
+     * Do not use this method to access the child projects in the Gradle codebase!
+     * The implementations may add checks that enforce correct usage of the public API, such as
+     * cross-project model access checks, which are meant to report warnings on incorrect API usages
+     * from third-party code. The internal usages won't pass these checks and will break.
+     *
+     * @see ProjectInternal#getChildProjectsUnchecked()
+     * @see ProjectHierarchyUtils#getChildProjectsForInternalUse(Project)
+     */
+    @Override
+    Map<String, Project> getChildProjects();
+
+    /**
+     * Returns a mapping of the direct child project names to the child project instances.
+     *
+     * Compared to {@link Project#getChildProjects()}, this method does not add any checks
+     * to the returned projects:
+     *
+     * <ul>
+     *     <li> With project isolation enabled, it does not add checks for cross-project model
+     *     access to the returned project instances. The returned project models can be accessed
+     *     without any limitations.
+     * </ul>
+     *
+     * This method is suitable for internal usages in the Gradle codebase.
+     * @return A map where the keys are the project names and the values are the child projects
+     */
+    Map<String, Project> getChildProjectsUnchecked();
+
     Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer);
 
     void allprojects(ProjectInternal referrer, Action<? super Project> configureAction);
@@ -118,6 +151,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     void prepareForRuleBasedPlugins();
 
     FileResolver getFileResolver();
+
+    TaskDependencyFactory getTaskDependencyFactory();
 
     @UsedByScanPlugin("scan, test-retry")
     ServiceRegistry getServices();
@@ -151,6 +186,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * Returns a unique path for this project within its containing build.
      */
     @Override
+    @Nonnull
     Path getProjectPath();
 
     /**
@@ -201,6 +237,16 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     Property<Object> getInternalStatus();
 
     DependencyMetaDataProvider getDependencyMetaDataProvider();
+
+    /**
+     * When we get the {@link ConfigurationContainer} from internal locations, we'll override
+     * this getter to promise to return a {@link RoleBasedConfigurationContainerInternal} instance, to avoid
+     * the need to cast the result to create role-based configurations.
+     *
+     * @return the configuration container as a {@link RoleBasedConfigurationContainerInternal}
+     */
+    @Override
+    RoleBasedConfigurationContainerInternal getConfigurations();
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

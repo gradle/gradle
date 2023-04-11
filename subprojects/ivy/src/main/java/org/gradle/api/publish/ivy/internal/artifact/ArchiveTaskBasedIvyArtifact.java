@@ -17,8 +17,8 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -30,10 +30,11 @@ public class ArchiveTaskBasedIvyArtifact extends AbstractIvyArtifact {
     private final IvyPublicationIdentity identity;
     private final TaskDependencyInternal buildDependencies;
 
-    public ArchiveTaskBasedIvyArtifact(AbstractArchiveTask archiveTask, IvyPublicationIdentity identity) {
+    public ArchiveTaskBasedIvyArtifact(AbstractArchiveTask archiveTask, IvyPublicationIdentity identity, TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
         this.archiveTask = archiveTask;
         this.identity = identity;
-        this.buildDependencies = new DefaultTaskDependency(null, ImmutableSet.<Object>of(archiveTask));
+        this.buildDependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(archiveTask));
     }
 
     @Override

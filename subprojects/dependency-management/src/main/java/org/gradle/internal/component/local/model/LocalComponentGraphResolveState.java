@@ -25,13 +25,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * <p>Instances of this type are cached and reused for multiple graph resolutions, possibly in parallel. This means that the implementation must be thread-safe.
- *
- * <p>Currently, instances of this type are cached once per project per build in the tree (ie a copy is created for each build in the tree where the project is referenced as a dependency.
- * This is because some of the composite build infrastructure assumes a specialized copy per build. This should be changed to remove the need for multiple copies.</p>
  */
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
     ModuleVersionIdentifier getModuleVersionId();
+
+    LocalComponentMetadata getArtifactMetadata();
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
 }

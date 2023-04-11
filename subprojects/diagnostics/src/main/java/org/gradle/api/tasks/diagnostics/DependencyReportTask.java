@@ -23,7 +23,7 @@ import org.gradle.work.DisableCachingByDefault;
  * execute the {@code dependencies} task from the command-line.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class DependencyReportTask extends AbstractDependencyReportTask {
+public abstract class DependencyReportTask extends AbstractDependencyReportTask {
 
     @Override
     public ConfigurationContainer getTaskConfigurations() {
