@@ -74,7 +74,7 @@ public abstract class ApplicationPluginConvention {
      * <p>The specification of the contents of the distribution.</p>
      * <p>
      * Use this {@link org.gradle.api.file.CopySpec} to include extra files/resource in the application distribution.
-     * <pre class='autoTestedWithDeprecations'>
+     * <pre class='autoTested'>
      * plugins {
      *     id 'application'
      * }
