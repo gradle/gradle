@@ -117,7 +117,7 @@ public abstract class DefaultApplicationPluginConvention extends ApplicationPlug
     private static void logDeprecation() {
         DeprecationLogger.deprecateType(ApplicationPluginConvention.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "application_convention_deprecation")
+            .withUpgradeGuideSection(8, "application_convention_deprecation")
             .nagUser();
     }
 }
