@@ -90,7 +90,7 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
         settingsFile << "include 'project1', 'project2'"
         buildFile << """
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 ${RepoScriptBlockUtil.mavenCentralRepository()}
 

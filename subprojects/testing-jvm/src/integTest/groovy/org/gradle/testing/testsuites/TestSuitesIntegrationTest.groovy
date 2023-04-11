@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Issue
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
@@ -458,6 +457,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                         useJUnit()
                         dependencies {
                             implementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+                            runtimeOnly 'org.junit.platform:junit-platform-launcher'
                         }
                         targets {
                             all {
@@ -471,11 +471,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                 }
-            }
-
-            dependencies {
-                integTestImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
-                integTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
         """
 

@@ -162,58 +162,18 @@ execute tests. This existing behavior can lead to test framework dependency vers
 classpath. To avoid these conflicts, this behavior is deprecated and will be removed in Gradle 9.0. Tests
 using TestNG are unaffected.
 
-In order to prepare to for this change in behavior, either declare the required dependencies explicitly,
+In order to prepare for this change in behavior, either declare the required dependencies explicitly,
 or migrate to link:jvm_test_suite_plugin.html[Test Suites], where these dependencies are managed automatically.
 
 ===== Test Suites
 
-If you are using test suites, this change will not affect you. The test framework dependencies are managed
-by the suite itself by automatically declaring the proper dependencies on the test suite's configurations.
-In order to minimally migrate to test suites, use the following code:
-
-=====
-[.multi-language-sample]
-======
-.build.gradle.kts
-[source,kotlin]
-----
-testing {
-    suites {
-        named<JvmTestSuite>("test") {
-            // If using JUnit Jupiter
-            useJUnitJupiter()
-
-            // If using JUnit 4
-            useJUnit()
-        }
-    }
-}
-----
-======
-[.multi-language-sample]
-======
-.build.gradle
-[source,groovy]
-----
-testing {
-    suites {
-        test {
-            // If using JUnit Jupiter
-            useJUnitJupiter()
-
-            // If using JUnit 4
-            useJUnit()
-        }
-    }
-}
-----
-======
-=====
+Builds that use test suites will not be affected by this change. Test suites manage the test
+framework dependencies automatically and do not require dependencies to be explicitly declared.
+See link:jvm_test_suite_plugin.html[the user manual] for further information on migrating to test suites.
 
 ===== Manually declaring dependencies
 
-This change in behavior can also be mitigated without migrating to test suites. In this case, the proper
-dependencies must be manually declared on the test runtime classpath:
+In the absence of test suites, dependencies must be manually declared on the test runtime classpath:
 
   * If using JUnit 5, an explicit `runtimeOnly` dependency on `junit-platform-launcher` is required
   in addition to the existing `implementation` dependency on the test engine.

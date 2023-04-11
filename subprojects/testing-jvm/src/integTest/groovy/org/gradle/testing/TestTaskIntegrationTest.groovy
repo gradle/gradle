@@ -284,32 +284,27 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def "test framework can be set to the same value (#frameworkName) twice"() {
-        ignoreWhenJUnitPlatform()
-
         given:
-        file('src/test/java/MyTest.java') << (frameworkName == "JUnit" ? standaloneTestClass() : junitJupiterStandaloneTestClass())
+        file('src/test/java/MyTest.java') << (isJUnit4() ? standaloneTestClass() : junitJupiterStandaloneTestClass())
+
+        def useMethod = isJUnitPlatform() ? "useJUnitPlatform()" : "useJUnit()"
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """apply plugin: 'java'
 
             ${mavenCentralRepository()}
             dependencies {
-                $frameworkDeps
+                ${getDependencyBlockContents()}
             }
 
             test {
-                $useMethod
-                $useMethod
+                ${useMethod}
+                ${useMethod}
             }
-        """.stripIndent()
+        """
 
         expect:
         succeeds("test")
-
-        where:
-        frameworkName       | useMethod                 | frameworkDeps
-        "JUnit"             | "useJUnit()"              | "testImplementation 'junit:junit:${NEWEST}'"
-        "JUnit Platform"    | "useJUnitPlatform()"      | "testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'\ntestRuntimeOnly 'org.junit.platform:junit-platform-launcher'"
     }
 
     def "options can be set prior to setting same test framework for the default test task"() {
