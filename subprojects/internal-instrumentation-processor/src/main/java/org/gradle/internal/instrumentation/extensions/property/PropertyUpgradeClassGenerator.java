@@ -70,10 +70,10 @@ public class PropertyUpgradeClassGenerator extends RequestGroupingInstrumentatio
             .collect(Collectors.toList());
         return MethodSpec.methodBuilder(implementation.getName())
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addParameter(typeName(callable.getOwner()), SELF_PARAMETER_NAME)
+            .addParameter(typeName(callable.getOwner().getType()), SELF_PARAMETER_NAME)
             .addParameters(parameters)
             .addCode(generateMethodBody(implementation, implementationExtra))
-            .returns(typeName(callable.getReturnType()))
+            .returns(typeName(callable.getReturnType().getType()))
             .build();
     }
 
