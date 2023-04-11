@@ -1723,22 +1723,10 @@ base {
 }
 ```
 
-[[application_convention_deprecation]]
-==== Deprecated `ApplicationPluginConvention`
-
-link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention] was already listed as deprecated in the <<application_plugin.adoc#sec:application_convention_properties, documentation>>.
-Now, it is officially annotated as deprecated and scheduled for removal in Gradle 8.0.
-
-[[java_convention_deprecation]]
-==== Deprecated `java` plugin conventions
-
-The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-They are replaced by the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can be configured in the `java {}` block.
-
 [[plugin_configuration_consumption]]
 ==== Deprecated consumption of internal plugin configurations
 
-Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
+Some core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
 published or consumed by another subproject directly.
 Gradle did not explicitly prohibit this.
 Gradle 7.1 deprecates consumption of those configurations and this will become an error in Gradle 8.0.

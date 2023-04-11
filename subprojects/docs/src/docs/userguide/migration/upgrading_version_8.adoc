@@ -69,7 +69,81 @@ Doing so will now emit a deprecation warning.
 This will become an error in Gradle 9.0.
 You should prefer accessing the extensions and their properties instead.
 
-For example the following code will now emit deprecation warnings:
+For specific examples see the next sections.
+
+[[application_convention_deprecation]]
+==== Deprecated ApplicationPluginConvention
+
+As stated in the <<deprecated_access_to_conventions, section about plugin convention deprecation>>, the Application Plugin's convention is deprecated.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    application
+}
+
+applicationDefaultJvmArgs = listOf("-Dgreeting.language=en") // Accessing a convention
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'application'
+}
+
+applicationDefaultJvmArgs = ['-Dgreeting.language=en'] // Accessing a convention
+----
+=====
+====
+
+This should be changed to use the `application` plugin's extension instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    application
+}
+
+application {
+    applicationDefaultJvmArgs = listOf("-Dgreeting.language=en")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'application'
+}
+
+application {
+    applicationDefaultJvmArgs = ['-Dgreeting.language=en']
+}
+----
+=====
+====
+
+[[java_convention_deprecation]]
+==== Deprecated JavaPluginConvention
+
+As stated in the <<deprecated_access_to_conventions, section about plugin convention deprecation>>, the Java Plugin's convention is deprecated.
+
+The following code will now emit deprecation warnings:
 
 ====
 [.multi-language-sample]
