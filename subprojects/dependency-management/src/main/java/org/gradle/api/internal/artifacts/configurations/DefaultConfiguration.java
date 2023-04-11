@@ -1844,7 +1844,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * {@inheritDoc}
      * 
      * @implNote Usage: This method should only be called on consumable or resolvable configurations and will emit a deprecation warning if
-     * called on a configuration that does not permit this usage, or has had this usage marked as deprecated.
+     * called on a configuration that does not permit this usage, or has had allowed this usage but marked it as deprecated.
      */
     @Override
     public Configuration attributes(Action<? super AttributeContainer> action) {
