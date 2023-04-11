@@ -71,10 +71,7 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
     def "runs JUnit5 blackbox test as module using the module path"() {
         given:
         buildFile << """
-            test { useJUnitPlatform() }
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
-            }
+            testing.suites.test.useJUnitJupiter()
         """
 
         when:
