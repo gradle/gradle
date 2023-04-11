@@ -66,7 +66,7 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
-    private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.SameAsGenericType.class);
+    private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.DefaultValue.class);
     // TODO: Should be read from an annotation
     private static final String INTERCEPTOR_JVM_DECLARATION_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImplPropertyUpgrades";
     private static final String INTERCEPTOR_GROOVY_DECLARATION_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_GroovyInterceptorsImplPropertyUpgrades";

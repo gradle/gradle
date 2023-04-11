@@ -36,8 +36,8 @@ public @interface UpgradedProperty {
      * ListProperty[T] -> original type becomes List[T]
      * ConfigurableFileCollection -> original type becomes FileCollection
      */
-    Class<?> originalType() default SameAsGenericType.class;
+    Class<?> originalType() default DefaultValue.class;
 
-    interface SameAsGenericType {
+    interface DefaultValue {
     }
 }
