@@ -39,8 +39,9 @@ public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet
         super(backingSet);
     }
 
-    private NamedDomainObjectSet<T> getDelegate() {
-        return (NamedDomainObjectSet<T>) super.delegate;
+    @Override
+    protected NamedDomainObjectSet<T> getDelegate() {
+        return (NamedDomainObjectSet<T>) super.getDelegate();
     }
 
     @Override

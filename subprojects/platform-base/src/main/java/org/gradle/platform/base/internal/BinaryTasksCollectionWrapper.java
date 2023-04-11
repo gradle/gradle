@@ -40,8 +40,9 @@ public class BinaryTasksCollectionWrapper extends DelegatingDomainObjectSet<Task
         return tasks.iterator().next();
     }
 
-    private BinaryTasksCollection getDelegate() {
-        return (BinaryTasksCollection) super.delegate;
+    @Override
+    protected BinaryTasksCollection getDelegate() {
+        return (BinaryTasksCollection) super.getDelegate();
     }
 
     @Override
