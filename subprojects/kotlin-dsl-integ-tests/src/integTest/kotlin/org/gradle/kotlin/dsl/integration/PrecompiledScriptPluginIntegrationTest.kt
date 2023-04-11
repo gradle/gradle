@@ -1121,6 +1121,22 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         }
         assertFalse(file("producer/build/classes/java/main").exists())
     }
+
+    @Test
+    fun `plugin spec builders generation is up-to-date on compileOnly dependency change`() {
+        withDefaultSettings().appendText("""include("producer", "consumer")""")
+        withFile("producer/build.gradle.kts", """plugins { java }""")
+        withFile("producer/src/main/java/Code.java", """public class Code {}""")
+        withKotlinDslPluginIn("consumer").appendText("""dependencies { compileOnly(project(":producer")) }""")
+        withFile("consumer/src/main/kotlin/some.gradle.kts", "")
+        build(":consumer:classes").apply {
+            assertTaskNotSkipped(":consumer:generateExternalPluginSpecBuilders")
+        }
+        withFile("producer/src/main/java/Code.java", """public class Code { public void change() {} }""")
+        build(":consumer:classes").apply {
+            assertTaskSkipped(":consumer:generateExternalPluginSpecBuilders")
+        }
+    }
 }
 
 

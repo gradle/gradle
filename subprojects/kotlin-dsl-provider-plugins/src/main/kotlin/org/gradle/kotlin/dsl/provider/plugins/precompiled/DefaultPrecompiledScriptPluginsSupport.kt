@@ -182,6 +182,8 @@ fun Project.enableScriptCompilationOf(
 
     val compileClasspath: FileCollection = sourceSets["main"].compileClasspath
 
+    val runtimeClasspath: FileCollection = configurations["runtimeClasspath"]
+
     tasks {
 
         val extractPrecompiledScriptPluginPlugins by registering(ExtractPrecompiledScriptPluginPlugins::class) {
@@ -195,7 +197,7 @@ fun Project.enableScriptCompilationOf(
                 "generateExternalPluginSpecBuilders",
                 kotlinSourceDirectorySet
             ) {
-                classPathFiles.from(compileClasspath)
+                classPathFiles.from(runtimeClasspath)
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(pluginSpecBuildersMetadata)
             }
@@ -223,7 +225,7 @@ fun Project.enableScriptCompilationOf(
             ) {
                 dependsOn(compilePluginsBlocks)
                 classPathFiles.from(compileClasspath)
-                runtimeClassPathFiles.from(configurations["runtimeClasspath"])
+                runtimeClassPathFiles.from(runtimeClasspath)
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
