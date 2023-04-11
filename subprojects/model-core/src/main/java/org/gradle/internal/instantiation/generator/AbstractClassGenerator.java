@@ -35,6 +35,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -52,6 +53,7 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -216,6 +218,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             validators.add(new DisabledAnnotationValidator(annotation));
         }
         validators.add(new InjectionAnnotationValidator(enabledAnnotations, allowedTypesForAnnotation));
+        validators.add(new BooleanPropertyDeprecatingValidator());
 
         Class<?> generatedClass;
         try {
@@ -1501,5 +1504,25 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void addNameProperty();
 
         Class<?> generate() throws Exception;
+    }
+
+    /**
+     * Groovy no longer considers {@code Boolean isFoo()} a property {@code foo} of type {@code Boolean}.
+     * <p>
+     * To create a boolean property, you need to use {@code boolean isFoo()} or {@code Boolean getFoo()}.
+     */
+    @NonNullApi
+    private static class BooleanPropertyDeprecatingValidator implements ClassValidator {
+        @Override
+        public void validateMethod(Method method, PropertyAccessorType accessorType) {
+            if (accessorType == PropertyAccessorType.IS_GETTER && method.getReturnType().isAssignableFrom(Boolean.class)) {
+                DeprecationLogger.deprecateBehaviour(String.format("'%s' declares a property with a Boolean type.", method.getDeclaringClass().getCanonicalName()))
+                    .withAdvice(String.format("Change the return type of '%s' to boolean or rename '%1$s' to '%s'.", method.getName(), method.getName().replace("is", "get")))
+                    .withContext("The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy.")
+                    .willChangeInGradle9()
+                    .withUpgradeGuideSection(8, "groovy_boolean_properties")
+                    .nagUser();
+            }
+        }
     }
 }
