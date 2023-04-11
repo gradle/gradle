@@ -64,8 +64,9 @@ public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingN
         }
     }
 
-    private TaskCollection<T> getDelegate() {
-        return (TaskCollection<T>) delegate;
+    @Override
+    protected TaskCollection<T> getDelegate() {
+        return (TaskCollection<T>) super.getDelegate();
     }
 
     private <S extends T> TaskCollection<S> realizable(Class<S> type, TaskCollection<S> collection) {

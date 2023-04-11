@@ -87,8 +87,9 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
     }
 
-    private DefaultDomainObjectSet<T> getDelegate() {
-        return (DefaultDomainObjectSet<T>) delegate;
+    @Override
+    protected DefaultDomainObjectSet<T> getDelegate() {
+        return (DefaultDomainObjectSet<T>) super.getDelegate();
     }
 
     @SuppressWarnings("unchecked")

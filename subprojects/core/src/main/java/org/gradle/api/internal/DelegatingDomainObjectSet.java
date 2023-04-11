@@ -29,10 +29,14 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
-    protected final DomainObjectSet<T> delegate;
+    private final DomainObjectSet<T> delegate;
 
     public DelegatingDomainObjectSet(DomainObjectSet<T> delegate) {
         this.delegate = delegate;
+    }
+
+    protected DomainObjectSet<T> getDelegate() {
+        return delegate;
     }
 
     @Override
