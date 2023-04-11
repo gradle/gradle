@@ -25,14 +25,13 @@ trait JUnit4MultiVersionTest {
     }
 
     static class JUnit4BuildScriptConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
-        String testFrameworkConfigurationMethod = "useJUnit()"
+        String configureTestFramework = "useJUnit()"
 
-        List<String> getTestFrameworkImplementationDependencies() {
-            return ["junit:junit:${MultiVersionIntegrationSpec.version}"]
-        }
-
-        List<String> getTestFrameworkRuntimeDependencies() {
-            return []
+        @Override
+        String getTestFrameworkDependencies() {
+            return """
+                testImplementation 'junit:junit:${MultiVersionIntegrationSpec.version}'
+            """
         }
 
         @Override

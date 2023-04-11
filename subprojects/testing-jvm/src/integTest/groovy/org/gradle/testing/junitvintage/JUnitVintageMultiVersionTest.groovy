@@ -25,14 +25,14 @@ trait JUnitVintageMultiVersionTest {
     }
 
     static class JUnitVintageBuildScriptConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
-        String testFrameworkConfigurationMethod = "useJUnitPlatform()"
+        String configureTestFramework = "useJUnitPlatform()"
 
-        List<String> getTestFrameworkImplementationDependencies() {
-            return ["junit:junit:4.13"]
-        }
-
-        List<String> getTestFrameworkRuntimeDependencies() {
-            return ["org.junit.vintage:junit-vintage-engine:${dependencyVersion}"]
+        @Override
+        String getTestFrameworkDependencies() {
+            return """
+                testCompileOnly 'junit:junit:4.13'
+                testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
+            """
         }
 
         static String getDependencyVersion() {
