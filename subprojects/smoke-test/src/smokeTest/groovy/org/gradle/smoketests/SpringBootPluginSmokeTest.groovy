@@ -79,11 +79,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """
 
         when:
-
         def smokeTestRunner = runner('assembleBootDist', 'check')
-            .expectDeprecationWarning(
-                "The org.gradle.api.plugins.ApplicationPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#application_convention_deprecation",
-                "No need to follow up as the 2.7.x branch already removed the convention usage")
         // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
