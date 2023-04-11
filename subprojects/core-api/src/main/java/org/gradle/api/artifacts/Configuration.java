@@ -369,10 +369,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Gets the set of dependency constraints directly contained in this configuration
      * (ignoring superconfigurations).
-     * 
-     * @implSpec Usage: This method should only be called on declarable configurations and will emit a deprecation warning if
-     * called on a configuration that does not permit this usage.  Calling this method on configurations that have
-     * declaration marked as deprecated will not warn.
+     *
+     * @implSpec Usage: This method should only be called on declarable configurations, but will not warn if used otherwise.
      *
      * @return the set of dependency constraints
      *
