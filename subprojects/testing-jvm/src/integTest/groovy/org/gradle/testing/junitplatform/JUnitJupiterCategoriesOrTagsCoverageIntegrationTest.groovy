@@ -336,12 +336,11 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         run('test')
 
         then:
-        def expectedTestClasses = ['NestedTestsWithTags$TagOnMethodNoParam', 'NestedTestsWithTags$TagOnMethod', 'NestedTestsWithTags$TagOnClass']
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted(expectedTestClasses as String[])
-        expectedTestClasses.each {
-            result.testClass(it).assertTestCount(1, 0, 0)
-        }
+        result.assertTestClassesExecuted('NestedTestsWithTags$TagOnMethodNoParam', 'NestedTestsWithTags$TagOnMethod', 'NestedTestsWithTags$TagOnClass')
+        result.testClass('NestedTestsWithTags$TagOnMethodNoParam').assertTestCount(1, 0, 0)
+        result.testClass('NestedTestsWithTags$TagOnMethod').assertTestCount(1, 0, 0)
+        result.testClass('NestedTestsWithTags$TagOnClass').assertTestCount(1, 0, 0)
     }
 
     @Override
