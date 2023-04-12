@@ -17,16 +17,23 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Optional;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Holds the resolution state for an external component.
+ */
 public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
     public DefaultComponentGraphResolveState(T graphMetadata, S artifactMetadata) {
         super(graphMetadata, artifactMetadata);
@@ -34,6 +41,11 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
 
     public static ComponentGraphResolveState of(ModuleComponentResolveMetadata metadata) {
         return new DefaultComponentGraphResolveState<>(metadata, metadata);
+    }
+
+    @Override
+    public ComponentArtifactResolveMetadata getResolveMetadata() {
+        return new ExternalArtifactResolveMetadata(getArtifactMetadata());
     }
 
     @Override
@@ -67,7 +79,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
             Set<? extends VariantResolveMetadata> fallbackVariants = graphSelectedVariant.getVariants();
             Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = graphMetadata.getVariantsForGraphTraversal();
-            return artifactSelector.resolveArtifacts(artifactMetadata, () -> buildAllVariants(fallbackVariants, variantsForGraphTraversal), fallbackVariants, exclusions, overriddenAttributes);
+            return artifactSelector.resolveArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), () -> buildAllVariants(fallbackVariants, variantsForGraphTraversal), fallbackVariants, exclusions, overriddenAttributes);
         }
 
         private static Set<? extends VariantResolveMetadata> buildAllVariants(Set<? extends VariantResolveMetadata> fallbackVariants, Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal) {
@@ -78,6 +90,45 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
                 allVariants = fallbackVariants;
             }
             return allVariants;
+        }
+    }
+
+    private static class ExternalArtifactResolveMetadata implements ComponentArtifactResolveMetadata {
+        private final ComponentResolveMetadata metadata;
+
+        public ExternalArtifactResolveMetadata(ComponentResolveMetadata metadata) {
+            this.metadata = metadata;
+        }
+
+        @Override
+        public ComponentIdentifier getId() {
+            return metadata.getId();
+        }
+
+        @Override
+        public ModuleVersionIdentifier getModuleVersionId() {
+            return metadata.getModuleVersionId();
+        }
+
+        @Nullable
+        @Override
+        public ModuleSources getSources() {
+            return metadata.getSources();
+        }
+
+        @Override
+        public ImmutableAttributes getAttributes() {
+            return metadata.getAttributes();
+        }
+
+        @Override
+        public AttributesSchemaInternal getAttributesSchema() {
+            return metadata.getAttributesSchema();
+        }
+
+        @Override
+        public ComponentResolveMetadata getMetadata() {
+            return metadata;
         }
     }
 }

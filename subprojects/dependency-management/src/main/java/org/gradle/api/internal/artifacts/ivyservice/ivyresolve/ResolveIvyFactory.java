@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -41,10 +40,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -74,16 +72,18 @@ public class ResolveIvyFactory {
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ChangingValueDependencyResolutionListener listener;
 
-    public ResolveIvyFactory(ModuleRepositoryCacheProvider cacheProvider,
-                             StartParameterResolutionOverride startParameterResolutionOverride,
-                             DependencyVerificationOverride dependencyVerificationOverride,
-                             BuildCommencedTimeProvider timeProvider,
-                             VersionComparator versionComparator,
-                             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                             RepositoryDisabler repositoryBlacklister,
-                             VersionParser versionParser,
-                             ChangingValueDependencyResolutionListener listener,
-                             CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public ResolveIvyFactory(
+        ModuleRepositoryCacheProvider cacheProvider,
+        StartParameterResolutionOverride startParameterResolutionOverride,
+        DependencyVerificationOverride dependencyVerificationOverride,
+        BuildCommencedTimeProvider timeProvider,
+        VersionComparator versionComparator,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        RepositoryDisabler repositoryBlacklister,
+        VersionParser versionParser,
+        ChangingValueDependencyResolutionListener listener,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
@@ -96,14 +96,16 @@ public class ResolveIvyFactory {
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
-    public ComponentResolvers create(String resolveContextName,
-                                     ResolutionStrategyInternal resolutionStrategy,
-                                     Collection<? extends ResolutionAwareRepository> repositories,
-                                     ComponentMetadataProcessorFactory metadataProcessor,
-                                     AttributeContainer consumerAttributes,
-                                     AttributesSchema attributesSchema,
-                                     ImmutableAttributesFactory attributesFactory,
-                                     ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor) {
+    public ComponentResolvers create(
+        String resolveContextName,
+        ResolutionStrategyInternal resolutionStrategy,
+        Collection<? extends ResolutionAwareRepository> repositories,
+        ComponentMetadataProcessorFactory metadataProcessor,
+        AttributeContainer consumerAttributes,
+        AttributesSchema attributesSchema,
+        ImmutableAttributesFactory attributesFactory,
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
+    ) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
@@ -164,16 +166,17 @@ public class ResolveIvyFactory {
     private static class ParentModuleLookupResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final UserResolverChain delegate;
 
-        public ParentModuleLookupResolver(VersionComparator versionComparator,
-                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                          VersionParser versionParser,
-                                          AttributeContainer consumerAttributes,
-                                          AttributesSchema attributesSchema,
-                                          ImmutableAttributesFactory attributesFactory,
-                                          ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
-                                          ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                                          CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                          CachePolicy cachePolicy
+        public ParentModuleLookupResolver(
+            VersionComparator versionComparator,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            VersionParser versionParser,
+            AttributeContainer consumerAttributes,
+            AttributesSchema attributesSchema,
+            ImmutableAttributesFactory attributesFactory,
+            ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+            ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            CachePolicy cachePolicy
         ) {
             this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
         }
@@ -218,13 +221,13 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolveArtifactsWithType(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             delegate.getArtifactResolver().resolveArtifactsWithType(component, artifactType, result);
         }
 
         @Override
-        public void resolveArtifact(ModuleVersionIdentifier ownerId, final ComponentArtifactMetadata artifact, final ModuleSources moduleSources, final BuildableArtifactResolveResult result) {
-            delegate.getArtifactResolver().resolveArtifact(ownerId, artifact, moduleSources, result);
+        public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+            delegate.getArtifactResolver().resolveArtifact(component, artifact, result);
         }
     }
 

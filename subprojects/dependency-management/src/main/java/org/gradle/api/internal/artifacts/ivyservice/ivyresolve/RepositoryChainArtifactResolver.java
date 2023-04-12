@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
@@ -26,8 +25,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -60,18 +59,18 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
         // First try to determine the artifacts locally before going remote
-        sourceRepository.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
+        sourceRepository.getLocalAccess().resolveArtifactsWithType(component.getMetadata(), artifactType, result);
         if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveArtifactsWithType(component, artifactType, result);
+            sourceRepository.getRemoteAccess().resolveArtifactsWithType(component.getMetadata(), artifactType, result);
         }
     }
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         if (component.getSources() == null) {
             // virtual components have no source
             return NO_ARTIFACTS;
@@ -80,11 +79,11 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
     }
 
     @Override
-    public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources sources, BuildableArtifactResolveResult result) {
-        ModuleComponentRepository sourceRepository = findSourceRepository(sources);
+    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+        ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
         ResolvableArtifact resolvableArtifact = sourceRepository.getArtifactCache().computeIfAbsent(artifact.getId(), id -> {
-            CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), (Supplier<File>)() -> resolveArtifactLater(artifact, sources, sourceRepository));
-            return new DefaultResolvableArtifact(ownerId, artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+            CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), (Supplier<File>)() -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
+            return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
         });
 
         result.resolved(resolvableArtifact);
