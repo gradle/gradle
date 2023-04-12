@@ -94,7 +94,7 @@ is:
     execution: {{ files | match(list=['subprojects/execution/']) | some }}
 
   # Also just an approximation
-  build_script_change: {{ files | match(regex=r/[ ^a-zA-Z0-9 ](build|gradle|settings)/) }}
+  build_script_change: {{ files | match(regex=r/(build\.gradle\.kts|build\.gradle|settings\.gradle\.kts|settings\.gradle)/) }}
 
 author:
   on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
