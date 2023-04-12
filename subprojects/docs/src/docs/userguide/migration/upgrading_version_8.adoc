@@ -298,6 +298,10 @@ dependencies {
 
 === Potential breaking changes
 
+==== Upgrade default version of JaCoCo
+
+The <<jacoco_plugin#jacoco_plugin,JaCoCo plugin>> now defaults to link:https://github.com/jacoco/jacoco/releases/tag/v0.8.9[JaCoCo 0.8.9].
+
 [[kotlin_1_8.20]]
 ==== Upgrade to Kotlin 1.8.20
 
