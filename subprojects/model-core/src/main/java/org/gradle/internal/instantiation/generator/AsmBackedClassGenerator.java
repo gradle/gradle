@@ -429,6 +429,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
         private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
+        private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
         private static final Type JAVA_LANG_REFLECT_TYPE = getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = getType(Object.class);
         private static final Type CLASS_TYPE = getType(Class.class);
@@ -987,6 +988,19 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final Type fieldType,
             final BytecodeFragment initializer
         ) {
+            addLazyGetter(methodName, returnType, methodDescriptor, signature, fieldName, fieldType, initializer, MethodVisitorScope::new);
+        }
+
+        private void addLazyGetter(
+            String methodName,
+            Type returnType,
+            String methodDescriptor,
+            @Nullable String signature,
+            final String fieldName,
+            final Type fieldType,
+            final BytecodeFragment initializer,
+            final BytecodeFragment epilogue
+        ) {
             addGetter(methodName, returnType, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // var = this.<field>
                 _ALOAD(0);
@@ -1003,6 +1017,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _PUTFIELD(generatedType, fieldName, fieldType);
                 // return var
                 visitLabel(returnValue);
+                emit(epilogue);
                 _ALOAD(1);
             }});
         }
@@ -1113,7 +1128,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String propFieldName = propFieldName(property);
             String signature = getterSignature(getter.getGenericReturnType());
 
-            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+            BytecodeFragment getterInitializer = methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
                 putServiceRegistryOnStack();
 
@@ -1137,7 +1152,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // (<type>)<service>
                 _CHECKCAST(serviceType);
-            }});
+            }};
+
+            BytecodeFragment getterEpilogue = methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                // InstrumentedExecutionAccess.injectedServiceAccessed(<services>, <service-type>, <this-type-name>)
+                putServiceRegistryOnStack();
+                _LDC(serviceType);
+                _LDC(type.getName());
+                _INVOKESTATIC(INSTRUMENTED_EXECUTION_ACCESS_TYPE, "injectedServiceAccessed", getMethodDescriptor(VOID_TYPE, SERVICE_LOOKUP_TYPE, CLASS_TYPE, STRING_TYPE));
+            }};
+
+            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, getterInitializer, getterEpilogue);
         }
 
         @Override
