@@ -104,6 +104,39 @@ import java.util.concurrent.ThreadFactory
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "reports when injected service of #serviceType accessed at execution time"() {
+        given:
+        buildFile << """
+            abstract class Foo extends DefaultTask {
+
+                @Inject
+                public abstract ${serviceType.name} getInjected()
+
+                @TaskAction
+                void action() {
+                    println(getInjected())
+                }
+            }
+
+            tasks.register('foo', Foo)
+        """
+
+        when:
+        configurationCacheRunLenient "foo"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(1)
+            withUniqueProblems(
+                "Class `Foo`: accessing non-serializable type '${serviceType.name}'"
+            )
+        }
+
+        where:
+        serviceType << [Project, Gradle]
+    }
+
+
     def "reports when task field references an object of type #baseType"() {
         buildFile << """
             plugins { id "java" }
