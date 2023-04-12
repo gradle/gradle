@@ -33,7 +33,7 @@ class JUnitIgnoreClassMultiVersionIntegrationSpec extends JUnitMultiVersionInteg
     def canHandleClassLevelIgnoredTests() {
         executer.noExtraLogging()
         buildFile << """
-            dependencies { ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')} }
+            dependencies { ${getDependencyBlockContents()} }
         """
 
         when:
