@@ -66,7 +66,11 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.asciidoctor.jvm.convert',
                 'com.gradle.plugin-publish',
                 'kotlin',
-                'com.autonomousapps.dependency-analysis'
+                'com.autonomousapps.dependency-analysis',
+                'dev.adamko.dokkatoo.DokkatooBasePlugin$Inject',
+                'dev.adamko.dokkatoo.adapters.DokkatooJavaAdapter$Inject',
+                'dev.adamko.dokkatoo.adapters.DokkatooKotlinAdapter$Inject',
+                'dev.adamko.dokkatoo.formats.DokkatooHtmlPlugin$Inject',
             ]
         }
 

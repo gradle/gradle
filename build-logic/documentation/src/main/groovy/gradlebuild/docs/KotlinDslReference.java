@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+package gradlebuild.docs;
 
-repositories {
-    mavenCentral()
-}
+import org.gradle.api.file.DirectoryProperty;
 
-dependencies {
-    testImplementation "junit:junit:3.8"
+/**
+ * Configuration for generating Dokka based Kotlin DSL docs.
+ */
+public abstract class KotlinDslReference {
+
+    /**
+     * The location of the final rendered Dokka content.
+     */
+    public abstract DirectoryProperty getRenderedDocumentation();
+
 }

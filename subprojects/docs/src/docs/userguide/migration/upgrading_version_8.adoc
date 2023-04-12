@@ -69,7 +69,81 @@ Doing so will now emit a deprecation warning.
 This will become an error in Gradle 9.0.
 You should prefer accessing the extensions and their properties instead.
 
-For example the following code will now emit deprecation warnings:
+For specific examples see the next sections.
+
+[[application_convention_deprecation]]
+==== Deprecated ApplicationPluginConvention
+
+As stated in the <<deprecated_access_to_conventions, section about plugin convention deprecation>>, the Application Plugin's convention is deprecated.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    application
+}
+
+applicationDefaultJvmArgs = listOf("-Dgreeting.language=en") // Accessing a convention
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'application'
+}
+
+applicationDefaultJvmArgs = ['-Dgreeting.language=en'] // Accessing a convention
+----
+=====
+====
+
+This should be changed to use the `application` plugin's extension instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    application
+}
+
+application {
+    applicationDefaultJvmArgs = listOf("-Dgreeting.language=en")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'application'
+}
+
+application {
+    applicationDefaultJvmArgs = ['-Dgreeting.language=en']
+}
+----
+=====
+====
+
+[[java_convention_deprecation]]
+==== Deprecated JavaPluginConvention
+
+As stated in the <<deprecated_access_to_conventions, section about plugin convention deprecation>>, the Java Plugin's convention is deprecated.
+
+The following code will now emit deprecation warnings:
 
 ====
 [.multi-language-sample]
@@ -154,6 +228,74 @@ The following method on `Configuration` is deprecated for removal:
 
 Obtain the set of all configurations from the project's `configurations` container instead.
 
+[[test_framework_implementation_dependencies]]
+==== Relying on automatic test framework implementation dependencies
+
+In some cases, Gradle will load JVM test framework dependencies from the Gradle distribution in order to
+execute tests. This existing behavior can lead to test framework dependency version conflicts on the test
+classpath. To avoid these conflicts, this behavior is deprecated and will be removed in Gradle 9.0. Tests
+using TestNG are unaffected.
+
+In order to prepare for this change in behavior, either declare the required dependencies explicitly,
+or migrate to link:jvm_test_suite_plugin.html[Test Suites], where these dependencies are managed automatically.
+
+===== Test Suites
+
+Builds that use test suites will not be affected by this change. Test suites manage the test
+framework dependencies automatically and do not require dependencies to be explicitly declared.
+See link:jvm_test_suite_plugin.html[the user manual] for further information on migrating to test suites.
+
+===== Manually declaring dependencies
+
+In the absence of test suites, dependencies must be manually declared on the test runtime classpath:
+
+  * If using JUnit 5, an explicit `runtimeOnly` dependency on `junit-platform-launcher` is required
+  in addition to the existing `implementation` dependency on the test engine.
+  * If using JUnit 4, only the existing `implementation` dependency on `junit` 4 is required.
+  * If using JUnit 3, a test `runtimeOnly` dependency on `junit` 4 is required in addition to a
+  `compileOnly` dependency on `junit` 3.
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    // If using JUnit Jupiter
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // If using JUnit 4
+    testImplementation("junit:junit:4.13.2")
+
+    // If using JUnit 3
+    testCompileOnly("junit:junit:3.8.2")
+    testRuntimeOnly("junit:junit:4.13.2")
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    // If using JUnit Jupiter
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // If using JUnit 4
+    testImplementation("junit:junit:4.13.2")
+
+    // If using JUnit 3
+    testCompileOnly("junit:junit:3.8.2")
+    testRuntimeOnly("junit:junit:4.13.2")
+}
+----
+======
+=====
+
 === Potential breaking changes
 
 [[kotlin_1_8.20]]
@@ -181,7 +323,7 @@ See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more infor
 === CACHEDIR.TAG files are created in global cache directories
 Gradle now emits a `CACHEDIR.TAG` file in some global cache directories, as specified in <<directory_layout#dir:gradle_user_home:cache_marking>>.
 
-This may cause these directories to no longer be searched or backed up by some tools. To disable it, use the following code in an <<init_scripts#sec:using_an_init_script,init script>> in the Gradle user home directory:
+This may cause these directories to no longer be searched or backed up by some tools. To disable it, use the following code in an <<init_scripts#sec:using_an_init_script,init script>> in the Gradle User Home:
 
 ====
 [.multi-language-sample]
@@ -537,7 +679,7 @@ Please use standard locations for settings and build files:
 [[disabling_user_home_cache_cleanup]]
 ==== Deprecated org.gradle.cache.cleanup property
 
-The `org.gradle.cache.cleanup` property in `gradle.properties` under Gradle user home has been deprecated.  Please use the <<directory_layout#dir:gradle_user_home:configure_cache_cleanup,cache cleanup DSL>> instead to disable or modify the cleanup configuration.
+The `org.gradle.cache.cleanup` property in `gradle.properties` under Gradle User Home has been deprecated.  Please use the <<directory_layout#dir:gradle_user_home:configure_cache_cleanup,cache cleanup DSL>> instead to disable or modify the cleanup configuration.
 
 Since the `org.gradle.cache.cleanup` property may still be needed for older versions of Gradle, this property may still be present and no deprecation warnings will be printed as long as it is also configured via the DSL.
 The DSL value will always take preference over the `org.gradle.cache.cleanup` property.

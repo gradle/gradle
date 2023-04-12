@@ -93,7 +93,7 @@ public interface JavaApplication {
      *
      * application {
      *     applicationDistribution.from("some/dir") {
-     *       include "*.txt"
+     *         include "*.txt"
      *     }
      * }
      * </pre>

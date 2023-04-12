@@ -26,7 +26,7 @@ import java.io.File;
  * @since 2.11
  */
 public interface InstalledJdk {
-    /***
+    /**
      * The version of the Java installation.
      *
      * @return The Java version. Never returns {@code null}.
