@@ -26,11 +26,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class FilteredCollection<T, S extends T> implements ElementSource<S> {
+public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     protected final ElementSource<T> collection;
     protected final CollectionFilter<S> filter;
 
-    public FilteredCollection(ElementSource<T> collection, CollectionFilter<S> filter) {
+    public FilteredElementSource(ElementSource<T> collection, CollectionFilter<S> filter) {
         this.collection = collection;
         this.filter = filter;
     }

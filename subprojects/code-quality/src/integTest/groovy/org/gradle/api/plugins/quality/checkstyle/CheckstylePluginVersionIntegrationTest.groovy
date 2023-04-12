@@ -520,6 +520,8 @@ dependencies {
     implementation localGroovy()
 }
 
+testing.suites.test.useJUnit()
+
 checkstyle {
     toolVersion = '$version'
 }

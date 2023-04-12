@@ -89,6 +89,8 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER) //hangs on Java9
     def canRunTestsWithCustomSystemClassLoaderAndJavaAgent() {
+        ignoreWhenJUnitPlatform()
+
         when:
         run 'test'
 
