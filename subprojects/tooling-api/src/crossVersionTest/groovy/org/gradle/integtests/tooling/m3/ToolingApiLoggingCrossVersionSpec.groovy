@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
@@ -46,7 +45,7 @@ task log {
         def resultHandler = new TestResultHandler()
         def sync = server.expectAndBlock("waiting")
         def output = new TestOutputStream()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.standardOutput = output
             build.forTasks("log")

@@ -195,7 +195,7 @@ class ToolingApi implements TestRule {
         assert throwableStack.endsWith(currentThreadStackStr)
     }
 
-    private <T> T withConnectionRaw( connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
+    private <T> T withConnectionRaw( connector, Closure<T> cl) {
         try (def connection = connector.connect()) {
             return connection.with(cl)
         } catch (Throwable t) {

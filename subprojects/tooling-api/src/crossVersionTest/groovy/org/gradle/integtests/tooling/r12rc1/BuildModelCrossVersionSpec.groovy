@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r12rc1
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ModelBuilder
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 class BuildModelCrossVersionSpec extends ToolingApiSpecification {
@@ -35,8 +34,8 @@ task setup {
 '''
 
         when:
-        HierarchicalEclipseProject project = withConnection { ProjectConnection connection ->
-            connection.model(HierarchicalEclipseProject.class).forTasks('setup').get()
+        HierarchicalEclipseProject project = withConnection {
+            it.model(HierarchicalEclipseProject.class).forTasks('setup').get()
         }
 
         then:
@@ -53,7 +52,7 @@ task setup {
         """
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def builder = connection.model(HierarchicalEclipseProject.class)
             action(builder)
             builder.get()
@@ -80,7 +79,7 @@ task setup {
         """
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def builder = connection.model(HierarchicalEclipseProject.class)
             action(builder)
             builder.get()

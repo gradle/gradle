@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.Requires
 
@@ -38,8 +37,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild().run()
+        toolingApi.withConnection { it.newBuild().run()
         }
 
         then:
@@ -56,8 +54,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.model(GradleProject).get()
+        toolingApi.withConnection { it.model(GradleProject).get()
         }
 
         then:
@@ -74,8 +71,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.action(new BrokenAction()).run()
+        toolingApi.withConnection { it.action(new BrokenAction()).run()
         }
 
         then:
@@ -92,8 +88,7 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newTestLauncher().withJvmTestClasses("SomeTest").run()
+        toolingApi.withConnection { it.newTestLauncher().withJvmTestClasses("SomeTest").run()
         }
 
         then:

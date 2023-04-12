@@ -65,7 +65,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def ideaProject = withConnection { connection -> connection.getModel(IdeaProject) }
+        def ideaProject = withConnection { it.getModel(IdeaProject) }
 
         then:
         ideaProject.modules.find { it.name == 'root' }.jdkName == 'MyJDK1'
@@ -100,12 +100,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
                 apply plugin: 'java'
                 apply plugin: 'idea'
             }
-            
+
             dependencies {
                 implementation project(':a')
                 testImplementation project(':f')
             }
-            
+
             project(':a') {
                 apply plugin: 'java-library'
                 dependencies {
@@ -151,12 +151,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
                 apply plugin: 'java'
                 apply plugin: 'idea'
             }
-            
+
             dependencies {
                 implementation project(':a')
                 testImplementation project(':f')
             }
-            
+
             project(':a') {
                 apply plugin: 'java-library'
                 dependencies {
