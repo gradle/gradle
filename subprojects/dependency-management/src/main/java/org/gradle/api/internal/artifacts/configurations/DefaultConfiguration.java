@@ -237,6 +237,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ConfigurationRole roleAtCreation;
 
     private boolean canBeMutated = true;
+    private boolean performedPreResolve = false;
     private AttributeContainerInternal configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final ImmutableAttributesFactory attributesFactory;
@@ -697,6 +698,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     /**
+     * This method executes any actions which may mutate the configuration and then
+     * prevents further mutation. This way, we can ensure that the configuration
+     * cannot be modified after we construct configuration metadata.
+     */
+    private void preventMutationPreResolution() {
+        runDependencyActions();
+        performPreResolveActions(getIncoming());
+        preventFromFurtherMutation();
+
+        // We prevent parent configurations from mutation when traversing the
+        // hierarchy while building configuration metadata.
+    }
+
+    /**
      * Must be called from {@link #resolveExclusively(InternalState)} only.
      */
     private ResolveState resolveGraphIfRequired(final InternalState requestedState, ResolveState currentState) {
@@ -710,11 +725,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return buildOperationExecutor.call(new CallableBuildOperation<ResolveState>() {
             @Override
             public ResolveState call(BuildOperationContext context) {
-                runDependencyActions();
-                preventFromFurtherMutation();
+                preventMutationPreResolution();
 
-                ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
-                performPreResolveActions(incoming);
                 ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
                 dependenciesModified = false;
 
@@ -728,7 +740,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 markReferencedProjectConfigurationsObserved(requestedState, results);
 
                 if (!newState.hasError()) {
-                    dependencyResolutionListeners.getSource().afterResolve(incoming);
+                    dependencyResolutionListeners.getSource().afterResolve(getIncoming());
 
                     // Use the current state, which may have changed if the listener queried the result
                     newState = currentResolveState.get();
@@ -836,6 +848,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void performPreResolveActions(ResolvableDependencies incoming) {
+        if (performedPreResolve) {
+            return;
+        }
+        performedPreResolve = true;
+
         DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
         insideBeforeResolve = true;
         try {
@@ -908,6 +925,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         ResolveState currentState = currentResolveState.update(initial -> {
             if (initial.state == UNRESOLVED) {
+                preventMutationPreResolution();
                 // Traverse graph
                 ResolverResults results = resolver.resolveBuildDependencies(DefaultConfiguration.this);
                 markReferencedProjectConfigurationsObserved(BUILD_DEPENDENCIES_RESOLVED, results);
@@ -1463,6 +1481,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         childMutationValidators.remove(validator);
     }
 
+    /**
+     * Called when a parent configuration is mutated.
+     */
     private void validateParentMutation(MutationType type) {
         // Strategy changes in a parent configuration do not affect this configuration, or any of its children, in any way
         if (type == MutationType.STRATEGY) {
