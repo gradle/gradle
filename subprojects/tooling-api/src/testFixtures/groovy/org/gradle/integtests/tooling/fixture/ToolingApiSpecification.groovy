@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -38,7 +37,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -178,7 +176,7 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         }
     }
 
-    def <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection(connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             return toolingApi.withConnection(connector, cl)
         } catch (GradleConnectionException e) {
@@ -187,7 +185,7 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         }
     }
 
-    GradleConnector connector() {
+    ToolingApiConnector connector() {
         toolingApi.connector()
     }
 
@@ -216,11 +214,6 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
             build.run()
             out
         }
-    }
-
-    void collectOutputs(LongRunningOperation op) {
-        op.setStandardOutput(new TeeOutputStream(stdout, System.out))
-        op.setStandardError(new TeeOutputStream(stderr, System.err))
     }
 
     /**
@@ -338,7 +331,7 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         }
     }
 
-    private shouldCheckForDeprecationWarnings() {
+    def shouldCheckForDeprecationWarnings() {
         GradleVersion.version("6.9") > targetVersion
     }
 
@@ -363,12 +356,6 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         validateOutput()
         return result
     }
-
-//    def <T> T loadToolingLeanModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
-//        def result = toolingApi.loadToolingLeanModel(modelClass, configurator)
-//        assertHasNoDeprecationWarnings()
-//        return result
-//    }
 
     protected GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)

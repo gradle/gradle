@@ -89,17 +89,33 @@ class ToolingApiModelBuilder<T> implements ModelBuilder<T>, ToolingApiConfigurab
     }
 }
 
+/**
+ * This trait is used to add the missing methods to the ToolingApiConnection class without actually deriving from ProjectConnection.
+ * While still allowing the ToolingApiConnection to be used as a ProjectConnection.
+ * This avoids loading the ProjectConnection class from the test code and postbones loading to the tooling api magic.
+ */
 
-class ToolingApiConnection implements ProjectConnection {
-    @Delegate
-    private final ProjectConnection projectConnection
+trait ProjectConnectionTrait implements ProjectConnection {
+}
+
+class ToolingApiConnection {
+    private final Object projectConnection
     private final OutputStream stderr
     private final OutputStream stdout
 
-    ToolingApiConnection(ProjectConnection projectConnection, OutputStream stdout, OutputStream stderr) {
+    ToolingApiConnection(Object projectConnection, OutputStream stdout, OutputStream stderr) {
         this.stdout = stdout
         this.stderr = stderr
         this.projectConnection = projectConnection
+        this.withTraits(ProjectConnectionTrait)
+    }
+
+    def methodMissing(String name, args) {
+        projectConnection."$name"(*args)
+    }
+
+    BuildActionExecuter.Builder action() {
+        projectConnection.action()
     }
 
     BuildLauncher newBuild() {
