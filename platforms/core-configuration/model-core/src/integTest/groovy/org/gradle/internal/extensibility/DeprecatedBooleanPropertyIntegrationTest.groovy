@@ -19,6 +19,22 @@ package org.gradle.internal.extensibility
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
+    def "does not emit deprecation warning when a decorated class exposes a Boolean property like a field"() {
+        buildFile << """
+            abstract class MyExtension {
+                Boolean property = Boolean.TRUE
+            }
+            def myext = extensions.create("myext", MyExtension)
+            task assertProperty {
+                doLast {
+                    assert myext.property
+                }
+            }
+        """
+        expect:
+        succeeds("assertProperty")
+    }
+
     def "does not emit deprecation warning when a decorated class exposes a Boolean getter"() {
         buildFile << """
             abstract class MyExtension {
