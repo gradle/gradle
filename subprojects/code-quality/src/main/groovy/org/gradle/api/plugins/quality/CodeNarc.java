@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CodeNarcAction;
 import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
@@ -50,11 +49,13 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
+
 /**
  * Runs CodeNarc against some source files.
  */
 @CacheableTask
-public class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
+public abstract class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
 
     private FileCollection codenarcClasspath;
 
@@ -112,29 +113,17 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected ObjectFactory getObjectFactory();
 
     @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected JavaToolchainService getToolchainService();
 
     @Inject
-    @Deprecated
-    public IsolatedAntBuilder getAntBuilder() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected WorkerExecutor getWorkerExecutor() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected WorkerExecutor getWorkerExecutor();
 
     /**
      * JavaLauncher for toolchain support
-     * @since 8.0
+     * @since 8.1
      */
     @Incubating
     @Nested
@@ -146,12 +135,13 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     public void run() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            spec.getClasspath().from(getCodenarcClasspath());
+            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
         });
         workQueue.submit(CodeNarcAction.class, this::setupParameters);
     }
 
     private void setupParameters(CodeNarcActionParameters parameters) {
+        parameters.getAntLibraryClasspath().setFrom(getCodenarcClasspath());
         parameters.getCompilationClasspath().setFrom(getCompilationClasspath());
         parameters.getConfig().set(getConfigFile());
         parameters.getMaxPriority1Violations().set(getMaxPriority1Violations());

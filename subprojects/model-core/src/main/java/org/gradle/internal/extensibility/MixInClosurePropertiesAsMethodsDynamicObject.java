@@ -56,7 +56,9 @@ public abstract class MixInClosurePropertiesAsMethodsDynamicObject extends Compo
                 return DynamicInvokeResult.found();
             }
             DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(property);
-            return dynamicObject.tryInvokeMethod("call", arguments);
+            if (dynamicObject.hasMethod("call", arguments)) {
+                return dynamicObject.tryInvokeMethod("call", arguments);
+            }
         }
         return DynamicInvokeResult.notFound();
     }

@@ -23,7 +23,7 @@ You have to declare the projects taking part in the multi-project build in the s
 
 Multi-project builds are always represented by a tree with a single root.
 Each element in the tree represents a project.
-A project has a path which denotes the position of the project in the multi-project build tree.
+A project has <<intro_multi_project_builds#sec:project_path,a path>> which denotes the position of the project in the multi-project build tree.
 In most cases the project path is consistent with the physical location of the project in the file system.
 However, this behavior is configurable. The project tree is created in the `settings.gradle` file.
 The location of the settings file is also the location of the root project.
@@ -35,11 +35,11 @@ In the settings file you can use the `include` method to build the project tree.
 
 .Project layout
 ====
-include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
 include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
+include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
 ====
 
-The `include` method takes project paths as arguments.
+The `include` method takes <<intro_multi_project_builds#sec:project_path,project paths>> as arguments.
 The project path is assumed to be equal to the relative physical file system path.
 For example, a path 'services:api' is mapped by default to a folder 'services/api' (relative from the project root).
 You only need to specify the leaves of the tree.
@@ -56,16 +56,16 @@ To access a descriptor you can do:
 
 .Lookup of elements of the project tree
 ====
-include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
 include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
 ====
 
 Using this descriptor you can change the name, project directory and build file of a project.
 
 .Modification of elements of the project tree
 ====
-include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
 include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
 ====
 
 Look at the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.

@@ -261,6 +261,21 @@ public interface JvmInstallationMetadata {
         public boolean isValidInstallation() {
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "DefaultJvmInstallationMetadata{" +
+                    "languageVersion=" + languageVersion +
+                    ", javaVersion='" + javaVersion + '\'' +
+                    ", javaVendor='" + javaVendor + '\'' +
+                    ", runtimeName='" + runtimeName + '\'' +
+                    ", runtimeVersion='" + runtimeVersion + '\'' +
+                    ", jvmName='" + jvmName + '\'' +
+                    ", jvmVersion='" + jvmVersion + '\'' +
+                    ", jvmVendor='" + jvmVendor + '\'' +
+                    ", architecture='" + architecture + '\'' +
+                    '}';
+        }
     }
 
     class FailureInstallationMetadata implements JvmInstallationMetadata {

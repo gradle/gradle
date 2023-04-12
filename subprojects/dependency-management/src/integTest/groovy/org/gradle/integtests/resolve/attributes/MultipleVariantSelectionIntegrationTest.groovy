@@ -260,10 +260,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge('org:test:1.0', 'org:test:1.0') {
-                        variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
-                    }
+                    edge('org:test:1.0', 'org:test:1.0')
                     module('org:test:1.0') {
+                        maybeByConflictResolution()
                         variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
                     }
                 }
@@ -358,8 +357,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     // the following assertion is true but limitations to the test fixtures make it hard to check
                     //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
                     variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                    artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c2'
-                    artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c3'
+                    artifact classifier: 'c2'
+                    artifact classifier: 'c3'
                 }
                 module('org:bar:1.0') {
                     module('org:foo:1.1')
@@ -587,7 +586,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.1 and 1.0')
                     variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                    artifact group: 'org', module: 'foo', version: '1.0', classifier: 'c2'
+                    artifact classifier: 'c2'
                 }
                 module('org:bar:1.0') {
                     module('org:foo:1.1')
@@ -634,11 +633,11 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             root(":", ":test:") {
                 module('org:foo:1.0') {
                     variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                    artifact group: 'org', module: 'foo', version: '1.0'
+                    artifact()
                 }
                 module('org:foo:1.0') {
                     variant('test-fixtures', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus()])
-                    artifact group: 'org', module: 'foo', version: '1.0', classifier: 'test-fixtures'
+                    artifact classifier: 'test-fixtures'
                 }
             }
         }

@@ -25,6 +25,6 @@ tasks.register<ValidatePlugins>(validateTaskName) {
     val main = project.sourceSets.main.get()
     classes.from(main.output)
     classpath.from(main.runtimeClasspath)
-    outputFile.set(project.reporting.baseDirectory.file(reportFileName))
-    enableStricterValidation.set(true)
+    outputFile = project.reporting.baseDirectory.file(reportFileName)
+    enableStricterValidation = true
 }

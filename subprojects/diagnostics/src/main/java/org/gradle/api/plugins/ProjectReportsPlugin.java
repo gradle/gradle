@@ -21,6 +21,7 @@ import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.WrapUtil;
 
 /**
@@ -28,7 +29,7 @@ import org.gradle.util.internal.WrapUtil;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/project_report_plugin.html">Project Report plugin reference</a>
  */
-public class ProjectReportsPlugin implements Plugin<Project> {
+public abstract class ProjectReportsPlugin implements Plugin<Project> {
     public static final String TASK_REPORT = "taskReport";
     public static final String PROPERTY_REPORT = "propertyReport";
     public static final String DEPENDENCY_REPORT = "dependencyReport";
@@ -39,10 +40,15 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         @SuppressWarnings("deprecation")
-        final ProjectReportsPluginConvention convention = new org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention(project);
-        @SuppressWarnings("deprecation")
-        Convention projectConvention = project.getConvention();
-        projectConvention.getPlugins().put("projectReports", convention);
+        final ProjectReportsPluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention.class, project);
+
+        DeprecationLogger.whileDisabled(new Runnable() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public void run() {
+                project.getConvention().getPlugins().put("projectReports", convention);
+            }
+        });
 
         project.getTasks().register(TASK_REPORT, TaskReportTask.class, taskReportTask -> {
             taskReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> convention.getProjectReportDir())));

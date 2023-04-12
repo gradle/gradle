@@ -28,7 +28,7 @@ object SanityCheck : BuildType({
     triggers {
         vcs {
             branchFilter = ""
-            enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
+            enabled = VersionedSettingsBranch.fromDslContext().enableVcsTriggers
         }
     }
 

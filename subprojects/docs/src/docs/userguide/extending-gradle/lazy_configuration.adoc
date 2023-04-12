@@ -47,9 +47,14 @@ The following demonstrates a task with a configurable `greeting` property and a 
 
 .Using a read-only and configurable property
 ====
-include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/providers/propertyAndProvider/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build.gradle[]"]
 ====
+<1> A task that displays a greeting
+<2> A configurable greeting
+<3> Read-only property calculated from the greeting
+<4> Configure the greeting
+<5> Alternative notation to calling Property.set() (experimental opt-in for Kotlin, see <<kotlin_dsl.adoc#kotdsl:assignment,Kotlin DSL Primer>>)
 
 .Output of **`gradle greeting`**
 ----
@@ -94,8 +99,8 @@ An important feature of lazy properties is that they can be connected together s
 
 .Connecting properties together
 ====
-include::sample[dir="snippets/providers/connectProperties/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/providers/connectProperties/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/providers/connectProperties/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle greeting`**
@@ -133,8 +138,8 @@ A `DirectoryProperty` can also be used to create a lazily evaluated `Provider` f
 
 .Using file and directory property
 ====
-include::sample[dir="snippets/providers/fileAndDirectoryProperty/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/providers/fileAndDirectoryProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/providers/fileAndDirectoryProperty/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle generate`**
@@ -163,8 +168,8 @@ The `Property` API makes this easier by keeping track of not just the value for 
 
 .Implicit task input file dependency
 ====
-include::sample[dir="snippets/providers/implicitTaskInputFileDependency/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/providers/implicitTaskInputFileDependency/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/providers/implicitTaskInputFileDependency/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle consumer`**
@@ -188,8 +193,8 @@ Implicit task dependencies also works for input properties that are not files.
 
 .Implicit task input dependency
 ====
-include::sample[dir="snippets/providers/implicitTaskInputDependency/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/providers/implicitTaskInputDependency/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/providers/implicitTaskInputDependency/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle consumer`**
@@ -223,8 +228,8 @@ Just like every `Provider`, the collection is calculated when link:{javadocPath}
 
 .List property
 ====
-include::sample[dir="snippets/providers/listProperty/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/providers/listProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/providers/listProperty/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle consumer`**
@@ -250,8 +255,8 @@ Similar to other property types, a `MapProperty` has a link:{javadocPath}/org/gr
 
 .Map property
 ====
-include::sample[dir="snippets/providers/mapProperty/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/providers/mapProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/providers/mapProperty/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle consumer`**
@@ -267,8 +272,8 @@ Often you want to apply some _convention_, or default value, to a property to be
 
 .Property conventions
 ====
-include::sample[dir="snippets/providers/propertyConvention/groovy",files="build.gradle[tags=conventions]"]
 include::sample[dir="snippets/providers/propertyConvention/kotlin",files="build.gradle.kts[tags=conventions]"]
+include::sample[dir="snippets/providers/propertyConvention/groovy",files="build.gradle[tags=conventions]"]
 ====
 
 .Output of **`gradle show`**

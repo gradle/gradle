@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.hash.HashCode;
@@ -25,8 +25,8 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import java.util.Collection;
 
 public class ReadOnlyModuleArtifactsCache extends DefaultModuleArtifactsCache {
-    public ReadOnlyModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager) {
-        super(timeProvider, artifactCacheLockingManager);
+    public ReadOnlyModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator) {
+        super(timeProvider, cacheAccessCoordinator);
     }
 
     @Override

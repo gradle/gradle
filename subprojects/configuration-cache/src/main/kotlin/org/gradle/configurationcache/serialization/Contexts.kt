@@ -30,7 +30,9 @@ import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.internal.Describables
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -120,6 +122,14 @@ class DefaultWriteContext(
                 writeScope(scope.parent)
             }
             writeString(scope.name)
+            if (scope.origin is ClassLoaderScopeOrigin.Script) {
+                writeBoolean(true)
+                writeString(scope.origin.fileName)
+                writeString(scope.origin.longDisplayName.displayName)
+                writeString(scope.origin.shortDisplayName.displayName)
+            } else {
+                writeBoolean(false)
+            }
             writeClassPath(scope.localClassPath)
             writeHashCode(scope.localImplementationHash)
             writeClassPath(scope.exportClassPath)
@@ -302,14 +312,19 @@ class DefaultReadContext(
         }
 
         val name = readString()
+        val origin = if (readBoolean()) {
+            ClassLoaderScopeOrigin.Script(readString(), Describables.of(readString()), Describables.of(readString()))
+        } else {
+            null
+        }
         val localClassPath = readClassPath()
         val localImplementationHash = readHashCode()
         val exportClassPath = readClassPath()
 
         val newScope = if (localImplementationHash != null && exportClassPath.isEmpty) {
-            parent.createLockedChild(name, localClassPath, localImplementationHash, null)
+            parent.createLockedChild(name, origin, localClassPath, localImplementationHash, null)
         } else {
-            parent.createChild(name).local(localClassPath).export(exportClassPath).lock()
+            parent.createChild(name, origin).local(localClassPath).export(exportClassPath).lock()
         }
 
         scopes.putInstance(id, newScope)
@@ -379,6 +394,10 @@ abstract class AbstractIsolateContext<T>(
         currentCodec = codec
     }
 
+    override fun push(owner: IsolateOwner) {
+        push(owner, currentCodec)
+    }
+
     override fun push(owner: IsolateOwner, codec: Codec<Any?>) {
         contexts.add(0, Pair(currentIsolate, currentCodec))
         currentIsolate = newIsolate(owner)
@@ -399,9 +418,9 @@ abstract class AbstractIsolateContext<T>(
         currentProblemsListener.onError(trace, error, message)
     }
 
-    override suspend fun forIncompatibleType(action: suspend () -> Unit) {
+    override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) {
         val previousListener = currentProblemsListener
-        currentProblemsListener = previousListener.forIncompatibleType()
+        currentProblemsListener = previousListener.forIncompatibleTask(path)
         try {
             action()
         } finally {

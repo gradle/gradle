@@ -22,6 +22,7 @@ import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.build.TestProjectInitiation
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -61,10 +62,10 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @ToolingApiTest
 @CleanupTestDirectory
-@ToolingApiVersion('>=3.0')
-@TargetGradleVersion('>=2.6')
+@ToolingApiVersion('>=7.0') // The lowest tested version should be the first release of the previous major.
+@TargetGradleVersion('>=3.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-abstract class ToolingApiSpecification extends Specification {
+abstract class ToolingApiSpecification extends Specification implements TestProjectInitiation {
     /**
      * See https://github.com/gradle/gradle-private/issues/3216
      * To avoid flakiness when reusing daemons between CLI and TAPI
@@ -122,16 +123,23 @@ abstract class ToolingApiSpecification extends Specification {
         temporaryFolder.testDirectory
     }
 
-    TestFile getBuildFile() {
-        file("build.gradle")
-    }
-
+    @Override
     TestFile getBuildFileKts() {
-        file("build.gradle.kts")
+        validateKotlinCompatibility()
+        TestProjectInitiation.super.getBuildFileKts()
     }
 
-    TestFile getSettingsFile() {
-        file("settings.gradle")
+    @Override
+    TestFile getSettingsFileKts() {
+        validateKotlinCompatibility()
+        TestProjectInitiation.super.getSettingsFileKts()
+    }
+
+
+    private validateKotlinCompatibility() {
+        if (targetGradleDistribution && !targetGradleDistribution.supportsKotlinScript) {
+            throw new RuntimeException("The current Gradle target version ($targetGradleDistribution.version) does not support execution of Kotlin build scripts.")
+        }
     }
 
     TestFile file(Object... path) {

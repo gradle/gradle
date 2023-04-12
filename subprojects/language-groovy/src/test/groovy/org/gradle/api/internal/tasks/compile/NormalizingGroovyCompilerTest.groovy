@@ -33,7 +33,7 @@ class NormalizingGroovyCompilerTest extends Specification {
         spec.groovyClasspath = spec.compileClasspath
         spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        spec.compileOptions = TestUtil.newInstance(CompileOptions.class, TestUtil.objectFactory())
         ServiceLookup services = new DefaultServiceRegistry().add(ObjectFactory, TestUtil.objectFactory())
         spec.groovyCompileOptions = new MinimalGroovyCompileOptions(TestUtil.instantiatorFactory().decorateLenient(services).newInstance(GroovyCompileOptions.class))
     }

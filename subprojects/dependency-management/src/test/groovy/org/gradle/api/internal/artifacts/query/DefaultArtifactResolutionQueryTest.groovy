@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.query
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
@@ -27,12 +28,14 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentArtifactResolveState
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
@@ -52,9 +55,10 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     def globalDependencyResolutionRules = Mock(GlobalDependencyResolutionRules)
     def componentTypeRegistry = Mock(ComponentTypeRegistry)
     def artifactResolver = Mock(ArtifactResolver)
+    def artifactTypeRegistry = Mock(ArtifactTypeRegistry)
     def repositoryChain = Mock(ComponentResolvers)
     def componentMetaDataResolver = Mock(ComponentMetaDataResolver)
-    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(GlobalScopedCache), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
+    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(GlobalScopedCacheBuilderFactory), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
 
     @Shared
     ComponentTypeRegistry testComponentTypeRegistry = createTestComponentTypeRegistry()
@@ -135,14 +139,19 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
         def state = Mock(ComponentGraphResolveState)
+
+        def metadata = Mock(ComponentGraphResolveMetadata)
+        _ * state.getMetadata() >> metadata
         _ * state.prepareForArtifactResolution() >> Mock(ComponentArtifactResolveState)
+        _ * metadata.getModuleVersionId() >> Mock(ModuleVersionIdentifier)
+
         numberOfComponentsToResolve * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
             resolveResult.resolved(state)
         }
     }
 
     private DefaultArtifactResolutionQuery createArtifactResolutionQuery(ComponentTypeRegistry componentTypeRegistry) {
-        new DefaultArtifactResolutionQuery(configurationContainerInternal, { [] }, resolveIvyFactory, globalDependencyResolutionRules, componentTypeRegistry, AttributeTestUtil.attributesFactory(), ruleExecutor)
+        new DefaultArtifactResolutionQuery(configurationContainerInternal, { [] }, resolveIvyFactory, globalDependencyResolutionRules, componentTypeRegistry, AttributeTestUtil.attributesFactory(), artifactTypeRegistry, ruleExecutor)
     }
 
     private ComponentTypeRegistry createTestComponentTypeRegistry() {

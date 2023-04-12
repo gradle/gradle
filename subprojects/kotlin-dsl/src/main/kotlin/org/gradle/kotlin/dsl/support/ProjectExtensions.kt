@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.support
 
-import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.Project
 
 import org.gradle.api.internal.project.ProjectInternal
@@ -33,7 +32,7 @@ fun serviceRegistryOf(project: Project) =
     (project as ProjectInternal).services
 
 
-@VisibleForTesting
+internal
 fun isGradleKotlinDslJar(file: File) =
     isGradleKotlinDslJarName(file.name)
 

@@ -304,11 +304,26 @@ class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
+    boolean isLoadsFromConfigurationCacheAfterStore() {
+        return isSameOrNewer("8.0-milestone-5")
+    }
+
+    @Override
+    boolean isRunsBuildSrcTests() {
+        return isSameOrOlder("7.6")
+    }
+
+    @Override
     <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
         if (isSameOrNewer("4.0") && isSameOrOlder("4.6") || isSameOrNewer("5.1-rc-1")) {
             return stderr;
         }
         return stdout;
+    }
+
+    @Override
+    boolean isSupportsKotlinScript() {
+        return isSameOrNewer("4.10.3"); // see compatibility matrix https://docs.gradle.org/8.0/userguide/compatibility.html
     }
 
     protected boolean isSameOrNewer(String otherVersion) {

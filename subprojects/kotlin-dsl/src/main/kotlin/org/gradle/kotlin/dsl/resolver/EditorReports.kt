@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import com.google.common.annotations.VisibleForTesting
-
 
 object EditorReports {
 
@@ -33,10 +31,10 @@ object EditorMessages {
     private
     const val ideLogs = "see IDE logs for more information"
 
-    @VisibleForTesting
+    internal
     const val failure = "Script dependencies resolution failed, $ideLogs"
 
-    @VisibleForTesting
+    internal
     const val failureUsingPrevious = "Script dependencies resolution failed, $usingPrevious, $ideLogs"
 
     private

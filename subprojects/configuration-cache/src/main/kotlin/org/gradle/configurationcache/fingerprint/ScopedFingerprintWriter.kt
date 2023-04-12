@@ -16,8 +16,10 @@
 
 package org.gradle.configurationcache.fingerprint
 
+import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.runWriteOperation
+import org.gradle.configurationcache.serialization.withPropertyTrace
 import java.io.Closeable
 
 
@@ -34,9 +36,11 @@ class ScopedFingerprintWriter<T>(
         }
     }
 
-    fun write(value: T) {
+    fun write(value: T, trace: PropertyTrace? = null) {
         synchronized(writeContext) {
-            unsafeWrite(value)
+            withPropertyTrace(trace) {
+                unsafeWrite(value)
+            }
         }
     }
 
@@ -44,6 +48,15 @@ class ScopedFingerprintWriter<T>(
     fun unsafeWrite(value: T?) {
         writeContext.runWriteOperation {
             write(value)
+        }
+    }
+
+    private
+    inline fun withPropertyTrace(trace: PropertyTrace?, block: ScopedFingerprintWriter<T>.() -> Unit) {
+        if (trace != null) {
+            writeContext.withPropertyTrace(trace) { block() }
+        } else {
+            block()
         }
     }
 }

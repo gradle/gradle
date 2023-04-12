@@ -28,6 +28,7 @@ import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
@@ -54,9 +55,9 @@ import java.util.zip.ZipFile;
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 import static org.gradle.util.internal.CollectionUtils.single;
 
-public class WrapperDistributionCleanupAction implements DirectoryCleanupAction {
+public class WrapperDistributionCleanupAction implements MonitoredCleanupAction {
 
-    @VisibleForTesting static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
+    public static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
     private static final Logger LOGGER = LoggerFactory.getLogger(WrapperDistributionCleanupAction.class);
 
     private static final ImmutableMap<String, Pattern> JAR_FILE_PATTERNS_BY_PREFIX;

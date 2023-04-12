@@ -36,7 +36,7 @@ public final class ResolveTaskMutationsBuildOperationType implements BuildOperat
         String getTaskPath();
 
         /**
-         * @see org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId
+         * See {@code org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId}.
          */
         long getTaskId();
     }

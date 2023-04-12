@@ -24,21 +24,22 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.OutputFilesCollector;
 import org.gradle.api.internal.tasks.properties.OutputUnpacker;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.StaticValue;
+import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -49,11 +50,12 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 @NonNullApi
-public class DefaultTaskOutputs implements TaskOutputsInternal {
+public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
+    private boolean storeInCache = true;
     private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
     private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
     private FileCollection previousOutputFiles;
@@ -61,10 +63,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
-        this.allOutputFiles = new TaskOutputUnionFileCollection(task);
+        this.allOutputFiles = new TaskOutputUnionFileCollection(taskDependencyFactory, task);
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
     }
@@ -93,6 +95,17 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Spec)", () -> {
             upToDateSpec = upToDateSpec.and(spec);
         });
+    }
+
+    @Override
+    public boolean getStoreInCache() {
+        return storeInCache;
+    }
+
+    @Override
+    public void doNotStoreInCache() {
+        // Not wrapped in TaskMutator to allow calls during task execution
+        storeInCache = false;
     }
 
     @Override
@@ -205,7 +218,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return previousOutputFiles.getFiles();
     }
 
-    private static class HasDeclaredOutputsVisitor extends PropertyVisitor.Adapter {
+    private static class HasDeclaredOutputsVisitor implements PropertyVisitor {
         boolean hasDeclaredOutputs;
 
         @Override
@@ -221,7 +234,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final TaskInternal buildDependencies;
 
-        public TaskOutputUnionFileCollection(TaskInternal buildDependencies) {
+        public TaskOutputUnionFileCollection(TaskDependencyFactory taskDependencyFactory, TaskInternal buildDependencies) {
+            super(taskDependencyFactory);
             this.buildDependencies = buildDependencies;
         }
 

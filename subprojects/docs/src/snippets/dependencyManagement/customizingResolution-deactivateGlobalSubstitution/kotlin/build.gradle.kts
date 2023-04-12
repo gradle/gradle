@@ -11,7 +11,6 @@ configurations.create("publishedRuntimeClasspath") {
 
     extendsFrom(configurations.runtimeClasspath.get())
     isCanBeConsumed = false
-    isCanBeResolved = true
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
 }
 // end::disableGlobalDependencySubstitutionRules[]
@@ -21,8 +20,11 @@ dependencies {
 }
 
 tasks.register("resolve") {
+    val runtimeClasspath: FileCollection = configurations.runtimeClasspath.get()
+    val publishedRuntimeClasspath: FileCollection = configurations["publishedRuntimeClasspath"]
+
     doLast {
-        configurations.runtimeClasspath.get().files.forEach { println(it.name) }
-        configurations["publishedRuntimeClasspath"].files.forEach { println(it.name) }
+        runtimeClasspath.files.forEach { println(it.name) }
+        publishedRuntimeClasspath.files.forEach { println(it.name) }
     }
 }

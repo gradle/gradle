@@ -26,7 +26,7 @@ class KotlinAndroidDeprecations extends BaseDeprecations implements WithKotlinDe
     private static final VersionNumber KOTLIN_VERSION_WITHOUT_CONFIGURATION_DEPENDENCY = VersionNumber.parse('1.4.31')
     private static final String CONFIGURATION_AS_DEPENDENCY_DEPRECATION =
         "Adding a Configuration as a dependency is a confusing behavior which isn't recommended. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+            "This behavior is scheduled to be removed in Gradle 8.0. " +
             "If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead. " +
             "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[]) for more details."
 

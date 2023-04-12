@@ -22,6 +22,79 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 class BeforeResolveIntegrationTest extends AbstractDependencyResolutionTest {
+    def "can use beforeResolve hook to modify add dependencies"() {
+        mavenRepo.module('org.test', 'dep1', '1.0').publish()
+        mavenRepo.module('org.test', 'dep2', '1.0').publish()
+        mavenRepo.module('org.test', 'dep3', '1.0').publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+configurations {
+    conf
+}
+dependencies {
+    conf 'org.test:dep1:1.0'
+}
+
+configurations.conf.incoming.beforeResolve { resolvableDependencies ->
+    project.dependencies.add('conf', 'org.test:dep2:1.0')
+}
+
+task printFiles {
+    def conf = configurations.conf
+    doLast {
+        def files = conf.collect { it.name }
+        println files
+        assert files == ['dep1-1.0.jar', 'dep2-1.0.jar']
+    }
+}
+
+task printFilesWithConfigurationInput {
+    dependsOn configurations.conf
+    def conf = configurations.conf
+    doLast {
+        def files = conf.collect { it.name }
+        println files
+        assert files == ['dep1-1.0.jar', 'dep2-1.0.jar']
+    }
+}
+
+task copyFiles(type:Copy) {
+    from configurations.conf
+    into 'libs'
+}
+"""
+
+        when:
+        succeeds 'printFiles'
+
+        then:
+        outputContains('[dep1-1.0.jar, dep2-1.0.jar]')
+
+        when:
+        succeeds 'printFilesWithConfigurationInput'
+
+        then:
+        outputContains('[dep1-1.0.jar, dep2-1.0.jar]')
+
+        when:
+        succeeds 'copyFiles'
+        then:
+        file('libs').assertHasDescendants('dep1-1.0.jar', 'dep2-1.0.jar')
+
+        when:
+        buildFile << """
+// add another dependency to conf
+configurations.conf.incoming.beforeResolve { resolvableDependencies ->
+    project.dependencies.add('conf', 'org.test:dep3:1.0')
+}
+"""
+        succeeds "copyFiles"
+        then:
+        file('libs').assertHasDescendants('dep1-1.0.jar', 'dep2-1.0.jar', 'dep3-1.0.jar')
+    }
 
     @Issue("gradle/gradle#2480")
     def "can use beforeResolve hook to modify dependency excludes"() {
@@ -46,8 +119,9 @@ configurations.conf.incoming.beforeResolve { resolvableDependencies ->
 }
 
 task printFiles {
+    def conf = configurations.conf
     doLast {
-        def files = configurations.conf.collect { it.name }
+        def files = conf.collect { it.name }
         println files
         assert files == ['direct-dep-1.0.jar']
     }
@@ -55,8 +129,9 @@ task printFiles {
 
 task printFilesWithConfigurationInput {
     dependsOn configurations.conf
+    def conf = configurations.conf
     doLast {
-        def files = configurations.conf.collect { it.name }
+        def files = conf.collect { it.name }
         println files
         assert files == ['direct-dep-1.0.jar']
     }
@@ -113,9 +188,11 @@ task copyFiles(type:Copy) {
             }
 
             task resolveDependencies {
+                def compile = configurations.compileClasspath
+                def testCompile = configurations.testCompileClasspath
                 doLast {
-                    configurations.compileClasspath.files
-                    configurations.testCompileClasspath.files
+                    compile.files
+                    testCompile.files
                 }
             }
 """
@@ -161,10 +238,12 @@ dependencies {
 }
 
 task resolveDependencies {
+    def rootA = configurations.a.incoming.resolutionResult.rootComponent
+    def rootB = configurations.b.incoming.resolutionResult.rootComponent
     doLast {
-        configurations.a.incoming.resolutionResult
-        configurations.b.incoming.resolutionResult
-        configurations.a.incoming.resolutionResult
+        rootA.get()
+        rootB.get()
+        rootA.get()
     }
 }
 """
@@ -202,15 +281,17 @@ task resolveDependencies {
                 bar "org.test:module2:1.0"
             }
             task a {
-                inputs.files configurations.bar
+                def files = configurations.bar
+                inputs.files files
                 doLast {
-                    configurations.bar.each { println it }
+                    files.each { println it }
                 }
             }
             task b {
-                inputs.files configurations.bar
+                def files = configurations.bar
+                inputs.files files
                 doLast {
-                    configurations.bar.each { println it }
+                    files.each { println it }
                 }
             }
         """

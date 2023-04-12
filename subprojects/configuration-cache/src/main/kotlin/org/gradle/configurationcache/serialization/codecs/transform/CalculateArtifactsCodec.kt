@@ -52,8 +52,8 @@ class CalculateArtifactsCodec(
         write(value.ownerId)
         write(value.targetVariantAttributes)
         writeCollection(value.capabilities)
-        val files = mutableListOf<File>()
-        value.delegate.visitExternalArtifacts { files.add(file) }
+        val files = mutableListOf<Artifact>()
+        value.delegate.visitExternalArtifacts { files.add(Artifact(file, artifactName.classifier)) }
         write(files)
         val steps = unpackTransformationSteps(value.steps)
         writeCollection(steps)
@@ -63,15 +63,18 @@ class CalculateArtifactsCodec(
         val ownerId = readNonNull<ComponentIdentifier>()
         val targetAttributes = readNonNull<ImmutableAttributes>()
         val capabilities: List<Capability> = readList().uncheckedCast()
-        val files = readNonNull<List<File>>()
+        val files = readNonNull<List<Artifact>>()
         val steps: List<TransformStepSpec> = readList().uncheckedCast()
-        return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, capabilities, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }))
+        return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, capabilities, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreateDependencies()) }))
     }
+
+    private
+    class Artifact(val file: File, val classifier: String?)
 
     private
     class FixedFilesArtifactSet(
         private val ownerId: ComponentIdentifier,
-        private val files: List<File>,
+        private val files: List<Artifact>,
         private val calculatedValueContainerFactory: CalculatedValueContainerFactory
     ) : ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
         override fun visitDependencies(context: TaskDependencyResolveContext) {
@@ -83,9 +86,6 @@ class CalculateArtifactsCodec(
         }
 
         override fun startFinalization(actions: BuildOperationQueue<RunnableBuildOperation>, requireFiles: Boolean) {
-        }
-
-        override fun finalizeNow(requireFiles: Boolean) {
         }
 
         override fun visit(visitor: ArtifactVisitor) {
@@ -108,8 +108,8 @@ class CalculateArtifactsCodec(
         private
         val artifacts by lazy {
             files.map { file ->
-                val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
-                PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, calculatedValueContainerFactory.create(Describables.of(artifactId), file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
+                val artifactId = ComponentFileArtifactIdentifier(ownerId, file.file.name)
+                PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file.file, file.classifier), artifactId, calculatedValueContainerFactory.create(Describables.of(artifactId), file.file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
             }
         }
     }

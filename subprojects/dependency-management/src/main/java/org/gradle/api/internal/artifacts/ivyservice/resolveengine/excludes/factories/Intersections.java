@@ -63,6 +63,19 @@ class Intersections {
             }
         }
 
+        /*
+         * The following cases are roughly ordered by the frequency of occurrence.  The order
+         * these checks are performed if CRITICAL, as not all of the intersectXYZ methods consider
+         * every type possibility for the right hand side operand.  Instead, some of these methods
+         * assume they will be called in the order here, and thus that certain types will not ever
+         * be supplied as their RHS operands.
+         *
+         * If the order of these checks is ever changed, then each intersectXYZ method must be
+         * updated to handle a RHS operand in all possible subtypes.  There are currently 6 types
+         * that extends ExcludeSpec and are relevant (GroupExclude, GroupSetExclude, ModuleExclude, ModuleIdExclude,
+         * ModuleIdSetExclude, ModuleSetExclude).  ExcludeEverything and ExcludeNothing are special
+         * cases handled above, and ArtifactExclude and CompositeExclude are also not relevant here.
+         */
         if (left instanceof GroupExclude) {
             return intersectGroup((GroupExclude) left, right);
         } else if (right instanceof GroupExclude) {
@@ -199,6 +212,13 @@ class Intersections {
                 return left;
             }
             return factory.nothing();
+        } else if (right instanceof ModuleSetExclude) {
+            ModuleSetExclude moduleSetExclude = (ModuleSetExclude) right;
+            if (moduleSetExclude.getModules().contains(left.getModuleId().getName())) {
+                return left;
+            } else {
+                return factory.nothing();
+            }
         }
         return null;
     }
@@ -295,6 +315,8 @@ class Intersections {
                 .filter(id -> groups.contains(id.getGroup()))
                 .collect(toSet());
             return moduleIdSet(filtered);
+        } else if (right instanceof  ModuleSetExclude) {
+            return factory.moduleIdSet(groups.stream().flatMap(group -> ((ModuleSetExclude) right).getModules().stream().map(module -> DefaultModuleIdentifier.newId(group, module))).collect(toSet()));
         }
         return null;
     }
@@ -332,6 +354,8 @@ class Intersections {
         } else if (right instanceof ModuleIdSetExclude) {
             Set<ModuleIdentifier> common = ((ModuleIdSetExclude) right).getModuleIds().stream().filter(id -> id.getName().equals(module)).collect(toSet());
             return moduleIdSet(common);
+        } else if (right instanceof GroupSetExclude) {
+            return factory.moduleIdSet(((GroupSetExclude) right).getGroups().stream().map(group -> DefaultModuleIdentifier.newId(group, module)).collect(toSet()));
         }
         return null;
     }

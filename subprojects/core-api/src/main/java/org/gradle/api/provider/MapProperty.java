@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.SupportsKotlinAssignmentOverloading;
+
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +35,7 @@ import java.util.Set;
  * @param <V> the type of values.
  * @since 5.1
  */
+@SupportsKotlinAssignmentOverloading
 public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue {
 
     /**

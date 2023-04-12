@@ -41,6 +41,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -61,6 +62,13 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
     };
     public static final TransformUpstreamDependencies NO_DEPENDENCIES = new TransformUpstreamDependencies() {
+
+        @Nullable
+        @Override
+        public ConfigurationIdentity getConfigurationIdentity() {
+            return null;
+        }
+
         @Override
         public FileCollection selectedArtifacts() {
             throw failure();
@@ -81,6 +89,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     };
 
     private final ComponentIdentifier componentIdentifier;
+    private final ConfigurationIdentity configurationIdentity;
     private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
@@ -90,12 +99,14 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
     public DefaultTransformUpstreamDependenciesResolver(
         ComponentIdentifier componentIdentifier,
+        ConfigurationIdentity configurationIdentity,
         ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
         DomainObjectContext owner,
         FilteredResultFactory filteredResultFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.componentIdentifier = componentIdentifier;
+        this.configurationIdentity = configurationIdentity;
         this.resolutionResultProvider = resolutionResultProvider;
         this.owner = owner;
         this.filteredResultFactory = filteredResultFactory;
@@ -111,7 +122,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         if (!transformationStep.requiresDependencies()) {
             return NO_DEPENDENCIES;
         }
-        return new TransformUpstreamDependenciesImpl(transformationStep, calculatedValueContainerFactory);
+        return new TransformUpstreamDependenciesImpl(configurationIdentity, transformationStep, calculatedValueContainerFactory);
     }
 
     private FileCollectionInternal selectedArtifactsFor(ImmutableAttributes fromAttributes) {
@@ -284,13 +295,20 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private class TransformUpstreamDependenciesImpl implements TransformUpstreamDependencies {
+        private final ConfigurationIdentity configurationIdentity;
         private final CalculatedValueContainer<ArtifactTransformDependencies, FinalizeTransformDependencies> transformDependencies;
         private final ImmutableAttributes fromAttributes;
 
-        public TransformUpstreamDependenciesImpl(TransformationStep transformationStep, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        public TransformUpstreamDependenciesImpl(ConfigurationIdentity configurationIdentity, TransformationStep transformationStep, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+            this.configurationIdentity = configurationIdentity;
             this.fromAttributes = transformationStep.getFromAttributes();
             transformDependencies = calculatedValueContainerFactory.create(Describables.of("dependencies for", componentIdentifier, fromAttributes),
                 new FinalizeTransformDependenciesFromSelectedArtifacts(transformationStep.getFromAttributes()));
+        }
+
+        @Override
+        public ConfigurationIdentity getConfigurationIdentity() {
+            return configurationIdentity;
         }
 
         @Override

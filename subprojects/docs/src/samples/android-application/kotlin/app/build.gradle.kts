@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application") version "7.3.0-rc01"
+    id("com.android.application") version "7.3.0"
 }
 
 repositories {

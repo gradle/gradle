@@ -18,13 +18,14 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -55,8 +56,9 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final MainLibraryVariant mainVariant;
     private final DefaultLibraryDependencies dependencies;
 
+    @SuppressWarnings("deprecation")
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory immutableAttributesFactory) {
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, RoleBasedConfigurationContainerInternal configurations, ImmutableAttributesFactory immutableAttributesFactory) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
@@ -70,16 +72,15 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
         Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
 
-        apiElements = configurations.create(getNames().withSuffix("cppApiElements"));
+        apiElements = configurations.createWithRole(getNames().withSuffix("cppApiElements"), ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
         apiElements.extendsFrom(dependencies.getApiDependencies());
-        apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
         apiElements.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
 
         AttributeContainer publicationAttributes = immutableAttributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
         publicationAttributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.ZIP_TYPE);
-        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, objectFactory);
+        mainVariant = new MainLibraryVariant("api", apiElements, publicationAttributes, objectFactory);
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {

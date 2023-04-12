@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.download;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationResult;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.events.OperationResult;
  *
  * @since 7.3
  */
-@Incubating
 public interface FileDownloadResult extends OperationResult {
     /**
      * Returns the total download size. Note that this might not be the same as the file size.

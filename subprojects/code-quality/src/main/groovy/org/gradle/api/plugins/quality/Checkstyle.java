@@ -18,10 +18,10 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
@@ -56,11 +56,13 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
+
 /**
  * Runs Checkstyle against some source files.
  */
 @CacheableTask
-public class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
+public abstract class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
 
     private FileCollection checkstyleClasspath;
     private FileCollection classpath;
@@ -75,12 +77,14 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private final Property<JavaLauncher> javaLauncher;
     private final Property<String> minHeapSize;
     private final Property<String> maxHeapSize;
+    private final Property<Boolean> enableExternalDtdLoad;
 
     public Checkstyle() {
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
         this.minHeapSize = getObjectFactory().property(String.class);
         this.maxHeapSize = getObjectFactory().property(String.class);
+        this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
         // Set default JavaLauncher to current JVM in case
         // CheckstylePlugin that sets Java launcher convention is not applied
         this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
@@ -113,12 +117,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     @Inject
     protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    @Deprecated
-    public IsolatedAntBuilder getAntBuilder() {
         throw new UnsupportedOperationException();
     }
 
@@ -196,12 +194,14 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             spec.getForkOptions().setMinHeapSize(minHeapSize.getOrNull());
             spec.getForkOptions().setMaxHeapSize(maxHeapSize.getOrNull());
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            spec.getClasspath().from(getCheckstyleClasspath());
+            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoad().get());
+            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
 
     private void setupParameters(CheckstyleActionParameters parameters) {
+        parameters.getAntLibraryClasspath().setFrom(getCheckstyleClasspath());
         parameters.getConfig().set(getConfigFile());
         parameters.getMaxErrors().set(getMaxErrors());
         parameters.getMaxWarnings().set(getMaxWarnings());
@@ -211,8 +211,10 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         parameters.getSource().setFrom(getSource());
         parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
         parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
+        parameters.getIsSarifRequired().set(getReports().getSarif().getRequired());
         parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
         parameters.getHtmlOuputLocation().set(getReports().getHtml().getOutputLocation());
+        parameters.getSarifOutputLocation().set(getReports().getSarif().getOutputLocation());
         parameters.getTemporaryDir().set(getTemporaryDir());
         parameters.getConfigProperties().set(getConfigProperties());
         TextResource stylesheetString = getReports().getHtml().getStylesheet();
@@ -441,5 +443,20 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     @Input
     public Property<String> getMaxHeapSize() {
         return maxHeapSize;
+    }
+
+    /**
+     * Enable the use of external DTD files in configuration files.
+     * <strong>Disabled by default because this may be unsafe.</strong>
+     * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.
+     *
+     * @return property to enable the use of external DTD files
+     *
+     * @since 7.6
+     */
+    @Incubating
+    @Input
+    public Property<Boolean> getEnableExternalDtdLoad() {
+        return enableExternalDtdLoad;
     }
 }

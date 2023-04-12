@@ -76,7 +76,7 @@ class DependencyVerifierTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/19089")
     def "should not fail when custom implementation of ModuleComponentIdentifier is verified"() {
         def defaultModuleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "foo"), "1.0")
-        def checksum = new Checksum(ChecksumKind.md5, "my-checksum", [] as Set<String>, "")
+        def checksum = new Checksum(ChecksumKind.md5, "my-checksum", [] as Set<String>, "", "")
         def verificationMetadata = new ImmutableComponentVerificationMetadata(defaultModuleComponentIdentifier, [new ImmutableArtifactVerificationMetadata("foo-1.0.jar", [checksum], [] as Set, [] as Set)])
         verifier = new DependencyVerifier([(defaultModuleComponentIdentifier): verificationMetadata], new DependencyVerificationConfiguration(true, false, [], true, [], [] as Set, []), [])
         def hashCode = Mock(HashCode) { toString() >> "my-checksum" }

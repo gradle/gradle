@@ -20,13 +20,10 @@ import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.history.OverlappingOutputs
+import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -35,12 +32,10 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
 
-import javax.annotation.Nullable
-import java.time.Duration
 import java.util.function.Consumer
 import java.util.function.Supplier
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL
+import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 
 @CompileStatic
 class UnitOfWorkBuilder {
@@ -190,19 +185,14 @@ class UnitOfWorkBuilder {
 
                     @Override
                     Object getOutput() {
-                        return "output"
+                        return loadAlreadyProducedOutput(executionRequest.workspace)
                     }
                 }
             }
 
             @Override
-            Optional<Duration> getTimeout() {
-                throw new UnsupportedOperationException()
-            }
-
-            @Override
-            UnitOfWork.InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-                return UnitOfWork.InputChangeTrackingStrategy.NONE
+            Object loadAlreadyProducedOutput(File workspace) {
+                return "output"
             }
 
             @Override
@@ -222,7 +212,7 @@ class UnitOfWorkBuilder {
                         NON_INCREMENTAL,
                         new UnitOfWork.InputFileValueSupplier(
                             entry.value,
-                            AbsolutePathInputNormalizer,
+                            InputNormalizer.ABSOLUTE_PATH,
                             DirectorySensitivity.DEFAULT,
                             LineEndingSensitivity.DEFAULT,
                             () -> TestFiles.fixed(entry.value)
@@ -234,7 +224,7 @@ class UnitOfWorkBuilder {
             @Override
             void visitOutputs(File workspace, UnitOfWork.OutputVisitor visitor) {
                 outputs.forEach { name, spec ->
-                    visitor.visitOutputProperty(name, spec.treeType, new UnitOfWork.OutputFileValueSupplier(spec.root, TestFiles.fixed(spec.root)))
+                    visitor.visitOutputProperty(name, spec.treeType, UnitOfWork.OutputFileValueSupplier.fromStatic(spec.root, TestFiles.fixed(spec.root)))
                 }
             }
 
@@ -246,16 +236,6 @@ class UnitOfWorkBuilder {
             @Override
             boolean shouldCleanupOutputsOnNonIncrementalExecution() {
                 return false
-            }
-
-            @Override
-            Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-                throw new UnsupportedOperationException()
-            }
-
-            @Override
-            boolean isAllowedToLoadFromCache() {
-                throw new UnsupportedOperationException()
             }
 
             @Override

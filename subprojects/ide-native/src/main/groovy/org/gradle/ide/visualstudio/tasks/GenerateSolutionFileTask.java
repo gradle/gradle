@@ -36,7 +36,7 @@ import java.io.File;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
+public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
     private DefaultVisualStudioSolution solution;
 
     public GenerateSolutionFileTask() {

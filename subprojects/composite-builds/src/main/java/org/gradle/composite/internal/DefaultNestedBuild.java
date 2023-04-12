@@ -18,12 +18,12 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.StandAloneNestedBuild;
-import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory;
@@ -60,25 +60,22 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
         BuildScopeServices buildScopeServices = getBuildServices();
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
-        BuildModelParameters modelParameters = buildScopeServices.get(BuildModelParameters.class);
         BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor();
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
 
-        // On completion of the action, finish only this build and do not finish any other builds
-        // When the build model is required, then do not finish anything on completion of the action
-        // The root build will take care of finishing this build later, if not finished now
-        BuildTreeFinishExecutor finishExecutor;
-        if (modelParameters.isRequiresBuildModel()) {
-            finishExecutor = new DoNothingBuildFinishExecutor(exceptionAnalyser);
-        } else {
-            finishExecutor = new FinishThisBuildOnlyFinishExecutor(exceptionAnalyser);
-        }
+        // On completion of the action, do not finish this build. The root build will take care of finishing this build later
+        BuildTreeFinishExecutor finishExecutor = new DoNothingBuildFinishExecutor(exceptionAnalyser);
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(getBuildController(), workExecutor, finishExecutor);
     }
 
     @Override
     public BuildIdentifier getBuildIdentifier() {
         return buildIdentifier;
+    }
+
+    @Override
+    public BuildDefinition getBuildDefinition() {
+        return buildDefinition;
     }
 
     @Override
@@ -89,6 +86,11 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public boolean isImplicitBuild() {
         return true;
+    }
+
+    @Override
+    public BuildState getOwner() {
+        return owner;
     }
 
     @Override
@@ -116,6 +118,10 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         return buildDefinition.getBuildRootDir();
     }
 
+    @Override
+    public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
+    }
+
     private static class DoNothingBuildFinishExecutor implements BuildTreeFinishExecutor {
         private final ExceptionAnalyser exceptionAnalyser;
 
@@ -127,22 +133,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         @Nullable
         public RuntimeException finishBuildTree(List<Throwable> failures) {
             return exceptionAnalyser.transform(failures);
-        }
-    }
-
-    private class FinishThisBuildOnlyFinishExecutor implements BuildTreeFinishExecutor {
-        private final ExceptionAnalyser exceptionAnalyser;
-
-        public FinishThisBuildOnlyFinishExecutor(ExceptionAnalyser exceptionAnalyser) {
-            this.exceptionAnalyser = exceptionAnalyser;
-        }
-
-        @Override
-        @Nullable
-        public RuntimeException finishBuildTree(List<Throwable> failures) {
-            RuntimeException reportable = exceptionAnalyser.transform(failures);
-            ExecutionResult<Void> finishResult = getBuildController().finishBuild(reportable);
-            return exceptionAnalyser.transform(ExecutionResult.maybeFailed(reportable).withFailures(finishResult).getFailures());
         }
     }
 }

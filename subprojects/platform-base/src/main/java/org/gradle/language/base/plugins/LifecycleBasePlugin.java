@@ -30,7 +30,7 @@ import org.gradle.language.base.internal.plugins.CleanRule;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
  */
-public class LifecycleBasePlugin implements Plugin<Project> {
+public abstract class LifecycleBasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = "clean";
     public static final String ASSEMBLE_TASK_NAME = "assemble";
     public static final String CHECK_TASK_NAME = "check";

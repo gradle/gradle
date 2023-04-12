@@ -23,9 +23,11 @@ import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultNativeTestSuiteBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())

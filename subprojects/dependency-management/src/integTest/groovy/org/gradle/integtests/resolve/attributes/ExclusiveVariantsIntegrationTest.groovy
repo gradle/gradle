@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.attributes
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
-    def "matching attribute combinations and capabilities triggers a warning"() {
+    def "matching attribute combinations and capability #capability fails to resolve"() {
         given:
         buildFile << """
             plugins {
@@ -29,67 +29,99 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                    if (!"${capability}".equals('default')) {
+                        outgoing.capability('org.test:sample:1.0')
                     }
                 }
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
                     }
+                    if (!"${capability}".equals('default')) {
+                        outgoing.capability('org.test:sample:1.0')
+                    }
                 }
-            }""".stripIndent()
+
+                resolver {
+                    assert canBeResolved
+                    canBeConsumed = false
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+            }
+
+            dependencies {
+                resolver(project)
+            }
+
+            tasks.register('resolveSample', Copy) {
+                from configurations.resolver
+                into layout.buildDirectory.dir('sampleContent')
+            }
+            """.stripIndent()
 
         expect:
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets. This behavior has been deprecated.")
-        succeeds("outgoingVariants")
+        fails("resolveSample")
+        failure.assertHasDocumentedCause("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details. See https://docs.gradle.org/current/userguide/upgrading_version_7.html#unique_attribute_sets for more details.")
+
+        where:
+        capability << ['default', 'org.test:sample:1.0']
     }
 
-    def "matching attribute combinations using the default capability, triggers a warning"() {
+    def "matching attribute combinations and capability #capability triggers a warning in outgoingVariants report"() {
         given:
-        settingsFile << "rootProject.name = 'sample'"
         buildFile << """
             plugins {
                 id 'java'
             }
 
-            group = 'org.gradle'
-            version = '1.0'
-
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                    if (!"${capability}".equals('default')) {
+                        outgoing.capability('org.test:sample:1.0')
                     }
                 }
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
                     }
+                    if (!"${capability}".equals('default')) {
+                        outgoing.capability('org.test:sample:1.0')
+                    }
                 }
             }""".stripIndent()
 
         expect:
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets. This behavior has been deprecated.")
         succeeds("outgoingVariants")
-        outputContains("org.gradle:sample:1.0 (default capability)")
+        outputContains("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. Consider adding an additional attribute to one of the configurations to disambiguate them.")
+
+        where:
+        capability << ['default', 'org.test:sample:1.0']
     }
 
     def "matching attribute combinations, where one uses the default capability and one uses a matching explicit capability, triggers a warning"() {
@@ -106,7 +138,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -116,7 +148,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -130,9 +162,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }""".stripIndent()
 
-        expect:
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets. This behavior has been deprecated.")
         succeeds("outgoingVariants")
+        expect:
+        outputContains("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets.")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
 
@@ -150,7 +182,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -160,7 +192,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -175,6 +207,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
     def "attribute combinations can be repeated if capabilities differ, including the default capability without a warning"() {
@@ -187,7 +220,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -201,7 +234,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -216,6 +249,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
     def "attribute and capability combinations can be repeated across projects without a warning"() {
@@ -229,7 +263,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleA {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -252,7 +286,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleB {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -279,6 +313,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("allOutgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
     def "attribute and capability combinations, including the default capability, can be repeated across projects without a warning"() {
@@ -292,7 +327,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleA {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -318,7 +353,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleB {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -340,6 +375,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("allOutgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
     def "attribute combinations and capabilities on resolvable configurations can match without a warning"() {
@@ -351,7 +387,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 sample1 {
-                    canBeResolved = true
+                    assert canBeResolved
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -360,7 +396,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 sample2 {
-                    canBeResolved = true
+                    assert canBeResolved
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -371,6 +407,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
     def "attribute combinations and capabilities on legacy resolvable configurations can match without a warning"() {
@@ -383,8 +420,8 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     // Configurations that are both resolvable and consumable are legacy and should not be used
-                    canBeResolved = true
-                    canBeConsumed = true
+                    assert canBeResolved
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -394,8 +431,8 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     // Configurations that are both resolvable and consumable are legacy and should not be used
-                    canBeResolved = true
-                    canBeConsumed = true
+                    assert canBeResolved
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -406,6 +443,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 }
 

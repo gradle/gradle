@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API and TesKit JARs are not generated when running embedded
 class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec {
     public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-'
 
@@ -30,10 +29,10 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         buildFile << """
             apply plugin: 'java'
 
+            def libsDir = file("\$buildDir/libs")
             task resolveLibs(type: Copy) {
-                ext.extractedDir = file("\$buildDir/libs")
                 from configurations.testCompileClasspath
-                into extractedDir
+                into libsDir
             }
 
             task verifyTestKitJars {
@@ -53,7 +52,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
 
             verifyTestKitJars {
                 doLast {
-                    def jarFiles = resolveLibs.extractedDir.listFiles()
+                    def jarFiles = libsDir.listFiles()
                     def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }
                     assert testKitFunctionalJar
 
@@ -87,7 +86,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
             }
             verifyTestKitJars {
                 doLast {
-                    def jarFiles = resolveLibs.extractedDir.listFiles()
+                    def jarFiles = libsDir.listFiles()
                     def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }
                     assert !testKitFunctionalJar
                 }
@@ -114,6 +113,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         result.assertHasErrorOutput('package org.gradle.testkit.runner does not exist')
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Uses a different classpath when embedded
     def "artifact metadata is available for files added by dependency declarations"() {
         given:
         buildFile << """
@@ -124,13 +124,19 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
                 c localGroovy()
             }
             task showArtifacts {
+                def filesA = configurations.a
+                def idsA = configurations.a.incoming.artifacts.resolvedArtifacts.map { it.id }
+                def filesB = configurations.b
+                def idsB = configurations.b.incoming.artifacts.resolvedArtifacts.map { it.id }
+                def filesC = configurations.c
+                def idsC = configurations.c.incoming.artifacts.resolvedArtifacts.map { it.id }
                 doLast {
-                    println "gradleApi() files: " + configurations.a.incoming.files.collect { it.name }
-                    println "gradleApi() ids: " + configurations.a.incoming.artifacts.collect { it.id }
-                    println "gradleTestKit() files: " + configurations.b.incoming.files.collect { it.name }
-                    println "gradleTestKit() ids: " + configurations.b.incoming.artifacts.collect { it.id }
-                    println "localGroovy() files: " + configurations.c.incoming.files.collect { it.name }
-                    println "localGroovy() ids: " + configurations.c.incoming.artifacts.collect { it.id }
+                    println "gradleApi() files: " + filesA.collect { it.name }
+                    println "gradleApi() ids: " + idsA.get()
+                    println "gradleTestKit() files: " + filesB.collect { it.name }
+                    println "gradleTestKit() ids: " + idsB.get()
+                    println "localGroovy() files: " + filesC.collect { it.name }
+                    println "localGroovy() ids: " + idsC.get()
                 }
             }
 """

@@ -36,6 +36,7 @@ import java.io.File
  * subdirectories for all subprojects.
  */
 @DisableCachingByDefault(because = "Only filters the input artifact")
+internal
 abstract class FindGradleSources : TransformAction<TransformParameters.None> {
     @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -68,6 +69,7 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
 
 
 @DisableCachingByDefault(because = "Not worth caching")
+internal
 abstract class UnzipDistribution : TransformAction<TransformParameters.None> {
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputArtifact

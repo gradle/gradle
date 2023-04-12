@@ -27,8 +27,6 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
 
-import java.util.Optional;
-
 public class DefaultExecutionEngine implements ExecutionEngine {
     private final DocumentationRegistry documentationRegistry;
     private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep;
@@ -48,17 +46,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
                 WorkValidationContext validationContext = this.validationContext != null
                     ? this.validationContext
                     : new DefaultWorkValidationContext(documentationRegistry, work.getTypeOriginInspector());
-                return new ExecutionRequestContext() {
-                    @Override
-                    public Optional<String> getNonIncrementalReason() {
-                        return Optional.ofNullable(nonIncrementalReason);
-                    }
-
-                    @Override
-                    public WorkValidationContext getValidationContext() {
-                        return validationContext;
-                    }
-                };
+                return new ExecutionRequestContext(nonIncrementalReason, validationContext);
             }
 
             @Override

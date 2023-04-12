@@ -17,15 +17,11 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-
 import org.gradle.kotlin.dsl.*
-
 import org.gradle.kotlin.dsl.plugins.appliedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.plugins.base.KotlinDslBasePlugin
 import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
-
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
-
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 
 
@@ -42,7 +38,7 @@ import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  *
  * @see <a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html">Kotlin DSL reference</a>
  */
-class KotlinDslPlugin : Plugin<Project> {
+abstract class KotlinDslPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 

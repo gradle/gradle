@@ -53,18 +53,42 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('build')
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber"))
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils"))
+            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 7))
+            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils", 7))
+            .expectLegacyDeprecationWarning(abstractArchiveTaskArchivePathDeprecation())
+            .expectLegacyDeprecationWarning(projectConventionDeprecation())
+            .expectLegacyDeprecationWarning(conventionTypeDeprecation())
             .build()
 
         then:
         result.task(':build').outcome == SUCCESS
     }
 
-    private String orgGradleUtilTypeDeprecation(String type) {
+    private String orgGradleUtilTypeDeprecation(String type, int major) {
         return "The org.gradle.util.$type type has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_${major}.html#org_gradle_util_reports_deprecations"
+    }
+
+    private String abstractArchiveTaskArchivePathDeprecation() {
+        return "The AbstractArchiveTask.archivePath property has been deprecated." +
+                " This is scheduled to be removed in Gradle 9.0." +
+                " Please use the archiveFile property instead." +
+                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archivePath for more details.";
+    }
+
+    private String projectConventionDeprecation() {
+        return "The Project.getConvention() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+    }
+
+    private String conventionTypeDeprecation() {
+        return "The org.gradle.api.plugins.Convention type has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
     }
 
     @Override

@@ -28,15 +28,17 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
+import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
@@ -96,7 +98,9 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         graphListeners,
         taskExecutionListeners,
         listenerRegistrationListener,
-        Stub(ServiceRegistry)
+        Stub(ServiceRegistry) {
+            get(TaskDependencyFactory) >> TestFiles.taskDependencyFactory()
+        }
     )
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
@@ -642,11 +646,11 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             getFailure() >> failure
             rethrowFailure() >> { throw failure }
         }
-        _ * mock.taskDependencies >> Stub(TaskDependency)
-        _ * mock.lifecycleDependencies >> Stub(TaskDependency)
-        _ * mock.finalizedBy >> Stub(TaskDependency)
-        _ * mock.mustRunAfter >> Stub(TaskDependency)
-        _ * mock.shouldRunAfter >> Stub(TaskDependency)
+        _ * mock.taskDependencies >> Stub(TaskDependencyInternal)
+        _ * mock.lifecycleDependencies >> Stub(TaskDependencyInternal)
+        _ * mock.finalizedBy >> Stub(TaskDependencyInternal)
+        _ * mock.mustRunAfter >> Stub(TaskDependencyInternal)
+        _ * mock.shouldRunAfter >> Stub(TaskDependencyInternal)
         _ * mock.sharedResources >> []
         _ * mock.compareTo(_) >> { Task t -> name.compareTo(t.name) }
         _ * mock.outputs >> Stub(TaskOutputsInternal)
@@ -654,7 +658,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
         _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
-        _ * mock.taskIdentity >> TaskIdentity.create(name, DefaultTask, project as ProjectInternal)
+        _ * mock.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project as ProjectInternal)
         return mock
     }
 }

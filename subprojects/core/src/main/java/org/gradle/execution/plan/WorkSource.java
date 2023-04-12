@@ -99,32 +99,59 @@ public interface WorkSource<T> {
     class Diagnostics {
         private final String displayName;
         private final List<String> ordinalGroups;
-        private final List<String> queuedItems;
-        private final List<String> otherItems;
+        private final List<String> queuedNodes;
+        private final List<String> readyToStartNodes;
+        private final List<String> otherNodes;
+        private final List<String> eventItems;
 
-        public Diagnostics(String displayName, List<String> ordinalGroups, List<String> queuedItems, List<String> otherItems) {
+        public Diagnostics(
+            String displayName,
+            List<String> ordinalGroups,
+            List<String> waitingToStartNodes,
+            List<String> readyToStartNodes,
+            List<String> otherWaitingNodes,
+            List<String> events
+        ) {
             this.displayName = displayName;
             this.ordinalGroups = ordinalGroups;
-            this.queuedItems = queuedItems;
-            this.otherItems = otherItems;
+            this.queuedNodes = waitingToStartNodes;
+            this.readyToStartNodes = readyToStartNodes;
+            this.otherNodes = otherWaitingNodes;
+            this.eventItems = events;
         }
 
         public void describeTo(TreeFormatter formatter) {
             formatter.node(StringUtils.capitalize(displayName));
             formatter.startChildren();
-            if (!queuedItems.isEmpty()) {
+            if (!queuedNodes.isEmpty()) {
                 formatter.node("Waiting for nodes");
                 formatter.startChildren();
-                for (String item : queuedItems) {
+                for (String item : queuedNodes) {
                     formatter.node(item);
                 }
                 formatter.endChildren();
             }
-            if (!otherItems.isEmpty()) {
+            if (!readyToStartNodes.isEmpty()) {
+                formatter.node("Nodes ready to start");
+                formatter.startChildren();
+                for (String item : readyToStartNodes) {
+                    formatter.node(item);
+                }
+                formatter.endChildren();
+            }
+            if (!otherNodes.isEmpty()) {
                 formatter.node("Reachable nodes");
                 formatter.startChildren();
-                for (String item : otherItems) {
+                for (String item : otherNodes) {
                     formatter.node(item);
+                }
+                formatter.endChildren();
+            }
+            if (!eventItems.isEmpty()) {
+                formatter.node("Scheduling events");
+                formatter.startChildren();
+                for (String eventItem : eventItems) {
+                    formatter.node(eventItem);
                 }
                 formatter.endChildren();
             }

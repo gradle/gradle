@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import spock.lang.Specification
 
 abstract class AbstractConflictResolverTest extends Specification {
@@ -81,7 +80,7 @@ abstract class AbstractConflictResolverTest extends Specification {
 
         final ModuleVersionIdentifier id
         final ComponentIdentifier componentId
-        ComponentResolveMetadata metadata
+        ComponentGraphResolveMetadata metadata
         boolean rejected = false
         private MutableVersionConstraint constraint
 
@@ -107,7 +106,7 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         TestComponent release() {
-            metadata = ['getStatus': {'release'}] as ComponentResolveMetadata
+            metadata = ['getStatus': {'release'}] as ComponentGraphResolveMetadata
             this
         }
 

@@ -17,7 +17,6 @@
 package org.gradle.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 
 import javax.annotation.Nullable;
@@ -82,7 +81,7 @@ public abstract class IoActions {
         uncheckedClose(resource);
     }
 
-    public static <T extends Closeable, R> R withResource(T resource, Transformer<R, ? super T> action) {
+    public static <T extends Closeable, R> R withResource(T resource, InternalTransformer<R, ? super T> action) {
         R result;
         try {
             result = action.transform(resource);

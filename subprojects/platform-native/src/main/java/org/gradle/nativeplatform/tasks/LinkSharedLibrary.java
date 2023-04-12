@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
  * Links a binary shared library from object files and imported libraries.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class LinkSharedLibrary extends AbstractLinkTask {
+public abstract class LinkSharedLibrary extends AbstractLinkTask {
     private final Property<String> installName = getProject().getObjects().property(String.class);
     private final RegularFileProperty importLibrary = getProject().getObjects().fileProperty();
 

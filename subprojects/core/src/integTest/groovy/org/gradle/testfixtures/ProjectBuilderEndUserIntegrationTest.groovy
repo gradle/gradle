@@ -33,14 +33,18 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         dependencies {
             implementation localGroovy()
             implementation gradleApi()
-            testImplementation(platform("org.spockframework:spock-bom:2.1-groovy-3.0"))
-            testImplementation("org.spockframework:spock-core")
         }
 
         ${mavenCentralRepository()}
 
+        testing {
+            suites {
+                test {
+                    useSpock()
+                }
+            }
+        }
         test {
-            useJUnitPlatform()
             testLogging.exceptionFormat = 'full'
         }
 

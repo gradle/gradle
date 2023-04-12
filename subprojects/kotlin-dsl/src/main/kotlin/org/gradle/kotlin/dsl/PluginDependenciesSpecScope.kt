@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -28,12 +27,12 @@ import org.gradle.plugin.use.PluginDependencySpec
  * Receiver for the `plugins` block.
  *
  * This class exists for the sole purpose of marking the `plugins` block as a [GradleDsl] thus
- * hiding all members provided by the outer [KotlinBuildScript] scope.
+ * hiding all members provided by the outer script scope.
  *
  * @see [PluginDependenciesSpec]
  */
 @GradleDsl
-class PluginDependenciesSpecScope internal constructor(
+open class PluginDependenciesSpecScope internal constructor(
     private val plugins: PluginDependenciesSpec
 ) : PluginDependenciesSpec {
 
@@ -63,7 +62,6 @@ infix fun PluginDependencySpec.version(version: String?): PluginDependencySpec =
  *
  * @since 7.2
  */
-@Incubating
 infix fun PluginDependencySpec.version(version: Provider<String>): PluginDependencySpec = version(version)
 
 

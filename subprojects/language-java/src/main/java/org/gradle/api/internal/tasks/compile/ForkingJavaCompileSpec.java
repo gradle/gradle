@@ -16,5 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import java.io.File;
+
 public interface ForkingJavaCompileSpec {
+
+    File getJavaHome();
+
 }

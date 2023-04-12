@@ -77,6 +77,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
+    public boolean supportsJavaTargets() {
+        return false;
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
         return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
     }
@@ -138,7 +143,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
+        return BuildInitDsl.KOTLIN;
     }
 
     @Override

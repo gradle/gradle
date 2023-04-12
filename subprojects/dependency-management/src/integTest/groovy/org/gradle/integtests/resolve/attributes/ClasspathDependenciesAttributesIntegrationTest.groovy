@@ -83,8 +83,9 @@ dependencies {
 }
 
 task printDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        println configurations.compileClasspath.files
+        println compileClasspath.files
     }
 }
 """
@@ -171,13 +172,13 @@ group = 'org.other'
 version = '1.0'
 configurations {
     conf {
-        canBeConsumed = true
+        assert canBeConsumed
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
         }
     }
     badConf {
-        canBeConsumed = true
+        assert canBeConsumed
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'not-good'))
         }

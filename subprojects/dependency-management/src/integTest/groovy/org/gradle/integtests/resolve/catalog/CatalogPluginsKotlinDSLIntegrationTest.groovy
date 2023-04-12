@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+
 /**
  * Mirror test of {@link CatalogPluginsGroovyDSLIntegrationTest}.
  *
@@ -29,6 +30,8 @@ import org.junit.Rule
  * integration tests in this package, but only what is very specific to the Kotlin DSL.
  * Because it requires the generated Gradle API it runs significantly slower than the other
  * tests so avoid adding tests here if they cannot be expressed with the Groovy DSL.
+ *
+ * These tests use Groovy settings files because the parent class sets up things in it already.
  */
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
@@ -44,19 +47,18 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
             .addPluginWithPrintlnTask(taskName, message, pluginId)
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         settingsFile << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            plugin("$alias", "com.acme.greeter").version("1.5")
-        }
-        create("otherLibs") {
-            plugin("$alias", "com.acme.greeter").version("1.5")
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        plugin("$alias", "com.acme.greeter").version("1.5")
+                    }
+                    create("otherLibs") {
+                        plugin("$alias", "com.acme.greeter").version("1.5")
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
@@ -86,16 +88,15 @@ dependencyResolutionManagement {
             .addPluginWithPrintlnTask(taskName, message, pluginId)
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         file("settings.gradle") << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            plugin('greeter', 'com.acme.greeter').version('1.4')
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        plugin('greeter', 'com.acme.greeter').version('1.4')
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
@@ -122,16 +123,15 @@ dependencyResolutionManagement {
             .addPluginWithPrintlnTask(taskName, message, pluginId)
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         file("settings.gradle") << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            version('greeter', '1.5')
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version('greeter', '1.5')
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
@@ -161,17 +161,16 @@ dependencyResolutionManagement {
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
             .allowAll()
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         settingsFile << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            plugin("greeter", "$firstLevelPluginId").version("$pluginVersion")
-            plugin("greeter-second", "$secondLevelPluginId").version("$pluginVersion")
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        plugin("greeter", "$firstLevelPluginId").version("$pluginVersion")
+                        plugin("greeter-second", "$secondLevelPluginId").version("$pluginVersion")
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
@@ -201,17 +200,16 @@ dependencyResolutionManagement {
             .publishAs("some", "artifact2", pluginVersion, pluginPortal, executer)
             .allowAll()
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         file("settings.gradle") << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            library('greeter', 'some', 'artifact').version('1.5')
-            library('greeter-second', 'some', 'artifact2').version('1.5')
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        library('greeter', 'some', 'artifact').version('1.5')
+                        library('greeter-second', 'some', 'artifact2').version('1.5')
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             buildscript {
@@ -235,5 +233,59 @@ dependencyResolutionManagement {
         then:
         outputContains 'Hello from first plugin!'
         outputContains 'Hello from second plugin!'
+    }
+
+    def "emits deprecation warning when #useCase from plugins block"() {
+
+        String taskName = 'greet'
+        String message = 'Hello from plugin!'
+        String pluginId = 'com.acme.greeter'
+        String pluginVersion = '1.5'
+        def plugin = new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(taskName, message, pluginId)
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+
+        file("settings.gradle") << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("greeter", "$pluginVersion")
+                        plugin("greeter", "$pluginId").versionRef("greeter")
+                        library("greeter", "some", "artifact").versionRef("greeter")
+                        library("sub-greeter", "some", "artifact").versionRef("greeter")
+                        bundle("greeter", ["greeter"])
+                        bundle("sub-greeter", ["greeter"])
+                    }
+                }
+            }
+        """
+        buildFile.renameTo(file('fixture.gradle'))
+        buildKotlinFile << """
+            plugins {
+                $pluginRequest
+            }
+            apply(from="fixture.gradle")
+        """
+
+        when:
+        plugin.allowAll()
+        executer.expectDocumentedDeprecationWarning(
+            "Accessing libraries or bundles from version catalogs in the plugins block. " +
+                "This behavior has been deprecated. " +
+                "This behavior is scheduled to be removed in Gradle 9.0. " +
+                "Only use versions or plugins from catalogs in the plugins block. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#kotlin_dsl_deprecated_catalogs_plugins_block"
+        )
+        succeeds taskName
+
+        then:
+        outputContains message
+
+        where:
+        useCase               | pluginRequest
+        'using libraries'     | 'id("com.acme.greeter") version libs.greeter.get().version'
+        'using sub libraries' | 'id("com.acme.greeter") version libs.sub.greeter.get().version'
+        'using bundles'       | 'id("com.acme.greeter") version libs.bundles.greeter.get().first().version'
+        'using sub bundles'   | 'id("com.acme.greeter") version libs.bundles.sub.greeter.get().first().version'
     }
 }

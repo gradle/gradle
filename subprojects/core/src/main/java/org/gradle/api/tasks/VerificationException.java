@@ -24,9 +24,18 @@ import org.gradle.api.Incubating;
  *
  * @since 7.4
  */
-@Incubating
 public class VerificationException extends GradleException {
     public VerificationException(String message) {
         super(message);
+    }
+
+    /**
+     * Allows a cause to be specified.
+     *
+     * @since 8.2
+     */
+    @Incubating
+    public VerificationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -17,7 +17,7 @@ package org.gradle.internal.component;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.Collection;
@@ -35,7 +35,7 @@ class CapabilitiesSupport {
     static String sortedCapabilityList(ComponentGraphResolveMetadata target, Collection<? extends Capability> capabilities) {
         if (capabilities.isEmpty()) {
             ModuleVersionIdentifier mvi = target.getModuleVersionId();
-            return displayName(new ImmutableCapability(mvi.getGroup(), mvi.getName(), mvi.getVersion()));
+            return displayName(new DefaultImmutableCapability(mvi.getGroup(), mvi.getName(), mvi.getVersion()));
         }
         return capabilities.stream()
             .map(CapabilitiesSupport::displayName)

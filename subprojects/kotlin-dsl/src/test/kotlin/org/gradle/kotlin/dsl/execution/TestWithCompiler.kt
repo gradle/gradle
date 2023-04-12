@@ -22,9 +22,11 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.model.ObjectFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
@@ -72,6 +74,8 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     ) {
         ResidualProgramCompiler(
             outputDir,
+            JavaVersion.current(),
+            false,
             testRuntimeClassPath,
             sourceHash,
             programKind,
@@ -86,7 +90,9 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     fun scriptHostWith(
         target: Any = mock(),
         scriptHandler: ScriptHandlerInternal = mock()
-    ) = KotlinScriptHost(target, scriptSource(), scriptHandler, mock(), mock(), mock())
+    ) = KotlinScriptHost(target, scriptSource(), scriptHandler, mock(), mock(), mock {
+        on { get(ObjectFactory::class.java) } doAnswer { mock<ObjectFactory>() }
+    })
 
     private
     fun scriptSource(): ScriptSource = mock { on { fileName } doReturn "script.gradle.kts" }

@@ -19,7 +19,6 @@ package org.gradle.api.reporting;
 import org.gradle.api.Namer;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.util.Configurable;
@@ -77,7 +76,7 @@ public interface Report extends Configurable<Report> {
      * @since 6.1
      */
     @Internal("Implementations need to add the correct annotation, @OutputDirectory or @OutputFile")
-    Provider<? extends FileSystemLocation> getOutputLocation();
+    Property<? extends FileSystemLocation> getOutputLocation();
 
     /**
      * The type of output the report produces

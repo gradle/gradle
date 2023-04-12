@@ -292,7 +292,7 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
     private String getToolingApiVersionToLoad() {
         String candidateTapiVersion = System.getProperty(VERSIONS_SYSPROP_NAME);
-        if (CoverageContext.LATEST.selector.equals(candidateTapiVersion)) {
+        if (CoverageContext.LATEST.selector.equals(candidateTapiVersion) || CoverageContext.PARTIAL.selector.equals(candidateTapiVersion)) {
             ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(IntegrationTestBuildContext.INSTANCE);
             return releasedVersions.getMostRecentRelease().getVersion().getVersion();
         }

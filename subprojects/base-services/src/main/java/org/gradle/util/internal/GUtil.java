@@ -17,11 +17,11 @@
 package org.gradle.util.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 
@@ -459,7 +459,7 @@ public class GUtil {
 
             throw new IllegalArgumentException(
                 String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), new Transformer<String, T>() {
+                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), new InternalTransformer<Object, T>() {
                         @Override
                         public String transform(T t) {
                             return t.name();

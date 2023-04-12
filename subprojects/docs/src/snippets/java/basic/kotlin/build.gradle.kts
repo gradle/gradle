@@ -6,7 +6,7 @@ plugins {
 // tag::java-extension[]
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 // end::java-extension[]
@@ -27,9 +27,10 @@ dependencies {
 // tag::java-basic-test-config[]
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.test {
+tasks.named<Test>("test") {
     useJUnitPlatform()
 
     maxHeapSize = "1G"
@@ -51,11 +52,13 @@ sourceSets {
 val intTestImplementation by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
+val intTestRuntimeOnly by configurations.getting
 
 configurations["intTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
 dependencies {
     intTestImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    intTestRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 // end::practical-integ-test-source-set[]
 

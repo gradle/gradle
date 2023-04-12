@@ -18,24 +18,19 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantSelectionResult;
 
-import java.util.Collection;
 import java.util.List;
 
-public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadata, ModuleDependencyMetadata {
+public class ForcedDependencyMetadataWrapper extends DelegatingDependencyMetadata implements ForcingDependencyMetadata, ModuleDependencyMetadata {
     private final ModuleDependencyMetadata delegate;
 
     public ForcedDependencyMetadataWrapper(ModuleDependencyMetadata delegate) {
+        super(delegate);
         this.delegate = delegate;
     }
 
@@ -60,21 +55,6 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     }
 
     @Override
-    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        return delegate.selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
-    }
-
-    @Override
-    public List<ExcludeMetadata> getExcludes() {
-        return delegate.getExcludes();
-    }
-
-    @Override
-    public List<IvyArtifactName> getArtifacts() {
-        return delegate.getArtifacts();
-    }
-
-    @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         DependencyMetadata dependencyMetadata = delegate.withTarget(target);
         if (dependencyMetadata instanceof DefaultProjectDependencyMetadata) {
@@ -90,31 +70,6 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
             return ((DefaultProjectDependencyMetadata) dependencyMetadata).forced();
         }
         return new ForcedDependencyMetadataWrapper((ModuleDependencyMetadata) dependencyMetadata);
-    }
-
-    @Override
-    public boolean isChanging() {
-        return delegate.isChanging();
-    }
-
-    @Override
-    public boolean isTransitive() {
-        return delegate.isTransitive();
-    }
-
-    @Override
-    public boolean isConstraint() {
-        return delegate.isConstraint();
-    }
-
-    @Override
-    public boolean isEndorsingStrictVersions() {
-        return delegate.isEndorsingStrictVersions();
-    }
-
-    @Override
-    public String getReason() {
-        return delegate.getReason();
     }
 
     @Override

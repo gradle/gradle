@@ -17,10 +17,8 @@ package org.gradle.kotlin.dsl.plugins.embedded
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.logging.Logger
-
-import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
@@ -37,7 +35,7 @@ import javax.inject.Inject
  * Applies the `org.jetbrains.kotlin.jvm` plugin,
  * adds compile only and test implementation dependencies on `kotlin-stdlib` and `kotlin-reflect`.
  */
-class EmbeddedKotlinPlugin @Inject internal constructor(
+abstract class EmbeddedKotlinPlugin @Inject internal constructor(
     private val embeddedKotlin: EmbeddedKotlinProvider
 ) : Plugin<Project> {
 
@@ -79,4 +77,4 @@ fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
 
 internal
 val kotlinArtifactConfigurationNames =
-    listOf(COMPILE_ONLY_CONFIGURATION_NAME, TEST_IMPLEMENTATION_CONFIGURATION_NAME)
+    listOf(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, JvmConstants.TEST_IMPLEMENTATION_CONFIGURATION_NAME)

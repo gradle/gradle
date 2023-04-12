@@ -41,6 +41,11 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
     }
 
     @Override
+    public String getSourceName() {
+        return "environment variables from gradle property '" + JAVA_INSTALLATIONS_FROM_ENV_PROPERTY + "'";
+    }
+
+    @Override
     public Set<InstallationLocation> get() {
         final Provider<String> property = factory.gradleProperty(JAVA_INSTALLATIONS_FROM_ENV_PROPERTY);
         if (property.isPresent()) {

@@ -19,7 +19,6 @@ package org.gradle.configurationcache.initialization
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.ExternalProcessStartedListener
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
@@ -27,18 +26,20 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.location
+import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
 import org.gradle.internal.buildoption.FeatureFlags
-import org.gradle.internal.execution.TaskExecutionTracker
+import org.gradle.internal.execution.WorkExecutionTracker
+import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -47,35 +48,38 @@ import org.gradle.internal.service.scopes.ServiceScope
 interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
 
 
+@ListenerService
 class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
-    private val userCodeApplicationContext: UserCodeApplicationContext,
+    private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
-    private val taskExecutionTracker: TaskExecutionTracker,
+    private val workExecutionTracker: WorkExecutionTracker,
     private val featureFlags: FeatureFlags,
+    private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
-    override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-        if (atConfigurationTime()) {
-            return
-        }
-        onTaskExecutionAccessProblem(invocationDescription, task)
+    override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
     }
 
-    override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-        if (atConfigurationTime()) {
+    override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        if (canAccessConventions(task.javaClass.name, invocationDescription)) {
             return
         }
-        onTaskExecutionAccessProblem(invocationDescription, task)
+        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
+    }
+
+    override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
-        if (!featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE) || !atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
+        if (!atConfigurationTime() || isExecutingWork() || isInputTrackingDisabled()) {
             return
         }
         problems.onProblem(
             PropertyProblem(
-                userCodeApplicationContext.location(consumer),
+                problemFactory.locationForCaller(consumer),
                 StructuredMessage.build {
                     text("external process started ")
                     reference(command)
@@ -87,35 +91,54 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     private
-    fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal) {
-        problemsListenerFor(task).onProblem(
-            PropertyProblem(
-                propertyTraceForTask(task),
-                StructuredMessage.build {
+    fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        // It is possible that another task is being executed now and causes `task` to be configured.
+        // In this case, we shouldn't attribute the error to the `task` alone, as it can be misleading,
+        // and that usage can be benign. This is especially important when the currently running task is
+        // marked as `notCompatibleWithConfigurationCache` - attributing the error to `task` will cause
+        // the build to fail when it really shouldn't.
+        val contextTask = runningTask ?: task
+        val isExecutingOtherTask = contextTask != task
+        problemsListenerFor(contextTask).onProblem(
+            problemFactory.problem {
+                if (isExecutingOtherTask) {
+                    text("execution of task ")
+                    reference(contextTask.path)
+                    text(" caused invocation of ")
+                    reference(invocationDescription)
+                    text(" in other task at execution time which is unsupported.")
+                } else {
                     text("invocation of ")
                     reference(invocationDescription)
                     text(" at execution time is unsupported.")
-                },
-                InvalidUserCodeException(
-                    "Invocation of '$invocationDescription' by $task at execution time is unsupported."
-                ),
-                documentationSection = RequirementsUseProjectDuringExecution
-            )
+                }
+            }
+                .exception(
+                    if (isExecutingOtherTask) {
+                        "Execution of $runningTask caused invocation of '$invocationDescription' by $task at execution time which is unsupported."
+                    } else {
+                        "Invocation of '$invocationDescription' by $task at execution time is unsupported."
+                    }
+                )
+                .documentationSection(RequirementsUseProjectDuringExecution)
+                .mapLocation { locationForTask(it, contextTask) }
+                .build()
         )
     }
 
     private
-    fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
-        task.isCompatibleWithConfigurationCache -> problems
-        else -> problems.forIncompatibleType()
-    }
+    fun locationForTask(location: PropertyTrace, task: TaskInternal) =
+        if (location is PropertyTrace.BuildLogic) {
+            location
+        } else {
+            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+        }
 
     private
-    fun propertyTraceForTask(task: TaskInternal) =
-        userCodeApplicationContext.current()
-            ?.displayName
-            ?.let(PropertyTrace::BuildLogic)
-            ?: PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+    fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
+        task.isCompatibleWithConfigurationCache -> problems
+        else -> problems.forIncompatibleTask(task.identityPath.path)
+    }
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (isBuildSrcBuild(invocationSource)) {
@@ -123,7 +146,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             listenerRegistrationProblem(
-                userCodeApplicationContext.location(null),
                 invocationDescription,
                 InvalidUserCodeException(
                     "Listener registration '$invocationDescription' by $invocationSource is unsupported."
@@ -133,27 +155,23 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
-        val message = StructuredMessage.build {
-            text("Credential values found in configuration for: ")
-            text(locationSpecificReason)
-        }
         problems.onProblem(
-            PropertyProblem(
-                propertyTraceForTask(task),
-                message,
-                InvalidUserCodeException(message.toString()),
-                documentationSection = RequirementsSafeCredentials
-            )
+            problemFactory.problem {
+                text("Credential values found in configuration for: ")
+                text(locationSpecificReason)
+            }
+                .exception()
+                .documentationSection(RequirementsSafeCredentials)
+                .mapLocation { locationForTask(it, task) }
+                .build()
         )
     }
 
     private
     fun listenerRegistrationProblem(
-        trace: PropertyTrace,
         invocationDescription: String,
         exception: InvalidUserCodeException
-    ) = PropertyProblem(
-        trace,
+    ) = problemFactory.problem(
         StructuredMessage.build {
             text("registration of listener on ")
             reference(invocationDescription)
@@ -170,6 +188,12 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         } ?: false
 
     private
-    fun atConfigurationTime() =
-        configurationTimeBarrier.isAtConfigurationTime
+    fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
+
+    private
+    fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
+
+
+    private
+    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
 }

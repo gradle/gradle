@@ -23,6 +23,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.reflect.validation.TypeValidationProblem
 
 class ResolveChangesStepTest extends StepSpec<CachingContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
@@ -32,10 +33,6 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
     }
     def delegateResult = Mock(Result)
 
-    @Override
-    protected CachingContext createContext() {
-        Stub(CachingContext)
-    }
 
     def "doesn't provide input file changes when rebuild is forced"() {
         when:
@@ -44,7 +41,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         then:
         result == delegateResult
 
-        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert delegateContext.rebuildReasons == ImmutableList.of("Forced rebuild.")
@@ -78,7 +75,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         then:
         result == delegateResult
 
-        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
@@ -99,7 +96,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         then:
         result == delegateResult
 
-        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
@@ -109,7 +106,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationFinishedContext.ValidationResult)
+        _ * context.validationProblems >> ImmutableList.of(Mock(TypeValidationProblem))
         _ * context.previousExecutionState >> Optional.empty()
         0 * _
     }
@@ -132,7 +129,8 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * context.validationProblems >> ImmutableList.of()
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
         0 * _
     }
