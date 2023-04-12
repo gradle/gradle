@@ -18,8 +18,14 @@ package org.gradle.jvm.toolchain
 
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownloadSpiIntegrationTest {
 
@@ -423,8 +429,14 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
-                        "and toolchain download repositories have not been configured (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories).")
+                .assertHasCause("No locally installed toolchains match and toolchain download repositories have not been configured.")
+                .assertHasResolutions(
+                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
+                    STACKTRACE_MESSAGE,
+                    INFO_DEBUG,
+                    SCAN,
+                    GET_HELP)
     }
 
     private static String customToolchainResolverCode() {
