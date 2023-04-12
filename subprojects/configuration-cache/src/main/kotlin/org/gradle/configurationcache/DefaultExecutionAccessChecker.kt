@@ -23,11 +23,13 @@ import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildtree.BuildModelParameters
 
+
 private
 val disallowedAtExecutionTimeServices = setOf(
     Project::class.java,
     Gradle::class.java
 )
+
 
 internal
 class DefaultExecutionAccessChecker(
@@ -43,10 +45,11 @@ class DefaultExecutionAccessChecker(
         }
     }
 
-    private fun isDisallowedAtExecutionTimeService(injectedServiceType: Class<*>): Boolean =
+    private
+    fun isDisallowedAtExecutionTimeService(injectedServiceType: Class<*>): Boolean =
         disallowedAtExecutionTimeServices.any { it.isAssignableFrom(injectedServiceType) }
 
-    private fun shouldReportExecutionTimeAccess(): Boolean =
+    private
+    fun shouldReportExecutionTimeAccess(): Boolean =
         modelParameters.isConfigurationCache && !configurationTimeBarrier.isAtConfigurationTime
-
 }
