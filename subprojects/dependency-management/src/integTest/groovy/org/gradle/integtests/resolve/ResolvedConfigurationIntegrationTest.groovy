@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -32,6 +33,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves strictly for dependency resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -81,6 +83,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         "resolvedArtifacts"                        | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves strictly for artifact resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -133,6 +136,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         "files"                                    | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves leniently for dependency resolve failures"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -198,6 +202,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         succeeds "validate"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "doesn't reintegrate evicted edges into graph"() {
         def a1 = mavenHttpRepo.module('org.foo', 'a')
         def b1 = mavenHttpRepo.module('org.foo', 'b')
@@ -276,6 +281,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         succeeds "validate"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "lenient for both dependency and artifact resolve and download failures"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -342,6 +348,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         succeeds "validate"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves leniently from mixed confs"() {
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
@@ -389,6 +396,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     }
 
     @Issue("gradle/gradle#3401")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "first-level dependencies should include modules selected by agreement between selectors"() {
         def foo1 = mavenHttpRepo.module('org', 'foo', '1').publish()
         def foo2 = mavenHttpRepo.module('org', 'foo', '2').publish()

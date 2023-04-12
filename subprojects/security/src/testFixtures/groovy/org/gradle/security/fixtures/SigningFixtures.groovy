@@ -20,9 +20,11 @@ import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.bcpg.CompressionAlgorithmTags
 import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags
+import org.bouncycastle.bcpg.attr.ImageAttribute
 import org.bouncycastle.bcpg.sig.KeyFlags
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters
+import org.bouncycastle.openpgp.PGPKeyPair
 import org.bouncycastle.openpgp.PGPKeyRingGenerator
 import org.bouncycastle.openpgp.PGPObjectFactory
 import org.bouncycastle.openpgp.PGPPublicKey
@@ -31,7 +33,11 @@ import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
+import org.bouncycastle.openpgp.PGPSignature
+import org.bouncycastle.openpgp.PGPSignatureGenerator
 import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator
+import org.bouncycastle.openpgp.PGPUserAttributeSubpacketVector
+import org.bouncycastle.openpgp.PGPUserAttributeSubpacketVectorGenerator
 import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection
@@ -189,13 +195,27 @@ class SigningFixtures {
         signatureSubpacketGenerator.setPreferredSymmetricAlgorithms(false, PublicKeyAlgorithmTags.DSA)
         signatureSubpacketGenerator.setPreferredHashAlgorithms(false, HashAlgorithmTags.SHA512)
         signatureSubpacketGenerator.setPreferredCompressionAlgorithms(false, CompressionAlgorithmTags.ZIP)
+        signatureSubpacketGenerator.addSignerUserID(false, "www")
+
+        PGPUserAttributeSubpacketVectorGenerator userAttributes = new PGPUserAttributeSubpacketVectorGenerator()
+        userAttributes.setImageAttribute(ImageAttribute.JPEG, new byte[100]);
+        PGPUserAttributeSubpacketVector userAttributesVector = userAttributes.generate()
+
+        PGPSignatureGenerator sGen = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(PublicKeyAlgorithmTags.RSA_GENERAL, HashAlgorithmTags.SHA1));
+
+        sGen.init(PGPSignature.POSITIVE_CERTIFICATION, signingKeyPair.privateKey)
+
+        PGPSignature signature = sGen.generateCertification(userAttributesVector, signingKeyPair.publicKey)
+        PGPPublicKey keyWithAttributes = PGPPublicKey.addCertification(signingKeyPair.publicKey, userAttributesVector, signature);
+
+        PGPKeyPair keyPair = new PGPKeyPair(keyWithAttributes, signingKeyPair.privateKey);
 
         def encryptionSubpacketGenerator = new PGPSignatureSubpacketGenerator()
         encryptionSubpacketGenerator.setKeyFlags(false, KeyFlags.ENCRYPT_COMMS | KeyFlags.ENCRYPT_STORAGE)
 
         def generator = new PGPKeyRingGenerator(
             PGPPublicKey.RSA_SIGN,
-            signingKeyPair,
+            keyPair,
             userId,
             new BcPGPDigestCalculatorProvider().get(HashAlgorithmTags.SHA1),
             signatureSubpacketGenerator.generate(),

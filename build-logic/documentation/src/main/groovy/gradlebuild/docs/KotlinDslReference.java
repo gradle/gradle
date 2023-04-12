@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-plugins {
-   `kotlin-dsl`
-    id("gradlebuild.commons")
+package gradlebuild.docs;
+
+import org.gradle.api.file.DirectoryProperty;
+
+/**
+ * Configuration for generating Dokka based Kotlin DSL docs.
+ */
+public abstract class KotlinDslReference {
+
+    /**
+     * The location of the final rendered Dokka content.
+     */
+    public abstract DirectoryProperty getRenderedDocumentation();
+
 }
-
-description = "Provides settings plugins for main build"
-
-java.configureJavaToolChain()

@@ -842,6 +842,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20684")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "multiple platform deselection - reselection does not leave pending constraints in graph - different issue"() {
         given:
         def depJackDb20 = mavenHttpRepo.module('jack', 'db', '2.0').withModuleMetadata()

@@ -60,8 +60,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.compile
     doLast {
-        configurations.compile.resolve()
+        files.files
     }
 }
 """

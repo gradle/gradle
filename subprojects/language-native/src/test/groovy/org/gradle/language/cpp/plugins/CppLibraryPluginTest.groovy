@@ -31,9 +31,11 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Specification
 
 @UsesNativeServices
+@Ignore("https://github.com/gradle/gradle-private/issues/3818")
 class CppLibraryPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

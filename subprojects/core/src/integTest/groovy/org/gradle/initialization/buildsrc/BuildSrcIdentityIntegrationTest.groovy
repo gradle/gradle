@@ -18,6 +18,12 @@ package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
     def "includes build identifier in logging output with #display"() {
         file("buildSrc/build.gradle") << """
@@ -96,9 +102,14 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
   - ${m.pom.file.toURL()}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :buildSrc""")
+        failure.assertHasResolutions(repositoryHint("Maven POM"),
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
+
 
         when:
         m.publish()

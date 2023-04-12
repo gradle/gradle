@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -127,15 +128,16 @@ This can indicate that a dependency has been compromised. Please carefully verif
         uncheckedModule("org", "foo")
         uncheckedModule("org", "bar")
         buildFile << """
+            apply plugin: 'java-test-fixtures'
             dependencies {
                 implementation "org:foo:1.0"
-                testImplementation "org:bar:1.0"
+                testFixturesApi "org:bar:1.0"
             }
         """
         file("src/test/java/HelloTest.java") << "public class HelloTest {}"
 
         when:
-        succeeds([":test", *param] as String[])
+        succeeds([":compileJava", *param] as String[])
 
         then:
         errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
@@ -310,6 +312,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")

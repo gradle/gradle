@@ -59,6 +59,7 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
                 "Use JUnit Jupiter for testing.",
                 "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter")
             );
+            buildScriptBuilder.testRuntimeOnlyDependency(null, "org.junit.platform:junit-platform-launcher");
         }
     }
 
