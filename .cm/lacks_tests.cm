@@ -22,8 +22,8 @@ automations:
     if:
       - {{ author.on_jvm_team }}
       - {{ includes_src_changes }}
-      - {{ includes_test_changes | nope }}
-      - {{ not (source.diff.files | isFormattingChange) }} # Not only formatting-only changes
+      - {{ not (includes_test_changes) }}
+      - {{ not (is_formatting_only_change) }} # Not only formatting-only changes
     run:
       - action: add-comment@v1
         args:
@@ -36,6 +36,7 @@ automations:
 
 includes_src_changes: {{ files | match(regex=r/.*\/src\//) | some }}
 includes_test_changes: {{ files | match(regex=r/.*\/(test|integTest|crossVersionTest|docsTest|smokeTest)\//) | some }}
+is_formatting_only_change: {{ source.diff.files | isFormattingChange }}
 
 author:
   on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
