@@ -19,6 +19,8 @@ package org.gradle.testing.junitvintage
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
+import static org.gradle.testing.fixture.JUnitCoverage.*
+
 trait JUnitVintageMultiVersionTest {
     AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
         return new JUnitVintageBuildScriptConfiguration()
@@ -30,8 +32,9 @@ trait JUnitVintageMultiVersionTest {
         @Override
         String getTestFrameworkDependencies() {
             return """
-                testCompileOnly 'junit:junit:4.13'
+                testCompileOnly 'junit:junit:${JUNIT_4_LATEST}'
                 testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             """
         }
 

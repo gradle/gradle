@@ -36,6 +36,7 @@ trait JUnitJupiterMultiVersionTest {
             return """
                 testImplementation 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
                 testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             """
         }
 
