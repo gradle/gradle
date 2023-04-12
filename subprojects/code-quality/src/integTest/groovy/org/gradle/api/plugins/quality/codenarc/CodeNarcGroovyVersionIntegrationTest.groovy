@@ -41,6 +41,7 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
                 implementation("${group}:groovy")
             }
 
+            testing.suites.test.useJUnit()
             codenarc.toolVersion = "${codenarcVersion}"
         """.stripIndent()
     }

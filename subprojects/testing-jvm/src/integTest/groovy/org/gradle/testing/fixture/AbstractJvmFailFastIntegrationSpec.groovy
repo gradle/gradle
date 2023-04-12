@@ -36,7 +36,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
 
     def setup() {
         server.start()
-        generator = new JvmBlockingTestClassGenerator(testDirectory, server, testAnnotationClass(), testDependency(), testFrameworkConfiguration())
+        generator = new JvmBlockingTestClassGenerator(testDirectory, server, testAnnotationClass(), testDependencies(), testFrameworkConfiguration())
     }
 
     def "all tests run with #description"() {
@@ -180,6 +180,6 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     }
 
     abstract String testAnnotationClass()
-    abstract String testDependency()
+    abstract String testDependencies()
     abstract String testFrameworkConfiguration()
 }

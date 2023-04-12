@@ -457,6 +457,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                         useJUnit()
                         dependencies {
                             implementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+                            runtimeOnly 'org.junit.platform:junit-platform-launcher'
                         }
                         targets {
                             all {

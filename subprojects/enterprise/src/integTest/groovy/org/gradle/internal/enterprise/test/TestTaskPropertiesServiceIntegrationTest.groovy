@@ -82,6 +82,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
+                testRuntimeOnly('org.junit.platform:junit-platform-launcher')
             }
             test {
                 forkEvery = 42
@@ -177,6 +178,8 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java'
             }
+            ${mavenCentralRepository()}
+            testing.suites.test.useJUnit()
             test.doLast(objects.newInstance(Disabler))
             abstract class Disabler implements Action<Task> {
                 private final ${TestTaskPropertiesService.name} service
