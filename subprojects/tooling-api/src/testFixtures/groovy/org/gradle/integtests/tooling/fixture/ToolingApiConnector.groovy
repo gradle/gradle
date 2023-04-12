@@ -41,4 +41,9 @@ class ToolingApiConnector implements UpwardsSearchable {
     def methodMissing(String name, args) {
         connector."$name"(*args)
     }
+
+    def forProjectDirectory(File projectDir) {
+        connector.forProjectDirectory(projectDir)
+        this
+    }
 }
