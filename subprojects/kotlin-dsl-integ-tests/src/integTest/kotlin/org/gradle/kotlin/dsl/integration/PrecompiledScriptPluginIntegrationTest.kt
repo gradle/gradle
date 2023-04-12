@@ -755,12 +755,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
-        val error = buildAndFail("help")
-
-        error.assertHasCause(
-            "The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.\n\n"
-                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
-        )
+        buildAndFail("help")
+            .assertHasCause("The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.")
+            .assertHasResolution("See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 
     @Test
@@ -774,12 +771,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         )
         withDefaultSettings()
 
-        val error = buildAndFail("help")
-
-        error.assertHasCause(
-            "The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
-                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
-        )
+        buildAndFail("help")
+            .assertHasCause("The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
+            .assertHasResolution("See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 
     @Test
@@ -795,12 +789,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         )
         withDefaultSettings()
 
-        val error = buildAndFail("help")
-
-        error.assertHasCause(
-            "The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
-                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
-        )
+        buildAndFail("help")
+            .assertHasCause("The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
+            .assertHasResolution("See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 
     @Test
