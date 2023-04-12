@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -45,11 +43,9 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private final List<ModuleComponentRepository> repositories = new ArrayList<>();
     private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
-    private final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory;
 
-    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory) {
+    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser) {
         this.versionedComponentChooser = componentChooser;
-        this.metaDataFactory = metaDataFactory;
     }
 
     public void add(ModuleComponentRepository repository) {
@@ -99,7 +95,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                 LOGGER.debug("Discarding resolve failure.", error);
             }
 
-            result.resolved(DefaultComponentGraphResolveState.of(metaDataFactory.transform(latestResolved)));
+            result.resolved(DefaultComponentGraphResolveState.of(latestResolved.module));
             return;
         }
         if (!errors.isEmpty()) {
