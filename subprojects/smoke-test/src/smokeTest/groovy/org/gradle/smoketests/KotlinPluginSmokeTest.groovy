@@ -45,6 +45,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(version)
                 expectProjectConventionDeprecation(version)
                 expectConventionTypeDeprecation(version)
+                expectJavaPluginConventionDeprecation(version)
             }.build()
 
         then:
@@ -58,6 +59,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     expectOrgGradleUtilWrapUtilDeprecation(version)
                     expectProjectConventionDeprecation(version)
                     expectConventionTypeDeprecation(version)
+                    expectJavaPluginConventionDeprecation(version)
                 }
             }.build()
 
@@ -94,6 +96,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(version)
                 expectProjectConventionDeprecation(version)
                 expectConventionTypeDeprecation(version)
+                expectJavaPluginConventionDeprecation(version)
             }.build()
 
         then:
@@ -143,6 +146,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
+                expectJavaPluginConventionDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -185,6 +189,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
+                expectJavaPluginConventionDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -197,6 +202,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
                     expectProjectConventionDeprecation(kotlinVersion)
                     expectConventionTypeDeprecation(kotlinVersion)
+                    expectJavaPluginConventionDeprecation(kotlinVersion)
                 }
             }.build()
 
@@ -237,6 +243,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectTestReportDestinationDirOnDeprecation(kotlinVersion)
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
+                expectJavaPluginConventionDeprecation(kotlinVersion)
             }
             .build()
 
@@ -298,6 +305,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             2.times {
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
+                expectJavaPluginConventionDeprecation(kotlinVersion)
             }
         }
 
@@ -481,6 +489,15 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             runner.expectDeprecationWarningIf(
                 kotlinVersionNumber < VersionNumber.parse("1.7.22"),
                 PROJECT_CONVENTION_DEPRECATION,
+                ""
+            )
+        }
+
+        void expectJavaPluginConventionDeprecation(String kotlinVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+            runner.expectDeprecationWarningIf(
+                kotlinVersionNumber < VersionNumber.parse("1.7.22"),
+                JAVA_PLUGIN_CONVENTION_DEPRECATION,
                 ""
             )
         }
