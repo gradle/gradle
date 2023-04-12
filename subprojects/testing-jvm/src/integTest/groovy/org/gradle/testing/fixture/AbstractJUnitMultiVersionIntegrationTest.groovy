@@ -25,7 +25,8 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
  *
  * The following depicts the general pattern of implementation where function-specific tests extend from this class,
  * while framework-specific classes extend from the function-specific classes.  The framework-specific classes should
- * provide the {@link BuildScriptConfiguration} required by this class via a reusable trait.
+ * provide the {@link BuildScriptConfiguration} and {@link TestSourceConfiguration} required by this class via a
+ * reusable trait.
  *
  *  ┌──────────────────────────────────────────────┐
  *  │   AbstractJUnitMultiVersionIntegrationTest   │
@@ -44,6 +45,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
  */
 abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
     abstract BuildScriptConfiguration getBuildScriptConfiguration()
+    abstract TestSourceConfiguration getTestSourceConfiguration()
 
     String getTestFrameworkDependencies() {
         return buildScriptConfiguration.testFrameworkDependencies
@@ -59,6 +61,10 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
 
     String excludeCategoryOrTag(String categoryOrTag) {
         return "${buildScriptConfiguration.excludeCategoryOrTagConfigurationElement} '${categoryOrTag}'"
+    }
+
+    String getTestFrameworkImports() {
+        return testSourceConfiguration.testFrameworkImports
     }
 
     def setup() {
@@ -77,5 +83,16 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
         String getConfigureTestFramework()
         String getIncludeCategoryOrTagConfigurationElement()
         String getExcludeCategoryOrTagConfigurationElement()
+    }
+
+    /**
+     * Test framework specific configuration for test sources.
+     *
+     * These values will be provided by test framework traits that can be attached to any test class.  As such, we use an interface
+     * to ensure type safety and avoid decoupling of these methods in the trait classes.  The trait classes simply have to provide
+     * an implementation of this interface specific to the test framework.
+     */
+    interface TestSourceConfiguration {
+        String getTestFrameworkImports()
     }
 }

@@ -16,11 +16,20 @@
 
 package org.gradle.testing.junit4
 
-import org.gradle.testing.AbstractTestEnvironmentIntegrationTest
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
-abstract class AbstractJUnit4TestEnvironmentIntegrationTest extends AbstractTestEnvironmentIntegrationTest implements JUnit4CommonTestSources {
-    @Override
-    String getModuleName() {
-        return "junit"
+trait JUnit4CommonTestSources {
+    AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
+        new JUnit4TestSourceConfiguration()
+    }
+
+    static class JUnit4TestSourceConfiguration implements AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration {
+        @Override
+        String getTestFrameworkImports() {
+            return """
+                import org.junit.*;
+                import static org.junit.Assert.*;
+            """.stripIndent()
+        }
     }
 }

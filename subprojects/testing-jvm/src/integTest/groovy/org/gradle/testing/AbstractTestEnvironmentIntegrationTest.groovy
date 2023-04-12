@@ -24,7 +24,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
-    abstract String getFrameworkImports()
     abstract String getModuleName()
 
     def setup() {
@@ -50,7 +49,8 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMulti
         file('src/test/java/org/gradle/MySystemClassLoader.java') << customSystemClassLoaderClass
         file('src/test/java/org/gradle/JUnitTest.java') << """
             package org.gradle;
-            ${frameworkImports}
+
+            ${testFrameworkImports}
 
             public class JUnitTest {
                 @Test
@@ -80,7 +80,8 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMulti
         file('src/test/java/org/gradle/MySystemClassLoader.java') << customSystemClassLoaderClass
         file('src/test/java/org/gradle/TestUsingSlf4j.java') << """
             package org.gradle;
-            ${frameworkImports}
+
+            ${testFrameworkImports}
 
             import org.slf4j.Logger;
             import org.slf4j.LoggerFactory;
@@ -129,7 +130,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMulti
         file('src/test/java/org/gradle/example/TestUsingSlf4j.java') << """
             package org.gradle.example;
 
-            ${frameworkImports}
+            ${testFrameworkImports}
 
             import org.slf4j.Logger;
             import org.slf4j.LoggerFactory;
@@ -194,7 +195,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMulti
         file('src/test/java/org/gradle/JUnitTest.java') << """
             package org.gradle;
 
-            ${frameworkImports}
+            ${testFrameworkImports}
 
             public class JUnitTest {
                 @Test
@@ -239,7 +240,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMulti
         file('src/test/java/org/gradle/JUnitTest.java') << """
             package org.gradle;
 
-            ${frameworkImports}
+            ${testFrameworkImports}
 
             public class JUnitTest {
                 @Test
