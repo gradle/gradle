@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.execution.ExecutionAccessChecker;
 import org.gradle.internal.service.ServiceLookup;
 
@@ -23,6 +24,7 @@ import org.gradle.internal.service.ServiceLookup;
  * As {@link Instrumented} is using to augment calls at configuration time, this class is using
  * to augment calls at execution time.
  */
+@NonNullApi
 public class InstrumentedExecutionAccess {
 
     /**
