@@ -16,11 +16,13 @@
 
 package org.gradle.smoketests
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@LocalOnly(because = "Needs Android environment")
 class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
 
     def "kotlin android on android-kotlin-example-kotlin-dsl (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {

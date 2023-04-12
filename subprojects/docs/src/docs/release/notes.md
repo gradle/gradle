@@ -107,11 +107,25 @@ More details can be found in the dedicated section of the [Kotlin DSL](userguide
 PGP keys for dependency verification downloaded from key servers are now stripped to contain only necessary data.
 This feature can significantly reduce keyrings size.
 
+### Boolean task options generate opposite option
+
+Task options of type `boolean`, `Boolean`, and `Property<Boolean>` now generate an opposite option to facilitate setting the value to `false`.
+For example, `--no-foo` is created for the provided option `--foo`.
+
+See the [task options](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options) user manual section for more information.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
 
 -->
+
+### Improved console output
+
+A series of small improvements were added to the console output when the build fails:
+suggestions are moved from the error message to the `* Try` section, a link help.gradle.org is not shown for recoverable errors (e.g. upon compilation failure), just to name a few.
+The complete list of suggestions is available [here](https://github.com/gradle/gradle/issues?q=is%3Aissue+sort%3Aupdated-desc+milestone%3A%228.2+RC1%22+label%3Ain%3Aconsole+is%3Aclosed).
+This change is a first step towards implementing the [clean and actionable error reporting](https://github.com/gradle/build-tool-roadmap/issues/49) item in the public roadmap.
 
 ## Promoted features
 

@@ -23,7 +23,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.DefaultCollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
-import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.internal.collections.FilteredElementSource;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -101,7 +101,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> ElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
-        return new FilteredCollection<T, S>(elementSource, filter);
+        return new FilteredElementSource<T, S>(elementSource, filter);
     }
 
     protected <S extends T> CollectionEventRegister<S> filteredEvents(CollectionFilter<S> filter) {

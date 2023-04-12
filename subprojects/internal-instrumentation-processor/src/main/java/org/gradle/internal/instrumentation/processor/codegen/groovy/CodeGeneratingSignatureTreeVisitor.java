@@ -100,11 +100,11 @@ class CodeGeneratingSignatureTreeVisitor {
         TypeName implementationOwner = TypeUtils.typeName(request.getImplementationInfo().getOwner());
         String implementationName = request.getImplementationInfo().getName();
         if (request.getInterceptedCallable().getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
-            result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner()), paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
+            result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner().getType()), paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
             CodeBlock interceptorArgs = CodeBlock.join(Arrays.asList(CodeBlock.of("result"), argsCode), ", ");
             result.addStatement("$T.$L($L)", implementationOwner, implementationName, interceptorArgs);
             result.addStatement("return result");
-        } else if (request.getInterceptedCallable().getReturnType() == Type.VOID_TYPE) {
+        } else if (request.getInterceptedCallable().getReturnType().getType() == Type.VOID_TYPE) {
             result.addStatement("$T.$L($L)", implementationOwner, implementationName, argsCode);
             result.addStatement("return null");
         } else {

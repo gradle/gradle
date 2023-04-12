@@ -27,8 +27,8 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     }
 
     @Override
-    String testDependency() {
-        'org.testng:testng:6.9.13.6'
+    String testDependencies() {
+        "testImplementation 'org.testng:testng:6.9.13.6'"
     }
 
     @Override

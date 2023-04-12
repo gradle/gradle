@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+package org.gradle.internal.instrumentation.model;
 
-repositories {
-    mavenCentral()
-}
+import org.objectweb.asm.Type;
 
-dependencies {
-    testImplementation "junit:junit:3.8"
+public class CallableOwnerInfo {
+    private final Type type;
+    private final boolean interceptSubtypes;
+
+    public CallableOwnerInfo(Type type, boolean interceptSubtypes) {
+        this.type = type;
+        this.interceptSubtypes = interceptSubtypes;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public boolean isInterceptSubtypes() {
+        return interceptSubtypes;
+    }
 }
