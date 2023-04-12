@@ -29,8 +29,6 @@ import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
     abstract String getStandaloneTestClass()
     abstract String testClass(String className)
-    abstract String getImportAll()
-    abstract String getAssertOrAssertions()
 
     def setup() {
         buildFile << """
@@ -164,12 +162,12 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
             include 'dependency'
         """
         file("src/test/java/MyTest.java") << """
-            import ${importAll};
+            ${testFrameworkImports}
 
             public class MyTest {
                @Test
                public void test() {
-                  ${assertOrAssertions}.assertNotNull(getClass().getResource("dependency/foo.properties"));
+                  assertNotNull(getClass().getResource("dependency/foo.properties"));
                }
             }
         """.stripIndent()
@@ -194,12 +192,12 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
     def "re-runs tests when resources are renamed"() {
         given:
         file("src/test/java/MyTest.java") << """
-            import ${importAll};
+            ${testFrameworkImports}
 
             public class MyTest {
                @Test
                public void test() {
-                  ${assertOrAssertions}.assertNotNull(getClass().getResource("dependency/foo.properties"));
+                  assertNotNull(getClass().getResource("dependency/foo.properties"));
                }
             }
         """.stripIndent()

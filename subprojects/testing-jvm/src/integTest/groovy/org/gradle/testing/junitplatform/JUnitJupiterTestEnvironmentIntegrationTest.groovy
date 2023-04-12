@@ -27,12 +27,4 @@ class JUnitJupiterTestEnvironmentIntegrationTest extends AbstractTestEnvironment
     String getModuleName() {
         return "org.junit.jupiter.api"
     }
-
-    @Override
-    String getFrameworkImports() {
-        return """
-            import org.junit.jupiter.api.*;
-            import static org.junit.jupiter.api.Assertions.*;
-        """
-    }
 }
