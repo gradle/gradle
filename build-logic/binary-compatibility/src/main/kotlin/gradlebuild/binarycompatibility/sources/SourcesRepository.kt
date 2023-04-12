@@ -122,7 +122,7 @@ class SourcesRepository(
         sourceRoots.asSequence()
             .map { it.resolve(sourceFilePath) to it }
             .firstOrNull { it.first.isFile }
-            ?: throw IllegalStateException("Source file '$sourceFilePath' not found, searched in source roots:\n${sourceRoots.joinToString("\n  - ")}")
+            ?: throw IllegalStateException("Source file '$sourceFilePath' not found, searched in source roots:\n  - ${sourceRoots.joinToString("\n  - ")}")
 
     private
     val KtFile.normalizedPath: String?

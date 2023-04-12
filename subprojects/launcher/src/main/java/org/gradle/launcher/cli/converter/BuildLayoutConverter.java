@@ -23,6 +23,8 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 
@@ -72,13 +74,39 @@ public class BuildLayoutConverter {
             buildLayout.setProjectDir(this.buildLayout.getProjectDir());
             buildLayout.setGradleUserHomeDir(this.buildLayout.getGradleUserHomeDir());
             buildLayout.setGradleInstallationHomeDir(this.buildLayout.getGradleInstallationHomeDir());
+            buildLayout.setSettingsFile(this.buildLayout.getSettingsFile());
+            buildLayout.setBuildFile(this.buildLayout.getBuildFile());
         }
 
         @Override
+        @SuppressWarnings("deprecation") // StartParameter.setSettingsFile()
         public void applyTo(StartParameterInternal startParameter) {
-            startParameter.setProjectDir(buildLayout.getProjectDir());
+            // Note that order is important here, as the setters have some side effects
+            if (buildLayout.getProjectDir() != null) {
+                startParameter.setProjectDir(buildLayout.getProjectDir());
+            }
             startParameter.setCurrentDir(buildLayout.getCurrentDir());
             startParameter.setGradleUserHomeDir(buildLayout.getGradleUserHomeDir());
+            if (buildLayout.getBuildFile() != null) {
+                DeprecationLogger.whileDisabled(() ->
+                    startParameter.setBuildFile(buildLayout.getBuildFile())
+                );
+            }
+            if (buildLayout.getSettingsFile() != null) {
+                DeprecationLogger.whileDisabled(() ->
+                    startParameter.setSettingsFile(buildLayout.getSettingsFile())
+                );
+            }
+        }
+
+        @Override
+        public BuildLayoutConfiguration toLayoutConfiguration() {
+            return new BuildLayoutConfiguration(buildLayout);
+        }
+
+        @Override
+        public File getGradleInstallationHomeDir() {
+            return buildLayout.getGradleInstallationHomeDir();
         }
 
         @Override

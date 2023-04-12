@@ -34,12 +34,13 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
@@ -51,6 +52,8 @@ import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigu
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -85,11 +88,10 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html">Gradle plugin development reference</a>
  */
-@SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
 @NonNullApi
-public class JavaGradlePluginPlugin implements Plugin<Project> {
+public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
-    static final String API_CONFIGURATION = JavaPlugin.API_CONFIGURATION_NAME;
+    static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
     static final String GRADLE_PLUGINS = "gradle-plugins";
@@ -176,9 +178,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private GradlePluginDevelopmentExtension createExtension(Project project) {
-        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        SourceSet defaultPluginSourceSet = javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        SourceSet defaultTestSourceSet = javaPluginExtension.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        SourceSet defaultPluginSourceSet = JavaPluginHelper.getJavaComponent(project).getMainFeature().getSourceSet();
+        SourceSet defaultTestSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();
         return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project, defaultPluginSourceSet, defaultTestSourceSet);
     }
 
@@ -194,18 +195,22 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
 
-            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<FileCollection>) () -> {
-                SourceSet sourceSet = extension.getPluginSourceSet();
-                Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
-                ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
-                    config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi));
-                });
-                return pluginUnderTestMetadataTask.getProject().getObjects().fileCollection().from(
-                    sourceSet.getOutput(),
-                    view.getFiles().getElements()
-                );
-            });
+            pluginUnderTestMetadataTask.getPluginClasspath().from(classpathForPlugin(project, extension));
         });
+    }
+
+    private static Callable<FileCollection> classpathForPlugin(Project project, GradlePluginDevelopmentExtension extension) {
+        return () -> {
+            SourceSet sourceSet = extension.getPluginSourceSet();
+            Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+            ArtifactView view = runtimeClasspath.getIncoming().artifactView(config ->
+                config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi))
+            );
+            return project.getObjects().fileCollection().from(
+                sourceSet.getOutput(),
+                view.getFiles().getElements()
+            );
+        };
     }
 
     private static boolean excludeGradleApi(ComponentIdentifier componentId) {
@@ -261,12 +266,20 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
+
+            task.getLauncher().convention(toolchainLauncher(project));
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
     }
 
     private void configureDependencyGradlePluginsResolution(Project project) {
         new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
+    }
+
+    private Provider<JavaLauncher> toolchainLauncher(Project project) {
+        JavaPluginExtension extension = project.getExtensions().findByType(JavaPluginExtension.class);
+        JavaToolchainService service = project.getExtensions().findByType(JavaToolchainService.class);
+        return service.launcherFor(extension.getToolchain());
     }
 
     /**

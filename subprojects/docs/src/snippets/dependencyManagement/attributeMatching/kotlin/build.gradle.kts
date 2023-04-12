@@ -15,10 +15,14 @@ dependencies {
 // tag::concrete-classpath[]
 configurations {
     // declare a configuration that is going to resolve the compile classpath of the application
-    compileClasspath.extendsFrom(someConfiguration)
+    compileClasspath {
+        extendsFrom(someConfiguration)
+    }
 
     // declare a configuration that is going to resolve the runtime classpath of the application
-    runtimeClasspath.extendsFrom(someConfiguration)
+    runtimeClasspath {
+        extendsFrom(someConfiguration)
+    }
 }
 // end::concrete-classpath[]
 
@@ -29,12 +33,12 @@ configurations {
         // This configuration is an "outgoing" configuration, it's not meant to be resolved
         isCanBeResolved = false
         // As an outgoing configuration, explain that consumers may want to consume it
-        isCanBeConsumed = true
+        assert(isCanBeConsumed)
     }
     // A configuration meant for consumers that need the implementation of this component
     create("exposedRuntime") {
         isCanBeResolved = false
-        isCanBeConsumed = true
+        assert(isCanBeConsumed)
     }
 }
 // end::setup-configurations[]

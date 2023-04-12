@@ -76,6 +76,11 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
     }
 
     @Override
+    List<BuildOperationRecord> all() {
+        return tree.all()
+    }
+
+    @Override
     List<BuildOperationRecord> all(Pattern displayName) {
         return tree.all(displayName)
     }

@@ -23,19 +23,20 @@ import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 
 import javax.annotation.Nullable;
 
-public class LenientPlatformGraphResolveState extends DefaultComponentGraphResolveState<LenientPlatformResolveMetadata> {
-    public LenientPlatformGraphResolveState(
+public class LenientPlatformGraphResolveState extends DefaultComponentGraphResolveState<LenientPlatformResolveMetadata, LenientPlatformResolveMetadata> {
+    public static LenientPlatformGraphResolveState of(
         ModuleComponentIdentifier moduleComponentIdentifier,
         ModuleVersionIdentifier moduleVersionIdentifier,
         VirtualPlatformState platformState,
         NodeState platformNode,
         ResolveState resolveState
     ) {
-        super(new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier, platformState, platformNode, resolveState));
+        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier, platformState, platformNode, resolveState);
+        return new LenientPlatformGraphResolveState(metadata);
     }
 
     private LenientPlatformGraphResolveState(LenientPlatformResolveMetadata metadata) {
-        super(metadata);
+        super(metadata, metadata);
     }
 
     @Nullable

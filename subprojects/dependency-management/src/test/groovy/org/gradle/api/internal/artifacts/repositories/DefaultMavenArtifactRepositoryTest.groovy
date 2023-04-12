@@ -76,7 +76,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -94,7 +94,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -117,7 +117,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.artifactUrls('repo1', 'repo2')
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -139,7 +139,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -149,7 +149,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "fails when no root url specified"() {
         when:
-        repository.createRealResolver()
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()
@@ -167,7 +167,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = uri
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver

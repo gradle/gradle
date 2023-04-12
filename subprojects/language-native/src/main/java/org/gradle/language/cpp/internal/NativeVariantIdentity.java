@@ -19,6 +19,7 @@ package org.gradle.language.cpp.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.component.ComponentWithCoordinates;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -37,16 +38,16 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final boolean debuggable;
     private final boolean optimized;
     private final TargetMachine targetMachine;
-    private final UsageContext linkUsage;
-    private final UsageContext runtimeUsage;
+    private final SoftwareComponentVariant linkVariant;
+    private final SoftwareComponentVariant runtimeVariant;
     private final Linkage linkage;
-    private final Set<UsageContext> usageContexts;
+    private final Set<UsageContext> variants;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkUsage, UsageContext runtimeUsage) {
-        this(name, baseName, group, version, debuggable, optimized, targetMachine, linkUsage, runtimeUsage, null);
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkVariant, UsageContext runtimeVariant) {
+        this(name, baseName, group, version, debuggable, optimized, targetMachine, linkVariant, runtimeVariant, null);
     }
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkUsage, UsageContext runtimeUsage, Linkage linkage) {
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkVariant, UsageContext runtimeVariant, Linkage linkage) {
         this.name = name;
         this.baseName = baseName;
         this.group = group;
@@ -54,15 +55,15 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         this.debuggable = debuggable;
         this.optimized = optimized;
         this.targetMachine = targetMachine;
-        this.linkUsage = linkUsage;
-        this.runtimeUsage = runtimeUsage;
+        this.linkVariant = linkVariant;
+        this.runtimeVariant = runtimeVariant;
         this.linkage = linkage;
-        this.usageContexts = Sets.newLinkedHashSet();
-        if (linkUsage!=null) {
-            usageContexts.add(linkUsage);
+        this.variants = Sets.newLinkedHashSet();
+        if (linkVariant != null) {
+            variants.add(linkVariant);
         }
-        if (runtimeUsage!=null) {
-            usageContexts.add(runtimeUsage);
+        if (runtimeVariant !=null) {
+            variants.add(runtimeVariant);
         }
     }
 
@@ -89,7 +90,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        return usageContexts;
+        return variants;
     }
 
     @Override
@@ -97,11 +98,11 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         return name;
     }
 
-    public UsageContext getRuntimeUsageContext() {
-        return runtimeUsage;
+    public SoftwareComponentVariant getRuntimeVariant() {
+        return runtimeVariant;
     }
 
-    public UsageContext getLinkUsageContext() {
-        return linkUsage;
+    public SoftwareComponentVariant getLinkVariant() {
+        return linkVariant;
     }
 }

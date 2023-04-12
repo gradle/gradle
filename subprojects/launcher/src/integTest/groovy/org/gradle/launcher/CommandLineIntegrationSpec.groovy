@@ -20,8 +20,10 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.Flaky
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -82,6 +84,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
     @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Flaky(because = "Sometimes it hangs for hours")
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()
@@ -101,7 +104,37 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         jdwpClient.close()
     }
 
-    def "can debug with #hostKind host"() {
+    def "can debug via host"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+
+        JDWPUtil jdwpClient = new JDWPUtil()
+
+        def jdwpHost = nonLoopbackAddress()
+        Assume.assumeNotNull(jdwpHost)
+        jdwpClient.host = jdwpHost
+
+        when:
+        def gradle = executer.withArguments(
+                "-Dorg.gradle.debug=true",
+                "-Dorg.gradle.debug.port=" + jdwpClient.port,
+                "-Dorg.gradle.debug.host=" + jdwpClient.host).
+                withTasks("help").
+                start()
+
+        then:
+        ConcurrentTestUtil.poll() {
+            // Connect, resume threads, and disconnect from VM
+            jdwpClient.connect().dispose()
+        }
+        gradle.waitForFinish()
+
+        cleanup:
+        jdwpClient.close()
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "can debug on explicitly any host"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()
 
@@ -113,11 +146,11 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         def gradle = executer.withArguments(
-            [
                 "-Dorg.gradle.debug=true",
-                "-Dorg.gradle.debug.port=" + jdwpClient.port
-            ] + (jdwpHost != null ? ["-Dorg.gradle.debug.host=" + jdwpHost] : [])
-        ).withTasks("help").start()
+                "-Dorg.gradle.debug.port=" + jdwpClient.port,
+                "-Dorg.gradle.debug.host=*").
+                withTasks("help").
+                start()
 
         then:
         ConcurrentTestUtil.poll() {
@@ -128,17 +161,16 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         cleanup:
         jdwpClient.close()
-
-        where:
-        jdwpHost << [Jvm.current().javaVersion.isJava9Compatible() ? "*" : null, nonLoopbackAddress()]
-        hostKind << [Jvm.current().javaVersion.isJava9Compatible() ? "star" : "default", "exact IP"]
     }
 
     private static String nonLoopbackAddress() {
-        Collections.list(NetworkInterface.getNetworkInterfaces())
+        println("Looking at network interfaces")
+        def address = Collections.list(NetworkInterface.getNetworkInterfaces())
             .collectMany { it.isLoopback() ? [] : Collections.list(it.inetAddresses) }
             .find { it instanceof Inet4Address && !it.isLoopbackAddress() }
             .hostAddress
+        println("using address=$address")
+        return address
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
@@ -160,6 +192,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "1.1", "foo", " 1", "65536"]
     }
 
+    @Flaky(because = "Sometimes it hangs for hours")
     @Issue('https://github.com/gradle/gradle/issues/18084')
     @IgnoreIf({ GradleContextualExecuter.embedded })
     @Timeout(30)

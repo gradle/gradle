@@ -20,17 +20,18 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -81,7 +82,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * @since 4.3
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateModuleMetadata extends DefaultTask {
+public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<Property<Publication>> publication;
     private final Transient<ListProperty<Publication>> publications;
     private final RegularFileProperty outputFile;
@@ -96,7 +97,7 @@ public class GenerateModuleMetadata extends DefaultTask {
 
         outputFile = objectFactory.fileProperty();
 
-        variantFiles = getFileCollectionFactory().create(new VariantFiles());
+        variantFiles = getFileCollectionFactory().create(new VariantFiles(((ProjectInternal) getProject()).getTaskDependencyFactory()));
 
         suppressedValidationErrors = objectFactory.setProperty(String.class).convention(Collections.emptySet());
 
@@ -186,7 +187,6 @@ public class GenerateModuleMetadata extends DefaultTask {
      *
      * @since 7.0
      */
-    @Incubating
     @Input
     public SetProperty<String> getSuppressedValidationErrors() {
         return suppressedValidationErrors;
@@ -279,6 +279,12 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     private class VariantFiles implements MinimalFileSet, Buildable {
+        private final TaskDependencyFactory taskDependencyFactory;
+
+        private VariantFiles(TaskDependencyFactory taskDependencyFactory) {
+            this.taskDependencyFactory = taskDependencyFactory;
+        }
+
         @Override
         @Nonnull
         public String getDisplayName() {
@@ -288,7 +294,7 @@ public class GenerateModuleMetadata extends DefaultTask {
         @Override
         @Nonnull
         public TaskDependency getBuildDependencies() {
-            DefaultTaskDependency dependency = new DefaultTaskDependency();
+            DefaultTaskDependency dependency = taskDependencyFactory.configurableDependency();
             SoftwareComponentInternal component = component();
             if (component != null) {
                 forEachArtifactOf(component, dependency::add);
@@ -311,8 +317,8 @@ public class GenerateModuleMetadata extends DefaultTask {
         }
 
         private void forEachArtifactOf(SoftwareComponentInternal component, Action<PublishArtifact> action) {
-            for (UsageContext usageContext : component.getUsages()) {
-                for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
+            for (SoftwareComponentVariant variant : component.getUsages()) {
+                for (PublishArtifact publishArtifact : variant.getArtifacts()) {
                     action.execute(publishArtifact);
                 }
             }

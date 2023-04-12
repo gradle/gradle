@@ -143,7 +143,9 @@ dependencies {
             root(":", ":test:") {
                 edge("org.test:child:1.0", "org.test:child:1.0") {
                     edge("org.test:imported:[2.0,3.0)", "org.test:imported:2.1") {
-                        artifact(group: 'org.test', module: 'imported', version: '2.1', type: 'pom').byReason("didn't match version 3.0")
+                        notRequested()
+                        byReason("didn't match version 3.0")
+                        artifact(type: 'pom')
                         edge("org.test:dep:2.1", "org.test:dep:2.1")
                     }
                 }
@@ -221,6 +223,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":testrange:") {
                 edge("org.test:dep:[1.0, 2.0[", "org.test:dep:1.5") {
+                    notRequested()
                     byReason("didn't match versions 3.0, 2.1, 2.0, 2.0-final, 2.0-dev1")
                 }
             }

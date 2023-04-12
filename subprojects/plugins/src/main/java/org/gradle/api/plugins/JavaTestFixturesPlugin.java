@@ -20,14 +20,21 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
+import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
-import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
 
@@ -43,48 +50,55 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
  * @since 5.6
  * @see <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Java Test Fixtures reference</a>
  */
-public class JavaTestFixturesPlugin implements Plugin<Project> {
-
-    private final JvmModelingServices jvmEcosystemUtilities;
+public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
     @Inject
-    public JavaTestFixturesPlugin(JvmModelingServices jvmModelingServices) {
-        this.jvmEcosystemUtilities = jvmModelingServices;
-    }
+    public JavaTestFixturesPlugin() { }
 
     @Override
     public void apply(Project project) {
         project.getPluginManager().withPlugin("java", plugin -> {
-            jvmEcosystemUtilities.createJvmVariant(TEST_FIXTURES_FEATURE_NAME, builder ->
-                builder
-                    .exposesApi()
-                    .published()
+            JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
+            SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
+
+            @SuppressWarnings("deprecation")
+            ConfigurationRole role = ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE;
+
+            JvmFeatureInternal feature = new DefaultJvmFeature(
+                TEST_FIXTURES_FEATURE_NAME,
+                testFixturesSourceSet,
+                Collections.singletonList(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
+                (ProjectInternal) project,
+                role,
+                false
             );
-            createImplicitTestFixturesDependencies(project, findJavaExtension(project));
+
+            feature.withApi();
+
+            DefaultJvmSoftwareComponent component = (DefaultJvmSoftwareComponent) JavaPluginHelper.getJavaComponent(project);
+            component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
+            component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+
+            createImplicitTestFixturesDependencies(project);
         });
     }
 
-    private void createImplicitTestFixturesDependencies(Project project, JavaPluginExtension extension) {
+    private void createImplicitTestFixturesDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
+
+        // Test fixtures depend on the project.
         dependencies.add(TEST_FIXTURES_API, dependencies.create(project));
-        SourceSet testSourceSet = findTestSourceSet(extension);
+
+        // The tests depend on the test fixtures.
+        SourceSet testSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();
         ProjectDependency testDependency = (ProjectDependency) dependencies.add(testSourceSet.getImplementationConfigurationName(), dependencies.create(project));
         testDependency.capabilities(new ProjectTestFixtures(project));
 
         // Overwrite what the Java plugin defines for test, in order to avoid duplicate classes
         // see gradle/gradle#10872
         ConfigurationContainer configurations = project.getConfigurations();
-        testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(configurations.getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-        testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), configurations.getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
-
-    }
-
-    private SourceSet findTestSourceSet(JavaPluginExtension extension) {
-        return extension.getSourceSets().getByName("test");
-    }
-
-    private JavaPluginExtension findJavaExtension(Project project) {
-        return project.getExtensions().getByType(JavaPluginExtension.class);
+        testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(configurations.getByName(testSourceSet.getCompileClasspathConfigurationName())));
+        testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), configurations.getByName(testSourceSet.getRuntimeClasspathConfigurationName())));
     }
 
 }

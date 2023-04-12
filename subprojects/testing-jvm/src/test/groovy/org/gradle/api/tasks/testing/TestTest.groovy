@@ -17,32 +17,56 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.AbstractProperty
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 class TestTest extends AbstractProjectBuilderSpec {
 
-    def 'javaLauncher is annotated with @Nested and @Optional'() {
-        given:
-        def launcherMethod = Test.class.getMethod('getJavaLauncher', [] as Class[])
-
-        expect:
-        launcherMethod.isAnnotationPresent(Nested)
-        launcherMethod.isAnnotationPresent(Optional)
-    }
-
     def 'fails if custom executable does not exist'() {
-        def testTask = project.tasks.create("test", Test)
-        def invalidJava = "invalidjava"
+        def task = project.tasks.create("test", Test)
+        task.testClassesDirs = TestFiles.fixed(new File("tmp"))
+        task.binaryResultsDirectory.fileValue(new File("out"))
+        def invalidExecutable = temporaryFolder.file("invalidExecutable")
 
         when:
-        testTask.executable = invalidJava
+        task.executable = invalidExecutable
+        task.javaLauncher.get()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable does not exist")
+        cause.message.contains(invalidExecutable.absolutePath)
+    }
+
+    def "fails if custom executable is a directory"() {
+        def testTask = project.tasks.create("test", Test)
+        def executableDir = temporaryFolder.createDir("javac")
+
+        when:
+        testTask.executable = executableDir.absolutePath
         testTask.javaVersion
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message.contains("The configured executable does not exist")
-        e.message.contains(invalidJava)
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable is a directory")
+        cause.message.contains(executableDir.name)
+    }
+
+    def "fails if custom executable is not from a valid JVM"() {
+        def testTask = project.tasks.create("test", Test)
+        def invalidJavac = temporaryFolder.createFile("invalidJavac")
+
+        when:
+        testTask.executable = invalidJavac.absolutePath
+        testTask.javaVersion
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed:"))
+        assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
     }
 }

@@ -16,8 +16,21 @@
 
 package org.gradle.internal.event;
 
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
+
 public class AnonymousListenerBroadcast<T> extends ListenerBroadcast<T> {
-    public AnonymousListenerBroadcast(Class<T> type) {
+    private final Dispatch<MethodInvocation> forwardingDispatch;
+
+    public AnonymousListenerBroadcast(Class<T> type, Dispatch<MethodInvocation> forwardingDispatch) {
         super(type);
+        this.forwardingDispatch = forwardingDispatch;
+        add(forwardingDispatch);
+    }
+
+    @Override
+    public void removeAll() {
+        super.removeAll();
+        add(forwardingDispatch);
     }
 }

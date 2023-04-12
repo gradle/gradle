@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 
 public class InitScriptHandlingSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
@@ -29,7 +28,7 @@ public class InitScriptHandlingSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+    public SettingsState findAndLoadSettings(GradleInternal gradle) {
         initScriptHandler.executeScripts(gradle);
         return delegate.findAndLoadSettings(gradle);
     }

@@ -16,11 +16,16 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.TaskValidationContext;
+import com.google.common.base.Suppliers;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.DeferredUtil;
+
+import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
     private final String propertyName;
@@ -49,15 +54,26 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     }
 
     @Override
-    public void validate(TaskValidationContext context) {
-        Object unpacked = DeferredUtil.unpackOrNull(value.call());
-        if (unpacked == null) {
+    public void validate(PropertyValidationContext context) {
+        // unnest callables without resolving deferred values (providers, factories)
+        Object unnested = DeferredUtil.unpackNestableDeferred(value.call());
+        if (isPresent(unnested)) {
+            // only resolve deferred values if actually required by some action
+            Supplier<Object> valueSupplier = Suppliers.memoize(() -> DeferredUtil.unpack(unnested));
+            validationAction.validate(propertyName, valueSupplier, context);
+        } else {
             if (!optional) {
                 reportValueNotSet(propertyName, context);
             }
-        } else {
-            validationAction.validate(propertyName, unpacked, context);
         }
+    }
+
+    private static boolean isPresent(@Nullable Object value) {
+        if (value instanceof Provider) {
+            // carefully check for presence without necessarily resolving
+            return ((Provider<?>) value).isPresent();
+        }
+        return value != null;
     }
 
     @Override

@@ -15,182 +15,207 @@
 [[build_lifecycle]]
 = Build Lifecycle
 
-We said earlier that the core of Gradle is a language for dependency based programming. In Gradle terms this means that you can define tasks and dependencies between tasks. Gradle guarantees that these tasks are executed in the order of their dependencies, and that each task is executed only once. These tasks form a http://en.wikipedia.org/wiki/Directed_acyclic_graph[Directed Acyclic Graph]. There are build tools that build up such a dependency graph as they execute their tasks. Gradle builds the complete dependency graph _before_ any task is executed. This lies at the heart of Gradle and makes many things possible which would not be possible otherwise.
+Gradle is an example of *dependency based programming*: you define tasks and dependencies between tasks.
+Gradle guarantees that these tasks execute in the order of their dependencies.
+Your build scripts and plugins configure this dependency graph.
+This page discusses the phases of the lifecycle Gradle passes through as it interprets those scripts.
+Additionally, this page explains how you can react to events of the lifecycle using notifications.
 
-Your build scripts configure this dependency graph. Therefore they are strictly speaking _build configuration scripts_.
+== Task Graphs
 
+Some build tools assemble a task graph as they execute tasks.
+Gradle builds the task graph before executing any task.
+With configuration avoidance, Gradle skips configuration for tasks that aren't part of the current build.
+
+Within each project, tasks form a http://en.wikipedia.org/wiki/Directed_acyclic_graph[Directed Acyclic Graph] (DAG).
+
+This diagram shows two example task graphs: one abstract and the other concrete.
+The diagram represents dependencies between tasks as arrows:
+
+.Two examples of Gradle task graphs
+image::task-dag-examples.png[Example task graphs]
+
+Both plugins and your own build scripts contribute to the task graph via the <<tutorial_using_tasks#sec:task_dependencies,task dependency mechanism>>.
+
+[[build_lifecycle_events]]
 [[sec:build_phases]]
-== Build phases
+== Build Phases
 
 A Gradle build has three distinct phases.
+Gradle runs these phases in order: first initialization, then configuration, and finally execution.
 
 Initialization::
-Gradle supports single and multi-project builds. During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a link:{groovyDslPath}/org.gradle.api.Project.html[Project] instance for each of these projects.
+- Detects the <<organizing_gradle_projects#sec:settings_file,settings file>>.
+- Evaluates the settings file to determine which projects and included builds participate in the build.
+- Creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] instance for every project.
 Configuration::
-During this phase the project objects are configured. The build scripts of _all_ projects which are part of the build are executed.
+- Evaluates the build scripts of every project participating in the build.
+- Creates a task graph for requested tasks.
 Execution::
-Gradle determines the subset of the tasks, created and configured during the configuration phase, to be executed. The subset is determined by the task name arguments passed to the `gradle` command and the current directory. Gradle then executes each of the selected tasks.
+- Schedules and executes each of the selected tasks in the order of their dependencies.
 
+=== Example
 
-[[sec:settings_file]]
-== Settings file
+The following example shows which parts of settings and build files correspond to various build phases:
 
-Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle via a naming convention. The default name for this file is `settings.gradle`. Later in this chapter we explain how Gradle looks for a settings file.
-
-The settings file is executed during the initialization phase. A multi-project build must have a `settings.gradle` file in the root project of the multi-project hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>>). Let's first do some introspection with a single project build:
-
-.Single project build
 ====
-include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
 include::sample[dir="snippets/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
 ====
 
-=== Output of **`gradle test testBoth`**
-[source.multi-language-sample,groovy]
-----
-> gradle test testBoth
-include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
-----
+The following command configures and executes the `test` and `testBoth` tasks specified above.
+Because Gradle only configures requested tasks and their dependencies, the `configured` task never configures.
+
 [source.multi-language-sample,kotlin]
 ----
 > gradle test testBoth
 include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
 ----
-
-For a build script, the property access and method calls are delegated to a project object. Similarly property access and method calls within the settings file is delegated to a settings object. Look at the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] class in the API documentation for more information.
-
+[source.multi-language-sample,groovy]
+----
+> gradle test testBoth
+include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
+----
 
 [[sec:initialization]]
 == Initialization
 
-How does Gradle know whether to do a single or multi-project build?
-If you trigger a multi-project build from a directory with a `settings.gradle` file, Gradle uses it to configure the build.
-Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multi-project builds (see <<intro_multi_project_builds.adoc#intro_multi_project_builds,Executing Multi-Project Builds>>).]
-If you execute Gradle from within a project with no `settings.gradle` file, Gradle looks for a `settings.gradle` file in the following way:
+In the initialization phase, Gradle detects the set of projects and included builds participating in the build.
+Gradle first evaluates the settings file. Then, Gradle instantiates `Project` instances for each project.
 
-* It looks for `settings.gradle` in parent directories.
-* If not found, the build is executed as a single project build.
-* If a `settings.gradle` file is found, Gradle checks if the current project is part of the multi-project hierarchy defined in the found `settings.gradle` file.
-If not, the build is executed as a single project build. Otherwise a multi-project build is executed.
+=== Detect Settings File
 
-What is the purpose of this behavior? Gradle needs to determine whether the project you are in is a subproject of a multi-project build or not.
-Of course, if it is a subproject, only the subproject and its dependent projects are built, but Gradle needs to create the build configuration for the whole multi-project build (see <<multi_project_configuration_and_execution.adoc#configuration_and_execution,Configuration and Execution>>).
-If the current project contains a `settings.gradle` file, the build is always executed as:
+When you run Gradle in a directory that contains a `settings.gradle` file, Gradle uses that `settings.gradle` file to initialize the build.
+You can run Gradle within any subproject of the build.footnote:[Gradle supports partial multi-project builds (see <<intro_multi_project_builds.adoc#intro_multi_project_builds,Executing Multi-Project Builds>>).]
+When you run Gradle in a directory that contains *no* `settings.gradle` file:
 
-* a single project build, if the `settings.gradle` file does not define a multi-project hierarchy
-* a multi-project build, if the `settings.gradle` file does define a multi-project hierarchy.
+. Gradle looks for a `settings.gradle(.kts)` file in parent directories.
+. If Gradle finds a `settings.gradle(.kts)` file, Gradle checks if the current project is part of the multi-project build. If so, Gradle builds as a multi-project.
+. If Gradle does not find a `settings.gradle(.kts)` file, Gradle builds as a single project.
 
-The automatic search for a `settings.gradle` file only works for multi-project builds with a default project layout where project paths match the physical subproject layout on disk.
-Gradle supports arbitrary physical layouts for a multi-project build, but for such arbitrary layouts you need to execute the build from the directory where the settings file is located.
-For information on how to run partial builds from the root, see <<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,Executing tasks by their fully qualified name>>.
+In the standard Gradle project layout, <<intro_multi_project_builds#sec:project_path,project paths>> match the physical subproject layout on disk.
+The automatic search for a settings file only works for multi-project builds with a standard project layout.
+To build projects that use a nonstandard layout, execute the build from the directory that contains `settings.gradle(.kts)`.
 
-Gradle creates a Project object for every project taking part in the build. For a multi-project build these are the projects specified in the Settings object (plus the root project). Each project object has by default a name equal to the name of its top level directory, and every project except the root project has a parent project. Any project may have child projects.
+=== Evaluate Settings File
 
-[[sec:configuration_and_execution_of_a_single_project_build]]
-== Configuration and execution of a single project build
+During settings file evaluation, Gradle:
 
-For a single project build, the workflow of the _after initialization_ phases are pretty simple. The build script is executed against the project object that was created during the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line arguments. If these task names exist, they are executed as a separate build in the order you have passed them. The configuration and execution for multi-project builds is discussed in <<multi_project_configuration_and_execution.adoc#configuration_and_execution,Configuration and Execution>>.
+- Adds libraries to your build script classpath.
+- Defines which included builds participate in a composite build.
+- Defines which projects participate in a multi-project build.
 
-[[build_lifecycle_events]]
-== Responding to the lifecycle in the build script
+Gradle creates a `Project` for every project in the build.
+By default, each `Project` has a name equal to the name of its top level directory.
+Every project except the root project has a parent project.
+Any project may have child projects.
 
-Your build script can receive notifications as the build progresses through its lifecycle. These notifications generally take two forms: You can either implement a particular listener interface, or you can provide a closure to execute when the notification is fired. The examples below use closures. For details on how to use the listener interfaces, refer to the API documentation.
+== Configuration
 
+In the configuration phase, Gradle adds tasks and other properties to the projects generated by the initialization phase.
+By the end of the configuration phase, Gradle has a complete task execution graph for the requested tasks.
 
 [[sec:project_evaluation]]
-=== Project evaluation
+=== Project Evaluation
 
-You can receive a notification immediately before and after a project is evaluated. This can be used to do things like performing additional configuration once all the definitions in a build script have been applied, or for some custom logging or profiling.
+During project evaluation, Gradle evaluates build scripts to build a task hierarchy within a `Project`.
+This hierarchy includes inputs, actions, and outputs for all tasks.
 
-Below is an example which adds a `test` task to each project which has a `hasTests` property value of true.
+==== React to Project Evaluation
 
-.Adding of test task to each project which has certain property set
+You can receive a notification immediately before and immediately after a project evaluates.
+These notifications work even when project evaluation fails.
+You can configure project evaluation notifications for all projects or a specific project.
+For example, you could use these notifications for:
+
+- additional configuration after applying all definitions in a build script
+- custom logging
+- custom profiling
+
+The following example uses `gradle.beforeProject()` to add `hasTests` property to certain tests.
+Later, the example uses `gradle.afterProject()` to add a `test` task to each project where the `hasTests` property value is `true`:
+
 ====
-include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];project-a.gradle[]"]
 include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];project-a.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];project-a.gradle[]"]
 ====
 
-.Output of `gradle -q test`
 ----
 > gradle -q test
 include::{snippetsPath}/buildlifecycle/projectEvaluateEvents/tests/projectEvaluateEvents.out[]
 ----
 
-This example uses method `Project.afterEvaluate()` to add a closure which is executed after the project is evaluated (ie. the end of the configuration phase).
+To receive these events via a listener instead of a closure, add a link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener] to a build's link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] instance.
 
-It is also possible to receive notifications when any project is evaluated. This example performs some custom logging of project evaluation. Notice that the `afterProject` notification is received regardless of whether the project evaluates successfully or fails with an exception.
+=== Task Execution Graph Assembly
 
-.Notifications
-====
-include::sample[dir="snippets/buildlifecycle/buildProjectEvaluateEvents/groovy",files="build.gradle[tags=evaluate-events]"]
-include::sample[dir="snippets/buildlifecycle/buildProjectEvaluateEvents/kotlin",files="build.gradle.kts[tags=evaluate-events]"]
-====
+During project evaluation, Gradle assembles the *task execution graph*: a http://en.wikipedia.org/wiki/Directed_acyclic_graph[DAG] representing the dependency relationships between tasks.
 
-==== Output of **`gradle -q test`**
-[source.multi-language-sample,groovy]
-----
-> gradle -q test
-include::{snippetsPath}/buildlifecycle/buildProjectEvaluateEvents/tests-groovy/buildProjectEvaluateEvents.groovy.out[]
-----
-[source.multi-language-sample,kotlin]
-----
-> gradle -q test
-include::{snippetsPath}/buildlifecycle/buildProjectEvaluateEvents/tests-kotlin/buildProjectEvaluateEvents.kotlin.out[]
-----
+[[sec:task_execution_graph_ready]]
+=== React to Task Execution Graph Assembly
 
-You can also add a link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener] to the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] to receive these events.
+You can receive a notification immediately after Gradle finishes populating a project's task execution graph.
+
+To receive these events, add a link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[TaskExecutionGraphListener] to a project's link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph].
+
+=== Task Creation
+
+During project evaluation, Gradle registers tasks and their configuration actions. The configuration actions define inputs, outputs, and actions for those tasks. They are evaluated if the task is part of the task graph for the requested tasks.
 
 [[sec:task_creation]]
-=== Task creation
+==== React to Task Creation
 
-You can receive a notification immediately after a task is added to a project. This can be used to set some default values or add behaviour before the task is made available in the build file.
+You can receive a notification immediately after Gradle adds a task to a project.
+For example, you could use these notifications to set some default values or methods.
 
-The following example sets the `srcDir` property of each task as it is created.
+The following example sets a `srcDir` value on each task in a project:
 
-.Setting of certain property to all tasks
 ====
-include::sample[dir="snippets/buildlifecycle/taskCreationEvents/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/buildlifecycle/taskCreationEvents/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/taskCreationEvents/groovy",files="build.gradle[]"]
 ====
 
-.Output of **`gradle -q a`**
 ----
 > gradle -q a
 include::{snippetsPath}/buildlifecycle/taskCreationEvents/tests/taskCreationEvents.out[]
 ----
 
-You can also add an link:{javadocPath}/org/gradle/api/Action.html[Action] to a link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] to receive these events.
+To receive these events via a listener instead of a closure, add an link:{javadocPath}/org/gradle/api/Action.html[Action] to a link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer].
 
-[[sec:task_execution_graph_ready]]
-=== Task execution graph ready
+== Execution
 
-You can receive a notification immediately after the task execution graph has been populated.
-
-You can also add a link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[TaskExecutionGraphListener] to the link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph] to receive these events.
+In the execution phase, Gradle runs tasks.
+Gradle uses the task execution graphs generated by the configuration phase to determine which tasks to execute.
 
 [[sec:task_execution]]
-=== Task execution
+=== Task Execution
 
-You can receive a notification immediately before and after any task is executed.
+Task execution includes most of the work you normally associate with a build: downloading libraries, compiling code, reading inputs, and writing outputs.
 
-The following example logs the start and end of each task execution. Notice that the `afterTask` notification is received regardless of whether the task completes successfully or fails with an exception.
+==== React to Task Execution Notifications
 
-.Logging of start and end of each task execution
+WARNING: Task execution events are not compatible with the <<configuration_cache.adoc#config_cache:requirements:build_listeners,configuration cache>>.
+You can use <<build_services#build_services,build services>> to receive information about <<build_services#operation_listener, task execution>>
+in a way compatible with the configuration cache.
+
+You can receive a notification immediately before and after Gradle executes any task.
+These notifications work even when task execution fails.
+The following example logs the start and end of each task execution:
+
 ====
-include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
 ====
 
-==== Output of **`gradle -q broken`**
-[source.multi-language-sample,groovy]
-----
-> gradle -q broken
-include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-groovy/taskExecutionEvents.groovy.out[]
-----
 [source.multi-language-sample,kotlin]
 ----
 > gradle -q broken
 include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-kotlin/taskExecutionEvents.kotlin.out[]
 ----
+[source.multi-language-sample,groovy]
+----
+> gradle -q broken
+include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-groovy/taskExecutionEvents.groovy.out[]
+----
 
-You can also use a link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener] to the link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph] to receive these events.
+To receive these events via a listener instead of a closure, add a link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener] to a project's link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph].

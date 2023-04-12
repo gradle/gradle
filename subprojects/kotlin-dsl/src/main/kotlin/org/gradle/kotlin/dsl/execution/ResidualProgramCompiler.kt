@@ -16,10 +16,9 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -43,6 +42,7 @@ import org.gradle.kotlin.dsl.support.bytecode.ASTORE
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
 import org.gradle.kotlin.dsl.support.bytecode.DUP
 import org.gradle.kotlin.dsl.support.bytecode.GETSTATIC
+import org.gradle.kotlin.dsl.support.bytecode.ICONST_0
 import org.gradle.kotlin.dsl.support.bytecode.INVOKEINTERFACE
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESPECIAL
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESTATIC
@@ -50,6 +50,7 @@ import org.gradle.kotlin.dsl.support.bytecode.INVOKEVIRTUAL
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.NEW
+import org.gradle.kotlin.dsl.support.bytecode.POP
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.TRY_CATCH
 import org.gradle.kotlin.dsl.support.bytecode.internalName
@@ -70,7 +71,6 @@ import org.jetbrains.org.objectweb.asm.Type
 import org.slf4j.Logger
 import java.io.File
 import kotlin.reflect.KClass
-import kotlin.script.experimental.api.KotlinType
 
 
 internal
@@ -84,6 +84,8 @@ typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,
+    private val jvmTarget: JavaVersion,
+    private val allWarningsAsErrors: Boolean,
     private val classPath: ClassPath = ClassPath.EMPTY,
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
@@ -92,9 +94,8 @@ class ResidualProgramCompiler(
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
-    private val pluginAccessorsClassPath: ClassPath = ClassPath.EMPTY,
+    private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
-    private val injectedProperties: Map<String, KotlinType> = mapOf()
 ) {
 
     fun compile(program: ResidualProgram) = when (program) {
@@ -188,12 +189,13 @@ class ResidualProgramCompiler(
         is Instruction.SetupEmbeddedKotlin -> emitSetupEmbeddedKotlinFor()
         is Instruction.CloseTargetScope -> emitCloseTargetScopeOf()
         is Instruction.Eval -> emitEval(instruction.script)
+        is Instruction.CollectProjectScriptDependencies -> emitCollectProjectScriptDependencies(instruction.script)
         is Instruction.ApplyBasePlugins -> emitApplyBasePluginsTo()
         is Instruction.ApplyDefaultPluginRequests -> emitApplyEmptyPluginRequestsTo()
+        is Instruction.ApplyPluginRequests -> emitApplyPluginRequests(instruction.requests, instruction.source)
         is Instruction.ApplyPluginRequestsOf -> {
-            val program = instruction.program
-            when (program) {
-                is Program.Plugins -> emitPrecompiledPluginsBlock(program)
+            when (val program = instruction.program) {
+                is Program.Plugins -> emitCompiledPluginsBlock(program)
                 is Program.PluginManagement -> emitStage1Sequence(program)
                 is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
                 else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
@@ -210,10 +212,17 @@ class ResidualProgramCompiler(
     }
 
     private
+    fun MethodVisitor.emitCollectProjectScriptDependencies(source: ProgramSource) {
+        val scriptDefinition = stage1ScriptDefinition
+        val compiledScriptClass = compileStage1(source, scriptDefinition, classPath + stage1BlocksClassPath)
+        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
+    }
+
+    private
     fun MethodVisitor.emitEval(source: ProgramSource) {
         val scriptDefinition = stage1ScriptDefinition
-        val precompiledScriptClass = compileStage1(source, scriptDefinition)
-        emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass, scriptDefinition)
+        val compiledScriptClass = compileStage1(source, scriptDefinition)
+        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
     }
 
     private
@@ -235,34 +244,75 @@ class ResidualProgramCompiler(
         val scriptDefinition = buildscriptWithPluginsScriptDefinition
         val plugins = stage1Seq.filterIsInstance<Program.Plugins>().singleOrNull()
         val firstElement = stage1Seq.first()
-        val precompiledBuildscriptWithPluginsBlock =
+        val compiledBuildscriptWithPluginsBlock =
             compileStage1(
                 firstElement.fragment.source.map {
                     it.preserve(stage1Seq.map { stage1 -> stage1.fragment.range })
                 },
                 scriptDefinition,
-                pluginsBlockClassPath
+                stage1BlocksClassPath
             )
 
         val implicitReceiverType = implicitReceiverOf(scriptDefinition)!!
-        precompiledScriptClassInstantiation(precompiledBuildscriptWithPluginsBlock) {
+        compiledScriptClassInstantiation(compiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
 
-            NEW(precompiledBuildscriptWithPluginsBlock)
+            NEW(compiledBuildscriptWithPluginsBlock)
             ALOAD(Vars.ScriptHost)
             // ${plugins}(temp.createSpec(lineNumber))
             emitPluginRequestCollectorCreateSpecFor(plugins)
             loadTargetOf(implicitReceiverType)
-            emitLoadExtensions()
             INVOKESPECIAL(
-                precompiledBuildscriptWithPluginsBlock,
+                compiledBuildscriptWithPluginsBlock,
                 "<init>",
-                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;L${implicitReceiverType.internalName};$injectedPropertiesDescriptors)V"
+                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;L${implicitReceiverType.internalName};)V"
             )
 
             emitApplyPluginsTo()
         }
+    }
+
+    private
+    fun MethodVisitor.emitApplyPluginRequests(
+        pluginRequestSpecs: List<ResidualProgram.PluginRequestSpec>,
+        source: Program.Plugins?
+    ) {
+        emitPluginRequestCollectorInstantiation()
+        emitPluginRequestCollectorCreateSpecFor(source)
+        emitPluginRequests(pluginRequestSpecs)
+        emitApplyPluginsTo()
+    }
+
+    private
+    fun MethodVisitor.emitPluginRequests(specs: List<ResidualProgram.PluginRequestSpec>) {
+        specs.forEach { spec ->
+            DUP()
+            LDC(spec.id)
+            INVOKEINTERFACE(
+                InternalName("org/gradle/plugin/use/PluginDependenciesSpec"),
+                "id",
+                "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
+            )
+            if (spec.version != null) {
+                LDC(spec.version)
+                INVOKEINTERFACE(
+                    InternalName("org/gradle/plugin/use/PluginDependencySpec"),
+                    "version",
+                    "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
+                )
+            }
+            if (!spec.apply) {
+                ICONST_0()
+                INVOKEINTERFACE(
+                    InternalName("org/gradle/plugin/use/PluginDependencySpec"),
+                    "apply",
+                    "(Z)Lorg/gradle/plugin/use/PluginDependencySpec;"
+                )
+            }
+            POP()
+        }
+        POP()
     }
 
     /**
@@ -311,11 +361,11 @@ class ResidualProgramCompiler(
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
-        val scriptDef = stage2ScriptDefinition
-        val precompiledScriptClass = compileScript(
+        val scriptDefinition = stage2ScriptDefinition
+        val compiledScriptClass = compileScript(
             scriptFile,
             originalPath,
-            scriptDef,
+            scriptDefinition,
             StableDisplayNameFor.stage2
         )
 
@@ -323,70 +373,35 @@ class ResidualProgramCompiler(
 
             overrideExecute {
 
-                emitInstantiationOfPrecompiledScriptClass(
-                    precompiledScriptClass,
-                    scriptDef
-                )
+                emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
             }
         }
     }
 
     private
-    fun MethodVisitor.emitPrecompiledPluginsBlock(program: Program.Plugins) {
+    fun MethodVisitor.emitCompiledPluginsBlock(program: Program.Plugins) {
 
-        val precompiledPluginsBlock = compilePlugins(program)
+        val compiledPluginsBlock = compilePlugins(program)
 
-        precompiledScriptClassInstantiation(precompiledPluginsBlock) {
+        compiledScriptClassInstantiation(compiledPluginsBlock) {
 
             /*
              * val collector = PluginRequestCollector(kotlinScriptHost.scriptSource)
              */
             emitPluginRequestCollectorInstantiation()
 
-            // ${precompiledPluginsBlock}(collector.createSpec(lineNumber))
-            NEW(precompiledPluginsBlock)
+            // ${compiledPluginsBlock}(collector.createSpec(lineNumber))
+            NEW(compiledPluginsBlock)
+            ALOAD(Vars.ScriptHost)
             emitPluginRequestCollectorCreateSpecFor(program)
-            emitLoadExtensions()
             INVOKESPECIAL(
-                precompiledPluginsBlock,
+                compiledPluginsBlock,
                 "<init>",
-                "(Lorg/gradle/plugin/use/PluginDependenciesSpec;$injectedPropertiesDescriptors)V"
+                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;)V"
             )
 
             emitApplyPluginsTo()
         }
-    }
-
-    private
-    val injectedPropertiesDescriptors
-        get() = injectedProperties.values
-            .map { Type.getType(it.fromClass?.java).descriptor }
-            .joinToString(separator = "")
-
-    /**
-     * extensions.getByName(name) as ExtensionType
-     */
-    private
-    fun MethodVisitor.emitLoadExtension(name: String, type: KotlinType) {
-        ALOAD(Vars.ScriptHost)
-        INVOKEVIRTUAL(
-            KotlinScriptHost::class.internalName,
-            "getTarget",
-            "()Ljava/lang/Object;"
-        )
-        CHECKCAST(ExtensionAware::class)
-        INVOKEINTERFACE(
-            ExtensionAware::class.internalName,
-            "getExtensions",
-            "()Lorg/gradle/api/plugins/ExtensionContainer;"
-        )
-        LDC(name)
-        INVOKEINTERFACE(
-            ExtensionContainer::class.internalName,
-            "getByName",
-            "(Ljava/lang/String;)Ljava/lang/Object;"
-        )
-        CHECKCAST(type.fromClass!!)
     }
 
     /**
@@ -452,10 +467,9 @@ class ResidualProgramCompiler(
             ALOAD(0)
             ALOAD(Vars.ScriptHost)
             ALOAD(3)
-            ALOAD(4)
             GETSTATIC(programKind)
             GETSTATIC(programTarget)
-            ALOAD(5)
+            ALOAD(4)
             invokeHost(
                 ExecutableProgram.Host::compileSecondStageOf.name,
                 compileSecondStageOfDescriptor
@@ -473,7 +487,8 @@ class ResidualProgramCompiler(
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
-        if (requiresAccessors()) emitAccessorsClassPathForScriptHost() else GETSTATIC(ClassPath::EMPTY)
+        if (requiresSecondStageAccessors(programTarget, programKind)) emitAccessorsClassPathForScriptHost()
+        else GETSTATIC(ClassPath::EMPTY)
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
             "(" +
@@ -487,6 +502,10 @@ class ResidualProgramCompiler(
     }
 
     private
+    fun requiresSecondStageAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
+        programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
+
+    private
     val stagedProgram = Type.getType(ExecutableProgram.StagedProgram::class.java)
 
     private
@@ -497,8 +516,7 @@ class ResidualProgramCompiler(
         Type.getType(CompiledScript::class.java),
         Type.getType(ExecutableProgram.Host::class.java),
         Type.getType(KotlinScriptHost::class.java),
-        Type.getType(String::class.java),
-        Type.getType(HashCode::class.java),
+        Type.getType(ProgramId::class.java),
         Type.getType(ClassPath::class.java)
     )
 
@@ -507,16 +525,11 @@ class ResidualProgramCompiler(
         Type.getType(CompiledScript::class.java),
         stagedProgram,
         Type.getType(KotlinScriptHost::class.java),
-        Type.getType(String::class.java),
-        Type.getType(HashCode::class.java),
+        Type.getType(ProgramId::class.java),
         Type.getType(ProgramKind::class.java),
         Type.getType(ProgramTarget::class.java),
         Type.getType(ClassPath::class.java)
     )
-
-    private
-    fun requiresAccessors() =
-        requiresAccessors(programTarget, programKind)
 
     private
     fun MethodVisitor.emitAccessorsClassPathForScriptHost() {
@@ -541,12 +554,12 @@ class ResidualProgramCompiler(
         compileStage1(
             program.fragment.source.map { it.preserve(program.fragment.range) },
             pluginsScriptDefinition,
-            pluginsBlockClassPath
+            stage1BlocksClassPath
         )
 
     private
-    val pluginsBlockClassPath
-        get() = classPath + pluginAccessorsClassPath
+    val stage1BlocksClassPath
+        get() = classPath + stage1BlocksAccessorsClassPath
 
     private
     fun MethodVisitor.loadHashCode(hashCode: HashCode) {
@@ -559,40 +572,31 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitInstantiationOfPrecompiledScriptClass(
-        precompiledScriptClass: InternalName,
+    fun MethodVisitor.emitInstantiationOfCompiledScriptClass(
+        compiledScriptClass: InternalName,
         scriptDefinition: ScriptDefinition
     ) {
 
         val implicitReceiverType = implicitReceiverOf(scriptDefinition)
-        precompiledScriptClassInstantiation(precompiledScriptClass) {
+        compiledScriptClassInstantiation(compiledScriptClass) {
 
-            // ${precompiledScriptClass}(scriptHost)
-            NEW(precompiledScriptClass)
+            // ${compiledScriptClass}(scriptHost)
+            NEW(compiledScriptClass)
             val constructorSignature =
                 if (implicitReceiverType != null) {
                     ALOAD(Vars.ScriptHost)
                     loadTargetOf(implicitReceiverType)
-                    emitLoadExtensions()
-                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;L${implicitReceiverType.internalName};$injectedPropertiesDescriptors)V"
+                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;L${implicitReceiverType.internalName};)V"
                 } else {
                     ALOAD(Vars.ScriptHost)
-                    emitLoadExtensions()
-                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;$injectedPropertiesDescriptors)V"
+                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost)V"
                 }
-            INVOKESPECIAL(precompiledScriptClass, "<init>", constructorSignature)
+            INVOKESPECIAL(compiledScriptClass, "<init>", constructorSignature)
         }
     }
 
     private
-    fun MethodVisitor.emitLoadExtensions() {
-        injectedProperties.forEach { name, type ->
-            emitLoadExtension(name, type)
-        }
-    }
-
-    private
-    fun MethodVisitor.precompiledScriptClassInstantiation(precompiledScriptClass: InternalName, instantiation: MethodVisitor.() -> Unit) {
+    fun MethodVisitor.compiledScriptClassInstantiation(compiledScriptClass: InternalName, instantiation: MethodVisitor.() -> Unit) {
 
         TRY_CATCH<Throwable>(
             tryBlock = {
@@ -601,18 +605,18 @@ class ResidualProgramCompiler(
             },
             catchBlock = {
 
-                emitOnScriptException(precompiledScriptClass)
+                emitOnScriptException(compiledScriptClass)
             }
         )
     }
 
     private
-    fun MethodVisitor.emitOnScriptException(precompiledScriptClass: InternalName) {
+    fun MethodVisitor.emitOnScriptException(compiledScriptClass: InternalName) {
         // Exception is on the stack
         ASTORE(4)
         ALOAD(Vars.ProgramHost)
         ALOAD(4)
-        LDC(Type.getType("L$precompiledScriptClass;"))
+        LDC(Type.getType("L$compiledScriptClass;"))
         ALOAD(Vars.ScriptHost)
         invokeHost(
             "handleScriptException",
@@ -707,10 +711,11 @@ class ResidualProgramCompiler(
         compileBuildOperationRunner(originalPath, stage) {
             compileKotlinScriptToDirectory(
                 outputDir,
+                jvmTarget,
                 scriptFile,
                 scriptDefinition,
                 compileClassPath.asFiles,
-                messageCollectorFor(logger) { path ->
+                messageCollectorFor(logger, allWarningsAsErrors) { path ->
                     if (path == scriptFile.path) originalPath
                     else path
                 }
@@ -779,7 +784,6 @@ class ResidualProgramCompiler(
             template,
             implicitImports,
             implicitReceiverOf(template),
-            injectedProperties,
             classPath.asFiles
         )
 
@@ -787,8 +791,3 @@ class ResidualProgramCompiler(
     fun implicitReceiverOf(template: KClass<*>) =
         template.annotations.filterIsInstance<ImplicitReceiver>().map { it.type }.firstOrNull()
 }
-
-
-internal
-fun requiresAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
-    programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel

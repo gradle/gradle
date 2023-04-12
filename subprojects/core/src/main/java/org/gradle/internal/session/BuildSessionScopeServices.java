@@ -34,12 +34,13 @@ import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.BuildScopeCacheDir;
-import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.internal.BuildOperationCleanupActionDecorator;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCache;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.PendingChangesManager;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
@@ -162,12 +163,12 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new ProjectCacheDir(cacheDir.getDir(), progressLoggerFactory, deleter);
     }
 
-    BuildTreeScopedCache createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
-        return new DefaultBuildTreeScopedCache(projectCacheDir.getDir(), cacheRepository);
+    BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
-    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCache scopedCache) {
-        File workDir = scopedCache.baseDirForCache("fileChanges");
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+        File workDir = cacheBuilderFactory.baseDirForCache("fileChanges");
         return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
 
@@ -192,8 +193,8 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
-    CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
-        return new CleanupActionFactory(buildOperationExecutor);
+    CleanupActionDecorator createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
+        return new BuildOperationCleanupActionDecorator(buildOperationExecutor);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
@@ -207,8 +208,8 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
             .build();
     }
 
-    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(scopedCache, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
+    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
         return new CrossBuildFileHashCacheWrapper(crossBuildCache);
     }
 

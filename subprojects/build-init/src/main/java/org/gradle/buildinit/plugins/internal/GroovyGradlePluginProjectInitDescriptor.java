@@ -58,6 +58,8 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
         if (!settings.isUseTestSuites()) {
             buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
+            buildScriptBuilder.testRuntimeOnlyDependency(null,
+                "org.junit.platform:junit-platform-launcher");
         }
     }
 

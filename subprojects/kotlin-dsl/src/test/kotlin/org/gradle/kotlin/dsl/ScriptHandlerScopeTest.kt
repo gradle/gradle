@@ -32,7 +32,6 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
-import org.gradle.kotlin.dsl.support.configureWith
 import org.junit.Test
 
 
@@ -46,7 +45,7 @@ class ScriptHandlerScopeTest {
             on { getDependencies() } doReturn dependencies
         }
 
-        buildscript.configureWith {
+        ScriptHandlerScope(buildscript).apply {
             dependencies {
                 classpath(notation)
                 classpath(notation) { exclude(module = "com.google.guava") }
@@ -68,7 +67,7 @@ class ScriptHandlerScopeTest {
             on { getDependencies() } doReturn dependencies
         }
 
-        buildscript.configureWith {
+        ScriptHandlerScope(buildscript).apply {
             dependencies {
                 classpath(notation)
                 classpath(notation) { exclude(module = "com.google.guava") }
@@ -92,7 +91,7 @@ class ScriptHandlerScopeTest {
             on { getDependencies() } doReturn dependencies
         }
 
-        buildscript.configureWith {
+        ScriptHandlerScope(buildscript).apply {
             dependencies {
                 classpath("...") { exclude(module = "com.google.guava") }
             }
@@ -119,7 +118,7 @@ class ScriptHandlerScopeTest {
             on { getDependencies() } doReturn dependencies
         }
 
-        buildscript.configureWith {
+        ScriptHandlerScope(buildscript).apply {
             dependencies.constraints.classpath("direct:accessor")
             dependencies {
                 constraints.classpath("direct-in-dep-handler-scope:accessor")

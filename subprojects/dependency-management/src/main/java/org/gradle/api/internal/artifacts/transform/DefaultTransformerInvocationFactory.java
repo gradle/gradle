@@ -29,14 +29,14 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -45,6 +45,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.UncategorizedBuildOperations;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -56,10 +57,10 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.INCREMENTAL;
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
 import static org.gradle.internal.file.TreeType.FILE;
+import static org.gradle.internal.properties.InputBehavior.INCREMENTAL;
+import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 public class DefaultTransformerInvocationFactory implements TransformerInvocationFactory {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
@@ -299,6 +300,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 public BuildOperationDescriptor.Builder description() {
                     String displayName = transformer.getDisplayName() + " " + inputArtifact.getName();
                     return BuildOperationDescriptor.displayName(displayName)
+                        .metadata(UncategorizedBuildOperations.TRANSFORM_ACTION)
                         .progressDisplayName(displayName);
                 }
             });
@@ -317,7 +319,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public Object loadRestoredOutput(File workspace) {
+        public Object loadAlreadyProducedOutput(File workspace) {
             TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
             return resultSerializer.readResultsFile(getResultsFile(workspace));
         }
@@ -346,8 +348,10 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-            return transformer.requiresInputChanges() ? InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS : InputChangeTrackingStrategy.NONE;
+        public ExecutionBehavior getExecutionBehavior() {
+            return transformer.requiresInputChanges()
+                ? ExecutionBehavior.INCREMENTAL
+                : ExecutionBehavior.NON_INCREMENTAL;
         }
 
         @Override
@@ -365,7 +369,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 // since it is part of the ComponentArtifactIdentifier returned by the transform.
                 // For absolute paths, the name is already part of the normalized path,
                 // and for all the other normalization strategies we use the name directly.
-                transformer.getInputArtifactNormalizer().equals(AbsolutePathInputNormalizer.class)
+                transformer.getInputArtifactNormalizer() == InputNormalizer.ABSOLUTE_PATH
                     ? inputArtifact.getAbsolutePath()
                     : inputArtifact.getName());
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
@@ -375,7 +379,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
                     transformer.getInputArtifactDependenciesLineEndingNormalization(),
                     () -> dependencies.getFiles()
-                        .orElse(fileCollectionFactory.empty())));
+                        .orElse(FileCollectionFactory.empty())));
         }
 
         @Override
@@ -395,9 +399,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             File outputDir = getOutputDir(workspace);
             File resultsFile = getResultsFile(workspace);
             visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
-                new OutputFileValueSupplier(outputDir, fileCollectionFactory.fixed(outputDir)));
+                OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
             visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
-                new OutputFileValueSupplier(resultsFile, fileCollectionFactory.fixed(resultsFile)));
+                OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
         }
 
         @Override

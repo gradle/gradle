@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -71,12 +72,15 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:foo:1.0') {
-                    module("org:transitive:1.0")
+                    byConsistentResolution('compileClasspath')
+                    module("org:transitive:1.0") {
+                        notRequested()
+                        byConsistentResolution('compileClasspath')
+                        byAncestor()
+                    }
                 }
                 module('org:bar:1.0') {
-                    edge("org:transitive:1.1", "org:transitive:1.0") {
-                        byConsistentResolution('compileClasspath')
-                    }
+                    edge("org:transitive:1.1", "org:transitive:1.0")
                 }
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
                 constraint("org:transitive:{strictly 1.0}", "org:transitive:1.0")
@@ -93,14 +97,18 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:foo:1.0') {
+                    byConsistentResolution('testCompileClasspath')
                     module("org:transitive:1.0")
                 }
                 module('org:bar:1.0') {
                     edge("org:transitive:1.1", "org:transitive:1.0") {
+                        notRequested()
                         byConsistentResolution('testCompileClasspath')
+                        byAncestor()
                     }
                 }
                 module('org:baz:1.0') {
+                    byConsistentResolution('testCompileClasspath')
                     edge("org:transitive:1.2", "org:transitive:1.0") {
                         byConsistentResolution('testCompileClasspath')
                     }
@@ -145,7 +153,10 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:foo:1.0') {
+                    byConsistentResolution('runtimeClasspath')
                     edge("org:transitive:1.0", "org:transitive:1.1") {
+                        notRequested()
+                        byAncestor()
                         byConsistentResolution('runtimeClasspath')
                     }
                 }
@@ -190,12 +201,15 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:foo:1.0') {
-                    module("org:transitive:1.0")
+                    byConsistentResolution('customCompileClasspath')
+                    module("org:transitive:1.0") {
+                        notRequested()
+                        byConsistentResolution('customCompileClasspath')
+                        byAncestor()
+                    }
                 }
                 module('org:bar:1.0') {
-                    edge("org:transitive:1.1", "org:transitive:1.0") {
-                        byConsistentResolution('customCompileClasspath')
-                    }
+                    edge("org:transitive:1.1", "org:transitive:1.0")
                 }
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
                 constraint("org:transitive:{strictly 1.0}", "org:transitive:1.0")
@@ -210,6 +224,7 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         resolve
     }
 
+    @ToBeFixedForConfigurationCache(because = "resolves configuration at execution time")
     def "can declare a configuration which extends from a resolvable configuration which uses consistency"() {
         withRuntimeClasspathAsReference()
         def foo = mavenHttpRepo.module('org', 'foo', '1.0').publish()
@@ -247,7 +262,9 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module('org:foo:1.0')
+                module('org:foo:1.0') {
+                    byConsistentResolution("runtimeClasspath")
+                }
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
             }
         }

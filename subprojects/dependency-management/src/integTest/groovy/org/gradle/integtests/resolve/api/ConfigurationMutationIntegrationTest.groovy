@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionTest {
@@ -178,6 +179,7 @@ configurations.compile.withDependencies {
         failure.assertHasCause("Bad user code")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "cannot add withDependencies rule after configuration has been used"() {
         when:
         buildFile << """
@@ -257,26 +259,22 @@ project(":consumer") {
         implementation project(":producer")
     }
 }
-
-subprojects {
-    task resolve {
-        inputs.files(configurations.runtimeClasspath)
-
-        doLast {
-            def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
-            assert "explicit-dependency-3.4.jar" in resolvedJars
-            assert "added-dependency-3.4.jar" in resolvedJars
-        }
-    }
-}
 """
+        resolve.prepare("runtimeClasspath")
         settingsFile << """
 include 'consumer', 'producer'
 """
         expect:
         // relying on default dependency
-        succeeds("resolve")
-
+        succeeds(":consumer:checkDeps")
+        resolve.expectGraph {
+            root(":consumer", "root:consumer:") {
+                project(":producer", "root:producer:") {
+                    module("org:explicit-dependency:3.4")
+                    module("org:added-dependency:3.4")
+                }
+            }
+        }
     }
 
     def "can use defaultDependencies in a composite build"() {
@@ -309,11 +307,10 @@ include 'consumer', 'producer'
 """
         }
 
-        def consumer = singleProjectBuild("consumer") {
-            settingsFile << """
+        settingsFile << """
     includeBuild '${producer.toURI()}'
 """
-            buildFile << """
+        buildFile << """
     apply plugin: 'java'
     repositories {
         maven { url '${mavenRepo.uri}' }
@@ -325,22 +322,19 @@ include 'consumer', 'producer'
     dependencies {
         implementation 'org.test:producer:1.0'
     }
-    task resolve {
-        dependsOn configurations.runtimeClasspath
-
-        doLast {
-            def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
-            assert "explicit-dependency-3.4.jar" in resolvedJars
-            assert "added-dependency-3.4.jar" in resolvedJars
-        }
-    }
 """
-        }
+        resolve.prepare("runtimeClasspath")
 
         expect:
-        executer.inDirectory(consumer)
-        succeeds ":resolve"
+        succeeds ":checkDeps"
+        resolve.expectGraph {
+            root(":", "org.test:root:1.1") {
+                edge("org.test:producer:1.0", ":producer", "org.test:producer:1.0") {
+                    compositeSubstitute()
+                    module("org:explicit-dependency:3.4")
+                    module("org:added-dependency:3.4")
+                }
+            }
+        }
     }
-
-
 }

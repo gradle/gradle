@@ -27,8 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
-import org.gradle.internal.component.local.model.RootConfigurationMetadata
-import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -41,7 +40,6 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     String configuration = 'config'
     DependencyLockingProvider dependencyLockingProvider = Mock()
     RootGraphNode rootNode = Mock()
-    RootConfigurationMetadata metadata = Mock()
     DependencyLockingState lockState = Mock()
     ModuleIdentifier mid = DefaultModuleIdentifier.newId("org", "foo")
 
@@ -53,8 +51,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         visitor.startArtifacts(rootNode)
 
         then:
-        1 * rootNode.metadata >> metadata
-        1 * metadata.dependencyLockingState >> lockState
+        1 * dependencyLockingProvider.loadLockState(configuration) >> lockState
         1 * lockState.mustValidateLockState() >> true
         1 * lockState.lockedDependencies >> emptySet()
         0 * _
@@ -65,8 +62,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         visitor.startArtifacts(rootNode)
 
         then:
-        1 * rootNode.metadata >> metadata
-        1 * metadata.dependencyLockingState >> lockState
+        1 * dependencyLockingProvider.loadLockState(configuration) >> lockState
         1 * lockState.mustValidateLockState() >> false
         0 * _
     }
@@ -93,7 +89,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         DependencyGraphNode node = Mock()
         DependencyGraphComponent component = Mock()
         ModuleComponentIdentifier identifier = Mock()
-        ComponentResolveMetadata metadata = Mock()
+        ComponentGraphResolveMetadata metadata = Mock()
 
         when:
         visitor.visitNode(node)
@@ -266,7 +262,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     private void addVisitedChangingNode(ModuleComponentIdentifier module) {
         DependencyGraphNode node = Mock()
         DependencyGraphComponent component = Mock()
-        ComponentResolveMetadata metadata = Mock()
+        ComponentGraphResolveMetadata metadata = Mock()
         node.owner >> component
         component.metadataOrNull >> metadata
         metadata.isChanging() >> true
@@ -276,16 +272,14 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     }
 
     private startWithoutLockState() {
-        rootNode.metadata >> metadata
-        metadata.dependencyLockingState >> lockState
+        dependencyLockingProvider.loadLockState(configuration) >> lockState
         lockState.mustValidateLockState() >> false
 
         visitor.startArtifacts(rootNode)
     }
 
     private startWithState(List<ModuleComponentIdentifier> locks, LockEntryFilter ignoredEntries = LockEntryFilterFactory.FILTERS_NONE) {
-        rootNode.metadata >> metadata
-        metadata.dependencyLockingState >> lockState
+        dependencyLockingProvider.loadLockState(configuration) >> lockState
         lockState.mustValidateLockState() >> true
         lockState.lockedDependencies >> locks
         lockState.ignoredEntryFilter >> ignoredEntries

@@ -31,7 +31,7 @@ class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 118 * 1024 * 1024
+        return 125 * 1024 * 1024
     }
 
     def binZipContents() {

@@ -19,19 +19,17 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.OutputSnapshotter.OutputFileSnapshottingException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputFileFingerprintingException;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -64,18 +62,53 @@ public interface UnitOfWork extends Describable {
      */
     WorkOutput execute(ExecutionRequest executionRequest);
 
+    /**
+     * Parameter object for {@link #execute(ExecutionRequest)}.
+     */
     interface ExecutionRequest {
+        /**
+         * The directory to produce outputs into.
+         * <p>
+         * Note: it's {@code null} for tasks as they don't currently have their own workspace.
+         */
         File getWorkspace();
 
+        /**
+         * For work capable of incremental execution this is the object to query per-property changes through;
+         * {@link Optional#empty()} for non-incremental-capable work.
+         */
         Optional<InputChangesInternal> getInputChanges();
 
+        /**
+         * Output snapshots indexed by property from the previous execution;
+         * {@link Optional#empty()} is information about a previous execution is not available.
+         */
         Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs();
     }
 
+    /**
+     * The result of executing the user code.
+     */
     interface WorkOutput {
+        /**
+         * Whether any significant amount of work has happened while executing the user code.
+         * <p>
+         * What amounts to "significant work" is up to the type of work implementation.
+         */
         WorkResult getDidWork();
 
+        /**
+         * Implementation-specific output of executing the user code.
+         */
+        @Nullable
         Object getOutput();
+
+        /**
+         * Whether this output should be stored in the build cache.
+         */
+        default boolean canStoreInCache() {
+            return true;
+        }
     }
 
     enum WorkResult {
@@ -83,9 +116,13 @@ public interface UnitOfWork extends Describable {
         DID_NO_WORK
     }
 
-    default Object loadRestoredOutput(File workspace) {
-        throw new UnsupportedOperationException();
-    }
+    /**
+     * Loads output not produced during the current execution.
+     * This can be output produced during a previous execution when the work is up-to-date,
+     * or loaded from cache.
+     */
+    @Nullable
+    Object loadAlreadyProducedOutput(File workspace);
 
     /**
      * Returns the {@link WorkspaceProvider} to allocate a workspace to execution this work in.
@@ -96,8 +133,30 @@ public interface UnitOfWork extends Describable {
         return Optional.empty();
     }
 
-    default InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-        return InputChangeTrackingStrategy.NONE;
+    /**
+     * Whether the work should be executed incrementally (if possible) or not.
+     */
+    default ExecutionBehavior getExecutionBehavior() {
+        return ExecutionBehavior.NON_INCREMENTAL;
+    }
+
+    /**
+     * The execution capability of the work: can be incremental, or non-incremental.
+     * <p>
+     * Note that incremental work can be executed non-incrementally if input changes
+     * require it.
+     */
+    enum ExecutionBehavior {
+        /**
+         * Work can be executed incrementally, input changes for {@link InputBehavior#PRIMARY} and
+         * {@link InputBehavior#INCREMENTAL} properties should be tracked.
+         */
+        INCREMENTAL,
+
+        /**
+         * Work is not capable of incremental execution, no need to track input changes.
+         */
+        NON_INCREMENTAL
     }
 
     /**
@@ -134,9 +193,16 @@ public interface UnitOfWork extends Describable {
      * Visit regular inputs of the work.
      *
      * Regular inputs are inputs that are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
-     * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} and {@link #visitRegularInputs(InputVisitor)}.
+     * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} as well as this method.
      */
     default void visitRegularInputs(InputVisitor visitor) {}
+
+    /**
+     * Visit outputs of the work in the given workspace.
+     * <p>
+     * Note: For tasks {@code workspace} is {@code null} for now.
+     */
+    void visitOutputs(File workspace, OutputVisitor visitor);
 
     interface InputVisitor {
         default void visitInputProperty(
@@ -151,64 +217,6 @@ public interface UnitOfWork extends Describable {
         ) {}
     }
 
-    /**
-     * Describes the behavior of an input property.
-     */
-    enum InputBehavior {
-        /**
-         * Non-incremental inputs.
-         *
-         * <ul>
-         *     <li>Any change to the property value always triggers a full rebuild of the work</li>
-         *     <li>Changes for the property cannot be queried via {@link org.gradle.work.InputChanges}</li>
-         * </ul>
-         */
-        NON_INCREMENTAL(false, false),
-
-        /**
-         * Incremental inputs.
-         *
-         * <ul>
-         *     <li>Changes to the property value can cause an incremental execution of the work</li>
-         *     <li>Changes for the property can be queried via {@link org.gradle.work.InputChanges}</li>
-         * </ul>
-         */
-        INCREMENTAL(true, false),
-
-        /**
-         * Primary (incremental) inputs.
-         *
-         * <ul>
-         *     <li>Changes to the property value can cause an incremental execution</li>
-         *     <li>Changes for the property can be queried via {@link org.gradle.work.InputChanges}</li>
-         *     <li>When the property is empty, the work is skipped with any previous outputs removed</li>
-         * </ul>
-         */
-        PRIMARY(true, true);
-
-        private final boolean trackChanges;
-        private final boolean skipWhenEmpty;
-
-        InputBehavior(boolean trackChanges, boolean skipWhenEmpty) {
-            this.trackChanges = trackChanges;
-            this.skipWhenEmpty = skipWhenEmpty;
-        }
-
-        /**
-         * Whether incremental changes should be tracked via {@link org.gradle.work.InputChanges}.
-         */
-        public boolean shouldTrackChanges() {
-            return trackChanges;
-        }
-
-        /**
-         * Whether the work should be skipped and outputs be removed if the property is empty.
-         */
-        public boolean shouldSkipWhenEmpty() {
-            return skipWhenEmpty;
-        }
-    }
-
     interface ValueSupplier {
         @Nullable
         Object getValue();
@@ -220,14 +228,14 @@ public interface UnitOfWork extends Describable {
 
     class InputFileValueSupplier implements FileValueSupplier {
         private final Object value;
-        private final Class<? extends FileNormalizer> normalizer;
+        private final FileNormalizer normalizer;
         private final DirectorySensitivity directorySensitivity;
         private final LineEndingSensitivity lineEndingSensitivity;
         private final Supplier<FileCollection> files;
 
         public InputFileValueSupplier(
             @Nullable Object value,
-            Class<? extends FileNormalizer> normalizer,
+            FileNormalizer normalizer,
             DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
             Supplier<FileCollection> files
@@ -245,7 +253,7 @@ public interface UnitOfWork extends Describable {
             return value;
         }
 
-        public Class<? extends FileNormalizer> getNormalizer() {
+        public FileNormalizer getNormalizer() {
             return normalizer;
         }
 
@@ -263,28 +271,42 @@ public interface UnitOfWork extends Describable {
         }
     }
 
-    class OutputFileValueSupplier implements FileValueSupplier {
-        private final File root;
+    abstract class OutputFileValueSupplier implements FileValueSupplier {
         private final FileCollection files;
 
-        public OutputFileValueSupplier(File root, FileCollection files) {
-            this.root = root;
+        public OutputFileValueSupplier(FileCollection files) {
             this.files = files;
+        }
+
+        public static OutputFileValueSupplier fromStatic(File root, FileCollection fileCollection) {
+            return new OutputFileValueSupplier(fileCollection) {
+                @Nonnull
+                @Override
+                public File getValue() {
+                    return root;
+                }
+            };
+        }
+
+        public static OutputFileValueSupplier fromSupplier(Supplier<File> root, FileCollection fileCollection) {
+            return new OutputFileValueSupplier(fileCollection) {
+                @Nonnull
+                @Override
+                public File getValue() {
+                    return root.get();
+                }
+            };
         }
 
         @Nonnull
         @Override
-        public File getValue() {
-            return root;
-        }
+        abstract public File getValue();
 
         @Override
         public FileCollection getFiles() {
             return files;
         }
     }
-
-    void visitOutputs(File workspace, OutputVisitor visitor);
 
     interface OutputVisitor {
         default void visitOutputProperty(
@@ -297,25 +319,6 @@ public interface UnitOfWork extends Describable {
 
         default void visitDestroyable(File destroyableRoot) {}
     }
-
-    /**
-     * Decorate input file fingerprinting errors when appropriate.
-     */
-    default RuntimeException decorateInputFileFingerprintingException(InputFileFingerprintingException ex) {
-        return ex;
-    }
-
-    /**
-     * Decorate output file fingerprinting errors when appropriate.
-     */
-    default RuntimeException decorateOutputFileSnapshottingException(OutputFileSnapshottingException ex) {
-        return ex;
-    }
-
-    /**
-     * Validate the work definition and configuration.
-     */
-    default void validate(WorkValidationContext validationContext) {}
 
     /**
      * Return a reason to disable caching for this work.
@@ -353,6 +356,11 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
+     * Validate the work definition and configuration.
+     */
+    default void validate(WorkValidationContext validationContext) {}
+
+    /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.
      */
     default boolean shouldCleanupOutputsOnNonIncrementalExecution() {
@@ -364,27 +372,6 @@ public interface UnitOfWork extends Describable {
      */
     default boolean shouldCleanupStaleOutputs() {
         return false;
-    }
-
-    enum InputChangeTrackingStrategy {
-        /**
-         * No incremental parameters, nothing to track.
-         */
-        NONE(false),
-        /**
-         * Only the incremental parameters should be tracked for input changes.
-         */
-        INCREMENTAL_PARAMETERS(true);
-
-        private final boolean requiresInputChanges;
-
-        InputChangeTrackingStrategy(boolean requiresInputChanges) {
-            this.requiresInputChanges = requiresInputChanges;
-        }
-
-        public boolean requiresInputChanges() {
-            return requiresInputChanges;
-        }
     }
 
     /**

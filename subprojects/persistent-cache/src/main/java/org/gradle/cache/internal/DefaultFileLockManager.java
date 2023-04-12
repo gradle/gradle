@@ -236,56 +236,47 @@ public class DefaultFileLockManager implements FileLockManager {
         @Override
         public void close() {
             CompositeStoppable stoppable = new CompositeStoppable();
-            stoppable.add(new Stoppable() {
-                @Override
-                public void stop() {
-                    if (lockFileAccess == null) {
-                        return;
-                    }
+            stoppable.add((Stoppable) () -> {
+                if (lockFileAccess == null) {
+                    return;
+                }
+                try {
+                    LOGGER.debug("Releasing lock on {}.", displayName);
                     try {
-                        LOGGER.debug("Releasing lock on {}.", displayName);
-                        try {
-                            if (lock != null && !lock.isShared()) {
-                                // Discard information region
-                                FileLockOutcome lockOutcome;
+                        if (lock != null && !lock.isShared()) {
+                            // Discard information region
+                            FileLockOutcome lockOutcome;
+                            try {
+                                lockOutcome = lockInformationRegion(LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
+                            } catch (InterruptedException e) {
+                                throw throwAsUncheckedException(e);
+                            }
+                            if (lockOutcome.isLockWasAcquired()) {
                                 try {
-                                    lockOutcome = lockInformationRegion(LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
-                                } catch (InterruptedException e) {
-                                    throw throwAsUncheckedException(e);
-                                }
-                                if (lockOutcome.isLockWasAcquired()) {
-                                    try {
-                                        lockFileAccess.clearLockInfo();
-                                    } finally {
-                                        lockOutcome.getFileLock().release();
-                                    }
+                                    lockFileAccess.clearLockInfo();
+                                } finally {
+                                    lockOutcome.getFileLock().release();
                                 }
                             }
-                        } finally {
-                            lockFileAccess.close();
                         }
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to release lock on " + displayName, e);
+                    } finally {
+                        lockFileAccess.close();
                     }
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to release lock on " + displayName, e);
                 }
             });
-            stoppable.add(new Stoppable() {
-                @Override
-                public void stop() {
-                    try {
-                        fileLockContentionHandler.stop(lockId);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
-                    }
+            stoppable.add((Stoppable) () -> {
+                try {
+                    fileLockContentionHandler.stop(lockId);
+                } catch (Exception e) {
+                    throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
                 }
             });
-            stoppable.add(new Stoppable() {
-                @Override
-                public void stop() {
-                    lock = null;
-                    lockFileAccess = null;
-                    lockedFiles.remove(target);
-                }
+            stoppable.add((Stoppable) () -> {
+                lock = null;
+                lockFileAccess = null;
+                lockedFiles.remove(target);
             });
             stoppable.stop();
         }

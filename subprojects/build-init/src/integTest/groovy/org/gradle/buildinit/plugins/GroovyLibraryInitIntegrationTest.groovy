@@ -18,13 +18,10 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
-class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
+class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.groovy"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
-
-    @Override
-    String subprojectName() { 'lib' }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -102,6 +99,23 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         and:
         commonJvmFilesGenerated(scriptDsl)
         dslFixture.assertHasTestSuite('test')
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
 
         when:
         run("build")

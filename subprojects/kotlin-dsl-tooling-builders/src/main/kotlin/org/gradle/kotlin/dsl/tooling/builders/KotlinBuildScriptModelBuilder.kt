@@ -36,8 +36,8 @@ import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.time.Time.startTimer
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
-import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
+import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
@@ -248,10 +248,10 @@ fun projectScriptModelBuilder(
     project = project,
     scriptClassPath = project.scriptCompilationClassPath,
     accessorsClassPath = { classPath ->
-        val pluginAccessorClassPathGenerator = project.serviceOf<PluginAccessorClassPathGenerator>()
+        val stage1BlocksAccessorClassPathGenerator = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
         val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
         val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
+        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
     },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir
@@ -345,7 +345,7 @@ fun compilationClassPathForScriptPluginOf(
 ): Pair<ScriptHandlerInternal, ClassPath> {
 
     val scriptSource = textResourceScriptSource(resourceDescription, scriptFile, project.serviceOf())
-    val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}")
+    val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
     val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope)
 
     kotlinScriptFactoryOf(project).evaluate(
@@ -411,14 +411,24 @@ data class KotlinScriptTargetModelBuilder(
                 additionalImports()
             } ?: emptyList()
 
+        val exceptions = classPathModeExceptionCollector.exceptions
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
             implicitImports + additionalImports,
-            buildEditorReportsFor(classPathModeExceptionCollector.exceptions),
-            classPathModeExceptionCollector.exceptions.map(::exceptionToString),
+            buildEditorReportsFor(exceptions),
+            getExceptionsForFile(exceptions, this.scriptFile),
             enclosingScriptProjectDir
         )
+    }
+
+
+    private
+    fun getExceptionsForFile(exceptions: List<Exception>, scriptFile: File?): List<String> {
+        return if (scriptFile == null)
+            emptyList()
+        else
+            exceptions.asSequence().runtimeFailuresLocatedIn(scriptFile.path).map(::exceptionToString).toList()
     }
 
     private

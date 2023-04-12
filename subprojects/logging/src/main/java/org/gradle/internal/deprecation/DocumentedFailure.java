@@ -18,6 +18,7 @@ package org.gradle.internal.deprecation;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
 import javax.annotation.Nullable;
 
@@ -56,17 +57,30 @@ public class DocumentedFailure {
         }
 
         public GradleException build() {
+            return build(null);
+        }
+
+        public GradleException build(@Nullable Throwable cause) {
             StringBuilder outputBuilder = new StringBuilder(summary);
             append(outputBuilder, contextualAdvice);
             append(outputBuilder, advice);
             append(outputBuilder, documentation.consultDocumentationMessage());
-            return new GradleException(outputBuilder.toString());
+            return cause == null
+                ? new GradleException(outputBuilder.toString())
+                : new DocumentedExceptionWithCause(outputBuilder.toString(), cause);
         }
 
         private static void append(StringBuilder outputBuilder, @Nullable String message) {
             if (!StringUtils.isEmpty(message)) {
                 outputBuilder.append(" ").append(message);
             }
+        }
+    }
+
+    @Contextual
+    public static class DocumentedExceptionWithCause extends GradleException {
+        public DocumentedExceptionWithCause(String message, @Nullable Throwable cause) {
+            super(message, cause);
         }
     }
 }

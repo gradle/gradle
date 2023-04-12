@@ -223,16 +223,26 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             throw new UnsupportedOperationException("Cannot compare options with jvmArgumentProviders.");
         }
         return getDebug() == options.getDebug()
-                && getEnableAssertions() == options.getEnableAssertions()
-                && normalized(getExecutable()).equals(normalized(options.getExecutable()))
-                && getWorkingDir().equals(options.getWorkingDir())
-                && normalized(getDefaultCharacterEncoding()).equals(normalized(options.getDefaultCharacterEncoding()))
-                && getHeapSizeMb(getMinHeapSize()) >= getHeapSizeMb(options.getMinHeapSize())
-                && getHeapSizeMb(getMaxHeapSize()) >= getHeapSizeMb(options.getMaxHeapSize())
-                && normalized(getJvmArgs()).containsAll(normalized(options.getJvmArgs()))
-                && containsAll(getSystemProperties(), options.getSystemProperties())
-                && containsAll(getEnvironment(), options.getEnvironment())
-                && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
+            && getEnableAssertions() == options.getEnableAssertions()
+            && normalized(getExecutable()).equals(normalized(options.getExecutable()))
+            && getWorkingDir().equals(options.getWorkingDir())
+            && normalized(getDefaultCharacterEncoding()).equals(normalized(options.getDefaultCharacterEncoding()))
+            && getHeapSizeMb(getMinHeapSize()) >= getHeapSizeMb(options.getMinHeapSize())
+            && getHeapSizeMb(getMaxHeapSize()) >= getHeapSizeMb(options.getMaxHeapSize())
+            && normalized(getJvmArgs()).containsAll(normalized(options.getJvmArgs()))
+            && containsAll(getSystemProperties(), options.getSystemProperties())
+            && containsAll(getEnvironment(), options.getEnvironment())
+            && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
+    }
+
+    @Override
+    public void checkDebugConfiguration(Iterable<?> arguments) {
+        options.checkDebugConfiguration(arguments);
+    }
+
+    @Override
+    public void setExtraJvmArgs(Iterable<?> arguments) {
+        options.setExtraJvmArgs(arguments);
     }
 
     private static boolean hasJvmArgumentProviders(JavaForkOptions forkOptions) {
@@ -241,7 +251,10 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     private static boolean hasJvmArgumentProviders(DefaultJavaForkOptions forkOptions) {
-        return forkOptions.jvmArgumentProviders != null && !forkOptions.jvmArgumentProviders.isEmpty();
+        return !isNullOrEmpty(forkOptions.jvmArgumentProviders);
     }
 
+    private static <T> boolean isNullOrEmpty(List<T> list) {
+        return list == null || list.isEmpty();
+    }
 }

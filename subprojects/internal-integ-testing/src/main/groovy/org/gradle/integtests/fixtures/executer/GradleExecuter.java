@@ -199,6 +199,13 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildCacheEnabled();
 
     /**
+     * Activates the "Next Gen" build cache
+     *
+     * @return this executer
+     */
+    GradleExecuter withBuildCacheNgEnabled();
+
+    /**
      * Don't set native services dir explicitly.
      */
     GradleExecuter withNoExplicitNativeServicesDir();
@@ -435,6 +442,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter copyTo(GradleExecuter executer);
 
     /**
+     * Where possible, starts the Gradle build process in debug mode with the provided options.
+     */
+    GradleExecuter startBuildProcessInDebugger(Action<JavaDebugOptionsInternal> action);
+
+    /**
      * Where possible, starts the Gradle build process in suspended debug mode.
      */
     GradleExecuter startBuildProcessInDebugger(boolean flag);
@@ -454,6 +466,11 @@ public interface GradleExecuter extends Stoppable {
      * Starts the launcher JVM (daemon client) in suspended debug mode
      */
     GradleExecuter startLauncherInDebugger(boolean debugLauncher);
+
+    /**
+     * Starts the launcher JVM (daemon client) in debug mode with the provided options
+     */
+    GradleExecuter startLauncherInDebugger(Action<JavaDebugOptionsInternal> action);
 
     boolean isDebugLauncher();
 
@@ -499,9 +516,9 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withWarningMode(WarningMode warningMode);
 
     /**
-     * Execute the builds without adding the {@code "--stacktrace"} argument.
+     * Execute the builds with adding the {@code "--stacktrace"} argument.
      */
-    GradleExecuter withStacktraceDisabled();
+    GradleExecuter withStacktraceEnabled();
 
     /**
      * Renders the welcome message users see upon first invocation of a Gradle distribution with a given Gradle user home directory.

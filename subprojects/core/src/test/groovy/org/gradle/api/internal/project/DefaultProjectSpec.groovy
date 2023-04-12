@@ -20,24 +20,30 @@ import org.gradle.api.Action
 import org.gradle.api.AntBuilder
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.model.ObjectFactory
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator
+import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.resource.DefaultTextFileResourceLoader
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -74,27 +80,23 @@ class DefaultProjectSpec extends Specification {
     def "can configure ant tasks with an Action"() {
         given:
         def project = project('root', null, Stub(GradleInternal))
-        def antBuilder = Mock(AntBuilder)
-        project.ant >> antBuilder
 
         when:
         project.ant({ AntBuilder ant -> ant.importBuild('someAntBuild') } as Action<AntBuilder>)
 
         then:
-        1 * antBuilder.importBuild('someAntBuild')
+        1 * project.ant.importBuild('someAntBuild')
     }
 
     def "can configure artifacts with an Action"() {
         given:
         def project = project('root', null, Stub(GradleInternal))
-        def artifactHandler = Mock(ArtifactHandler)
-        project.artifacts >> artifactHandler
 
         when:
         project.artifacts({ artifacts -> artifacts.add('foo', 'bar') } as Action<ArtifactHandler>)
 
         then:
-        1 * artifactHandler.add('foo', 'bar')
+        1 * project.artifacts.add('foo', 'bar')
     }
 
     def "has useful toString and displayName and paths"() {
@@ -149,32 +151,54 @@ class DefaultProjectSpec extends Specification {
     }
 
     ProjectInternal project(String name, ProjectInternal parent, GradleInternal build) {
-        def serviceRegistryFactory = Stub(ServiceRegistryFactory)
-        def serviceRegistry = Stub(ServiceRegistry)
-
-        _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
-        _ * serviceRegistry.get(TaskContainerInternal) >> Stub(TaskContainerInternal)
-        _ * serviceRegistry.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
-        _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
-        _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
-        _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
-
-        def fileOperations = Stub(FileOperations)
-        fileOperations.fileTree(_) >> TestFiles.fileOperations(tmpDir.testDirectory).fileTree('tree')
-        def projectDir = new File("project")
-        def objectFactory = Stub(ObjectFactory)
-        objectFactory.fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
+        def fileOperations = Stub(FileOperations) {
+            fileTree(_) >> TestFiles.fileOperations(tmpDir.testDirectory, new DefaultTemporaryFileProvider(() -> new File(tmpDir.testDirectory, "cache"))).fileTree('tree')
+        }
         def propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
-        objectFactory.property(Object) >> propertyFactory.property(Object)
+        def objectFactory = Stub(ObjectFactory) {
+            fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
+            property(Object) >> propertyFactory.property(Object)
+        }
+
+        def serviceRegistry = new DefaultServiceRegistry()
+
+        serviceRegistry.add(FileOperations, fileOperations)
+        serviceRegistry.add(ObjectFactory, objectFactory)
+        serviceRegistry.add(TaskContainerInternal, Stub(TaskContainerInternal))
+        serviceRegistry.add(InstantiatorFactory, Stub(InstantiatorFactory))
+        serviceRegistry.add(AttributesSchema, Stub(AttributesSchema))
+        serviceRegistry.add(ModelRegistry, Stub(ModelRegistry))
+        serviceRegistry.add(CrossProjectModelAccess, Stub(CrossProjectModelAccess))
+        serviceRegistry.add(DependencyResolutionManagementInternal, Stub(DependencyResolutionManagementInternal))
+        serviceRegistry.add(DynamicLookupRoutine, new DefaultDynamicLookupRoutine())
+        serviceRegistry.add(SoftwareComponentContainer, Mock(SoftwareComponentContainer))
+        serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator))
+        serviceRegistry.add(ListenerBuildOperationDecorator, Mock(ListenerBuildOperationDecorator))
+        serviceRegistry.add(ArtifactHandler, Mock(ArtifactHandler))
+
+        def antBuilder = Mock(AntBuilder)
+        serviceRegistry.addProvider(new Object() {
+            Factory<AntBuilder> createAntBuilder() {
+                return () -> antBuilder
+            }
+        })
+
+        def serviceRegistryFactory = Stub(ServiceRegistryFactory) {
+            createFor(_) >> serviceRegistry
+        }
 
         def container = Mock(ProjectState)
         _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
         _ * container.identityPath >> (parent == null ? build.identityPath : build.identityPath.append(parent.projectPath).child(name))
 
-        return Spy(DefaultProject, constructorArgs: [name, parent, projectDir, new File("build file"), Stub(ScriptSource), build, container, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
-            getFileOperations() >> fileOperations
-            getObjects() >> objectFactory
-            getCrossProjectModelAccess() >> Stub(CrossProjectModelAccess)
+        def descriptor = Mock(ProjectDescriptor) {
+            getName() >> name
+            getProjectDir() >> new File("project")
+            getBuildFile() >> new File("build file")
         }
+
+        def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
+        def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null))
+        return factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
 }

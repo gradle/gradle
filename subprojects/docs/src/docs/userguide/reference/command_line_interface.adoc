@@ -21,6 +21,7 @@ The command-line interface is one of the primary methods of interacting with Gra
 Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged. You should substitute `./gradlew` or `gradlew.bat` for `gradle` in all following examples when using the Wrapper.
 
 Executing Gradle on the command-line conforms to the following structure. Options are allowed before and after task names.
+
 ----
 gradle [taskName...] [--option-name...]
 ----
@@ -28,17 +29,20 @@ gradle [taskName...] [--option-name...]
 If multiple tasks are specified, they should be separated with a space.
 
 Options that accept values can be specified with or without `=` between the option and argument; however, use of `=` is recommended.
+
 ----
 --console=plain
 ----
 
 Options that enable behavior have long-form options with inverses specified with `--no-`. The following are opposites.
+
 ----
 --build-cache
 --no-build-cache
 ----
 
 Many long-form options, have short option equivalents. The following are equivalent:
+
 ----
 --help
 -h
@@ -63,6 +67,30 @@ $ gradle :myTask
 ----
 
 This will run the single "myTask" and also all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependencies>>.
+
+[[sec:disambiguate_task_options_from_built_in_options]]
+=== Specify options for a task
+
+To pass an option to a task, prefix the option name with `--` after the task name:
+
+----
+$ gradle exampleTask --exampleOption=exampleValue
+----
+
+==== Disambiguate task options from built-in options
+
+Gradle does not prevent tasks from registering options that conflict with Gradle's built-in options, like `--profile` or `--help`.
+You can disambiguate conflicting task options from Gradle's built-in options with a `--` delimiter before the task name in your command:
+
+----
+$ gradle [--built-in-option-name...] -- [taskName...] [--task-option-name...]
+----
+
+Consider a task named "mytask" that accepts an option named "profile":
+
+- If you run `gradle mytask --profile`, Gradle accepts `--profile` as the built-in Gradle option.
+
+- If you run `gradle -- mytask --profile=exampleValue`, Gradle passes `--profile` as a task option.
 
 [[executing_tasks_in_multi_project_builds]]
 === Executing tasks in multi-project builds
@@ -113,7 +141,7 @@ $ gradle clean build
 
 However, the intention implied in the command line order is that `clean` should run first, and then `build`.  It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster, since `clean` would remove what `build` created.  Conversely, if the command line order was `build` followed by `clean`, it would not be correct to execute `clean` before `build`.  Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
 
-Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> for further information.
+Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<incremental_build.adoc#incremental_build,up-to-date checks>> for further information.
 
 [[sec:excluding_tasks_from_the_command_line]]
 === Excluding tasks from execution
@@ -133,7 +161,7 @@ You can see that the `test` task is not executed, even though it is a dependency
 [[sec:rerun_tasks]]
 === Forcing tasks to execute
 
-You can force Gradle to execute all tasks ignoring <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> using the `--rerun-tasks` option:
+You can force Gradle to execute all tasks ignoring <<incremental_build.adoc#incremental_build,up-to-date checks>> using the `--rerun-tasks` option:
 
 ----
 $ gradle test --rerun-tasks
@@ -144,17 +172,25 @@ This will force `test` and _all_ task dependencies of `test` to execute. It's a 
 Alternatively, you can tell Gradle to rerun a specific task using the `--rerun` built-in <<#sec:task_options, task option>>.
 
 [[sec:continue_build_on_failure]]
-=== Continuing the build when a failure occurs
+=== Continue the build after a task failure
 
-By default, Gradle will abort execution and fail the build as soon as any task fails. This allows the build to complete sooner, but hides other failures that would have occurred. In order to discover as many failures as possible in a single build execution, you can use the `--continue` option.
+By default, Gradle aborts execution and fails the build when any task fails.
+This allows the build to complete sooner and prevents cascading failures from obfuscating the root cause of an error.
+You can use the `--continue` option to force Gradle to execute every task when a failure occurs:
 
 ----
 $ gradle test --continue
 ----
 
-When executed with `--continue`, Gradle will execute _every_ task to be executed where all of the dependencies for that task completed without failure, instead of stopping as soon as the first failure is encountered. Each of the encountered failures will be reported at the end of the build.
+When executed with `--continue`, Gradle executes _every_ task in the build if all of the dependencies for that task completed without failure.
+For example, tests do not run if there is a compilation error in the code under test because the test task depends on the compilation task.
+Gradle outputs each of the encountered failures at the end of the build.
 
-If a task fails, any subsequent tasks that were depending on it will not be executed. For example, tests will not run if there is a compilation failure in the code under test; because the test task will depend on the compilation task (either directly or indirectly).
+[NOTE]
+====
+Many test suites fail the entire "test" task if any tests fail.
+Code coverage and reporting tools frequently run after the test task, so this "fail fast" behavior may halt execution before those tools run.
+====
 
 [[sec:name_abbreviation]]
 === Name abbreviation
@@ -364,7 +400,7 @@ Print out the stacktrace also for user exceptions (e.g. compile error).  See als
 Create a https://gradle.com/build-scans[build scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
-Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
+Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
 `-Dorg.gradle.debug.host=(host address)`::
 Specifies the host address to listen on or connect to when debug is enabled.
@@ -381,7 +417,7 @@ If set to `true` and debugging is enabled, Gradle will run the build with the so
 When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached. _Default is `true`._
 
 `-Dorg.gradle.daemon.debug=true`::
-Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process.
+Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. (duplicate of `-Dorg.gradle.debug`)
 
 [[sec:command_line_performance]]
 == Performance options
@@ -423,7 +459,7 @@ Generate a build scan with detailed performance diagnostics.
 image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
 `--watch-fs`, `--no-watch-fs`::
-Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Toggles <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
 When enabled Gradle re-uses information it collects about the file system between builds.
 _Enabled by default on operating systems where Gradle supports this feature._
 
@@ -533,8 +569,11 @@ Run the build as a composite, including the specified build. See <<composite_bui
 `--offline`::
 Specifies that the build should operate without accessing network resources. Learn more about <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
 
-`--refresh-dependencies`::
+`-U`, `--refresh-dependencies`::
 Refresh the state of dependencies. Learn more about how to use this in the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,dependency management docs>>.
+
+`--continue`::
+Continue task execution after a task failure. See <<command_line_interface.adoc#sec:continue_build_on_failure, Continuing the build when a failure occurs>>.
 
 `-m`, `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
@@ -582,7 +621,7 @@ Specifies the build file. For example: `gradle --build-file=foo.gradle`. The def
 Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
 
 `-g`, `--gradle-user-home`::
-Specifies the Gradle user home directory. The default is the `.gradle` directory in the user's home directory.
+Specifies the Gradle User Home directory. The default is the `.gradle` directory in the user's home directory.
 
 `-p`, `--project-dir`::
 Specifies the start directory for Gradle. Defaults to current directory.
@@ -645,10 +684,11 @@ $ gradle init --type java-library
 The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a declared version of Gradle, downloading it beforehand if necessary.
 
 ----
-$ gradle wrapper --gradle-version=4.4
+$ gradle wrapper --gradle-version=8.1
 ----
 
-You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
+You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`.
+Full details on how to use these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
 
 [[sec:continuous_build]]
 == Continuous Build
@@ -669,7 +709,7 @@ In order to incorporate build logic changes, the continuous build must be restar
 Continuous build uses file system watching to detect changes to the inputs.
 If file system watching does not work on your system, then continuous build won't work either.
 In particular, continuous build does not work when using `--no-daemon`.
-See <<gradle_daemon.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
+See <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
 
 When Gradle detects a change to the inputs, it will not trigger the build immediately.
 Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.
@@ -696,7 +736,7 @@ Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered 
 [[sec:continuous_build_untracked]]
 ==== Inputs of untracked tasks
 
-Changes to the inputs of <<more_about_tasks.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
+Changes to the inputs of <<incremental_build.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
 
 [[sec:continuous_build_project_dir]]
 ==== Changes to files outside of project directories

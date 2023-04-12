@@ -15,23 +15,54 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.util.Path;
+
+import java.util.List;
 
 /**
  * Represents something that can be resolved.
  */
-public interface ResolveContext {
+public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getName();
 
     String getDisplayName();
 
+    Path getIdentityPath();
+
+    Path getProjectPath();
+
+    DomainObjectContext getDomainObjectContext();
+
     ResolutionStrategyInternal getResolutionStrategy();
+
+    boolean hasDependencies();
 
     LocalComponentMetadata toRootComponentMetaData();
 
-    AttributeContainer getAttributes();
+    AttributeContainerInternal getAttributes();
 
+    ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver();
+
+    /**
+     * Returns the synthetic dependencies for this context. These dependencies are generated
+     * by Gradle and not provided by the user, and are used for dependency locking and consistent resolution.
+     * These constraints are not always used during resolution, based on which phase of execution we are in
+     * (task dependencies, execution, ...)
+     */
+    List<? extends DependencyMetadata> getSyntheticDependencies();
+
+    /**
+     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
+     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
+     * the size of the graph to avoid maps resizing.
+     */
+    int getEstimatedGraphSize();
 }

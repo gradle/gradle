@@ -16,6 +16,7 @@
 
 package org.gradle.internal;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -43,18 +44,24 @@ public interface Deferrable<T> {
      * Maps the result of the invocation via a mapper.
      *
      * @param mapper An inexpensive function on the result.
+     * @throws NullPointerException if the mapper maps to {@code null}.
      */
     default <U> Deferrable<U> map(Function<? super T, U> mapper) {
         return new Deferrable<U>() {
             @Override
             public Optional<U> getCompleted() {
                 return Deferrable.this.getCompleted()
-                    .map(mapper);
+                    .map(value -> applyAndRequireNonNull(value, mapper));
             }
 
             @Override
             public U completeAndGet() {
-                return mapper.apply(Deferrable.this.completeAndGet());
+                return applyAndRequireNonNull(Deferrable.this.completeAndGet(), mapper);
+            }
+
+            private U applyAndRequireNonNull(T value, Function<? super T, U> mapper) {
+                U result = mapper.apply(value);
+                return Objects.requireNonNull(result, "Mapping a Deferrable to null is not allowed");
             }
         };
     }
@@ -95,7 +102,7 @@ public interface Deferrable<T> {
      */
     static <T> Deferrable<T> deferred(Supplier<T> result) {
         return new Deferrable<T>() {
-            private transient volatile T value;
+            private volatile T value;
 
             @Override
             public Optional<T> getCompleted() {

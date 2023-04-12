@@ -424,12 +424,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         }
     }
 
-    def "execution fails when a nested property throws an exception"() {
+    def "execution fails when a nested property throws an exception where property is a #description"() {
         buildFile << """
-            class TaskWithFailingNestedInput extends DefaultTask {
+            import javax.inject.Inject
+            import org.gradle.api.provider.ProviderFactory
+
+            abstract class TaskWithFailingNestedInput extends DefaultTask {
+                @Inject
+                abstract ProviderFactory getProviders()
+
                 @Nested
                 Object getNested() {
-                    throw new RuntimeException("BOOM")
+                    $propertyValue
                 }
 
                 @Input
@@ -453,16 +459,23 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         fails "myTask"
         failure.assertHasDescription("Execution failed for task ':myTask'.")
         failure.assertHasCause("BOOM")
+
+        where:
+        description                | propertyValue
+        "Java type"                | "throw new RuntimeException(\"BOOM\")"
+        "Provider"                 | "return providers.provider { throw new RuntimeException(\"BOOM\") }"
+        "Provider in a collection" | "return [providers.provider { throw new RuntimeException(\"BOOM\") }]"
+
     }
 
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    def "null on nested bean is validated"() {
+    def "null on nested bean is validated #description"() {
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
-                Object nested
+                $property
 
                 @Input
                 String input = "Hello"
@@ -485,14 +498,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         fails "myTask"
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
         failureDescriptionContains(missingValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
+
+        where:
+        description               | property
+        "for plain Java property" | "Object nested"
+        "for Provider property"   | "Provider<Object> nested = project.providers.provider { null }"
     }
 
-    def "null on optional nested bean is allowed"() {
+    def "null on optional nested bean is allowed #description"() {
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
                 @Optional
-                Object nested
+                $property
 
                 @Input
                 String input = "Hello"
@@ -513,6 +531,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         succeeds "myTask"
+
+        where:
+        description               | property
+        "for plain Java property" | "Object nested"
+        "for Provider property"   | "Provider<Object> nested = project.providers.provider { null }"
     }
 
     def "changes to nested bean implementation are detected"() {
@@ -566,7 +589,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         executedAndNotSkipped task
     }
 
-    def "elements of nested iterable cannot be null"() {
+    def "elements of nested iterable cannot be #description"() {
         buildFile << """
             class TaskWithNestedIterable extends DefaultTask {
                 @Nested
@@ -580,13 +603,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
 
             task myTask(type: TaskWithNestedIterable) {
-                beans = [new NestedBean(input: 'input'), null]
+                beans = [new NestedBean(input: 'input'), $elementValue]
             }
         """
 
         expect:
         fails 'myTask'
-        failure.assertHasCause('Null is not allowed as nested property \'beans.$1\'')
+        failure.assertHasCause('Null value is not allowed for the nested collection property \'beans.$1\'')
+
+        where:
+        description | elementValue
+        "null"      | "null"
+        "absent"    | "project.providers.provider { null }"
     }
 
     def "nested iterable beans can be iterables themselves"() {
@@ -754,6 +782,46 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains("Input property 'nested.key1' has been removed for task ':myTask'")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24594")
+    @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
+    def "nested map with non-string key works with deprecation warning"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                abstract MapProperty<Integer, Object> getLazyMap()
+
+                @Nested
+                Map<Integer, Object> eagerMap = [:]
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute() {
+                    outputFile.getAsFile().get() << lazyMap.get()
+                    outputFile.getAsFile().get() << eagerMap
+                }
+            }
+
+            tasks.register("customTask", CustomTask) {
+                lazyMap.put(100, "example")
+                eagerMap.put(100, "example")
+                outputFile = file("output.txt")
+            }
+        """
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'CustomTask' property 'eagerMap' where key of nested map is of type 'java.lang.Integer'. " +
+                "Reason: Key of nested map must be of type 'String'.",
+            'validation_problems',
+            'unsupported_key_type_of_nested_map')
+        run("customTask")
+
+        then:
+        executedAndNotSkipped(":customTask")
+        file("output.txt").text == "[100:example][100:example]"
+    }
 
     private static String namedBeanClass() {
         """

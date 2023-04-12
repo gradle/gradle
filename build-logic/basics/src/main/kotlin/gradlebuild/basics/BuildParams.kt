@@ -31,6 +31,7 @@ import gradlebuild.basics.BuildParams.BUILD_SERVER_URL
 import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
+import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_4
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import gradlebuild.basics.BuildParams.DEFAULT_PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
@@ -123,6 +124,7 @@ object BuildParams {
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
+    const val BUNDLE_GROOVY_4 = "bundleGroovy4"
 
     /**
      * Run docs tests with the configuration cache enabled.
@@ -134,7 +136,11 @@ object BuildParams {
     const val RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS = "runBrokenConfigurationCacheDocsTests"
 
     internal
-    val VENDOR_MAPPING = mapOf("oracle" to JvmVendorSpec.ORACLE, "openjdk" to JvmVendorSpec.ADOPTIUM)
+    val VENDOR_MAPPING = mapOf(
+        "oracle" to JvmVendorSpec.ORACLE,
+        "openjdk" to JvmVendorSpec.ADOPTIUM,
+        "zulu" to JvmVendorSpec.AZUL
+    )
 }
 
 
@@ -313,7 +319,7 @@ val Project.rerunAllTests: Provider<Boolean>
 
 
 val Project.testJavaVendor: Provider<JvmVendorSpec>
-    get() = propertyFromAnySource(TEST_JAVA_VENDOR).map { VENDOR_MAPPING.getValue(it) }
+    get() = propertyFromAnySource(TEST_JAVA_VENDOR).map { vendorName -> VENDOR_MAPPING.getOrElse(vendorName) { -> JvmVendorSpec.matching(vendorName) } }
 
 
 val Project.testJavaVersion: String
@@ -355,8 +361,7 @@ val Project.maxTestDistributionPartitionSecond: Long?
 
 
 val Project.maxParallelForks: Int
-    get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt() *
-        environmentVariable("BUILD_AGENT_VARIANT").getOrElse("").let { if (it == "AX41") 2 else 1 }
+    get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt()
 
 
 val Project.autoDownloadAndroidStudio: Boolean
@@ -395,3 +400,10 @@ val Project.isPromotionBuild: Boolean
             // :updateReleasedVersionsToLatestNightly and :updateReleasedVersions
             taskNames.any { it.contains("updateReleasedVersions") }
     }
+
+
+/**
+ * If `-DbundleGroovy4=true` is specified, create a distribution using Groovy 4 libs.  Otherwise use Groovy 3 classic libs.
+ */
+val Project.isBundleGroovy4: Boolean
+    get() = systemProperty(BUNDLE_GROOVY_4).orNull.toBoolean()

@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -32,6 +31,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
@@ -50,7 +50,6 @@ import org.gradle.internal.management.VersionCatalogBuilderInternal;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -85,7 +84,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
     private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins");
-    private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "class", "convention");
+    private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "convention");
+    /**
+     * names that are forbidden in generated accessors because we can't override getClass()
+     */
+    private final static Set<String> RESERVED_JAVA_NAMES = ImmutableSet.of("class");
 
     private final Interner<String> strings;
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
@@ -230,14 +233,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         // The zero at the end of the configuration comes from the previous implementation;
         // Multiple files could be imported, and all members of the list were given their own configuration, postfixed by the index in the array.
         // After moving this into a single-file import, we didn't want to break the lock files generated for the configuration, so we simply kept the zero.
-        Configuration cnf = drs.getConfigurationContainer().create("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
+        Configuration cnf = ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableBucket("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
         cnf.getResolutionStrategy().activateDependencyLocking();
         cnf.attributes(attrs -> {
             attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
             attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
         });
-        cnf.setCanBeResolved(true);
-        cnf.setCanBeConsumed(false);
         return cnf;
     }
 
@@ -254,7 +255,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             );
         }
     }
-
     private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
             throwVersionCatalogProblem(VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT, spec ->
@@ -272,9 +272,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                     .documented()
             );
         }
-        Instrumented.fileObserved(modelFile, getClass().getName());
+
+        Instrumented.fileOpened(modelFile, getClass().getName());
         try {
-            TomlCatalogFileParser.parse(new ByteArrayInputStream(Files.toByteArray(modelFile)), this);
+            TomlCatalogFileParser.parse(modelFile.toPath(), this);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -373,6 +374,17 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                             .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
                             .documented()
             );
+        }
+
+        for (String name: normalizedAlias.split("\\.")) {
+            if (RESERVED_JAVA_NAMES.contains(name)) {
+                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                        .happensBecause(() -> "Alias '" + alias + "' contains a reserved name in Gradle and prevents generation of accessors")
+                        .addSolution(() -> "Use a different alias which doesn't contain any of " + oxfordListOf(RESERVED_JAVA_NAMES, "or"))
+                        .documented()
+                );
+            }
         }
     }
 

@@ -31,7 +31,6 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
@@ -44,16 +43,54 @@ import java.util.Optional;
 import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
+    /**
+     * The Java API of a library, packaged as a JAR only. Must not include classes directories.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_API_JARS = "java-api-jars";
 
-    @SuppressWarnings("deprecation")
-    private static final String DEPRECATED_JAVA_API_JARS = Usage.JAVA_API_JARS;
-    @SuppressWarnings("deprecation")
-    private static final String DEPRECATED_JAVA_RUNTIME_JARS = Usage.JAVA_RUNTIME_JARS;
+    /**
+     * The Java runtime of a component, packaged as JAR only. Must not include classes directories.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_RUNTIME_JARS = "java-runtime-jars";
+
+    /**
+     * The Java API of a library, packaged as class path elements, either a JAR or a classes directory. Should not include resources, but may.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_API_CLASSES = "java-api-classes";
+
+    /**
+     * The Java runtime classes of a component, packaged as class path elements, either a JAR or a classes directory. Should not include resources, but may.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_RUNTIME_CLASSES = "java-runtime-classes";
+
+    /**
+     * The Java runtime resources of a component, packaged as class path elements, either a JAR or a classes directory. Should not include classes, but may.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_RUNTIME_RESOURCES = "java-runtime-resources";
 
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
-        configureView(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
@@ -61,7 +98,6 @@ public abstract class JavaEcosystemSupport {
         attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
-                CompileView.VIEW_ATTRIBUTE,
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                 Bundling.BUNDLING_ATTRIBUTE,
@@ -120,68 +156,8 @@ public abstract class JavaEcosystemSupport {
             actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         });
     }
-
-    private static void configureView(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<CompileView> viewSchema = attributesSchema.attribute(CompileView.VIEW_ATTRIBUTE);
-        viewSchema.getCompatibilityRules().add(CompileViewCompatibilityRules.class);
-        viewSchema.getDisambiguationRules().add(CompileViewDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_API));
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_COMPLETE));
-        });
-    }
-
     @VisibleForTesting
-    static class CompileViewDisambiguationRules implements AttributeDisambiguationRule<CompileView>, ReusableAction {
-
-        final CompileView javaApi;
-        final CompileView javaComplete;
-
-        @Inject
-        public CompileViewDisambiguationRules(
-                CompileView javaApi,
-                CompileView javaComplete) {
-            this.javaApi = javaApi;
-            this.javaComplete = javaComplete;
-        }
-
-        @Override
-        public void execute(MultipleCandidatesDetails<CompileView> details) {
-            Set<CompileView> candidateValues = details.getCandidateValues();
-            CompileView consumerValue = details.getConsumerValue();
-            if (consumerValue == null) {
-                if (candidateValues.contains(javaApi)) {
-                    // Use the api when nothing has been requested
-                    details.closestMatch(javaApi);
-                }
-            } else if (candidateValues.contains(consumerValue)) {
-                // Use what they requested, if available
-                details.closestMatch(consumerValue);
-            }
-        }
-    }
-
-    @VisibleForTesting
-    static class CompileViewCompatibilityRules implements AttributeCompatibilityRule<CompileView>, ReusableAction {
-
-        @Override
-        public void execute(CompatibilityCheckDetails<CompileView> details) {
-            CompileView consumerValue = details.getConsumerValue();
-            CompileView producerValue = details.getProducerValue();
-            if (consumerValue == null) {
-                // consumer didn't express any preferences, everything fits
-                details.compatible();
-                return;
-            }
-            // The API view is a subset of the complete view, so the complete view can fulfill
-            // a request for the API.
-            if (CompileView.JAVA_API.equals(consumerValue.getName()) && CompileView.JAVA_COMPLETE.equals(producerValue.getName())) {
-                details.compatible();
-            }
-        }
-    }
-
-    @VisibleForTesting
-    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
+    public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;
         final Usage javaRuntime;
         final Usage javaApiJars;
@@ -191,7 +167,7 @@ public abstract class JavaEcosystemSupport {
         final ImmutableSet<Usage> runtimeVariants;
 
         @Inject
-        UsageDisambiguationRules(Usage javaApi,
+        public UsageDisambiguationRules(Usage javaApi,
                                  Usage javaApiJars,
                                  Usage javaRuntime,
                                  Usage javaRuntimeJars) {
@@ -242,7 +218,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
+    public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
                 DEPRECATED_JAVA_API_JARS,
                 DEPRECATED_JAVA_RUNTIME_JARS,

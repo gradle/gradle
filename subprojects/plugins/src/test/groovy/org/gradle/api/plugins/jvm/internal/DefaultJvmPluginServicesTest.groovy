@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm.internal
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationPublications
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
@@ -27,11 +28,10 @@ import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.HasConfigurableAttributes
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.CompileView
 import org.gradle.api.attributes.java.TargetJvmEnvironment
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
@@ -48,9 +48,9 @@ import static org.gradle.api.attributes.Category.LIBRARY
 import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
 import static org.gradle.api.attributes.DocsType.DOCS_TYPE_ATTRIBUTE
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
+import static org.gradle.api.attributes.Usage.JAVA_API
 import static org.gradle.api.attributes.Usage.JAVA_RUNTIME
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
-import static org.gradle.api.attributes.CompileView.VIEW_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmEnvironment.STANDARD_JVM
 import static org.gradle.api.attributes.java.TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
@@ -58,7 +58,7 @@ import static org.gradle.util.AttributeTestUtil.named
 
 class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
-    def configuresCompileClasspath() {
+    def "configures compileClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
         Action[] action = new Action[1]
@@ -83,7 +83,6 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
-            (VIEW_ATTRIBUTE): named(CompileView, CompileView.JAVA_API)
         ]
 
         when:
@@ -96,12 +95,11 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
-            (VIEW_ATTRIBUTE): named(CompileView, CompileView.JAVA_API),
             (TARGET_JVM_VERSION_ATTRIBUTE): 8
         ]
     }
 
-    def configuresRuntimeClasspath() {
+    def "configures runtimeClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
 
@@ -117,6 +115,43 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
+        ]
+    }
+
+    def "configures apiElements"() {
+        def mutable = AttributeTestUtil.attributesFactory().mutable()
+        def attrs = Mock(Configuration)
+
+        when:
+        services.configureAsApiElements(attrs)
+
+        then:
+        1 * attrs.getAttributes() >> mutable
+        0 * _
+        mutable.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+        ]
+
+    }
+
+    def "configures runtimeElements"() {
+        def mutable = AttributeTestUtil.attributesFactory().mutable()
+        def attrs = Mock(Configuration)
+
+        when:
+        services.configureAsRuntimeElements(attrs)
+
+        then:
+        1 * attrs.getAttributes() >> mutable
+        0 * _
+        mutable.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
         ]
     }
 
@@ -156,8 +191,12 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         def variant = Mock(ConfigurationVariantInternal)
         def attrs = AttributeTestUtil.attributesFactory().mutable()
         def output = Mock(DefaultSourceSetOutput)
-        def classesDir = Stub(File) {
-            getName() >> 'toto'
+        def classes = Stub(ConfigurableFileCollection) {
+            getFiles() >> [
+                Stub(File) {
+                    getName() >> 'toto'
+                }
+            ]
         }
 
         when:
@@ -176,7 +215,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         }
         1 * variant.setDescription(_)
         _ * sourceSet.getOutput() >> output
-        1 * output.getClassesContributors() >> Collections.singletonList(new DefaultSourceSetOutput.DirectoryContribution(Providers.of(classesDir), Stub(TaskProvider)))
+        1 * output.getClassesDirs() >> classes
         1 * sourceSet.getName()
         0 * _
     }

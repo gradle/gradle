@@ -2,7 +2,7 @@ Reusing configuration cache.
 > Task :someTask
 
 1 problem was found reusing the configuration cache.
-- Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.
+- Build file 'build.gradle': line 6: invocation of 'Task.project' at execution time is unsupported.
   See https://docs.gradle.org/0.0.0/userguide/configuration_cache.html#config_cache:requirements:use_project_during_execution
 
 See the complete report at file:///home/user/gradle/samples/build/reports/configuration-cache/<hash>/configuration-cache-report.html

@@ -23,10 +23,15 @@ sourceSets {
 }
 
 tasks.register('printProperties') {
+    def springVersion = springVersion
+    def emailNotification = emailNotification
+    def productionSourceSets = provider {
+        sourceSets.matching { it.purpose == "production" }.collect { it.name }
+    }
     doLast {
         println springVersion
         println emailNotification
-        sourceSets.matching { it.purpose == "production" }.each { println it.name }
+        productionSourceSets.get().each { println it }
     }
 }
 // end::extraProperties[]

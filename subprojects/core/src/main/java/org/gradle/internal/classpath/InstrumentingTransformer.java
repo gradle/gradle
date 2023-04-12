@@ -19,33 +19,37 @@ package org.gradle.internal.classpath;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
-import org.gradle.process.CommandLineArgumentProvider;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
@@ -66,7 +70,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 20;
+    private static final int DECORATION_FORMAT = 29;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -165,14 +169,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
 
-    private static final Type FILE_INPUT_STREAM_TYPE = getType(FileInputStream.class);
-    // FileInputStream(File) -> fileOpened(File, String)
-    private static final String RETURN_VOID_FROM_FILE = getMethodDescriptor(Type.VOID_TYPE, FILE_TYPE);
-    private static final String RETURN_VOID_FROM_FILE_STRING = getMethodDescriptor(Type.VOID_TYPE, FILE_TYPE, STRING_TYPE);
-    // FileInputStream(String) -> fileOpened(String, String)
-    private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE);
-    private static final String RETURN_VOID_FROM_STRING_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, STRING_TYPE);
-
     private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
     private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
 
@@ -196,19 +192,21 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     }
 
     @Override
-    public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor)));
+    public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), classData::readClassAsNode));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
         String className;
+        private final Supplier<ClassNode> classAsNode;
         private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
         private boolean hasGroovyCallSites;
         private boolean hasDeserializeLambda;
         private boolean isInterface;
 
-        public InstrumentingVisitor(ClassVisitor visitor) {
+        public InstrumentingVisitor(ClassVisitor visitor, Supplier<ClassNode> classAsNode) {
             super(ASM_LEVEL, visitor);
+            this.classAsNode = classAsNode;
         }
 
         public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
@@ -231,7 +229,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(this, methodVisitor);
+            Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
+                Optional<MethodNode> methodNode = classAsNode.get().methods.stream().filter(method ->
+                    Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
+                ).findFirst();
+                return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
+            });
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
         }
 
         @Override
@@ -254,11 +258,20 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                         _F_SAME();
                     }
                     next = new Label();
+                    Handle implHandle = (Handle) factory.bootstrapMethodArguments.get(1);
+
                     _ALOAD(0);
                     _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
-                    _LDC(((Handle) factory.bootstrapMethodArguments.get(1)).getName());
+                    _LDC(implHandle.getName());
                     _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
                     _IFEQ(next);
+
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodSignature", RETURN_STRING);
+                    _LDC(implHandle.getDesc());
+                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
+                    _IFEQ(next);
+
                     Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
                     for (int i = 0; i < argumentTypes.length; i++) {
                         _ALOAD(0);
@@ -304,11 +317,25 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
+        private final Lazy<MethodNode> asNode;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor) {
+        private final JvmBytecodeCallInterceptor generatedInterceptor;
+
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.asNode = asNode;
+
+            try {
+                //noinspection Convert2MethodRef
+                InstrumentationMetadata metadata = (type, superType) -> type.equals(superType); // TODO implement properly
+                generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
+                    .getConstructor(MethodVisitor.class, InstrumentationMetadata.class)
+                    .newInstance(methodVisitor, metadata);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
@@ -320,6 +347,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return;
             }
             if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
+                return;
+            }
+
+            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
                 return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
@@ -497,34 +528,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private boolean visitINVOKESPECIAL(String owner, String name, String descriptor) {
-            if (owner.equals(FILE_INPUT_STREAM_TYPE.getInternalName()) && name.equals("<init>")) {
-                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForFileInputStreamConstructor(descriptor);
-                if (instrumentedDescriptor.isPresent()) {
-                    // We are still calling the original constructor instead of replacing it with an instrumented method. The instrumented method is merely a notifier
-                    // there.
-                    _DUP();
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "fileOpened", instrumentedDescriptor.get());
-                    _INVOKESPECIAL(owner, name, descriptor);
-                    return true;
-                }
-            }
             return false;
-        }
-
-        private Optional<String> getInstrumentedDescriptorForFileInputStreamConstructor(String descriptor) {
-            if (descriptor.equals(RETURN_VOID_FROM_FILE)) {
-                return Optional.of(RETURN_VOID_FROM_FILE_STRING);
-            } else if (descriptor.equals(RETURN_VOID_FROM_STRING)) {
-                return Optional.of(RETURN_VOID_FROM_STRING_STRING);
-            }
-            // It is some signature of FileInputStream.<init> that we don't support.
-            return Optional.empty();
         }
 
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-            if (isGradleLambdaDescriptor(descriptor) && bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
+            if (bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
                 Handle altMethod = new Handle(
                     H_INVOKESTATIC,
                     LAMBDA_METAFACTORY_TYPE,
@@ -537,7 +546,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 args.add(LambdaMetafactory.FLAG_SERIALIZABLE);
                 super.visitInvokeDynamicInsn(name, descriptor, altMethod, args.toArray());
                 owner.addSerializedLambda(new LambdaFactoryDetails(name, descriptor, altMethod, args));
-            } else if (isGroovyIndyCallsite(descriptor, bootstrapMethodHandle)) {
+            } else if (isGroovyIndyCallsite(bootstrapMethodHandle)) {
                 Handle interceptor = new Handle(
                     H_INVOKESTATIC,
                     INSTRUMENTED_TYPE.getInternalName(),
@@ -551,28 +560,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             }
         }
 
-        private boolean isGradleLambdaDescriptor(String descriptor) {
-            return descriptor.endsWith(ACTION_LAMBDA_SUFFIX)
-                || descriptor.endsWith(SPEC_LAMBDA_SUFFIX)
-                || descriptor.endsWith(TRANSFORMER_LAMBDA_SUFFIX)
-                || descriptor.endsWith(COMMAND_LINE_ARGUMENT_PROVIDER_LAMBDA_SUFFIX);
-        }
-
         private String binaryClassNameOf(String className) {
             return getObjectType(className).getClassName();
         }
 
-        private boolean isGroovyIndyCallsite(String descriptor, Handle bootstrapMethodHandle) {
+        private boolean isGroovyIndyCallsite(Handle bootstrapMethodHandle) {
             return (bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_TYPE) ||
                 bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_V7_TYPE)) &&
                 bootstrapMethodHandle.getName().equals("bootstrap") &&
                 bootstrapMethodHandle.getDesc().equals(GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR);
         }
-
-        private static final String ACTION_LAMBDA_SUFFIX = ")" + getType(Action.class).getDescriptor();
-        private static final String SPEC_LAMBDA_SUFFIX = ")" + getType(Spec.class).getDescriptor();
-        private static final String TRANSFORMER_LAMBDA_SUFFIX = ")" + getType(Transformer.class).getDescriptor();
-        private static final String COMMAND_LINE_ARGUMENT_PROVIDER_LAMBDA_SUFFIX = ")" + getType(CommandLineArgumentProvider.class).getDescriptor();
     }
 
     private static class LambdaFactoryDetails {

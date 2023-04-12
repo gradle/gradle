@@ -39,7 +39,7 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
             configurations.create("custom") {
                 description = "My custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
             }
         """
 
@@ -53,8 +53,8 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         buildFile << """
             configurations.create("legacy") {
                 description = "My legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -69,8 +69,8 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         buildFile << """
             configurations.create("legacy") {
                 description = "My custom legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -95,7 +95,7 @@ My custom legacy configuration""")
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
         """
@@ -121,7 +121,7 @@ My custom configuration
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
 
                 attributes {
@@ -158,7 +158,7 @@ Attributes
         buildFile << """
             configurations.create("someConf") {
                 description = "My first custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
 
                 attributes {
@@ -170,7 +170,7 @@ Attributes
 
             configurations.create("otherConf") {
                 description = "My second custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
 
                 attributes {
@@ -238,13 +238,12 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration compileClasspath (i)
+Configuration compileClasspath
 --------------------------------------------------
 Compile classpath for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -283,13 +282,12 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration testCompileClasspath (i)
+Configuration testCompileClasspath
 --------------------------------------------------
 Compile classpath for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -327,6 +325,14 @@ Extended Configurations
 
             ${mavenCentralRepository()}
 
+            configurations {
+                archiveLegacy {
+                    description = 'Example legacy configuration.'
+                    assert canBeConsumed
+                    assert canBeResolved
+                }
+            }
+
             dependencies {
                 api 'org.apache.commons:commons-lang3:3.5'
                 implementation 'org.apache.commons:commons-compress:1.19'
@@ -351,18 +357,17 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration archives (l)
+Configuration archiveLegacy (l)
 --------------------------------------------------
-Configuration for archive artifacts.
+Example legacy configuration.
 
 --------------------------------------------------
-Configuration compileClasspath (i)
+Configuration compileClasspath
 --------------------------------------------------
 Compile classpath for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -371,14 +376,6 @@ Attributes
 Extended Configurations
     - compileOnly
     - implementation
-
---------------------------------------------------
-Configuration default (l)
---------------------------------------------------
-Configuration for default artifacts.
-
-Extended Configurations
-    - runtimeElements
 
 --------------------------------------------------
 Configuration runtimeClasspath
@@ -409,13 +406,12 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration testCompileClasspath (i)
+Configuration testCompileClasspath
 --------------------------------------------------
 Compile classpath for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -457,7 +453,7 @@ Extended Configurations
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
         """
@@ -473,14 +469,14 @@ Extended Configurations
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
 
             configurations.create("legacy") {
                 description = "My custom configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -502,7 +498,7 @@ Extended Configurations
             configurations {
                 custom {
                     description = "My custom configuration"
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
 
                     attributes {
@@ -551,7 +547,7 @@ The following Attributes have compatibility rules defined.
             configurations {
                 custom {
                     description = "My custom configuration"
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
 
                     attributes {
@@ -602,7 +598,7 @@ The following Attributes have disambiguation rules defined.
             configurations {
                 custom {
                     description = "My custom configuration"
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
 
                     attributes {
@@ -640,7 +636,6 @@ The following Attributes have disambiguation rules defined.
 
     - flavor (1)
     - org.gradle.category
-    - org.gradle.compile-view
     - org.gradle.dependency.bundling
     - org.gradle.jvm.environment
     - org.gradle.jvm.version
@@ -666,7 +661,7 @@ The following Attributes have disambiguation rules defined.
             configurations {
                 custom {
                     description = "My custom configuration"
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
 
                     attributes {
@@ -701,11 +696,10 @@ The following Attributes have disambiguation rules defined.
 
     - flavor
     - org.gradle.category (1)
-    - org.gradle.compile-view (3)
-    - org.gradle.dependency.bundling (6)
-    - org.gradle.jvm.environment (7)
-    - org.gradle.jvm.version (4)
-    - org.gradle.libraryelements (5)
+    - org.gradle.dependency.bundling (5)
+    - org.gradle.jvm.environment (6)
+    - org.gradle.jvm.version (3)
+    - org.gradle.libraryelements (4)
     - org.gradle.plugin.api-version
     - org.gradle.usage (2)
 
@@ -720,20 +714,20 @@ The following Attributes have disambiguation rules defined.
         buildFile << """
             def base = configurations.create("base") {
                 description = "Base configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
 
             def mid = configurations.create("mid") {
                 description = "Mid configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
             }
 
             def leaf = configurations.create("leaf") {
                 description = "Leaf configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom mid
             }
@@ -772,20 +766,20 @@ Extended Configurations
         buildFile << """
             def base = configurations.create("base") {
                 description = "Base configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
 
             def mid = configurations.create("mid") {
                 description = "Mid configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
             }
 
             def leaf = configurations.create("leaf") {
                 description = "Leaf configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom mid
             }
@@ -823,13 +817,13 @@ Extended Configurations
         buildFile << """
             def base = configurations.create("base") {
                 description = "Base configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
 
             def mid = configurations.create("mid") {
                 description = "Mid configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
             }

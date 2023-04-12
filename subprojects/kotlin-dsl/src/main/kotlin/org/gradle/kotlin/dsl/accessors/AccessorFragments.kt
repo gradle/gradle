@@ -49,6 +49,7 @@ import org.gradle.kotlin.dsl.support.bytecode.visitSignature
 import org.gradle.kotlin.dsl.support.bytecode.with
 import org.gradle.kotlin.dsl.support.bytecode.writeFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
 
@@ -67,7 +68,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
 
     val name = config.target
     val propertyName = name.original
-    val className = "${propertyName.capitalize()}ConfigurationAccessorsKt"
+    val className = "${propertyName.uppercaseFirstChar()}ConfigurationAccessorsKt"
     val (functionFlags, deprecationBlock) =
         if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
         else publicFunctionFlags to ""
@@ -950,7 +951,7 @@ private
 fun ConfigurationEntry<AccessorNameSpec>.getDeclarationDeprecationMessage() = if (hasDeclarationDeprecations()) {
     val deprecationType = ConfigurationDeprecationType.DEPENDENCY_DECLARATION
     val summary = "The ${target.original} configuration has been deprecated for ${deprecationType.displayName()}."
-    val suggestion = "Please ${deprecationType.usage} the ${dependencyDeclarationAlternatives.map(::quote).joinToString(" or ")} configuration instead."
+    val suggestion = "Please ${deprecationType.usage} the ${dependencyDeclarationAlternatives.joinToString(" or ", transform = ::quote)} configuration instead."
     "$summary $suggestion"
 } else {
     ""

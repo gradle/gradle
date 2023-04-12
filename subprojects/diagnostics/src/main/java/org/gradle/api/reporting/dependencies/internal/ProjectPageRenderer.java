@@ -17,8 +17,8 @@
 package org.gradle.api.reporting.dependencies.internal;
 
 import com.googlecode.jatl.Html;
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails.ProjectNameAndPath;
 import org.gradle.reporting.HtmlPageBuilder;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
@@ -26,15 +26,18 @@ import org.gradle.util.GradleVersion;
 import java.io.Writer;
 import java.util.Date;
 
-public class ProjectPageRenderer extends ReportRenderer<Project, HtmlPageBuilder<Writer>> {
-    private final Transformer<String, Project> namingScheme;
+/**
+ * Renders a project-specific page for the HTML dependency report.
+ */
+public class ProjectPageRenderer extends ReportRenderer<ProjectNameAndPath, HtmlPageBuilder<Writer>> {
+    private final Transformer<String, ProjectNameAndPath> namingScheme;
 
-    public ProjectPageRenderer(Transformer<String, Project> namingScheme) {
+    public ProjectPageRenderer(Transformer<String, ProjectNameAndPath> namingScheme) {
         this.namingScheme = namingScheme;
     }
 
     @Override
-    public void render(final Project project, final HtmlPageBuilder<Writer> builder) {
+    public void render(final ProjectNameAndPath project, final HtmlPageBuilder<Writer> builder) {
         final String baseCssLink = requireClassResource("/org/gradle/reporting/base-style.css", builder);
         final String cssLink = requireReportResource("style.css", builder);
         final String jqueryLink = requireClassResource("/org/gradle/reporting/jquery.min-3.5.1.js", builder);

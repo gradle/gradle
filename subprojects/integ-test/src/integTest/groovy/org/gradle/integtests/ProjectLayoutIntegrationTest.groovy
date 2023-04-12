@@ -52,6 +52,8 @@ dependencies {
     implementation 'org.scala-lang:scala-library:2.11.12'
 }
 
+testing.suites.test.useJUnitJupiter()
+
 sourceSets.each {
     configure(it) {
         resources.srcDir 'src'

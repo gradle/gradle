@@ -30,6 +30,7 @@ import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.buildoption.Option;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -112,11 +113,11 @@ public class BuildActionSerializer {
 
             // Layout
             @SuppressWarnings("deprecation")
-            File customBuildFile = startParameter.getBuildFile();
+            File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
             nullableFileSerializer.write(encoder, customBuildFile);
             nullableFileSerializer.write(encoder, startParameter.getProjectDir());
             @SuppressWarnings("deprecation")
-            File customSettingsFile = startParameter.getSettingsFile();
+            File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
             nullableFileSerializer.write(encoder, customSettingsFile);
             FILE_SERIALIZER.write(encoder, startParameter.getCurrentDir());
             FILE_SERIALIZER.write(encoder, startParameter.getGradleUserHomeDir());
@@ -200,9 +201,13 @@ public class BuildActionSerializer {
             startParameter.setExcludedTaskNames(stringSetSerializer.read(decoder));
 
             // Layout
-            startParameter.setBuildFile(nullableFileSerializer.read(decoder));
+            DeprecationLogger.whileDisabledThrowing(() ->
+                startParameter.setBuildFile(nullableFileSerializer.read(decoder))
+            );
             startParameter.setProjectDir(nullableFileSerializer.read(decoder));
-            startParameter.setSettingsFile(nullableFileSerializer.read(decoder));
+            DeprecationLogger.whileDisabledThrowing(() ->
+                startParameter.setSettingsFile(nullableFileSerializer.read(decoder))
+            );
             startParameter.setCurrentDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleUserHomeDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));

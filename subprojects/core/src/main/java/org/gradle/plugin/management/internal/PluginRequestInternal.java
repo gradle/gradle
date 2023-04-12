@@ -28,5 +28,12 @@ public interface PluginRequestInternal extends PluginRequest {
 
     String getDisplayName();
 
-    PluginRequestInternal getOriginalRequest();
+    PluginRequest getOriginalRequest();
+
+    Origin getOrigin();
+
+    enum Origin {
+        AUTO_APPLIED,
+        OTHER
+    }
 }

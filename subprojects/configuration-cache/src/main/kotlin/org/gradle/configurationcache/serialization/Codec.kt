@@ -127,6 +127,14 @@ sealed class IsolateOwner {
     class OwnerHost(override val delegate: DefaultConfigurationCache.Host) : IsolateOwner() {
         override fun <T> service(type: Class<T>): T = delegate.service(type)
     }
+
+    class OwnerFlowScope(override val delegate: Gradle) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
+    }
+
+    class OwnerFlowAction(override val delegate: OwnerFlowScope) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = delegate.service(type)
+    }
 }
 
 
@@ -158,10 +166,11 @@ interface MutableIsolateContext : IsolateContext {
     override var trace: PropertyTrace
 
     fun push(codec: Codec<Any?>)
+    fun push(owner: IsolateOwner)
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
 
-    suspend fun forIncompatibleType(action: suspend () -> Unit)
+    suspend fun forIncompatibleType(path: String, action: suspend () -> Unit)
 }
 
 
@@ -191,6 +200,17 @@ inline fun <T : MutableIsolateContext, R> T.withGradleIsolate(
 internal
 inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, codec: Codec<Any?>, block: T.() -> R): R {
     push(owner, codec)
+    try {
+        return block()
+    } finally {
+        pop()
+    }
+}
+
+
+internal
+inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, block: T.() -> R): R {
+    push(owner)
     try {
         return block()
     } finally {
@@ -230,18 +250,18 @@ inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(trace: PropertyTra
 
 
 internal
-inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) {
+inline fun <T : Any> WriteContext.encodePreservingIdentityOf(reference: T, encode: WriteContext.(T) -> Unit) {
     encodePreservingIdentityOf(isolate.identities, reference, encode)
 }
 
 
 internal
-inline fun WriteContext.encodePreservingSharedIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) =
+inline fun <T : Any> WriteContext.encodePreservingSharedIdentityOf(reference: T, encode: WriteContext.(T) -> Unit) =
     encodePreservingIdentityOf(sharedIdentities, reference, encode)
 
 
 internal
-inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: Any, encode: WriteContext.(Any) -> Unit) {
+inline fun <T : Any> WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: T, encode: WriteContext.(T) -> Unit) {
     val id = identities.getId(reference)
     if (id != null) {
         writeSmallInt(id)

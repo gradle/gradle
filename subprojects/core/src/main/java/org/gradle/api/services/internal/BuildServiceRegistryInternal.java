@@ -19,12 +19,16 @@ package org.gradle.api.services.internal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Set;
 
 @ServiceScope(Scopes.Gradle.class)
 public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
@@ -33,5 +37,35 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
      */
     BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
 
-    SharedResource forService(Provider<? extends BuildService<?>> service);
+    /**
+     * Same as #register(name, implementationType, parameters, maxUsages), but conditional.
+     *
+     * @param name
+     * @param implementationType
+     * @param parameters
+     * @param maxUsages
+     * @return the registered or already existing provider
+     */
+    BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
+
+    /**
+     * Returns a shared build service provider that can lazily resolve to the service named and typed as given.
+     */
+    BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType);
+
+    @Nullable
+    SharedResource forService(BuildServiceProvider<?, ?> service);
+
+    @Nullable
+    BuildServiceRegistration<?, ?> findByName(String name);
+
+    @Nullable
+    BuildServiceRegistration<?, ?> findByType(Class<?> type);
+
+    @Nullable
+    BuildServiceRegistration<?, ?> findRegistration(Class<?> type, String name);
+
+    Set<BuildServiceRegistration<?, ?>> findRegistrations(Class<?> type, String name);
+
+    List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services);
 }

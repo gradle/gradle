@@ -24,6 +24,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Marks a test class as needing to run twice, with and without fluid dependencies enabled.
+ * <p>
+ * When fluid dependencies are enabled, any configuration that is a task input is resolved when constructing the task graph.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @ExtensionAnnotation(FluidDependenciesResolveTestExtension.class)

@@ -1,0 +1,9 @@
+pluginManagement {
+    includeBuild("plugin")
+}
+
+plugins {
+    id("org.gradle.sample.sound-feedback-plugin")
+}
+
+rootProject.name = "playSound"

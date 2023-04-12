@@ -57,7 +57,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
     def "snapshot task inputs action has an informative name"() {
         given:
         buildFile << "task custom { doLast {} }"
-        file("gradle.properties") << "org.gradle.caching=true"
+        propertiesFile << "org.gradle.caching=true"
 
         when:
         runCustomTask()
@@ -80,7 +80,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        file("gradle.properties") << "org.gradle.caching=true"
+        propertiesFile << "org.gradle.caching=true"
 
         when:
         runCustomTask()
@@ -127,6 +127,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.descendant('Execute doLast {} action for :custom')
     }
 
+    @TargetGradleVersion(">=4.10.3")
     def "task actions defined in doFirst and doLast blocks of Kotlin build scripts have informative names"() {
         given:
         buildFileKts << """
@@ -163,6 +164,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.descendant('Execute One last thing... for :custom')
     }
 
+    @TargetGradleVersion(">=4.10.3")
     def "task actions defined in doFirst and doLast blocks of Kotlin build scripts can be named"() {
         given:
         buildFileKts << """

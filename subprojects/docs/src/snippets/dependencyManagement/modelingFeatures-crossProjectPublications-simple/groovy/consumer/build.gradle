@@ -6,7 +6,6 @@ plugins {
 configurations {
     instrumentedClasspath {
         canBeConsumed = false
-        canBeResolved = true
     }
 }
 // end::resolvable-configuration[]
@@ -18,8 +17,9 @@ dependencies {
 // end::explicit-configuration-dependency[]
 
 tasks.register("resolveInstrumentedClasses") {
-    inputs.files(configurations.instrumentedClasspath)
+    FileCollection instrumentedClasspath = configurations.instrumentedClasspath
+    inputs.files(instrumentedClasspath)
     doLast {
-        println(configurations.instrumentedClasspath.files.name)
+        println(instrumentedClasspath.files.name)
     }
 }

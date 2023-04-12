@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
@@ -55,6 +56,7 @@ class KotlinMetadataIntegrationTest : TestWithTempFiles() {
         require(
             compileToDirectory(
                 outputDir,
+                JavaVersion.current(),
                 moduleName,
                 listOf(
                     newFile(

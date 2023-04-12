@@ -258,7 +258,9 @@ public class IdeDependencySet {
         private boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
             String artifactFileName = artifact.getFile().getName();
             String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
-            return (componentIdentifier.equals(GRADLE_API.displayName) || componentIdentifier.equals(GRADLE_TEST_KIT.displayName) || componentIdentifier.equals(LOCAL_GROOVY.displayName))
+            return (componentIdentifier.equals(GRADLE_API.displayName)
+                    || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
+                    || componentIdentifier.equals(LOCAL_GROOVY.displayName))
                 && artifactFileName.startsWith("groovy-");
         }
 

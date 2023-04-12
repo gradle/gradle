@@ -33,13 +33,17 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.gradle.wrapper.Download;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
+import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.WrapperExecutor;
 
 import javax.annotation.Nullable;
@@ -49,7 +53,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -68,8 +75,9 @@ import java.util.Properties;
  * your VCS. The scripts delegates to this JAR.
  */
 @DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
-public class Wrapper extends DefaultTask {
+public abstract class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
+
 
     /**
      * Specifies the Gradle distribution type.
@@ -98,19 +106,21 @@ public class Wrapper extends DefaultTask {
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
     private String distributionUrl;
     private String distributionSha256Sum;
-    private GradleVersion gradleVersion;
+    private final GradleVersionResolver gradleVersionResolver = new GradleVersionResolver();
     private DistributionType distributionType = DistributionType.BIN;
     private String archivePath;
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
+    private final boolean isOffline;
+    private boolean distributionUrlConfigured = false;
 
     public Wrapper() {
         scriptFile = "gradlew";
         jarFile = "gradle/wrapper/gradle-wrapper.jar";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-        gradleVersion = GradleVersion.current();
+        isOffline = getProject().getGradle().getStartParameter().isOffline();
     }
 
     @Inject
@@ -122,10 +132,14 @@ public class Wrapper extends DefaultTask {
     void generate() {
         File jarFileDestination = getJarFile();
         File unixScript = getScriptFile();
+        File propertiesFile = getPropertiesFile();
         FileResolver resolver = getFileLookup().getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
+        Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
-        writeProperties(getPropertiesFile());
+        checkProperties(existingProperties);
+        testDistributionUrl();
+        writeProperties(propertiesFile, existingProperties);
         writeWrapperTo(jarFileDestination);
 
         StartScriptGenerator generator = new StartScriptGenerator();
@@ -141,6 +155,38 @@ public class Wrapper extends DefaultTask {
         generator.generateWindowsScript(getBatchScript());
     }
 
+    private void checkProperties(Properties existingProperties) {
+        String checksumProperty = existingProperties != null
+            ? existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null)
+            : null;
+
+        if (!isCurrentVersion() &&
+            distributionSha256Sum == null &&
+            checksumProperty != null) {
+            throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option");
+        }
+    }
+
+    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
+
+    private void testDistributionUrl() {
+        if (distributionUrlConfigured) {
+            String url = getDistributionUrl();
+            URI uri = URI.create(url);
+            if (uri.getScheme().equals("file")) {
+                if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
+                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
+                }
+            } else if (uri.getScheme().startsWith("http") && !isOffline) {
+                try {
+                    new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
+                } catch (Exception e) {
+                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e);
+                }
+            }
+        }
+    }
+
     private void writeWrapperTo(File destination) {
         URL jarFileSource = Wrapper.class.getResource("/gradle-wrapper.jar");
         if (jarFileSource == null) {
@@ -153,9 +199,10 @@ public class Wrapper extends DefaultTask {
         }
     }
 
-    private void writeProperties(File propertiesFileDestination) {
+    private void writeProperties(File propertiesFileDestination, Properties existingProperties) {
         Properties wrapperProperties = new Properties();
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, getDistributionUrl());
+        String distributionSha256Sum = getDistributionSha256Sum(existingProperties);
         if (distributionSha256Sum != null) {
             wrapperProperties.put(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, distributionSha256Sum);
         }
@@ -171,6 +218,20 @@ public class Wrapper extends DefaultTask {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private String getDistributionSha256Sum(Properties existingProperties) {
+        if (distributionSha256Sum != null) {
+            return distributionSha256Sum;
+        } else if (isCurrentVersion() && existingProperties != null) {
+            return existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null);
+        } else {
+            return null;
+        }
+    }
+
+    private boolean isCurrentVersion() {
+        return GradleVersion.current().equals(gradleVersionResolver.getGradleVersion());
     }
 
     /**
@@ -262,22 +323,43 @@ public class Wrapper extends DefaultTask {
     }
 
     /**
-     * Returns the gradle version for the wrapper.
+     * Set Wrapper versions resources.
      *
-     * @see #setGradleVersion(String)
+     * @since 8.1
      */
-    @Input
-    public String getGradleVersion() {
-        return gradleVersion.getVersion();
+    @Incubating
+    public void setWrapperVersionsResources(WrapperVersionsResources wrapperVersionsResources) {
+        DefaultWrapperVersionsResources defaultWrapperVersionsResources = (DefaultWrapperVersionsResources) wrapperVersionsResources;
+        gradleVersionResolver.setTextResources(defaultWrapperVersionsResources.getLatest(),
+            defaultWrapperVersionsResources.getReleaseCandidate(),
+            defaultWrapperVersionsResources.getNightly(),
+            defaultWrapperVersionsResources.getReleaseNightly());
     }
 
     /**
-     * The version of the gradle distribution required by the wrapper. This is usually the same version of Gradle you
-     * use for building your project.
+     * Returns the gradle version for the wrapper.
+     *
+     * @see #setGradleVersion(String)
+     *
+     * @throws GradleException if the label that can be provided via {@link #setGradleVersion(String)} can not be resolved at the moment. For example, there is not a `release-candidate` available at all times.
      */
-    @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper.")
+    @Input
+    public String getGradleVersion() {
+        return gradleVersionResolver.getGradleVersion().getVersion();
+    }
+
+    /**
+     * The version of the gradle distribution required by the wrapper.
+     * This is usually the same version of Gradle you use for building your project.
+     * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code nightly}, and {@code release-nightly}
+     *
+     * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
+     */
+    @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
+        "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
     public void setGradleVersion(String gradleVersion) {
-        this.gradleVersion = GradleVersion.version(gradleVersion);
+        distributionUrlConfigured = true;
+        this.gradleVersionResolver.setGradleVersionString(gradleVersion);
     }
 
     /**
@@ -325,8 +407,8 @@ public class Wrapper extends DefaultTask {
     public String getDistributionUrl() {
         if (distributionUrl != null) {
             return distributionUrl;
-        } else if (gradleVersion != null) {
-            return locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+        } else if (gradleVersionResolver.getGradleVersion() != null) {
+            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
         } else {
             return null;
         }
@@ -343,9 +425,12 @@ public class Wrapper extends DefaultTask {
      * project, you might submit the distribution to your version control system. That way no download is necessary at
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.
+     *
+     * <p>The distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
     public void setDistributionUrl(String url) {
+        distributionUrlConfigured = true;
         this.distributionUrl = url;
     }
 

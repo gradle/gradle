@@ -1,0 +1,52 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver' version '0.4.0'
+}
+
+import java.util.Optional
+import javax.inject.Inject
+
+apply plugin: MadeUpPlugin
+
+// tag::toolchain-management[]
+toolchainManagement {
+    jvm { // <1>
+        javaRepositories {
+            repository('foojay') { // <2>
+                resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
+            }
+            repository('made_up') { // <3>
+                resolverClass = MadeUpResolver
+                credentials {
+                    username "user"
+                    password "password"
+                }
+                authentication {
+                    digest(BasicAuthentication)
+                } // <4>
+            }
+        }
+    }
+}
+// end::toolchain-management[]
+
+rootProject.name = 'toolchain-management'
+
+abstract class MadeUpPlugin implements Plugin<Settings> {
+
+    @Inject
+    protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
+
+    void apply(Settings settings) {
+        settings.getPlugins().apply("jvm-toolchain-management")
+
+        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry()
+        registry.register(MadeUpResolver.class)
+    }
+}
+
+abstract class MadeUpResolver implements JavaToolchainResolver {
+    @Override
+    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+        return Optional.empty()
+    }
+}

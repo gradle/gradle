@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.services.BuildService
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -176,6 +177,18 @@ trait ValidationMessageChecker {
                 .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
                 .render()
         }
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE
+    )
+    String serviceReferenceMustBeABuildService(@DelegatesTo(value = UnsupportedServiceReferenceType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(UnsupportedServiceReferenceType, 'service_reference_must_be_a_build_service', spec)
+        config.description("has @ServiceReference annotation used on property of type '${config.propertyType}' which is not a build service implementation")
+            .reason("A property annotated with @ServiceReference must be of a type that implements '${BuildService.class.name}'")
+            .solution("Make '${config.propertyType}' implement '${BuildService.class.name}'")
+            .solution("Replace the @ServiceReference annotation on '${config.property}' with @Internal and assign a value of type '${config.propertyType}' explicitly")
+            .render()
     }
 
     @ValidationTestFor(
@@ -364,23 +377,6 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
-    )
-    String notCacheableWithoutReason(@DelegatesTo(value = NotCacheableWithoutReason, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(NotCacheableWithoutReason, "disable_caching_by_default", spec)
-        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault.")
-            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
-            .solution("Add @DisableCachingByDefault(because = ...)")
-            .solution("Add ${config.cacheableAnnotation}.")
-
-        config.otherAnnotations.each { annotation ->
-            config.solution("Add ${annotation}.")
-        }
-
-        config.render()
-    }
-
-    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
@@ -428,10 +424,21 @@ trait ValidationMessageChecker {
         config.render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    String nestedMapUnsupportedKeyType(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NestedMapUnsupportedKeyType, "unsupported_key_type_of_nested_map", spec)
+        config.description("where key of nested map is of type '${config.keyType}'.")
+            .reason("Key of nested map must be of type 'String'.")
+            .solution("Change type of key to 'String'")
+            .render()
+    }
+
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
-                                                                   String docId = 'more_about_tasks',
-                                                                   String section = 'sec:up_to_date_checks') {
+                                                                   String docId = "incremental_build",
+                                                                   String section = "") {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
             "This behavior has been deprecated. " +
@@ -832,12 +839,12 @@ trait ValidationMessageChecker {
         }
 
         AnnotationContext forTransformParameters() {
-            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy"
+            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference"
             this
         }
 
         AnnotationContext forTask() {
-            validAnnotations = "@Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles or @ReplacedBy"
+            validAnnotations = "@Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference"
             this
         }
     }
@@ -956,4 +963,24 @@ trait ValidationMessageChecker {
         }
     }
 
+    static class NestedMapUnsupportedKeyType extends ValidationMessageDisplayConfiguration<NestedMapUnsupportedKeyType> {
+
+        String keyType
+
+        NestedMapUnsupportedKeyType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NestedMapUnsupportedKeyType keyType(String keyType) {
+            this.keyType = keyType
+            this
+        }
+    }
+
+    static class UnsupportedServiceReferenceType extends ValidationMessageDisplayConfiguration<UnsupportedServiceReferenceType> {
+
+        UnsupportedServiceReferenceType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+    }
 }

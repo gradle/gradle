@@ -43,7 +43,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 1.4
  */
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
-public class GenerateMavenPom extends DefaultTask {
+public abstract class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
     private final Transient.Var<ImmutableAttributes> compileScopeAttributes = varOf(ImmutableAttributes.EMPTY);
@@ -155,8 +155,11 @@ public class GenerateMavenPom extends DefaultTask {
         for (MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {
             pomGenerator.addRuntimeDependency(runtimeDependency);
         }
-        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalDependencies()) {
-            pomGenerator.addOptionalDependency(optionalDependency);
+        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalApiDependencies()) {
+            pomGenerator.addOptionalApiDependency(optionalDependency);
+        }
+        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalRuntimeDependencies()) {
+            pomGenerator.addOptionalRuntimeDependency(optionalDependency);
         }
 
         pomGenerator.withXml(pomInternal.getXmlAction());

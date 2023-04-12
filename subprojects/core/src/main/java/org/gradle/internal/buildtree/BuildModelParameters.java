@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -28,6 +29,7 @@ public class BuildModelParameters {
     private final boolean intermediateModelCache;
     private final boolean parallelToolingApiActions;
     private final boolean invalidateCoupledProjects;
+    private final LogLevel configurationCacheLogLevel;
 
     public BuildModelParameters(
         boolean configureOnDemand,
@@ -36,7 +38,8 @@ public class BuildModelParameters {
         boolean requiresBuildModel,
         boolean intermediateModelCache,
         boolean parallelToolingApiActions,
-        boolean invalidateCoupledProjects
+        boolean invalidateCoupledProjects,
+        LogLevel configurationCacheLogLevel
     ) {
         this.configureOnDemand = configureOnDemand;
         this.configurationCache = configurationCache;
@@ -45,6 +48,7 @@ public class BuildModelParameters {
         this.intermediateModelCache = intermediateModelCache;
         this.parallelToolingApiActions = parallelToolingApiActions;
         this.invalidateCoupledProjects = invalidateCoupledProjects;
+        this.configurationCacheLogLevel = configurationCacheLogLevel;
     }
 
     /**
@@ -62,6 +66,10 @@ public class BuildModelParameters {
 
     public boolean isConfigurationCache() {
         return configurationCache;
+    }
+
+    public LogLevel getConfigurationCacheLogLevel() {
+        return configurationCacheLogLevel;
     }
 
     public boolean isIsolatedProjects() {

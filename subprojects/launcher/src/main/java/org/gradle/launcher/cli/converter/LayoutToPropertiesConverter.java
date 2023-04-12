@@ -19,7 +19,6 @@ package org.gradle.launcher.cli.converter;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -61,11 +60,9 @@ public class LayoutToPropertiesConverter {
     }
 
     public AllProperties convert(InitialProperties initialProperties, BuildLayoutResult layout) {
-        BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
-        layout.applyTo(layoutParameters);
         Map<String, String> properties = new HashMap<>();
-        configureFromHomeDir(layoutParameters.getGradleInstallationHomeDir(), properties);
-        configureFromBuildDir(layoutParameters.getSearchDir(), properties);
+        configureFromHomeDir(layout.getGradleInstallationHomeDir(), properties);
+        configureFromBuildDir(layout, properties);
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
         configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
         properties.putAll(initialProperties.getRequestedSystemProperties());
@@ -86,8 +83,8 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES), result);
     }
 
-    private void configureFromBuildDir(File currentDir, Map<String, String> result) {
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(currentDir, true);
+    private void configureFromBuildDir(BuildLayoutResult layoutResult, Map<String, String> result) {
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
@@ -106,10 +103,11 @@ public class LayoutToPropertiesConverter {
         }
 
         for (final Object key : properties.keySet()) {
+            String keyAsString = key.toString();
             BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions, new Spec<BuildOption<?>>() {
                 @Override
                 public boolean isSatisfiedBy(BuildOption<?> option) {
-                    return option.getGradleProperty() != null ? option.getGradleProperty().equals(key.toString()) : false;
+                    return keyAsString.equals(option.getGradleProperty()) || keyAsString.equals(option.getDeprecatedGradleProperty());
                 }
             });
 

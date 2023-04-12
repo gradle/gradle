@@ -21,17 +21,21 @@ import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.classanalysis.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
+
+    abstract String compilerConfiguration()
+
+    abstract String logStatement()
+
     def setup() {
         executer.withArguments("-i")
         buildFile << buildScript()
-        buildFile << """
-    ${compilerConfiguration()}
-"""
+        buildFile << compilerConfiguration()
     }
 
     def compileGoodCode() {
@@ -44,7 +48,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         javaClassFile("compile/test/Person.class").exists()
     }
 
-    def compileBadCodeBreaksTheBuild() {
+    def "compile bad code breaks the build and compilation error doesn't show link to help.gradle.org"() {
         given:
         badCode()
 
@@ -52,6 +56,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         fails("compileJava")
         output.contains(logStatement())
         failure.assertHasErrorOutput("';' expected")
+        failure.assertNotOutput("https://help.gradle.org")
         javaClassFile("").assertHasDescendants()
     }
 
@@ -219,11 +224,18 @@ compileJava {
 java.targetCompatibility = JavaVersion.VERSION_1_7
 compileJava.options.compilerArgs.addAll(['--release', $notation])
 compileJava {
+    def targetVersionOf = { config ->
+        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
+    }
+    def apiElementsTarget = targetVersionOf(configurations.apiElements)
+    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
+    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
+    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsTarget.get() == 8
+        assert runtimeElementsTarget.get() == 8
+        assert compileClasspathTarget.get() == 8
+        assert runtimeClasspathTarget.get() == 8
     }
 }
 """
@@ -249,11 +261,18 @@ java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
 compileJava.options.release.set(8)
 compileJava {
+    def targetVersionOf = { config ->
+        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
+    }
+    def apiElementsTarget = targetVersionOf(configurations.apiElements)
+    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
+    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
+    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsTarget.get() == 8
+        assert runtimeElementsTarget.get() == 8
+        assert compileClasspathTarget.get() == 8
+        assert runtimeClasspathTarget.get() == 8
     }
 }
 """
@@ -287,11 +306,15 @@ compileJava.targetCompatibility = '10' // ignored
 compileJava.options.release.set(8)
 java.disableAutoTargetJvm()
 compileJava {
+    def apiElementsAttributes = configurations.apiElements.attributes
+    def runtimeElementsAttributes = configurations.runtimeElements.attributes
+    def compileClasspathAttributes = configurations.compileClasspath.attributes
+    def runtimeClasspathAttributes = configurations.runtimeClasspath.attributes
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert !configurations.compileClasspath.attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
-        assert !configurations.runtimeClasspath.attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+        assert apiElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert runtimeElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert !compileClasspathAttributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+        assert !runtimeClasspathAttributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
     }
 }
 """
@@ -310,11 +333,18 @@ java.targetCompatibility = JavaVersion.VERSION_1_9 // ignored
 compileJava.targetCompatibility = '1.8'
 compileJava.sourceCompatibility = '1.8'
 compileJava {
+    def targetVersionOf = { config ->
+        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
+    }
+    def apiElementsTarget = targetVersionOf(configurations.apiElements)
+    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
+    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
+    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsTarget.get() == 8
+        assert runtimeElementsTarget.get() == 8
+        assert compileClasspathTarget.get() == 8
+        assert runtimeClasspathTarget.get() == 8
     }
 }
 """
@@ -332,11 +362,18 @@ compileJava {
 java.targetCompatibility = JavaVersion.VERSION_1_8
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 compileJava {
+    def targetVersionOf = { config ->
+        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
+    }
+    def apiElementsTarget = targetVersionOf(configurations.apiElements)
+    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
+    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
+    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsTarget.get() == 8
+        assert runtimeElementsTarget.get() == 8
+        assert compileClasspathTarget.get() == 8
+        assert runtimeClasspathTarget.get() == 8
     }
 }
 """
@@ -410,10 +447,6 @@ dependencies {
 }
 """
     }
-
-    abstract compilerConfiguration()
-
-    abstract logStatement()
 
     def goodCode() {
         file("src/main/java/compile/test/Person.java") << '''
@@ -610,12 +643,7 @@ class Main {
     }
 
     def bytecodeVersion() {
-        def classFile = javaClassFile('compile/test/Person.class').newDataInputStream()
-        classFile.readInt()
-        classFile.readUnsignedShort()
-        def majorVersion = classFile.readUnsignedShort()
-        classFile.close()
-        return majorVersion
+        return JavaClassUtil.getClassMajorVersion(javaClassFile('compile/test/Person.class'))
     }
 
 }

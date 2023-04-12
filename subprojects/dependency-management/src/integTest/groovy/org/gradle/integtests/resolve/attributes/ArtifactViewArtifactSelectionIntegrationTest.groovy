@@ -28,7 +28,7 @@ class ArtifactViewArtifactSelectionIntegrationTest extends AbstractIntegrationSp
             configurations {
                 resolveConf {
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                 } 
             }
         """
@@ -40,11 +40,11 @@ class ArtifactViewArtifactSelectionIntegrationTest extends AbstractIntegrationSp
         file("producer/build.gradle") << """
             configurations {
                 conf {
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                 }
                 confWithAttributes {
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                     attributes {
                         attribute(Attribute.of("usage", String), "alternative")
@@ -80,11 +80,11 @@ class ArtifactViewArtifactSelectionIntegrationTest extends AbstractIntegrationSp
         file("producer/build.gradle") << """
             configurations {
                 conf {
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                 }
                 additionalConf {
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                 }
             }

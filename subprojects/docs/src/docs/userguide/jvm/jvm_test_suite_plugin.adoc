@@ -25,8 +25,8 @@ This plugin is applied automatically by the `java` plugin but can be additionall
 
 .Applying the JVM Test Suite plugin
 ====
-include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=apply-jvm-test-suite]"]
 include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gradle.kts[tags=apply-jvm-test-suite]"]
+include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=apply-jvm-test-suite]"]
 ====
 
 The plugins adds the following objects to the project:
@@ -95,10 +95,11 @@ Common values are available as constants in link:{javadocPath}/org/gradle/api/at
 
 Here are several examples to illustrate the configurability of test suites.
 
+[[sec:declare_an_additional_test_suite]]
 == Declare an additional test suite
 ====
-include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=configure-testing-extension]"]
 include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gradle.kts[tags=configure-testing-extension]"]
+include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=configure-testing-extension]"]
 ====
 
 <1> Configure all test suites for this project.
@@ -121,8 +122,8 @@ Note that the `integrationTest` test suite does not run until after the `test` t
 [[sec:configuring_the_built_in_test_suite]]
 == Configure the built-in `test` suite
 ====
-include::sample[dir="snippets/testing/test-suite-configure-default-suite/groovy",files="build.gradle[tags=configure-default-suite]"]
 include::sample[dir="snippets/testing/test-suite-configure-default-suite/kotlin",files="build.gradle.kts[tags=configure-default-suite]"]
+include::sample[dir="snippets/testing/test-suite-configure-default-suite/groovy",files="build.gradle[tags=configure-default-suite]"]
 ====
 
 <1> Declare the `test` test suite uses the TestNG test framework.
@@ -132,8 +133,8 @@ include::sample[dir="snippets/testing/test-suite-configure-default-suite/kotlin"
 
 == Configure dependencies of a test suite
 ====
-include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/groovy",files="build.gradle[tags=configure-suite-dependencies]"]
 include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/kotlin",files="build.gradle.kts[tags=configure-suite-dependencies]"]
+include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/groovy",files="build.gradle[tags=configure-suite-dependencies]"]
 ====
 
 <1> Configure the built-in `test` test suite.
@@ -142,19 +143,18 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/ko
 
 == Configure dependencies of a test suite to reference project outputs
 ====
-include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies-project/groovy",files="build.gradle[tags=configure-suite-dependencies-project]"]
 include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies-project/kotlin",files="build.gradle.kts[tags=configure-suite-dependencies-project]"]
+include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies-project/groovy",files="build.gradle[tags=configure-suite-dependencies-project]"]
 ====
 
 <1> Add a production dependency which is used as part of the library's public API.
 <2> Add a production dependency which is only used internally and is not exposed as part of this project's public classes.
 <3> Configure a new test suite which adds a `project()` dependency to the suite's compile and runtime classpaths. This dependency provides access to the project's outputs as well as any dependencies declared on its `api` and `compileOnlyApi` configurations.
-<4> Configure a new test suite which adds a `projectInternalView()` dependency to the test suite's compile and runtime classpaths. This dependency allows a test suite to access internal project dependencies which are declared on the project's `implementation` and `compileOnly` configurations, in addition to the configurations that the `project()` dependency provides.
 
 == Configure source directories of a test suite
 ====
-include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-source-dir]"]
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",files="build.gradle.kts[tags=configure-source-dir]"]
+include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-source-dir]"]
 ====
 
 <1> Declare and configure a suite named `integrationTest`.  The `SourceSet` and synthesized `Test` tasks will be based on this name.
@@ -165,16 +165,16 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 == Configure the type of a test suite
 
 ====
-include::sample[dir="snippets/testing/test-suite-configure-type/groovy",files="build.gradle[tags=configure-type]"]
 include::sample[dir="snippets/testing/test-suite-configure-type/kotlin",files="build.gradle.kts[tags=configure-type]"]
+include::sample[dir="snippets/testing/test-suite-configure-type/groovy",files="build.gradle[tags=configure-type]"]
 ====
 
 <1> This suite would use a type value of 'secondary-test' by default.  This explicitly sets the type to 'integration-test'.
 
 == Configure the `Test` task for a test suite
 ====
-include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-test-task]"]
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",files="build.gradle.kts[tags=configure-test-task]"]
+include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-test-task]"]
 ====
 
 <1> Configure the `integrationTest` task created by declaring a suite of the same name.
@@ -195,8 +195,8 @@ There are several ways to share configuration between multiple test suites to av
 This is the most straightforward way to share configuration across _every_ test suite.  The configuration is applied to each test suite.
 
 ====
-include::sample[dir="snippets/testing/test-suite-multi-configure-each/groovy",files="build.gradle[tags=multi-configure]"]
 include::sample[dir="snippets/testing/test-suite-multi-configure-each/kotlin",files="build.gradle.kts[tags=multi-configure]"]
+include::sample[dir="snippets/testing/test-suite-multi-configure-each/groovy",files="build.gradle[tags=multi-configure]"]
 ====
 
 <1> Configure every JVM test suite
@@ -209,8 +209,8 @@ include::sample[dir="snippets/testing/test-suite-multi-configure-each/kotlin",fi
 This method adds filtering commands to only apply the configuration to a subset of the test suites, as identified by name.
 
 ====
-include::sample[dir="snippets/testing/test-suite-multi-configure-each-matching/groovy",files="build.gradle[tags=multi-configure]"]
 include::sample[dir="snippets/testing/test-suite-multi-configure-each-matching/kotlin",files="build.gradle.kts[tags=multi-configure]"]
+include::sample[dir="snippets/testing/test-suite-multi-configure-each-matching/groovy",files="build.gradle[tags=multi-configure]"]
 ====
 
 <1> Configure every JVM test suite matching the given criteria
@@ -223,14 +223,15 @@ include::sample[dir="snippets/testing/test-suite-multi-configure-each-matching/k
 This method is the most flexible, but also the most imperative.
 
 ====
-include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/groovy",files="build.gradle[tags=multi-configure]"]
 include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/kotlin",files="build.gradle.kts[tags=multi-configure]"]
+include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/groovy",files="build.gradle[tags=multi-configure]"]
 ====
 
 <1> Define a closure which takes a single `JvmTestSuite` parameter and configures it
 <2> Apply the closure to a test suite, using the default (`test`) test suite
 <3> Alternate means of applying a configuration closure to a test suite outside of its declaration, using the `integrationTest` test suite
 
+[[sec:differences_with_top_level_dependencies]]
 == Differences between the test suite `dependencies` and the top-level `dependencies` blocks
 
 Gradle 7.6 changed the API of the test suite's `dependencies` block to be more strongly-typed.

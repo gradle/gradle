@@ -44,7 +44,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         String getTaskPath();
 
         /**
-         * @see org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId
+         * See {@code org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId}.
          */
         long getTaskId();
 
@@ -57,7 +57,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         /**
          * The message describing why the task was skipped.
          *
-         * Expected to be {@link org.gradle.api.tasks.TaskState#getSkipMessage()}.
+         * Expected to be {@code org.gradle.api.tasks.TaskState#getSkipMessage()}.
          */
         @Nullable
         String getSkipMessage();
@@ -65,7 +65,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         /**
          * The detailed reason why the task was skipped, if provided by the project configuration.
          *
-         * Expected to be {@link org.gradle.api.tasks.TaskState#getSkipReasonMessage()}.
+         * Expected to be {@code org.gradle.api.tasks.TaskState#getSkipReasonMessage()}.
          *
          * @since 7.6
          */
@@ -74,7 +74,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
 
         /**
          * Whether the task had any actions.
-         * See {@link org.gradle.api.internal.tasks.TaskStateInternal#isActionable()}.
+         * See {@code org.gradle.api.internal.tasks.TaskStateInternal#isActionable()}.
          */
         boolean isActionable();
 
@@ -114,7 +114,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          * The categorisation of the why the task was not cacheable.
          * Null if the task was cacheable.
          * Not null if {@link #getCachingDisabledReasonMessage()}l is not null.
-         * Values are expected to correlate to {@link org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory}.
+         * Values are expected to correlate to {@code org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory}.
          */
         @Nullable
         String getCachingDisabledReasonCategory();
@@ -131,7 +131,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         /**
          * Returns if this task was executed incrementally.
          *
-         * @see org.gradle.work.InputChanges#isIncremental()
+         * See {@code org.gradle.work.InputChanges#isIncremental()}.
          */
         @NotUsedByScanPlugin("used to report incrementality to TAPI progress listeners")
         boolean isIncremental();

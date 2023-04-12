@@ -17,6 +17,12 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import spock.lang.IgnoreIf
+import spock.lang.Issue
+
+import javax.annotation.Nullable
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
@@ -27,7 +33,7 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
-        settingsFile << plugin.pluginManagement() << plugin.plugins()
+        settingsFile << plugin.pluginManagement()
         plugin.publishDummyPlugin(executer)
         buildFile << """
             task t
@@ -35,27 +41,131 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "has none requestedness if no switch present"() {
+        given:
+        settingsFile << plugin.plugins()
+
         when:
         succeeds "t"
 
         then:
         plugin.assertBuildScanRequest(output, NONE)
+        plugin.assertAutoApplied(output, false)
     }
 
     def "is requested with --scan"() {
+        given:
+        if (!autoApplied) {
+            settingsFile << plugin.plugins()
+        }
+
         when:
         succeeds "t", "--scan"
 
         then:
         plugin.assertBuildScanRequest(output, REQUESTED)
+        plugin.assertAutoApplied(output, autoApplied)
+
+        where:
+        autoApplied << [true, false]
     }
 
     def "is suppressed with --no-scan"() {
+        given:
+        settingsFile << plugin.plugins()
+
         when:
         succeeds "t", "--no-scan"
 
         then:
         plugin.assertBuildScanRequest(output, SUPPRESSED)
+        plugin.assertAutoApplied(output, false)
     }
 
+    def "is not auto-applied when added to classpath via buildscript block"() {
+        given:
+        def coordinates = "${groupId}:${artifactId}:${plugin.runtimeVersion}"
+        settingsFile << """
+            buildscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath("${coordinates}")
+                }
+            }
+
+            apply plugin: 'com.gradle.enterprise'
+        """
+
+        when:
+        succeeds "t", "--scan"
+
+        then:
+        plugin.assertAutoApplied(output, false)
+
+        where:
+        groupId                                 | artifactId
+        'com.gradle'                            | 'gradle-enterprise-gradle-plugin'
+        AutoAppliedGradleEnterprisePlugin.ID.id | "${AutoAppliedGradleEnterprisePlugin.ID.id}.gradle.plugin"
+    }
+
+    def "is auto-applied when --scan is used despite init script"() {
+        given:
+        def pluginArtifactId = "com.gradle:gradle-enterprise-gradle-plugin:${plugin.runtimeVersion}"
+        def initScript = file("build-scan-init.gradle") << """
+            initscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath("${pluginArtifactId}")
+                }
+            }
+            gradle.settingsEvaluated { settings ->
+                if (settings.pluginManager.hasPlugin('${plugin.id}')) {
+                    logger.lifecycle("${plugin.id} is already applied")
+                } else {
+                    logger.lifecycle("Applying ${plugin.className} via init script")
+                    settings.pluginManager.apply(initscript.classLoader.loadClass('${plugin.className}'))
+                }
+            }
+        """
+
+        when:
+        succeeds "t", "--scan", "--init-script", initScript.absolutePath
+
+        then:
+        plugin.assertAutoApplied(output, true)
+        outputContains("${plugin.id} is already applied")
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/24023')
+    @IgnoreIf({ GradleContextualExecuter.notConfigCache })
+    def 'is correctly requested by the configuration cache'() {
+        when:
+        succeeds('t', *firstBuildArgs)
+
+        then:
+        assertRequestedOrNotApplied firstRequest
+
+        when:
+        succeeds('t', *secondBuildArgs)
+
+        then:
+        assertRequestedOrNotApplied secondRequest
+
+        where:
+        firstBuildArgs | firstRequest | secondBuildArgs | secondRequest
+        ['--scan']     | REQUESTED    | []              | null
+        []             | null         | ['--scan']      | REQUESTED
+        ['--scan']     | REQUESTED    | ['--scan']      | REQUESTED
+    }
+
+    void assertRequestedOrNotApplied(@Nullable GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
+        if (buildScanRequest) {
+            plugin.assertBuildScanRequest(output, buildScanRequest)
+        } else {
+            plugin.notApplied(output)
+        }
+    }
 }

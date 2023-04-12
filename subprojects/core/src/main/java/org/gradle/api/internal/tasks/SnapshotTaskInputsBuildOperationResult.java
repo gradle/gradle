@@ -25,25 +25,20 @@ import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertySpec;
-import org.gradle.api.tasks.ClasspathNormalizer;
-import org.gradle.api.tasks.CompileClasspathNormalizer;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.InputExecutionState;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
-import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
@@ -85,13 +80,13 @@ import java.util.stream.Collectors;
  */
 public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
 
-    private static final Map<Class<? extends FileNormalizer>, String> FINGERPRINTING_STRATEGIES_BY_NORMALIZER = ImmutableMap.<Class<? extends FileNormalizer>, String>builder()
-        .put(ClasspathNormalizer.class, FingerprintingStrategy.CLASSPATH_IDENTIFIER)
-        .put(CompileClasspathNormalizer.class, FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER)
-        .put(AbsolutePathInputNormalizer.class, AbsolutePathFingerprintingStrategy.IDENTIFIER)
-        .put(RelativePathInputNormalizer.class, RelativePathFingerprintingStrategy.IDENTIFIER)
-        .put(NameOnlyInputNormalizer.class, NameOnlyFingerprintingStrategy.IDENTIFIER)
-        .put(IgnoredPathInputNormalizer.class, IgnoredPathFingerprintingStrategy.IDENTIFIER)
+    private static final Map<FileNormalizer, String> FINGERPRINTING_STRATEGIES_BY_NORMALIZER = ImmutableMap.<FileNormalizer, String>builder()
+        .put(InputNormalizer.RUNTIME_CLASSPATH, FingerprintingStrategy.CLASSPATH_IDENTIFIER)
+        .put(InputNormalizer.COMPILE_CLASSPATH, FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER)
+        .put(InputNormalizer.ABSOLUTE_PATH, AbsolutePathFingerprintingStrategy.IDENTIFIER)
+        .put(InputNormalizer.RELATIVE_PATH, RelativePathFingerprintingStrategy.IDENTIFIER)
+        .put(InputNormalizer.NAME_ONLY, NameOnlyFingerprintingStrategy.IDENTIFIER)
+        .put(InputNormalizer.IGNORE_PATH, IgnoredPathFingerprintingStrategy.IDENTIFIER)
         .build();
 
     @VisibleForTesting
@@ -149,7 +144,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         public Set<String> getPropertyAttributes() {
             InputFilePropertySpec propertySpec = propertySpec(propertyName);
             return ImmutableSortedSet.of(
-                FilePropertyAttribute.fromNormalizerClass(propertySpec.getNormalizer()).name(),
+                FilePropertyAttribute.fromNormalizer(propertySpec.getNormalizer()).name(),
                 FilePropertyAttribute.from(propertySpec.getDirectorySensitivity()).name(),
                 FilePropertyAttribute.from(propertySpec.getLineEndingNormalization()).name()
             );
@@ -159,7 +154,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         @Deprecated
         public String getPropertyNormalizationStrategyName() {
             InputFilePropertySpec propertySpec = propertySpec(propertyName);
-            Class<? extends FileNormalizer> normalizer = propertySpec.getNormalizer();
+            FileNormalizer normalizer = propertySpec.getNormalizer();
             String normalizationStrategy = FINGERPRINTING_STRATEGIES_BY_NORMALIZER.get(normalizer);
             if (normalizationStrategy == null) {
                 throw new IllegalStateException("No strategy name for " + normalizer);
@@ -610,13 +605,13 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         LINE_ENDING_SENSITIVITY_DEFAULT,
         LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
 
-        private static final Map<Class<? extends FileNormalizer>, FilePropertyAttribute> BY_NORMALIZER_CLASS = ImmutableMap.<Class<? extends FileNormalizer>, FilePropertyAttribute>builder()
-            .put(ClasspathNormalizer.class, FINGERPRINTING_STRATEGY_CLASSPATH)
-            .put(CompileClasspathNormalizer.class, FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH)
-            .put(AbsolutePathInputNormalizer.class, FINGERPRINTING_STRATEGY_ABSOLUTE_PATH)
-            .put(RelativePathInputNormalizer.class, FINGERPRINTING_STRATEGY_RELATIVE_PATH)
-            .put(NameOnlyInputNormalizer.class, FINGERPRINTING_STRATEGY_NAME_ONLY)
-            .put(IgnoredPathInputNormalizer.class, FINGERPRINTING_STRATEGY_IGNORED_PATH)
+        private static final Map<FileNormalizer, FilePropertyAttribute> BY_NORMALIZER = ImmutableMap.<FileNormalizer, FilePropertyAttribute>builder()
+            .put(InputNormalizer.RUNTIME_CLASSPATH, FINGERPRINTING_STRATEGY_CLASSPATH)
+            .put(InputNormalizer.COMPILE_CLASSPATH, FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH)
+            .put(InputNormalizer.ABSOLUTE_PATH, FINGERPRINTING_STRATEGY_ABSOLUTE_PATH)
+            .put(InputNormalizer.RELATIVE_PATH, FINGERPRINTING_STRATEGY_RELATIVE_PATH)
+            .put(InputNormalizer.NAME_ONLY, FINGERPRINTING_STRATEGY_NAME_ONLY)
+            .put(InputNormalizer.IGNORE_PATH, FINGERPRINTING_STRATEGY_IGNORED_PATH)
             .build();
 
         private static final Map<DirectorySensitivity, FilePropertyAttribute> BY_DIRECTORY_SENSITIVITY = Maps.immutableEnumMap(ImmutableMap.<DirectorySensitivity, FilePropertyAttribute>builder()
@@ -638,8 +633,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             return attribute;
         }
 
-        static FilePropertyAttribute fromNormalizerClass(Class<? extends FileNormalizer> normalizerClass) {
-            return findFor(normalizerClass, BY_NORMALIZER_CLASS);
+        static FilePropertyAttribute fromNormalizer(FileNormalizer normalizer) {
+            return findFor(normalizer, BY_NORMALIZER);
         }
 
         static FilePropertyAttribute from(DirectorySensitivity directorySensitivity) {

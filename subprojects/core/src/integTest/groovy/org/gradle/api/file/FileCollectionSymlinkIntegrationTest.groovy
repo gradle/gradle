@@ -29,7 +29,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.work.ChangeType.ADDED
-import static org.gradle.work.ChangeType.MODIFIED
+import static org.gradle.work.ChangeType.REMOVED
 
 @Requires(TestPrecondition.SYMLINKS)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
@@ -312,7 +312,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "unbreaking a symlink in InputFiles is detected incrementally"() {
         def inputFileTarget = file("brokenInputFileTarget")
-        def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
+        def brokenInputFile = file('brokenInputFile')
         def output = file("output.txt")
 
         buildFile << """
@@ -335,9 +335,10 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         run 'inputBrokenLinkNameCollector'
         then:
         executedAndNotSkipped ':inputBrokenLinkNameCollector'
-        output.text == "${[ADDED]}"
+        output.text == "[]"
 
         when:
+        brokenInputFile.createLink(inputFileTarget)
         run 'inputBrokenLinkNameCollector'
         then:
         skipped ':inputBrokenLinkNameCollector'
@@ -347,7 +348,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         run 'inputBrokenLinkNameCollector'
         then:
         executedAndNotSkipped ':inputBrokenLinkNameCollector'
-        output.text == "${[MODIFIED]}"
+        output.text == "${[ADDED]}"
 
         when:
         run 'inputBrokenLinkNameCollector'
@@ -359,7 +360,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         run 'inputBrokenLinkNameCollector'
         then:
         executedAndNotSkipped ':inputBrokenLinkNameCollector'
-        output.text == "${[MODIFIED]}"
+        output.text == "${[REMOVED]}"
     }
 
     @ValidationTestFor(
