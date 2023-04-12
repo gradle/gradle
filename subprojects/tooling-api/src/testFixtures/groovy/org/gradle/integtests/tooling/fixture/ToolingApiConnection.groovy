@@ -22,7 +22,6 @@ import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ConfigurableLauncher
 import org.gradle.tooling.ModelBuilder
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 
 trait ToolingApiConfigurableLauncher<T extends ConfigurableLauncher<T>> {
@@ -90,16 +89,19 @@ class ToolingApiModelBuilder<T> implements ModelBuilder<T>, ToolingApiConfigurab
 }
 
 
-class ToolingApiConnection implements ProjectConnection {
-    @Delegate
-    private final ProjectConnection projectConnection
+class ToolingApiConnection {
+    private final Object projectConnection
     private final OutputStream stderr
     private final OutputStream stdout
 
-    ToolingApiConnection(ProjectConnection projectConnection, OutputStream stdout, OutputStream stderr) {
+    ToolingApiConnection(Object projectConnection, OutputStream stdout, OutputStream stderr) {
         this.stdout = stdout
         this.stderr = stderr
         this.projectConnection = projectConnection
+    }
+
+    def methodMissing(String name, args) {
+        projectConnection."$name"(*args)
     }
 
     BuildLauncher newBuild() {

@@ -17,22 +17,19 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 
-class ToolingApiConnector extends GradleConnector implements UpwardsSearchable {
-    @Delegate
-    DefaultGradleConnector connector
+class ToolingApiConnector implements UpwardsSearchable {
+    Object connector
     private final OutputStream stdout
     private final OutputStream stderr
 
-    ToolingApiConnector(DefaultGradleConnector connector, OutputStream stdout, OutputStream stderr) {
+    ToolingApiConnector(Object connector, OutputStream stdout, OutputStream stderr) {
         this.stderr = stderr
         this.stdout = stdout
         this.connector = connector
     }
 
-    ProjectConnection connect() {
+    def connect() {
         new ToolingApiConnection(connector.connect(), stdout, stderr)
     }
 
@@ -41,8 +38,7 @@ class ToolingApiConnector extends GradleConnector implements UpwardsSearchable {
         this
     }
 
-//    @Override
-//    void connectionClosed(ProjectConnection connection){
-//        connector.connectionClosed(connection)
-//    }
+    def methodMissing(String name, args) {
+        connector."$name"(*args)
+    }
 }

@@ -188,7 +188,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private <T> T getModelWithProjectConnection(TestFile rootDir, Class<T> modelType) {
-        GradleConnector connector = connector()
+        def connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
         return withConnection(connector) { it.getModel(modelType) }
     }

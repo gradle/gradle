@@ -27,7 +27,7 @@ import java.util.List;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 
-class ResultAssertion implements Action<ExecutionResult> {
+public class ResultAssertion implements Action<ExecutionResult> {
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings;
     private final boolean expectStackTraces;

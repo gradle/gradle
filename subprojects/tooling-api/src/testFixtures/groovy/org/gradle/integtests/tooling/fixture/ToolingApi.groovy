@@ -140,11 +140,11 @@ class ToolingApi implements TestRule {
     }
 
     def <T> T withConnection(@DelegatesTo(ProjectConnection) Closure<T> cl) {
-        GradleConnector connector = connector()
+        def connector = connector()
         withConnection(connector, cl)
     }
 
-    def <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
+    def <T> T withConnection( connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
         return withConnectionRaw(connector, cl)
     }
 
@@ -195,8 +195,8 @@ class ToolingApi implements TestRule {
         assert throwableStack.endsWith(currentThreadStackStr)
     }
 
-    private <T> T withConnectionRaw(GradleConnector connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
-        try (ProjectConnection connection = connector.connect()) {
+    private <T> T withConnectionRaw( connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
+        try (def connection = connector.connect()) {
             return connection.with(cl)
         } catch (Throwable t) {
             validate(t)
@@ -204,7 +204,7 @@ class ToolingApi implements TestRule {
         }
     }
 
-    GradleConnector connector(projectDir = testWorkDirProvider.testDirectory) {
+    ToolingApiConnector connector(projectDir = testWorkDirProvider.testDirectory) {
         DefaultGradleConnector connector = createConnector()
 
         connector.forProjectDirectory(projectDir)

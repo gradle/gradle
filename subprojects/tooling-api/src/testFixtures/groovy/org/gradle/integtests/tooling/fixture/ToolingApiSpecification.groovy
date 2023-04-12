@@ -178,7 +178,7 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         }
     }
 
-    def <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection( connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             return toolingApi.withConnection(connector, cl)
         } catch (GradleConnectionException e) {
@@ -187,7 +187,7 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         }
     }
 
-    GradleConnector connector() {
+    ToolingApiConnector connector() {
         toolingApi.connector()
     }
 
@@ -363,12 +363,6 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         validateOutput()
         return result
     }
-
-//    def <T> T loadToolingLeanModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
-//        def result = toolingApi.loadToolingLeanModel(modelClass, configurator)
-//        assertHasNoDeprecationWarnings()
-//        return result
-//    }
 
     protected GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)

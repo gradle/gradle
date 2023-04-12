@@ -61,8 +61,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
             }
             @Override
             public T run(ConsumerConnection connection) {
-                T model = connection.run(modelType, operationParameters);
-                return model;
+                return connection.run(modelType, operationParameters);
             }
         }, new ResultHandlerAdapter<T>(handler));
     }
