@@ -87,6 +87,11 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ComponentIdentifier componentId = parent.getId();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configuration.getName());
 
+        // We must run dependency actions before collecting dependency state, since they may modify the hierarchy.
+        runActionInHierarchy(configuration, ConfigurationInternal::runDependencyActions);
+        // We must prevent mutation before collecting variants, since beforeLocking actions may mutate the configuration.
+        runActionInHierarchy(configuration, ConfigurationInternal::preventFromFurtherMutation);
+
         // Collect all artifacts and sub-variants.
         ImmutableList.Builder<PublishArtifact> artifactBuilder = ImmutableList.builder();
         ImmutableSet.Builder<LocalVariantMetadata> variantsBuilder = ImmutableSet.builder();
@@ -106,10 +111,6 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
                 variantsBuilder.add(new LocalVariantMetadata(configuration.getName() + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), componentId, displayName, attributes, artifacts, ImmutableCapabilities.of(capabilities), model, calculatedValueContainerFactory));
             }
         });
-
-        // We must run dependency actions before collecting dependency state, since they may modify the hierarchy.
-        runActionInHierarchy(configuration, ConfigurationInternal::runDependencyActions);
-        runActionInHierarchy(configuration, ConfigurationInternal::preventFromFurtherMutation);
 
         // Collect all dependencies and excludes in hierarchy.
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
