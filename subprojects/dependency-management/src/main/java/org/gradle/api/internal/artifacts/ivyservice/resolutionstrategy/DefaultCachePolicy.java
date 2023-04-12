@@ -50,6 +50,8 @@ public class DefaultCachePolicy implements CachePolicy {
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private long keepDynamicVersionsFor = MILLISECONDS_IN_DAY;
     private long keepChangingModulesFor = MILLISECONDS_IN_DAY;
+    boolean offline = false;
+    boolean refresh = false;
 
     public DefaultCachePolicy() {
         this.dependencyCacheRules = new ArrayList<>();
@@ -65,6 +67,8 @@ public class DefaultCachePolicy implements CachePolicy {
         this.dependencyCacheRules = new ArrayList<>(policy.dependencyCacheRules);
         this.moduleCacheRules = new ArrayList<>(policy.moduleCacheRules);
         this.artifactCacheRules = new ArrayList<>(policy.artifactCacheRules);
+        this.offline = policy.offline;
+        this.refresh = policy.refresh;
     }
 
     /**
@@ -76,16 +80,14 @@ public class DefaultCachePolicy implements CachePolicy {
 
     @Override
     public void setOffline() {
-        eachDependency(DependencyResolutionControl::useCachedResult);
-        eachModule(ModuleResolutionControl::useCachedResult);
-        eachArtifact(ArtifactResolutionControl::useCachedResult);
+        mutationValidator.validateMutation(STRATEGY);
+        offline = true;
     }
 
     @Override
     public void setRefreshDependencies() {
-        eachDependency(dependencyResolutionControl -> dependencyResolutionControl.refresh());
-        eachModule(moduleResolutionControl -> moduleResolutionControl.refresh());
-        eachArtifact(artifactResolutionControl -> artifactResolutionControl.refresh());
+        mutationValidator.validateMutation(STRATEGY);
+        refresh = true;
     }
 
     public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
@@ -149,14 +151,31 @@ public class DefaultCachePolicy implements CachePolicy {
         artifactCacheRules.add(0, rule);
     }
 
+    /**
+     * @param resolutionControl The resolution control to mutate
+     * @return If the offline or refresh dependencies rule was applied to the provided resolution control.
+     */
+    private boolean applyOfflineAndRefreshRules(ResolutionControl<?, ?> resolutionControl) {
+        if (offline) {
+            resolutionControl.useCachedResult();
+            return true;
+        } else if (refresh) {
+            resolutionControl.refresh();
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public Expiry versionListExpiry(ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> moduleVersions, Duration age) {
         CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(moduleIdentifier, moduleVersions, age.toMillis(), keepDynamicVersionsFor);
 
-        for (Action<? super DependencyResolutionControl> rule : dependencyCacheRules) {
-            rule.execute(dependencyResolutionControl);
-            if (dependencyResolutionControl.ruleMatch()) {
-                break;
+        if (!applyOfflineAndRefreshRules(dependencyResolutionControl)) {
+            for (Action<? super DependencyResolutionControl> rule : dependencyCacheRules) {
+                rule.execute(dependencyResolutionControl);
+                if (dependencyResolutionControl.ruleMatch()) {
+                    break;
+                }
             }
         }
 
@@ -190,10 +209,12 @@ public class DefaultCachePolicy implements CachePolicy {
     private CachedModuleResolutionControl mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion version, Duration age, boolean changingModule) {
         CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(moduleVersionId, version, changingModule, age.toMillis(), changingModule ? keepChangingModulesFor: Long.MAX_VALUE);
 
-        for (Action<? super ModuleResolutionControl> rule : moduleCacheRules) {
-            rule.execute(moduleResolutionControl);
-            if (moduleResolutionControl.ruleMatch()) {
-                break;
+        if (!applyOfflineAndRefreshRules(moduleResolutionControl)) {
+            for (Action<? super ModuleResolutionControl> rule : moduleCacheRules) {
+                rule.execute(moduleResolutionControl);
+                if (moduleResolutionControl.ruleMatch()) {
+                    break;
+                }
             }
         }
 
@@ -213,12 +234,16 @@ public class DefaultCachePolicy implements CachePolicy {
     @Override
     public Expiry artifactExpiry(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
         CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, age.toMillis(), keepChangingModulesFor, belongsToChangingModule);
-        for (Action<? super ArtifactResolutionControl> rule : artifactCacheRules) {
-            rule.execute(artifactResolutionControl);
-            if (artifactResolutionControl.ruleMatch()) {
-                break;
+
+        if (!applyOfflineAndRefreshRules(artifactResolutionControl)) {
+            for (Action<? super ArtifactResolutionControl> rule : artifactCacheRules) {
+                rule.execute(artifactResolutionControl);
+                if (artifactResolutionControl.ruleMatch()) {
+                    break;
+                }
             }
         }
+
         if (belongsToChangingModule && !moduleDescriptorInSync) {
             artifactResolutionControl.refresh();
         }
