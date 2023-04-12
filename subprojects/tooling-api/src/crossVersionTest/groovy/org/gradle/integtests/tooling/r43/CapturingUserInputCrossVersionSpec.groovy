@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r43
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.ProjectConnection
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.PROMPT
@@ -65,17 +64,17 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
         output.contains(answerOutput(null))
     }
 
-    private void runBuildWithStandardInput(ProjectConnection connection) {
+    private void runBuildWithStandardInput(connection) {
         def build = basicBuildConfiguration(connection)
         build.standardInput = new ByteArrayInputStream((YES + System.getProperty('line.separator')).bytes)
         runBuild(build)
     }
 
-    private void runBuildWithoutStandardInput(ProjectConnection connection) {
+    private void runBuildWithoutStandardInput(connection) {
         runBuild(basicBuildConfiguration(connection))
     }
 
-    private BuildLauncher basicBuildConfiguration(ProjectConnection connection) {
+    private BuildLauncher basicBuildConfiguration(connection) {
         def build = connection.newBuild()
         build.standardOutput = outputStream
         build.forTasks(DUMMY_TASK_NAME)
