@@ -621,7 +621,7 @@ Specifies the build file. For example: `gradle --build-file=foo.gradle`. The def
 Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
 
 `-g`, `--gradle-user-home`::
-Specifies the Gradle user home directory. The default is the `.gradle` directory in the user's home directory.
+Specifies the Gradle User Home directory. The default is the `.gradle` directory in the user's home directory.
 
 `-p`, `--project-dir`::
 Specifies the start directory for Gradle. Defaults to current directory.

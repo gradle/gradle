@@ -58,7 +58,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 task resolveDependencies {
                     def compileClasspath = configurations.compileClasspath
                     doLast {
-                        compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """
@@ -96,7 +96,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 task resolveDependencies {
                     def compileClasspath = configurations.compileClasspath
                     doLast {
-                        compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """
@@ -122,7 +122,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 task resolveDependencies {
                     def compileClasspath = configurations.compileClasspath
                     doLast {
-                        compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """

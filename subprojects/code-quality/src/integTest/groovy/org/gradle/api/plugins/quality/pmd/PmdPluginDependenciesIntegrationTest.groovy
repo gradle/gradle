@@ -22,11 +22,14 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "pmd"
+            plugins {
+                id 'java-library'
+                id 'pmd'
+            }
 
             ${mavenCentralRepository()}
 
+            testing.suites.test.useJUnit()
             tasks.withType(Pmd) {
                 // clear the classpath to avoid file locking issues on PMD version < 5.5.1
                 classpath = files()

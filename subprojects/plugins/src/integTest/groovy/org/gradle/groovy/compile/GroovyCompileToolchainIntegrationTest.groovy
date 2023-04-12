@@ -208,9 +208,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
                 testImplementation "org.spockframework:spock-core:${getSpockVersion(versionNumber)}"
             }
 
-            test {
-                useJUnitPlatform()
-            }
+            testing.suites.test.useJUnitJupiter()
         """
 
         file("src/test/groovy/GroovySpec.groovy") << """

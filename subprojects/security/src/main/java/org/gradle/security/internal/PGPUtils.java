@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.utils;
+package org.gradle.security.internal;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 
@@ -29,7 +29,7 @@ public final class PGPUtils {
 
     /**
      * A custom method to get user ids since original method `PGPPublicKey.getUserIDs()` can fail fast in case user id is not correctly encoded in UTF-8.
-     * Original method fails because it is very strict at conversion from bytes to UTF-8 string.
+     * The original method fails because it is very strict at conversion from bytes to UTF-8 string.
      * <p>
      * Example of dependencies with "broken" public key is `com.google.auto.value:auto-value-annotations`.
      */

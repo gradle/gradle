@@ -21,6 +21,11 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -524,10 +529,10 @@ BUILD SUCCESSFUL"""
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
         failure.assertHasResolutions(
             "Run gradle help --task :help to get task usage details.",
-            "Run with --stacktrace option to get the stack trace.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
-            "Get more help at https://help.gradle.org",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP,
         )
     }
 
@@ -553,6 +558,8 @@ Options
                           ABC
                           DEF
                           GHIJKL
+
+     --no-booleanValue     Disables option --booleanValue
 
 ${builtInOptions}
 
@@ -603,6 +610,12 @@ BUILD SUCCESSFUL"""
         then:
         output.contains """
 Options
+     --no-valueA     Disables option --valueA
+
+     --no-valueB     Disables option --valueB
+
+     --no-valueC     Disables option --valueC
+
      --valueA     descA
 
      --valueB     descB

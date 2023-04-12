@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.transform
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -833,22 +832,17 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         )
 
         List<BuildOperationRecord> executeTransformationOps = getExecuteTransformOperations(2)
-
-        with(executeTransformationOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformActionClass == "MakeGreen"
-
-            transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
-        }
-
-        with(executeTransformationOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformActionClass == "MakeGreen"
-
-            transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
-        }
+        // Order of scheduling/execution is not guaranteed between the consumer projects
+        checkExecuteTransformOperation(executeTransformationOps, expectedTransformId1, [
+            transformActionClass: "MakeGreen",
+            transformerName: "MakeGreen",
+            subjectName: "producer.jar (project :producer)",
+        ])
+        checkExecuteTransformOperation(executeTransformationOps, expectedTransformId2, [
+            transformActionClass: "MakeGreen",
+            transformerName: "MakeGreen",
+            subjectName: "producer.jar (project :producer)",
+        ])
     }
 
     def "failing transform"() {
@@ -1219,8 +1213,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             .findAll { it.details.buildPath == buildPath }
         assert !ops.empty
         if (GradleContextualExecuter.configCache) {
-            assert ops.size() <= 2
-            assert !ConfigurationCacheGradleExecuter.testWithLoadAfterStore(): "Change the line above to == 2 when running with load after store"
+            assert ops.size() == 2
         } else {
             assert ops.size() == 1
         }

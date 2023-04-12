@@ -340,8 +340,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.lockedConf
     doLast {
-        println configurations.lockedConf.files
+        println files.files
     }
 }
 """
@@ -384,8 +385,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.lockedConf
     doLast {
-        println configurations.lockedConf.files
+        println files.files
     }
 }
 """
@@ -430,8 +432,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.lockedConf
     doLast {
-        println configurations.lockedConf.files
+        println files.files
     }
 }
 """

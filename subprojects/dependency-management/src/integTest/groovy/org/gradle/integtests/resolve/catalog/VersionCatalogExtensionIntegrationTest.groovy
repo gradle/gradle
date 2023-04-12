@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.PluginDslSupport
 import spock.lang.Issue
 
@@ -2312,6 +2313,7 @@ Second: 1.1"""
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23096")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def 'all properties of version catalog dependencies are copied when the dependency is copied'() {
         given:
         buildFile << """

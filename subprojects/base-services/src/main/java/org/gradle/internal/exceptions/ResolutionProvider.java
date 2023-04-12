@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-rootProject.name = "build-logic-settings"
+package org.gradle.internal.exceptions;
 
-pluginManagement {
-    includeBuild("../build-logic-commons")
+import org.gradle.api.NonNullApi;
+
+import java.util.List;
+
+/**
+ * A provider of resolutions for an exception.
+ * Exceptions can be derived from this interface to provide a list of resolutions that are then displayed in the suggestion section of the error message.
+ */
+
+@NonNullApi
+public interface ResolutionProvider {
+    List<String> getResolutions();
 }
-
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
-}
-
-dependencyResolutionManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
-
-include("build-logic-settings-plugin")
