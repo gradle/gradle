@@ -45,7 +45,7 @@ class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements TestP
 
 
         def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
-            KotlinScriptModulParameters.setModelParameters(it, true, true, [])
+            KotlinScriptModelParameters.setModelParameters(it, true, true, [])
         }
 
         Map<File, KotlinDslScriptsModel> singleRequestModels = model.scriptModels
