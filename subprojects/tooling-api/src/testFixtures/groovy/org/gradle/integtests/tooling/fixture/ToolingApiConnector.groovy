@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.tooling.GradleConnector
-
-class ToolingApiConnector implements UpwardsSearchable {
+//implements UpwardsSearchable
+class ToolingApiConnector {
     Object connector
     private final OutputStream stdout
     private final OutputStream stderr
@@ -33,10 +32,10 @@ class ToolingApiConnector implements UpwardsSearchable {
         new ToolingApiConnection(connector.connect(), stdout, stderr)
     }
 
-    GradleConnector searchUpwards(boolean searchUpwards) {
-        connector.searchUpwards(searchUpwards)
-        this
-    }
+//    def searchUpwards(boolean searchUpwards) {
+//        connector.searchUpwards(searchUpwards)
+//        this
+//    }
 
     def methodMissing(String name, args) {
         connector."$name"(*args)
