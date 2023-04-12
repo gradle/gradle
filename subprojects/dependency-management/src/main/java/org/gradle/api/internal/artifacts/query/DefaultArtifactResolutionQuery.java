@@ -192,7 +192,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
         for (ComponentArtifactMetadata artifactMetaData : artifactSetResolveResult.getResult()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(owner, artifactMetaData, componentState.getSources(), resolveResult);
+            artifactResolver.resolveArtifact(componentState.getResolveMetadata(), artifactMetaData, resolveResult);
             try {
                 artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Collections.emptyList(), Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {

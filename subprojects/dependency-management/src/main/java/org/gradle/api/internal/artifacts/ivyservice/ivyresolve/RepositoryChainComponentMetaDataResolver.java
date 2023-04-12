@@ -30,6 +30,7 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -111,6 +112,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
     }
 
+    @Nullable
     private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, Collection<Throwable> failures) {
         LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<>(resolveStates);
 

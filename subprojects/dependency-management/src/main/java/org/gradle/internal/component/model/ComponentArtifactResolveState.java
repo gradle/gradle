@@ -40,13 +40,15 @@ import java.util.Collection;
  *
  * <p>This interface says nothing about thread safety, however some subtypes may be required to be thread safe.</p>
  *
- * <p>Instances of this type are located using {@link ComponentGraphResolveState#prepareForArtifactResolution()}.</p>
+ * <p>Instances of this type are created using {@link ComponentGraphResolveState#prepareForArtifactResolution()}.</p>
  */
 public interface ComponentArtifactResolveState {
     ComponentIdentifier getId();
 
     @Nullable
     ModuleSources getSources();
+
+    ComponentArtifactResolveMetadata getResolveMetadata();
 
     /**
      * Returns the state required to resolve artifacts, given a variant that was selected during graph resolution.
