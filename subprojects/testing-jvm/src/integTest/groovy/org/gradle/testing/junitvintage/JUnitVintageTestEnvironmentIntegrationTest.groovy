@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+package org.gradle.testing.junitvintage
 
-repositories {
-    mavenCentral()
-}
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.junit4.AbstractJUnit4TestEnvironmentIntegrationTest
 
-dependencies {
-    implementation 'org.slf4j:slf4j-api:1.7.25'
-    testImplementation 'junit:junit:4.13'
-    testRuntimeOnly 'org.slf4j:slf4j-simple:1.7.25'
-}
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
-test {
-    systemProperties 'java.system.class.loader':'org.gradle.MySystemClassLoader'
+@TargetCoverage({ JUNIT_VINTAGE })
+class JUnitVintageTestEnvironmentIntegrationTest extends AbstractJUnit4TestEnvironmentIntegrationTest implements JUnitVintageMultiVersionTest {
 }
