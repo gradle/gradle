@@ -410,7 +410,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      */
     @VisibleForTesting
     public InternalState getResolvedState() {
-        asertValidUsage("getResolvedState()", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("getResolvedState()", ProperMethodUsage.RESOLVABLE);
         return currentResolveState.get().state;
     }
 
@@ -600,7 +600,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      */
     @Override
     public boolean contains(File file) {
-        asertValidUsage("contains(File)", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("contains(File)", ProperMethodUsage.RESOLVABLE);
         return intrinsicFiles.contains(file);
     }
 
@@ -812,7 +812,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ConfigurationInternal getConsistentResolutionSource() {
-        asertValidUsage("getConsistentResolutionSource()", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("getConsistentResolutionSource()", ProperMethodUsage.RESOLVABLE);
         return consistentResolutionSource;
     }
 
@@ -929,7 +929,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        asertValidUsage("getDependenciesResolver()", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("getDependenciesResolver()", ProperMethodUsage.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
@@ -946,7 +946,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void resetResolutionState() {
-        asertValidUsage("resetResolutionState()", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("resetResolutionState()", ProperMethodUsage.RESOLVABLE);
         currentResolveState.set(ResolveState.NOT_RESOLVED);
     }
 
@@ -1150,7 +1150,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * @param excludeRules the exclude rules to add.
      */
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        asertValidUsage("setExcludeRules(Set)", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("setExcludeRules(Set)", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
         validateMutation(MutationType.DEPENDENCIES);
         parsedExcludeRules = null;
         this.excludeRules.clear();
@@ -1446,13 +1446,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public LocalComponentMetadata toRootComponentMetaData() {
-        asertValidUsage("toRootComponentMetaData()", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("toRootComponentMetaData()", ProperMethodUsage.RESOLVABLE);
         return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 
     @Override
     public List<? extends DependencyMetadata> getSyntheticDependencies() {
-        asertValidUsage("getSyntheticDependencies()", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("getSyntheticDependencies()", ProperMethodUsage.RESOLVABLE);
         return syntheticDependencies.get();
     }
 
@@ -1623,42 +1623,36 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
     }
 
-    private boolean isProperUsage(ProperMethodUsage... properUsages) {
+    private boolean isProperUsage(boolean allowDeprecated, ProperMethodUsage... properUsages) {
         for (ProperMethodUsage properUsage : properUsages) {
-            if (properUsage.isProperUsage(this)) {
+            if (properUsage.isProperUsage(this, allowDeprecated)) {
                 return true;
             }
         }
         return false;
     }
 
-    private void asertValidUsage(String methodName, ProperMethodUsage... properUsages) {
-        if (!isProperUsage(properUsages)) {
-            String msgTemplate = "Calling configuration method '%s' is not allowed for configuration '%s', which has permitted usage(s):\n" +
-                    "%s\n" +
-                    "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): '%s'.";
-            String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
-            String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
-
-            throw new GradleException(String.format(msgTemplate, methodName, getName(), currentUsageDesc, properUsageDesc));
-        }
+    private void warnOnInvalidInternalAPIUsage(String methodName, ProperMethodUsage... properUsages) {
+        warnOnDeprecatedUsage(methodName, true, properUsages);
     }
 
     private void warnOnDeprecatedUsage(String methodName, ProperMethodUsage... properUsages) {
-        if (isProperUsage(properUsages)) {
-            return;
+        warnOnDeprecatedUsage(methodName, false, properUsages);
+    }
+
+    private void warnOnDeprecatedUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
+        if (!isProperUsage(allowDeprecated, properUsages)) {
+            String msgTemplate = "Calling configuration method '%s' is deprecated for configuration '%s', which has permitted usage(s):\n" +
+                    "%s\n" +
+                    "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
+            String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
+            String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
+
+            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc))
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "deprecated_configuration_usage")
+                    .nagUser();
         }
-
-        String msgTemplate = "Calling configuration method '%s' is deprecated for configuration '%s', which has permitted usage(s):\n" +
-                "%s\n" +
-                "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): '%s'.";
-        String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
-        String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
-
-        DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, properUsageDesc))
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_configuration_usage")
-                .nagUser();
     }
 
     private static class ConfigurationDescription implements Describable {
@@ -2207,6 +2201,14 @@ since users cannot create non-legacy configurations and there is no current publ
         return roleAtCreation;
     }
 
+    @Deprecated
+    @Override
+    public void assertHasNoDeclarations() {
+        if (!dependencies.isEmpty()) {
+            throw new GradleException("Dependency declarations are present on a configuration that does not allow them: " + getName() + ".");
+        }
+    }
+
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
         @Override
@@ -2586,8 +2588,8 @@ since users cannot create non-legacy configurations and there is no current publ
 
         abstract boolean isDeprecated(ConfigurationInternal configuration);
 
-        boolean isProperUsage(ConfigurationInternal configuration) {
-            return isAllowed(configuration) && !isDeprecated(configuration);
+        boolean isProperUsage(ConfigurationInternal configuration, boolean allowDeprecated) {
+            return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
         }
 
         public static String buildProperName(ProperMethodUsage usage) {
