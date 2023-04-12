@@ -63,7 +63,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning(buildDeprecationMessage(methodName, role, allowed))
+        executer.expectDocumentedDeprecationWarning(buildDeprecationMessage(methodName, role, allowed, false))
         succeeds('help')
 
         where:
@@ -77,7 +77,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'disableConsistentResolution()'                 | 'bucket'      | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
     }
 
-    def "calling an invalid internal API method #methodName for role #role throws an exception"() {
+    def "calling an invalid internal API method #methodName for role #role produces a deprecation warning"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
@@ -86,16 +86,13 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
             configurations.custom.$methodCall
         """
 
-        when:
-        fails('help')
-
-        then:
-        failureCauseContains(buildFailureMessage(methodName, role, allowed))
+        expect:
+        executer.expectDocumentedDeprecationWarning(buildDeprecationMessage(methodName, role, allowed, true))
+        succeeds('help')
 
         where:
         methodName                          | role          | methodCall                                    || allowed
-        'contains(File)'                    | 'consumable'  | "contains(new File('foo'))"                   || [ProperMethodUsage.RESOLVABLE]
-        'setExcludeRules(Set)'              | 'consumable'  | "setExcludeRules(null)"                       || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
+        'setExcludeRules(Set)'              | 'consumable'  | "setExcludeRules([] as Set)"                  || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
         'getConsistentResolutionSource()'   | 'consumable'  | "getConsistentResolutionSource()"             || [ProperMethodUsage.RESOLVABLE]
         'getConsistentResolutionSource()'   | 'bucket'      | "getConsistentResolutionSource()"             || [ProperMethodUsage.RESOLVABLE]
         'getDependenciesResolver()'         | 'consumable'  | "getDependenciesResolver()"                   || [ProperMethodUsage.RESOLVABLE]
@@ -108,6 +105,24 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'resetResolutionState()'            | 'bucket'      | "resetResolutionState()"                      || [ProperMethodUsage.RESOLVABLE]
         'toRootComponentMetaData()'         | 'consumable'  | "toRootComponentMetaData()"                   || [ProperMethodUsage.RESOLVABLE]
         'toRootComponentMetaData()'         | 'bucket'      | "toRootComponentMetaData()"                   || [ProperMethodUsage.RESOLVABLE]
+    }
+
+    def "forcing resolve of a non-resolvable configuration via calling invalid internal API method #methodName for role #role warns and then throws an exception"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            
+            configurations.$role('custom')
+            configurations.custom.$methodCall
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning(buildDeprecationMessage(methodName, role, allowed, true))
+        fails('help')
+
+        where:
+        methodName                          | role          | methodCall                                    || allowed
+        'contains(File)'                    | 'consumable'  | "contains(new File('foo'))"                   || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "calling deprecated usage produces a deprecation warning"() {
@@ -205,16 +220,10 @@ This method is only meant to be called on configurations which allow the (non-de
         succeeds("help")
     }
 
-    private String buildDeprecationMessage(String methodName, String role, List<ProperMethodUsage> allowed) {
+    private String buildDeprecationMessage(String methodName, String role, List<ProperMethodUsage> allowed, boolean allowDeprecated) {
         return """Calling configuration method '$methodName' is deprecated for configuration 'custom', which has permitted usage(s):
 ${buildAllowedUsages(role)}
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): '${ buildProperNames(allowed) }'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage"""
-    }
-
-    private String buildFailureMessage(String methodName, String role, List<ProperMethodUsage> allowed) {
-        return """Calling configuration method '$methodName' is not allowed for configuration 'custom', which has permitted usage(s):
-${buildAllowedUsages(role)}
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): '${ buildProperNames(allowed) }'."""
+This method is only meant to be called on configurations which allow the ${allowDeprecated ? "" : "(non-deprecated) "}usage(s): '${ buildProperNames(allowed) }'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage"""
     }
 
     private String buildProperNames(List<ProperMethodUsage> usages) {
