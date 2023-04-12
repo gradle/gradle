@@ -44,6 +44,7 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.HashCode;
@@ -235,6 +236,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata(key);
             if (metadata == null) {
                 metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
+                metadata = attachRepositorySource(metadata);
                 // Save the processed metadata for next time.
                 cachedMetadata.putProcessedMetadata(key, metadata);
             }
@@ -391,8 +393,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     // Therefore metadata can be mutated, and will _not_ be stored in the module metadata cache
                     // but will be in the _in memory_ cache
                     ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
+                    processedMetadata = attachRepositorySource(processedMetadata);
                     if (processedMetadata.isChanging() || requestMetaData.isChanging()) {
-                        processedMetadata = makeChanging(resolvedMetadata, processedMetadata);
+                        processedMetadata = makeChanging(processedMetadata);
                         Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), Duration.ZERO);
                         listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
                     }
@@ -406,9 +409,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
         }
 
-        private ModuleComponentResolveMetadata makeChanging(ModuleComponentResolveMetadata resolvedMetadata, ModuleComponentResolveMetadata processedMetadata) {
+        private ModuleComponentResolveMetadata makeChanging(ModuleComponentResolveMetadata processedMetadata) {
             MutableModuleSources sources = new MutableModuleSources();
-            resolvedMetadata.getSources().withSources(src -> {
+            processedMetadata.getSources().withSources(src -> {
                 if (src instanceof ModuleDescriptorHashModuleSource) {
                     ModuleDescriptorHashModuleSource changingSource = new ModuleDescriptorHashModuleSource(
                         ((ModuleDescriptorHashModuleSource) src).getDescriptorHash(),
@@ -419,8 +422,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     sources.add(src);
                 }
             });
-            processedMetadata = processedMetadata.withSources(sources);
-            return processedMetadata;
+            return processedMetadata.withSources(sources);
         }
 
         @Override
@@ -452,6 +454,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
             return delegate.getLocalAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
+    }
+
+    private ModuleComponentResolveMetadata attachRepositorySource(ModuleComponentResolveMetadata processedMetadata) {
+        RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(delegate);
+        ModuleSources originSources = processedMetadata.getSources();
+        ImmutableModuleSources mergedSources = ImmutableModuleSources.of(originSources, moduleSource);
+        processedMetadata = processedMetadata.withSources(mergedSources);
+        return processedMetadata;
     }
 
     private String cacheKey(ArtifactType artifactType) {

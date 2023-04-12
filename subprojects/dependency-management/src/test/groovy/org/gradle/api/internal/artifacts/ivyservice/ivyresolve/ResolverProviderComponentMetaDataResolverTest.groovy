@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.gradle.api.Transformer
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
@@ -37,7 +34,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
     final moduleComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "project"), "1.0")
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)
 
-    final Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> transformer = Mock(Transformer)
     final result = Mock(BuildableComponentResolveResult)
     def localAccess = Mock(ModuleComponentRepositoryAccess)
     def remoteAccess = Mock(ModuleComponentRepositoryAccess)
@@ -45,12 +41,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
     def remoteAccess2 = Mock(ModuleComponentRepositoryAccess)
 
     final VersionedComponentChooser componentSelectionStrategy = Mock(VersionedComponentChooser)
-    final RepositoryChainComponentMetaDataResolver resolver = new RepositoryChainComponentMetaDataResolver(componentSelectionStrategy, transformer)
-
-    ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
-        def moduleRevId = moduleDescriptor.moduleRevisionId
-        DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(moduleRevId.organisation, moduleRevId.name), moduleRevId.revision)
-    }
+    final RepositoryChainComponentMetaDataResolver resolver = new RepositoryChainComponentMetaDataResolver(componentSelectionStrategy)
 
     def addRepo1() {
         addModuleComponentRepository("repo1", localAccess, remoteAccess)
@@ -81,11 +72,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo
-            metaData
-        }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
         }
@@ -107,11 +93,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo
-            metaData
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
@@ -137,11 +118,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         }
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo
-            metaData
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
@@ -212,11 +188,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo1
-            metaData
-        }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
         }
@@ -243,11 +214,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo2
-            metaData
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
@@ -277,11 +243,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo2
-            metaData
-        }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
         }
@@ -310,11 +271,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo2
-            metaData
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
@@ -351,11 +307,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo2
-            metaData
-        }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
         }
@@ -386,11 +337,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         }
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo2
-            metaData
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
@@ -424,11 +370,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo1
-            metaData
-        }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
         }
@@ -455,11 +396,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo2
-            metaData
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
@@ -489,11 +425,6 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
-        }
-        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
-            assert it.module == metaData
-            assert it.repository == repo2
-            metaData
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
             assert state.metadata == this.metaData
@@ -562,17 +493,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         0 * result._
     }
 
-    def descriptor(String version) {
-        def descriptor = Stub(ModuleDescriptor)
-        descriptor.resolvedModuleRevisionId >> IvyUtil.createModuleRevisionId("org", "module", version)
-        return descriptor
-    }
-
     def metaData(String version) {
         return Stub(ModuleComponentResolveMetadata) {
             toString() >> version
             getId() >> DefaultModuleVersionIdentifier.newId("org", "module", version)
-            getDescriptor() >> descriptor(version)
         }
     }
 }
