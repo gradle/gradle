@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r43
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.NullAction
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
@@ -42,7 +41,7 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
 
     // since 1.0
     def build() {
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.standardOutput = outputStream
             build.run()
@@ -51,7 +50,7 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
 
     // since 1.0
     def getModel() {
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def model = connection.model(EclipseProject)
             model.standardOutput = outputStream
             model.get()
@@ -60,7 +59,7 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
 
     // since 1.8
     def buildAction() {
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def action = connection.action(new NullAction())
             action.standardOutput = outputStream
             action.run()
@@ -86,7 +85,7 @@ public class TestClientTest{
     @org.junit.Test public void test(){
     }
 }'''
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def launcher = connection.newTestLauncher().withJvmTestClasses("TestClientTest")
             launcher.standardOutput = outputStream
             launcher.run()
@@ -97,7 +96,7 @@ public class TestClientTest{
     def notifyDaemonsAboutChangedPaths() {
         build()
 
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.notifyDaemonsAboutChangedPaths([file("some/file").toPath()])
         }
     }

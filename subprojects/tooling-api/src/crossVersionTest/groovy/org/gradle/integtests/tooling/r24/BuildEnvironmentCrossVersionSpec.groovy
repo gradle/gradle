@@ -20,7 +20,6 @@
 package org.gradle.integtests.tooling.r24
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.build.BuildEnvironment
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
@@ -29,7 +28,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
         file("build.gradle")
 
         when:
-        def buildEnvironment = withConnection { ProjectConnection connection ->
+        def buildEnvironment = withConnection { connection ->
             connection.getModel(BuildEnvironment.class)
         }
 

@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.integtests.tooling.r18.NullAction
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -33,7 +32,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         when: "asking for a model and specifying some task(s) to run first"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.model(BuildInvocations).forTasks('assemble').addProgressListener(events).get()
         }
 
@@ -48,7 +47,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         when: "launching a build"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events).run()
         }
 
@@ -63,7 +62,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         when: "running a build action"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.action(new NullAction()).addProgressListener(events).run()
         }
 
@@ -78,7 +77,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         when: "registering for all progress event types"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.allOf(OperationType)).run()
         }
 
@@ -96,7 +95,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         when: "registering for subset of progress event types"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
         }
 

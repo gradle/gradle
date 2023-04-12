@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
 @IntegrationTestTimeout(300)
@@ -49,7 +48,7 @@ class BuildProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .withArguments('--init-script', initScript1.toString(), '--init-script', initScript2.toString())
                     .addProgressListener(events)
@@ -110,7 +109,7 @@ class BuildProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
         def events = ProgressEvents.create()
 
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('publish')
                     .addProgressListener(events).run()
         }

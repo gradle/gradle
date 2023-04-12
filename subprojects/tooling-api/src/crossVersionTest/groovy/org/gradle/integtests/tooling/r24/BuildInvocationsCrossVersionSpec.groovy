@@ -17,9 +17,7 @@
 
 package org.gradle.integtests.tooling.r24
 
-
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
@@ -51,7 +49,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
         '''
 
         when:
-        def buildInvocations = withConnection { ProjectConnection connection ->
+        def buildInvocations = withConnection { connection ->
             connection.getModel(BuildInvocations.class)
         }
 

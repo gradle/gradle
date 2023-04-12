@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.GradleBuild
 
 class CancellationCrossVersionSpec extends ToolingApiSpecification {
@@ -41,7 +40,7 @@ throw new GradleException("should not run")
 
         when:
         cancel.cancel()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('hang')
             build.withCancellationToken(cancel.token())
@@ -60,7 +59,7 @@ task thing
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection {  connection ->
             def build = connection.newBuild()
             build.forTasks('thing')
             build.withCancellationToken(cancel.token())
@@ -79,7 +78,7 @@ task thing
 
         when:
         cancel.cancel()
-        withConnection { ProjectConnection connection ->
+        withConnection {  connection ->
             def build = connection.model(GradleBuild)
             build.withCancellationToken(cancel.token())
             build.get(resultHandler)
@@ -97,7 +96,7 @@ task thing
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.model(GradleBuild)
             build.withCancellationToken(cancel.token())
             build.get(resultHandler)
@@ -115,7 +114,7 @@ task thing
 
         when:
         cancel.cancel()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.action(new HangingBuildAction())
             build.withCancellationToken(cancel.token())
             build.run(resultHandler)

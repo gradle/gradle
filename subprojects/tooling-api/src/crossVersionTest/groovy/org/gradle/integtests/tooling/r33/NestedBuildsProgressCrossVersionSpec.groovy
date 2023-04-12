@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ListenerFailedException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
@@ -32,19 +31,19 @@ class NestedBuildsProgressCrossVersionSpec extends ToolingApiSpecification {
         given:
         def events = ProgressEvents.create()
         def caughtException = null
-        buildFile << """          
+        buildFile << """
             task nested1(type: GradleBuild)
-            
+
             task nested2(type: GradleBuild) {
                 tasks = ['nested1']
-            }           
+            }
         """
         settingsFile << "rootProject.name='root'"
 
         when:
         try {
             withConnection {
-                ProjectConnection connection ->
+                connection ->
                     connection.newBuild()
                         .forTasks('nested2')
                         .addProgressListener(events)

@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
 @TargetGradleVersion(">=3.3")
@@ -34,7 +33,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()
@@ -61,7 +60,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()
@@ -100,7 +99,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()
@@ -132,7 +131,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()
@@ -164,7 +163,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         when:
         events.clear()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events, [OperationType.TASK] as Set)
                     .forTasks("build")
@@ -183,7 +182,7 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         when:
         events.clear()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events, [OperationType.TEST] as Set)
                     .withArguments("--rerun-tasks")

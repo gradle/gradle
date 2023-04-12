@@ -20,7 +20,6 @@ package org.gradle.integtests.tooling.r44
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -40,7 +39,7 @@ class JavaVersionCrossVersionTest extends ToolingApiSpecification {
         def output = new ByteArrayOutputStream()
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
+        toolingApi.withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('help')
             build.standardOutput = output

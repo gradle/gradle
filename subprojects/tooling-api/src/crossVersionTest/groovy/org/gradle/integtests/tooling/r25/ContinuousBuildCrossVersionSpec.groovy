@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
@@ -55,7 +54,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         when:
         // take care to not use runBuild which implicitly calls cancel
         // we want to make sure it doesn't need cancellation
-        GradleProject project = withConnection { ProjectConnection connection ->
+        GradleProject project = withConnection { connection ->
             connection.model(GradleProject.class)
                 .withArguments("--continuous")
                 .setStandardOutput(stdout)

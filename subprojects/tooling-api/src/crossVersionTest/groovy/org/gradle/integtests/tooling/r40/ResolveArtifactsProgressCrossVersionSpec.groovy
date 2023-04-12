@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=4.0")
@@ -56,7 +55,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:
@@ -78,7 +77,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:
@@ -100,7 +99,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:
@@ -122,7 +121,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:
@@ -144,7 +143,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:
@@ -166,7 +165,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:
@@ -188,7 +187,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:
@@ -209,7 +208,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:
@@ -229,7 +228,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
+            connection -> connection.newBuild().forTasks('resolve').addProgressListener(events).run()
         }
 
         then:

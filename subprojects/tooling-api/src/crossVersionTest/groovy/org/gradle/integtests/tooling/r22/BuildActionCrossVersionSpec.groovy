@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.ProjectConnection
 
 import java.nio.file.Files
 
@@ -54,7 +53,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         def action1 = cl1.loadClass("ActionImpl").getConstructor().newInstance()
 
         when:
-        File actualJar1 = withConnection { ProjectConnection connection ->
+        File actualJar1 = withConnection { connection ->
             connection.action(action1).run()
         }
         cl1.close()
@@ -76,7 +75,7 @@ public class ActionImpl implements ${BuildAction.name}<String> {
         def cl2 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
         def action2 = cl2.loadClass("ActionImpl").getConstructor().newInstance()
 
-        String result2 = withConnection { ProjectConnection connection ->
+        String result2 = withConnection { connection ->
             connection.action(action2).run()
         }
         cl2.close()

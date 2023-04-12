@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r41
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @TargetGradleVersion(">=4.1")
@@ -37,7 +36,7 @@ class InitScriptCrossVersionSpec extends ToolingApiSpecification {
             }
         """
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.model(GradleBuild).withArguments("--init-script", initScript.getAbsolutePath()).get()
         }
 

@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r42
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 
 @TargetGradleVersion(">=4.2")
 class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
@@ -185,7 +184,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
 
     private runCustomTask() {
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().
                     forTasks('custom').addProgressListener(events).run()
         }

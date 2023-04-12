@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
 class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
@@ -80,7 +79,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         settingsFile.text = """
             buildCache {
                 local {
-                    directory = '${localCache.absoluteFile.toURI()}' 
+                    directory = '${localCache.absoluteFile.toURI()}'
                     push = true
                 }
                 remote(DirectoryBuildCache) {
@@ -134,7 +133,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
 
     private void runCacheableBuild(listener, String task = "cacheable") {
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().withArguments("--build-cache").forTasks(task).addProgressListener(listener, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
         }
     }

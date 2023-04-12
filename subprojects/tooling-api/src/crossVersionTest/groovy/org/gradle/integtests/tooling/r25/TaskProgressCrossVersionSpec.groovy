@@ -24,7 +24,6 @@ import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
@@ -43,7 +42,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: "asking for a model and specifying some task(s) to run first"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.model(BuildInvocations).forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.TASK)).get()
         }
 
@@ -59,7 +58,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: "launching a build"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
         }
 
@@ -77,7 +76,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         List<TaskProgressEvent> resultsOfLastListener = []
         def failure = new IllegalStateException("Throwing an exception on purpose")
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 def build = connection.newBuild()
                 build.forTasks('assemble').addProgressListener({ ProgressEvent event ->
                     resultsOfFirstListener << (event as TaskProgressEvent)
@@ -115,7 +114,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('classes').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
         }
 
@@ -165,7 +164,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
         }
 
@@ -200,7 +199,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelTasks').addProgressListener(events).run()
         }
 
@@ -240,7 +239,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().withArguments('--parallel', '--max-workers=2').forTasks('parallelTasks').addProgressListener(events).run()
         }
 
@@ -314,7 +313,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: 'listening to task progress events and build operation listener is attached'
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
         }
 
@@ -325,7 +324,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: 'listening to task progress events when no build operation listener is attached'
         events.clear()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().withArguments('--rerun-tasks').forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
         }
 
@@ -346,7 +345,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('empty').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
         }
 

@@ -52,14 +52,14 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
         file('build.gradle') << """
             apply plugin: MultipleUserInputPlugin
-            
+
             task $DUMMY_TASK_NAME
         """
     }
 
     def "can capture multiple user input if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, answers('something one', 'something two'))
         }
 

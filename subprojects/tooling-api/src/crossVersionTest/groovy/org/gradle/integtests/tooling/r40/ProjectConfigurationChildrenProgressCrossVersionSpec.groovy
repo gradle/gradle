@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 
 @IntegrationTestTimeout(300)
@@ -88,8 +87,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
-                connection.newBuild()
+             it.newBuild()
                     .setStandardOutput(System.out)
                     .forTasks('runInProcess', 'runForked')
                     .addProgressListener(events)
@@ -108,7 +106,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()
@@ -137,7 +135,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()
@@ -178,7 +176,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .withArguments('--init-script', initScript.toString())
                     .addProgressListener(events)
@@ -267,7 +265,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         and:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events).run()
         }
@@ -323,7 +321,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()
@@ -361,7 +359,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()

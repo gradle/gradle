@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 
@@ -39,7 +38,7 @@ task log {
 
         when:
         def output = new TestOutputStream()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.standardOutput = output
             build.colorOutput = true

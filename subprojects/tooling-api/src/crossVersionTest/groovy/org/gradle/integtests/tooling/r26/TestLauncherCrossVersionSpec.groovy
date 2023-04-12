@@ -27,7 +27,6 @@ import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.ProgressEvent
@@ -204,7 +203,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         def descriptors = testDescriptors("example.MyTest")
         def failingProgressListener = failingProgressListener()
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def testLauncher = connection.newTestLauncher()
             testLauncher.addProgressListener(failingProgressListener)
             testLauncher.withTests(descriptors.toArray(new TestOperationDescriptor[descriptors.size()]))

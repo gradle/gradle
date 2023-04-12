@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
 @TargetGradleVersion(">=3.5")
@@ -51,7 +50,7 @@ class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .addProgressListener(events)
                     .run()
@@ -98,7 +97,7 @@ class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.newBuild()
                 .addProgressListener(events)
                 .run()
@@ -185,7 +184,7 @@ class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
         def events = ProgressEvents.create()
 
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('publish')
                     .addProgressListener(events).run()
         }
@@ -211,7 +210,7 @@ class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .forTasks('compileJava')
                     .addProgressListener(events)
@@ -292,7 +291,7 @@ class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
 
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .forTasks('runInWorker')
                     .addProgressListener(events)

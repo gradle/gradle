@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -36,7 +35,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when: "asking for a model and specifying some task(s) to run first"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.model(BuildInvocations).forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).get()
         }
 
@@ -51,7 +50,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when: "launching a build"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 
@@ -68,7 +67,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         List<ProgressEvent> resultsOfLastListener = []
         def failure = new IllegalStateException("Throwing an exception on purpose")
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 def build = connection.newBuild()
                 build.forTasks('assemble').addProgressListener({ ProgressEvent event ->
                     resultsOfFirstListener.add(event)
@@ -100,7 +99,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('classes').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 
@@ -150,7 +149,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.GENERIC)).run()
         }
 

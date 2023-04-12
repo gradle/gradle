@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Timeout
 
@@ -37,7 +36,7 @@ class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
 description = System.in.text
 """
         when:
-        GradleProject model = (GradleProject) withConnection { ProjectConnection connection ->
+        GradleProject model = (GradleProject) withConnection { connection ->
             def model = connection.model(GradleProject.class)
             model.standardInput = new ByteArrayInputStream("Cool project".bytes)
             model.get()
@@ -54,7 +53,7 @@ description = System.in.text
 description = System.in.text
 """
         when:
-        GradleProject model = (GradleProject) withConnection { ProjectConnection connection ->
+        GradleProject model = (GradleProject) withConnection { connection ->
             def model = connection.model(GradleProject.class)
             model.standardInput = null
             model.get()
@@ -71,7 +70,7 @@ description = System.in.text
 description = "empty" + System.in.text
 """
         when:
-        GradleProject model = (GradleProject) withConnection { ProjectConnection connection ->
+        GradleProject model = (GradleProject) withConnection { connection ->
             def model = connection.model(GradleProject.class)
             model.get()
         }
@@ -91,7 +90,7 @@ task createFile {
 }
 """
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.standardInput = new ByteArrayInputStream("Hello world!".bytes)
             build.forTasks('createFile')

@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ListenerFailedException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
@@ -45,7 +44,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: "asking for a model and specifying some test task(s) to run first"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).get()
         }
 
@@ -62,7 +61,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: "launching a build"
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
         }
 
@@ -81,7 +80,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
         def failure = new IllegalStateException("Throwing an exception on purpose")
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 def build = connection.newBuild()
                 build.forTasks('test').addProgressListener(new ProgressListener() {
                     @Override
@@ -137,7 +136,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
         }
 
@@ -205,7 +204,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
         }
 
@@ -285,7 +284,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
         }
 
@@ -351,7 +350,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
         }
 
@@ -419,7 +418,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).withArguments('--parallel').run()
         }
 
@@ -439,7 +438,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: 'listening to test progress events and task listener is attached'
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TASK, OperationType.TEST)).run()
         }
 
@@ -451,7 +450,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: 'listening to test progress events and no task listener is attached'
         events.clear()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().withArguments('--rerun-tasks').forTasks('test').addProgressListener(events, EnumSet.of(OperationType.TEST)).run()
         }
 
@@ -462,7 +461,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         when: 'listening to test progress events and build operation listener is attached'
         events.clear()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().withArguments('--rerun-tasks').forTasks('test').addProgressListener(events, EnumSet.of(OperationType.GENERIC, OperationType.TEST)).run()
         }
 

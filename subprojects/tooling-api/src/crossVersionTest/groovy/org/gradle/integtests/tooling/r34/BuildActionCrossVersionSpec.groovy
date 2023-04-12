@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
 @TargetGradleVersion('>=3.4')
@@ -48,7 +47,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         when:
         def classloader = new URLClassLoader([jar.toURL()] as URL[], getClass().classLoader)
         def action = classloader.loadClass("ActionImpl").getConstructor().newInstance()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.action(action).run()
         }
 

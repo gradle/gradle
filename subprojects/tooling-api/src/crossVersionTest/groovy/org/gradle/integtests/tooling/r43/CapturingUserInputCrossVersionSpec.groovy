@@ -21,7 +21,12 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.PROMPT
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.answerOutput
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPlugin
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPluginApplication
 
 @TargetGradleVersion(">=4.3")
 class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
@@ -40,7 +45,7 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
 
     def "can capture user input if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection)
         }
 
@@ -51,7 +56,7 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
 
     def "cannot capture user input if standard in was not provided"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithoutStandardInput(connection)
         }
 

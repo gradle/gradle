@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r35
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.Requires
@@ -43,7 +42,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         ByteArrayOutputStream out = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.newBuild().setEnvironmentVariables(["var": "val"]).setStandardOutput(out).forTasks('printEnv').run()
         }
 
@@ -66,7 +65,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         ByteArrayOutputStream out = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.newBuild().setEnvironmentVariables(["var": "val"]).setStandardOutput(out).forTasks('printEnv').run()
         }
 

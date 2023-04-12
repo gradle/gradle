@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r20
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 class GradleProjectModelCrossVersionSpec extends ToolingApiSpecification {
@@ -28,7 +27,7 @@ buildDir = 'custom/dir'
 """
 
         when:
-        def project = withConnection { ProjectConnection connection ->
+        def project = withConnection { connection ->
             connection.getModel(GradleProject)
         }
 

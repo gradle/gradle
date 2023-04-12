@@ -18,7 +18,6 @@
 package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -31,7 +30,7 @@ task test2(group:'task group 2')
 '''
 
         when:
-        def gradleProject = withConnection { ProjectConnection connection ->
+        def gradleProject = withConnection { connection ->
             connection.getModel(GradleProject)
         }
 
@@ -49,7 +48,7 @@ task test2(group:'task group 2')
 '''
 
         when:
-        def buildInvocations = withConnection { ProjectConnection connection ->
+        def buildInvocations = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
 
@@ -67,7 +66,7 @@ task test2()
 '''
 
         when:
-        def gradleProject = withConnection { ProjectConnection connection ->
+        def gradleProject = withConnection { connection ->
             connection.getModel(GradleProject)
         }
 
@@ -85,7 +84,7 @@ task test2()
 '''
 
         when:
-        def buildInvocations = withConnection { ProjectConnection connection ->
+        def buildInvocations = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
 

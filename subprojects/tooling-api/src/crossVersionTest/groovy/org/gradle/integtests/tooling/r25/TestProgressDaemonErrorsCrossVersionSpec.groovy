@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.junit.Rule
@@ -40,7 +39,7 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification i
 
         when:
         def result = []
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
                 result << event
                 if (!killed) {

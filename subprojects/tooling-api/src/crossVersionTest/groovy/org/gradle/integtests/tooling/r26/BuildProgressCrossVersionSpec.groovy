@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r26
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     def "generates init script operation when there are init scripts"() {
@@ -27,7 +26,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .addProgressListener(events)
                         .run()
@@ -39,7 +38,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         events.clear()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .withArguments("--init-script", file("init.gradle").toString())
                         .addProgressListener(events)
@@ -57,7 +56,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .addProgressListener(events)
                         .run()
@@ -70,7 +69,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.clear()
         file("buildSrc/build.gradle") << "println 'buildSrc'"
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .addProgressListener(events)
                         .run()

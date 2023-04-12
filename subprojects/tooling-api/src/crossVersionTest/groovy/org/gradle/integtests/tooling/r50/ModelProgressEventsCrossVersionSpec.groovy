@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r50
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.GradleProject
 
@@ -31,7 +30,7 @@ class ModelProgressEventsCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << """rootProject.name = "root" """
         when:
         def gradleProject = withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.model(GradleProject).
                     addProgressListener(listener, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).get()
         }

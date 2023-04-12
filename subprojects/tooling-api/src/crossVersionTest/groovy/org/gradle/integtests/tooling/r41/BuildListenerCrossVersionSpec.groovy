@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.FetchBuildEnvironment
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 @TargetGradleVersion(">=4.1")
@@ -52,7 +51,7 @@ class BuildListenerCrossVersionSpec extends ToolingApiSpecification {
     def "build listeners are called when using configure-on-demand model builders"() {
         when:
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.model(GradleProject)
                     .setStandardOutput(output)
                     .get()
@@ -65,7 +64,7 @@ class BuildListenerCrossVersionSpec extends ToolingApiSpecification {
     def "build listeners are called when using configure-on-demand with build actions"() {
         when:
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.action(new FetchBuildEnvironment())
                     .setStandardOutput(output)
                     .run()
@@ -78,7 +77,7 @@ class BuildListenerCrossVersionSpec extends ToolingApiSpecification {
     def "build listeners are called when using configure-on-demand and running tasks"() {
         when:
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .setStandardOutput(output)
                     .forTasks("help")

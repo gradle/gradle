@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ProjectConnection
 
 class DistributionChecksumCrossVersionSpec extends ToolingApiSpecification {
     // Newer clients no longer kill the JVM when a distribution is invalid.
@@ -38,7 +37,7 @@ class DistributionChecksumCrossVersionSpec extends ToolingApiSpecification {
         when:
         def connector = this.connector()
         connector.useBuildDistribution()
-        withConnection(connector) { ProjectConnection connection ->
+        withConnection(connector) { connection ->
             connection.newBuild().forTasks("help").run()
         }
 

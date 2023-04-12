@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=4.7")
@@ -97,7 +96,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def events = ProgressEvents.create()
 
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('publish')
                     .addProgressListener(events).run()
         }

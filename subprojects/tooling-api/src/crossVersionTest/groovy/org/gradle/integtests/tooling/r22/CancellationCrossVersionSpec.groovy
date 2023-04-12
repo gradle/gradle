@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfi
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 class CancellationCrossVersionSpec extends CancellationSpec {
@@ -34,7 +33,7 @@ class CancellationCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks(':sub:broken')
             build.withCancellationToken(cancel.token())
@@ -58,7 +57,7 @@ class CancellationCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks(':sub:broken')
             build.withCancellationToken(cancel.token())
@@ -85,7 +84,7 @@ class CancellationCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def model = connection.model(GradleProject)
             model.withCancellationToken(cancel.token())
             model.get(resultHandler)
@@ -110,7 +109,7 @@ class CancellationCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def action = connection.action(new ActionQueriesModelThatRequiresConfigurationPhase())
             action.withCancellationToken(cancel.token())
             action.run(resultHandler)
@@ -133,7 +132,7 @@ class CancellationCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def action = connection.action(new ActionQueriesModelThatRequiresConfigurationPhase())
             action.withCancellationToken(cancel.token())
             action.run(resultHandler)
@@ -170,7 +169,7 @@ task notExecuted(dependsOn: hang) {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('notExecuted')
             build.withCancellationToken(cancel.token())
@@ -199,7 +198,7 @@ task hang {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('hang')
             build.withCancellationToken(cancel.token())
@@ -229,7 +228,7 @@ task hang {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('hang')
             build.withCancellationToken(cancel.token())

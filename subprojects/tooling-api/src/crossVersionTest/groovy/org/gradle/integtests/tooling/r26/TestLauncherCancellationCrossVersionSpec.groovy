@@ -19,8 +19,6 @@ package org.gradle.integtests.tooling.r26
 import org.gradle.integtests.tooling.CancellationSpec
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
-
 
 class TestLauncherCancellationCrossVersionSpec extends CancellationSpec {
     def "can cancel test execution request during configuration phase"() {
@@ -31,7 +29,7 @@ class TestLauncherCancellationCrossVersionSpec extends CancellationSpec {
         def resultHandler = new TestResultHandler()
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             def build = connection.newTestLauncher()
             build.withJvmTestClasses("Broken")
             build.withCancellationToken(cancel.token())

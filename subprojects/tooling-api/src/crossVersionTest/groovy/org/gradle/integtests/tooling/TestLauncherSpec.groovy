@@ -163,8 +163,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
     void collectDescriptorsFromBuild() {
         try {
             withConnection {
-                ProjectConnection connection ->
-                    connection.newBuild().forTasks('build')
+                it.newBuild().forTasks('build')
                         .withArguments("--continue")
                         .addProgressListener(events)
                         .setStandardOutput(System.out)

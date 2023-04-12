@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.Flaky
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 
 class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
@@ -36,7 +35,7 @@ class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionS
 
         when:
         def events = ProgressEvents.create()
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.newBuild()
                 .addProgressListener(events)
                 .run()

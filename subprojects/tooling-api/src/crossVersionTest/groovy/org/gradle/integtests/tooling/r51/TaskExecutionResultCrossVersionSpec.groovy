@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskOperationResult
@@ -214,7 +213,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
     private void runBuild(String... tasks) {
         events.clear()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                     .forTasks(tasks)
                     .addProgressListener(events, EnumSet.of(OperationType.TASK))

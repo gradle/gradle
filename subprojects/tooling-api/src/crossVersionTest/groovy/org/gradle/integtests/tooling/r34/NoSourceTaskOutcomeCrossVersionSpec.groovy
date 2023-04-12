@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskSkippedResult
 
@@ -60,7 +59,7 @@ class NoSourceTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
 
     private void runBuild(listener) {
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().forTasks('noSourceTask').addProgressListener(listener, EnumSet.of(OperationType.TASK)).run()
         }
     }

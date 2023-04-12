@@ -18,7 +18,6 @@
 package org.gradle.integtests.tooling.r23
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 class GradleProjectCrossVersionSpec extends ToolingApiSpecification {
@@ -33,7 +32,7 @@ task privateTask {
 """
 
         when:
-        def gradleProject = withConnection { ProjectConnection connection ->
+        def gradleProject = withConnection { connection ->
             connection.getModel(GradleProject.class)
         }
 

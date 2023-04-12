@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
 @TargetGradleVersion(">=3.3")
@@ -46,7 +45,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .addProgressListener(events)
                         .run()
@@ -90,7 +89,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .addProgressListener(events)
                         .forTasks("build")
@@ -127,7 +126,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .addProgressListener(events)
                         .forTasks("build")
@@ -159,7 +158,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .addProgressListener(events, [OperationType.GENERIC] as Set)
                         .forTasks("build")
@@ -194,7 +193,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         when:
         def events = ProgressEvents.create()
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild()
                         .addProgressListener(events)
                         .run()
