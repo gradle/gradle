@@ -71,10 +71,57 @@ You should prefer accessing the extensions and their properties instead.
 
 For specific examples see the next sections.
 
-[[application_convention_deprecation]]
-==== Deprecated ApplicationPluginConvention
+[[base_convention_deprecation]]
+==== Deprecated `base` plugin conventions
 
-As stated in the <<deprecated_access_to_conventions, section about plugin convention deprecation>>, the Application Plugin's convention is deprecated.
+The convention properties contributed by the `base` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The conventions are replaced by the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
+The old convention object defines the `distsDirName`, `libsDirName` and `archivesBaseName` properties with simple getter and setter methods.
+Those methods are available in the extension only to maintain backwards compatibility.
+Build scripts should solely use the properties of type `Property`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    base
+}
+
+base {
+    archivesName.set("gradle")
+    distsDirectory.set(layout.buildDirectory.dir("custom-dist"))
+    libsDirectory.set(layout.buildDirectory.dir("custom-libs"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'base'
+}
+
+base {
+    archivesName = "gradle"
+    distsDirectory = layout.buildDirectory.dir('custom-dist')
+    libsDirectory = layout.buildDirectory.dir('custom-libs')
+}
+----
+=====
+====
+
+[[application_convention_deprecation]]
+==== Deprecated `application` plugin convensions
+
+The convention properties contributed by the `application` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -105,7 +152,7 @@ applicationDefaultJvmArgs = ['-Dgreeting.language=en'] // Accessing a convention
 =====
 ====
 
-This should be changed to use the `application` plugin's extension instead:
+This should be changed to use the `application { }` configuration block, backed by link:{groovyDslPath}/org.gradle.api.plugins.JavaApplication.html[JavaApplication], instead:
 
 ====
 [.multi-language-sample]
@@ -139,9 +186,10 @@ application {
 ====
 
 [[java_convention_deprecation]]
-==== Deprecated JavaPluginConvention
+==== Deprecated `java` plugin conventions
 
-As stated in the <<deprecated_access_to_conventions, section about plugin convention deprecation>>, the Java Plugin's convention is deprecated.
+The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -174,7 +222,7 @@ sourceCompatibility = 18 // Accessing a convention
 =====
 ====
 
-This should be changed to use the `java` plugin's extension instead:
+This should be changed to use the `java { }` configuration block, backed by link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension], instead:
 
 ====
 [.multi-language-sample]

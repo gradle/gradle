@@ -444,9 +444,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 }
             }
             executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.WarPluginConvention type has been deprecated. " +
+                "The org.gradle.api.plugins.internal.DefaultBasePluginConvention type has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#base_convention_deprecation")
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#base_convention_deprecation")
             executer.expectDocumentedDeprecationWarning(
                 "The AbstractCompile.destinationDir property has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
