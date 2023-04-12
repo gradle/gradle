@@ -31,7 +31,7 @@ public class JvmPluginServiceRegistry extends AbstractPluginServiceRegistry {
     }
 
     private static class ComponentRegistrationAction {
-        /***
+        /**
          * @param registration unused parameter required by convention, see {@link org.gradle.internal.service.DefaultServiceRegistry}.
          */
         public void configure(ServiceRegistration registration,
