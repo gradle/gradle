@@ -1493,6 +1493,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         preventIllegalParentMutation(type);
         markAsModified(type);
         notifyChildren(type);
+        maybePreventMutation(type);
     }
 
     @Override
@@ -1500,6 +1501,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         preventIllegalMutation(type);
         markAsModified(type);
         notifyChildren(type);
+        maybePreventMutation(type);
+    }
+
+    private void maybePreventMutation(MutationType type) {
+        if (!canBeMutated) {
+            throw new InvalidUserDataException(String.format("Cannot change %s of %s after mutation has been disabled.", type, getDisplayName()));
+        }
     }
 
     private void preventIllegalParentMutation(MutationType type) {
