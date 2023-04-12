@@ -183,6 +183,28 @@ This method is only meant to be called on configurations which allow the (non-de
         succeeds('help')
     }
 
+    def "configuration explicitly deprecated for resolution will warn if resolved, but not fail"() {
+        buildFile << """
+            configurations {
+                foo {
+                    deprecateForResolution()
+                }
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                foo 'org.apache.commons:commons-lang3:3.9'
+            }
+
+            configurations.foo.files
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        succeeds("help")
+    }
+
     private String buildDeprecationMessage(String methodName, String role, List<ProperMethodUsage> allowed) {
         return """Calling configuration method '$methodName' is deprecated for configuration 'custom', which has permitted usage(s):
 ${buildAllowedUsages(role)}
