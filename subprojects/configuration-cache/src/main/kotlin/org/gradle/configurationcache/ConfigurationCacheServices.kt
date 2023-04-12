@@ -27,6 +27,8 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
+import org.gradle.execution.ExecutionAccessChecker
+import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
@@ -70,6 +72,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
+            addProvider(ExecutionAccessCheckerProvider)
         }
     }
 
@@ -105,6 +108,19 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             resourceConnectorFactories
                 .single { "https" in it.supportedProtocols }
                 .createResourceConnector(object : ResourceConnectorSpecification {})
+    }
+
+    private
+    object ExecutionAccessCheckerProvider {
+
+        fun createExecutionAccessChecker(
+            listenerManager: ListenerManager,
+            modelParameters: BuildModelParameters,
+            configurationTimeBarrier: ConfigurationTimeBarrier
+        ): ExecutionAccessChecker {
+            val broadcaster = listenerManager.getBroadcaster(ExecutionAccessListener::class.java)
+            return DefaultExecutionAccessChecker(configurationTimeBarrier, modelParameters, broadcaster)
+        }
     }
 
     private
