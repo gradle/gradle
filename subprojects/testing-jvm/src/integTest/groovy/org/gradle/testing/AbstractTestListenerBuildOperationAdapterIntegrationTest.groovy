@@ -24,6 +24,10 @@ import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
+    abstract boolean isEmitsTestClassOperations()
+    abstract String testMethodName(String testMethod)
+    abstract void writeTestSources()
+
     def "emits build operations for junit tests"() {
         given:
         buildFile << """
@@ -94,8 +98,4 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
             details.testDescriptor.composite == false
         }
     }
-
-    abstract boolean isEmitsTestClassOperations()
-    abstract String testMethodName(String testMethod)
-    abstract void writeTestSources()
 }

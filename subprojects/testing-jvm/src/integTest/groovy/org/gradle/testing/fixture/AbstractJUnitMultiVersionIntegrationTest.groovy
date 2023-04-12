@@ -18,6 +18,30 @@ package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 
+/**
+ * Base class for multi-version integration tests that use various versions of JUnit.  This class provides the common
+ * configuration for the build script and test framework.  Subclasses must provide test framework specific configuration
+ * for the build script.
+ *
+ * The following depicts the general pattern of implementation where function-specific tests extend from this class,
+ * while framework-specific classes extend from the function-specific classes.  The framework-specific classes should
+ * provide the {@link BuildScriptConfiguration} required by this class via a reusable trait.
+ *
+ *  ┌──────────────────────────────────────────────┐
+ *  │   AbstractJUnitMultiVersionIntegrationTest   │
+ *  └──────────────────────────────────────────────┘
+ *                        ▲
+ *                        │
+ *  ┌─────────────────────┴────────────────────────┐
+ *  │       AbstractTestTaskIntegrationTest        │
+ *  └──────────────────────────────────────────────┘
+ *                        ▲
+ *                        │
+ *  ┌─────────────────────┴────────────────────────┐      ┌──────────────────────────────────────────────┐
+ *  │     JUnitJupiterTestTaskIntegrationTest      ├─────►│          JUnitJupiterMultiversionTest        │
+ *  └──────────────────────────────────────────────┘      └──────────────────────────────────────────────┘
+ *
+ */
 abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
     abstract BuildScriptConfiguration getBuildScriptConfiguration()
 
@@ -41,6 +65,13 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
         executer.withRepositoryMirrors()
     }
 
+    /**
+     * Test framework specific configuration for the build script.
+     *
+     * These values will be provided by test framework traits that can be attached to any test class.  As such, we use an interface
+     * to ensure type safety and avoid decoupling of these methods in the trait classes.  The trait classes simply have to provide
+     * an implementation of this interface specific to the test framework.
+     */
     interface BuildScriptConfiguration {
         String getTestFrameworkDependencies()
         String getConfigureTestFramework()

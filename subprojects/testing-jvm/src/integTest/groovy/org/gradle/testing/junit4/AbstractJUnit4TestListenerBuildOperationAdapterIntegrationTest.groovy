@@ -18,6 +18,9 @@ package org.gradle.testing.junit4
 
 import org.gradle.testing.AbstractTestListenerBuildOperationAdapterIntegrationTest
 
+/**
+ * Base class for JUnit 4 build operation adapter integration tests.  Provides JUnit4-specific tests and test sources for both JUnit4 and JUnit Vintage.
+ */
 abstract class AbstractJUnit4TestListenerBuildOperationAdapterIntegrationTest extends AbstractTestListenerBuildOperationAdapterIntegrationTest {
     @Override
     void writeTestSources() {

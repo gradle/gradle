@@ -18,6 +18,9 @@ package org.gradle.testing.junit4
 
 import org.gradle.testing.AbstractTestTaskIntegrationTest
 
+/**
+ * Base class for JUnit 4 test task integration tests.  Provides JUnit4-specific tests and test sources for both JUnit4 and JUnit Vintage.
+ */
 abstract class AbstractJUnit4TestTaskIntegrationTest extends AbstractTestTaskIntegrationTest {
     @Override
     String getStandaloneTestClass() {

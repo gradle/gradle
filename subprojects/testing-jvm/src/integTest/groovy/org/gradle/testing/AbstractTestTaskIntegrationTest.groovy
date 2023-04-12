@@ -24,6 +24,11 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+    abstract String getStandaloneTestClass()
+    abstract String testClass(String className)
+    abstract String getImportAll()
+    abstract String getAssertOrAssertions()
+
     def setup() {
         buildFile << """
             allprojects {
@@ -344,11 +349,6 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
         then:
         succeeds "test", "--dry-run"
     }
-
-    abstract String getStandaloneTestClass()
-    abstract String testClass(String className)
-    abstract String getImportAll()
-    abstract String getAssertOrAssertions()
 
     private String java9Build() {
         """
