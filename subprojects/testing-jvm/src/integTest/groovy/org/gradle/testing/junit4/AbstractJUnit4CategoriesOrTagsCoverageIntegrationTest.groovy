@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.junit.AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec
 
+/**
+ * Base class for JUnit 4 category/tag coverage integration tests.  Provides JUnit4-specific tests and test sources for both JUnit4 and JUnit Vintage.
+ */
 abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec {
     @Override
     TestSourceGenerator getTestSourceGenerator() {

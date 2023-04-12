@@ -255,27 +255,43 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         }
     }
 
+    /**
+     * Fixture for generating test classes from a given test source fixture.  This should be implemented by subclasses that generate
+     * unique test sources (e.g. JUnit4 vs JUnit5).
+     */
     interface TestSourceGenerator {
         void writeAllSources(TestSourceFixture fixture)
     }
 
+    /**
+     * Fixture for capturing test source requirements.  This will be provided to a {@link TestSourceGenerator} to generate the test sources.
+     */
     class TestSourceFixture {
         List<TestClass> testClasses = []
         List<Category> categories = []
         List<TestSource> sources = []
 
+        /**
+         * Add a new simple test class to the sources.
+         */
         TestClass testClass(String name) {
             TestClass testClass = new TestClass(name)
             testClasses << testClass
             return testClass
         }
 
+        /**
+         * Add a JUnit4 category class to the sources.  Note that these are not used by JUnit5 test generators.
+         */
         Category testCategory(String name) {
             Category category = new Category(name)
             categories << category
             return category
         }
 
+        /**
+         * Add an arbitrary test source file to the sources.  This can be used to add supplementary classes or complex test classes to the sources.
+         */
         TestSource sourceFile(String relativePath) {
             TestSource source = new TestSource(relativePath)
             sources << source
@@ -283,6 +299,11 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         }
     }
 
+    /**
+     * Fixture for capturing simple test class requirements.  Note that this class should be used only for simple test classes
+     * and should not be enhanced to capture complex test classes with arbitrary features.  Complex test classes should be captured
+     * with a raw {@link TestSource} fixture.
+     */
     class TestClass {
         final String name
         final String packageName
@@ -307,6 +328,9 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         }
     }
 
+    /**
+     * Fixture for capturing simple test method requirements.
+     */
     class TestMethod {
         final String name
         boolean shouldPass = true
@@ -338,6 +362,9 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         }
     }
 
+    /**
+     * Fixture for capturing test categories for JUnit4.
+     */
     class Category {
         final String name
         final String packageName
@@ -355,6 +382,9 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         }
     }
 
+    /**
+     * Fixture for capturing raw test source files.  This should be used for complex test classes that cannot be captured with {@link TestClass}.
+     */
     class TestSource {
         final String relativePath
         String source
