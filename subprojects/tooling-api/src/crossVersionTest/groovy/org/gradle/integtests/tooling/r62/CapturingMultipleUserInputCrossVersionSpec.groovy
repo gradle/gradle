@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r62
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 
 @TargetGradleVersion(">=6.2")
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
@@ -72,7 +71,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can capture multiple user input if standard input was provided using default values"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, answers('', ''))
         }
 
@@ -85,7 +84,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can default subsequent user input as default values if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             runBuildWithStandardInput(connection, answers('something'))
         }
 
@@ -96,7 +95,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
         output.contains(BAR.answerOutput())
     }
 
-    private void runBuildWithStandardInput(ProjectConnection connection, String answers) {
+    private void runBuildWithStandardInput(connection, String answers) {
         def build = connection.newBuild()
         build.standardOutput = outputStream
         build.forTasks(DUMMY_TASK_NAME)

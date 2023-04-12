@@ -63,7 +63,7 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         return OutputScrapingExecutionResult.from(output.toString(), error.toString())
     }
 
-    ExecutionResult runBuildWithToolingConnection(Function<ProjectConnection, ExecutionResult> action) {
+    ExecutionResult runBuildWithToolingConnection(Function<Object, ExecutionResult> action) {
         return run {
             def result = null
             usingToolingConnection(workingDir) {
@@ -78,7 +78,7 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         return runBuildWithToolingConnection(action)
     }
 
-    void usingToolingConnection(File workingDir, Action<ProjectConnection> action) {
+    void usingToolingConnection(File workingDir, Action<?> action) {
         def toolingApi = new ToolingApi(distribution, testDirectoryProvider)
         toolingApi.withConnector {
             it.forProjectDirectory(workingDir)

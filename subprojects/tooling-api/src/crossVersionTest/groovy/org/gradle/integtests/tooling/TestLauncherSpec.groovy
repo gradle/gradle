@@ -24,7 +24,6 @@ import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.CancellationToken
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.OperationDescriptor
@@ -65,7 +64,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         }
     }
 
-    void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationToken cancellationToken, Closure configurationClosure) {
+    void launchTests(connection, ResultHandler<Void> resultHandler, CancellationToken cancellationToken, Closure configurationClosure) {
         TestLauncher testLauncher = connection.newTestLauncher()
             .withCancellationToken(cancellationToken)
             .addProgressListener(events, OperationType.TASK, OperationType.TEST)

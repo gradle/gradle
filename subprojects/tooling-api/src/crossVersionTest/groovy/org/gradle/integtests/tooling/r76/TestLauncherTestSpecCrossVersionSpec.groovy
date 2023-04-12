@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestExecutionException
-import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.TestSpecs
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
@@ -36,7 +35,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
     @TargetGradleVersion('>=3.0 <7.6')
     def "older Gradle versions ignore withTestsFor calls"() {
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includeClass('example.MyTest')
             }
@@ -49,7 +48,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
     def "can select test classes"() {
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest')
                      .includeClass('example.MyTest')
@@ -66,7 +65,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
     def "can select test methods"() {
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includeMethod('example.MyTest', 'foo')
             }
@@ -80,7 +79,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
     def "can select package"() {
         setup:
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includePackage('example2')
             }
@@ -94,7 +93,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
     def "can select tests with pattern"() {
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includePattern('example2.MyOtherTest*.ba*')
             }
@@ -118,7 +117,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         '''
 
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest')
                      .includePackage('org')
@@ -138,7 +137,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
     def "can target same test tasks with multiple test specs"() {
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includeClass('example.MyTest')
                 specs.forTaskPath(':secondTest').includePackage('example2')
@@ -156,7 +155,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
     def "can target different test tasks with one test spec"() {
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':test').includeClass('example.MyTest')
                 specs.forTaskPath(':secondTest').includePackage('example2')
@@ -173,7 +172,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
     def "fails with meaningful error when requested tests not found"() {
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':test')
                      .includeClass('example.UnknownClass')
@@ -205,7 +204,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         '''
 
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest')
                      .includePackage('o*g')
@@ -234,7 +233,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         '''
 
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includeClass('example.MyTest')
             }
@@ -256,7 +255,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         '''
 
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includePattern("example.*")
             }
@@ -278,7 +277,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         '''
 
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includePackage("example")
             }
@@ -302,7 +301,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         '''
 
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includeMethod('example.MyTest', 'foo')
             }
@@ -324,7 +323,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         '''
 
         when:
-        launchTests { TestLauncher launcher ->
+        launchTests { launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest').includeClass('example.MyTest')
             }

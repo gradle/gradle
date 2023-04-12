@@ -248,7 +248,7 @@ trait ToolingApiSpec {
                 .run()
             OutputScrapingExecutionResult.from(output.toString(), error.toString())
         }
-        return Pair.of(projectsLoadedModel, buildModel)
+        return Pair.<T, S>of(projectsLoadedModel, buildModel)
     }
 
     def runTestClasses(String... testClasses) {
