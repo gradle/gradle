@@ -82,7 +82,7 @@ public class NaggingBasePluginConvention extends BasePluginConvention {
     private static void logDeprecation() {
         DeprecationLogger.deprecateType(DefaultBasePluginConvention.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "base_convention_deprecation")
+            .withUpgradeGuideSection(8, "base_convention_deprecation")
             .nagUser();
     }
 }
