@@ -36,7 +36,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')} }
+            dependencies { ${getDependencyBlockContents()} }
         """.stripIndent()
     }
 
@@ -51,7 +51,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                implementation "junit:junit:3.8"
+                implementation "junit:junit:4.13.2"
             }
             jar {
                 manifest {
@@ -78,7 +78,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
             repositories { mavenCentral() }
             dependencies {
                 testImplementation files('build/libs/testFramework.jar')
-                testImplementation "junit:junit:3.8"
+                testImplementation "junit:junit:4.13.2"
             }
         """
         file('src/test/java/SomeTest.java') << """

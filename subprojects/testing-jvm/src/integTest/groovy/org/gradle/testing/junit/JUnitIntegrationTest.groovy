@@ -402,7 +402,10 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         testDirectory.file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:3.8' }
+            dependencies {
+                testCompileOnly 'junit:junit:3.8'
+                testRuntimeOnly 'junit:junit:4.13.2'
+            }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
             test.ignoreFailures = true
@@ -468,7 +471,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')}
+                ${getDependencyBlockContents()}
             }
         """
 

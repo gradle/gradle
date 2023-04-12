@@ -93,11 +93,11 @@ public class ManagedObjectFactory {
         if (type.isAssignableFrom(SetProperty.class)) {
             return attachOwner(getObjectFactory().setProperty(paramType), owner, propertyName);
         }
-        if (type.isAssignableFrom(NamedDomainObjectContainer.class)) {
-            return attachOwner(getObjectFactory().domainObjectContainer(paramType), owner, propertyName);
-        }
         if (type.isAssignableFrom(DomainObjectSet.class)) {
             return attachOwner(getObjectFactory().domainObjectSet(paramType), owner, propertyName);
+        }
+        if (type.isAssignableFrom(NamedDomainObjectContainer.class)) {
+            return attachOwner(getObjectFactory().domainObjectContainer(paramType), owner, propertyName);
         }
         if (type.isAssignableFrom(ExtensiblePolymorphicDomainObjectContainer.class)) {
             return attachOwner(getObjectFactory().polymorphicDomainObjectContainer(paramType), owner, propertyName);

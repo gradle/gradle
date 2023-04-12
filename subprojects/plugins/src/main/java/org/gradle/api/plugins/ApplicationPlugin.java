@@ -136,7 +136,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
     private JavaApplication addExtension(Project project) {
         ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
-        pluginConvention.setApplicationName(project.getName());
+        DeprecationLogger.whileDisabled(() -> pluginConvention.setApplicationName(project.getName()));
         DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("application", pluginConvention));
         return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
     }

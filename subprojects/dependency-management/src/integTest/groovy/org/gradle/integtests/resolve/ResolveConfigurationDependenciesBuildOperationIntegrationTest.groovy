@@ -638,21 +638,26 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         settingsFile << "include 'fixtures'"
         buildFile << """
-            allprojects {
-                apply plugin: "java"
-                apply plugin: "java-test-fixtures"
-                repositories {
-                    maven { url '${mavenHttpRepo.uri}' }
-                }
+            plugins {
+                id 'java-library'
             }
-            dependencies {
-                testImplementation(testFixtures(project(':fixtures')))
-            }
-
-            project(':fixtures') {
+            ${mavenCentralRepository()}
+            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            testing.suites.test {
+                useJUnit()
                 dependencies {
-                    testFixturesApi('org.foo:stuff:1.0')
+                    implementation testFixtures(project(':fixtures'))
                 }
+            }
+        """
+        file("fixtures/build.gradle") << """
+            plugins {
+                id 'java-library'
+                id 'java-test-fixtures'
+            }
+            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            dependencies {
+                testFixturesApi('org.foo:stuff:1.0')
             }
         """
         file("fixtures/src/testFixtures/java/SomeClass.java") << "class SomeClass {}"
