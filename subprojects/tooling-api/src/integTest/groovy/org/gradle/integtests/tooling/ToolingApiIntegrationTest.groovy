@@ -27,7 +27,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
 import org.junit.Assume
@@ -79,7 +78,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         def stdOut = new ByteArrayOutputStream()
-        toolingApi.withConnection { ProjectConnection connection ->
+        toolingApi.withConnection { connection ->
             connection.model(GradleProject.class).setStandardOutput(stdOut).get()
         }
 
@@ -102,7 +101,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         def stdOut = new ByteArrayOutputStream()
-        toolingApi.withConnection { ProjectConnection connection ->
+        toolingApi.withConnection { connection ->
             connection.action(new KotlinIdeaModelBuildAction()).setStandardOutput(stdOut).run()
         }
 

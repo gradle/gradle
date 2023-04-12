@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r40
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
@@ -102,7 +101,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().withArguments("-Dorg.gradle.internal.plugins.portal.url.override=${gradlePluginRepositoryMirrorUrl()}").addProgressListener(events).run()
+            connection -> connection.newBuild().withArguments("-Dorg.gradle.internal.plugins.portal.url.override=${gradlePluginRepositoryMirrorUrl()}").addProgressListener(events).run()
         }
 
         then:
@@ -134,7 +133,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:
@@ -162,7 +161,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().addProgressListener(events)
                     .withArguments('--init-script', initScript.toString()).run()
         }
@@ -191,7 +190,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().addProgressListener(events)
                     .withArguments('--init-script', initScript.toString()).run()
         }
@@ -226,7 +225,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().addProgressListener(events)
                     .withArguments('--init-script', initScript.toString()).run()
         }
@@ -261,7 +260,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().addProgressListener(events)
                     .withArguments('--init-script', initScript.toString()).run()
         }
@@ -296,7 +295,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection ->
+            connection ->
                 connection.newBuild().addProgressListener(events)
                     .withArguments('--init-script', initScript.toString()).run()
         }
@@ -330,7 +329,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:
@@ -359,7 +358,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:
@@ -391,7 +390,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:
@@ -431,7 +430,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:
@@ -456,7 +455,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:
@@ -480,7 +479,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:
@@ -545,7 +544,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:
@@ -570,7 +569,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            connection -> connection.newBuild().addProgressListener(events).run()
         }
 
         then:

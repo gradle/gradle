@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -48,7 +47,7 @@ class JavaVersionCrossVersionTest extends ToolingApiSpecification {
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
+        toolingApi.withConnection { connection ->
             connection.newBuild().forTasks('myTask').run()
         }
 
@@ -68,7 +67,7 @@ class JavaVersionCrossVersionTest extends ToolingApiSpecification {
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk11.javaHome.absolutePath)
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
+        toolingApi.withConnection { connection ->
             connection.newBuild().forTasks('myTask').run()
         }
 

@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.tooling.ProjectConnection
 
 class ToolingApiTestCommon {
 
@@ -51,7 +50,7 @@ class ToolingApiTestCommon {
 
     static runLogScript(ToolingApi tapi, List<String> arguments) {
         def stdOut = new ByteArrayOutputStream()
-        tapi.withConnection { ProjectConnection connection ->
+        tapi.withConnection { connection ->
             connection.newBuild()
                 .withArguments(arguments)
                 .setStandardOutput(stdOut)

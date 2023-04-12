@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 
 import java.util.regex.Pattern
@@ -210,7 +209,7 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         '''
 
         when:
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             TestLauncher testLauncher = connection.newTestLauncher()
             collectOutputs(testLauncher)
 
@@ -245,7 +244,7 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
     }
 
     private def connectionConfiguration(Closure testLauncherSpec) {
-        {   ProjectConnection connection ->
+        {   connection ->
             TestLauncher testLauncher = connection.newTestLauncher()
             testLauncher.withTaskAndTestMethods(':test', 'MyTest', ['pass'])
             collectOutputs(testLauncher)

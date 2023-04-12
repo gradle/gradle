@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
@@ -36,7 +35,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def "tooling api reports an error when requesting a model using a gradle version that does not implement the tooling api"() {
         when:
-        toolingApi.withConnection { ProjectConnection connection -> connection.getModel(GradleProject.class) }
+        toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         UnsupportedVersionException e = thrown()
@@ -45,7 +44,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def "tooling api reports an error when running a build using a gradle version does not implement the tooling api"() {
         when:
-        toolingApi.withConnection { ProjectConnection connection -> connection.newBuild().run() }
+        toolingApi.withConnection { connection -> connection.newBuild().run() }
 
         then:
         UnsupportedVersionException e = thrown()
@@ -54,7 +53,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def "tooling api reports an error when running a build action using a gradle version does not implement the tooling api"() {
         when:
-        toolingApi.withConnection { ProjectConnection connection -> connection.action(new NullAction()).run() }
+        toolingApi.withConnection { connection -> connection.action(new NullAction()).run() }
 
         then:
         UnsupportedVersionException e = thrown()
@@ -63,7 +62,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def "tooling api reports an error when running tests using a gradle version does not implement the tooling api"() {
         when:
-        toolingApi.withConnection { ProjectConnection connection -> connection.newTestLauncher().withJvmTestClasses("class").run() }
+        toolingApi.withConnection { connection -> connection.newTestLauncher().withJvmTestClasses("class").run() }
 
         then:
         UnsupportedVersionException e = thrown()

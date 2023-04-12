@@ -29,7 +29,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
@@ -94,7 +93,7 @@ class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def useToolingApi(ToolingApi target) {
-        target.withConnection { ProjectConnection connection ->
+        target.withConnection { connection ->
             try {
                 def model = connection.getModel(IdeaProject)
                 assert model != null

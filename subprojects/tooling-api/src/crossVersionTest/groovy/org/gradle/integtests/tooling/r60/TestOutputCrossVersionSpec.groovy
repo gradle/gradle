@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.test.Destination
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestFinishEvent
@@ -90,7 +89,7 @@ class TestOutputCrossVersionSpec extends ToolingApiSpecification implements With
     }
 
     def runTestAndCollectProgressEvents() {
-        withConnection { ProjectConnection connection ->
+        withConnection { connection ->
             connection.newBuild().forTasks('test').addProgressListener({ event -> progressEvents << event } as org.gradle.tooling.events.ProgressListener).run()
         }
     }

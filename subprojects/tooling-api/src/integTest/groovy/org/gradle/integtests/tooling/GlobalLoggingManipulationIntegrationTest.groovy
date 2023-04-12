@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.BlockingResultHandler
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
@@ -59,7 +58,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        GradleProject model = toolingApi.withConnection { ProjectConnection connection -> connection.getModel(GradleProject.class) }
+        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         model.tasks.find { it.name == 'hey' }
@@ -82,7 +81,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        GradleProject model = toolingApi.withConnection { ProjectConnection connection ->
+        GradleProject model = toolingApi.withConnection { connection ->
             def handler = new BlockingResultHandler<GradleProject>(GradleProject)
             def builder = connection.model(GradleProject)
             builder.standardOutput = outInstance
@@ -135,7 +134,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         assertJavaUtilLoggingNotModified()
-        GradleProject model = toolingApi.withConnection { ProjectConnection connection -> connection.getModel(GradleProject.class) }
+        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         model.tasks.find { it.name == 'hey' }
@@ -157,7 +156,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         assertJavaUtilLoggingNotModified()
-        GradleProject model = toolingApi.withConnection { ProjectConnection connection ->
+        GradleProject model = toolingApi.withConnection { connection ->
             def handler = new BlockingResultHandler<GradleProject>(GradleProject)
             def builder = connection.model(GradleProject)
             builder.standardOutput = System.out

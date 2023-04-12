@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Retry
@@ -58,7 +57,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         when:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection = connector.connect() // using withConnection would call close after the closure
+        connection = connector.connect() // using withConnection would call close after the closure
 
         def build = connection.newBuild()
         build.forTasks('hang')
@@ -90,7 +89,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         when:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection = connector.connect() // using withConnection would call close after the closure
+        connection = connector.connect() // using withConnection would call close after the closure
 
         def build = connection.newBuild()
         build.forTasks('hang')
@@ -123,7 +122,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         when:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection = connector.connect()
+        connection = connector.connect()
 
         def query = connection.model(EclipseProject)
         query.get(resultHandler)
@@ -152,8 +151,8 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         when:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection1 = connector.connect()
-        ProjectConnection connection2 = connector.connect()
+        connection1 = connector.connect()
+        connection2 = connector.connect()
 
         def build = connection1.newBuild()
         build.forTasks('hang')
@@ -188,7 +187,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         when:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection = connector.connect()
+        connection = connector.connect()
 
         def build = connection.newBuild()
         build.forTasks('hang')
@@ -226,7 +225,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         when:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection = connector.connect()
+        connection = connector.connect()
 
         def cancellation = GradleConnector.newCancellationTokenSource()
         def build = connection.newBuild()
@@ -256,7 +255,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         when:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection = connector.connect()
+        connection = connector.connect()
 
         def cancellation = GradleConnector.newCancellationTokenSource()
         def build = connection.newBuild()
@@ -286,7 +285,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         when:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection = connector.connect()
+        connection = connector.connect()
 
         def build = connection.newBuild()
 
@@ -350,7 +349,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     def "cannot run build operations on project connection after disconnect"() {
         setup:
         GradleConnector connector = toolingApi.connector()
-        ProjectConnection connection = connector.connect()
+        connection = connector.connect()
         connection.getModel(GradleProject)
         connector.disconnect()
 
