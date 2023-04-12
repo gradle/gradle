@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -23,11 +25,10 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -43,16 +44,8 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     }
 
     @Override
-    public String toString() {
-        final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
-        lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toString()));
-        state.keySet().forEach(key -> sorted.put(key, state.getAttribute(key)));
-        return sorted.toString();
-    }
-
-    @Override
     public Set<Attribute<?>> keySet() {
-        return Sets.union(state.keySet(), lazyAttributes.keySet());
+        return Sets.union(state.keySet(), Maps.filterValues(lazyAttributes, Provider::isPresent).keySet());
     }
 
     @Override
@@ -63,33 +56,56 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     }
 
     private <T> void doInsertion(Attribute<T> key, T value) {
-        assertAttributeValueIsNotNull(value);
+        Preconditions.checkNotNull(value, "Setting null as an attribute value is not allowed");
         assertAttributeTypeIsValid(value.getClass(), key);
         state = immutableAttributesFactory.concat(state, key, value);
         removeLazyAttributeIfPresent(key);
     }
 
-    private <T> void removeLazyAttributeIfPresent(Attribute<T> key) {
-        if (lazyAttributes.containsKey(key)) {
-            lazyAttributes.remove(key);
-        }
-    }
-
     @Override
     public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
         checkInsertionAllowed(key);
-        assertAttributeValueIsNotNull(provider);
+        Preconditions.checkNotNull(provider, "Attribute provider cannot be null");
         // We can only sometimes check the type of the provider ahead of time.
         // When realizing this provider and inserting its value into the container, we still
         // check the value type is appropriate. see doInsertion
         if (provider instanceof ProviderInternal) {
-            Class<T> valueType = Cast.<ProviderInternal<T>>uncheckedCast(provider).getType();
+            Class<?> valueType = ((ProviderInternal<?>) provider).getType();
             if (valueType != null) {
                 assertAttributeTypeIsValid(valueType, key);
             }
         }
-        doInsertionLazy(key, provider);
+
+        if (lazyAttributes == Collections.EMPTY_MAP) {
+            lazyAttributes = new LinkedHashMap<>(1);
+        }
+
+        removeLazyAttributeIfPresent(key);
+        lazyAttributes.put(key, provider);
+        state = immutableAttributesWithoutKey(state, key);
+
         return this;
+    }
+
+    private void removeLazyAttributeIfPresent(Attribute<?> key) {
+        // checkInsertionAllowed does not verify if we have a non-present lazy attribute with the same name but a different type.
+        // In this case, we overwrite the lazy attribute with the new one even if they have a different type.
+        // We need to allow this case since users are unable to query for non-present lazy attributes.
+        lazyAttributes.keySet().removeIf(x -> x.getName().equals(key.getName()));
+    }
+
+    private <T> ImmutableAttributes immutableAttributesWithoutKey(ImmutableAttributes attributes, Attribute<T> key) {
+        if (attributes.contains(key)) {
+            DefaultMutableAttributeContainer newState = new DefaultMutableAttributeContainer(immutableAttributesFactory);
+            attributes.keySet().stream()
+                .filter(k -> !k.equals(key))
+                .forEach(k -> {
+                    @SuppressWarnings("unchecked") Attribute<Object> objectKey = (Attribute<Object>) k;
+                    newState.attribute(objectKey, Objects.requireNonNull(attributes.getAttribute(k)));
+                });
+            return newState.asImmutable();
+        }
+        return attributes;
     }
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
@@ -111,23 +127,27 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
      */
     private <T> void assertAttributeTypeIsValid(Class<?> valueType, Attribute<T> attribute) {
         if (!attribute.getType().isAssignableFrom(valueType)) {
-            throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attribute.getType().getName(), valueType.getName()));
-        }
-    }
-
-    private void assertAttributeValueIsNotNull(@Nullable Object value) {
-        if (value == null) {
-            throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
+            throw new IllegalArgumentException(String.format(
+                "Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.",
+                attribute.getName(), attribute.getType().getName(), valueType.getName())
+            );
         }
     }
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
         T attribute = state.getAttribute(key);
-        if (attribute == null && lazyAttributes.containsKey(key)) {
-            attribute = realizeLazyAttribute(key);
+        if (attribute != null) {
+            return attribute;
         }
-        return attribute;
+
+        if (lazyAttributes.containsKey(key) && lazyAttributes.get(key).isPresent()) {
+            @SuppressWarnings("unchecked") T value = (T) lazyAttributes.get(key).get();
+            doInsertion(key, value);
+            return value;
+        }
+
+        return null;
     }
 
     @Override
@@ -136,6 +156,19 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
         return state;
     }
 
+    private void realizeAllLazyAttributes() {
+        if (!lazyAttributes.isEmpty()) {
+            // Since doInsertion removes items from lazyAttributes, we can't iterate that collection
+            // directly here, or else we'll get a ConcurrentModificationException
+            new LinkedHashSet<>(lazyAttributes.keySet()).forEach(key -> {
+                if (lazyAttributes.get(key).isPresent()) {
+                    doInsertion(Cast.uncheckedNonnullCast(key), lazyAttributes.get(key).get());
+                } else {
+                    lazyAttributes.remove(key);
+                }
+            });
+        }
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -156,38 +189,11 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
         return asImmutable().hashCode();
     }
 
-    private <T> void doInsertionLazy(Attribute<T> key, Provider<? extends T> provider) {
-        if (lazyAttributes == Collections.EMPTY_MAP) {
-            lazyAttributes = new LinkedHashMap<>(1);
-        }
-        lazyAttributes.put(key, provider);
-        removeAttributeIfPresent(key);
-    }
-
-    private <T> void removeAttributeIfPresent(Attribute<T> key) {
-        if (state.contains(key)) {
-            DefaultMutableAttributeContainer newState = new DefaultMutableAttributeContainer(immutableAttributesFactory);
-            state.keySet().stream()
-                    .filter(k -> !k.equals(key))
-                    .forEach(k -> {
-                        @SuppressWarnings("unchecked") Attribute<Object> objectKey = (Attribute<Object>) k;
-                        newState.attribute(objectKey, Objects.requireNonNull(state.getAttribute(k)));
-                    });
-            state = newState.asImmutable();
-        }
-    }
-
-    private <T> T realizeLazyAttribute(Attribute<T> key) {
-        @SuppressWarnings("unchecked") final T value = (T) lazyAttributes.get(key).get();
-        doInsertion(key, value);
-        return value;
-    }
-
-    private void realizeAllLazyAttributes() {
-        if (!lazyAttributes.isEmpty()) {
-            // As doInsertion will remove an item from lazyAttributes, we can't iterate that collection directly here, or else we'll get ConcurrentModificationException
-            final Set<Attribute<?>> savedKeys = new HashSet<>(lazyAttributes.keySet());
-            savedKeys.forEach(key -> doInsertion(Cast.uncheckedNonnullCast(key), lazyAttributes.get(key).get()));
-        }
+    @Override
+    public String toString() {
+        final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
+        lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toString()));
+        state.keySet().forEach(key -> sorted.put(key, state.getAttribute(key)));
+        return sorted.toString();
     }
 }

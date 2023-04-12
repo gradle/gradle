@@ -27,14 +27,12 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DescribableAttributesSchema;
 import org.gradle.api.model.ObjectFactory;
 
@@ -107,14 +105,6 @@ public abstract class JavaEcosystemSupport {
 
     private static void configureConsumerDescriptors(DescribableAttributesSchema attributesSchema) {
         attributesSchema.addConsumerDescriber(new JavaEcosystemAttributesDescriber());
-    }
-
-    public static void configureDefaultTargetPlatform(HasAttributes configuration, int majorVersion) {
-        AttributeContainerInternal attributes = (AttributeContainerInternal) configuration.getAttributes();
-        // If nobody said anything about this variant's target platform, use whatever the convention says
-        if (!attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)) {
-            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, majorVersion);
-        }
     }
 
     private static void configureTargetPlatform(AttributesSchema attributesSchema) {

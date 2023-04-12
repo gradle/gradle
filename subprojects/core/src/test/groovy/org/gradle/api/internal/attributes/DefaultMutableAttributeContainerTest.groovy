@@ -25,7 +25,10 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicReference
 
 class DefaultMutableAttributeContainerTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
@@ -280,5 +283,74 @@ class DefaultMutableAttributeContainerTest extends Specification {
         then:
         container.toString() == "{a=fixed(class java.lang.String, a), b=b, c=c}"
         container.asImmutable().toString() == "{a=a, b=b, c=c}"
+    }
+
+    def "can add and query for non-present lazy attributes"() {
+        def a = Attribute.of("a", String)
+        def value = new AtomicReference<String>()
+        def provider = TestUtil.providerFactory().provider(value::get)
+
+        when:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attributeProvider(a, provider)
+
+        then:
+        container.keySet().isEmpty()
+        container.getAttribute(a) == null
+        container.isEmpty()
+        !container.contains(a)
+        container.toString() == "{a=provider(?)}"
+
+        when:
+        value.set("value")
+
+        then:
+        container.keySet() == [a] as Set
+        container.getAttribute(a) == "value"
+        !container.isEmpty()
+        container.contains(a)
+        container.toString() == "{a=value}"
+    }
+
+    def "cannot define two attributes with the same name but different types"() {
+        def string = Attribute.of("a", String)
+        def integer = Attribute.of("a", Integer)
+
+        when:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attribute(string, "foo")
+        container.attribute(integer, 1)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'a\' of type \'java.lang.String\' and you are trying to store another one of type \'java.lang.Integer\''
+    }
+
+    def "cannot override present lazy attribute with another attribute of a different type"() {
+        def string = Attribute.of("a", String)
+        def integer = Attribute.of("a", Integer)
+
+        when:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attributeProvider(string, Providers.of("foo"))
+        container.attribute(integer, 1)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'a\' of type \'java.lang.String\' and you are trying to store another one of type \'java.lang.Integer\''
+    }
+
+    def "can override non-present lazy attribute with another attribute of a different type"() {
+        def string = Attribute.of("a", String)
+        def integer = Attribute.of("a", Integer)
+
+        when:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attributeProvider(string, Providers.notDefined())
+        container.attribute(integer, 1)
+
+        then:
+        container.getAttribute(string) == null
+        container.getAttribute(integer) == 1
     }
 }
