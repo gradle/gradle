@@ -129,6 +129,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         return findBestMatch(queue, failures, missing);
     }
 
+    @Nullable
     private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<Throwable> failures, Collection<ComponentMetaDataResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
