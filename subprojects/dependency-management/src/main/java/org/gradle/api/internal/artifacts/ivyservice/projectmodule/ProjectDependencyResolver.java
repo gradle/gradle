@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
@@ -49,18 +47,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.Nullable;
 import java.util.Set;
 
-@ServiceScope(Scopes.Project.class)
+@ServiceScope(Scopes.Build.class)
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
-    private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ProjectArtifactResolver artifactResolver;
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry,
-                                     ComponentIdentifierFactory componentIdentifierFactory,
-                                     ProjectArtifactResolver artifactResolver
-    ) {
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactResolver artifactResolver) {
         this.localComponentRegistry = localComponentRegistry;
-        this.componentIdentifierFactory = componentIdentifierFactory;
         this.artifactResolver = artifactResolver;
     }
 
@@ -86,9 +79,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
-        if (dependency.getSelector() instanceof ProjectComponentSelector) {
-            ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
-            ProjectComponentIdentifier projectId = componentIdentifierFactory.createProjectComponentIdentifier(selector);
+        if (dependency.getSelector() instanceof DefaultProjectComponentSelector) {
+            DefaultProjectComponentSelector selector = (DefaultProjectComponentSelector) dependency.getSelector();
+            ProjectComponentIdentifier projectId = selector.toIdentifier();
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
             if (component == null) {
                 result.failed(new ModuleVersionResolveException(selector, () -> projectId + " not found."));
