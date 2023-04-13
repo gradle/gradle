@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
+import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -59,7 +60,7 @@ public abstract class BasePlugin implements Plugin<Project> {
     private void addConvention(Project project, BasePluginExtension baseExtension) {
         BasePluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultBasePluginConvention.class, baseExtension);
         DeprecationLogger.whileDisabled(() -> {
-            project.getConvention().getPlugins().put("base", convention);
+            project.getConvention().getPlugins().put("base", new NaggingBasePluginConvention(convention));
         });
     }
 
