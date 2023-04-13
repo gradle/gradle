@@ -78,7 +78,6 @@ import java.util.Properties;
 public abstract class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
 
-
     /**
      * Specifies the Gradle distribution type.
      */
@@ -114,6 +113,7 @@ public abstract class Wrapper extends DefaultTask {
     private final DistributionLocator locator = new DistributionLocator();
     private final boolean isOffline;
     private boolean distributionUrlConfigured = false;
+    private final Property<Boolean> validateDistributionUrl = getProject().getObjects().property(Boolean.class);
 
     public Wrapper() {
         scriptFile = "gradlew";
@@ -121,6 +121,7 @@ public abstract class Wrapper extends DefaultTask {
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         isOffline = getProject().getGradle().getStartParameter().isOffline();
+        validateDistributionUrl.set(true);
     }
 
     @Inject
@@ -138,7 +139,7 @@ public abstract class Wrapper extends DefaultTask {
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
         checkProperties(existingProperties);
-        testDistributionUrl();
+        validateDistributionUrl();
         writeProperties(propertiesFile, existingProperties);
         writeWrapperTo(jarFileDestination);
 
@@ -169,8 +170,8 @@ public abstract class Wrapper extends DefaultTask {
 
     private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
-    private void testDistributionUrl() {
-        if (distributionUrlConfigured) {
+    private void validateDistributionUrl() {
+        if (distributionUrlConfigured && validateDistributionUrl.get()) {
             String url = getDistributionUrl();
             URI uri = URI.create(url);
             if (uri.getScheme().equals("file")) {
@@ -531,5 +532,29 @@ public abstract class Wrapper extends DefaultTask {
     @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
+    }
+
+    /**
+     * Sets if the task will validate the distribution url that has been configured.
+     *
+     * @since 8.2
+     */
+    @Incubating
+    @Option(option = "validate-url", description = "Sets task to validate the configured distribution url")
+    public void setValidateDistributionUrl(Boolean validateDistributionUrl) {
+        this.validateDistributionUrl.set(validateDistributionUrl);
+    }
+
+    /**
+     * Indicates if this task will validate the distribution url that has been configured.
+     *
+     * @since 8.2
+     * @return whether this task will validate the distribution url
+     */
+    @Incubating
+    @Input
+    @Optional
+    public Property<Boolean> getValidateDistributionUrl() {
+        return validateDistributionUrl;
     }
 }
