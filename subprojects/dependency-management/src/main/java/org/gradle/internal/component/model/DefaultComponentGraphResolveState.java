@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -110,7 +109,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
             return metadata.getModuleVersionId();
         }
 
-        @Nullable
         @Override
         public ModuleSources getSources() {
             return metadata.getSources();

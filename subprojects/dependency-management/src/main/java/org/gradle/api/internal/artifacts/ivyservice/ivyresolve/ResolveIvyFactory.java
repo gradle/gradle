@@ -39,6 +39,8 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Actions;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -124,13 +126,13 @@ public class ResolveIvyFactory {
             MetadataResolutionContext metadataResolutionContext = new DefaultMetadataResolutionContext(cachePolicy, instantiator);
             ComponentMetadataProcessor componentMetadataProcessor = metadataProcessor.createComponentMetadataProcessor(metadataResolutionContext);
 
-            ModuleComponentRepository moduleComponentRepository = baseRepository;
+            ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getInMemoryOnlyCaches(), cachePolicy, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
-                moduleComponentRepository = new LocalModuleComponentRepository(moduleComponentRepository);
+                moduleComponentRepository = new CachingModuleComponentRepository(baseRepository, cacheProvider.getInMemoryOnlyCaches(), cachePolicy, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
+                moduleComponentRepository = new LocalModuleComponentRepository<>(moduleComponentRepository);
             } else {
-                moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getPersistentCaches(), cachePolicy, timeProvider, componentMetadataProcessor, listener);
+                ModuleComponentRepository<ModuleComponentResolveMetadata> overrideRepository = startParameterResolutionOverride.overrideModuleVersionRepository(baseRepository);
+                moduleComponentRepository = new CachingModuleComponentRepository(overrideRepository, cacheProvider.getPersistentCaches(), cachePolicy, timeProvider, componentMetadataProcessor, listener);
             }
             moduleComponentRepository = cacheProvider.getResolvedArtifactCaches().provideResolvedArtifactCache(moduleComponentRepository, resolutionStrategy.isDependencyVerificationEnabled());
 
@@ -147,13 +149,12 @@ public class ResolveIvyFactory {
         return moduleResolver;
     }
 
-    private ModuleComponentRepository filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
+    private ModuleComponentRepository<ModuleComponentGraphResolveState> filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
         Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
         if (repository instanceof ContentFilteringRepository) {
             filter = ((ContentFilteringRepository) repository).getContentFilter();
         }
-        moduleComponentRepository = FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
-        return moduleComponentRepository;
+        return FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
     }
 
     public ArtifactResult verifiedArtifact(DefaultResolvedArtifactResult defaultResolvedArtifactResult) {
@@ -181,7 +182,7 @@ public class ResolveIvyFactory {
             this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
         }
 
-        public void add(ModuleComponentRepository moduleComponentRepository) {
+        public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository) {
             delegate.add(moduleComponentRepository);
         }
 

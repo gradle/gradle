@@ -25,11 +25,11 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 
 public interface ModuleMetadataCache {
-    CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
+    CachedMetadata cacheMissing(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
 
-    CachedMetadata cacheMetaData(ModuleComponentRepository repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metaData);
+    CachedMetadata cacheMetaData(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metaData);
 
-    CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier id);
+    CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
 
     interface CachedMetadata {
         ResolvedModuleVersion getModuleVersion();

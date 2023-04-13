@@ -47,20 +47,20 @@ import java.util.function.Supplier;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet.NO_ARTIFACTS;
 
 class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifactSelector {
-    private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<>();
+    private final Map<String, ModuleComponentRepository<?>> repositories = new LinkedHashMap<>();
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     RepositoryChainArtifactResolver(CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
-    void add(ModuleComponentRepository repository) {
+    void add(ModuleComponentRepository<?> repository) {
         repositories.put(repository.getId(), repository);
     }
 
     @Override
     public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
+        ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         // First try to determine the artifacts locally before going remote
         sourceRepository.getLocalAccess().resolveArtifactsWithType(component.getMetadata(), artifactType, result);
         if (!result.hasResult()) {
@@ -80,7 +80,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
 
     @Override
     public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
-        ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
+        ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         ResolvableArtifact resolvableArtifact = sourceRepository.getArtifactCache().computeIfAbsent(artifact.getId(), id -> {
             CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), (Supplier<File>)() -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
             return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
@@ -89,7 +89,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         result.resolved(resolvableArtifact);
     }
 
-    private File resolveArtifactLater(ComponentArtifactMetadata artifact, ModuleSources sources, ModuleComponentRepository sourceRepository) {
+    private File resolveArtifactLater(ComponentArtifactMetadata artifact, ModuleSources sources, ModuleComponentRepository<?> sourceRepository) {
         // First try to resolve the artifacts locally before going remote
         BuildableArtifactFileResolveResult artifactFile = new DefaultBuildableArtifactFileResolveResult();
         sourceRepository.getLocalAccess().resolveArtifact(artifact, sources, artifactFile);
@@ -99,9 +99,9 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         return artifactFile.getResult();
     }
 
-    private ModuleComponentRepository findSourceRepository(ModuleSources sources) {
+    private ModuleComponentRepository<?> findSourceRepository(ModuleSources sources) {
         RepositoryChainModuleSource repositoryChainModuleSource = sources.getSource(RepositoryChainModuleSource.class).get();
-        ModuleComponentRepository moduleVersionRepository = repositories.get(repositoryChainModuleSource.getRepositoryId());
+        ModuleComponentRepository<?> moduleVersionRepository = repositories.get(repositoryChainModuleSource.getRepositoryId());
         if (moduleVersionRepository == null) {
             throw new IllegalStateException("Attempting to resolve artifacts from invalid repository");
         }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -28,9 +29,12 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
-class ResolverProviderComponentMetaDataResolverTest extends Specification {
+class RepositoryChainComponentMetaDataResolverTest extends Specification {
     final org.gradle.internal.Factory<String> broken = { "broken" }
     final metaData = metaData("1.2")
+    final componentState = Stub(ModuleComponentGraphResolveState) {
+        getModuleResolveMetadata() >> metaData
+    }
     final moduleComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "project"), "1.0")
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)
 
@@ -70,10 +74,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -92,10 +96,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         then:
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -117,10 +121,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             result.authoritative = false
         }
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -186,10 +190,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -213,10 +217,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             result.missing()
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -241,10 +245,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             result.authoritative = false
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -270,10 +274,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -305,10 +309,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             result.missing()
         }
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -336,10 +340,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             result.authoritative = false
         }
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -368,10 +372,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             result.missing()
         }
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -395,10 +399,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             result.failed(new ModuleVersionResolveException(id, broken))
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
@@ -424,10 +428,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         }
         1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
-            result.resolved(metaData)
+            result.resolved(componentState)
         }
         1 * result.resolved(_) >> { ComponentGraphResolveState state ->
-            assert state.metadata == this.metaData
+            assert state == componentState
         }
 
         and:
