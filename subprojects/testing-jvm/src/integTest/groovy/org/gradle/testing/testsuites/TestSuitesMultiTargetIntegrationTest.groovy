@@ -20,28 +20,49 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 
 import static org.junit.Assume.assumeNotNull
 
-class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
-    String jdkVersion
+class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
+    Jvm otherJvm
 
     def setup() {
-        jdkVersion = AvailableJavaHomes.getAvailableJdk {
-            // Include anything that isn't Java 8, and will still run Java 8 classes
-            it.languageVersion.isJava9Compatible()
-        }?.javaVersion?.majorVersion
-        assumeNotNull(jdkVersion)
+        otherJvm = AvailableJavaHomes.differentVersion
+        assumeNotNull(otherJvm)
     }
 
-    def "multiple targets can be used"() {
+    private def setupBasicTestingProject(Iterable<String> extraPlugins = []) {
+        file("src/test/java/MultiTargetTest.java") << """
+            import org.junit.*;
+
+            public class MultiTargetTest {
+               @Test
+               public void test() {
+                  System.out.println("Tests running with " + System.getProperty("java.home"));
+                  Assert.assertEquals(1, 1);
+               }
+            }
+        """
         buildFile << """
             plugins {
-                id 'java'
+                id 'java-library'
+                ${extraPlugins.collect { "id '$it'" }.join('\n')}
+            }
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_1_8
+                targetCompatibility = JavaVersion.VERSION_1_8
             }
 
             ${mavenCentralRepository()}
+        """
+    }
 
+    def "multiple targets can be used"() {
+        setupBasicTestingProject()
+        buildFile << """
             testing {
                 suites {
                     test {
@@ -51,15 +72,17 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
                                 testTask.configure {
                                     doLast {
                                         assert testFramework instanceof ${JUnitTestFramework.canonicalName}
-                                        assert classpath.size() == 2
+                                        // .collect() is intentional for a better error message on failure
+                                        // The 6 elements are: junit, hamcrest, test classes and resources, main classes and resources
+                                        assert classpath.collect().size() == 6
                                         assert classpath.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
                                     }
                                 }
                             }
-                            test$jdkVersion {
+                            testOtherJdk {
                                 testTask.configure {
                                     javaLauncher = javaToolchains.launcherFor {
-                                        languageVersion = JavaLanguageVersion.of($jdkVersion)
+                                        languageVersion = JavaLanguageVersion.of(${otherJvm.javaVersion.majorVersion})
                                     }
                                 }
                             }
@@ -70,22 +93,17 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("check")
+        withInstallations(Jvm.current(), otherJvm).succeeds("check")
 
         then:
         result.assertTaskExecuted(":test")
-        result.assertTaskExecuted(":test$jdkVersion")
+        result.assertTaskExecuted(":testOtherJdk")
     }
 
     // currently not supported, namespacing issues
     def "targets in two different test suites may not share names"() {
+        setupBasicTestingProject()
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
             testing {
                 suites {
                     test {
@@ -103,7 +121,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("check")
+        withInstallations(Jvm.current(), otherJvm).fails("check")
 
         then:
         failure.assertThatCause(containsNormalizedString("Cannot add task 'test' as a task with that name already exists."))
@@ -111,23 +129,17 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
 
     // currently not supported, variants are ambiguous without further information
     def "reports of multiple targets cannot be aggregated"() {
+        setupBasicTestingProject(['test-report-aggregation'])
         buildFile << """
-            plugins {
-                id 'java'
-                id 'test-report-aggregation'
-            }
-
-            ${mavenCentralRepository()}
-
             testing {
                 suites {
                     test {
                         useJUnit()
                         targets {
-                            test$jdkVersion {
+                            testOtherJdk {
                                 testTask.configure {
                                     javaLauncher = javaToolchains.launcherFor {
-                                        languageVersion = JavaLanguageVersion.of($jdkVersion)
+                                        languageVersion = JavaLanguageVersion.of(${otherJvm.javaVersion.majorVersion})
                                     }
                                 }
                             }
@@ -138,30 +150,24 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("testAggregateTestReport")
+        withInstallations(Jvm.current(), otherJvm).fails("testAggregateTestReport")
 
         then:
         failure.assertThatCause(containsNormalizedString("However we cannot choose between the following variants of project"))
     }
 
     def "reports of multiple targets can be aggregated if variant information is specified"() {
+        setupBasicTestingProject(['test-report-aggregation'])
         buildFile << """
-            plugins {
-                id 'java'
-                id 'test-report-aggregation'
-            }
-
-            ${mavenCentralRepository()}
-
             testing {
                 suites {
                     test {
                         useJUnit()
                         targets {
-                            test$jdkVersion {
+                            testOtherJdk {
                                 testTask.configure {
                                     javaLauncher = javaToolchains.launcherFor {
-                                        languageVersion = JavaLanguageVersion.of($jdkVersion)
+                                        languageVersion = JavaLanguageVersion.of(${otherJvm.javaVersion.majorVersion})
                                     }
                                 }
                             }
@@ -172,16 +178,16 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 testResultsElementsForTest.attributes {
-                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, ${Jvm.current().javaVersion.majorVersion})
                 }
-                testResultsElementsForTest${jdkVersion}.attributes {
-                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $jdkVersion)
+                testResultsElementsForTestOtherJdk.attributes {
+                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, ${otherJvm.javaVersion.majorVersion})
                 }
             }
         """
 
         when:
-        succeeds("testAggregateTestReport")
+        withInstallations(Jvm.current(), otherJvm).succeeds("testAggregateTestReport")
 
         then:
         result.assertTaskExecuted(":testAggregateTestReport")
