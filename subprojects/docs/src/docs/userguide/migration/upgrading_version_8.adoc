@@ -38,6 +38,10 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
+=== Potential breaking changes
+
+==== Kotlin DSL scripts emit compilation warnings
+
 === Deprecations
 
 [[compile_options_generated_sources_directory]]
@@ -50,6 +54,31 @@ The following methods on `CompileOptions` are deprecated:
 - `setAnnotationProcessorGeneratedSourcesDirectory(Provider<File>)`
 
 Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getGeneratedSourceOutputDirectory--[DirectoryProperty getGeneratedSourceOutputDirectory()]`
+
+[[deprecated_configuration_usage]]
+==== Using configurations incorrectly
+
+Gradle will now warn at runtime when methods of link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] are called inconsistently with the configuration's intended usage.
+
+This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements.
+
+Currently, the following methods should only be called with these listed allowed usages:
+
+- `resolve()` - RESOLVABLE configurations only
+- `files(Closure)`, `files(Spec)`, `files(Dependency…)`, `fileCollection(Spec)`, `fileCollection(Closure)`, `fileCollection(Dependency…)` - RESOLVABLE configurations only
+- `getResolvedConfigurations()` - RESOLVABLE configurations only
+- `defaultDependencies(Action)` - DECLARABLE configurations only
+- `shouldResolveConsistentlyWith(Configuration)` - RESOLVABLE configurations only
+- `disableConsistentResolution()` - RESOLVABLE configurations only
+- `getDependencyConstraints()` - DECLARABLE configurations only
+
+Intended usage is noted in the `Configuration` interface's Javadoc.
+This list is likely to grow in future releases.
+
+Starting in Gradle 9.0, using a configuration inconsistently with its intended usage will be prohibited.
+
+Also note that although it is not currently restricted, the `getDependencies()` method is really only intended for use with DECLARABLE configurations.
+The `getAllDependencies()` method, which retrieves all declared dependencies on a configuration and any superconfigurations, will not be restricted to any particular usage.
 
 [[deprecated_access_to_conventions]]
 ==== Deprecated access to plugin conventions
