@@ -17,8 +17,10 @@
 package org.gradle.kotlin.dsl.tooling.builders.r60
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.test.fixtures.Flaky
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import org.gradle.test.fixtures.Flaky
 
 import java.lang.reflect.Proxy
 
@@ -36,10 +38,10 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
         def spec = withMultiProjectBuildWithBuildSrc()
 
         when:
-        def singleRequestModels = kotlinDslScriptsModelFor().scriptModels
+        Map<File, KotlinDslScriptModel> singleRequestModels = kotlinDslScriptsModelFor().scriptModels
 
         and:
-        def multiRequestsModels = spec.scripts.values().collectEntries {
+        Map<File, KotlinBuildScriptModel> multiRequestsModels = spec.scripts.values().collectEntries {
             [(it): kotlinBuildScriptModelFor(projectDir, it)]
         }
 

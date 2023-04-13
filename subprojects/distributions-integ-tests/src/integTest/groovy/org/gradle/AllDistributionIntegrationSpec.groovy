@@ -36,7 +36,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 162 * 1024 * 1024
+        return 185 * 1024 * 1024
     }
 
     @Requires(TestPrecondition.STABLE_GROOVY) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/

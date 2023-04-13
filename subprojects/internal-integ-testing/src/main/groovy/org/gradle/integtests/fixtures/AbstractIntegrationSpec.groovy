@@ -159,6 +159,10 @@ abstract class AbstractIntegrationSpec extends Specification {
         testDirectory.file(getDefaultBuildFileName())
     }
 
+    String getTestJunitCoordinates() {
+        return "junit:junit:4.13"
+    }
+
     void buildFile(@GroovyBuildScriptLanguage String script) {
         groovyFile(buildFile, script)
     }
@@ -390,6 +394,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     AbstractIntegrationSpec withBuildCache() {
         executer.withBuildCacheEnabled()
+        this
+    }
+
+    AbstractIntegrationSpec withBuildCacheNg() {
+        executer.withBuildCacheNgEnabled()
         this
     }
 

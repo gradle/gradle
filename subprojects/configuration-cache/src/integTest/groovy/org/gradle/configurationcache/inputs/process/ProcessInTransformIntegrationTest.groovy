@@ -30,7 +30,6 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 class ProcessInTransformIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in transform action with #task is not a problem"(SnippetsFactory snippetsFactory, String task) {
         given:
-        settingsFileWithStableConfigurationCache()
         getTransformFixture(snippetsFactory.newSnippets(execOperationsFixture)).tap {
             withTransformPlugin(testDirectory.createDir("buildSrc"))
             withJavaLibrarySubproject(testDirectory.createDir("subproject"))
@@ -71,8 +70,6 @@ class ProcessInTransformIntegrationTest extends AbstractProcessIntegrationTest {
 
     def "using #snippetsFactory.summary in transform action with #task of buildSrc build is not a problem"(SnippetsFactory snippetsFactory, String task) {
         given:
-        settingsFileWithStableConfigurationCache()
-
         createDir("buildSrc") {
             getTransformFixture(snippetsFactory.newSnippets(execOperationsFixture)).tap {
                 withTransformPlugin(dir("transform-plugin"))

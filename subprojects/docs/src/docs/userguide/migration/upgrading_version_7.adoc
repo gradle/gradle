@@ -724,6 +724,13 @@ The exact parameter and value depend on toolchain usage, or not, and Scala versi
 
 See the <<scala_plugin#sec:scala_target,Scala plugin documentation>> for details.
 
+==== `pluginBundle` dropped in Plugin Publish plugin
+
+Gradle 8 no longer supports the `pluginBundle` extension.
+Its functionality has been merged into the `gradlePlugin` block.
+These changes require recent versions of the Plugin Publish plugin (link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.1.0[1.0.+]).
+Documentation on configuring plugin publication can be found both link:https://plugins.gradle.org/docs/publish-plugin[on the Portal] and <<publishing_gradle_plugins#configure_the_plugin_publishing_plugin,in the user manual>>.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
@@ -1716,22 +1723,10 @@ base {
 }
 ```
 
-[[application_convention_deprecation]]
-==== Deprecated `ApplicationPluginConvention`
-
-link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention] was already listed as deprecated in the <<application_plugin.adoc#sec:application_convention_properties, documentation>>.
-Now, it is officially annotated as deprecated and scheduled for removal in Gradle 8.0.
-
-[[java_convention_deprecation]]
-==== Deprecated `java` plugin conventions
-
-The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-They are replaced by the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can be configured in the `java {}` block.
-
 [[plugin_configuration_consumption]]
 ==== Deprecated consumption of internal plugin configurations
 
-Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
+Some core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
 published or consumed by another subproject directly.
 Gradle did not explicitly prohibit this.
 Gradle 7.1 deprecates consumption of those configurations and this will become an error in Gradle 8.0.

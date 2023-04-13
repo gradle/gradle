@@ -90,13 +90,26 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         }
     }
 
-    protected List<String> getDependencyNotation() {
+    protected String getDependencyBlockContents() {
         if (isJupiter()) {
-            return ["org.junit.jupiter:junit-jupiter-api:${dependencyVersion}", "org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"]
+            return """
+                testImplementation "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}"
+                testImplementation "org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"
+            """
         } else if (isVintage()) {
-            return ["org.junit.vintage:junit-vintage-engine:${dependencyVersion}","junit:junit:4.13"]
+            return """
+                testImplementation "org.junit.vintage:junit-vintage-engine:${dependencyVersion}"
+                testImplementation "junit:junit:4.13"
+            """
+        } else if (version.startsWith("3")) {
+            return """
+                testImplementation "junit:junit:${version}"
+                testRuntimeOnly "junit:junit:4.13"
+            """
         } else {
-            return ["junit:junit:${version}"]
+            return """
+                testImplementation "junit:junit:${version}"
+            """
         }
     }
 

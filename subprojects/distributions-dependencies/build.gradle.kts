@@ -90,6 +90,7 @@ dependencies {
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.8.9") }}
+        api(libs.h2Database)            { version { strictly("2.1.214") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
@@ -162,6 +163,7 @@ dependencies {
         api(libs.bytebuddy)             { version { strictly(bytebuddyVersion) }}
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
+        api(libs.compileTesting)        { version { strictly("0.21.0")}}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}

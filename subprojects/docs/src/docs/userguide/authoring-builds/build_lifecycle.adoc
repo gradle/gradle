@@ -93,7 +93,7 @@ When you run Gradle in a directory that contains *no* `settings.gradle` file:
 . If Gradle finds a `settings.gradle(.kts)` file, Gradle checks if the current project is part of the multi-project build. If so, Gradle builds as a multi-project.
 . If Gradle does not find a `settings.gradle(.kts)` file, Gradle builds as a single project.
 
-In the standard Gradle project layout, project paths match the physical subproject layout on disk.
+In the standard Gradle project layout, <<intro_multi_project_builds#sec:project_path,project paths>> match the physical subproject layout on disk.
 The automatic search for a settings file only works for multi-project builds with a standard project layout.
 To build projects that use a nonstandard layout, execute the build from the directory that contains `settings.gradle(.kts)`.
 

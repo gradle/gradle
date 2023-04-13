@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Capabil
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -117,6 +118,7 @@ class Codecs(
     documentationRegistry: DocumentationRegistry,
     javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
+    transformationNodeFactory: TransformationNodeFactory,
 ) {
     private
     val userTypesBindings: Bindings
@@ -150,8 +152,8 @@ class Codecs(
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ComponentVariantIdentifierCodec)
-            bind(InitialTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
-            bind(ChainedTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
+            bind(InitialTransformationNodeCodec(transformationNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
+            bind(ChainedTransformationNodeCodec(transformationNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
             bind(TransformationStepCodec(inputFingerprinter))
             bind(TransformationChainCodec())
             bind(DefaultTransformerCodec(fileLookup, actionScheme))

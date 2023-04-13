@@ -21,33 +21,29 @@ import spock.lang.Specification
 class ConfigurationRolesSpec extends Specification {
     def "can find predefined role #role"() {
         when:
-        def result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
+        def result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst)
 
         then:
         result.isPresent()
         result.get() == role
 
         where:
-        consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated  || role
-        true        | true          | true              | false                 | false                 | false                         || ConfigurationRoles.LEGACY
-        true        | false         | false             | false                 | false                 | false                         || ConfigurationRoles.CONSUMABLE
-        false       | true          | false             | false                 | false                 | false                         || ConfigurationRoles.RESOLVABLE
-        false       | true          | true              | false                 | false                 | false                         || ConfigurationRoles.RESOLVABLE_BUCKET
-        false       | false         | true              | false                 | false                 | false                         || ConfigurationRoles.BUCKET
-        true        | true          | true              | false                 | true                  | true                          || ConfigurationRoles.DEPRECATED_CONSUMABLE
-        true        | true          | true              | true                  | false                 | true                          || ConfigurationRoles.DEPRECATED_RESOLVABLE
+        consumable  | resolvable    | declarableAgainst || role
+        true        | true          | true              || ConfigurationRoles.LEGACY
+        true        | false         | false             || ConfigurationRoles.CONSUMABLE
+        false       | true          | false             || ConfigurationRoles.RESOLVABLE
+        false       | true          | true              || ConfigurationRoles.RESOLVABLE_BUCKET
+        false       | false         | true              || ConfigurationRoles.BUCKET
     }
 
-    def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarableAgainst=#declarableAgainst, consumptionDeprecated=#consumptionDeprecated, resolutionDeprecated=#resolutionDeprecated, declarationAgainstDeprecated=#declarationAgainstDeprecated"() {
+    def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarableAgainst=#declarableAgainst"() {
         expect:
-        !ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated).isPresent()
+        !ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst).isPresent()
 
         where:
-        consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
-        false       | false         | false             | false                 | false                 | false
-        true        | true          | true              | true                  | true                  | true
-        true        | false         | true              | true                  | false                 | true
-        true        | false         | true              | false                 | true                  | false
+        consumable  | resolvable    | declarableAgainst
+        false       | false         | false
+        true        | true          | false
     }
 
     def "predefined roles are named"() {
@@ -56,12 +52,10 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         role                                            || name
-        ConfigurationRoles.BUCKET || "Bucket"
-        ConfigurationRoles.CONSUMABLE || "Consumable"
-        ConfigurationRoles.RESOLVABLE || "Resolvable"
-        ConfigurationRoles.RESOLVABLE_BUCKET || "Resolvable Bucket"
-        ConfigurationRoles.DEPRECATED_CONSUMABLE        || "Deprecated Consumable"
-        ConfigurationRoles.DEPRECATED_RESOLVABLE        || "Deprecated Resolvable"
+        ConfigurationRoles.BUCKET                       || "Bucket"
+        ConfigurationRoles.CONSUMABLE                   || "Consumable"
+        ConfigurationRoles.RESOLVABLE                   || "Resolvable"
+        ConfigurationRoles.RESOLVABLE_BUCKET            || "Resolvable Bucket"
         ConfigurationRoles.LEGACY                       || "Legacy"
     }
 }

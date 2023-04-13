@@ -22,7 +22,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.hamcrest.CoreMatchers.allOf
 
 class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
@@ -31,12 +31,12 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.java"
     public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
 
-    def "defaults to Groovy build scripts"() {
+    def "defaults to Kotlin build scripts"() {
         when:
         run ('init', '--type', 'java-library' )
 
         then:
-        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+        dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -95,7 +95,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
         when:
         succeeds('test')
-        
+
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 

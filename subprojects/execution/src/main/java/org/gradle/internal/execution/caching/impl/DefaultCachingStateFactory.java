@@ -17,15 +17,16 @@
 package org.gradle.internal.execution.caching.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateFactory;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.slf4j.Logger;
+
+import javax.annotation.Nullable;
 
 public class DefaultCachingStateFactory implements CachingStateFactory {
     private final Logger logger;
@@ -35,8 +36,11 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
     }
 
     @Override
-    public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
-        Hasher cacheKeyHasher = Hashing.newHasher();
+    public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, @Nullable String cacheSalt, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
+        final Hasher cacheKeyHasher = Hashing.newHasher();
+        if (cacheSalt != null) {
+            cacheKeyHasher.putString(cacheSalt);
+        }
 
         logger.warn("Appending implementation to build cache key: {}",
             beforeExecutionState.getImplementation());
@@ -77,34 +81,6 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
             cachingDisabledReasons.forEach(reason ->
                 logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
             return CachingState.disabled(cachingDisabledReasons, new DefaultBuildCacheKey(cacheKeyHasher.hash()), beforeExecutionState);
-        }
-    }
-
-    private static class DefaultBuildCacheKey implements BuildCacheKey {
-        private final HashCode hashCode;
-
-        public DefaultBuildCacheKey(HashCode hashCode) {
-            this.hashCode = hashCode;
-        }
-
-        @Override
-        public String getHashCode() {
-            return hashCode.toString();
-        }
-
-        @Override
-        public byte[] toByteArray() {
-            return hashCode.toByteArray();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return getHashCode();
-        }
-
-        @Override
-        public String toString() {
-            return getHashCode();
         }
     }
 }

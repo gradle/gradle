@@ -102,11 +102,18 @@ class JUnitPlatformTestRewriter {
     }
 
     static rewriteBuildFileWithJupiter(File buildFile, String dependencyVersion) {
-        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter:${dependencyVersion}", "org.junit.jupiter.api")
+        rewriteBuildFileInDir(buildFile, "org.junit.jupiter.api", """
+    testImplementation 'org.junit.jupiter:junit-jupiter:${dependencyVersion}'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+""")
     }
 
     static rewriteBuildFileWithVintage(File buildFile, String dependencyVersion) {
-        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${dependencyVersion}','junit:junit:4.13")
+        rewriteBuildFileInDir(buildFile, null, """
+    testImplementation 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
+    testImplementation 'junit:junit:4.13'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+""")
     }
 
     static rewriteJavaFilesWithJupiterAnno(File rootProject) {
@@ -129,22 +136,23 @@ class JUnitPlatformTestRewriter {
         }
     }
 
-    static rewriteBuildFileInDir(File dir, String dependencies, String moduleName = null) {
+    static rewriteBuildFileInDir(File dir, String moduleName, String dependencies) {
         def dirs = [dir]
         dirs.addAll(dir.listFiles().findAll { it.isDirectory() })
         dirs.each {
             File buildFile = new File(it, 'build.gradle')
             if (buildFile.exists()) {
-                rewriteBuildFile(buildFile, dependencies, moduleName)
+                rewriteBuildFile(buildFile, moduleName, dependencies)
             }
         }
     }
 
-    static rewriteBuildFile(File buildFile, String dependenciesReplacement, String moduleName) {
+    static rewriteBuildFile(File buildFile, String moduleName, String dependenciesReplacement) {
         String text = buildFile.text
-        // compile/testCompile/implementation/testImplementation
-        text = text.replaceFirst(/ompile ['"]junit:junit:4\.13['"]/, "ompile '${dependenciesReplacement}'")
-        text = text.replaceFirst(/mplementation ['"]junit:junit:4\.13['"]/, "mplementation '${dependenciesReplacement}'")
+        text = text.replaceFirst(/\s*testImplementation ['"]junit:junit:4\.13['"]/, "")
+        text += """
+dependencies {$dependenciesReplacement}
+"""
         if (!text.contains('useTestNG')) {
             // we only hack build with JUnit 4
             // See IncrementalTestIntegrationTest.executesTestsWhenTestFrameworkChanges

@@ -444,6 +444,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 }
             }
             executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.internal.DefaultJavaPluginConvention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
+            executer.expectDocumentedDeprecationWarning(
                 "The AbstractCompile.destinationDir property has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Please use the destinationDirectory property instead. " +
@@ -479,6 +483,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         when:
         if (isKotlin1dot6 && GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.internal.DefaultJavaPluginConvention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
             executer.expectDocumentedDeprecationWarning(
                 "The Project.getConvention() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +

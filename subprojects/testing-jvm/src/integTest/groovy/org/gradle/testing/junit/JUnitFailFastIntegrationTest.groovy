@@ -25,8 +25,8 @@ class JUnitFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     }
 
     @Override
-    String testDependency() {
-        'junit:junit:4.13'
+    String testDependencies() {
+        "testImplementation 'junit:junit:4.13'"
     }
 
     @Override
