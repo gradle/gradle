@@ -21,7 +21,6 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.invocation.Gradle
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
-import org.gradle.internal.buildtree.BuildModelParameters
 
 
 private
@@ -32,12 +31,10 @@ val disallowedAtExecutionTimeServices = setOf(
 
 
 internal
-class DefaultExecutionAccessChecker(
+class ConfigurationTimeBarrierBasedExecutionAccessChecker(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
-    private val modelParameters: BuildModelParameters,
     private val broadcaster: ExecutionAccessListener
 ) : ExecutionAccessChecker {
-
     override fun notifyInjectedServiceAccess(injectedServiceType: Class<*>, consumer: String) {
         if (shouldReportExecutionTimeAccess() &&
             isDisallowedAtExecutionTimeService(injectedServiceType)) {
@@ -51,5 +48,11 @@ class DefaultExecutionAccessChecker(
 
     private
     fun shouldReportExecutionTimeAccess(): Boolean =
-        modelParameters.isConfigurationCache && !configurationTimeBarrier.isAtConfigurationTime
+        !configurationTimeBarrier.isAtConfigurationTime
+}
+
+internal
+class DefaultExecutionAccessChecker : ExecutionAccessChecker {
+
+    override fun notifyInjectedServiceAccess(injectedServiceType: Class<*>, consumer: String) {}
 }
