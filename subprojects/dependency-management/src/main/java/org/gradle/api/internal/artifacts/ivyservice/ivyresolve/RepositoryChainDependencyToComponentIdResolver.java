@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -47,7 +48,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         this.consumerAttributes = consumerAttributes;
     }
 
-    public void add(ModuleComponentRepository repository) {
+    public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> repository) {
         dynamicRevisionResolver.add(repository);
     }
 

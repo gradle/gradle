@@ -29,6 +29,7 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -103,7 +104,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     @Override
-    protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+    protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = isNonUniqueSnapshot(moduleComponentIdentifier)
             ? findUniqueSnapshotVersion(moduleComponentIdentifier, result)
             : composeUniqueSnapshotVersion(moduleComponentIdentifier);
@@ -121,7 +122,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         return artifactType == ArtifactType.MAVEN_POM;
     }
 
-    private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
+    private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(MutableModuleSources.of(snapshotSource)));
     }
 
@@ -193,12 +194,12 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getLocalAccess() {
         return localAccess;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getRemoteAccess() {
         return remoteAccess;
     }
 

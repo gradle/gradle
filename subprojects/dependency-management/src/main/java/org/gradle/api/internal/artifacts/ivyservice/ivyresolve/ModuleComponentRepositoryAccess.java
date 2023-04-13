@@ -31,8 +31,10 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 
 /**
  * Provides access to a repository of components that are identified by a ModuleComponentIdentifier.
+ *
+ * @param <T> the component resolution result type
  */
-public interface ModuleComponentRepositoryAccess {
+public interface ModuleComponentRepositoryAccess<T> {
     /**
      * Resolves the given dependency to a list of module versions.
      */
@@ -41,7 +43,7 @@ public interface ModuleComponentRepositoryAccess {
     /**
      * Resolves the metadata for a module component.
      */
-    void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result);
+    void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result);
 
     /**
      * Resolves a set of artifacts belonging to the given component, with the type specified. Any failures are packaged up in the result.

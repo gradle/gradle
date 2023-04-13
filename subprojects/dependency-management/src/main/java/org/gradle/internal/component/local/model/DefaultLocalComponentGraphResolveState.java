@@ -36,7 +36,6 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -143,7 +142,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             return metadata.getModuleVersionId();
         }
 
-        @Nullable
         @Override
         public ModuleSources getSources() {
             return metadata.getSources();

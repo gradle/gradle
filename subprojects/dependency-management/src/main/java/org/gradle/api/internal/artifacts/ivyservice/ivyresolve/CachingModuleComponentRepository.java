@@ -38,7 +38,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.component.external.model.DefaultModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -54,6 +56,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +76,7 @@ import java.util.stream.Collectors;
  * The `ResolveAndCacheRepositoryAccess` provided by {@link #getRemoteAccess()} will first delegate any resolution request,
  * and then store the result in the dependency resolution cache.
  */
-public class CachingModuleComponentRepository implements ModuleComponentRepository {
+public class CachingModuleComponentRepository implements ModuleComponentRepository<ModuleComponentGraphResolveState> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleComponentRepository.class);
 
     private final ModuleVersionsCache moduleVersionsCache;
@@ -81,7 +84,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ModuleArtifactsCache moduleArtifactsCache;
     private final ModuleArtifactCache moduleArtifactCache;
 
-    private final ModuleComponentRepository delegate;
+    private final ModuleComponentRepository<ModuleComponentResolveMetadata> delegate;
     private final CachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
@@ -90,7 +93,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(
-        ModuleComponentRepository delegate,
+        ModuleComponentRepository<ModuleComponentResolveMetadata> delegate,
         ModuleRepositoryCaches caches,
         CachePolicy cachePolicy,
         BuildCommencedTimeProvider timeProvider,
@@ -124,12 +127,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getLocalAccess() {
         return locateInCacheRepositoryAccess;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getRemoteAccess() {
         return resolveAndCacheRepositoryAccess;
     }
 
@@ -143,10 +146,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.getComponentMetadataSupplier();
     }
 
-    private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
+    private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
         @Override
         public String toString() {
-            return "cache lookup for " + delegate.toString();
+            return "cache lookup for " + delegate;
         }
 
         @Override
@@ -184,17 +187,19 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
-            delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
-            if (result.hasResult()) {
+            DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
+            delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, localResult);
+            if (localResult.hasResult()) {
+                localResult.applyTo(result, DefaultModuleComponentGraphResolveState::new);
                 return;
             }
 
             resolveComponentMetaDataFromCache(moduleComponentIdentifier, requestMetaData, result);
         }
 
-        private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
             if (cachedMetadata == null) {
                 return;
@@ -227,7 +232,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
 
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
-            result.resolved(metadata);
+            result.resolved(new DefaultModuleComponentGraphResolveState(metadata));
             // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
             result.setAuthoritative(cachedMetadata.getAge().toMillis() == 0);
         }
@@ -347,10 +352,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             .orElseThrow(() -> new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources));
     }
 
-    private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
+    private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
         @Override
         public String toString() {
-            return "cache > " + delegate.getRemoteAccess().toString();
+            return "cache > " + delegate.getRemoteAccess();
         }
 
         @Override
@@ -379,15 +384,20 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             ComponentOverrideMetadata forced = requestMetaData.withChanging();
-            delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, result);
-            switch (result.getState()) {
+            DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
+            delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, localResult);
+            switch (localResult.getState()) {
                 case Missing:
                     moduleMetadataCache.cacheMissing(delegate, moduleComponentIdentifier);
+                    localResult.applyTo(result, metadata -> {
+                        // Should not be called
+                        throw new IllegalStateException();
+                    });
                     break;
                 case Resolved:
-                    ModuleComponentResolveMetadata resolvedMetadata = result.getMetaData();
+                    ModuleComponentResolveMetadata resolvedMetadata = localResult.getMetaData();
                     ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.cacheMetaData(delegate, moduleComponentIdentifier, resolvedMetadata);
                     // Starting here we're going to process the component metadata rules
                     // Therefore metadata can be mutated, and will _not_ be stored in the module metadata cache
@@ -400,9 +410,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                         listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
                     }
                     cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), processedMetadata);
-                    result.resolved(processedMetadata);
+                    result.resolved(new DefaultModuleComponentGraphResolveState(processedMetadata));
                     break;
                 case Failed:
+                    localResult.applyTo(result, metadata -> {
+                        // should not be called
+                        throw new IllegalStateException();
+                    });
                     break;
                 default:
                     throw new IllegalStateException("Unexpected resolve state: " + result.getState());
