@@ -19,12 +19,14 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.util.GradleVersion;
 
 public class DocumentationUtils {
+    public static final String DOCS_GRADLE_ORG = "https://docs.gradle.org/";
+    public static final String PATTERN = DOCS_GRADLE_ORG + "current/";
+
     public static String normalizeDocumentationLink(String message) {
-        String pattern = "https://docs.gradle.org/current/";
-        String replacement = "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/";
-        String expectedMessage = message.replace(pattern, replacement);
+        String replacement = DOCS_GRADLE_ORG + GradleVersion.current().getVersion() + "/";
+        String expectedMessage = message.replace(PATTERN, replacement);
         if (message.equals(expectedMessage)) {
-            throw new IllegalArgumentException("Message must reference '" + pattern + "'.");
+            throw new IllegalArgumentException("Message must reference '" + PATTERN + "'.");
         }
         return expectedMessage;
     }

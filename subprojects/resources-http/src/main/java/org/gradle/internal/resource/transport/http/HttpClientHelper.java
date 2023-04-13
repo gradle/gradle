@@ -117,20 +117,20 @@ public class HttpClientHelper implements Closeable {
     }
 
     private Exception createCause(IOException e) {
-        Exception cause = e;
-        if (e instanceof SSLHandshakeException) {
-            SSLHandshakeException sslException = (SSLHandshakeException) e;
-            String message = String.format(
-                "%s support the client's requested TLS protocol versions: (%s). " +
-                    "You may need to configure the client to allow other protocols to be used. " +
-                    "See: %s",
-                getConfidenceNote(sslException),
-                String.join(", ", HttpClientConfigurer.supportedTlsVersions()),
-                documentationRegistry.getDocumentationFor("build_environment", "sec:gradle_system_properties")
-            );
-            return new HttpRequestException(message, cause);
+        if (!(e instanceof SSLHandshakeException)) {
+            return e;
         }
-        return cause;
+
+        SSLHandshakeException sslException = (SSLHandshakeException) e;
+        String message = String.format(
+            "The server %s not support the client's requested TLS protocol versions: (%s). " +
+                "You may need to configure the client to allow other protocols to be used. " +
+                "See: %s",
+            getConfidenceNote(sslException),
+            String.join(", ", HttpClientConfigurer.supportedTlsVersions()),
+            documentationRegistry.getDocumentationFor("build_environment", "sec:gradle_system_properties")
+        );
+        return new HttpRequestException(message, e);
     }
 
     @Nonnull
@@ -138,11 +138,11 @@ public class HttpClientHelper implements Closeable {
         final String confidence;
         if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
             // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
-            return "The server does not";
+            return "does";
         }
         // Sometimes the SSLHandshakeException doesn't include the 'protocol_version', even though this is the cause of the error.
         // Tell the user this but with less confidence.
-        return "The server may not";
+        return "may";
     }
 
     protected HttpClientResponse executeGetOrHead(HttpRequestBase method) throws IOException {
