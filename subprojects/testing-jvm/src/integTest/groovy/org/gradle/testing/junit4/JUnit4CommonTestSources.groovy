@@ -31,5 +31,25 @@ trait JUnit4CommonTestSources {
                 import static org.junit.Assert.*;
             """.stripIndent()
         }
+
+        @Override
+        String getBeforeClassAnnotation() {
+            return "@BeforeClass"
+        }
+
+        @Override
+        String getAfterClassAnnotation() {
+            return "@AfterClass"
+        }
+
+        @Override
+        String getBeforeTestAnnotation() {
+            return "@Before"
+        }
+
+        @Override
+        String getAfterTestAnnotation() {
+            return "@After"
+        }
     }
 }
