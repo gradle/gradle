@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
@@ -191,8 +192,10 @@ class CachingModuleComponentRepositoryTest extends Specification {
             isMustCheck() >> mustRefreshChangingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata) {
-                isChanging() >> true
+            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState) {
+                getMetadata() >> Stub(ModuleComponentResolveMetadata) {
+                    isChanging() >> true
+                }
             }
             getAge() >> Duration.ofMillis(100)
         }
@@ -221,7 +224,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
             isMustCheck() >> mustRefreshModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata)
+            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState)
             getAge() >> Duration.ofMillis(100)
         }
 

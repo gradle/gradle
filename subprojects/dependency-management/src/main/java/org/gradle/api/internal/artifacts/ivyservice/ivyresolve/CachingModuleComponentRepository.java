@@ -154,7 +154,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
+            // First try to determine the versions in-memory: don't use the cache in this case
             delegate.getLocalAccess().listModuleVersions(dependency, result);
             if (result.hasResult()) {
                 return;
@@ -188,7 +188,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
-            // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
+            // First try to determine the metadata in-memory: don't use the cache in this case
             DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
             delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, localResult);
             if (localResult.hasResult()) {
@@ -215,8 +215,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 result.setAuthoritative(cachedMetadata.getAge().toMillis() == 0);
                 return;
             }
-            ModuleComponentResolveMetadata metadata = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
-            if (requestMetaData.isChanging() || metadata.isChanging()) {
+            ModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
+            if (requestMetaData.isChanging() || state.getMetadata().isChanging()) {
                 Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge());
                 if (expiry.isMustCheck()) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
@@ -232,25 +232,25 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
 
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
-            result.resolved(new DefaultModuleComponentGraphResolveState(metadata));
+            result.resolved(state);
             // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
             result.setAuthoritative(cachedMetadata.getAge().toMillis() == 0);
         }
 
-        private ModuleComponentResolveMetadata getProcessedMetadata(int key, ModuleMetadataCache.CachedMetadata cachedMetadata) {
-            ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata(key);
-            if (metadata == null) {
-                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
+        private ModuleComponentGraphResolveState getProcessedMetadata(int key, ModuleMetadataCache.CachedMetadata cachedMetadata) {
+            ModuleComponentGraphResolveState state = cachedMetadata.getProcessedMetadata(key);
+            if (state == null) {
+                ModuleComponentResolveMetadata metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
                 metadata = attachRepositorySource(metadata);
+                state = new DefaultModuleComponentGraphResolveState(metadata);
                 // Save the processed metadata for next time.
-                cachedMetadata.putProcessedMetadata(key, metadata);
+                cachedMetadata.putProcessedMetadata(key, state);
             }
-            return metadata;
+            return state;
         }
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
             delegate.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
             if (result.hasResult()) {
@@ -279,7 +279,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
-            // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
+            // First try to resolve the artifact in-memory (e.g using the metadata): don't use the cache in this case
             delegate.getLocalAccess().resolveArtifact(artifact, moduleSources, result);
             if (result.hasResult()) {
                 return;
@@ -300,8 +300,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 }
                 return MetadataFetchingCost.CHEAP;
             }
-            ModuleComponentResolveMetadata metaData = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
-            if (metaData.isChanging()) {
+            ModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
+            if (state.getMetadata().isChanging()) {
                 if (cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {
                     return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
@@ -409,8 +409,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                         Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), Duration.ZERO);
                         listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
                     }
-                    cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), processedMetadata);
-                    result.resolved(new DefaultModuleComponentGraphResolveState(processedMetadata));
+                    DefaultModuleComponentGraphResolveState state = new DefaultModuleComponentGraphResolveState(processedMetadata);
+                    cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), state);
+                    result.resolved(state);
                     break;
                 case Failed:
                     localResult.applyTo(result, metadata -> {

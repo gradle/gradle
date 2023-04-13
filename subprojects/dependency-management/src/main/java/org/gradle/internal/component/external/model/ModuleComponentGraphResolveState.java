@@ -19,6 +19,9 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 
+/**
+ * <p>Instances of this type are cached and reused for multiple graph resolutions, possibly in parallel. This means that the implementation must be thread-safe.
+ */
 public interface ModuleComponentGraphResolveState extends ComponentGraphResolveState {
     @Override
     ModuleComponentIdentifier getId();
