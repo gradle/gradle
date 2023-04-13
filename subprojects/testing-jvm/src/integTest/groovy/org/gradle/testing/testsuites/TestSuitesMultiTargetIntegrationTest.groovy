@@ -19,8 +19,21 @@ package org.gradle.testing.testsuites
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+
+import static org.junit.Assume.assumeNotNull
 
 class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
+    String jdkVersion
+
+    def setup() {
+        jdkVersion = AvailableJavaHomes.getAvailableJdk {
+            // Include anything that isn't Java 8, and will still run Java 8 classes
+            it.languageVersion.isJava9Compatible()
+        }?.javaVersion?.majorVersion
+        assumeNotNull(jdkVersion)
+    }
+
     def "multiple targets can be used"() {
         buildFile << """
             plugins {
@@ -43,10 +56,10 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
                                     }
                                 }
                             }
-                            test17 {
+                            test$jdkVersion {
                                 testTask.configure {
                                     javaLauncher = javaToolchains.launcherFor {
-                                        languageVersion = JavaLanguageVersion.of(17)
+                                        languageVersion = JavaLanguageVersion.of($jdkVersion)
                                     }
                                 }
                             }
@@ -61,7 +74,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskExecuted(":test")
-        result.assertTaskExecuted(":test17")
+        result.assertTaskExecuted(":test$jdkVersion")
     }
 
     // currently not supported, namespacing issues
@@ -111,10 +124,10 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
                     test {
                         useJUnit()
                         targets {
-                            test17 {
+                            test$jdkVersion {
                                 testTask.configure {
                                     javaLauncher = javaToolchains.launcherFor {
-                                        languageVersion = JavaLanguageVersion.of(17)
+                                        languageVersion = JavaLanguageVersion.of($jdkVersion)
                                     }
                                 }
                             }
@@ -145,10 +158,10 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
                     test {
                         useJUnit()
                         targets {
-                            test17 {
+                            test$jdkVersion {
                                 testTask.configure {
                                     javaLauncher = javaToolchains.launcherFor {
-                                        languageVersion = JavaLanguageVersion.of(17)
+                                        languageVersion = JavaLanguageVersion.of($jdkVersion)
                                     }
                                 }
                             }
@@ -161,8 +174,8 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
                 testResultsElementsForTest.attributes {
                     attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
                 }
-                testResultsElementsForTest17.attributes {
-                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
+                testResultsElementsForTest${jdkVersion}.attributes {
+                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $jdkVersion)
                 }
             }
         """
