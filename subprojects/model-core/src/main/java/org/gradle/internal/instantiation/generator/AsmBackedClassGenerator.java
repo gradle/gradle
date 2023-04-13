@@ -988,7 +988,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final Type fieldType,
             final BytecodeFragment initializer
         ) {
-            addLazyGetter(methodName, returnType, methodDescriptor, signature, fieldName, fieldType, initializer, MethodVisitorScope::new);
+            addLazyGetter(methodName, returnType, methodDescriptor, signature, fieldName, fieldType, initializer, BytecodeFragment.NO_OP);
         }
 
         private void addLazyGetter(
