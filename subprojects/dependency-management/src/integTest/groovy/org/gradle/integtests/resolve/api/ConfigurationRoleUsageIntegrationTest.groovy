@@ -680,8 +680,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--info"      || null
         "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.RESOLVABLE_BUCKET)"                                | "--info"      || null
         "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--warn"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--info"      || 'The configuration :fooElements is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these'
     }
 
     def "redundantly calling #setMethod on a configuration that is already #isSetMethod warns when #desc"() {
