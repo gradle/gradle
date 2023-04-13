@@ -19,6 +19,16 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
+/**
+ * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
+ *
+ * https://developer.android.com/studio/releases/build-tools.html
+ * https://developer.android.com/studio/releases/gradle-plugin.html
+ * https://androidstudio.googleblog.com/
+ *
+ * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
+ * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
+ */
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = AGP_VERSIONS.latestStable
