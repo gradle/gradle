@@ -41,6 +41,7 @@ trait JUnitJupiterMultiVersionTest {
         }
 
         static String getDependencyVersion() {
+            assert MultiVersionIntegrationSpec.version.startsWith("Jupiter:")
             return MultiVersionIntegrationSpec.version.toString().substring("Jupiter:".length())
         }
 
