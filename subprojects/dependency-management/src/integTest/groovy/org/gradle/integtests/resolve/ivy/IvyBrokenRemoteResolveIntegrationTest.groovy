@@ -18,7 +18,15 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    public final static String REPOSITORY_HINT = repositoryHint("ivy.xml")
+
     @ToBeFixedForConfigurationCache
     void "reports and recovers from missing module"() {
         given:
@@ -46,7 +54,6 @@ task showMissing { doLast { println configurations.missing.files } }
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
 
@@ -60,9 +67,14 @@ Required by:
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
+        failure.assertHasResolutions(REPOSITORY_HINT,
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
+
 
         when:
         server.resetExpectations()
@@ -109,15 +121,18 @@ task showMissing { doLast { println configurations.missing.files } }
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
+        failure.assertHasResolutions(REPOSITORY_HINT,
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
 
         when:
         server.resetExpectations()
@@ -189,16 +204,19 @@ task showMissing { doLast { println configurations.compile.files } }
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project : > group:projectC:0.99
     project : > project :child1 > group:projectD:1.0GA""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project : > project :child1 > group:projectD:1.0GA""")
+        failure.assertHasResolutions(REPOSITORY_HINT,
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
 
         when:
         server.resetExpectations()
@@ -247,9 +265,13 @@ task showMissing { doLast { println configurations.missing.files } }
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
+        failure.assertHasResolutions(REPOSITORY_HINT,
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
 
         when:
         server.resetExpectations()

@@ -37,7 +37,7 @@ class ConcurrentDependencyResolutionIntegrationTest extends AbstractIntegrationS
         buildFile << '''
              def usage = Attribute.of('usage', String)
              allprojects {
-            
+
                 dependencies {
                     attributesSchema {
                         attribute(usage)
@@ -55,14 +55,15 @@ class ConcurrentDependencyResolutionIntegrationTest extends AbstractIntegrationS
                     }
                     'default'
                 }
-                
+
                 task resolve {
+                    def files = configurations.compile
                     doLast {
-                        configurations.compile.files
+                        files.files
                     }
                 }
             }
-           
+
         '''
         int groups = 20
         int iterations = 100

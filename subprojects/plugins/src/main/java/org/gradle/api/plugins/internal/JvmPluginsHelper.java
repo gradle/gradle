@@ -58,7 +58,7 @@ import static org.gradle.util.internal.TextUtil.camelToKebabCase;
  */
 public class JvmPluginsHelper {
 
-    /***
+    /**
      * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
      */
     @Deprecated
@@ -91,7 +91,7 @@ public class JvmPluginsHelper {
         options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
     }
 
-    /***
+    /**
      * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
      */
     @Deprecated

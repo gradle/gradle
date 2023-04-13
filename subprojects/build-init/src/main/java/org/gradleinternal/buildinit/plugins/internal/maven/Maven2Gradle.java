@@ -245,7 +245,7 @@ public class Maven2Gradle {
     private Set<MavenProject> modules(Set<MavenProject> projects, boolean incReactors) {
         return projects.stream().filter(project -> {
             Optional<MavenProject> parentIsPartOfThisBuild = projects.stream().filter(proj ->
-                project.getParent() != null && proj.getArtifactId().equals(project.getParent().getArtifactId()) && proj.getGroupId().equals(project.getParent().getGroupId())
+                project.getParent() == null || (project.getParent() != null && proj.getArtifactId().equals(project.getParent().getArtifactId()) && proj.getGroupId().equals(project.getParent().getGroupId()))
             ).findFirst();
             return parentIsPartOfThisBuild.isPresent() && (incReactors || !"pom".equals(project.getPackaging()));
         }).collect(Collectors.toSet());

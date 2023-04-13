@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -39,7 +39,7 @@ import java.io.File;
  *
  * Transforms a subject by invoking a transformer on each of the subjects files.
  */
-public class TransformationStep implements Transformation, TaskDependencyContainer {
+public class TransformationStep implements TaskDependencyContainer, Describable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
 
     private final Transformer transformer;
@@ -61,16 +61,6 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     @Nullable
     public ProjectInternal getOwningProject() {
         return owningProject;
-    }
-
-    @Override
-    public boolean endsWith(Transformation otherTransform) {
-        return this == otherTransform;
-    }
-
-    @Override
-    public int stepsCount() {
-        return 1;
     }
 
     public Deferrable<Try<TransformationSubject>> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
@@ -118,7 +108,6 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         transformer.isolateParametersIfNotAlready();
     }
 
-    @Override
     public boolean requiresDependencies() {
         return transformer.requiresDependencies();
     }
@@ -126,11 +115,6 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     @Override
     public String getDisplayName() {
         return transformer.getDisplayName();
-    }
-
-    @Override
-    public void visitTransformationSteps(Action<? super TransformationStep> action) {
-        action.execute(this);
     }
 
     public ImmutableAttributes getFromAttributes() {

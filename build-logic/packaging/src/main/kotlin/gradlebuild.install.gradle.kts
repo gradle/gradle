@@ -36,13 +36,20 @@ tasks.register<Sync>("installAll") {
 }
 
 fun validateInstallDir(installDir: Directory) = installDir.also { dir ->
-    if (dir.asFile.isFile) {
-        throw RuntimeException("Install directory $dir does not look like a Gradle installation. Cannot delete it to install.")
+    val dirFile = dir.asFile
+    if (dirFile.isFile) {
+        throw RuntimeException("Install directory $dir is not valid: it is actually a file")
     }
-    if (dir.asFile.isDirectory) {
-        val libDir = dir.asFile.resolve("lib")
-        if (libDir.list()?.none { it.matches(Regex("gradle.*\\.jar")) } == true) {
-            throw RuntimeException("Install directory $dir does not look like a Gradle installation. Cannot delete it to install.")
+    if (dirFile.list()?.isEmpty() != false) {
+        return@also
+    }
+    val binDirFiles = dirFile.resolve("bin").list()
+    if (binDirFiles != null && binDirFiles.isNotEmpty() && binDirFiles.all { it.matches(Regex("^gradle.*")) }) {
+        val libDir = dirFile.resolve("lib")
+        if (libDir.list()?.any { it.matches(Regex("^gradle.*\\.jar")) } == true) {
+            return@also
         }
     }
+
+    throw RuntimeException("Install directory $dir does not look like a Gradle installation. Cannot delete it to install.")
 }

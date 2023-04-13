@@ -19,11 +19,14 @@ package org.gradle.internal.instrumentation.processor.modelreader.impl;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
+import org.gradle.internal.instrumentation.api.annotations.InterceptInherited;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableInfoImpl;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
+import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfoImpl;
@@ -85,9 +88,11 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
 
     private static CallableInfo extractCallableInfo(ExecutableElement methodElement) {
         CallableKindInfo kindInfo = extractCallableKind(methodElement);
-        Type owner = extractOwnerClass(methodElement);
+        Type ownerType = extractOwnerClass(methodElement);
+        boolean interceptInherited = isInterceptInherited(methodElement);
+        CallableOwnerInfo owner = new CallableOwnerInfo(ownerType, interceptInherited);
         String callableName = getCallableName(methodElement, kindInfo);
-        Type returnType = extractReturnType(methodElement);
+        CallableReturnTypeInfo returnType = new CallableReturnTypeInfo(extractReturnType(methodElement));
         List<ParameterInfo> parameterInfos = extractParameters(methodElement);
         return new CallableInfoImpl(kindInfo, owner, callableName, returnType, parameterInfos);
     }
@@ -153,6 +158,10 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         } else {
             return CallableKindInfo.fromAnnotation(kindAnnotations.get(0));
         }
+    }
+
+    private static boolean isInterceptInherited(ExecutableElement methodElement) {
+        return methodElement.getAnnotation(InterceptInherited.class) != null;
     }
 
     private static List<ParameterInfo> extractParameters(ExecutableElement methodElement) {

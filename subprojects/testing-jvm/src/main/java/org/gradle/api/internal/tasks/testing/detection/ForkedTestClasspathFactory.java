@@ -30,6 +30,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Closeable;
@@ -122,13 +123,11 @@ public class ForkedTestClasspathFactory {
         AdditionalClasspath additional,
         boolean isModule
     ) {
-        // TODO #13955: Enable this deprecation in 8.2
-        // We don't have enough time in 8.1 to write the documentation and update our own tests.
-//        DeprecationLogger.deprecateIndirectUsage("The automatic loading of test framework implementation dependencies")
-//            .withAdvice("Declare the desired test framework directly on the test suite or explicitly declare the test framework implementation dependencies on the test's runtime classpath.")
-//            .willBeRemovedInGradle9()
-//            .withUpgradeGuideSection(8, "test_framework_implementation_dependencies")
-//            .nagUser();
+        DeprecationLogger.deprecateIndirectUsage("The automatic loading of test framework implementation dependencies")
+            .withAdvice("Declare the desired test framework directly on the test suite or explicitly declare the test framework implementation dependencies on the test's runtime classpath.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "test_framework_implementation_dependencies")
+            .nagUser();
 
         if (isModule) {
             return new ForkedTestClasspath(
@@ -203,8 +202,8 @@ public class ForkedTestClasspathFactory {
      */
     private ImmutableList<File> pathWithAdditionalModules(Iterable<? extends File> testFiles, List<TestFrameworkDistributionModule> additionalModules) {
         return ImmutableList.<File>builder()
-            .addAll(loadDistributionFiles(additionalModules))
             .addAll(testFiles)
+            .addAll(loadDistributionFiles(additionalModules))
             .build();
     }
 

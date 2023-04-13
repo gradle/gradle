@@ -20,6 +20,11 @@ import org.gradle.util.GradleVersion
 
 class BaseDeprecations {
 
+    public static final String ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION = "The AbstractArchiveTask.archivePath property has been deprecated. " +
+        "This is scheduled to be removed in Gradle 9.0. " +
+        "Please use the archiveFile property instead. " +
+        "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archivePath for more details."
+
     public static final String WORKER_SUBMIT_DEPRECATION = "The WorkerExecutor.submit() method has been deprecated. This is scheduled to be removed in Gradle 8.0. " +
         "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
         "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
@@ -38,6 +43,16 @@ class BaseDeprecations {
         "This is scheduled to be removed in Gradle 8.0. " +
         "Please use the mainClass property instead. Consult the upgrading guide for further information: " +
         "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#java_exec_properties"
+
+    public static final String APPLICATION_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.ApplicationPluginConvention type has been deprecated. " +
+        "This is scheduled to be removed in Gradle 9.0. " +
+        "Consult the upgrading guide for further information: " +
+        "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#application_convention_deprecation"
+
+    public static final String JAVA_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.internal.DefaultJavaPluginConvention type has been deprecated. " +
+        "This is scheduled to be removed in Gradle 9.0. " +
+        "Consult the upgrading guide for further information: " +
+        "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_convention_deprecation"
 
     final SmokeTestGradleRunner runner
 

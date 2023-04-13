@@ -35,14 +35,14 @@ trait VariantAwareDependencyResolutionTestFixture extends TasksWithInputsAndOutp
                     resolver {
                         attributes.attribute(color, 'blue')
                         extendsFrom implementation
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                     }
                     outgoing {
                         attributes.attribute(color, 'blue')
                         extendsFrom implementation
                         canBeResolved = false
-                        canBeConsumed = true
+                        assert canBeConsumed
                     }
                 }
             }

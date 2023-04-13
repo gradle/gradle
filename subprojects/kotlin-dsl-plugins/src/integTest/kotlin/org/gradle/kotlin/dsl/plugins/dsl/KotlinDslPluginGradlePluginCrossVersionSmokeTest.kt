@@ -110,9 +110,11 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
             )
-        }
-
-        if (VersionNumber.parse(kotlinVersion) < VersionNumber.parse("1.7.22")) {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.internal.DefaultJavaPluginConvention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
             executer.expectDocumentedDeprecationWarning(
                 "The Project.getConvention() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +

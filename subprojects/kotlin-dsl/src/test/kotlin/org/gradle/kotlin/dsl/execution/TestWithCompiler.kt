@@ -75,6 +75,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
         ResidualProgramCompiler(
             outputDir,
             JavaVersion.current(),
+            false,
             testRuntimeClassPath,
             sourceHash,
             programKind,

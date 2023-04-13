@@ -401,7 +401,7 @@
   {
     "dirName": "internal-instrumentation-processor",
     "name": "internal-instrumentation-processor",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -486,7 +486,7 @@
     "dirName": "kotlin-dsl-tooling-builders",
     "name": "kotlin-dsl-tooling-builders",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": true
   },
   {

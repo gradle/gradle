@@ -54,7 +54,7 @@ class LocationListInstallationSupplierTest extends Specification {
 
         then:
         directories*.location == [new File("/foo/bar")]
-        directories*.source == ["system property 'org.gradle.java.installations.paths'"]
+        directories*.source == ["Gradle property 'org.gradle.java.installations.paths'"]
     }
 
     def "supplies multiple installations for multiple paths"() {

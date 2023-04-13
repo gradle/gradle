@@ -258,7 +258,7 @@ Here is the output of the `outgoingVariants` task on a freshly generated `java-l
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - new-java-library:lib:unspecified (default capability)
@@ -305,7 +305,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - new-java-library:lib:unspecified (default capability)

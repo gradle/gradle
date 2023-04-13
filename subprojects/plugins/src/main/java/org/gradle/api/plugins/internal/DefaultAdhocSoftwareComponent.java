@@ -73,6 +73,10 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
         return builder.build();
     }
 
+    protected boolean isRegisteredAsLegacyVariant(Configuration outgoingConfiguration) {
+        return variants.containsKey(outgoingConfiguration);
+    }
+
     @Override
     public void finalizeValue() {
         finalized = true;

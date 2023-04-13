@@ -69,9 +69,14 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
         } else {
             functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
 
-            BuildScriptBuilder.Expression functionalTestConfiguration = buildScriptBuilder.containerElementExpression("configurations", "functionalTestImplementation");
-            BuildScriptBuilder.Expression testConfiguration = buildScriptBuilder.containerElementExpression("configurations", "testImplementation");
-            buildScriptBuilder.methodInvocation(null, functionalTestConfiguration, "extendsFrom", testConfiguration);
+            BuildScriptBuilder.Expression functionalTestImplementation = buildScriptBuilder.containerElementExpression("configurations", "functionalTestImplementation");
+            BuildScriptBuilder.Expression testImplementation = buildScriptBuilder.containerElementExpression("configurations", "testImplementation");
+            buildScriptBuilder.methodInvocation(null, functionalTestImplementation, "extendsFrom", testImplementation);
+
+            BuildScriptBuilder.Expression functionalTestRuntimeOnly = buildScriptBuilder.containerElementExpression("configurations", "functionalTestRuntimeOnly");
+            BuildScriptBuilder.Expression testRuntimeOnly = buildScriptBuilder.containerElementExpression("configurations", "testRuntimeOnly");
+            buildScriptBuilder.methodInvocation(null, functionalTestRuntimeOnly, "extendsFrom", testRuntimeOnly);
+
             BuildScriptBuilder.Expression functionalTest = buildScriptBuilder.taskRegistration("Add a task to run the functional tests", "functionalTest", "Test", b -> {
                 b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"), true);
                 b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);

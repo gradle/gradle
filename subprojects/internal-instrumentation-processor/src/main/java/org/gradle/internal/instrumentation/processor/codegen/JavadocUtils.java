@@ -42,7 +42,7 @@ public class JavadocUtils {
     public static CodeBlock interceptedCallableLink(CallInterceptionRequest request) {
         CodeBlock.Builder result = CodeBlock.builder();
         CallableInfo interceptedCallable = request.getInterceptedCallable();
-        ClassName className = ClassName.bestGuess(interceptedCallable.getOwner().getClassName());
+        ClassName className = ClassName.bestGuess(interceptedCallable.getOwner().getType().getClassName());
         String callableNameForDocComment = interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? className.simpleName() : interceptedCallable.getCallableName();
         List<ParameterInfo> params = request.getInterceptedCallable().getParameters();
         List<ParameterInfo> methodParameters = params.stream().filter(parameter -> parameter.getKind().isSourceParameter()).collect(Collectors.toList());

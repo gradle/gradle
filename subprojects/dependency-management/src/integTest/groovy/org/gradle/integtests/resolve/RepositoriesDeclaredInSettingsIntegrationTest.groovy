@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.util.GradleVersion
@@ -25,6 +26,12 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
@@ -515,6 +522,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses dependency resolution API")
     def "mutation of settings repositories after settings have been evaluated is disallowed"() {
 
         buildFile << """
@@ -757,10 +765,15 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Could not resolve all dependencies for configuration ':conf'.
-The project declares repositories, effectively ignoring the repositories you have declared in the settings.
-You can figure out how project repositories are declared by configuring your build to fail on project repositories.
-See https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories for details.""")
+        failure.assertHasCause("""Could not resolve all dependencies for configuration ':conf'.""")
+            .assertHasResolutions("""The project declares repositories, effectively ignoring the repositories you have declared in the settings.
+   You can figure out how project repositories are declared by configuring your build to fail on project repositories.
+   See https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories for details.""",
+                repositoryHint("Maven POM"),
+                STACKTRACE_MESSAGE,
+                INFO_DEBUG,
+                SCAN,
+                GET_HELP)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15772")

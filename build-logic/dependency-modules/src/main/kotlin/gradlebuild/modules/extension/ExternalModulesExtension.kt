@@ -22,7 +22,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.15"
     val configurationCacheReportVersion = "1.2"
-    val kotlinVersion = "1.8.10"
+    val kotlinVersion = "1.8.20"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -77,6 +77,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val groovyXml = "$groovyGroup:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
+    val h2Database = "com.h2database:h2"
     val hamcrest = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
@@ -145,6 +146,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val bytebuddy = "net.bytebuddy:byte-buddy"
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
+    val compileTesting = "com.google.testing.compile:compile-testing"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"
@@ -204,6 +206,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         commonsLang to License.Apache2,
         commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
+        compileTesting to License.Apache2,
         configurationCacheReport to License.Apache2,
         fastutil to License.Apache2,
         gcs to License.Apache2,
@@ -216,6 +219,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         groovy to License.Apache2,
         gson to License.Apache2,
         guava to License.Apache2,
+        h2Database to License.EPL,
         hamcrest to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,

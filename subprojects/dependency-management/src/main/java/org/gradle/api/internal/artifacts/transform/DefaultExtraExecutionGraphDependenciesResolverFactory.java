@@ -46,8 +46,8 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     }
 
     @Override
-    public TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation) {
-        if (!transformation.requiresDependencies()) {
+    public TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, TransformationChain transformationChain) {
+        if (!transformationChain.requiresDependencies()) {
             return NO_DEPENDENCIES_RESOLVER;
         }
         return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, configurationIdentity, resolutionResultProvider, owner, filteredResultFactory, calculatedValueContainerFactory);
