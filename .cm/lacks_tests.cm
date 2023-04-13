@@ -37,7 +37,7 @@ automations:
 
 includes_src_changes: {{ files | match(regex=r/.*\/src\//) | some }}
 includes_test_changes: {{ files | match(regex=r/.*\/(test|integTest|crossVersionTest|docsTest|smokeTest)\//) | some }}
-is_docs_only_change: {{ files | allDocs }}
+is_docs_only_change: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | every) }} # This won't catch a mix of .adoc and non .adoc changes, see: https://github.com/linear-b/gitstream/issues/93
 is_formatting_only_change: {{ source.diff.files | isFormattingChange }}
 
 author:

@@ -58,6 +58,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
 
         component.getId() >> componentId
         component.getConfigurationNames() >> ["config"]
+        configuration.isCanBeDeclaredAgainst() >> true
         configuration.name >> "config"
         configuration.extendsFrom >> []
         configuration.hierarchy >> [configuration]
