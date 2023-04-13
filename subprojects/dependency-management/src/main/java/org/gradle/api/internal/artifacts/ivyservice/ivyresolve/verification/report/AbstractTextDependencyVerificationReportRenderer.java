@@ -50,7 +50,7 @@ abstract class AbstractTextDependencyVerificationReportRenderer implements Depen
         }
         if (highLevelErrors.canSuggestWriteMetadata()) {
             // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
-            legend("If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at " + documentationRegistry.getDocumentationFor("dependency_verification", "sec:troubleshooting-verification"));
+            legend("If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. " +  documentationRegistry.getDocumentationRecommendationFor("on how to do this", "dependency_verification", "sec:troubleshooting-verification"));
         }
     }
 

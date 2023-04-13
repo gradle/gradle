@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static java.lang.String.join;
 import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIONS;
 
 /**
@@ -125,17 +126,16 @@ public class HttpClientHelper implements Closeable {
         String message = String.format(
             "The server %s not support the client's requested TLS protocol versions: (%s). " +
                 "You may need to configure the client to allow other protocols to be used. " +
-                "See: %s",
+                "%s",
             getConfidenceNote(sslException),
-            String.join(", ", HttpClientConfigurer.supportedTlsVersions()),
-            documentationRegistry.getDocumentationFor("build_environment", "sec:gradle_system_properties")
+            join(", ", HttpClientConfigurer.supportedTlsVersions()),
+            documentationRegistry.getDocumentationRecommendationFor("on this", "build_environment", "sec:gradle_system_properties")
         );
         return new HttpRequestException(message, e);
     }
 
     @Nonnull
     private static String getConfidenceNote(SSLHandshakeException sslException) {
-        final String confidence;
         if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
             // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
             return "does";

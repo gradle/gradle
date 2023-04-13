@@ -52,6 +52,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
+
 /**
  * Resolution state for a given module version selector.
  *
@@ -413,7 +415,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         public String getDisplayName() {
             boolean hasCustomDescription = descriptor.hasCustomDescription();
             StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
-            sb.append(rejectedVersions.size() > 1 ? "didn't match versions " : "didn't match version ");
+            sb.append("didn't match version").append(getPluralEnding(rejectedVersions)).append(" ");
             Joiner.on(", ").appendTo(sb, rejectedVersions);
             if (hasCustomDescription) {
                 sb.append(" because ").append(descriptor.getDescription());
@@ -471,7 +473,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         public String getDisplayName() {
             boolean hasCustomDescription = descriptor.hasCustomDescription();
             StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
-            sb.append(rejectedVersions.size() > 1 ? "rejected versions " : "rejected version ");
+            sb.append("rejected version").append(getPluralEnding(rejectedVersions)).append(" ");
             Joiner.on(", ").appendTo(sb, rejectedVersions);
             if (hasCustomDescription) {
                 sb.append(" because ").append(descriptor.getDescription());

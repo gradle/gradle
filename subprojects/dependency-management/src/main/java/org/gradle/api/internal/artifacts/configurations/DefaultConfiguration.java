@@ -2553,4 +2553,59 @@ since users cannot create non-legacy configurations and there is no current publ
                     .collect(Collectors.joining(", "));
         }
     }
+
+    /**
+     * A custom configuration role that is used to copy a configuration.
+     *
+     * We allow copied configurations to assume any role. However, any roles which were previously disabled will become
+     * deprecated in the copied configuration.
+     *
+     * See the notes on {@link DefaultConfiguration#createCopy(Set, Set)}.
+     */
+    private final static class CopiedConfigurationRole implements ConfigurationRole {
+        private final boolean deprecateConsumption;
+        private final boolean deprecateResolution;
+        private final boolean deprecateDeclarationAgainst;
+
+        public CopiedConfigurationRole(boolean deprecateConsumption, boolean deprecateResolution, boolean deprecateDeclarationAgainst) {
+            this.deprecateConsumption = deprecateConsumption;
+            this.deprecateResolution = deprecateResolution;
+            this.deprecateDeclarationAgainst = deprecateDeclarationAgainst;
+        }
+
+        @Override
+        public String getName() {
+            return "adjusted current usage with deprecations";
+        }
+
+        @Override
+        public boolean isConsumable() {
+            return true;
+        }
+
+        @Override
+        public boolean isResolvable() {
+            return true;
+        }
+
+        @Override
+        public boolean isDeclarableAgainst() {
+            return true;
+        }
+
+        @Override
+        public boolean isConsumptionDeprecated() {
+            return deprecateConsumption;
+        }
+
+        @Override
+        public boolean isResolutionDeprecated() {
+            return deprecateResolution;
+        }
+
+        @Override
+        public boolean isDeclarationAgainstDeprecated() {
+            return deprecateDeclarationAgainst;
+            }
+    }
 }
