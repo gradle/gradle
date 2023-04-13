@@ -118,7 +118,7 @@ base {
 ====
 
 [[application_convention_deprecation]]
-==== Deprecated `application` plugin convensions
+==== Deprecated `application` plugin conventions
 
 The convention properties contributed by the `application` plugin have been deprecated and scheduled for removal in Gradle 9.0.
 For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
