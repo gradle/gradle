@@ -23,12 +23,13 @@ automations:
       - {{ author.on_jvm_team }}
       - {{ includes_src_changes }}
       - {{ not (includes_test_changes) }}
-      - {{ not (is_formatting_only_change) }} # Not only formatting-only changes
+      - {{ not (is_docs_only_change) }}
+      - {{ not (is_formatting_only_change) }}
     run:
       - action: add-comment@v1
         args:
           comment: |
-            'This PR appears to be lacking tests.  Consider adding tests to cover the new functionality.'
+            This PR appears to be lacking tests.  Consider adding tests to cover the new functionality.
 
 # To simplify the automations section, some calculations are placed under unique YAML keys defined here.
 # Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
@@ -36,6 +37,7 @@ automations:
 
 includes_src_changes: {{ files | match(regex=r/.*\/src\//) | some }}
 includes_test_changes: {{ files | match(regex=r/.*\/(test|integTest|crossVersionTest|docsTest|smokeTest)\//) | some }}
+is_docs_only_change: {{ files | allDocs }}
 is_formatting_only_change: {{ source.diff.files | isFormattingChange }}
 
 author:
