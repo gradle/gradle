@@ -40,6 +40,10 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Updates to default tool integration versions
+
+- The JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to https://github.com/jacoco/jacoco/releases/tag/v0.8.9[0.8.9].
+
 ==== Kotlin DSL scripts emit compilation warnings
 
 === Deprecations
