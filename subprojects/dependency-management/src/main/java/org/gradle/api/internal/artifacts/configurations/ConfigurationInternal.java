@@ -59,11 +59,6 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     void removeMutationValidator(MutationValidator validator);
 
     /**
-     * Converts this configuration to an {@link OutgoingVariant} view. The view may not necessarily be immutable.
-     */
-    OutgoingVariant convertToOutgoingVariant();
-
-    /**
      * Visits the variants of this configuration.
      */
     void collectVariants(VariantVisitor visitor);
@@ -91,6 +86,10 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      */
     Set<ExcludeRule> getAllExcludeRules();
 
+    /**
+     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
 
@@ -116,6 +115,17 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      * Returns the role used to create this configuration and set its initial allowed usage.
      */
     ConfigurationRole getRoleAtCreation();
+
+    /**
+     * Check if a configuration has any dependencies declared against it, without triggering
+     * the improper usage checks on {@link #getDependencies()}.
+     *
+     * This method is meant to double-check that calling this method would return an empty collection,
+     * and thus skipping that call is safe.  It will be unnecessary once configuration usage is locked
+     * upon creation, as the {@link #isCanBeDeclaredAgainst()} check will be sufficient then.
+     */
+    @Deprecated
+    void assertHasNoDeclarations();
 
     /**
      * Test if the given configuration can either be declared against or extends another
