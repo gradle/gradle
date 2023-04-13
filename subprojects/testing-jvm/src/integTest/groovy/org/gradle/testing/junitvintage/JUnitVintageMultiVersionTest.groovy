@@ -39,6 +39,7 @@ trait JUnitVintageMultiVersionTest {
         }
 
         static String getDependencyVersion() {
+            assert MultiVersionIntegrationSpec.version.startsWith("Vintage:")
             return MultiVersionIntegrationSpec.version.toString().substring("Vintage:".length())
         }
 
