@@ -38,11 +38,11 @@ class RoleCheckerSpec extends Specification {
         where: // These are just a sample, not all possibilities
         role                                                                                || consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
         ConfigurationRoles.LEGACY                                                           || true        | true          | true              | false                 | false                 | false
-        ConfigurationRoles.INTENDED_CONSUMABLE                                              || true        | false         | false             | false                 | false                 | false
-        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET                                       || false       | true          | true              | false                 | false                 | false
-        ConfigurationRolesForMigration.LEGACY_TO_INTENDED_RESOLVABLE_BUCKET                 || true        | true          | true              | true                  | false                 | false
-        ConfigurationRolesForMigration.LEGACY_TO_INTENDED_CONSUMABLE                        || true        | true          | true              | false                 | true                  | true
-        ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE    || false       | true          | true              | false                 | false                 | true
+        ConfigurationRoles.CONSUMABLE                                              || true        | false         | false             | false                 | false                 | false
+        ConfigurationRoles.RESOLVABLE_BUCKET                                       || false       | true          | true              | false                 | false                 | false
+        ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET                 || true        | true          | true              | true                  | false                 | false
+        ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE                        || true        | true          | true              | false                 | true                  | true
+        ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE    || false       | true          | true              | false                 | false                 | true
     }
 
     def "can detect if usage is not consistent with role"() {
@@ -61,11 +61,11 @@ class RoleCheckerSpec extends Specification {
         where: // These are just a sample, not all possibilities
         role                                                                                || consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
         ConfigurationRoles.LEGACY                                                           || false       | true          | true              | false                 | false                 | false
-        ConfigurationRoles.INTENDED_CONSUMABLE                                              || true        | true          | false             | false                 | false                 | false
-        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET                                       || false       | true          | false             | false                 | false                 | false
-        ConfigurationRolesForMigration.LEGACY_TO_INTENDED_RESOLVABLE_BUCKET                 || true        | true          | true              | false                 | false                 | false
-        ConfigurationRolesForMigration.LEGACY_TO_INTENDED_CONSUMABLE                        || true        | true          | true              | false                 | false                 | true
-        ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE    || false       | true          | true              | false                 | false                 | false
+        ConfigurationRoles.CONSUMABLE                                              || true        | true          | false             | false                 | false                 | false
+        ConfigurationRoles.RESOLVABLE_BUCKET                                       || false       | true          | false             | false                 | false                 | false
+        ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET                 || true        | true          | true              | false                 | false                 | false
+        ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE                        || true        | true          | true              | false                 | false                 | true
+        ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE    || false       | true          | true              | false                 | false                 | false
     }
 
     def "can assert if usage is consistent with role"() {
