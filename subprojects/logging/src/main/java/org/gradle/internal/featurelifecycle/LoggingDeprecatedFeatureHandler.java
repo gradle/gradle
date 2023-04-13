@@ -108,10 +108,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     public void reportSuppressedDeprecations() {
         if (warningMode == WarningMode.Summary && deprecationsFound) {
-            LOGGER.warn("\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{} {}",
+            LOGGER.warn("\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{}",
                 WARNING_SUMMARY, DefaultGradleVersion.current().getNextMajorVersion().getVersion(),
                 LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(),
-                WARNING_LOGGING_DOCS_MESSAGE, DOCUMENTATION_REGISTRY.getDocumentationFor("command_line_interface", "sec:command_line_warnings"));
+                DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings"));
         }
     }
 

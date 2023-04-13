@@ -768,7 +768,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         failure.assertHasCause("""Could not resolve all dependencies for configuration ':conf'.""")
             .assertHasResolutions("""The project declares repositories, effectively ignoring the repositories you have declared in the settings.
    You can figure out how project repositories are declared by configuring your build to fail on project repositories.
-   See https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories for details.""",
+   For more information on this, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories in the Gradle documentation.""",
                 repositoryHint("Maven POM"),
                 STACKTRACE_MESSAGE,
                 INFO_DEBUG,

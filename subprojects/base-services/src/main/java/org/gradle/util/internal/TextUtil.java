@@ -361,4 +361,11 @@ public class TextUtil {
     public static String getPluralEnding(Collection<?> collection) {
         return collection.size() > 1 ? "s" : "";
     }
+
+    public static String maybeAppendDot(String txt) {
+        if (txt.endsWith(".") || txt.endsWith("\n")) {
+            return txt;
+        }
+        return txt + ".";
+    }
 }

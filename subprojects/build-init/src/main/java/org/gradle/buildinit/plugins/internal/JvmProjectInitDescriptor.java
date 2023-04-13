@@ -115,8 +115,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.")
-            .fileComment("For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on building Java & JVM projects", "building_java_projects"));
 
         addStandardDependencies(buildScriptBuilder, false);
 

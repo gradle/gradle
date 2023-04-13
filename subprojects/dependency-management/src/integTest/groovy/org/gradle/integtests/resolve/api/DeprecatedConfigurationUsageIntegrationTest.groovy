@@ -38,19 +38,19 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         failureCauseContains(message)
 
         where:
-        methodName                                      | role            | methodCall                                  || message
-        'resolve()'                                     | 'consumable'    | 'resolve()'                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'resolve()'                                     | 'bucket'        | 'resolve()'                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'files(Closure)'                                | 'consumable'    | 'files { }'                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'files(Closure)'                                | 'bucket'        | 'files { }'                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Closure)'                       | 'consumable'    | 'fileCollection { }'                        || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Closure)'                       | 'bucket'        | 'fileCollection { }'                        || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Dependency)'                    | 'consumable'    | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))'  || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Dependency)'                    | 'bucket'        | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))'  || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getResolvedConfiguration()'                    | 'consumable'    | 'getResolvedConfiguration()'               || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getResolvedConfiguration()'                    | 'bucket'        | 'getResolvedConfiguration()'               || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getBuildDependencies()'                        | 'consumable'    | 'getBuildDependencies()'                   || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getBuildDependencies()'                        | 'bucket'        | 'getBuildDependencies()'                   || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        methodName                   | role         | methodCall                                                                                                                           || message
+        'resolve()'                  | 'consumable' | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'resolve()'                  | 'bucket'     | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'             | 'consumable' | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'             | 'bucket'     | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Closure)'    | 'consumable' | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Closure)'    | 'bucket'     | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Dependency)' | 'consumable' | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Dependency)' | 'bucket'     | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getResolvedConfiguration()' | 'consumable' | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getResolvedConfiguration()' | 'bucket'     | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'     | 'consumable' | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'     | 'bucket'     | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
     }
 
     def "calling an invalid public API method #methodName for role #role produces a deprecation warning"() {
@@ -141,7 +141,9 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         expect:
         executer.expectDocumentedDeprecationWarning("""Calling configuration method 'attributes(Action)' is deprecated for configuration 'custom', which has permitted usage(s):
 \tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated.
+This behavior is scheduled to be removed in Gradle 9.0.
+Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         succeeds('help')
     }
 

@@ -174,6 +174,10 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         }
     }
 
+//    A new daemon was started but could not be connected to: pid=Mock for type 'DaemonConnectDetails', address= Mock for type 'Address' named 'dummy'. For more information, please refer to https://docs.gradle.org/8.2-20230416220000+0000/userguide/troubleshooting.html#network_connection in the Gradle documentation.
+//    A new daemon was started but could not be connected to: pid=Mock for type 'DaemonConnectDetails', address= Mock for type 'Address' named 'dummy'. For more information, please refer to https://docs.gradle.org/8.2-20230416220000+0000/userguide/troubleshooting.html#network_connection in the Gradle documentation.
+
+
     protected BuildActionResult executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
         Object result;
         try {

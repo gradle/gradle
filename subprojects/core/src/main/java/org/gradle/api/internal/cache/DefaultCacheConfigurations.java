@@ -49,7 +49,9 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private static final String SNAPSHOT_WRAPPERS = "snapshotWrappers";
     private static final String DOWNLOADED_RESOURCES = "downloadedResources";
     private static final String CREATED_RESOURCES = "createdResources";
-    static final String UNSAFE_MODIFICATION_ERROR = "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. See " + DOCUMENTATION_REGISTRY.getDocumentationFor("directory_layout", "dir:gradle_user_home:configure_cache_cleanup") + " for more information.";
+    static final String UNSAFE_MODIFICATION_ERROR = "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  " +
+        "This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. " +
+        DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information on this", "directory_layout", "dir:gradle_user_home:configure_cache_cleanup");
 
     private final CacheResourceConfigurationInternal releasedWrappersConfiguration;
     private final CacheResourceConfigurationInternal snapshotWrappersConfiguration;

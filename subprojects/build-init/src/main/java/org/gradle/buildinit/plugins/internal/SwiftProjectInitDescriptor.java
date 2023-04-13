@@ -46,8 +46,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample Swift project to get you started.")
-            .fileComment("For more details take a look at the Building Swift applications and libraries chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_swift_projects"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on building Swift applications and libraries", "building_swift_projects"));
         configureBuildScript(settings, buildScriptBuilder);
     }
 
