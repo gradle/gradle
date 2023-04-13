@@ -85,7 +85,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
         this.mainFeature = new DefaultJvmFeature(
             sourceSetName, sourceSet, Collections.emptyList(),
-            (ProjectInternal) project, ConfigurationRoles.INTENDED_CONSUMABLE, false);
+            (ProjectInternal) project, ConfigurationRoles.CONSUMABLE, false);
 
         // TODO: Should all features also have this variant? Why just the main feature?
         createSourceElements(configurations, providerFactory, objectFactory, mainFeature);
