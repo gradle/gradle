@@ -163,15 +163,15 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
             }
 
             compileGroovy {
-                ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source)" : ''}
-                ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target)" : ''}
+                ${source != 'none' ? "options.sourceCompatibility = $source" : ''}
+                ${target != 'none' ? "options.targetCompatibility = $target" : ''}
                 def projectSourceCompat = project.java.sourceCompatibility
                 def projectTargetCompat = project.java.targetCompatibility
                 doLast {
-                    logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
-                    logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")
-                    logger.lifecycle("task.sourceCompatibility = \$sourceCompatibility")
-                    logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
+                    logger.lifecycle("java.sourceCompatibility = \$projectSourceCompat")
+                    logger.lifecycle("java.targetCompatibility = \$projectTargetCompat")
+                    logger.lifecycle("task.options.sourceCompatibility = \${options.sourceCompatibility.getOrNull()}")
+                    logger.lifecycle("task.options.targetCompatibility = \${options.targetCompatibility.getOrNull()}")
                 }
             }
         """
@@ -182,18 +182,27 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         then:
         executedAndNotSkipped(":compileGroovy")
 
-        outputContains("project.sourceCompatibility = 11")
-        outputContains("project.targetCompatibility = 11")
-        outputContains("task.sourceCompatibility = $sourceOut")
-        outputContains("task.targetCompatibility = $targetOut")
-        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == JavaVersion.toVersion(targetOut)
-        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == JavaVersion.toVersion(targetOut)
+        def expectedVersion
+        if (targetOut != "null") {
+            expectedVersion = targetOut
+        } else if (sourceOut != "null") {
+            expectedVersion = sourceOut
+        } else {
+            expectedVersion = "11"
+        }
+
+        outputContains("java.sourceCompatibility = 11")
+        outputContains("java.targetCompatibility = 11")
+        outputContains("task.options.sourceCompatibility = $sourceOut")
+        outputContains("task.options.targetCompatibility = $targetOut")
+        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes).majorVersion == expectedVersion
+        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes).majorVersion == expectedVersion
 
         where:
         source | target | sourceOut | targetOut
         '9'    | '10'   | '9'       | '10'
-        '9'    | 'none' | '9'       | '9'
-        'none' | 'none' | '11'      | '11'
+        '9'    | 'none' | '9'       | 'null'
+        'none' | 'none' | 'null'    | 'null'
     }
 
     def "can compile source and run tests using Java #javaVersion for Groovy "() {

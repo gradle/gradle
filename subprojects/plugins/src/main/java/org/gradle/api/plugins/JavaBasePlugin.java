@@ -36,6 +36,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.model.ObjectFactory;
@@ -315,14 +316,32 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             conventionMapping.map("sourceCompatibility", () -> computeSourceCompatibilityConvention(javaExtension, compile).toString());
             conventionMapping.map("targetCompatibility", () -> computeTargetCompatibilityConvention(javaExtension, compile).toString());
 
+            if (compile instanceof HasCompileOptions) {
+                ((HasCompileOptions) compile).getOptions().getSourceCompatibility().convention(project.provider(() ->
+                    getMajorVersion(javaExtension.getRawSourceCompatibility())
+                ));
+                ((HasCompileOptions) compile).getOptions().getTargetCompatibility().convention(project.provider(() ->
+                    getMajorVersion(javaExtension.getRawTargetCompatibility())
+                ));
+            }
+
             compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
+    }
+
+    @Nullable
+    private static Integer getMajorVersion(@Nullable JavaVersion javaVersion) {
+        if (javaVersion == null) {
+            return null;
+        }
+        return Integer.parseInt(javaVersion.getMajorVersion());
     }
 
     private static JavaVersion computeSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, AbstractCompile compileTask) {
         return computeCompatibilityConvention(compileTask, javaExtension.getRawSourceCompatibility(), javaExtension::getSourceCompatibility);
     }
 
+    @SuppressWarnings("deprecation")
     private static JavaVersion computeTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, AbstractCompile compileTask) {
         JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
         if (rawTargetCompatibility == null) {

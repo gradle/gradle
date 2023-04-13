@@ -258,7 +258,7 @@ compileJava {
         goodCode()
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
-compileJava.targetCompatibility = '10' // ignored
+compileJava.options.targetCompatibility = 10 // ignored
 compileJava.options.release.set(8)
 compileJava {
     def targetVersionOf = { config ->
@@ -302,7 +302,7 @@ compileJava.options.release.set(8)
         goodCode()
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
-compileJava.targetCompatibility = '10' // ignored
+compileJava.options.targetCompatibility = 10 // ignored
 compileJava.options.release.set(8)
 java.disableAutoTargetJvm()
 compileJava {
@@ -330,8 +330,8 @@ compileJava {
         buildFile.text = buildFile.text.replace("<< '-Werror'", '') // warning: [options] bootstrap class path not set in conjunction with -source 8
         buildFile << """
 java.targetCompatibility = JavaVersion.VERSION_1_9 // ignored
-compileJava.targetCompatibility = '1.8'
-compileJava.sourceCompatibility = '1.8'
+compileJava.options.targetCompatibility = 8
+compileJava.options.sourceCompatibility = 8
 compileJava {
     def targetVersionOf = { config ->
         provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }

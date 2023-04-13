@@ -60,8 +60,8 @@ class GeneratedSourcesDirectorySetContributorIntegrationTest extends AbstractInt
             jvm.registerJvmLanguageGeneratedSourceDirectory(sourceSets.main) {
                 forSourceGeneratingTask(sourceGen) { it.outputDir }
                 compiledWithJava {
-                    sourceCompatibility = '8'
-                    targetCompatibility = '8'
+                    options.sourceCompatibility = 8
+                    options.targetCompatibility = 8
                     classpath = files()
                 }
             }

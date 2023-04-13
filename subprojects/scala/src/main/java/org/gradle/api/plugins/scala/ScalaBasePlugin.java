@@ -279,6 +279,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return JavaVersion.toVersion(compileTask.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
     }
 
+    @SuppressWarnings("deprecation")
     private static JavaVersion computeJavaTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
         JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
         if (rawTargetCompatibility != null) {

@@ -115,6 +115,9 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
 
     private static String buildFileWithSources(String... sourceFiles) {
         """
+            plugins {
+                id 'groovy-base'
+            }
             configurations {
                 compile
             }
@@ -127,8 +130,6 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
                 source ${sourceFiles.collect { "'src/main/groovy/$it'" }.join(", ")}
                 classpath = configurations.compile
                 groovyClasspath = configurations.compile
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
                 destinationDirectory = file("\$buildDir/classes")
             }
         """

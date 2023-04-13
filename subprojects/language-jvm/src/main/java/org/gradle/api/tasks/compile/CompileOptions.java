@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,10 @@ public abstract class CompileOptions extends AbstractOptions {
     private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
+
     private final Property<Integer> release;
+    private final Property<Integer> sourceCompatibility;
+    private final Property<Integer> targetCompatibility;
 
     private final DirectoryProperty generatedSourceOutputDirectory;
 
@@ -102,6 +105,8 @@ public abstract class CompileOptions extends AbstractOptions {
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
+        this.sourceCompatibility = objectFactory.property(Integer.class);
+        this.targetCompatibility = objectFactory.property(Integer.class);
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
@@ -477,10 +482,22 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     @Input
     @Optional
+    @SuppressWarnings("JavadocReference")
     public Property<Integer> getRelease() {
         return release;
     }
 
+    @Input
+    @Optional
+    public Property<Integer> getSourceCompatibility() {
+        return sourceCompatibility;
+    }
+
+    @Input
+    @Optional
+    public Property<Integer> getTargetCompatibility() {
+        return targetCompatibility;
+    }
 
     /**
      * Set the version of the Java module.
