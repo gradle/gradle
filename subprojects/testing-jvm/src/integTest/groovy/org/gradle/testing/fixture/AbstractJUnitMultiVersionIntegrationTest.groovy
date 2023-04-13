@@ -67,6 +67,22 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
         return testSourceConfiguration.testFrameworkImports
     }
 
+    String getBeforeClassAnnotation() {
+        return testSourceConfiguration.beforeClassAnnotation
+    }
+
+    String getAfterClassAnnotation() {
+        return testSourceConfiguration.afterClassAnnotation
+    }
+
+    String getBeforeTestAnnotation() {
+        return testSourceConfiguration.beforeTestAnnotation
+    }
+
+    String getAfterTestAnnotation() {
+        return testSourceConfiguration.afterTestAnnotation
+    }
+
     def setup() {
         executer.withRepositoryMirrors()
     }
@@ -94,5 +110,9 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
      */
     interface TestSourceConfiguration {
         String getTestFrameworkImports()
+        String getBeforeClassAnnotation()
+        String getAfterClassAnnotation()
+        String getBeforeTestAnnotation()
+        String getAfterTestAnnotation()
     }
 }

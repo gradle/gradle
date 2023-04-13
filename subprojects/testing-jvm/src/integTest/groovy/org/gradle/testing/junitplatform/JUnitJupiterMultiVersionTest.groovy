@@ -68,5 +68,25 @@ trait JUnitJupiterMultiVersionTest {
                 import static org.junit.jupiter.api.Assertions.*;
             """.stripIndent()
         }
+
+        @Override
+        String getBeforeClassAnnotation() {
+            return "@BeforeAll"
+        }
+
+        @Override
+        String getAfterClassAnnotation() {
+            return "@AfterAll"
+        }
+
+        @Override
+        String getBeforeTestAnnotation() {
+            return "@BeforeEach"
+        }
+
+        @Override
+        String getAfterTestAnnotation() {
+            return "@AfterEach"
+        }
     }
 }
