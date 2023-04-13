@@ -291,20 +291,25 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         if (compileOptions.getRelease().isPresent()) {
             spec.setRelease(compileOptions.getRelease().get());
         } else {
-            String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
-            String sourceCompatibility = getSourceCompatibility();
-            // Compatibility can be null if no convention was configured, e.g. when JavaBasePlugin is not applied
-            if (sourceCompatibility == null) {
-                sourceCompatibility = toolchainVersion;
-            }
+            spec.setSourceCompatibility(
+                compileOptions.getSourceCompatibility()
+                    .map(version -> JavaVersion.toVersion(version).toString())
+                    .getOrNull()
+            );
 
-            String targetCompatibility = getTargetCompatibility();
-            if (targetCompatibility == null) {
-                targetCompatibility = sourceCompatibility;
-            }
+            // TODO: Why default to source compatibility?
+            spec.setTargetCompatibility(
+                compileOptions.getTargetCompatibility().orElse(compileOptions.getSourceCompatibility())
+                    .map(version -> JavaVersion.toVersion(version).toString())
+                    .getOrNull()
+            );
 
-            spec.setSourceCompatibility(sourceCompatibility);
-            spec.setTargetCompatibility(targetCompatibility);
+            // --enable-preview requires that the -source or --release flag is set.
+            // If the user did not specify either, we set -source to the compiler JVM version.
+            if (spec.getSourceCompatibility() == null) {
+                String version = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
+                spec.setSourceCompatibility(version);
+            }
         }
         spec.setCompileOptions(compileOptions);
     }

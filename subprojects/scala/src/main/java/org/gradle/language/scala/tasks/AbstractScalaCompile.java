@@ -173,18 +173,28 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     private void configureCompatibilityOptions(DefaultScalaJavaJointCompileSpec spec) {
-        String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
-        String sourceCompatibility = getSourceCompatibility();
-        if (sourceCompatibility == null) {
-            sourceCompatibility = toolchainVersion;
-        }
-        String targetCompatibility = getTargetCompatibility();
-        if (targetCompatibility == null) {
-            targetCompatibility = sourceCompatibility;
-        }
+        // The source and target compatibility flags are passed to javac when scala
+        // compiles java code. They do not affect the scala compiler.
+        // The scala target version is determined by ScalaCompileOptionsConfigurer
+        spec.setSourceCompatibility(
+            compileOptions.getSourceCompatibility()
+                .map(version -> JavaVersion.toVersion(version).toString())
+                .getOrNull()
+        );
 
-        spec.setSourceCompatibility(sourceCompatibility);
-        spec.setTargetCompatibility(targetCompatibility);
+        // TODO: Why default to source compatibility?
+        spec.setTargetCompatibility(
+            compileOptions.getTargetCompatibility().orElse(compileOptions.getSourceCompatibility())
+                .map(version -> JavaVersion.toVersion(version).toString())
+                .getOrNull()
+        );
+
+        // --enable-preview requires that the -source or --release flag is set.
+        // If the user did not specify either, we set -source to the compiler JVM version.
+        if (spec.getSourceCompatibility() == null && !compileOptions.getRelease().isPresent()) {
+            String version = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
+            spec.setSourceCompatibility(version);
+        }
     }
 
     private void configureIncrementalCompilation(ScalaCompileSpec spec) {

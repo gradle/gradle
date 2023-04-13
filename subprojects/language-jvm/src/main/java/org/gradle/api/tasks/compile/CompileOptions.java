@@ -474,7 +474,7 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Configures the Java language version for this compile task ({@code --release} compiler flag).
      * <p>
-     * If set, it will take precedences over the {@link AbstractCompile#getSourceCompatibility()} and {@link AbstractCompile#getTargetCompatibility()} settings.
+     * If set, it will take precedences over the {@link #getSourceCompatibility()} and {@link #getTargetCompatibility()} settings.
      * <p>
      * This option is only taken into account by the {@link JavaCompile} task.
      *
@@ -487,12 +487,16 @@ public abstract class CompileOptions extends AbstractOptions {
         return release;
     }
 
+    // TODO: Should these be renamed to just 'target' and 'source' like their CLI counterparts?
+
+    // TODO: Document
     @Input
     @Optional
     public Property<Integer> getSourceCompatibility() {
         return sourceCompatibility;
     }
 
+    // TODO: Document
     @Input
     @Optional
     public Property<Integer> getTargetCompatibility() {

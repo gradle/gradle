@@ -257,19 +257,31 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     }
 
     private void configureCompatibilityOptions(DefaultGroovyJavaJointCompileSpec spec) {
-        String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
-        String sourceCompatibility = getSourceCompatibility();
-        // Compatibility can be null if no convention was configured, e.g. when JavaBasePlugin is not applied
-        if (sourceCompatibility == null) {
-            sourceCompatibility = toolchainVersion;
-        }
-        String targetCompatibility = getTargetCompatibility();
-        if (targetCompatibility == null) {
-            targetCompatibility = sourceCompatibility;
+        spec.setSourceCompatibility(
+            compileOptions.getSourceCompatibility()
+                .map(version -> JavaVersion.toVersion(version).toString())
+                .getOrNull()
+        );
+
+        // TODO: Why default to source compatibility?
+        spec.setTargetCompatibility(
+            compileOptions.getTargetCompatibility().orElse(compileOptions.getSourceCompatibility())
+                .map(version -> JavaVersion.toVersion(version).toString())
+                .getOrNull()
+        );
+
+        // Target compatibility maps to Groovy's setTargetBytecode(), so it must be present
+        if (spec.getTargetCompatibility() == null) {
+            String version = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
+            spec.setTargetCompatibility(version);
         }
 
-        spec.setSourceCompatibility(sourceCompatibility);
-        spec.setTargetCompatibility(targetCompatibility);
+        // --enable-preview requires that the -source or --release flag is set.
+        // If the user did not specify either, ensure it is set.
+        if (spec.getSourceCompatibility() == null) {
+            // Source must be less than or equal to target, so set them equal.
+            spec.setSourceCompatibility(spec.getTargetCompatibility());
+        }
     }
 
     private JavaInstallationMetadata getToolchain() {

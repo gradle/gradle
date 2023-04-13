@@ -15,8 +15,10 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -24,6 +26,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
@@ -35,8 +38,11 @@ import java.io.File;
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
     private FileCollection classpath;
+
     private String sourceCompatibility;
     private String targetCompatibility;
+    private CompatibilityFormat sourceCompatibilityFormat;
+    private CompatibilityFormat targetCompatibilityFormat;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
@@ -136,8 +142,21 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The source language level.
      */
     @Input
+    @Deprecated
     public String getSourceCompatibility() {
-        return sourceCompatibility;
+        DeprecationLogger.deprecateMethod(AbstractCompile.class, "getSourceCompatibility")
+            .replaceWith("options.sourceCompatibility")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "abstract_compile_java_compatibility")
+            .nagUser();
+
+        if (this instanceof HasCompileOptions) {
+            Integer version = ((HasCompileOptions) this).getOptions().getSourceCompatibility().getOrNull();
+            String value = formatVersion(sourceCompatibilityFormat, version);
+            return GUtil.elvis(value, sourceCompatibility); // Configuration cache hack
+        } else {
+            return sourceCompatibility;
+        }
     }
 
     /**
@@ -145,8 +164,23 @@ public abstract class AbstractCompile extends SourceTask {
      *
      * @param sourceCompatibility The source language level. Must not be null.
      */
+    @Deprecated
     public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
+        DeprecationLogger.deprecateMethod(AbstractCompile.class, "setSourceCompatibility(String)")
+            .replaceWith("options.sourceCompatibility")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "abstract_compile_java_compatibility")
+            .nagUser();
+
+        sourceCompatibilityFormat = sourceCompatibility.contains(".") ?
+            CompatibilityFormat.VERSION_WITH_DOT : CompatibilityFormat.MAJOR_VERSION;
+
+        if (this instanceof HasCompileOptions) {
+            int version = Integer.parseInt(JavaVersion.toVersion(sourceCompatibility).getMajorVersion());
+            ((HasCompileOptions) this).getOptions().getSourceCompatibility().set(version);
+        } else {
+            this.sourceCompatibility = sourceCompatibility;
+        }
     }
 
     /**
@@ -155,7 +189,19 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The target JVM.
      */
     @Input
+    @Deprecated
     public String getTargetCompatibility() {
+        DeprecationLogger.deprecateMethod(AbstractCompile.class, "getTargetCompatibility()")
+            .replaceWith("options.targetCompatibility")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "abstract_compile_java_compatibility")
+            .nagUser();
+
+        if (this instanceof HasCompileOptions) {
+            Integer version = ((HasCompileOptions) this).getOptions().getTargetCompatibility().getOrNull();
+            String value = formatVersion(targetCompatibilityFormat, version);
+            return GUtil.elvis(value, targetCompatibility); // Configuration cache hack
+        }
         return targetCompatibility;
     }
 
@@ -164,7 +210,46 @@ public abstract class AbstractCompile extends SourceTask {
      *
      * @param targetCompatibility The target JVM. Must not be null.
      */
+    @Deprecated
     public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
+        DeprecationLogger.deprecateMethod(AbstractCompile.class, "setTargetCompatibility(String)")
+            .replaceWith("options.targetCompatibility")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "abstract_compile_java_compatibility")
+            .nagUser();
+
+        targetCompatibilityFormat = targetCompatibility.contains(".") ?
+            CompatibilityFormat.VERSION_WITH_DOT : CompatibilityFormat.MAJOR_VERSION;
+
+        if (this instanceof HasCompileOptions) {
+            int version = Integer.parseInt(JavaVersion.toVersion(targetCompatibility).getMajorVersion());
+            ((HasCompileOptions) this).getOptions().getTargetCompatibility().set(version);
+        } else {
+            this.targetCompatibility = targetCompatibility;
+        }
+    }
+
+    /**
+     * This is a hack to ensure we return the source/target compatibility "format" which the
+     * user specified if they manually set the source/target compatibility. When migrating
+     * to property-based source/target compatibility, we only store the major version for the
+     * source and target compatibility. To ensure we don't break users which expect the dot
+     * notation to be returned when they manually set the source/target compatibility, we
+     * store the format the user specified when they set the source/target compatibility.
+     */
+    private static String formatVersion(CompatibilityFormat format, Integer version) {
+        if (version == null) {
+            return null;
+        }
+
+        if (format == null || format == CompatibilityFormat.MAJOR_VERSION) {
+            return Integer.toString(version);
+        } else {
+            return "1." + version;
+        }
+    }
+
+    private enum CompatibilityFormat {
+        MAJOR_VERSION, VERSION_WITH_DOT
     }
 }
