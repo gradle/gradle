@@ -43,6 +43,9 @@ public interface ResettableConfiguration extends Configuration {
      * resolution result. This new functionality should be applicable to all configurations -- those
      * used during buildscript classpath loading and normal configuration-time configurations.
      * By applying this functionality to all configurations, this method would no longer be required.
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
      */
     void resetResolutionState();
 
