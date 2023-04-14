@@ -71,13 +71,13 @@ fun configureValidationTask(project: Project,
 
         val scriptHandler = project.buildscript as ScriptHandlerInternal
         val scriptClassPath = scriptHandler.scriptClassPath.asFiles
-        classpath = scriptClassPath
+        classpath = project.files(scriptClassPath)
 
         val archiveOperations = findArchiveOperations(project)
         val pluginClassesOf = pluginJars.stream()
             .map { zipPath: File? -> archiveOperations.zipTree(zipPath!!) }
             .collect(Collectors.toList())
-        classes = pluginClassesOf
+        classes = project.files(pluginClassesOf)
     }
 }
 
