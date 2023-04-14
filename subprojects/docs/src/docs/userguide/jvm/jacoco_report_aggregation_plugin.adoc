@@ -73,6 +73,11 @@ More information about the variants produced by test execution with JaCoCo are a
 
 == Reports
 
+[IMPORTANT]
+====
+By default, Gradle stops executing tasks when any task fails -- including test failures. To ensure that your builds always generate aggregation reports, specify the `--continue` option in your Gradle command. For more information, see <<command_line_interface.adoc#sec:continue_build_on_failure, continuing the build when a failure occurs>>.
+====
+
 === Automatic report creation
 
 When the project also applies the `jvm-test-suite` plugin, the following reporting objects are added for each test suite:
@@ -86,8 +91,8 @@ When the project does not apply the `jvm-test-suite` plugin, you must manually r
 
 .Create a reporting container
 ====
-include::sample[dir="samples/incubating/java/jvm-multi-project-with-code-coverage-standalone/groovy/code-coverage-report",files="build.gradle[tags=create_report]"]
 include::sample[dir="samples/incubating/java/jvm-multi-project-with-code-coverage-standalone/kotlin/code-coverage-report",files="build.gradle.kts[tags=create_report]"]
+include::sample[dir="samples/incubating/java/jvm-multi-project-with-code-coverage-standalone/groovy/code-coverage-report",files="build.gradle[tags=create_report]"]
 ====
 <.> Creates a report named `testCodeCoverageReport` of type `JacocoCoverageReport`.  For convenience, sets `TestType` using a constant value from the  link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html[TestSuiteType] class.  Any String value is acceptable.
 
@@ -105,14 +110,8 @@ The JaCoCo Report Aggregation plugin adds the following dependency configuration
 
 | `jacocoAggregation`
 | The configuration used to declare all project dependencies having code coverage data to be aggregated.
-| `allCodeCoverageReportSourceDirectories`
-| Consumes the project dependencies from the `jacocoAggregation` configuration to collect all `main-source` variants.  Prevents external libraries' classes from being included in the aggregated results.
-| `allCodeCoverageReportClassDirectories`
-| Consumes the project dependencies from the `jacocoAggregation` configuration to collect all classes directories.  Prevents external libraries' classes from being included in the aggregated results.
-| `__testReportName__ExecutionData`
+| `aggregateCodeCoverageReportResults`
 | Consumes the project dependencies from the `jacocoAggregation` configuration using <<variant_model#sec:variant-aware-matching,variant-aware matching>> to find the appropriate test suite type.
 |===
 
 It is not necessary to explicitly add dependencies to the `jacocoAggregation` configuration if the project also applies the `jvm-test-suite` plugin.
-
-Note the `__testReportName__ExecutionData` and `allCodeCoverageReport*Directories` configurations may display resolution errors for external dependencies, as these do not expose code coverage data.  This is expected behavior and does not affect the outcome of the build or code coverage aggregation process.

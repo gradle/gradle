@@ -17,6 +17,8 @@
 package org.gradle.internal.reflect.validation
 
 import groovy.transform.CompileStatic
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.ServiceReference
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
@@ -213,7 +215,7 @@ Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
   1. Remove the property.
-  2. Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy.
+  2. Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference.
 """
 
         when:
@@ -231,7 +233,7 @@ Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
   1. Remove the property.
-  2. Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles or @ReplacedBy.
+  2. Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference.
 """
     }
 
@@ -358,6 +360,33 @@ Possible solutions:
   3. If you want to track the path, return File.absolutePath as a String and keep @Input.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#incorrect_use_of_input_annotation for more details about this problem.
+"""
+    }
+
+
+    @ValidationTestFor(
+        ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE
+    )
+    def "tests output of serviceReferenceMustBeABuildService"() {
+        when:
+        render serviceReferenceMustBeABuildService {
+            type('MyTask')
+            property('someService')
+            propertyType('mypackage.FooBar')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'MyTask' property 'someService' has @ServiceReference annotation used on property of type 'mypackage.FooBar' which is not a build service implementation.
+
+Reason: A property annotated with @${ServiceReference.class.simpleName} must be of a type that implements '${BuildService.class.name}'.
+
+Possible solutions:
+  1. Make 'mypackage.FooBar' implement '${BuildService.class.name}'.
+  2. Replace the @ServiceReference annotation on 'someService' with @Internal and assign a value of type 'mypackage.FooBar' explicitly.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#service_reference_must_be_a_build_service for more details about this problem.
 """
     }
 
@@ -839,55 +868,6 @@ Reason: Gradle cannot track the implementation for classes loaded with an unknow
 Possible solution: Load your class by using one of Gradle's built-in ways.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
-    )
-    def "tests output of task without non-cacheable reason"() {
-        when:
-        render notCacheableWithoutReason {
-            type("MyTask")
-            noReasonOnTask()
-            includeLink()
-        }
-
-        then:
-        outputEquals """
-Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
-
-Reason: The task author should make clear why a task is not cacheable.
-
-Possible solutions:
-  1. Add @DisableCachingByDefault(because = ...).
-  2. Add @CacheableTask.
-  3. Add @UntrackedTask(because = ...).
-
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
-    )
-    def "tests output of transform action without non-cacheable reason"() {
-        when:
-        render notCacheableWithoutReason {
-            type("MyTransform")
-            noReasonOnArtifactTransform()
-            includeLink()
-        }
-
-        then:
-        outputEquals """
-Type 'MyTransform' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
-
-Reason: The transform action author should make clear why a transform action is not cacheable.
-
-Possible solutions:
-  1. Add @DisableCachingByDefault(because = ...).
-  2. Add @CacheableTransform.
-
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""
     }
 
     @ValidationTestFor(

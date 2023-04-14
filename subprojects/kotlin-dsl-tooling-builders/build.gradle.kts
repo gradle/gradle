@@ -19,7 +19,10 @@ dependencies {
     implementation(project(":logging"))
 
     testImplementation(testFixtures(project(":kotlin-dsl")))
+    integTestImplementation(testFixtures(project(":tooling-api")))
+
     integTestImplementation(project(":internal-testing"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
     crossVersionTestImplementation(project(":persistent-cache"))
     crossVersionTestImplementation(libs.slf4jApi)
@@ -30,4 +33,4 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true

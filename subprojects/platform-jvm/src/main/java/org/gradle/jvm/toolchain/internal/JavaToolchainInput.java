@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -32,6 +33,7 @@ public class JavaToolchainInput {
         this.implementation = spec.getImplementation().get().toString();
     }
 
+    @Optional
     @Input
     JavaLanguageVersion getLanguageVersion() {
         return javaLanguageVersion;

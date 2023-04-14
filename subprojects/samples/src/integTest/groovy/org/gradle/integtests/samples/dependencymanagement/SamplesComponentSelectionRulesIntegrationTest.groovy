@@ -17,7 +17,6 @@ package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
@@ -27,7 +26,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can run resolveConfiguration sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -44,7 +42,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     }
 
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can run reject sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -59,7 +56,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     }
 
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can run metadata rules sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -75,7 +71,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     }
 
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can run targeted rule sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

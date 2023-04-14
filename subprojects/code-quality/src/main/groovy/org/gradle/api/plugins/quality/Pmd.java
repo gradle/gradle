@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdAction;
 import org.gradle.api.plugins.quality.internal.PmdActionParameters;
@@ -60,6 +59,8 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
+
 /**
  * Runs a set of static code analysis rules on Java source code files and generates a report of problems found.
  *
@@ -67,7 +68,7 @@ import java.util.stream.Collectors;
  * @see PmdExtension
  */
 @CacheableTask
-public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> {
+public abstract class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> {
 
     private FileCollection pmdClasspath;
     private List<String> ruleSets;
@@ -111,12 +112,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated
-    @Inject
-    public IsolatedAntBuilder getAntBuilder() {
-        throw new UnsupportedOperationException();
-    }
-
     @Inject
     protected WorkerExecutor getWorkerExecutor() {
         throw new UnsupportedOperationException();
@@ -139,12 +134,13 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
 
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            spec.getClasspath().from(getPmdClasspath());
+            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
         });
         workQueue.submit(PmdAction.class, this::setupParameters);
     }
 
     private void setupParameters(PmdActionParameters parameters) {
+        parameters.getAntLibraryClasspath().setFrom(getPmdClasspath());
         parameters.getPmdClasspath().setFrom(getPmdClasspath());
         parameters.getTargetJdk().set(getTargetJdk());
         parameters.getRuleSets().set(getRuleSets());

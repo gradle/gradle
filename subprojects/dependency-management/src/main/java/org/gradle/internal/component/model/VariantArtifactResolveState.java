@@ -18,12 +18,11 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
 /**
- * State for a variant instance that is used for artifact resolution.
+ * State that is used for artifact resolution based on a variant that is selected during graph resolution.
  *
  * <p>Instances of this type are located using {@link ComponentArtifactResolveState}.</p>
  */
@@ -44,5 +43,5 @@ public interface VariantArtifactResolveState {
      *
      * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
      */
-    ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
 }

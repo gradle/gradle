@@ -73,7 +73,7 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
-        // TODO log deprecation once idea is fixed
+        logDeprecation(8);
         return configureByMapInternal(properties, delegate);
     }
 
@@ -109,7 +109,7 @@ public class ConfigureUtil {
                 throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
             }
         }
-        logDeprecation();
+        logDeprecation(7);
         return configureByMapInternal(properties, delegate);
     }
 
@@ -123,7 +123,7 @@ public class ConfigureUtil {
         public IncompleteInputException(String message, Collection missingKeys) {
             super(message);
             this.missingKeys = missingKeys;
-            logDeprecation();
+            logDeprecation(7);
         }
 
         public Collection getMissingKeys() {
@@ -145,8 +145,7 @@ public class ConfigureUtil {
      * @return The delegate param
      */
     public static <T> T configure(@Nullable Closure configureClosure, T target) {
-        // TODO log deprecation once the protobuf plugin is fixed
-        // logDeprecation();
+        // TODO log deprecation once the shadow plugin is fixed
         if (configureClosure == null) {
             return target;
         }
@@ -164,7 +163,7 @@ public class ConfigureUtil {
      * Creates an action that uses the given closure to configure objects of type T.
      */
     public static <T> Action<T> configureUsing(@Nullable final Closure configureClosure) {
-        logDeprecation();
+        logDeprecation(7);
         if (configureClosure == null) {
             return Actions.doNothing();
         }
@@ -176,7 +175,7 @@ public class ConfigureUtil {
      * Called from an object's {@link Configurable#configure} method.
      */
     public static <T> T configureSelf(@Nullable Closure configureClosure, T target) {
-        logDeprecation();
+        logDeprecation(7);
         if (configureClosure == null) {
             return target;
         }
@@ -189,7 +188,7 @@ public class ConfigureUtil {
      * Called from an object's {@link Configurable#configure} method.
      */
     public static <T> T configureSelf(@Nullable Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
-        logDeprecation();
+        logDeprecation(7);
         if (configureClosure == null) {
             return target;
         }
@@ -209,10 +208,10 @@ public class ConfigureUtil {
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
     }
 
-    private static void logDeprecation() {
+    private static void logDeprecation(int majorVersion) {
         DeprecationLogger.deprecateType(ConfigureUtil.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .withUpgradeGuideSection(majorVersion, "org_gradle_util_reports_deprecations")
             .nagUser();
     }
 

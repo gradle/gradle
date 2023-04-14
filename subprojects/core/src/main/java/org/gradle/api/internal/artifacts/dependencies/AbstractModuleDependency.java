@@ -163,6 +163,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (moduleDependencyCapabilities != null) {
             target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
         }
+        target.endorsing = endorsing;
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
@@ -188,6 +189,9 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             return false;
         }
         if (isTransitive() != dependencyRhs.isTransitive()) {
+            return false;
+        }
+        if (isEndorsingStrictVersions() != dependencyRhs.isEndorsingStrictVersions()) {
             return false;
         }
         if (!Objects.equal(getArtifacts(), dependencyRhs.getArtifacts())) {
@@ -275,8 +279,12 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.capabilityNotationParser = capabilityNotationParser;
     }
 
-    protected ImmutableAttributesFactory getAttributesFactory() {
+    public ImmutableAttributesFactory getAttributesFactory() {
         return attributesFactory;
+    }
+
+    public NotationParser<Object, Capability> getCapabilityNotationParser() {
+        return capabilityNotationParser;
     }
 
     private void setAttributes(AttributeContainerInternal attributes) {

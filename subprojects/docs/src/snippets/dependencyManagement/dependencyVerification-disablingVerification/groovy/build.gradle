@@ -10,7 +10,6 @@ configurations {
     myPluginClasspath {
         extendsFrom(myPlugin)
         canBeConsumed = false
-        canBeResolved = true
     }
 }
 
@@ -38,9 +37,9 @@ tasks.register("checkDependencies") {
 
 // tag::disabling-detached-configuration[]
 tasks.register("checkDetachedDependencies") {
+    def detachedConf = configurations.detachedConfiguration(dependencies.create("org.apache.commons:commons-lang3:3.3.1"))
+    detachedConf.resolutionStrategy.disableDependencyVerification()
     doLast {
-        def detachedConf = configurations.detachedConfiguration(dependencies.create("org.apache.commons:commons-lang3:3.3.1"))
-        detachedConf.resolutionStrategy.disableDependencyVerification()
         println(detachedConf.files)
     }
 }

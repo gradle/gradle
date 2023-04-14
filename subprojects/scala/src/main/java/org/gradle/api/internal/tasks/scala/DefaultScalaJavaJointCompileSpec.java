@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.Map;
 
 public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec implements ScalaJavaJointCompileSpec {
+    private final File javaExecutable;
     private MinimalScalaCompileOptions options;
     private Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
@@ -30,6 +31,15 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
     private File analysisFile;
     private File classfileBackupDir;
     private long buildStartTimestamp;
+
+    public DefaultScalaJavaJointCompileSpec(File javaExecutable) {
+        this.javaExecutable = javaExecutable;
+    }
+
+    @Override
+    public File getJavaExecutable() {
+        return javaExecutable;
+    }
 
     @Override
     public MinimalScalaCompileOptions getScalaCompileOptions() {

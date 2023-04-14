@@ -17,10 +17,12 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 /**
  * Tests that {@code JvmComponentDependencies#projectInternalView()} behaves as expected.
  */
+@Ignore("removed from 8.0")
 class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSpec {
 
     def "can test against the internal view of java application"() {

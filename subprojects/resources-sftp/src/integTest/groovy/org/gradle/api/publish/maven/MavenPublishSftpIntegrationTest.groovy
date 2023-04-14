@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.server.sftp.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
@@ -38,12 +37,12 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to a SFTP repository"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()
         def module = mavenSftpRepo.module('org.group.name', 'publish', '2').withModuleMetadata()
 
+        configureRepositoryCredentials("sftp", "sftp", "maven")
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
             apply plugin: 'java'
@@ -56,10 +55,7 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
                 repositories {
                     maven {
                         url "${mavenSftpRepo.uri}"
-                        credentials {
-                            username 'sftp'
-                            password 'sftp'
-                        }
+                        credentials(PasswordCredentials)
                     }
                 }
                 publications {

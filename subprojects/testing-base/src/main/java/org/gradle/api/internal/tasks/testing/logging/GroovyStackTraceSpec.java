@@ -32,6 +32,7 @@ public class GroovyStackTraceSpec implements Spec<StackTraceElement> {
                     + "|java.lang.reflect\\..*"
                     + "|sun.reflect\\..*"
                     + "|jdk.internal.reflect\\..*"
+                    + "|org.codehaus.groovy.vmplugin\\..*"
     );
 
     @Override

@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -62,7 +63,7 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
 
     @Override
     public FileCollection getRuntimeFiles() {
-        return getFileCollectionFactory().empty("Runtime files for " + getDisplayName());
+        return FileCollectionFactory.empty("Runtime files for " + getDisplayName());
     }
 
     @Override

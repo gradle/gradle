@@ -20,14 +20,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
-@IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "input files are reported with relative path"() {
@@ -163,11 +160,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         and:
         configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded.")
+        outputContains("Configuration cache entry discarded due to serialization error.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
         }
@@ -180,11 +177,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         and:
         configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded.")
+        outputContains("Configuration cache entry discarded due to serialization error.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
         }
@@ -225,7 +222,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
             totalProblemsCount = 2
@@ -245,7 +242,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
             totalProblemsCount = 2
@@ -283,7 +280,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         executed(':problems', ':moreProblems', ':ok', ':all')
-        configurationCache.assertStateStored() // does not fail
+        configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 4
@@ -301,13 +298,16 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         executed(':problems', ':moreProblems', ':ok', ':all')
         configurationCache.assertStateStored() // stored again
         problems.assertResultHasProblems(result) {
-            totalProblemsCount = 4
+            totalProblemsCount = 8
+            withProblem("Task `:moreProblems` of type `BrokenTaskType`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
+            withProblem("Task `:moreProblems` of type `BrokenTaskType`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTaskType`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTaskType`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("Task `:problems` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
-        postBuildOutputContains("Configuration cache entry stored with 4 problems.")
+        postBuildOutputContains("Configuration cache entry stored with 8 problems.")
 
         when:
         configurationCacheFails 'all'
@@ -341,11 +341,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         executed(':all')
-        configurationCache.assertStateStored() // does not fail
+        configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
         failure.assertHasFailures(1)
 
@@ -357,8 +357,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         postBuildOutputContains("Configuration cache entry stored with 2 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
 
         when:
@@ -413,8 +413,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasFailures(1)
 
@@ -426,8 +426,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         postBuildOutputContains("Configuration cache entry stored with 2 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
         }
 
         when:
@@ -438,8 +438,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 2 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
         }
 
         when:
@@ -450,8 +450,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
         }
     }
 
@@ -479,7 +479,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("BOOM")
@@ -492,7 +492,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         outputContains("Configuration cache entry stored with 1 problem.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("BOOM")
@@ -505,7 +505,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("BOOM")
@@ -546,43 +546,49 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         executed(':problems', ':moreProblems', ':all')
         configurationCache.assertStateStored() // does not fail
-        outputContains("Configuration cache entry discarded with too many problems (4 problems).")
+        outputContains("Configuration cache entry discarded with too many problems (6 problems).")
         problems.assertFailureHasTooManyProblems(failure) {
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 6
             problemsWithStackTraceCount = 2
         }
 
         when:
-        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=3", 'all'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=5", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
         configurationCache.assertStateStored()
-        outputContains("Configuration cache entry discarded with too many problems (4 problems).")
+        outputContains("Configuration cache entry discarded with too many problems (6 problems).")
         problems.assertFailureHasTooManyProblems(failure) {
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 6
             problemsWithStackTraceCount = 2
         }
         failure.assertHasFailures(1)
 
         when:
-        configurationCacheRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=4", 'all'
+        configurationCacheRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=6", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
         configurationCache.assertStateStored()
-        postBuildOutputContains("Configuration cache entry stored with 4 problems.")
+        postBuildOutputContains("Configuration cache entry stored with 6 problems.")
         problems.assertResultHasProblems(result) {
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 6
             problemsWithStackTraceCount = 2
         }
 
@@ -594,10 +600,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 4 problems.")
         problems.assertResultHasProblems(result) {
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 2
         }
     }
@@ -630,13 +636,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        configurationCache.assertStateStored() // does not fail
+        configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 2
         }
 
@@ -645,13 +651,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        configurationCache.assertStateStored()
+        configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 2
         }
 
@@ -661,7 +667,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         executed(':problems', ':moreProblems', ':all')
         configurationCache.assertStateStored()
-        postBuildOutputContains("Configuration cache entry stored with 4 problems.")
+        postBuildOutputContains("Configuration cache entry stored with 6 problems.")
 
         when:
         configurationCacheFails "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
@@ -671,58 +677,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 4 problems.")
         problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 2
-        }
-    }
-
-    def "report does not include configuration and runtime problems from buildSrc"() {
-        file("buildSrc/build.gradle") << """
-            // These should not be reported, as neither of these are serialized
-            gradle.buildFinished { }
-            classes.doLast { t -> t.project }
-        """
-        buildFile << """
-            gradle.addListener(new BuildAdapter())
-            task broken {
-                inputs.property('p', project)
-            }
-        """
-
-        when:
-        configurationCacheFails("broken")
-
-        then:
-        outputContains("Configuration cache entry discarded with 2 problems.")
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.addListener' is unsupported")
-            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            problemsWithStackTraceCount = 1
-        }
-        failure.assertHasFailures(1)
-
-        when:
-        configurationCacheRunLenient("broken")
-
-        then:
-        postBuildOutputContains("Configuration cache entry stored with 2 problems.")
-        problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.addListener' is unsupported")
-            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            problemsWithStackTraceCount = 1
-        }
-
-        when:
-        configurationCacheRunLenient("broken")
-
-        then:
-        postBuildOutputContains("Configuration cache entry reused with 1 problem.")
-        problems.assertResultHasProblems(result) {
-            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            problemsWithStackTraceCount = 0
         }
     }
 
@@ -765,10 +724,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         outputContains("Configuration cache entry discarded with 5 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
             withTotalProblemsCount(5)
         }
 
@@ -779,10 +737,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         postBuildOutputContains("Configuration cache entry stored with 5 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
             withTotalProblemsCount(5)
         }
 
@@ -793,10 +750,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 5 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
             withTotalProblemsCount(5)
         }
 
@@ -819,7 +775,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Build file 'build.gradle': registration of listener on '$registrationPoint' is unsupported")
+            withUniqueProblems("Build file 'build.gradle': line 1: registration of listener on '$registrationPoint' is unsupported")
         }
 
         where:
@@ -827,9 +783,56 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "Gradle.addBuildListener"                     | "gradle.addBuildListener(new BuildAdapter())"
         "Gradle.addListener"                          | "gradle.addListener(new BuildAdapter())"
         "Gradle.buildFinished"                        | "gradle.buildFinished {}"
+        "Gradle.useLogger"                            | "gradle.useLogger(new TaskExecutionAdapter())"
         "TaskExecutionGraph.addTaskExecutionListener" | "gradle.taskGraph.addTaskExecutionListener(new TaskExecutionAdapter())"
         "TaskExecutionGraph.beforeTask"               | "gradle.taskGraph.beforeTask {}"
         "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
+    }
+
+    def "reports unsupported build listener #listenerType registration on #registrationPoint"() {
+        given:
+        buildFile("""
+            class TestAdapter implements TestListener {
+                @Override void beforeSuite(TestDescriptor suite) {}
+                @Override void afterSuite(TestDescriptor suite, TestResult result) {}
+                @Override void beforeTest(TestDescriptor testDescriptor) {}
+                @Override void afterTest(TestDescriptor testDescriptor, TestResult result) {}
+            }
+
+            class TestOutputAdapter implements TestOutputListener {
+                @Override void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {}
+            }
+
+            gradle.$registrationPoint(new ${listenerType}())
+        """)
+
+        expect:
+        executer.noDeprecationChecks()
+        configurationCacheFails 'help'
+
+        where:
+        [registrationPoint, listenerType] << [
+            ["addListener", "useLogger"],
+            ["BuildAdapter", "TaskExecutionAdapter", "TestAdapter", "TestOutputAdapter"]
+        ].combinations()
+    }
+
+    def "reports registration of unsupported build listener implementing supported listener too on #registrationPoint"() {
+        given:
+        buildFile("""
+            class SneakyListener extends TaskExecutionAdapter implements TaskExecutionGraphListener {
+                @Override void graphPopulated(TaskExecutionGraph graph) {}
+            }
+
+            gradle.$registrationPoint(new SneakyListener())
+        """)
+
+        expect:
+        executer.noDeprecationChecks()
+        configurationCacheFails 'help'
+
+        where:
+        registrationPoint << ["addListener", "useLogger"]
     }
 
     def "does not report problems on configuration listener registration on #registrationPoint"() {
@@ -838,8 +841,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         buildFile << """
 
             class ProjectEvaluationAdapter implements ProjectEvaluationListener {
-                void beforeEvaluate(Project project) {}
-                void afterEvaluate(Project project, ProjectState state) {}
+                @Override void beforeEvaluate(Project project) {}
+                @Override void afterEvaluate(Project project, ProjectState state) {}
+            }
+
+            class DependencyResolutionAdapter implements DependencyResolutionListener {
+                @Override void beforeResolve(ResolvableDependencies dependencies) {}
+                @Override void afterResolve(ResolvableDependencies dependencies) {}
             }
 
             $code
@@ -850,15 +858,21 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         postBuildOutputContains("Configuration cache entry stored.")
 
         where:
-        registrationPoint                     | code
-        "Gradle.addProjectEvaluationListener" | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
-        "Gradle.addListener"                  | "gradle.addListener(new ProjectEvaluationAdapter())"
-        "Gradle.beforeSettings"               | "gradle.beforeSettings {}"
-        "Gradle.settingsEvaluated"            | "gradle.settingsEvaluated {}"
-        "Gradle.projectsLoaded"               | "gradle.projectsLoaded {}"
-        "Gradle.beforeProject"                | "gradle.beforeProject {}"
-        "Gradle.afterProject"                 | "gradle.afterProject {}"
-        "Gradle.projectsEvaluated"            | "gradle.projectsEvaluated {}"
+        registrationPoint                                  | code
+        "Gradle.addProjectEvaluationListener"              | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener(ProjectEvaluationListener)"    | "gradle.addListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener(TaskExecutionGraphListener)"   | "gradle.addListener({g -> } as TaskExecutionGraphListener)"
+        "Gradle.addListener(DependencyResolutionListener)" | "gradle.addListener(new DependencyResolutionAdapter())"
+        "Gradle.beforeSettings"                            | "gradle.beforeSettings {}"
+        "Gradle.settingsEvaluated"                         | "gradle.settingsEvaluated {}"
+        "Gradle.projectsLoaded"                            | "gradle.projectsLoaded {}"
+        "Gradle.beforeProject"                             | "gradle.beforeProject {}"
+        "Gradle.afterProject"                              | "gradle.afterProject {}"
+        "Gradle.projectsEvaluated"                         | "gradle.projectsEvaluated {}"
+        "Gradle.taskGraph.whenReady"                       | "gradle.taskGraph.whenReady {}"
+        "Gradle.useLogger(ProjectEvaluationListener)"      | "gradle.useLogger(new ProjectEvaluationAdapter())"
+        "Gradle.useLogger(TaskExecutionGraphListener)"     | "gradle.useLogger({g -> } as TaskExecutionGraphListener)"
+        "Gradle.useLogger(DependencyResolutionListener)"   | "gradle.useLogger(new DependencyResolutionAdapter())"
     }
 
     def "summarizes unsupported properties"() {
@@ -898,12 +912,16 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheRunLenient "c"
 
         then:
-        postBuildOutputContains("Configuration cache entry stored with 6 problems.")
+        postBuildOutputContains("Configuration cache entry stored with 12 problems.")
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(6)
+            withTotalProblemsCount(12)
             withUniqueProblems(
+                "Task `:a` of type `SomeTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.",
+                "Task `:a` of type `SomeTask`: cannot deserialize object of type 'org.gradle.api.invocation.Gradle' as these are not supported with the configuration cache.",
                 "Task `:a` of type `SomeTask`: cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache.",
                 "Task `:a` of type `SomeTask`: cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with the configuration cache.",
+                "Task `:b` of type `SomeTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.",
+                "Task `:b` of type `SomeTask`: cannot deserialize object of type 'org.gradle.api.invocation.Gradle' as these are not supported with the configuration cache.",
                 "Task `:b` of type `SomeTask`: cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache.",
                 "Task `:b` of type `SomeTask`: cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with the configuration cache.",
             )
@@ -929,9 +947,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         run ENABLE_CLI_OPT, WARN_PROBLEMS_CLI_OPT, "foo"
 
         then:
-        postBuildOutputContains("Configuration cache entry stored with 1 problem.")
+        postBuildOutputContains("Configuration cache entry stored with 2 problems.")
         problems.assertResultHasProblems(result) {
             withUniqueProblems(
+                "Task `:foo` of type `FooTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.",
                 "Task `:foo` of type `FooTask`: cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with the configuration cache."
             )
             problemsWithStackTraceCount = 0
@@ -958,7 +977,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 17
             withInput("Script 'script.gradle': system property 'PROP'")
-            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -981,7 +1000,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withInput("Script 'script.gradle': system property 'PROP'")
-            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -1004,7 +1023,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withInput("Script 'script.gradle': system property 'PROP'")
-            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -1046,8 +1065,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
-            withTotalProblemsCount(4)
-            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 10: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 13: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 7: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -1070,8 +1091,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file '${relativePath('a/build.gradle')}': invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file '${relativePath('a/build.gradle')}': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 5: invocation of 'Task.project' at execution time is unsupported.")
         }
     }
 
@@ -1137,63 +1158,38 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
         for (i in 1..530) {
             buildFile << """
-                task broken$i {
-                    doLast({ println ("project = " + project) } as Action)
+                task broken$i { t ->
+                    doLast({ println ("project = " + t.project) } as Action)
                 }
                 tasks.all.dependsOn("broken$i")
             """
         }
 
         when:
-        configurationCacheFails("all")
+        configurationCacheFails("all", "--continue")
 
         then:
         outputContains("Configuration cache entry discarded with 530 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Task `:broken100` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken101` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken102` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken103` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken104` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken105` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken106` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken107` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken108` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken109` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken10` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken110` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken111` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken112` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken113` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 100: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1000: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1005: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1010: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1015: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1020: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1025: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1030: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1035: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1040: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1045: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 105: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1050: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1055: invocation of 'Task.project' at execution time is unsupported.")
             totalProblemsCount = 530
         }
         failure.assertHasFailure("Configuration cache problems found in this build.") { failure ->
             failure.assertHasCauses(5)
-        }
-    }
-
-    def "report task problems from included build with complete task path"() {
-        given:
-        settingsFile << """
-            includeBuild 'inc'
-        """
-        file("inc/settings.gradle") << """
-            include 'sub'
-        """
-        file("inc/sub/build.gradle") << """
-            tasks.register('broken') {
-                doLast({ println ("project = " + project) } as Action)
-            }
-        """
-
-        when:
-        configurationCacheFails ":inc:sub:broken"
-
-        then:
-        outputContains "Configuration cache entry discarded with 1 problem."
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Task `:inc:sub:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            totalProblemsCount = 1
         }
     }
 }

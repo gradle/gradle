@@ -32,7 +32,7 @@ import javax.inject.Inject;
  * @since 7.6
  */
 @Incubating
-public class JvmToolchainsPlugin implements Plugin<Project> {
+public abstract class JvmToolchainsPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project target) {

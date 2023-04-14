@@ -1007,6 +1007,27 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         manager.hasListeners(TestBarListener)
     }
 
+    def "anonymous broadcaster forwards events after all listeners removed"() {
+        def listener1 = Mock(BuildScopeListener)
+        def listener2 = Mock(BuildScopeListener)
+        def listener3 = Mock(BuildScopeListener)
+
+        manager.addListener(listener1)
+        def child = manager.createChild(Scopes.Build)
+        def broadcast = child.createAnonymousBroadcaster(BuildScopeListener)
+        child.addListener(listener2)
+        broadcast.add(listener3)
+
+        when:
+        broadcast.removeAll()
+        broadcast.source.foo("value")
+
+        then:
+        1 * listener1.foo("value")
+        1 * listener2.foo("value")
+        0 * listener3._
+    }
+
     @EventScope(Scopes.BuildTree.class)
     interface TestFooListener {
         void foo(String param);

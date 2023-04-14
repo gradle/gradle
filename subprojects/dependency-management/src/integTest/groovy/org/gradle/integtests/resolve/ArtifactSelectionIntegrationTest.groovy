@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 
 @FluidDependenciesResolveTest
 class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -129,28 +130,32 @@ allprojects {
                 }
 
                 task resolve {
-                    inputs.files configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'jar') }
-                    }.files
-                    doLast {
-                        // Get a view specifying the default type
-                        def defaultView = configurations.compile.incoming.artifactView {
-                            attributes {
-                                it.attribute(artifactType, 'jar')
-                            }
+                    // Get a view specifying the default type
+                    def defaultView = configurations.compile.incoming.artifactView {
+                        attributes {
+                            it.attribute(artifactType, 'jar')
                         }
-                        assert defaultView.files.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert defaultView.artifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar-1.0.jar (org:test:1.0)']
+                    }
+                    def defaultFiles = defaultView.files
+                    def defaultArtifacts = defaultView.artifacts
 
-                        // Get a view with additional optional attribute
-                        def optionalAttributeView =  configurations.compile.incoming.artifactView {
-                            attributes {
-                                it.attribute(artifactType, 'jar')
-                                it.attribute(otherAttributeOptional, 'anything')
-                            }
+                    // Get a view with additional optional attribute
+                    def optionalAttributeView = configurations.compile.incoming.artifactView {
+                        attributes {
+                            it.attribute(artifactType, 'jar')
+                            it.attribute(otherAttributeOptional, 'anything')
                         }
-                        assert optionalAttributeView.files.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
-                        assert optionalAttributeView.artifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar-1.0.jar (org:test:1.0)']
+                    }
+                    def optionalFiles = optionalAttributeView.files
+                    def optionalArtifacts = optionalAttributeView.artifacts
+
+                    inputs.files defaultFiles
+                    doLast {
+                        assert defaultFiles.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert defaultArtifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar-1.0.jar (org:test:1.0)']
+
+                        assert optionalFiles.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
+                        assert optionalArtifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar-1.0.jar (org:test:1.0)']
                     }
                 }
             }
@@ -301,10 +306,10 @@ project(':lib') {
 
 task show {
     inputs.files configurations.compile
+    def artifacts = configurations.compile.incoming.artifactView {
+        attributes { it.attribute(buildType, 'debug') }
+    }.artifacts
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView {
-            attributes { it.attribute(buildType, 'debug') }
-        }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "variants: " + artifacts.collect { it.variant.attributes }
     }
@@ -439,10 +444,10 @@ project(':lib') {
 
 task show {
     inputs.files configurations.compile
+    def artifacts = configurations.compile.incoming.artifactView {
+        attributes { it.attribute(buildType, 'debug') }
+    }.artifacts
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView {
-            attributes { it.attribute(buildType, 'debug') }
-        }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "variants: " + artifacts.collect { it.variant.attributes }
     }
@@ -898,6 +903,8 @@ task show {
     }
 
     def "reports failure to match attributes during selection"() {
+        def resolve = new ResolveFailureTestFixture(buildFile)
+
         buildFile << """
             project(':lib') {
                 def attr = Attribute.of('attr', Boolean)
@@ -956,12 +963,13 @@ task show {
                 }
 
                 task resolve {
+                    def files = configurations.compile.incoming.artifactView {
+                        attributes {
+                            it.attribute(attr, 'jar')
+                        }
+                    }.files
                     doLast {
-                        configurations.compile.incoming.artifactView {
-                            attributes {
-                                it.attribute(attr, 'jar')
-                            }
-                        }.files.each { println it }
+                        files.each { println it }
                     }
                 }
             }
@@ -969,7 +977,7 @@ task show {
 
         expect:
         fails(":app:resolve")
-        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        resolve.assertFailurePresent(failure)
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
         failure.assertHasCause("Could not select a variant of project :lib that matches the consumer attributes.")
         failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Boolean.")

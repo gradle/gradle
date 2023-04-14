@@ -23,53 +23,56 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class IdeaModuleTest extends AbstractProjectBuilderSpec {
-    private final ProjectInternal rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
-    private final ProjectInternal moduleProject = TestUtil.createChildProject(rootProject, "child", new File("."))
+    private ProjectInternal moduleProject
+
+    def setup() {
+        moduleProject = TestUtil.createChildProject(project, "child", new File("."))
+    }
 
     def "language level is null for non java projects"() {
         given:
-        rootProject.getPlugins().apply(JavaPlugin)
-        rootProject.getPlugins().apply(IdeaPlugin)
+        project.getPlugins().apply(JavaPlugin)
+        project.getPlugins().apply(IdeaPlugin)
         def iml = Mock(IdeaModuleIml)
-        def module = new IdeaModule(moduleProject, iml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
         expect:
         module.languageLevel == null
     }
 
     def "language level is null if matching calculated idea project language level"() {
         given:
-        rootProject.getPlugins().apply(IdeaPlugin)
-        rootProject.getPlugins().apply(JavaPlugin)
+        project.getPlugins().apply(IdeaPlugin)
+        project.getPlugins().apply(JavaPlugin)
         moduleProject.getPlugins().apply(JavaPlugin)
         moduleProject.sourceCompatibility = 1.5
-        rootProject.sourceCompatibility = 1.5
+        project.sourceCompatibility = 1.5
 
         def iml = Mock(IdeaModuleIml)
-        def module = new IdeaModule(moduleProject, iml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
         expect:
         module.languageLevel == null
     }
 
     def "target bytecode version is null for non java projects"() {
         given:
-        rootProject.getPlugins().apply(JavaPlugin)
-        rootProject.getPlugins().apply(IdeaPlugin)
+        project.getPlugins().apply(JavaPlugin)
+        project.getPlugins().apply(IdeaPlugin)
         def iml = Mock(IdeaModuleIml)
-        def module = new IdeaModule(moduleProject, iml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
         expect:
         module.targetBytecodeVersion == null
     }
 
    def "target bytecode version is null if matching calculated idea project bytecode version"() {
        given:
-       rootProject.getPlugins().apply(IdeaPlugin)
-       rootProject.getPlugins().apply(JavaPlugin)
+       project.getPlugins().apply(IdeaPlugin)
+       project.getPlugins().apply(JavaPlugin)
        moduleProject.getPlugins().apply(JavaPlugin)
        moduleProject.targetCompatibility = 1.5
-       rootProject.targetCompatibility = 1.5
+       project.targetCompatibility = 1.5
 
        def iml = Mock(IdeaModuleIml)
-       def module = new IdeaModule(moduleProject, iml)
+       def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
        expect:
        module.targetBytecodeVersion == null
    }

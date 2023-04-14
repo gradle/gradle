@@ -39,6 +39,7 @@ import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -50,6 +51,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -63,6 +65,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.TextUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,6 +83,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -87,6 +91,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
+import static org.gradle.caching.internal.controller.NextGenBuildCacheController.NEXT_GEN_CACHE_SYSTEM_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
@@ -100,13 +105,17 @@ import static org.gradle.util.internal.CollectionUtils.join;
 import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
+    private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
+    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
+    private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
+    private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
         .displayName("Global services")
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
         .parent(ValidationServicesFixture.getServices())
-        .provider(new GlobalScopeServices(true))
+        .provider(new GlobalScopeServices(true, AgentStatus.of(isAgentInstrumentationEnabled())))
         .build();
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
@@ -121,14 +130,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public static void doNotPropagateSystemProperty(String name) {
         PROPAGATED_SYSTEM_PROPERTIES.remove(name);
     }
-
-    private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
-    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
-    private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
-
-    protected static final List<String> DEBUG_ARGS = ImmutableList.of(
-        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
-    );
 
     private final Logger logger;
 
@@ -169,14 +170,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
     protected WarningMode warningMode = WarningMode.All;
-    private boolean showStacktrace = true;
+    private boolean showStacktrace = false;
     private boolean renderWelcomeMessage;
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
 
     private int expectedGenericDeprecationWarnings;
-    private final List<String> expectedDeprecationWarnings = new ArrayList<>();
+    private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private boolean jdkWarningChecksOn = false;
@@ -189,8 +190,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected final GradleDistribution distribution;
     private GradleVersion gradleVersionOverride;
 
-    private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
-    private boolean debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
+    private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
+
+    private JavaDebugOptionsInternal debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
+
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
@@ -257,8 +260,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         renderWelcomeMessage = false;
         disableToolchainDownload = true;
         disableToolchainDetection = true;
-        debug = Boolean.getBoolean(DEBUG_SYSPROP);
-        debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
+        debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
+        debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
@@ -405,10 +408,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        executer.startBuildProcessInDebugger(debug);
-        executer.startLauncherInDebugger(debugLauncher);
-        executer.withProfiler(profiler);
-        executer.withForceInteractive(interactive);
+        executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts))
+            .startLauncherInDebugger(opts -> debugLauncher.copyTo(opts))
+            .withProfiler(profiler)
+            .withForceInteractive(interactive);
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
@@ -424,8 +427,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         executer.withWarningMode(warningMode);
 
-        if (!showStacktrace) {
-            executer.withStacktraceDisabled();
+        if (showStacktrace) {
+            executer.withStacktraceEnabled();
         }
 
         if (renderWelcomeMessage) {
@@ -562,7 +565,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
         }
         if (isDebugLauncher()) {
-            gradleInvocation.implicitLauncherJvmArgs.addAll(DEBUG_ARGS);
+            gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
@@ -578,7 +581,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             if (System.getenv().containsKey("CI")) {
                 throw new IllegalArgumentException("Builds cannot be started with the debugger enabled on CI. This will cause tests to hang forever. Remove the call to startBuildProcessInDebugger().");
             }
-            buildJvmOpts.addAll(DEBUG_ARGS);
+            buildJvmOpts.add(debug.toDebugArgument());
         }
         if (isProfile()) {
             buildJvmOpts.add(profiler);
@@ -591,7 +594,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx512m");
         }
-        if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
+        if (getJavaVersionFromJavaHome().compareTo(JavaVersion.VERSION_1_8) < 0) {
             // Although Gradle isn't supported on earlier versions, some tests do run it using Java 6 and 7 to verify it behaves well in this case
             buildJvmOpts.add("-XX:MaxPermSize=320m");
         } else {
@@ -625,6 +628,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public GradleExecuter withJavaHome(File javaHome) {
         this.javaHome = javaHome;
         return this;
+    }
+
+    private JavaVersion getJavaVersionFromJavaHome() {
+        return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome()));
     }
 
     @Override
@@ -832,6 +839,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return requireDaemon || cliDaemonArgument == DAEMON;
     }
 
+    public static boolean isAgentInstrumentationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(ALLOW_INSTRUMENTATION_AGENT_SYSPROP, "true"));
+    }
+
     @Override
     public GradleExecuter withOwnUserHomeServices() {
         useOwnUserHomeServices = true;
@@ -851,8 +862,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withStacktraceDisabled() {
-        showStacktrace = false;
+    public GradleExecuter withStacktraceEnabled() {
+        showStacktrace = true;
         return this;
     }
 
@@ -870,7 +881,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withToolchainDownloadEnabled() {
-        withToolchainDetectionEnabled();
         disableToolchainDownload = false;
         return this;
     }
@@ -1063,7 +1073,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("-Porg.gradle.java.installations.auto-download=false");
         }
         if (disableToolchainDetection) {
-            allArgs.add("-Porg.gradle.java.installations.auto-detect=false");
+            allArgs.add("-P" + AutoDetectingInstallationSupplier.AUTO_DETECT + "=false");
+        }
+
+        boolean hasAgentArgument = args.stream().anyMatch(s -> s.contains(DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY));
+        if (!hasAgentArgument && !isAgentInstrumentationEnabled()) {
+            allArgs.add("-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "=false");
         }
 
         allArgs.addAll(args);
@@ -1132,6 +1147,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
+        if (getJavaVersionFromJavaHome() == JavaVersion.VERSION_18) {
+            properties.put("sun.stdout.encoding", getDefaultCharacterEncoding());
+            properties.put("sun.stderr.encoding", getDefaultCharacterEncoding());
+        } else if (getJavaVersionFromJavaHome().isCompatibleWith(JavaVersion.VERSION_19)) {
+            properties.put("stdout.encoding", getDefaultCharacterEncoding());
+            properties.put("stderr.encoding", getDefaultCharacterEncoding());
+        }
         Locale locale = getDefaultLocale();
         if (locale != null) {
             properties.put("user.language", locale.getLanguage());
@@ -1272,6 +1294,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return withArgument("--build-cache");
     }
 
+    @Override
+    public GradleExecuter withBuildCacheNgEnabled() {
+        return withArguments("--build-cache", "-D" + NEXT_GEN_CACHE_SYSTEM_PROPERTY + "=true");
+    }
+
     protected Action<ExecutionResult> getResultAssertion() {
         return new ResultAssertion(
             expectedGenericDeprecationWarnings, expectedDeprecationWarnings,
@@ -1281,13 +1308,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private static class ResultAssertion implements Action<ExecutionResult> {
         private int expectedGenericDeprecationWarnings;
-        private final List<String> expectedDeprecationWarnings;
+        private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings;
         private final boolean expectStackTraces;
         private final boolean checkDeprecations;
         private final boolean checkJdkWarnings;
 
+        /**
+         * The last deprecation warning that was matched. This is used to advance lines in the output being scanned
+         * by the length of lines in the match.  It will <strong>not</strong> be set back to {@code null} after the
+         * first match is found.
+         */
+        @Nullable
+        private ExpectedDeprecationWarning lastMatchedDeprecationWarning = null;
+
         private ResultAssertion(
-            int expectedGenericDeprecationWarnings, List<String> expectedDeprecationWarnings,
+            int expectedGenericDeprecationWarnings, List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
             boolean expectStackTraces, boolean checkDeprecations, boolean checkJdkWarnings
         ) {
             this.expectedGenericDeprecationWarnings = expectedGenericDeprecationWarnings;
@@ -1392,13 +1427,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                 } else if (line.matches(".*w: .* is deprecated\\..*")) {
                     // A kotlinc warning, ignore
                     i++;
+                } else if (line.matches("\\[Warn] :.* is deprecated: .*")) {
+                    // A scalac warning, ignore
+                    i++;
                 } else if (isDeprecationMessageInHelpDescription(line)) {
                     i++;
-                } else if (removeFirstExpectedDeprecationWarning(line)) {
-                    // Deprecation warning is expected
-                    i++;
+                } else if (removeFirstExpectedDeprecationWarning(lines, i)) {
+                    i += lastMatchedDeprecationWarning.getNumLines();
                     i = skipStackTrace(lines, i);
-                } else if (line.matches(".*\\s+deprecated.*")) {
+                } else if (line.matches(".*\\s+deprecated.*") && !isConfigurationAllowedUsageChangingInfoLogMessage(line)) {
                     if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
                         throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     }
@@ -1417,9 +1454,48 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             }
         }
 
-        private boolean removeFirstExpectedDeprecationWarning(String line) {
-            return expectedDeprecationWarnings.stream().filter(line::contains).findFirst()
-                .map(expectedDeprecationWarnings::remove).orElse(false);
+        /**
+         * Changes to a configuration's allowed usage contain the string "deprecated" and thus will trigger
+         * false positive identification as Deprecation warnings by the logic in {@link #validate(String, String)};
+         * this method is used to filter out those false positives.
+         * <p>
+         * The check for the "this behavior..." string ensures that deprecation warnings in this regard, as opposed
+         * to log messages, are not filtered out.
+         *
+         * @param line the output line to check
+         * @return {@code true} if the line is a configuration allowed usage changing info log message; {@code false} otherwise
+         */
+        private boolean isConfigurationAllowedUsageChangingInfoLogMessage(String line) {
+            String msgPrefix = "Allowed usage is changing for configuration";
+            return (line.startsWith(msgPrefix) || line.contains("[org.gradle.api.internal.artifacts.configurations.DefaultConfiguration] " + msgPrefix))
+                    && !line.contains("This behavior has been deprecated.");
+        }
+
+        /**
+         * Removes the first matching expected deprecation warning from the list of expected deprecations stored
+         * in {@link #expectedDeprecationWarnings} as a side-effect; conditional on a matching deprecation warning
+         * being already present in that collection.
+         * <p>
+         * A match means that the first n lines starting at {@code startIdx} match the lines of the
+         * expected deprecation warning.  If there are not n lines starting at {@code startIdx} left in
+         * the list of lines, then no match is made.
+         * <p>
+         * As a <em>second</em> side-effect, the last matched deprecation warning is stored in the
+         * {@link #lastMatchedDeprecationWarning} field.
+         *
+         * @param lines the lines of the output
+         * @param startIdx the index of the current line of the output to check for a match
+         * @return {@code true} if a matching deprecation warning was removed; {@code false} otherwise
+         */
+        private boolean removeFirstExpectedDeprecationWarning(List<String> lines, int startIdx) {
+            Optional<ExpectedDeprecationWarning> matchedWarning = expectedDeprecationWarnings.stream()
+                    .filter(warning -> warning.matchesNextLines(lines, startIdx))
+                    .findFirst();
+            if (matchedWarning.isPresent()) {
+                lastMatchedDeprecationWarning = matchedWarning.get();
+                expectedDeprecationWarnings.remove(lastMatchedDeprecationWarning);
+            }
+            return matchedWarning.isPresent();
         }
 
         private static int skipStackTrace(List<String> lines, int i) {
@@ -1448,14 +1524,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter expectDeprecationWarning(String warning) {
+    public GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning) {
         expectedDeprecationWarnings.add(warning);
         return this;
     }
 
     @Override
-    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+    public GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning) {
+        return expectDeprecationWarning(normalizeDocumentationLink(warning.getMessage()));
     }
 
     @Override
@@ -1481,6 +1557,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         stackTraceChecksOn = false;
         return this;
     }
+
     @Override
     public GradleExecuter withJdkWarningChecksEnabled() {
         jdkWarningChecksOn = true;
@@ -1503,19 +1580,33 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter startBuildProcessInDebugger(boolean flag) {
-        debug = flag;
+        debug.setEnabled(flag);
+        return this;
+    }
+
+
+    @Override
+    public GradleExecuter startBuildProcessInDebugger(Action<JavaDebugOptionsInternal> action) {
+        debug.setEnabled(true);
+        action.execute(debug);
         return this;
     }
 
     @Override
     public GradleExecuter startLauncherInDebugger(boolean flag) {
-        debugLauncher = flag;
+        debugLauncher.setEnabled(flag);
+        return this;
+    }
+
+    public GradleExecuter startLauncherInDebugger(Action<JavaDebugOptionsInternal> action) {
+        debugLauncher.setEnabled(true);
+        action.execute(debugLauncher);
         return this;
     }
 
     @Override
     public boolean isDebugLauncher() {
-        return debugLauncher;
+        return debugLauncher.isEnabled();
     }
 
     @Override
@@ -1574,7 +1665,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public boolean isDebug() {
-        return debug;
+        return debug.isEnabled();
     }
 
     @Override

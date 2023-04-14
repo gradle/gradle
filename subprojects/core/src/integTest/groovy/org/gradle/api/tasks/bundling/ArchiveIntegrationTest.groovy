@@ -338,13 +338,35 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    def "tarTreeFailsGracefully"() {
+    def "zipTreeFailsGracefully when #scenario"() {
         given:
-        file('content/some-file.txt').text = "Content"
-        file('content').zipTo(file('compressedTarWithWrongExtension.tar'))
+        content.call(getTestDirectory())
         buildFile << '''
             task copy(type: Copy) {
-                from tarTree('compressedTarWithWrongExtension.tar')
+                from zipTree('compressedTarWithWrongExtension.zip')
+                into 'dest'
+            }
+        '''.stripIndent()
+
+        when:
+        def failure = runAndFail('copy')
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertThatCause(CoreMatchers.startsWith("Cannot expand ZIP"))
+
+        where:
+        scenario | content
+        "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').tarTo(td.file('compressedTarWithWrongExtension.zip')) }
+        "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
+    }
+
+    def "tarTreeFailsGracefully when #scenario"() {
+        given:
+        content.call(getTestDirectory())
+        buildFile << '''
+            task copy(type: Copy) {
+                from tarTree('compressedZipWithWrongExtension.tar')
                 into 'dest'
             }
         '''.stripIndent()
@@ -355,6 +377,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':copy'.")
         failure.assertThatCause(CoreMatchers.startsWith("Unable to expand TAR"))
+
+        where:
+        scenario | content
+        "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').zipTo(td.file('compressedZipWithWrongExtension.tar')) }
+        "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
     }
 
     def cannotCreateAnEmptyZip() {
@@ -896,7 +923,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                         fcd.relativePath = new RelativePath(!fcd.isDirectory(), fcd.relativePath.segments.drop(1))
                     }
                 }
-                into buildDir
+                into file("build/output")
             }
         """
 
@@ -904,7 +931,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run "copy"
 
         then:
-        file("build").assertHasDescendants(expectedDescendants)
+        file("build/output").assertHasDescendants(expectedDescendants)
 
         where:
         includeEmptyDirs | expectedDescendants
@@ -912,40 +939,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         false            | ["file2.txt", "file3.txt"]
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/10311")
-    def "can clear version property on #taskType tasks"() {
-        buildFile << """
-            apply plugin: 'base'
-            version = "1.0"
-            task archive(type: $taskType) {
-                from("src")
-                $prop = null
-            }
-        """
-        settingsFile << """
-            rootProject.name = "archive"
-        """
-        file("src/input").touch()
-        when:
-        // This is explicitly checking that the old API works
-        executer.noDeprecationChecks()
-        succeeds "archive"
-        then:
-        file(archiveFile).assertExists()
-
-        where:
-        taskType | prop       | archiveFile
-        "Zip"    | "version"  | "build/distributions/archive.zip"
-        "Jar"    | "version"  | "build/libs/archive.jar"
-        "Tar"    | "version"  | "build/distributions/archive.tar"
-
-        "Zip"    | "baseName" | "build/distributions/1.0.zip"
-        "Jar"    | "baseName" | "build/libs/1.0.jar"
-        "Tar"    | "baseName" | "build/distributions/1.0.tar"
-
-    }
-
-    @Issue("")
     def "zipTree tracks task dependencies"() {
         given:
         buildFile """

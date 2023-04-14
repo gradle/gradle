@@ -121,7 +121,7 @@ In addition to <<command_line_interface.adoc#sec:command_line_logging,controllin
 You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<logging.adoc#sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<logging.adoc#sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
 
 [NOTE]
-Additional logs from the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> can be found under `GRADLE_USER_HOME/daemon/<gradle-version>/`.
+Additional logs from the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> can be found under `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/<gradle-version>/`.
 
 === Task executed when it should have been UP-TO-DATE
 
@@ -175,7 +175,7 @@ We have observed this can occur when network address translation (NAT) masquerad
 
 The solution to this problem is to adjust your network configuration such that local connections are not modified to appear as from external addresses.
 
-You can monitor the detected network setup and the connection requests in the daemon log file (`<GRADLE_USER_HOME>/daemon/<Gradle version>/daemon-<PID>.out.log`).
+You can monitor the detected network setup and the connection requests in the daemon log file (`$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/<Gradle version>/daemon-<PID>.out.log`).
 
 ```
 2021-08-12T12:01:50.755+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface enp0s3

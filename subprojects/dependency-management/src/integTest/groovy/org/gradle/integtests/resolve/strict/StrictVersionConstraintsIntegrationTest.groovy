@@ -20,11 +20,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
-
-    def setup() {
-        resolve.withStrictReasonsCheck()
-    }
-
     def "can downgrade version"() {
         given:
         repository {
@@ -60,7 +55,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:foo:{strictly 1.0}', 'org:foo:1.0').byRequest()
+                edge('org:foo:{strictly 1.0}', 'org:foo:1.0')
                 module('org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
                 }
@@ -105,9 +100,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
+                    notRequested()
+                    byConstraint()
+                    byAncestor()
+                }
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                    edge('org:foo:2.0', 'org:foo:1.0')
                 }
             }
         }
@@ -161,13 +160,17 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             root(':', ':test:') {
                 module('org:a:1.0') {
                     module('org:b:1.0') {
-                        edge('org:c:3.0', 'org:c:1.0').byAncestor()
+                        edge('org:c:3.0', 'org:c:1.0') {
+                            notRequested()
+                            byAncestor()
+                            byConstraint()
+                        }
                     }
                     if (publishedConstraintsSupported) {
                         constraint('org:c:{strictly 2.0}', 'org:c:1.0')
                     }
                 }
-                constraint('org:c:{strictly 1.0}', 'org:c:1.0').byConstraint()
+                constraint('org:c:{strictly 1.0}', 'org:c:1.0')
             }
         }
     }
@@ -219,13 +222,17 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             root(':', ':test:') {
                 module('org:a:1.0') {
                     module('org:b:1.0') {
-                        edge('org:c:2.0', 'org:c:1.0').byAncestor()
+                        edge('org:c:2.0', 'org:c:1.0') {
+                            notRequested()
+                            byAncestor()
+                            byConstraint()
+                        }
                     }
                     if (publishedConstraintsSupported) {
                         constraint('org:c:{strictly 1.0}', 'org:c:1.0')
                     }
                 }
-                constraint('org:c:{strictly 1.0}', 'org:c:1.0').byConstraint()
+                constraint('org:c:{strictly 1.0}', 'org:c:1.0')
             }
         }
     }
@@ -343,13 +350,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             root(':', ':test:') {
                 edge('org:a:1.0', 'org:a:2.0') {
                     module('org:b:1.0') {
-                        module('org:c:2.0').byRequest()
+                        module('org:c:2.0')
                     }
                     edge('org:c:1.0', 'org:c:2.0').byConflictResolution("between versions 2.0 and 1.0")
                 }.byConflictResolution("between versions 2.0 and 1.0")
                 module('org:x:1.0') {
                     module('org:y:1.0') {
-                        module('org:a:2.0').byRequest()
+                        module('org:a:2.0')
                     }
                 }
             }
@@ -395,9 +402,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
+                    notRequested()
+                    byConstraint()
+                    byAncestor()
+                }
                 module('org:bar:1.0') {
-                    edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0').byAncestor()
+                    edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0')
                 }
             }
         }
@@ -441,9 +452,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
+                    notRequested()
+                    byConstraint()
+                    byAncestor()
+                }
                 module('org:bar:1.0') {
-                    edge("org:foo:[2.0,3.0)", 'org:foo:1.0').byAncestor()
+                    edge("org:foo:[2.0,3.0)", 'org:foo:1.0')
                 }
             }
         }
@@ -488,14 +503,14 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:{strictly 1.0}', 'project :foo', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{strictly 1.0}', ':foo', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'project :foo', 'org:foo:1.0') {}.byAncestor()
+                    edge('org:foo:2.0', ':foo', 'org:foo:1.0') {}.byAncestor()
                 }
                 project(':foo', 'org:foo:1.0') {
                     configuration = 'default'
                     noArtifacts()
-                }.byRequest()
+                }
             }
         }
     }
@@ -631,14 +646,18 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             root(':', ':test:') {
                 module('org:x1:1.0') {
                     module('org:bar:1.0') {
-                        edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                        edge('org:foo:2.0', 'org:foo:1.0') {
+                            notRequested()
+                            byConstraint()
+                            byAncestor()
+                        }
                     }
-                    constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                    constraint('org:foo:{strictly 1.0}', 'org:foo:1.0')
                 }
                 module('org:x2:1.0') {
                     module('org:bar:1.0')
                 }
-                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0')
             }
         }
     }

@@ -402,7 +402,10 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         testDirectory.file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:3.8' }
+            dependencies {
+                testCompileOnly 'junit:junit:3.8'
+                testRuntimeOnly 'junit:junit:4.13.2'
+            }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
             test.ignoreFailures = true
@@ -468,7 +471,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation '$dependencyNotation'
+                ${getDependencyBlockContents()}
             }
         """
 
@@ -486,6 +489,56 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             result.testClass('com.example.Foo')
                 .assertTestCount(1, 1, 0)
                 .assertTestFailed("initializationError", containsString('ClassFormatError'))
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23602")
+    def "handles unserializable exception thrown from test"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies { testImplementation 'junit:junit:4.13' }
+        """
+
+        file('src/test/java/PoisonTest.java') << """
+            import org.junit.Test;
+
+            public class PoisonTest {
+                @Test public void passingTest() { }
+
+                @Test public void testWithUnserializableException() {
+                    if (true) {
+                        throw new UnserializableException();
+                    }
+                }
+
+                @Test public void normalFailingTest() {
+                    assert false;
+                }
+
+                private static class WriteReplacer implements java.io.Serializable {
+                    private Object readResolve() {
+                        return new RuntimeException();
+                    }
+                }
+
+                private static class UnserializableException extends RuntimeException {
+                    private Object writeReplace() {
+                        return new WriteReplacer();
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
+            assertTestPassed("passingTest")
+            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+            assertTestFailed("normalFailingTest", containsString("AssertionError"))
         }
     }
 }

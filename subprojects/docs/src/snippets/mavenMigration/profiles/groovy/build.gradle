@@ -3,6 +3,9 @@ if (!hasProperty('buildProfile')) ext.buildProfile = 'default'  // <1>
 apply from: "profile-${buildProfile}.gradle"  // <2>
 
 tasks.register('greeting') {
+    // Store the message into a variable, because referencing extras from the task action
+    // is not compatible with the configuration cache.
+    def message = project.message
     doLast {
         println message  // <3>
     }

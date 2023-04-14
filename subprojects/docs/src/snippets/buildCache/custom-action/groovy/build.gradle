@@ -4,9 +4,10 @@ plugins {
 
 // tag::customAction[]
 tasks.named('jar') {
+    FileCollection runtimeClasspath = configurations.runtimeClasspath
     doFirst {
         manifest {
-            def classPath = configurations.runtimeClasspath.collect { it.name }.join(" ")
+            def classPath = runtimeClasspath.collect { it.name }.join(" ")
             attributes('Class-Path': classPath)
         }
     }

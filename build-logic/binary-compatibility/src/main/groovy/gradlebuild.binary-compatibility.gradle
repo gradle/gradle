@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+
+import gradlebuild.EnrichedReportRenderer
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
 import gradlebuild.basics.GradleModuleApiAttribute
-import me.champeau.gradle.japicmp.JapicmpTask
 import gradlebuild.binarycompatibility.AcceptedApiChanges
 import gradlebuild.binarycompatibility.BinaryCompatibilityHelper
 import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
@@ -105,7 +106,7 @@ dependencies {
     }
 }
 
-def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
+def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
@@ -149,12 +150,15 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
             We check the binary compatibility by comparing the current code’s binary interfaces
             against THE LATEST VERSION WHICH IS RELEASED FROM RELEASE BRANCH (from `released-version.json` on this branch)
             AND LOWER THAN CURRENT BASE VERSION (from `version.txt` on this branch).
-            The difference must identically match `accepted-public-api-changes.json`, no more, no less - otherwise the task will fail.
+            The difference must identically match <a href="${apiChangesJsonFile.asFile.path}">accepted-public-api-changes.json</a>, no more, no less - otherwise the task will fail.
             </p>
+            ${writeFilterPreset(project)}
 """.stripIndent()
+
+        it.renderer.set(EnrichedReportRenderer.class)
     } as Action)
 
-    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get())
+    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get(), apiChangesJsonFile.asFile, rootProject.layout.projectDirectory)
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
@@ -171,4 +175,9 @@ static List<String> toPatterns(List<String> packages) {
             .replaceAll('/', '[.]')
             .replaceAll('###', '.*?')
     }
+}
+
+private String writeFilterPreset(Project project) {
+    def preset = project.hasProperty('bin.cmp.report.severity.filter') ? project.getProperty('bin.cmp.report.severity.filter') : 'All levels'
+    return """<input id="filter-preset" type="hidden" value="$preset" />"""
 }

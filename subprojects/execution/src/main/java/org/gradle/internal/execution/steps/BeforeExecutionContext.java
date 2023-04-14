@@ -16,14 +16,45 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
-public interface BeforeExecutionContext extends PreviousExecutionContext {
+public class BeforeExecutionContext extends PreviousExecutionContext {
+    private final BeforeExecutionState beforeExecutionState;
+
+    public BeforeExecutionContext(PreviousExecutionContext parent, @Nullable BeforeExecutionState beforeExecutionState) {
+        super(parent);
+        this.beforeExecutionState = beforeExecutionState;
+    }
+
+    protected BeforeExecutionContext(BeforeExecutionContext parent) {
+        this(parent, parent.getBeforeExecutionState().orElse(null));
+    }
+
     /**
      * Returns the execution state before execution.
      * Empty if execution state was not observed before execution.
      */
-    Optional<BeforeExecutionState> getBeforeExecutionState();
+    public Optional<BeforeExecutionState> getBeforeExecutionState() {
+        return Optional.ofNullable(beforeExecutionState);
+    }
+
+    @Override
+    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+        return getBeforeExecutionState()
+            .map(BeforeExecutionState::getInputProperties)
+            .orElseGet(super::getInputProperties);
+    }
+
+    @Override
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+        return getBeforeExecutionState()
+            .map(BeforeExecutionState::getInputFileProperties)
+            .orElseGet(super::getInputFileProperties);
+    }
 }

@@ -24,7 +24,7 @@ import me.champeau.gradle.japicmp.report.Violation
 
 class IncubatingInternalInterfaceAddedRule extends AbstractSuperClassChangesRule {
 
-    IncubatingInternalInterfaceAddedRule(Map params) {
+    IncubatingInternalInterfaceAddedRule(Map<String, Object> params) {
         super(params)
     }
 

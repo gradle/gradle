@@ -1,5 +1,5 @@
-Method <org.gradle.api.plugins.quality.CheckstyleExtension.getConfig()> has raw return type org.gradle.api.resources.TextResource in (CheckstyleExtension.java:67)
-Method <org.gradle.api.plugins.quality.CodeNarcExtension.getConfig()> has raw return type org.gradle.api.resources.TextResource in (CodeNarcExtension.java:53)
-Method <org.gradle.api.plugins.quality.PmdExtension.getRuleSetConfig()> has raw return type org.gradle.api.resources.TextResource in (PmdExtension.java:158)
+Method <org.gradle.api.plugins.quality.CheckstyleExtension.getConfig()> has raw return type org.gradle.api.resources.TextResource in (CheckstyleExtension.java:0)
+Method <org.gradle.api.plugins.quality.CodeNarcExtension.getConfig()> has raw return type org.gradle.api.resources.TextResource in (CodeNarcExtension.java:0)
+Method <org.gradle.api.plugins.quality.PmdExtension.getRuleSetConfig()> has raw return type org.gradle.api.resources.TextResource in (PmdExtension.java:0)
 Method <org.gradle.api.reporting.CustomizableHtmlReport.getStylesheet()> has raw return type org.gradle.api.resources.TextResource in (CustomizableHtmlReport.java:0)
 Method <org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator.getTemplate()> has raw return type org.gradle.api.resources.TextResource in (TemplateBasedScriptGenerator.java:0)

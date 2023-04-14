@@ -52,8 +52,8 @@ tasks.registerEarlyFeedbackRootLifecycleTasks()
 fun setupTimeoutMonitorOnCI() {
     if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
         project.gradle.sharedServices.registerIfAbsent("printStackTracesOnTimeoutBuildService", PrintStackTracesOnTimeoutBuildService::class.java) {
-            parameters.timeoutMillis.set(determineTimeoutMillis())
-            parameters.projectDirectory.set(layout.projectDirectory)
+            parameters.timeoutMillis = determineTimeoutMillis()
+            parameters.projectDirectory = layout.projectDirectory
         }.get()
     }
 }

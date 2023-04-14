@@ -21,8 +21,10 @@ import org.gradle.api.Project;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.WrapUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 
@@ -30,10 +32,11 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @Deprecated
 @NonNullApi
-public class DefaultProjectReportsPluginConvention extends org.gradle.api.plugins.ProjectReportsPluginConvention implements HasPublicType {
+public abstract class DefaultProjectReportsPluginConvention extends org.gradle.api.plugins.ProjectReportsPluginConvention implements HasPublicType {
     private String projectReportDirName = "project";
     private final Project project;
 
+    @Inject
     public DefaultProjectReportsPluginConvention(Project project) {
         this.project = project;
     }
@@ -45,21 +48,32 @@ public class DefaultProjectReportsPluginConvention extends org.gradle.api.plugin
 
     @Override
     public String getProjectReportDirName() {
+        logDeprecation();
         return projectReportDirName;
     }
 
     @Override
     public void setProjectReportDirName(String projectReportDirName) {
+        logDeprecation();
         this.projectReportDirName = projectReportDirName;
     }
 
     @Override
     public File getProjectReportDir() {
+        logDeprecation();
         return project.getExtensions().getByType(ReportingExtension.class).file(projectReportDirName);
     }
 
     @Override
     public Set<Project> getProjects() {
+        logDeprecation();
         return WrapUtil.toSet(project);
+    }
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.ProjectReportsPluginConvention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "project_report_convention_deprecation")
+            .nagUser();
     }
 }

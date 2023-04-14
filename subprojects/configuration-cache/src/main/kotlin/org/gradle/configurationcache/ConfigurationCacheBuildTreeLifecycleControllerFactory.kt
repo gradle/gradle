@@ -18,8 +18,9 @@ package org.gradle.configurationcache
 
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.extensions.get
-import org.gradle.execution.selection.BuildTaskSelector
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
@@ -35,13 +36,14 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory(
     buildModelParameters: BuildModelParameters,
     buildOperationExecutor: BuildOperationExecutor,
     projectLeaseRegistry: ProjectLeaseRegistry,
-    buildTaskSelector: BuildTaskSelector,
     private val cache: BuildTreeConfigurationCache,
     private val taskGraph: BuildTreeWorkGraphController,
-    private val stateTransitionControllerFactory: StateTransitionControllerFactory
+    private val stateTransitionControllerFactory: StateTransitionControllerFactory,
+    private val startParameter: ConfigurationCacheStartParameter,
+    private val buildStateRegistry: BuildStateRegistry,
 ) : BuildTreeLifecycleControllerFactory {
     private
-    val vintageFactory = VintageBuildTreeLifecycleControllerFactory(buildModelParameters, taskGraph, buildOperationExecutor, projectLeaseRegistry, stateTransitionControllerFactory, buildTaskSelector)
+    val vintageFactory = VintageBuildTreeLifecycleControllerFactory(buildModelParameters, taskGraph, buildOperationExecutor, projectLeaseRegistry, stateTransitionControllerFactory)
 
     override fun createRootBuildController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
         // Some temporary wiring: the cache implementation is still scoped to the root build rather than the build tree
@@ -63,14 +65,14 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory(
             return vintageFactory.createController(targetBuild, workExecutor, finishExecutor)
         }
 
-        val defaultWorkPreparer = vintageFactory.createWorkPreparer(targetBuild)
-        val workPreparer = ConfigurationCacheAwareBuildTreeWorkPreparer(defaultWorkPreparer, cache)
+        val workPreparer = vintageFactory.createWorkPreparer(targetBuild)
+        val workController = ConfigurationCacheAwareBuildTreeWorkController(workPreparer, workExecutor, taskGraph, cache, buildStateRegistry, startParameter)
 
         val defaultModelCreator = vintageFactory.createModelCreator(targetBuild)
         val modelCreator = ConfigurationCacheAwareBuildTreeModelCreator(defaultModelCreator, cache)
 
         val finisher = ConfigurationCacheAwareFinishExecutor(finishExecutor, cache)
 
-        return DefaultBuildTreeLifecycleController(targetBuild, taskGraph, workPreparer, workExecutor, modelCreator, finisher, stateTransitionControllerFactory)
+        return DefaultBuildTreeLifecycleController(targetBuild, workController, modelCreator, finisher, stateTransitionControllerFactory)
     }
 }

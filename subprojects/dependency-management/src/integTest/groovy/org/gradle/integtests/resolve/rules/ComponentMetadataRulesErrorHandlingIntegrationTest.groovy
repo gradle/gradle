@@ -17,8 +17,11 @@
 package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 
 class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    final resolve = new ResolveFailureTestFixture(buildFile)
+
     def setup() {
         ivyRepo.module('org.test', 'projectA', '1.0').publish()
         buildFile << """
@@ -33,16 +36,12 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
             dependencies {
                 compile 'org.test:projectA:1.0'
             }
-
-            task resolve {
-                doLast {
-                    configurations.compile.files
-                }
-            }
         """
+        resolve.prepare()
     }
 
     def "produces sensible error when bad code is supplied in component metadata rule" () {
+        def lines = buildFile.readLines().size()
         buildFile << """
             class WrongRule implements ComponentMetadataRule {
                 public void execute(ComponentMetadataContext context) {
@@ -57,15 +56,16 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         """
 
         expect:
-        fails 'resolve'
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        fails 'checkDeps'
+        resolve.assertFailurePresent(failure)
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(22)
+        failure.assertHasLineNumber(lines + 3)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
         failure.assertHasCause("No signature of method: WrongRule.foo() is applicable for argument types: () values: []")
     }
 
     def "produces sensible error for invalid component metadata rule" () {
+        def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
                 components {
@@ -75,10 +75,10 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         """
 
         expect:
-        fails 'resolve'
+        fails 'checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(22)
+        failure.assertHasLineNumber(lines + 3)
         failureHasCause("The closure provided is not valid as a rule for 'ComponentMetadataHandler'.")
         failureHasCause(message)
 
@@ -91,6 +91,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
     }
 
     def "produces sensible error when rule throws an exception" () {
+        def lines = buildFile.readLines().size()
         buildFile << """
             class ThrowingRule implements ComponentMetadataRule {
                 public void execute(ComponentMetadataContext context) {
@@ -105,15 +106,16 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         """
 
         expect:
-        fails 'resolve'
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        fails 'checkDeps'
+        resolve.assertFailurePresent(failure)
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(22)
+        failure.assertHasLineNumber(lines + 3)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
         failure.assertHasCause("From Test")
     }
 
     def "produces sensible error for invalid module target id" () {
+        def lines = buildFile.readLines().size()
         buildFile << """
             class UnusedRule implements ComponentMetadataRule {
                 public void execute(ComponentMetadataContext context) {
@@ -129,15 +131,16 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         """
 
         expect:
-        fails 'resolve'
+        fails 'checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(28)
+        failure.assertHasLineNumber(lines + 9)
         failureHasCause("Could not add a component metadata rule for module 'org.test'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.test")
     }
 
     def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter" () {
+        def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
                 components {
@@ -152,16 +155,17 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         """
 
         expect:
-        fails 'resolve'
+        fails 'checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(22)
+        failure.assertHasLineNumber(lines + 3)
         failureHasCause("""Type BadRuleSource is not a valid rule source:
 - Method process(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails""")
 
     }
 
     def "produces sensible error when rule source throws an exception" () {
+        def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
                 components {
@@ -180,10 +184,10 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         """
 
         expect:
-        fails 'resolve'
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        fails 'checkDeps'
+        resolve.assertFailurePresent(failure)
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(31)
+        failure.assertHasLineNumber(lines + 12)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }

@@ -41,9 +41,9 @@ class ScalaCompilationFixture {
         this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compileScala.analysis")
         this.sourceSet = 'main'
         this.sourceDir = 'src/main/scala'
-        this.scalaVersion = ScalaCoverage.NEWEST
+        this.scalaVersion = ScalaCoverage.SCALA_2.last()
         this.zincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
-        this.sourceCompatibility = '1.7'
+        this.sourceCompatibility = '1.8'
         basicClassSource = new ScalaClass(
             'Person',
             '''
@@ -73,8 +73,16 @@ class ScalaCompilationFixture {
         extraClass = new ScalaClass(
             'City',
             'class City',
-            'class City(val name: String)'
+            '''
+                /**
+                 * A city where a person can live.
+                 */
+                class City(val name: String)'''.stripIndent()
         )
+    }
+
+    def isScala3() {
+        return VersionNumber.parse(scalaVersion).getMajor() >= 3
     }
 
     def buildScript() {
@@ -88,7 +96,7 @@ class ScalaCompilationFixture {
             }
 
             dependencies {
-                implementation "${scalaDependency}"
+                implementation "${scalaDependency(scalaVersion)}"
             }
 
             sourceSets {
@@ -99,12 +107,14 @@ class ScalaCompilationFixture {
                 }
             }
 
-            sourceCompatibility = '${sourceCompatibility}'
-            targetCompatibility = '${sourceCompatibility}'
+            java {
+                sourceCompatibility = '${sourceCompatibility}'
+                targetCompatibility = '${sourceCompatibility}'
+            }
         """.stripIndent()
     }
 
-    String getScalaDependency() {
+    static String scalaDependency(String scalaVersion) {
         if (VersionNumber.parse(scalaVersion) < VersionNumber.parse('3.0')) {
             return "org.scala-lang:scala-library:${scalaVersion}"
         } else {

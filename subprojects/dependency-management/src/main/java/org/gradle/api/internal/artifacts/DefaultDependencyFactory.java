@@ -38,11 +38,15 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
+
+@ServiceScope(Scopes.Build.class)
 public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final Instantiator instantiator;
     private final DependencyNotationParser dependencyNotationParser;
@@ -130,7 +134,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ExternalModuleDependency create(CharSequence dependencyNotation) {
-        return dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        ExternalModuleDependency dependency = dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        injectServices(dependency);
+        return dependency;
     }
 
     @Override
@@ -142,6 +148,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     public ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension) {
         DefaultExternalModuleDependency dependency = instantiator.newInstance(DefaultExternalModuleDependency.class, group, name, version);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, extension, classifier);
+        injectServices(dependency);
         return dependency;
     }
 
@@ -152,7 +159,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ProjectDependency create(Project project) {
-        return dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+        ProjectDependency dependency = dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+        injectServices(dependency);
+        return dependency;
     }
 
     // endregion

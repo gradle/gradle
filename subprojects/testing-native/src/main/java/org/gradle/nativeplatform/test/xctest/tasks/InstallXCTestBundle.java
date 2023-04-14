@@ -54,7 +54,7 @@ import java.util.concurrent.Callable;
  * @since 4.4
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class InstallXCTestBundle extends DefaultTask {
+public abstract class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty bundleBinaryFile;
 

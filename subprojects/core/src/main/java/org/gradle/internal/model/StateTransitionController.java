@@ -23,6 +23,7 @@ import org.gradle.internal.work.Synchronizer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -42,18 +43,6 @@ public class StateTransitionController<T extends StateTransitionController.State
         this.displayName = displayName;
         this.synchronizer = synchronizer;
         this.state = new InState<>(displayName, initialState, null);
-    }
-
-    /**
-     * Verifies that the current state is the given state. Ignores any transition in progress and failures of previous operations.
-     *
-     * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
-     */
-    public void assertInState(T expected) {
-        CurrentState<T> current = state;
-        if (current.state != expected) {
-            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " but is in " + current.state + ".");
-        }
     }
 
     /**
@@ -101,7 +90,7 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Runs the given action.
+     * Runs the given action, verifying the current state is the expected state.
      * Fails if the current state is not the given state or a previous operation has failed.
      * Blocks until other operations are complete.
      */
@@ -145,6 +134,20 @@ public class StateTransitionController<T extends StateTransitionController.State
                 state = current.failed(ExecutionResult.failed(t));
                 throw state.rethrow();
             }
+        });
+    }
+
+    /**
+     * Resets the state to the given state.
+     * Fails if the current state is not the given state, ignores failures from previous operations.
+     * Blocks until other operations are complete.
+     */
+    public void restart(T fromState, T toState, Runnable action) {
+        synchronizer.withLock(() -> {
+            CurrentState<T> current = state;
+            current.assertCanTransition(fromState, toState, true);
+            action.run();
+            state = new InState<>(displayName, toState, null);
         });
     }
 
@@ -214,21 +217,37 @@ public class StateTransitionController<T extends StateTransitionController.State
     /**
      * Transitions to a final state, taking any failures from previous transitions and transforming them.
      */
-    public ExecutionResult<Void> finish(T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action) {
+    public ExecutionResult<Void> transition(T fromState, T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action) {
         return synchronizer.withLock(() -> {
             CurrentState<T> current = state;
-            if (current.state == toState) {
-                // Don't rethrow the failure
-                return ExecutionResult.succeeded();
-            }
-            ExecutionResult<Void> result = current.asResult();
-            state = current.transitioningTo(toState);
-            try {
-                return action.apply(result);
-            } finally {
-                state = state.nextState(toState);
-            }
+            current.assertCanTransition(fromState, toState, true);
+            return doTransitionWithFailures(toState, action, current);
         });
+    }
+
+    public ExecutionResult<Void> transition(List<T> fromStates, T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action) {
+        return synchronizer.withLock(() -> {
+            CurrentState<T> current = state;
+            current.assertCanTransition(fromStates, toState, true);
+            return doTransitionWithFailures(toState, action, current);
+        });
+    }
+
+    private ExecutionResult<Void> doTransitionWithFailures(T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action, CurrentState<T> current) {
+        ExecutionResult<Void> currentResult = current.asResult();
+        state = current.transitioningTo(toState);
+        ExecutionResult<Void> result;
+        try {
+            result = action.apply(currentResult);
+        } catch (Throwable t) {
+            result = ExecutionResult.failed(t);
+        }
+        if (!result.getFailures().isEmpty()) {
+            state = state.failed(result);
+        } else {
+            state = state.nextState(toState);
+        }
+        return result;
     }
 
     private void doTransition(T fromState, T toState, Runnable action) {
@@ -269,7 +288,13 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         public abstract void assertNotInState(T forbidden);
 
-        public abstract void assertCanTransition(T fromState, T toState);
+        public void assertCanTransition(T fromState, T toState) {
+            assertCanTransition(fromState, toState, false);
+        }
+
+        public abstract void assertCanTransition(T fromState, T toState, boolean ignoreFailures);
+
+        public abstract void assertCanTransition(List<T> fromStates, T toState, boolean ignoreFailures);
 
         public abstract boolean inStateAndNotTransitioning(T toState);
 
@@ -327,9 +352,16 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public void assertCanTransition(T fromState, T toState) {
+        public void assertCanTransition(T fromState, T toState, boolean ignoreFailures) {
             if (state != fromState) {
                 throw new IllegalStateException("Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState + " from state " + fromState + " however it is currently in state " + state + ".");
+            }
+        }
+
+        @Override
+        public void assertCanTransition(List<T> fromStates, T toState, boolean ignoreFailures) {
+            if (!fromStates.contains(state)) {
+                throw new IllegalStateException("Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState + " from states " + fromStates + " however it is currently in state " + state + ".");
             }
         }
 
@@ -402,7 +434,16 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public void assertCanTransition(T fromState, T toState) {
+        public void assertCanTransition(T fromState, T toState, boolean ignoreFailures) {
+            failDueToTransition(toState);
+        }
+
+        @Override
+        public void assertCanTransition(List<T> fromStates, T toState, boolean ignoreFailures) {
+            failDueToTransition(toState);
+        }
+
+        private void failDueToTransition(T toState) {
             if (targetState == toState) {
                 throw new IllegalStateException("Cannot transition " + displayName.getDisplayName() + " to state " + toState + " as already transitioning to this state.");
             } else {
@@ -452,8 +493,17 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public void assertCanTransition(T fromState, T toState) {
-            throwFailure();
+        public void assertCanTransition(List<T> fromStates, T toState, boolean ignoreFailures) {
+            if (!ignoreFailures) {
+                throwFailure();
+            }
+        }
+
+        @Override
+        public void assertCanTransition(T fromState, T toState, boolean ignoreFailures) {
+            if (!ignoreFailures) {
+                throwFailure();
+            }
         }
 
         @Override

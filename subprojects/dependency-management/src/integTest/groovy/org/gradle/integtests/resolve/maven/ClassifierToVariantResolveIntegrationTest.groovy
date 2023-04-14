@@ -29,11 +29,11 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
         """
         buildFile << """
             apply plugin: 'java-library'
-            
+
             repositories {
                 maven { url "${mavenHttpRepo.uri}" }
             }
-            
+
         """
         resolve.expectDefaultConfiguration('compile')
         resolve.prepare()
@@ -86,7 +86,7 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
                                 'org.gradle.usage': Usage.JAVA_API,
                                 'org.gradle.status': 'release',
                                 'groovy.runtime': 'indy'])
-                        artifact(name: 'lib', version: '1.0', classifier: 'indy')
+                        artifact(classifier: 'indy')
                     }
                 }
             }
@@ -135,7 +135,7 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
                             'org.gradle.usage': Usage.JAVA_API,
                             'org.gradle.status': 'release',
                             'groovy.runtime': 'indy'])
-                    artifact(name: 'lib', version: '1.0', classifier: 'indy')
+                    artifact(classifier: 'indy')
                 }
             }
         }

@@ -23,9 +23,9 @@ import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format, to an Ivy repository.
+ * An {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format, to an Ivy repository.
  *
- * You directly add a named Ivy Publication the project's {@code publishing.publications} container by providing {@link IvyPublication} as the type.
+ * You directly add a named Ivy publication the project's {@code publishing.publications} container by providing {@link IvyPublication} as the type.
  * <pre>
  * publishing {
  *   publications {

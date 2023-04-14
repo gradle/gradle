@@ -28,6 +28,14 @@ You can view the generated `javadoc` files by opening the HTML file located at `
 
 You can also generate a Javadoc JAR for your library:
 
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+java {
+    withJavadocJar()
+}
+----
+
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
@@ -36,13 +44,7 @@ java {
 }
 ----
 
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
-----
-java {
-    withJavadocJar()
-}
-----
+
 
 The additional JAR will be produced as part of the `assemble` or `build` lifecycle tasks and will be part of the publication.
 The resulting file is found in `${subprojectName.raw}/build/libs`, with a name using the conventional classifier `-javadoc`.

@@ -17,6 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskDependencyMatchers
@@ -24,9 +25,10 @@ import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 class ApplicationPluginTest extends AbstractProjectBuilderSpec {
-    private final ApplicationPlugin plugin = new ApplicationPlugin()
+    private final ApplicationPlugin plugin = TestUtil.newInstance(ApplicationPlugin)
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:
@@ -55,7 +57,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
         task instanceof JavaExec
         task.classpath.from.files == [project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].runtimeClasspath.files]
-        task TaskDependencyMatchers.dependsOn('classes')
+        task TaskDependencyMatchers.dependsOn('classes', JvmConstants.COMPILE_JAVA_TASK_NAME)
     }
 
     void "adds startScripts task to project"() {

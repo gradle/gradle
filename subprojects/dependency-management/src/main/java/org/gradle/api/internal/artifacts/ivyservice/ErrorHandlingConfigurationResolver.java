@@ -60,42 +60,42 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     @Override
-    public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults results) {
+    public void resolveBuildDependencies(ResolveContext resolveContext, ResolverResults results) {
         try {
-            delegate.resolveBuildDependencies(configuration, results);
+            delegate.resolveBuildDependencies(resolveContext, results);
         } catch (Exception e) {
-            results.failed(wrapException(e, configuration));
-            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, configuration);
+            results.failed(wrapException(e, resolveContext));
+            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, resolveContext);
             results.artifactsResolved(broken, broken);
         }
     }
 
     @Override
-    public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+    public void resolveGraph(ResolveContext resolveContext, ResolverResults results) throws ResolveException {
         try {
-            delegate.resolveGraph(configuration, results);
+            delegate.resolveGraph(resolveContext, results);
         } catch (Exception e) {
-            results.failed(wrapException(e, configuration));
-            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, configuration);
+            results.failed(wrapException(e, resolveContext));
+            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, resolveContext);
             results.artifactsResolved(broken, broken);
             return;
         }
 
-        ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
+        ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), resolveContext);
         results.graphResolved(wrappedResult, results.getResolvedLocalComponents(), results.getVisitedArtifacts());
     }
 
     @Override
-    public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ResolveContext resolveContext, ResolverResults results) throws ResolveException {
         try {
-            delegate.resolveArtifacts(configuration, results);
+            delegate.resolveArtifacts(resolveContext, results);
         } catch (Exception e) {
-            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, configuration);
+            BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, resolveContext);
             results.artifactsResolved(broken, broken);
             return;
         }
 
-        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
+        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), resolveContext);
         results.artifactsResolved(wrappedConfiguration, results.getVisitedArtifacts());
     }
 
@@ -268,12 +268,12 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
     private static class ErrorHandlingResolvedConfiguration implements ResolvedConfiguration {
         private final ResolvedConfiguration resolvedConfiguration;
-        private final ConfigurationInternal configuration;
+        private final ResolveContext resolveContext;
 
         public ErrorHandlingResolvedConfiguration(ResolvedConfiguration resolvedConfiguration,
-                                                  ConfigurationInternal configuration) {
+                                                  ResolveContext resolveContext) {
             this.resolvedConfiguration = resolvedConfiguration;
-            this.configuration = configuration;
+            this.resolveContext = resolveContext;
         }
 
         @Override
@@ -284,9 +284,9 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         @Override
         public LenientConfiguration getLenientConfiguration() {
             try {
-                return new ErrorHandlingLenientConfiguration(resolvedConfiguration.getLenientConfiguration(), configuration);
+                return new ErrorHandlingLenientConfiguration(resolvedConfiguration.getLenientConfiguration(), resolveContext);
             } catch (Exception e) {
-                throw wrapException(e, configuration);
+                throw wrapException(e, resolveContext);
             }
         }
 
@@ -295,7 +295,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             try {
                 resolvedConfiguration.rethrowFailure();
             } catch (Exception e) {
-                throw wrapException(e, configuration);
+                throw wrapException(e, resolveContext);
             }
         }
 
@@ -304,7 +304,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             try {
                 return resolvedConfiguration.getFiles();
             } catch (ResolveException e) {
-                throw wrapException(e, configuration);
+                throw wrapException(e, resolveContext);
             }
         }
 
@@ -313,7 +313,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             try {
                 return resolvedConfiguration.getFiles(dependencySpec);
             } catch (Exception e) {
-                throw wrapException(e, configuration);
+                throw wrapException(e, resolveContext);
             }
         }
 
@@ -322,7 +322,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             try {
                 return resolvedConfiguration.getFirstLevelModuleDependencies();
             } catch (Exception e) {
-                throw wrapException(e, configuration);
+                throw wrapException(e, resolveContext);
             }
         }
 
@@ -331,7 +331,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             try {
                 return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
             } catch (Exception e) {
-                throw wrapException(e, configuration);
+                throw wrapException(e, resolveContext);
             }
         }
 
@@ -340,18 +340,18 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             try {
                 return resolvedConfiguration.getResolvedArtifacts();
             } catch (Exception e) {
-                throw wrapException(e, configuration);
+                throw wrapException(e, resolveContext);
             }
         }
     }
 
     private static class BrokenResolvedConfiguration implements ResolvedConfiguration, VisitedArtifactSet, SelectedArtifactSet {
         private final Throwable ex;
-        private final ConfigurationInternal configuration;
+        private final ResolveContext resolveContext;
 
-        public BrokenResolvedConfiguration(Throwable ex, ConfigurationInternal configuration) {
+        public BrokenResolvedConfiguration(Throwable ex, ResolveContext resolveContext) {
             this.ex = ex;
-            this.configuration = configuration;
+            this.resolveContext = resolveContext;
         }
 
         @Override
@@ -361,41 +361,41 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
         @Override
         public LenientConfiguration getLenientConfiguration() {
-            throw wrapException(ex, configuration);
+            throw wrapException(ex, resolveContext);
         }
 
         @Override
         public void rethrowFailure() throws ResolveException {
-            throw wrapException(ex, configuration);
+            throw wrapException(ex, resolveContext);
         }
 
         @Override
         public Set<File> getFiles() throws ResolveException {
-            throw wrapException(ex, configuration);
+            throw wrapException(ex, resolveContext);
         }
 
         @Override
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            throw wrapException(ex, configuration);
+            throw wrapException(ex, resolveContext);
         }
 
         @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
-            throw wrapException(ex, configuration);
+            throw wrapException(ex, resolveContext);
         }
 
         @Override
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            throw wrapException(ex, configuration);
+            throw wrapException(ex, resolveContext);
         }
 
         @Override
         public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-            throw wrapException(ex, configuration);
+            throw wrapException(ex, resolveContext);
         }
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants) {
             return this;
         }
 

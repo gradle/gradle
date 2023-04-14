@@ -20,7 +20,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -49,18 +48,6 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttribu
     @Override
     public JvmEcosystemAttributesDetails runtimeUsage() {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        return this;
-    }
-
-    @Override
-    public JvmEcosystemAttributesDetails apiCompileView() {
-        attributes.attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_API));
-        return this;
-    }
-
-    @Override
-    public JvmEcosystemAttributesDetails completeCompileView() {
-        attributes.attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_COMPLETE));
         return this;
     }
 

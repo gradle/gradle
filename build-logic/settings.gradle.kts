@@ -15,9 +15,14 @@
  */
 
 pluginManagement {
+    includeBuild("../build-logic-commons")
     repositories {
         gradlePluginPortal()
     }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
 
 dependencyResolutionManagement {
@@ -28,15 +33,18 @@ dependencyResolutionManagement {
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.internal", "test-selection-gradle-plugin", rcAndMilestonesPattern)
+            }
+        }
+        jcenter {
+            content {
+                includeModule("org.openmbee.junit", "junit-xml-parser")
+                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         mavenCentral()
         gradlePluginPortal()
     }
 }
-
-includeBuild("../build-logic-commons")
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 

@@ -284,7 +284,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     List<String> taskLogging(String taskPath) {
         def taskExecutionOp = operations.only("Task $taskPath")
-        def logging = taskExecutionOp.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) }*.details
+        def logging = taskExecutionOp.progress(LogEventBuildOperationProgressDetails)*.details
         def timeoutLogging = logging.findAll { it.category == DefaultTimeoutHandler.name }
         timeoutLogging.collect { it.message } as List<String>
     }

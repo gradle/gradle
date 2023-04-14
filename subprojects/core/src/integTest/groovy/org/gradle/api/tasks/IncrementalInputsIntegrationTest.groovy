@@ -25,7 +25,6 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         setupTaskSources()
-        buildFile << buildFileBase
         buildFile << """
     task incremental(type: IncrementalTask) {
         inputDir = project.mkdir('inputs')
@@ -102,27 +101,6 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
             outputDir.eachFile {
                 it << "more content"
             }
-        }
-    }
-"""
-    }
-
-    private static String getBuildFileBase() {
-        """
-    ext {
-        incrementalExecution = true
-        added = []
-        modified = []
-        removed = []
-    }
-
-    task incrementalCheck(dependsOn: "incremental") {
-        def ext = project.ext
-        doLast {
-            assert incremental.incrementalExecution == ext.incrementalExecution
-            assert incremental.addedFiles.collect({ it.name }).sort() == ext.added
-            assert incremental.modifiedFiles.collect({ it.name }).sort() == ext.modified
-            assert incremental.removedFiles.collect({ it.name }).sort() == ext.removed
         }
     }
 """
@@ -210,8 +188,7 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
 
     def "incremental task is informed of 'out-of-date' files when task has no declared outputs or properties"() {
         given:
-        buildFile.text = buildFileBase
-        buildFile << """
+        buildFile.text = """
     task incremental(type: BaseIncrementalTask) {
         inputDir = project.mkdir('inputs')
     }
@@ -260,8 +237,7 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
         previousExecution()
 
         when:
-        buildFile.text = buildFileBase
-        buildFile << """
+        buildFile.text = """
     abstract class IncrementalTask2 extends BaseIncrementalTask {}
     task incremental(type: IncrementalTask2) {
         inputDir = project.mkdir('inputs')
@@ -838,11 +814,11 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
         executer.withArguments()
     }
 
-    def executesIncrementally(Map changes) {
+    void executesIncrementally(Map changes) {
         executesIncrementalTask(incremental: true, *:changes)
     }
 
-    def executesNonIncrementally(List<String> rebuiltFiles = ['file0.txt', 'file1.txt', 'file2.txt']) {
+    void executesNonIncrementally(List<String> rebuiltFiles = ['file0.txt', 'file1.txt', 'file2.txt']) {
         executesIncrementalTask(
             incremental: false,
             (rebuildChangeType.name().toLowerCase(Locale.US)): rebuiltFiles
@@ -853,19 +829,17 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
         return ChangeTypeInternal.ADDED
     }
 
-    def executesIncrementalTask(Map options) {
+    void executesIncrementalTask(Map options) {
         boolean incremental = options.incremental != false
         List<String> added = options.added ?: []
         List<String> modified = options.modified ?: []
         List<String> removed = options.removed ?: []
 
-        buildFile << """
-            ext.added = ${added.collect { "'${it}'"}}
-            ext.modified = ${modified.collect { "'${it}'"}}
-            ext.removed = ${removed.collect { "'${it}'"}}
-            ext.incrementalExecution = ${incremental}
-        """
-        succeeds("incrementalCheck")
+        succeeds("incremental")
+        outputContains("incremental=$incremental")
+        outputContains("added=$added")
+        outputContains("modified=$modified")
+        outputContains("removed=$removed")
     }
 
     String getTaskAction() {
@@ -894,6 +868,11 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
                             throw new IllegalStateException()
                     }
                 }
+
+                println "incremental=" + incrementalExecution
+                println "added=" + addedFiles*.name
+                println "modified=" + modifiedFiles*.name
+                println "removed=" + removedFiles*.name
 
                 if (!inputChanges.incremental) {
                     createOutputsNonIncremental()

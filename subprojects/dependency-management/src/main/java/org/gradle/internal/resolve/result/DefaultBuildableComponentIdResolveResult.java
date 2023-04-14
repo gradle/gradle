@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedVersion;
 
@@ -88,11 +86,6 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     public void resolved(ComponentGraphResolveState state) {
         resolved(state.getId(), state.getMetadata().getModuleVersionId());
         this.state = state;
-    }
-
-    @Override
-    public void resolved(ComponentResolveMetadata metadata) {
-        resolved(new DefaultComponentGraphResolveState<>(metadata));
     }
 
     @Override

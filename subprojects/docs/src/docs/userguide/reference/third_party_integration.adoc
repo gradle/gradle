@@ -103,26 +103,37 @@ To use the Tooling API, add the following repository and dependency declarations
 
 .Using the tooling API
 ====
-include::sample[dir="snippets/toolingApi/runBuild/groovy",files="build.gradle[tags=use-tooling-api]"]
 include::sample[dir="snippets/toolingApi/runBuild/kotlin",files="build.gradle.kts[tags=use-tooling-api]"]
+include::sample[dir="snippets/toolingApi/runBuild/groovy",files="build.gradle[tags=use-tooling-api]"]
 ====
 
-The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/tooling/GradleConnector.html[GradleConnector]. You can navigate from there to find code samples and explore the available Tooling API models. You can use link:https://docs.gradle.org/nightly/javadoc/org/gradle/tooling/GradleConnector.html#connect--[GradleConnector.connect()] to create a link:{javadocPath}/org/gradle/tooling/ProjectConnection.html[ProjectConnection]. A `ProjectConnection` connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
+The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/tooling/GradleConnector.html[GradleConnector].
+You can navigate from there to find code samples and explore the available Tooling API models.
+You can use link:{javadocPath}/org/gradle/tooling/GradleConnector.html#connect--[GradleConnector.connect()] to create a link:{javadocPath}/org/gradle/tooling/ProjectConnection.html[ProjectConnection].
+A `ProjectConnection` connects to a single Gradle project.
+Using the connection you can execute tasks, tests and retrieve models relative to this project.
 
 [[sec:embedding_compatibility]]
 === Compatibility of Java and Gradle versions
 
-The Tooling API requires Java 8 or later.
-The Gradle version used by builds may impose <<compatibility.adoc#compatibility,additional Java version requirements>>.
+The following components should be considered when implementing Gradle integration: the Tooling API version, The JVM running the Tooling API client (i.e. the IDE process), the JVM running the Gradle daemon, and the Gradle version.
 
-The Tooling API supports running builds using Gradle 2.6 and later.
-Gradle 5.0 and up require clients to use Tooling API version 3.0 or later.
+The Tooling API itself is a Java library published as part of the Gradle release.
+Each Gradle release has a corresponding Tooling API version with the same version number.
 
-You should note that not all features of the Tooling API are available for all versions of Gradle.
-Refer to the documentation for each class and method for more details.
+The Tooling API classes are loaded into the client's JVM, so they should have a matching version.
+The current version of the Tooling API library is compiled with Java 8 compatibility.
 
-In general, the Tooling API client can run on a different version of Java than the build, but classes that are sent to the build via custom build actions need to be targeted to the lowest supported Java version.
+The JVM running the Tooling API client and the one running the daemon can be different.
+At the same time, classes that are sent to the build via custom build actions need to be targeted to the lowest supported Java version.
+The JVM versions supported by Gradle is version-specific.
+The upper bound is defined in the <<compatibility.adoc#compatibility,compatibility matrix>>.
+The rule for the lower bound is the following:
 
-- Gradle 2.6-2.14.1 only supports Java 6 through Java 8.
 - Gradle 3.x and 4.x require a minimum version of Java 7.
 - Gradle 5 and above require a minimum version of Java 8.
+
+The Tooling API version is guaranteed to support running builds with all Gradle versions for the last five major releases.
+For example, the Tooling API 8.0 release is compatible with Gradle versions >= 3.0.
+Besides, the Tooling API is guaranteed to be compatible with future Gradle releases for the current and the next major.
+This means, for example, that the 8.1 version of the Tooling API will be able to run Gradle 9.x builds and _might_ break with Gradle 10.0.

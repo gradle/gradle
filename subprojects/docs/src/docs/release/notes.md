@@ -2,32 +2,15 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!--
+<!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
- The list is rendered as is, so use commas after each contributor's name, and a period at the end. 
+ THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-
-[Björn Kautler](https://github.com/Vampire),
-[Clara Guerrero](https://github.com/cguerreros),
-[David Marin](https://github.com/dmarin),
-[Denis Buzmakov](https://github.com/bacecek),
-[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
-[Dzmitry Neviadomski](https://github.com/nevack),
-[Eliezer Graber](https://github.com/eygraber),
-[Fedor Ihnatkevich](https://github.com/Jeffset),
-[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
-[Herbert von Broeuschmeul](https://github.com/HvB),
-[Matthew Haughton](https://github.com/3flex),
-[Michael Torres](https://github.com/torresmi),
-[Pankaj Kumar](https://github.com/p1729),
-[Ricardo Jiang](https://github.com/RicardoJiang),
-[Siddardha Bezawada](https://github.com/SidB3),
-[Stephen Topley](https://github.com/stopley),
-[Vinay Potluri](https://github.com/vinaypotluri).
+- [esfomeado](https://github.com/esfomeado)
+- [Lee Euije](https://github.com/euije)
 
 ## Upgrade instructions
 
@@ -37,7 +20,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
 
@@ -69,10 +52,73 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-#### PMD and CodeNarc tasks execute in parallel by default
-The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/pmd_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
+### JaCoCo version upgraded
 
-In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
+The version of the JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to 0.8.9. 
+
+### Wrapper task validates distribution url
+
+The wrapper task now validates the configured distribution url before writing it to the `gradle-wrapper.properties` file.
+This surfaces invalid urls early and can prevent IO exceptions at execution time.
+
+More details can be found in the dedicated section of the [Gradle Wrapper](gradle_wrapper.html#[adding_the_gradle_wrapper](sec:adding_wrapper)) user manual chapter.
+
+### Java toolchains discovery progress display
+
+Progress is now displayed during [Java toolchains discovery](userguide/jvm/toochains.html#auto_detection).
+This can be useful during a cold-start of Gradle for users who have environments with a lot of JVM installations in them.
+
+### Kotlin DSL improvements
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring documentation, and more.
+
+#### Kotlin DSL reference
+
+A versioned reference documentation for the Gradle Kotlin DSL is now published alongside the user manual.
+This reference covers both the Kotlin DSL and the Gradle Java API.
+
+You can use the [Kotlin DSL reference](kotlin-dsl/) search functionality to drill through the available members.
+
+#### Gradle `init` defaults to the Kotlin DSL
+
+Starting with this release running `gradle init` now defaults to generating new builds using the Kotlin DSL.
+
+In interactive mode you can choose which DSL to use and the Kotlin one is now listed first:
+
+```text
+Select build script DSL:
+  1: Kotlin
+  2: Groovy
+Enter selection (default: Kotlin) [1..2]
+```
+
+See the [build init](userguide/build_init.html#sec:what_to_set_up) user manual chapter for more information.
+
+#### Fail on script compilation warnings
+
+Gradle [Kotlin DSL scripts](userguide/kotlin_dsl.html#sec:scripts) are compiled by Gradle during the configuration phase of your build.
+Deprecation warnings found by the Kotlin compiler are reported on the console when compiling the scripts.
+
+It is now possible to configure your build to fail on any warning emitted during script compilation by setting the `org.gradle.kotlin.dsl.allWarningsAsErrors` Gradle property to `true`:
+
+```properties
+# gradle.properties
+org.gradle.kotlin.dsl.allWarningsAsErrors=true
+```
+
+More details can be found in the dedicated section of the [Kotlin DSL](userguide/kotlin_dsl.html#sec:compilation_warnings) user manual chapter.
+
+### Dependency verification keys stripping
+
+PGP keys for dependency verification downloaded from key servers are now stripped to contain only necessary data.
+This feature can significantly reduce keyrings size.
+
+### Boolean task options generate opposite option
+
+Task options of type `boolean`, `Boolean`, and `Property<Boolean>` now generate an opposite option to facilitate setting the value to `false`.
+For example, `--no-foo` is created for the provided option `--foo`.
+
+See the [task options](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options) user manual section for more information.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -80,41 +126,23 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+### Improved console output
+
+A series of small improvements were added to the console output when the build fails:
+suggestions are moved from the error message to the `* Try` section, a link help.gradle.org is not shown for recoverable errors (e.g. upon compilation failure), just to name a few.
+The complete list of suggestions is available [here](https://github.com/gradle/gradle/issues?q=is%3Aissue+sort%3Aupdated-desc+milestone%3A%228.2+RC1%22+label%3Ain%3Aconsole+is%3Aclosed).
+This change is a first step towards implementing the [clean and actionable error reporting](https://github.com/gradle/build-tool-roadmap/issues/49) item in the public roadmap.
+
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
 
-### Promoted features in the Tooling API
-
-- The `GradleConnector.disconnect()` method is now considered stable.
-
-### Promoted features in the antlr plugin
-
-- The `AntlrSourceDirectorySet` interface is now considered stable.
-
-### Promoted features in the ear plugin
-
-- The `Ear.getAppDirectory()` method is now considered stable.
-
-### Promoted features in the eclipse plugin
-
-- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
-
-### Promoted features in the groovy plugin
-
-The following type and method are now considered stable:
-- `GroovySourceDirectorySet`
-- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
-
-### Promoted features in the scala plugin
-
-- The `ScalaSourceDirectorySet` interface is now considered stable.
-
-### Promoted features in the war plugin
-
-- The `War.getWebAppDirectory()` method is now considered stable.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 

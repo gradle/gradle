@@ -34,6 +34,7 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
+import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
 import org.gradle.internal.service.scopes.DefaultWorkInputListeners
 import org.gradle.internal.service.scopes.Scope
@@ -53,7 +54,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.PRIMARY
+import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
 @RedirectStdIn
 class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
@@ -391,7 +392,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             visitRegularInputs(_ as InputVisitor) >> { InputVisitor visitor ->
                 visitor.visitInputFileProperty("test", PRIMARY, valueSupplier)
             }
-        }, EnumSet.allOf(UnitOfWork.InputBehavior))
+        }, EnumSet.allOf(InputBehavior))
     }
 
     private ContinuousBuildActionExecutor executer() {

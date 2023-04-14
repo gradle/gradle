@@ -21,12 +21,15 @@ import org.gradle.util.internal.TextUtil;
 import org.hamcrest.Matcher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang.StringUtils.repeat;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -38,7 +41,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+?)'.+?') line: (\\d+)$");
-    private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
+    private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$\\n(.+?)\\n(?:Exception is:)?$");
     private final String summary;
     private final List<Problem> problems = new ArrayList<>();
     private final List<Problem> problemsNotChecked = new ArrayList<>();
@@ -154,11 +157,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     private String toPrefixPattern(int prefix) {
-        StringBuilder builder = new StringBuilder("(?m)^");
-        for (int i = 0; i < prefix; i++) {
-            builder.append(' ');
-        }
-        return builder.toString();
+        return "(?m)^" + repeat(" ", prefix);
     }
 
     @Override
@@ -215,16 +214,10 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     @Override
     public ExecutionFailure assertHasResolutions(String... resolutions) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < resolutions.length; i++) {
-            String expected = resolutions[i];
-            if (i > 0) {
-                builder.append("\n");
-            }
-            builder.append("> ");
-            builder.append(expected);
-        }
-        assertThat(this.resolution, equalTo(builder.toString()));
+        String expected = Arrays.stream(resolutions)
+            .map(resolution -> "> " + resolution)
+            .collect(joining("\n"));
+        assertThat(this.resolution, equalTo(expected));
         return this;
     }
 
@@ -303,25 +296,9 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         }
     }
 
-    private static class Problem implements Failure {
-        final String description;
-        final List<String> causes;
-
+    private static class Problem extends AbstractFailure {
         private Problem(String description, List<String> causes) {
-            this.description = description;
-            this.causes = causes;
-        }
-
-        @Override
-        public void assertHasCause(String message) {
-            if (!causes.contains(message)) {
-                throw new AssertionFailedError(String.format("Expected cause '%s' not found in %s", message, causes));
-            }
-        }
-
-        @Override
-        public void assertHasCauses(int count) {
-            assert causes.size() == count;
+            super(description, causes);
         }
     }
 }

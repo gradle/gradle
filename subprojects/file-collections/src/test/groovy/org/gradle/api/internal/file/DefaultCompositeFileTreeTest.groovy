@@ -22,9 +22,13 @@ import org.gradle.test.fixtures.file.WorkspaceTest
 
 class DefaultCompositeFileTreeTest extends WorkspaceTest {
 
+    private DefaultCompositeFileTree newCompositeFileTree(List<? extends FileTreeInternal> fileTrees) {
+        new DefaultCompositeFileTree(TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory, fileTrees)
+    }
+
     def "can be empty"() {
         when:
-        def ft = new DefaultCompositeFileTree(TestFiles.patternSetFactory, [])
+        def ft = newCompositeFileTree([])
 
         then:
         ft.files.isEmpty()
@@ -39,7 +43,7 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         when:
         def a = fileResolver.resolving(["a"]).asFileTree
         def b = fileResolver.resolving(["b"]).asFileTree
-        def composite = new DefaultCompositeFileTree(TestFiles.patternSetFactory, [a, b])
+        def composite = newCompositeFileTree([a, b])
 
         then:
         composite.files == [a1, b1].toSet()
@@ -54,7 +58,7 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         when:
         def a = fileResolver.resolving(["a"]).asFileTree
         def b = fileResolver.resolving(["b"]).asFileTree
-        def composite = new DefaultCompositeFileTree(TestFiles.patternSetFactory, [a, b])
+        def composite = newCompositeFileTree([a, b])
 
         and:
         def visited = []
@@ -84,7 +88,7 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         }
 
         expect:
-        def composite = new DefaultCompositeFileTree(TestFiles.patternSetFactory, [tree1, tree2])
+        def composite = newCompositeFileTree([tree1, tree2])
         composite.buildDependencies.getDependencies(null) as List == [task1, task2, task3]
     }
 

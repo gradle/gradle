@@ -34,11 +34,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        AndroidTestProject.useStableAgpVersion(runner)
-        AndroidTestProject.useStableKotlinVersion(runner)
-        // AGP 7.3 requires Gradle 7.4
-        runner.minimumBaseVersion = "7.4"
-        configureProjectJavaHomeToJdk11()
+        AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
+        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
     }
 
     @RunFor([
@@ -68,7 +65,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         'help'                                       | null       | null
         'assembleDebug'                              | null       | null
         'clean phthalic:assembleDebug'               | 2          | 8
-        // ':module21:module02:assembleDebug --dry-run' | 8          | 20
+        ':module21:module02:assembleDebug --dry-run' | 8          | 20
     }
 
     @RunFor([

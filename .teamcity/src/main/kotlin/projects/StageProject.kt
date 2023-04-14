@@ -4,6 +4,8 @@ import common.VersionedSettingsBranch
 import common.hiddenArtifactDestination
 import common.toCapitalized
 import configurations.BaseGradleBuildType
+import configurations.DocsTestProject
+import configurations.DocsTestTrigger
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
 import configurations.PartialTrigger
@@ -12,6 +14,7 @@ import configurations.PerformanceTestsPass
 import configurations.SmokeTests
 import configurations.buildReportTab
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
 import model.FlameGraphGeneration
 import model.FunctionalTestBucketProvider
@@ -42,6 +45,8 @@ class StageProject(
 
     val functionalTests: List<BaseGradleBuildType>
 
+    val docsTestTriggers: List<BaseGradleBuildType>
+
     init {
         features {
             if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
@@ -63,7 +68,7 @@ class StageProject(
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
         val topLevelFunctionalTests = topLevelCoverage
-            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage, enableTestDistribution = false) }
+            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
         topLevelFunctionalTests.forEach(this::buildType)
 
         val functionalTestProjects = allCoverage.map { testCoverage -> FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage) }
@@ -98,9 +103,14 @@ class StageProject(
                 buildType(PartialTrigger("All Specific Builds for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_SpecificBuilds", model, specificBuildTypes))
             }
             if (performanceTests.size > 1) {
-                buildType(PartialTrigger("All Performance Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_PerformanceTests", model, performanceTests))
+                buildType(createPerformancePartialTrigger(model, stage))
             }
         }
+
+        val docsTestProjects = stage.docsTests.map { DocsTestProject(model, stage, it.os, it.testJava, it.docsTestTypes) }
+        docsTestProjects.forEach(this::subProject)
+        docsTestTriggers = docsTestProjects.map { DocsTestTrigger(model, it) }
+        docsTestTriggers.forEach(this::buildType)
 
         stage.performanceTestPartialTriggers.forEach { trigger ->
             buildType(
@@ -124,6 +134,22 @@ class StageProject(
         val performanceTestProject = AutomaticallySplitPerformanceTestProject(model, performanceTestBucketProvider, stage, performanceTestCoverage)
         subProject(performanceTestProject)
         return PerformanceTestsPass(model, performanceTestProject).also(this::buildType)
+    }
+
+    private
+    fun createPerformancePartialTrigger(model: CIBuildModel, stage: Stage): PartialTrigger<PerformanceTestsPass> {
+        val performancePartialTrigger = PartialTrigger("All Performance Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_PerformanceTests", model, performanceTests)
+        performanceTests.forEach { performanceTestTrigger ->
+            // The space removal is necessary - otherwise it doesn't show
+            val artifactDirName = performanceTestTrigger.name.replace(" ", "")
+            performancePartialTrigger.dependencies {
+                artifacts(performanceTestTrigger) {
+                    id = "artifact_dependency_${performancePartialTrigger.uuid}_${(performanceTestTrigger.id as RelativeId).relativeId}"
+                    artifactRules = "**/* => $artifactDirName"
+                }
+            }
+        }
+        return performancePartialTrigger
     }
 
     private fun createFlameGraphs(model: CIBuildModel, stage: Stage, flameGraphSpec: FlameGraphGeneration): PerformanceTestsPass {

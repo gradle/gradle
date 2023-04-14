@@ -22,10 +22,13 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescriptor {
 
@@ -60,7 +63,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
         if (isSingleProject(settings)) {
             applyApplicationPlugin(buildScriptBuilder);
             buildScriptBuilder.implementationDependency("This dependency is used by the application.",
-                    "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
+                "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
         } else {
             if ("app".equals(projectName)) {
                 buildScriptBuilder.plugin(null, applicationConventionPlugin(settings));
@@ -76,55 +79,53 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
     }
 
     @Override
-    protected void sourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates) {
+    protected List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
         if (isSingleProject(settings)) {
-            templates.add("App");
-        } else {
-            if ("app".equals(subproject)) {
-                templates.add("multi/app/App");
-                templates.add("multi/app/MessageUtils");
-            }
-            if ("list".equals(subproject)) {
-                templates.add("multi/list/LinkedList");
-            }
-            if ("utilities".equals(subproject)) {
-                templates.add("multi/utilities/JoinUtils");
-                templates.add("multi/utilities/SplitUtils");
-                templates.add("multi/utilities/StringUtils");
-            }
+            return newArrayList("App");
+        }
+        switch (subproject) {
+            case "app":
+                return newArrayList("multi/app/App", "multi/app/MessageUtils");
+            case "list":
+                return newArrayList("multi/list/LinkedList");
+            case "utilities":
+                return newArrayList("multi/utilities/JoinUtils", "multi/utilities/SplitUtils", "multi/utilities/StringUtils");
+            default:
+                return new ArrayList<>();
         }
     }
 
     @Override
-    protected void testSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates) {
+    protected List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
         if (isSingleProject(settings)) {
-            switch (settings.getTestFramework()) {
-                case SPOCK:
-                    templates.add("groovy/AppTest");
-                    break;
-                case TESTNG:
-                    templates.add("testng/AppTest");
-                    break;
-                case JUNIT:
-                case KOTLINTEST:
-                    templates.add("AppTest");
-                    break;
-                case JUNIT_JUPITER:
-                    templates.add("junitjupiter/AppTest");
-                    break;
-                case SCALATEST:
-                    templates.add("AppSuite");
-                    break;
-                default:
-                    throw new IllegalArgumentException();
-            }
-        } else {
-            if ("app".equals(subproject)) {
-                templates.add("multi/app/junit5/MessageUtilsTest");
-            }
-            if ("list".equals(subproject)) {
-                templates.add("multi/list/junit5/LinkedListTest");
-            }
+            return newArrayList(getTestFrameWorkName(settings));
+        }
+
+        switch (subproject) {
+            case "app":
+                return newArrayList("multi/app/junit5/MessageUtilsTest");
+            case "list":
+                return newArrayList("multi/list/junit5/LinkedListTest");
+            default:
+                return new ArrayList<>();
+        }
+    }
+
+    private static String getTestFrameWorkName(InitSettings settings) {
+        switch (settings.getTestFramework()) {
+            case SPOCK:
+                return "groovy/AppTest";
+            case TESTNG:
+                return "testng/AppTest";
+            case JUNIT:
+            case KOTLINTEST:
+                return "AppTest";
+            case JUNIT_JUPITER:
+                return "junitjupiter/AppTest";
+            case SCALATEST:
+                return "AppSuite";
+            default:
+                throw new IllegalArgumentException();
         }
     }
 }

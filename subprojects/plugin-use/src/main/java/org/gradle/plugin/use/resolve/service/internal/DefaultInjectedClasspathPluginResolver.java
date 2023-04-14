@@ -46,7 +46,7 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         this.injectedClasspath = injectedClasspath;
         ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, instrumentationStrategy.getTransform());
         this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
-            parentScope.createChild("injected-plugin")
+            parentScope.createChild("injected-plugin", null)
                 .local(cachedClassPath)
                 .lock()
         );

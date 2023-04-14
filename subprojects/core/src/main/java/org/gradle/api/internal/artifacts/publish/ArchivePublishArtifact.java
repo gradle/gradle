@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.internal.GUtil;
 
@@ -32,8 +33,8 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     private AbstractArchiveTask archiveTask;
 
-    public ArchivePublishArtifact(AbstractArchiveTask archiveTask) {
-        super(archiveTask);
+    public ArchivePublishArtifact(TaskDependencyFactory taskDependencyFactory, AbstractArchiveTask archiveTask) {
+        super(taskDependencyFactory, archiveTask);
         this.archiveTask = archiveTask;
     }
 

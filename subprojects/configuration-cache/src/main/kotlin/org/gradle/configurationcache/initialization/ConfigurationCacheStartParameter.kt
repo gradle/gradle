@@ -18,25 +18,44 @@ package org.gradle.configurationcache.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.internal.Factory
+import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.buildoption.StringInternalOption
+import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.File
 
 
 @ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
-    startParameter: StartParameter
+    private val startParameter: StartParameterInternal,
+    options: InternalOptions,
+    private val modelParameters: BuildModelParameters
 ) {
+    val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getInternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
 
-    private
-    val startParameter = startParameter as StartParameterInternal
+    val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")
+
+    val encryptionRequested: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.encryption", true)
+
+    val keystoreDir: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
+
+    val encryptionAlgorithm: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
+
+    val configurationCacheLogLevel: LogLevel
+        get() = modelParameters.configurationCacheLogLevel
 
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
@@ -67,7 +86,7 @@ class ConfigurationCacheStartParameter(
 
     @Suppress("DEPRECATION")
     val settingsFile: File?
-        get() = startParameter.settingsFile
+        get() = DeprecationLogger.whileDisabled(Factory { startParameter.settingsFile })
 
     val rootDirectory: File
         get() = buildLayout.rootDirectory
@@ -99,4 +118,20 @@ class ConfigurationCacheStartParameter(
 
     val includedBuilds: List<File>
         get() = startParameter.includedBuilds
+
+    val isBuildScan: Boolean
+        get() = startParameter.isBuildScan
+
+    val isNoBuildScan: Boolean
+        get() = startParameter.isNoBuildScan
 }
+
+
+private
+fun InternalOptions.getInternalFlag(systemPropertyName: String, defaultValue: Boolean = false): Boolean =
+    getOption(InternalFlag(systemPropertyName, defaultValue)).get()
+
+
+private
+fun InternalOptions.getInternalString(systemPropertyName: String, defaultValue: String?) =
+    getOption(StringInternalOption(systemPropertyName, defaultValue)).get()

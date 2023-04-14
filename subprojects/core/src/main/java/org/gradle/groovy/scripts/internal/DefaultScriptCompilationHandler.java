@@ -37,11 +37,17 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.initialization.ClassLoaderScopeOrigin;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ImplementationHashAware;
+import org.gradle.internal.classloader.TransformErrorHandler;
+import org.gradle.internal.classloader.TransformReplacer;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
@@ -53,6 +59,7 @@ import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -61,6 +68,7 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.List;
 import java.util.Map;
 
@@ -268,8 +276,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
     }
 
-
-
     private static class ClassesDirCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
         private final boolean isEmpty;
         private final boolean hasMethods;
@@ -339,7 +345,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         private ClassLoaderScope prepareClassLoaderScope() {
             String scopeName = "groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName();
-            return targetScope.createLockedChild(scopeName, scriptClassPath, sourceHashCode, parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
+            ClassLoaderScopeOrigin origin = new ClassLoaderScopeOrigin.Script(source.getFileName(), source.getLongDisplayName(), source.getShortDisplayName());
+            return targetScope.createLockedChild(scopeName, origin, scriptClassPath, sourceHashCode, parent -> {
+                if (scriptClassPath instanceof TransformedClassPath) {
+                    return new InstrumentingScriptClassLoader(source, parent, (TransformedClassPath) scriptClassPath, sourceHashCode);
+                }
+                return new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode);
+            });
         }
     }
 
@@ -378,6 +390,45 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
             }
             return super.loadClass(name, resolve);
+        }
+    }
+
+    private static class InstrumentingScriptClassLoader extends ScriptClassLoader implements InstrumentingClassLoader {
+        private final TransformReplacer replacer;
+        private final TransformErrorHandler errorHandler;
+
+        InstrumentingScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, TransformedClassPath classPath, HashCode implementationHash) {
+            super(scriptSource, parent, classPath, implementationHash);
+            replacer = new TransformReplacer(classPath);
+            errorHandler = new TransformErrorHandler(getName());
+        }
+
+        @Override
+        public byte[] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+            return replacer.getInstrumentedClass(className, protectionDomain);
+        }
+
+        @Override
+        public void transformFailed(@Nullable String className, Throwable cause) {
+            errorHandler.classLoadingError(className, cause);
+        }
+
+        @Override
+        protected Class<?> findClass(String name) throws ClassNotFoundException {
+            errorHandler.enterClassLoadingScope(name);
+            Class<?> loadedClass;
+            try {
+                loadedClass = super.findClass(name);
+            } catch (Throwable e) {
+                throw errorHandler.exitClassLoadingScopeWithException(e);
+            }
+            errorHandler.exitClassLoadingScope();
+            return loadedClass;
+        }
+
+        @Override
+        public void close() throws IOException {
+            IoActions.closeQuietly(replacer);
         }
     }
 }

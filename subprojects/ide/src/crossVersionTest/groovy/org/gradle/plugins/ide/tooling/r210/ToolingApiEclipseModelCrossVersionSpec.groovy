@@ -22,6 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
+import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
+
 @TargetGradleVersion(">=2.10")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
@@ -62,7 +64,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'java'
-            sourceCompatibility = 1.6
+            ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
         """
 
         when:
@@ -77,7 +79,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             project(':subproject-a') {
                 apply plugin: 'java'
-                sourceCompatibility = 1.1
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_1)}
             }
             project(':subproject-b') {
                 apply plugin: 'java'
@@ -91,7 +93,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
             project(':subproject-c') {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'
-                sourceCompatibility = 1.6
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
                 eclipse {
                     jdt {
                         sourceCompatibility = 1.3
@@ -114,5 +116,4 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         subprojectB.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
         subprojectC.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
     }
-
 }

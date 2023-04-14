@@ -54,7 +54,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param renamer rename function
      * @return this
      */
-    CopyProcessingSpec rename(Transformer<String, String> renamer);
+    CopyProcessingSpec rename(Transformer<@org.jetbrains.annotations.Nullable String, String> renamer);
 
     /**
      * Renames files based on a regular expression.  Uses java.util.regex type of regular expressions.  Note that the

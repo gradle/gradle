@@ -21,7 +21,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 
-class DefaultPropertyTest extends PropertySpec<String> {
+class DefaultPropertyTest extends AbstractPropertySpec<String> {
     DefaultProperty<String> property() {
         return propertyWithDefaultValue(String)
     }
@@ -32,11 +32,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     @Override
     DefaultProperty<String> propertyWithNoValue() {
-        return property()
-    }
-
-    @Override
-    DefaultProperty<String> propertyWithDefaultValue() {
         return property()
     }
 

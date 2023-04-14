@@ -16,7 +16,8 @@
 
 package org.gradle.internal.resource.cached
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
+
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinatorStub
 import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
@@ -35,13 +36,13 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         getCurrentTime() >> 1234L
     }
 
-    def cacheLockingManager = new ArtifactCacheLockingManagerStub()
+    def cacheAccessCoordinator = new ArtifactCacheLockingAccessCoordinatorStub()
     def fileAccessTracker = Stub(FileAccessTracker)
 
     DefaultCachedExternalResourceIndex<String> index
 
     def setup() {
-        index = new DefaultCachedExternalResourceIndex("index", BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager, fileAccessTracker, tmp.testDirectory.toPath())
+        index = new DefaultCachedExternalResourceIndex("index", BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheAccessCoordinator, fileAccessTracker, tmp.testDirectory.toPath())
     }
 
     def "stores entry - lastModified = #lastModified"() {
@@ -50,7 +51,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         def artifactFile = tmp.createFile("artifact") << "content"
 
         when:
-        index.store(key, artifactFile, new DefaultExternalResourceMetaData(new URI("abc"), lastModified, 100, contentType, etag, sha1))
+        index.store(key, artifactFile, new DefaultExternalResourceMetaData(new URI("abc"), lastModified, 100, contentType, etag, sha1, null, false))
 
         then:
         def cached = index.lookup(key)

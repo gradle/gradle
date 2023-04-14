@@ -19,29 +19,22 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.ScriptCompilationException;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.ServiceCreationException;
+import org.gradle.problems.Location;
+import org.gradle.problems.buildtree.ProblemLocationAnalyzer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecutionListener {
-    private final Map<String, ScriptSource> scripts = new HashMap<>();
+public class DefaultExceptionAnalyser implements ExceptionCollector {
+    private final ProblemLocationAnalyzer locationAnalyzer;
 
-    public DefaultExceptionAnalyser(ListenerManager listenerManager) {
-        listenerManager.addListener(this);
-    }
-
-    @Override
-    public void onScriptClassLoaded(ScriptSource source, Class<?> scriptClass) {
-        scripts.put(source.getFileName(), source);
+    public DefaultExceptionAnalyser(ProblemLocationAnalyzer locationAnalyzer) {
+        this.locationAnalyzer = locationAnalyzer;
     }
 
     @Override
@@ -74,13 +67,13 @@ public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecu
             return actualException;
         }
 
-        ScriptSource source = null;
+        String source = null;
         Integer lineNumber = null;
 
         // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
-            source = scriptCompilationException.getScriptSource();
+            source = scriptCompilationException.getScriptSource().getLongDisplayName().getCapitalizedDisplayName();
             lineNumber = scriptCompilationException.getLineNumber();
         }
 
@@ -90,12 +83,10 @@ public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecu
                 currentException != null;
                 currentException = currentException.getCause()
             ) {
-                for (StackTraceElement element : currentException.getStackTrace()) {
-                    if (element.getLineNumber() >= 0 && scripts.containsKey(element.getFileName())) {
-                        source = scripts.get(element.getFileName());
-                        lineNumber = element.getLineNumber();
-                        break;
-                    }
+                Location location = locationAnalyzer.locationForUsage(Arrays.asList(currentException.getStackTrace()), true);
+                if (location != null) {
+                    source = location.getSourceLongDisplayName().getCapitalizedDisplayName();
+                    lineNumber = location.getLineNumber();
                 }
             }
         }

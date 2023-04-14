@@ -62,7 +62,6 @@ dependencies {
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
-    testImplementation(testFixtures(project(":security")))
 
     integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)
@@ -120,7 +119,7 @@ packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 tasks.clean {
     val testFiles = layout.buildDirectory.dir("tmp/test files")

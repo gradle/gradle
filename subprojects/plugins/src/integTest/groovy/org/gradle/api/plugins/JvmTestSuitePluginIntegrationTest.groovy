@@ -18,7 +18,6 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
 class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
@@ -111,278 +110,8 @@ Artifacts
         hasIncubatingLegend()
     }
 
-    def "Test coverage data can be consumed by another task via Dependency Management"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    test {
-                        useJUnit()
-                        dependencies {
-                            implementation project()
-                        }
-                    }
-                }
-            }
-            """.stripIndent()
-
-        file("src/test/java/SomeTest.java") << """
-            import org.junit.Test;
-
-            public class SomeTest {
-                @Test public void foo() {}
-            }
-            """.stripIndent()
-
-        buildFile << """
-            // A resolvable configuration to collect test results data
-            def testDataConfig = configurations.create('testData') {
-                visible = false
-                canBeResolved = true
-                canBeConsumed = false
-                attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
-                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.TEST_RESULTS))
-                }
-            }
-
-            dependencies {
-                testData project
-            }
-
-            // Extract the artifact view for cc compatibility by providing it as an explicit task input
-            def artifactView = testDataConfig.incoming.artifactView { view ->
-                                   view.componentFilter { it in ProjectComponentIdentifier }
-                                   view.lenient = true
-                               }
-
-            def testResolve = tasks.register('testResolve') {
-                inputs.files(artifactView.files)
-                doLast {
-                    assert inputs.files.singleFile.name == 'binary'
-                }
-            }""".stripIndent()
-
-        expect:
-        succeeds('testResolve')
-    }
-
-    def "Test results data can be consumed by another task in a different project via Dependency Management"() {
-        def subADir = createDir("subA")
-        subADir.file("build.gradle") << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    test {
-                        useJUnit()
-                        dependencies {
-                            implementation project()
-                        }
-                    }
-                }
-            }
-            """.stripIndent()
-
-        subADir.file("src/test/java/SomeTestA.java") << """
-            import org.junit.Test;
-
-            public class SomeTestA {
-                @Test public void foo() {}
-            }
-            """.stripIndent()
-
-        def subBDir = createDir("subB")
-        subBDir.file("build.gradle") << """
-            plugins {
-                id 'jvm-test-suite'
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    test {
-                        useJUnit()
-                        dependencies {
-                            implementation project()
-                        }
-                    }
-                }
-            }
-            """.stripIndent()
-
-        subBDir.file("src/test/java/SomeTestB.java") << """
-            import org.junit.Test;
-
-            public class SomeTestB {
-                @Test public void foo() {}
-            }
-            """.stripIndent()
-
-        settingsFile << """
-            include ':subA'
-            include ':subB'
-            """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            dependencies {
-                implementation project(':subA')
-                implementation project(':subB')
-            }
-
-            // A resolvable configuration to collect test results data
-            def testDataConfig = configurations.create("testData") {
-                visible = false
-                canBeResolved = true
-                canBeConsumed = false
-                extendsFrom(configurations.implementation)
-                attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
-                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.TEST_RESULTS))
-                }
-            }
-
-            // Extract the artifact view for cc compatibility by providing it as an explicit task input
-            def artifactView = testDataConfig.incoming.artifactView { view ->
-                                   view.componentFilter { it in ProjectComponentIdentifier }
-                                   view.lenient = true
-                               }
-
-
-            def testResolve = tasks.register('testResolve') {
-                inputs.files(artifactView.files)
-                def expectedResultsFiles = [file("subA/build/test-results/test/binary"),
-                                            file("subB/build/test-results/test/binary")]
-                doLast {
-                    assert inputs.files.files.containsAll(expectedResultsFiles)
-                }
-            }
-
-            """
-        expect:
-        succeeds('testResolve')
-    }
-
-    @ToBeFixedForConfigurationCache(because = "task references another task")
-    def "Test results data can be consumed across transitive project dependencies via Dependency Management"() {
-        def subDirectDir = createDir("direct")
-        subDirectDir.file("build.gradle") << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                implementation project(':transitive')
-            }
-
-            testing {
-                suites {
-                    test {
-                        useJUnit()
-                        dependencies {
-                            implementation project()
-                        }
-                    }
-                }
-            }
-            """.stripIndent()
-
-        subDirectDir.file("src/test/java/SomeTestD.java") << """
-            import org.junit.Test;
-
-            public class SomeTestD {
-                @Test public void foo() {}
-            }
-            """.stripIndent()
-
-        def subTransitiveDir = createDir("transitive")
-        subTransitiveDir.file("build.gradle") << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    test {
-                        useJUnit()
-                        dependencies {
-                            implementation project()
-                        }
-                    }
-                }
-            }
-            """.stripIndent()
-
-        subTransitiveDir.file("src/test/java/SomeTestT.java") << """
-            import org.junit.Test;
-
-            public class SomeTestT {
-                @Test public void foo() {}
-            }
-            """.stripIndent()
-
-        settingsFile << """
-            include ':direct'
-            include ':transitive'
-            """.stripIndent()
-
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            dependencies {
-                implementation project(':direct')
-            }
-
-            // A resolvable configuration to collect test results data
-            def testDataConfig = configurations.create("testData") {
-                visible = false
-                canBeResolved = true
-                canBeConsumed = false
-                extendsFrom(configurations.implementation)
-                attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
-                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.TEST_RESULTS))
-                }
-            }
-
-            def testResolve = tasks.register('testResolve') {
-                doLast {
-                    def artifactView = testDataConfig.incoming.artifactView { view ->
-                        view.componentFilter { it in ProjectComponentIdentifier }
-                        view.lenient = true
-                    }.files
-                    assert artifactView.files.containsAll([project(':direct').tasks["test"].binaryResultsDirectory.get().asFile,
-                                                           project(':transitive').tasks["test"].binaryResultsDirectory.get().asFile])
-                }
-            }
-
-            """
-        expect:
-        succeeds('testResolve')
-    }
-
     def "Only one suite with a given test type allowed per project"() {
+        file("src/primaryIntTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
                 id 'java'
@@ -407,6 +136,8 @@ Artifacts
     }
 
     def "Only one suite with a given test type allowed per project (including the built-in test suite)"() {
+        file("src/test/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
+
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
                 id 'java'
@@ -427,6 +158,7 @@ Artifacts
     }
 
     def "Only one suite with a given test type allowed per project (using the default type of one suite and explicitly setting the other)"() {
+        file("src/integrationTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
                 id 'java'

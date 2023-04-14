@@ -25,8 +25,13 @@ import spock.lang.Issue
 
 @FluidDependenciesResolveTest
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
+    private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+
     def setup() {
-        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
+        resolve.addDefaultVariantDerivationStrategy()
+        settingsFile << """
+            rootProject.name = 'test'
+        """
     }
 
     def "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
@@ -67,60 +72,21 @@ project(":b") {
     dependencies {
         compile project(':a')
     }
-
-    task check(dependsOn: configurations.compile) {
-        doLast {
-            assert configurations.compile.collect { it.name } == ['a.jar', 'externalA-1.2.jar', 'externalB-2.1.jar']
-            def result = configurations.compile.incoming.resolutionResult
-
-             // Check root component
-            def rootId = result.root.id
-            assert rootId instanceof ProjectComponentIdentifier
-            def rootPublishedAs = result.root.moduleVersion
-            assert rootPublishedAs.group == 'org.gradle'
-            assert rootPublishedAs.name == 'b'
-            assert rootPublishedAs.version == '1.0'
-
-            // Check project components
-            def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
-            assert projectComponents.size() == 1
-            def projectA = projectComponents[0]
-            assert projectA.id.projectPath == ':a'
-            assert projectA.moduleVersion.group != null
-            assert projectA.moduleVersion.name == 'a'
-            assert projectA.moduleVersion.version == 'unspecified'
-
-            // Check project dependencies
-            def projectDependencies = result.root.dependencies.requested.findAll { it instanceof ProjectComponentSelector }
-            assert projectDependencies.size() == 1
-            def projectDependency = projectDependencies[0]
-            assert projectDependency.projectPath == ':a'
-
-            // Check external module components
-            def externalComponents = result.allDependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
-            assert externalComponents.size() == 2
-            def externalA = externalComponents[0]
-            assert externalA.id.group == 'org.other'
-            assert externalA.id.module == 'externalA'
-            assert externalA.id.version == '1.2'
-            assert externalA.moduleVersion.group == 'org.other'
-            assert externalA.moduleVersion.name == 'externalA'
-            assert externalA.moduleVersion.version == '1.2'
-            def externalB = externalComponents[1]
-            assert externalB.id.group == 'org.other'
-            assert externalB.id.module == 'externalB'
-            assert externalB.id.version == '2.1'
-            assert externalB.moduleVersion.group == 'org.other'
-            assert externalB.moduleVersion.name == 'externalB'
-            assert externalB.moduleVersion.version == '2.1'
-        }
-    }
 }
 """
+        resolve.prepare()
 
         expect:
-        succeeds ":b:check"
+        succeeds ":b:checkDeps"
         executedAndNotSkipped ":a:jar"
+        resolve.expectGraph {
+            root(":b", "org.gradle:b:1.0") {
+                project(":a", "test:a:") {
+                    module("org.other:externalA:1.2")
+                    module("org.other:externalB:2.1")
+                }
+            }
+        }
     }
 
     def "project dependency that specifies a target configuration includes artifacts and transitive dependencies of selected configuration"() {
@@ -128,8 +94,9 @@ project(":b") {
         mavenRepo.module("org.other", "externalA", "1.2").publish()
 
         and:
-        file('settings.gradle') << """rootProject.name='test'
-include 'a', 'b'"""
+        file('settings.gradle') << """
+            include 'a', 'b'
+        """
 
         and:
         buildFile << """
@@ -159,32 +126,23 @@ project(":b") {
             because 'can provide a dependency reason for project dependencies too'
         }
     }
-    task check(dependsOn: configurations.compile) {
-        doLast {
-            assert configurations.compile.collect { it.name } == ['a.jar', 'externalA-1.2.jar']
-        }
-    }
 }
 """
-        def resolve = new ResolveTestFixture(buildFile, "compile")
-
-        when:
         resolve.prepare()
-
-        then:
-        succeeds ":b:check"
-        executedAndNotSkipped ":a:jar"
 
         when:
         succeeds ':b:checkDeps'
 
         then:
+        executedAndNotSkipped ":a:jar"
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", 'test:a:') {
+                    notRequested()
                     byReason('can provide a dependency reason for project dependencies too')
                     variant('runtime')
                     module('org.other:externalA:1.2') {
+                        notRequested()
                         byReason('also check dependency reasons')
                         variant('runtime', ['org.gradle.status': 'release', 'org.gradle.category': 'library', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'])
                     }
@@ -207,10 +165,10 @@ project(':a') {
         configA2
     }
     task A1jar(type: Jar) {
-        archiveFileName = 'A1.jar'
+        archiveBaseName = 'A1'
     }
     task A2jar(type: Jar) {
-        archiveFileName = 'A2.jar'
+        archiveBaseName = 'A2'
     }
     artifacts {
         configA1 A1jar
@@ -227,18 +185,40 @@ project(':b') {
         configB1 project(path:':a', configuration:'configA1')
         configB2 project(path:':a', configuration:'configA2')
     }
-    task check(dependsOn: [configurations.configB1, configurations.configB2]) {
-        doLast {
-            assert configurations.configB1.collect { it.name } == ['A1.jar']
-            assert configurations.configB2.collect { it.name } == ['A2.jar']
-        }
-    }
 }
 """
+        resolve.prepare {
+            config("configB1")
+            config("configB2")
+        }
 
-        expect:
-        succeeds ":b:check"
-        executedAndNotSkipped ":a:A1jar", ":a:A2jar"
+        when:
+        run ":b:checkConfigB1"
+
+        then:
+        executedAndNotSkipped ":a:A1jar"
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    configuration("configA1")
+                    artifact(name: "A1")
+                }
+            }
+        }
+
+        when:
+        run ":b:checkConfigB2"
+
+        then:
+        executedAndNotSkipped ":a:A2jar"
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    configuration("configA2")
+                    artifact(name: "A2")
+                }
+            }
+        }
     }
 
     def "resolved project artifacts reflect project properties changed after task graph is resolved"() {
@@ -268,17 +248,25 @@ project(':b') {
                 testCompile { extendsFrom compile }
             }
             dependencies { compile project(path: ':a', configuration: 'compile') }
-            task test(dependsOn: [configurations.compile, configurations.testCompile]) {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['a-late.jar', 'b-transitive-late.jar']
-                    assert configurations.testCompile.collect { it.name } == ['a-late.jar', 'b-transitive-late.jar']
+'''
+        resolve.prepare("testCompile")
+
+        when:
+        run ":checkDeps"
+
+        then:
+        executedAndNotSkipped ":a:aJar", ":b:bJar"
+        resolve.expectDefaultConfiguration("compile")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(":a", "test:a:") {
+                    artifact(fileName: "a-late.jar") // only the file name is affected (this is the current behaviour, not necessarily the desired behaviour)
+                    project(":b", "test:b:early") {
+                        artifact(fileName: "b-transitive-late.jar")
+                    }
                 }
             }
-'''
-
-        expect:
-        succeeds ":test"
-        executedAndNotSkipped ":a:aJar", ":b:bJar"
+        }
     }
 
     @UnsupportedWithConfigurationCache(because = "configure task changes jar task")
@@ -348,22 +336,25 @@ project(":a") {
 project(":b") {
     configurations { compile }
     dependencies { compile(project(':a')) { artifact { name = 'y'; type = 'jar' } } }
-    task test {
-        inputs.files configurations.compile
-        doFirst {
-            assert configurations.compile.files.collect { it.name } == ['y.jar', 'externalA-1.5.jar']
-        }
-    }
 }
 """
+        resolve.prepare("compile")
 
-        expect:
-        succeeds 'b:test'
+        when:
+        run 'b:checkDeps'
 
+        then:
         executedAndNotSkipped ":a:yJar"
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "y", type: "jar")
+                    module("group:externalA:1.5")
+                }
+            }
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports project dependency that refers to an unknown artifact"() {
         given:
         file('settings.gradle') << """
@@ -394,7 +385,7 @@ project(":b") {
         fails ':b:test'
 
         and:
-        failure.assertHasCause("Could not resolve all files for configuration ':b:compile'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':b:compile'.")
         failure.assertHasCause("Could not find b.jar (project :a).")
     }
 
@@ -421,17 +412,22 @@ project(':b') {
     dependencies {
         implementation project(':a'), { transitive = false }
     }
-    task listJars(dependsOn: configurations.runtimeClasspath) {
-        doLast {
-            assert configurations.runtimeClasspath.collect { it.name } == ['a.jar']
-        }
-    }
 }
 """
+        resolve.prepare("runtimeClasspath")
 
-        expect:
-        succeeds ":b:listJars"
+        when:
+        run ":b:checkDeps"
+
+        then:
         executedAndNotSkipped ":a:jar"
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    configuration("runtimeElements")
+                }
+            }
+        }
     }
 
     def "can have cycle in project dependencies"() {
@@ -461,26 +457,6 @@ project('a') {
         first project(':b')
         other project(':b')
     }
-    task listJars {
-        dependsOn configurations.first
-        dependsOn configurations.other
-        doFirst {
-            def jars = configurations.first.collect { it.name } as Set
-            assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
-
-            jars = configurations.other.collect { it.name } as Set
-            assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
-
-            // Check type of root component
-            def defaultResult = configurations.first.incoming.resolutionResult
-            def defaultRootId = defaultResult.root.id
-            assert defaultRootId instanceof ProjectComponentIdentifier
-
-            def otherResult = configurations.other.incoming.resolutionResult
-            def otherRootId = otherResult.root.id
-            assert otherRootId instanceof ProjectComponentIdentifier
-        }
-    }
 }
 
 project('b') {
@@ -495,10 +471,21 @@ project('c') {
     }
 }
 """
+        when:
+        resolve.prepare("first")
+        run ":a:checkDeps"
 
-        expect:
-        succeeds ":a:listJars"
+        then:
         executedAndNotSkipped ":b:jar", ":c:jar"
+        resolve.expectGraph {
+            root(":a", "test:a:") {
+                project(":b", "test:b:") {
+                    project(":c", "test:c:") {
+                        project(":a", "test:a:")
+                    }
+                }
+            }
+        }
     }
 
     @NotYetImplemented
@@ -667,17 +654,26 @@ project(':b') {
         configB project(path:':a', configuration:'configOne')
         configB project(path:':a', configuration:'configTwo')
     }
-    task check(dependsOn: configurations.configB) {
-        doLast {
-            assert configurations.configB.collect { it.name } == ['A1.jar', 'A2.jar', 'A3.jar']
-        }
-    }
 }
 """
+        resolve.prepare("configB")
 
-        expect:
-        succeeds ":b:check"
+        when:
+        succeeds ":b:checkDeps"
+
+        then:
         executedAndNotSkipped ":a:A1jar", ":a:A2jar", ":a:A3jar"
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    configuration("configOne")
+                    configuration("configTwo")
+                    artifact(fileName: "A1.jar")
+                    artifact(fileName: "A2.jar")
+                    artifact(fileName: "A3.jar")
+                }
+                project(":a", "test:a:")
+            }
+        }
     }
-
 }
