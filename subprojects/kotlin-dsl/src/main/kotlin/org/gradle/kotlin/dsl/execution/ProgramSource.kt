@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 
-data class ProgramSource(val path: String, val contents: ProgramText) {
+data class ProgramSource internal constructor(val path: String, val contents: ProgramText) {
 
     constructor(path: String, contents: String) : this(path, text(contents))
 
@@ -36,10 +36,12 @@ data class ProgramText private constructor(val text: String) {
 
     companion object {
 
+        internal
         fun from(string: String) =
             ProgramText(string.replace("\r\n", "\n"))
     }
 
+    internal
     fun erase(ranges: List<IntRange>): ProgramText =
         if (ranges.isEmpty()) this
         else ProgramText(text.erase(ranges))
@@ -47,12 +49,14 @@ data class ProgramText private constructor(val text: String) {
     fun preserve(vararg ranges: IntRange): ProgramText =
         erase(complementOf(ranges))
 
+    internal
     fun preserve(ranges: List<IntRange>): ProgramText =
         preserve(*ranges.toTypedArray())
 
     fun subText(range: IntRange): ProgramText =
         ProgramText(text.substring(range))
 
+    internal
     fun lineNumberOf(index: Int): Int =
         text.lineAndColumnFor(index).first
 
@@ -78,22 +82,25 @@ data class ProgramText private constructor(val text: String) {
 }
 
 
+internal
 fun text(string: String) = ProgramText.from(string)
 
 
+internal
 fun ProgramSource.fragment(identifier: IntRange, block: IntRange) =
     ProgramSourceFragment(this, ScriptSection(identifier, block))
 
 
+internal
 fun ProgramSource.fragment(section: ScriptSection) =
     ProgramSourceFragment(this, section)
 
 
-data class ProgramSourceFragment(
+data class ProgramSourceFragment internal constructor(
     val source: ProgramSource,
-    val section: ScriptSection
+    internal val section: ScriptSection
 ) {
-
+    internal
     val lineNumber: Int
         get() = source.contents.lineNumberOf(section.identifier.first)
 
@@ -102,9 +109,14 @@ data class ProgramSourceFragment(
 
     override fun toString(): String =
         "ProgramSourceFragment(\"${source.text.subSequence(range)}\")"
+
+    internal
+    val blockString: String
+        get() = source.text.substring(section.block)
 }
 
 
+internal
 data class ScriptSection(
     val identifier: IntRange,
     val block: IntRange

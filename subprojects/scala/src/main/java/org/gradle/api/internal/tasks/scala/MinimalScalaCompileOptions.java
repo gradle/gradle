@@ -49,7 +49,7 @@ public class MinimalScalaCompileOptions implements Serializable {
         this.optimize = compileOptions.isOptimize();
         this.encoding = compileOptions.getEncoding();
         this.force = compileOptions.isForce();
-        this.additionalParameters = compileOptions.getAdditionalParameters() == null ? null : ImmutableList.copyOf(compileOptions.getAdditionalParameters());
+        this.additionalParameters = ImmutableList.copyOf(compileOptions.getAdditionalParameters());
         this.listFiles = compileOptions.isListFiles();
         this.loggingLevel = compileOptions.getLoggingLevel();
         this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());

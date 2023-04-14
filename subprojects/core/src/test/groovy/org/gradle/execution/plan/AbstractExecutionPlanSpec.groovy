@@ -23,12 +23,13 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.TaskRequiredServices
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
@@ -97,7 +98,8 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.destroyables >> emptyTaskDestroys()
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
-        task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
+        task.requiredServices >> emptyTaskRequiredServices()
+        task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project)
         return task
     }
 
@@ -127,7 +129,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     }
 
     protected TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {
-        Mock(TaskDependencyInternal) {
+        Mock(TaskDependencyContainerInternal) {
             visitDependencies(_) >> { TaskDependencyResolveContext context -> tasks.forEach { context.add(it) } }
         }
     }
@@ -146,6 +148,10 @@ abstract class AbstractExecutionPlanSpec extends Specification {
 
     private TaskInputsInternal emptyTaskInputs() {
         Stub(TaskInputsInternal)
+    }
+
+    private TaskRequiredServices emptyTaskRequiredServices() {
+        Stub(TaskRequiredServices)
     }
 
     void failure(TaskInternal task, final RuntimeException failure) {

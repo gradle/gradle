@@ -26,8 +26,7 @@ class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
                 include 'a', 'b', 'c'
             """
-        buildFile << """
-"""
+        buildFile << ""
         then:
         run("javaToolchains")
 
@@ -43,4 +42,16 @@ class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("javaToolchains - Displays the detected java toolchains.")
     }
 
+    def "toolchains log contains progress info about installation suppliers"() {
+        when:
+        settingsFile << """
+                include 'a'
+            """
+        buildFile << ""
+        then:
+        run("javaToolchains", "--debug")
+
+        outputContains(":javaToolchains")
+        outputContains("Discovering toolchains provided via Maven Toolchains")
+    }
 }

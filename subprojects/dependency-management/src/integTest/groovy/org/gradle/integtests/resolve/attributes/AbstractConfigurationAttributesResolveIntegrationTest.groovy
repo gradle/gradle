@@ -18,11 +18,12 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 @FluidDependenciesResolveTest
-abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
 
     abstract String getTypeDefs()
 
@@ -64,13 +65,15 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                     _compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                       assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    def files = configurations._compileFreeRelease
                     doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                       assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -193,13 +196,15 @@ include 'a', 'b'
                     compile project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                        assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    def files = configurations._compileFreeRelease
                     doLast {
-                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                        assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -250,13 +255,15 @@ include 'a', 'b'
                     compile project(path:':b', configuration: 'bar')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                        assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    def files = configurations._compileFreeRelease
                     doLast {
-                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                        assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -321,8 +328,9 @@ include 'a', 'b'
                     compile project(path:':b', configuration: 'bar')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                        assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -365,13 +373,15 @@ include 'a', 'b'
                     compile project(path:':b', configuration: 'bar')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                        assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    def files = configurations._compileFreeRelease
                     doLast {
-                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                        assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -420,8 +430,9 @@ Variant 'bar' capability test:b:unspecified declares attribute 'flavor' with val
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == []
+                        assert files.collect { it.name } == []
                     }
                 }
             }
@@ -461,8 +472,9 @@ Variant 'bar' capability test:b:unspecified declares attribute 'flavor' with val
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                        assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -621,6 +633,7 @@ All of them match the consumer attributes:
         """
 
         when:
+        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
@@ -712,6 +725,7 @@ All of them match the consumer attributes:
         """
 
         when:
+        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
@@ -740,8 +754,9 @@ All of them match the consumer attributes:
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                        assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
             }
@@ -863,8 +878,9 @@ All of them match the consumer attributes:
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                        assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
             }
@@ -1092,13 +1108,15 @@ All of them match the consumer attributes:
                     _compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar', 'c-transitive.jar']
+                       assert files.collect { it.name } == ['b-foo.jar', 'c-transitive.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    def files = configurations._compileFreeRelease
                     doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar', 'd-transitive.jar']
+                       assert files.collect { it.name } == ['b-bar.jar', 'd-transitive.jar']
                     }
                 }
             }
@@ -1169,13 +1187,15 @@ All of them match the consumer attributes:
                     _compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                       assert files.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    def files = configurations._compileFreeRelease
                     doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                       assert files.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
                     }
                 }
             }
@@ -1248,13 +1268,15 @@ All of them match the consumer attributes:
                     _compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                       assert files.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    def files = configurations._compileFreeRelease
                     doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                       assert files.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
                     }
                 }
                 configurations.all {
@@ -1448,13 +1470,15 @@ The following variants were also considered but didn't match the requested attri
                     _compileFreeDebug 'org.apache.commons:commons-lang3:3.5'
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                       assert configurations._compileFreeDebug.collect { it.name }.sort { it } == ['b-transitive.jar', 'c-foo.jar', 'commons-lang3-3.5.jar']
+                       assert files.collect { it.name }.sort { it } == ['b-transitive.jar', 'c-foo.jar', 'commons-lang3-3.5.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    def files = configurations._compileFreeRelease
                     doLast {
-                       assert configurations._compileFreeRelease.collect { it.name }.sort { it } == ['b-transitive.jar', 'c-bar.jar', 'commons-lang3-3.4.jar']
+                       assert files.collect { it.name }.sort { it } == ['b-transitive.jar', 'c-bar.jar', 'commons-lang3-3.4.jar']
                     }
                 }
             }
@@ -1526,13 +1550,13 @@ The following variants were also considered but didn't match the requested attri
                         extendsFrom(compileFreeDebug)
                         attributes { $freeDebug }
                         canBeConsumed = false
-                        canBeResolved = true
+                        assert canBeResolved
                     }
                     compileFreeReleasePath {
                         extendsFrom(compileFreeRelease)
                         attributes { $freeRelease }
                         canBeConsumed = false
-                        canBeResolved = true
+                        assert canBeResolved
                     }
                 }
                 dependencies {
@@ -1540,13 +1564,15 @@ The following variants were also considered but didn't match the requested attri
                     compileFreeRelease project(':b')
                 }
                 task checkDebug(dependsOn: configurations.compileFreeDebugPath) {
+                    def files = configurations.compileFreeDebugPath
                     doLast {
-                       assert configurations.compileFreeDebugPath.collect { it.name } == ['b-foo.jar']
+                       assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
                 task checkRelease(dependsOn: configurations.compileFreeReleasePath) {
+                    def files = configurations.compileFreeReleasePath
                     doLast {
-                       assert configurations.compileFreeReleasePath.collect { it.name } == ['b-bar.jar']
+                       assert files.collect { it.name } == ['b-bar.jar']
                     }
                 }
             }
@@ -1610,8 +1636,9 @@ The following variants were also considered but didn't match the requested attri
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                        assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
             }
@@ -1648,8 +1675,9 @@ The following variants were also considered but didn't match the requested attri
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                        assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
             }
@@ -1701,8 +1729,9 @@ The following variants were also considered but didn't match the requested attri
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar', 'c-foo.jar']
+                        assert files.collect { it.name } == ['b-foo.jar', 'c-foo.jar']
                     }
                 }
             }
@@ -1770,8 +1799,9 @@ The following variants were also considered but didn't match the requested attri
                     _compileFreeDebug project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    def files = configurations._compileFreeDebug
                     doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                        assert files.collect { it.name } == ['b-foo.jar']
                     }
                 }
             }

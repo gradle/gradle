@@ -21,8 +21,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -48,11 +46,6 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     @Override
     public void resolved(ComponentGraphResolveState state) {
         this.state = state;
-    }
-
-    @Override
-    public void resolved(ComponentResolveMetadata metadata) {
-        resolved(new DefaultComponentGraphResolveState<>(metadata));
     }
 
     @Override

@@ -100,8 +100,12 @@ class ExcludeJsonLogToCode {
      */
     String toCode(String json) {
         def slurper = new JsonSlurper().parse(json.trim().getBytes("utf-8"))
-        def operation = slurper.operation.name
-        def operands = slurper.operation.operands.collect { e ->
+        toCodeFromSlurpedJson(slurper)
+    }
+
+    String toCodeFromSlurpedJson(Object parsed) {
+        def operation = parsed.operation.name
+        def operands = parsed.operation.operands.collect { e ->
             "${toExclude(e)}"
         }
         """
@@ -113,6 +117,9 @@ def operation = factory.$operation([
     }
 
     private String toExclude(it) {
+        if (it == 'excludes everything') {
+            return 'everything()'
+        }
         assert it instanceof Map
         assert it.keySet().size() == 1
         String key = it.keySet()[0]
@@ -148,16 +155,19 @@ def operation = factory.$operation([
             case "exclude module id":
                 def (group, name) = value.split(':')
                 return "moduleId('${anonymize(group)}', '${anonymize(name)}')"
-            case "module set":
-                return "moduleSet('${anonymize(value)}')"
+            case "module names":
+                return "moduleSet(${value.collect { "'${anonymize(it)}'" }.join(', ')})"
             case "module ids":
                 return "moduleIdSet(${value.collect { "'${anonymize(it)}'" }.join(', ')})"
+            case "groups":
+                return "groupSet(${value.collect { "'${anonymize(it)}'" }.join(', ')})"
             default:
                 throw new UnsupportedOperationException("Not yet implemented for $opType")
         }
     }
 
     private String anonymize(String value) {
+        value
         value.split(":").collect {
             mappingCache[it]
         }.join(':')

@@ -17,12 +17,12 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
-public interface BuildableArtifactResolveResult extends ResolveResult, BuildableTypedResolveResult<File, ArtifactResolveException>, ResourceAwareResolveResult {
+public interface BuildableArtifactResolveResult extends ResolveResult, BuildableTypedResolveResult<ResolvableArtifact, ArtifactResolveException>, ResourceAwareResolveResult {
     boolean isSuccessful();
 
     /**
@@ -36,7 +36,7 @@ public interface BuildableArtifactResolveResult extends ResolveResult, Buildable
      * @throws ArtifactResolveException If the resolution was unsuccessful.
      */
     @Override
-    File getResult() throws ArtifactResolveException;
+    ResolvableArtifact getResult() throws ArtifactResolveException;
 
     /**
      * Marks the artifact as not found.

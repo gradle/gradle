@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
@@ -38,12 +39,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DefaultFileSystemAccess implements FileSystemAccess {
+public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefaultExcludesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemAccess.class);
 
     private final VirtualFileSystem virtualFileSystem;
@@ -77,7 +79,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
 
     @Override
     public FileSystemLocationSnapshot read(String location) {
-        return readLocation(location);
+        return readSnapshotFromLocation(location, () -> snapshot(location, SnapshottingFilter.EMPTY));
     }
 
     @Override
@@ -160,10 +162,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         });
     }
 
-    private FileSystemLocationSnapshot readLocation(String location) {
-        return readSnapshotFromLocation(location, () -> snapshot(location, SnapshottingFilter.EMPTY));
-    }
-
     private FileSystemLocationSnapshot readSnapshotFromLocation(
         String location,
         Supplier<FileSystemLocationSnapshot> readFromDisk
@@ -202,6 +200,17 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         virtualFileSystem.store(snapshot.getAbsolutePath(), () -> snapshot);
     }
 
+    @Override
+    public void onDefaultExcludesChanged(List<String> excludes) {
+        ImmutableList<String> newDefaultExcludes = ImmutableList.copyOf(excludes);
+        if (!defaultExcludes.equals(newDefaultExcludes)) {
+            LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
+            defaultExcludes = newDefaultExcludes;
+            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector);
+            virtualFileSystem.invalidateAll();
+        }
+    }
+
     private static class StripedProducerGuard<T> {
         private final Striped<Lock> locks = Striped.lock(Runtime.getRuntime().availableProcessors() * 4);
 
@@ -213,16 +222,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
             } finally {
                 lock.unlock();
             }
-        }
-    }
-
-    public void updateDefaultExcludes(String... newDefaultExcludesArgs) {
-        ImmutableList<String> newDefaultExcludes = ImmutableList.copyOf(newDefaultExcludesArgs);
-        if (!defaultExcludes.equals(newDefaultExcludes)) {
-            LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
-            defaultExcludes = newDefaultExcludes;
-            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector);
-            virtualFileSystem.invalidateAll();
         }
     }
 }

@@ -159,6 +159,25 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         skipped ":customTask"
     }
 
+    def "url can be specified with trailing slash"() {
+        httpBuildCacheServer.start()
+        def buildCacheUrl = URI.create("${httpBuildCacheServer.uri}/")
+        settingsFile.text = useHttpBuildCache(buildCacheUrl)
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        expect:
+        withBuildCache().run "clean"
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        skipped ":compileJava"
+    }
+
     def "credentials can be specified via DSL"() {
         httpBuildCacheServer.withBasicAuth("user", "pass")
         settingsFile << """
@@ -330,6 +349,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         """
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
 
@@ -418,6 +438,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         }
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:
@@ -439,6 +460,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         }
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:

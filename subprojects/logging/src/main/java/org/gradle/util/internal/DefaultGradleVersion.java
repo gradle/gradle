@@ -221,8 +221,7 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public GradleVersion getNextMajor() {
-        // TODO add nagging once Spring dependency management plugin is fixed
-        // logDeprecation("getNextMajor()");
+        logMethodDeprecation("getNextMajor()");
         return getNextMajorVersion();
     }
 

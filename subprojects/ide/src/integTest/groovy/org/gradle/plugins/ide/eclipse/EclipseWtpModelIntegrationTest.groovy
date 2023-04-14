@@ -400,7 +400,7 @@ project(':contrib') {
 
           sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
 
-          appDirName = 'nonexistentAppDir'
+          ear.appDirectory = file 'nonexistentAppDir'
 
           eclipse.wtp.component {
             resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
@@ -432,7 +432,7 @@ project(':contrib') {
           apply plugin: 'ear'
           apply plugin: 'eclipse-wtp'
 
-          appDirName = 'coolAppDir'
+          ear.appDirectory = file 'coolAppDir'
 """
         //then
         def component = getComponentFile().text

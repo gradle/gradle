@@ -34,11 +34,30 @@ class RelevantProjectsRegistry(
     private
     val targetProjects = mutableSetOf<ProjectState>()
 
-    fun relevantProjects(nodes: List<Node>): Set<ProjectState> =
-        targetProjects +
-            nodes.mapNotNull { node ->
-                projectStateOf(node)?.takeIf(::isLocalProject)
+    fun relevantProjects(nodes: List<Node>): Set<ProjectState> {
+        val result = mutableSetOf<ProjectState>()
+        for (project in targetProjects) {
+            collect(project, result)
+        }
+        for (node in nodes) {
+            val project = projectStateOf(node)
+            if (project != null && isLocalProject(project)) {
+                collect(project, result)
             }
+        }
+        return result
+    }
+
+    private
+    fun collect(project: ProjectState, projects: MutableSet<ProjectState>) {
+        if (!projects.add(project)) {
+            return
+        }
+        val parent = project.parent
+        if (parent != null) {
+            collect(parent, projects)
+        }
+    }
 
     private
     fun projectStateOf(node: Node) = node.owningProject?.owner

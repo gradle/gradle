@@ -46,10 +46,12 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
+import org.gradle.internal.component.model.ModuleConfigurationMetadata
 
 class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     final ModuleExclusions moduleExclusions = new ModuleExclusions()
@@ -88,9 +90,9 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromCompile = Stub(ConfigurationMetadata)
-        def toCompile = Stub(ConfigurationMetadata)
-        def toMaster = Stub(ConfigurationMetadata)
+        def fromCompile = Stub(ModuleConfigurationMetadata)
+        def toCompile = Stub(ConfigurationGraphResolveMetadata)
+        def toMaster = Stub(ModuleConfigurationMetadata)
         fromCompile.name >> "compile"
         toState.metadata >> toComponent
         toComponent.getConfiguration("compile") >> toCompile
@@ -108,11 +110,11 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromRuntime = Stub(ConfigurationMetadata)
-        def fromRuntime2 = Stub(ConfigurationMetadata)
-        def toRuntime = Stub(ConfigurationMetadata)
-        def toCompile = Stub(ConfigurationMetadata)
-        def toMaster = Stub(ConfigurationMetadata)
+        def fromRuntime = Stub(ModuleConfigurationMetadata)
+        def fromRuntime2 = Stub(ModuleConfigurationMetadata)
+        def toRuntime = Stub(ConfigurationGraphResolveMetadata)
+        def toCompile = Stub(ConfigurationGraphResolveMetadata)
+        def toMaster = Stub(ModuleConfigurationMetadata)
         fromRuntime.name >> "runtime"
         fromRuntime2.name >> "provided"
         toState.metadata >> toComponent
@@ -133,10 +135,10 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromRuntime = Stub(ConfigurationMetadata)
-        def fromRuntime2 = Stub(ConfigurationMetadata)
-        def toRuntime = Stub(ConfigurationMetadata)
-        def toMaster = Stub(ConfigurationMetadata)
+        def fromRuntime = Stub(ModuleConfigurationMetadata)
+        def fromRuntime2 = Stub(ModuleConfigurationMetadata)
+        def toRuntime = Stub(ConfigurationGraphResolveMetadata)
+        def toMaster = Stub(ModuleConfigurationMetadata)
         fromRuntime.name >> "runtime"
         fromRuntime2.name >> "provided"
         toState.metadata >> toComponent
@@ -157,8 +159,8 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromRuntime = Stub(ConfigurationMetadata)
-        def toRuntime = Stub(ConfigurationMetadata)
+        def fromRuntime = Stub(ModuleConfigurationMetadata)
+        def toRuntime = Stub(ConfigurationGraphResolveMetadata)
         fromRuntime.name >> "runtime"
         toState.metadata >> toComponent
         toComponent.getConfiguration("runtime") >> toRuntime
@@ -175,9 +177,9 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromRuntime = Stub(ConfigurationMetadata)
-        def toRuntime = Stub(ConfigurationMetadata)
-        def toMaster = Stub(ConfigurationMetadata)
+        def fromRuntime = Stub(ModuleConfigurationMetadata)
+        def toRuntime = Stub(ConfigurationGraphResolveMetadata)
+        def toMaster = Stub(ConfigurationGraphResolveMetadata)
         toRuntime.artifacts >> ImmutableList.of()
         toMaster.artifacts >> ImmutableList.of()
         fromRuntime.name >> "runtime"
@@ -196,9 +198,9 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromCompile = Stub(ConfigurationMetadata)
-        def toDefault = Stub(ConfigurationMetadata)
-        def toMaster = Stub(ConfigurationMetadata)
+        def fromCompile = Stub(ModuleConfigurationMetadata)
+        def toDefault = Stub(ConfigurationGraphResolveMetadata)
+        def toMaster = Stub(ModuleConfigurationMetadata)
         fromCompile.name >> "compile"
         toState.metadata >> toComponent
         toComponent.getConfiguration("compile") >> null
@@ -217,9 +219,9 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromRuntime = Stub(ConfigurationMetadata)
-        def toDefault = Stub(ConfigurationMetadata)
-        def toMaster = Stub(ConfigurationMetadata)
+        def fromRuntime = Stub(ModuleConfigurationMetadata)
+        def toDefault = Stub(ConfigurationGraphResolveMetadata)
+        def toMaster = Stub(ModuleConfigurationMetadata)
         fromRuntime.name >> "runtime"
         toState.metadata >> toComponent
         toComponent.getConfiguration("runtime") >> null

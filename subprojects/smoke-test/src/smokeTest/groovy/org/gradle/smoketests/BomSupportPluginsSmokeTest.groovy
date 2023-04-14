@@ -37,7 +37,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         settingsFile << """
             rootProject.name = 'springbootproject'
         """
-        def buildScript = """
+        buildFile << """
             plugins {
                 id "java"
                 ${dependencyManagementPlugin}
@@ -57,7 +57,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             }
         """
         def resolve = new ResolveTestFixture(new TestFile(buildFile), 'testCompileClasspath')
-        resolve.prepare(buildScript)
+        resolve.prepare()
 
         when:
         runner('checkDep').build()
@@ -67,7 +67,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             module("org.hamcrest:hamcrest-core:1.3").byReason(reason3)
         }
         def springCoreDeps = {
-            module("org.springframework:spring-jcl:${springVersion}")
+            module("org.springframework:spring-jcl:${springVersion}").byReason(reason3)
         }
         def springExpressionDeps = {
             module("org.springframework:spring-core:${springVersion}")
@@ -131,12 +131,19 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
                 edge("org.springframework:spring-test", "org.springframework:spring-test:${springVersion}", springTestDeps).byReason(reason2)
                 edge("junit:junit", "junit:junit:4.12", junitDeps).byReason(reason2)
             }
+            nodes.each {
+                if (directBomDependency) {
+                    it.maybeByConstraint()
+                } else if (reason1 == "requested") {
+                    it.maybeSelectedByRule()
+                }
+            }
         }
 
         where:
         bomSupportProvider                    | directBomDependency | reason1            | reason2            | reason3            | bomDeclaration                                        | dependencyManagementPlugin
         "gradle"                              | true                | "requested"        | "requested"        | "requested"        | "dependencies { implementation platform($bom) }"      | ""
-        "nebula recommender plugin"           | false               | "requested"        | "requested"        | "requested"        | "dependencyRecommendations { mavenBom module: $bom }" | "id 'nebula.dependency-recommender' version '${AbstractSmokeTest.TestedVersions.nebulaDependencyRecommender}'"
+        "nebula recommender plugin"           | false               | "requested"        | "requested"        | "requested"        | "dependencyRecommendations { mavenBom module: $bom }" | "id 'com.netflix.nebula.dependency-recommender' version '${AbstractSmokeTest.TestedVersions.nebulaDependencyRecommender}'"
         "spring dependency management plugin" | false               | "selected by rule" | "selected by rule" | "selected by rule" | "dependencyManagement { imports { mavenBom $bom } }"  | "id 'io.spring.dependency-management' version '${AbstractSmokeTest.TestedVersions.springDependencyManagement}'"
     }
 }

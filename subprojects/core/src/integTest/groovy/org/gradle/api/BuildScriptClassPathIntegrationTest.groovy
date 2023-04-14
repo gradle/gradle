@@ -41,8 +41,9 @@ dependencies {
 }
 
 task show {
+    def runtimeClasspath = configurations.runtimeClasspath
     doLast {
-        configurations.runtimeClasspath.files.each { println it }
+        runtimeClasspath.files.each { println it }
     }
 }
 """

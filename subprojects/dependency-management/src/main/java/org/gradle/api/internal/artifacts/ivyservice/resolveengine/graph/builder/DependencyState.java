@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -30,7 +31,10 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
@@ -48,6 +52,7 @@ class DependencyState {
     private ModuleIdentifier moduleIdentifier;
     public ModuleVersionResolveException failure;
     private boolean reasonsAlreadyAdded;
+    private Map<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> substitutionResultMap;
 
     DependencyState(DependencyMetadata dependency, ComponentSelectorConverter componentSelectorConverter) {
         this(dependency, dependency.getSelector(), Collections.emptyList(), componentSelectorConverter);
@@ -193,5 +198,12 @@ class DependencyState {
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    public DependencyState withSubstitution(DependencySubstitutionApplicator.SubstitutionResult substitutionResult, Function<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> mappingFunction) {
+        if (substitutionResultMap == null) {
+            substitutionResultMap = new HashMap<>();
+        }
+        return substitutionResultMap.computeIfAbsent(substitutionResult, mappingFunction);
     }
 }

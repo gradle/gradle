@@ -148,6 +148,10 @@ public class DefaultClassPath implements ClassPath, Serializable {
         if (other.isEmpty()) {
             return this;
         }
+        if (other instanceof TransformedClassPath) {
+            // Any combination of TransformedClassPath and other ClassPath has to remain transformed.
+            return ((TransformedClassPath) other).prepend(this);
+        }
         return new DefaultClassPath(concat(files, other.getAsFiles()));
     }
 

@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
@@ -85,8 +86,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
 
         and:
@@ -112,9 +113,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
+
         and:
         0 * localAccess._
         0 * remoteAccess._
@@ -141,8 +143,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
 
         and:
@@ -215,8 +217,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo1
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
 
         and:
@@ -247,8 +249,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
 
         and:
@@ -280,9 +282,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
+
         and:
         0 * localAccess._
         0 * remoteAccess._
@@ -313,8 +316,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
 
         and:
@@ -353,9 +356,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
+
         and:
         0 * localAccess._
         0 * remoteAccess._
@@ -388,8 +392,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
 
         and:
@@ -425,9 +429,10 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo1
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
+
         and:
         0 * localAccess._
         0 * remoteAccess._
@@ -456,8 +461,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
 
         and:
@@ -490,8 +495,8 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
-        1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
-            assert metaData == this.metaData
+        1 * result.resolved(_) >> { ComponentGraphResolveState state ->
+            assert state.metadata == this.metaData
         }
 
         and:

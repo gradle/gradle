@@ -19,20 +19,16 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.ValueSnapshot
 
 class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     def delegateResult = Mock(Result)
     def inputFingerprinter = Mock(InputFingerprinter)
-    def step = new IdentifyStep<>(delegate)
+    def step = new IdentifyStep<>(buildOperationExecutor, delegate)
 
-    @Override
-    protected ExecutionRequestContext createContext() {
-        Stub(ExecutionRequestContext)
-    }
 
     def "delegates with assigned workspace"() {
         def inputSnapshot = Mock(ValueSnapshot)

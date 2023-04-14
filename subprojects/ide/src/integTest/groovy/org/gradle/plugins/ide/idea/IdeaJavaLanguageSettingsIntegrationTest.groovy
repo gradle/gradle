@@ -42,7 +42,7 @@ allprojects {
     apply plugin:'idea'
     apply plugin:'java'
 
-    sourceCompatibility = "1.7"
+    java.sourceCompatibility = "1.7"
 }
 """
         when:
@@ -64,19 +64,19 @@ allprojects {
     apply plugin:'idea'
     apply plugin:'java'
 
-    sourceCompatibility = 1.6
+    java.sourceCompatibility = 1.6
 }
 
 project(':child1') {
-    sourceCompatibility = 1.7
+    java.sourceCompatibility = 1.7
 }
 
 project(':child2') {
-    sourceCompatibility = 1.5
+    java.sourceCompatibility = 1.5
 }
 
 project(':child3') {
-    sourceCompatibility = 1.8
+    java.sourceCompatibility = 1.8
 }
 """
         when:
@@ -98,8 +98,8 @@ allprojects {
     apply plugin:'idea'
     apply plugin:'java'
 
-    sourceCompatibility = 1.4
-    targetCompatibility = 1.4
+    java.sourceCompatibility = 1.4
+    java.targetCompatibility = 1.4
 }
 
 idea {
@@ -110,18 +110,18 @@ idea {
 }
 
 project(':child1') {
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
+    java.sourceCompatibility = 1.6
+    java.targetCompatibility = 1.6
 }
 
 project(':child2') {
-    sourceCompatibility = 1.5
-    targetCompatibility = 1.5
+    java.sourceCompatibility = 1.5
+    java.targetCompatibility = 1.5
 }
 
 project(':child3') {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.8
+    java.sourceCompatibility = 1.7
+    java.targetCompatibility = 1.8
 }
 """
         when:
@@ -158,8 +158,8 @@ project(':child3') {
             apply plugin:'idea'
             apply plugin:'java'
 
-            sourceCompatibility = 1.4
-            targetCompatibility = 1.4
+            java.sourceCompatibility = 1.4
+            java.targetCompatibility = 1.4
         }
         """
         and:
@@ -177,7 +177,7 @@ allprojects {
 }
 subprojects {
     apply plugin:'java'
-    sourceCompatibility = 1.7
+    java.sourceCompatibility = 1.7
 }
 """
 
@@ -197,7 +197,7 @@ subprojects {
 subprojects {
     apply plugin:'java'
     apply plugin: 'idea'
-    sourceCompatibility = 1.7
+    java.sourceCompatibility = 1.7
 }
 """
 
@@ -225,7 +225,7 @@ include 'subprojectC'
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.6'
+    java.targetCompatibility = '1.6'
 }
 
 idea {
@@ -258,7 +258,7 @@ include 'subprojectC'
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.7'
+    java.targetCompatibility = '1.7'
 }
 
 idea {
@@ -291,11 +291,11 @@ allprojects {
 }
 
 project(':') {
-    targetCompatibility = 1.8
+    java.targetCompatibility = 1.8
 }
 
 project(':subprojectA') {
-    targetCompatibility = 1.7
+    java.targetCompatibility = 1.7
 }
 """
 
@@ -322,11 +322,11 @@ allprojects {
 }
 
 project(':') {
-    sourceCompatibility = 1.8
+    java.sourceCompatibility = 1.8
 }
 
 project(':child1') {
-    sourceCompatibility = 1.7
+    java.sourceCompatibility = 1.7
 }
 """
 
@@ -348,7 +348,7 @@ include 'child1'
         buildFile << """
 allprojects {
     apply plugin: 'java'
-    sourceCompatibility = 1.7
+    java.sourceCompatibility = 1.7
 }
 
 project(':child1') {
@@ -378,19 +378,19 @@ include 'subprojectD'
 configure(project(':subprojectA')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.6'
+    java.targetCompatibility = '1.6'
 }
 
 configure(project(':subprojectB')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.7'
+    java.targetCompatibility = '1.7'
 }
 
 configure(project(':subprojectC')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.8'
+    java.targetCompatibility = '1.8'
 }
 
 configure(project(':subprojectD')) {
@@ -422,6 +422,8 @@ idea {
         file('gradle.properties') << """
 sourceCompatibility=1.3
 targetCompatibility=1.3
+java.sourceCompatibility=1.3
+java.targetCompatibility=1.3
 """
 
         buildFile << """

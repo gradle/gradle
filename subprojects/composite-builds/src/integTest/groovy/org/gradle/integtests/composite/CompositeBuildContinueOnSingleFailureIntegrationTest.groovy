@@ -38,11 +38,11 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
                     }
                 }
                 task succeeds {
-                    shouldRunAfter fails
                 }
                 task checkContinueFlag {
+                    def continueFlag = gradle.startParameter.continueOnFailure
                     doLast {
-                        println "continueOnFailure = " + gradle.startParameter.continueOnFailure
+                        println "continueOnFailure = " + continueFlag
                     }
                 }
 """
@@ -63,7 +63,10 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
         dependsOn gradle.includedBuild('buildB').task(':succeeds')
     }
 """
-
+        buildB.buildFile << """
+    // force sequential execution
+    tasks.succeeds.mustRunAfter tasks.fails
+"""
         fails(buildA, ":delegate")
 
         then:

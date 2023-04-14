@@ -27,8 +27,11 @@ class JUnitPlatformFailFastIntegrationTest extends AbstractJvmFailFastIntegratio
     }
 
     @Override
-    String testDependency() {
-        "org.junit.jupiter:junit-jupiter:$LATEST_JUPITER_VERSION"
+    String testDependencies() {
+        """
+            testImplementation 'org.junit.jupiter:junit-jupiter:$LATEST_JUPITER_VERSION'
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        """
     }
 
     @Override

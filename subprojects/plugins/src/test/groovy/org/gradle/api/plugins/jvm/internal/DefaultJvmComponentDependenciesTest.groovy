@@ -23,32 +23,38 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyAdder
 import org.gradle.api.artifacts.dsl.DependencyFactory
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.jvm.JvmComponentDependencies
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
+
+import javax.inject.Inject
 
 class DefaultJvmComponentDependenciesTest extends Specification {
     def currentProject = Mock(Project)
     def dependencyFactory = Mock(DependencyFactory)
     def implementation = Mock(DependencyAdder)
 
-    def dependencies = new DefaultJvmComponentDependencies(implementation, Mock(DependencyAdder), Mock(DependencyAdder), Mock(DependencyAdder)) {
-        @Override
-        protected Project getCurrentProject() {
-            return DefaultJvmComponentDependenciesTest.this.currentProject
+    static abstract class MockingDefaultJvmComponentDependencies extends DefaultJvmComponentDependencies {
+        DefaultJvmComponentDependenciesTest mockSource
+
+        @Inject
+        MockingDefaultJvmComponentDependencies(DependencyAdder implementation, DependencyAdder compileOnly, DependencyAdder runtimeOnly, DependencyAdder annotationProcessor, DefaultJvmComponentDependenciesTest mockSource) {
+            super(implementation, compileOnly, runtimeOnly, annotationProcessor)
+            this.mockSource = mockSource
         }
 
         @Override
-        protected ObjectFactory getObjectFactory() {
-            throw new IllegalStateException()
+        Project getProject() {
+            return mockSource.currentProject
         }
 
         @Override
         DependencyFactory getDependencyFactory() {
-            return DefaultJvmComponentDependenciesTest.this.dependencyFactory
+            return mockSource.dependencyFactory
         }
     }
+    def dependencies = TestUtil.objectFactory().newInstance(MockingDefaultJvmComponentDependencies, implementation, Mock (DependencyAdder), Mock(DependencyAdder), Mock(DependencyAdder), this)
 
     def "String notation is supported"() {
         when:
@@ -80,76 +86,6 @@ class DefaultJvmComponentDependenciesTest extends Specification {
 
         1 * implementation.add(example)
         1 * implementation.add(example2, _ as Action)
-        0 * _._
-    }
-
-    def "can add a dependency that selects for testFixtures"() {
-        def example = Mock(ExternalModuleDependency)
-        def example2 = Mock(ExternalModuleDependency)
-        when:
-        dependencies {
-            implementation testFixtures("com.example:example:1.0")
-            implementation(testFixtures("com.example:example:2.0")) {
-                // configure dependency
-            }
-        }
-        then:
-        1 * dependencyFactory.create('com.example:example:1.0') >> example
-        1 * example.capabilities(_ as Action)
-        1 * implementation.add(example)
-
-        1 * dependencyFactory.create('com.example:example:2.0') >> example2
-        1 * example2.capabilities(_ as Action)
-        1 * implementation.add(example2, _ as Action)
-
-        0 * _._
-    }
-
-    def "can add a dependency that selects for platform"() {
-        def example = Mock(ExternalModuleDependency)
-        def example2 = Mock(ExternalModuleDependency)
-        when:
-        dependencies {
-            implementation platform("com.example:example:1.0")
-            implementation(platform("com.example:example:2.0")) {
-                // configure dependency
-            }
-        }
-        then:
-        1 * dependencyFactory.create('com.example:example:1.0') >> example
-        1 * example.endorseStrictVersions()
-        1 * example.attributes(_ as Action)
-        1 * implementation.add(example)
-
-        1 * dependencyFactory.create('com.example:example:2.0') >> example2
-        1 * example2.endorseStrictVersions()
-        1 * example2.attributes(_ as Action)
-        1 * implementation.add(example2, _ as Action)
-
-        0 * _._
-    }
-
-    def "can add a dependency that selects for enforcedPlatform"() {
-        def example = Mock(ExternalModuleDependency)
-        def example2 = Mock(ExternalModuleDependency)
-        when:
-        dependencies {
-            implementation enforcedPlatform("com.example:example:1.0")
-            implementation(enforcedPlatform("com.example:example:2.0")) {
-                // configure dependency
-            }
-        }
-        then:
-        1 * dependencyFactory.create('com.example:example:1.0') >> example
-        1 * example.setForce(true)
-        1 * example.attributes(_ as Action)
-        1 * implementation.add(example)
-
-        1 * dependencyFactory.create('com.example:example:2.0') >> example2
-        1 * example2.setForce(true)
-        1 * example2.attributes(_ as Action)
-        1 * implementation.add(example2, _ as Action)
-
         0 * _._
     }
 

@@ -399,7 +399,6 @@ task check {
         output.count('loaded external script') == 4
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expects script evaluation")
     def "will refresh cached value on subsequent build invocation"() {
         given:
         def scriptName = "script-cached.gradle"

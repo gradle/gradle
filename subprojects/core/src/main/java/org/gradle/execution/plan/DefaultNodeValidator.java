@@ -50,8 +50,8 @@ public class DefaultNodeValidator implements NodeValidator {
         WorkValidationContext validationContext = node.getValidationContext();
         Class<?> taskType = GeneratedSubclasses.unpackType(node.getTask());
         // We don't know whether the task is cacheable or not, so we ignore cacheability problems for scheduling
-        TypeValidationContext taskValidationContext = validationContext.forType(taskType, false);
-        node.getTaskProperties().validateType(taskValidationContext);
+        TypeValidationContext typeValidationContext = validationContext.forType(taskType, false);
+        node.getTaskProperties().validateType(typeValidationContext);
         return validationContext;
     }
 
@@ -73,14 +73,18 @@ public class DefaultNodeValidator implements NodeValidator {
     }
 
     private void reportErrors(List<TypeValidationProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
-        ImmutableSet<String> uniqueErrors = problems.stream()
-                .filter(problem -> !problem.getSeverity().isWarning())
-                .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                .collect(ImmutableSet.toImmutableSet());
+        ImmutableSet<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
-                    .withSummaryForContext(task.toString(), validationContext)
-                    .get();
+                .withSummaryForContext(task.toString(), validationContext)
+                .get();
         }
+    }
+
+    private static ImmutableSet<String> getUniqueErrors(List<TypeValidationProblem> problems) {
+        return problems.stream()
+            .filter(problem -> !problem.getSeverity().isWarning())
+            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+            .collect(ImmutableSet.toImmutableSet());
     }
 }

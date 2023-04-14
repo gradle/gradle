@@ -22,23 +22,30 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.decodePreservingIdentity
+import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 
 
 internal
 class ConfigurableFileCollectionCodec(
-    private val codec: Codec<FileCollectionInternal>,
+    private val codec: FileCollectionCodec,
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<ConfigurableFileCollection> {
-    override suspend fun WriteContext.encode(value: ConfigurableFileCollection) = codec.run {
-        encode(value as FileCollectionInternal)
+    override suspend fun WriteContext.encode(value: ConfigurableFileCollection) {
+        encodePreservingIdentityOf(value) {
+            codec.run {
+                encodeContents(value as FileCollectionInternal)
+            }
+        }
     }
 
-    override suspend fun ReadContext.decode(): ConfigurableFileCollection =
-        fileCollectionFactory.configurableFiles().apply {
-            from(
-                codec.run {
-                    decode()
-                }
-            )
+    override suspend fun ReadContext.decode(): ConfigurableFileCollection {
+        return decodePreservingIdentity { id ->
+            val contents = codec.run { decodeContents() }
+            val fileCollection = fileCollectionFactory.configurableFiles()
+            fileCollection.from(contents)
+            isolate.identities.putInstance(id, fileCollection)
+            fileCollection
         }
+    }
 }

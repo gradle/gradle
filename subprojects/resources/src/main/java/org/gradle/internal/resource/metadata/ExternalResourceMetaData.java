@@ -33,6 +33,13 @@ public interface ExternalResourceMetaData {
     String getContentType();
 
     /**
+     * If there is a file associated with the resource and its name can be determined, return it.
+     * Otherwise, return null.
+     */
+    @Nullable
+    String getFilename();
+
+    /**
      * Returns -1 when the content length is unknown.
      */
     long getContentLength();
@@ -58,4 +65,5 @@ public interface ExternalResourceMetaData {
     @Nullable
     HashCode getSha1();
 
+    boolean wasMissing();
 }

@@ -15,8 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface ConfigurationsProvider {
+    /**
+     * Returns the number of configurations in this provider.
+     * <p>
+     * This method is provided for performance reasons. It should be more efficient to call this method
+     * than to call {@link #getAll()} and then call {@link Set#size()} on the result.
+     *
+     * @return the number of configurations in this provider, the same count as would be returned by calling {@link #getAll()}
+     */
+    int size();
+
     Set<? extends ConfigurationInternal> getAll();
+
+    @Nullable
+    ConfigurationInternal findByName(String name);
+
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r68
 
+import org.gradle.integtests.fixtures.build.BuildSpec
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 

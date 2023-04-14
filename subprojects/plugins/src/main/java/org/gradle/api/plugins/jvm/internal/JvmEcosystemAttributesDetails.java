@@ -23,8 +23,7 @@ import org.gradle.api.tasks.TaskProvider;
  * This can be used both on the producer side, to explain what it provides,
  * or on the consumer side, to express requirements.
  */
-public
-interface JvmEcosystemAttributesDetails {
+public interface JvmEcosystemAttributesDetails {
     /**
      * Provides or requires a library
      */
@@ -56,18 +55,6 @@ interface JvmEcosystemAttributesDetails {
      * Provides or requires a runtime
      */
     JvmEcosystemAttributesDetails runtimeUsage();
-
-    /**
-     * Provides the API view of a component during compile time. Only applicable
-     * when combined with {@link #apiUsage()}.
-     */
-    JvmEcosystemAttributesDetails apiCompileView();
-
-    /**
-     * Provides the complete view of a component during compile time. Only applicable
-     * when combined with {@link #apiUsage()}.
-     */
-    JvmEcosystemAttributesDetails completeCompileView();
 
     /**
      * Provides or requires a component which dependencies are found

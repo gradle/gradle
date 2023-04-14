@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.api-kotlin")
 }
 
 dependencies {
@@ -14,6 +15,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":jvm-services"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":native"))
     implementation(project(":normalization-java"))
@@ -29,6 +31,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
     implementation(libs.nativePlatform)
+    implementation(libs.futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":snapshots"))
     testImplementation(libs.ant)
@@ -56,6 +59,11 @@ packageCycles {
     excludePatterns.add("org/gradle/jvm/toolchain/internal/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 description = """Extends platform-base with base types and interfaces specific to the Java Virtual Machine, including tasks for obtaining a JDK via toolchains, and for compiling and launching Java applications."""
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

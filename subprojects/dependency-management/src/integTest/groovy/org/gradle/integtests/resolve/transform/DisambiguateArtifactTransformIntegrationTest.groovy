@@ -24,15 +24,15 @@ class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependenc
     private static String artifactTransform(String className, String extension = "txt", String message = "Transforming") {
         """
             import org.gradle.api.artifacts.transform.TransformParameters
-            
+
             abstract class ${className} implements TransformAction<TransformParameters.None> {
                 ${className}() {
                     println "Creating ${className}"
                 }
-                
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     def output = outputs.file("\${input.name}.${extension}")
@@ -85,18 +85,18 @@ project(':app') {
     }
 
     dependencies {
-        registerTransform(FileSizer) {
+        registerTransform(FileSizer) { // B
             from.attribute(artifactType, 'java-classes-directory')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-            
+
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size'))
         }
-        registerTransform(FileSizer) {
+        registerTransform(FileSizer) { // A
             from.attribute(artifactType, 'jar')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
-            
+
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             to.attribute(artifactType, 'java-classes-directory')
             to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
@@ -134,7 +134,7 @@ ${artifactTransform("FileSizer")}
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
 
-    def "disambiguates A -> B -> C and D -> C by selecting the latter iff attributes match"() {
+    def "disambiguates A -> C and B -> C by selecting the latter iff attributes match"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
 
@@ -179,7 +179,7 @@ project(':app') {
     def hasExtraAttribute = providers.gradleProperty('extraAttribute').isPresent()
 
     dependencies {
-        registerTransform(TestTransform) {
+        registerTransform(TestTransform) { // A
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             from.attribute(artifactType, 'java-classes-directory')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
@@ -190,22 +190,18 @@ project(':app') {
                 to.attribute(extraAttribute, 'value1')
             }
         }
-        registerTransform(TestTransform) {
+        registerTransform(TestTransform) { // B
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
             from.attribute(artifactType, 'jar')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-            to.attribute(artifactType, 'magic-jar')
+            to.attribute(artifactType, 'final')
 
             if (hasExtraAttribute) {
                 from.attribute(extraAttribute, 'whatever')
                 to.attribute(extraAttribute, 'value2')
             }
-        }
-        registerTransform(TestTransform) {
-            from.attribute(artifactType, 'magic-jar')
-            to.attribute(artifactType, 'final')
         }
     }
 
@@ -234,10 +230,9 @@ ${artifactTransform("TestTransform")}
         run "resolve"
 
         then:
-        output.count("Transforming") == 3
-        output.count("Transforming main to main.txt") == 1
+        output.count("Transforming") == 2
+        output.count("Transforming lib.jar to lib.jar.txt")
         output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
-        output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
 
         when:
         fails 'resolve', '-PextraAttribute'
@@ -278,7 +273,7 @@ dependencies {
         from.attribute(buildType, 'default')
         to.attribute(buildType, 'release')
     }
-    
+
     registerTransform(AarDebug) {
         from.attribute(artifactType, 'jar')
         to.attribute(artifactType, 'aar')
@@ -286,7 +281,7 @@ dependencies {
         from.attribute(buildType, 'default')
         to.attribute(buildType, 'debug')
     }
-    
+
     registerTransform(AarClasses) {
         from.attribute(artifactType, 'aar')
         to.attribute(artifactType, 'classes')
@@ -295,9 +290,9 @@ dependencies {
 
 task resolveReleaseClasses {
     def artifacts = configurations.compile.incoming.artifactView {
-        attributes { 
-            it.attribute(artifactType, 'classes') 
-            it.attribute(buildType, 'release') 
+        attributes {
+            it.attribute(artifactType, 'classes')
+            it.attribute(buildType, 'release')
         }
     }.artifacts
     inputs.files artifacts.artifactFiles
@@ -310,12 +305,11 @@ task resolveReleaseClasses {
     }
 }
 
-
 task resolveTestClasses {
     def artifacts = configurations.compile.incoming.artifactView {
-        attributes { 
-            it.attribute(artifactType, 'classes') 
-            it.attribute(buildType, 'test') 
+        attributes {
+            it.attribute(artifactType, 'classes')
+            it.attribute(buildType, 'test')
         }
     }.artifacts
     inputs.files artifacts.artifactFiles
@@ -376,16 +370,16 @@ allprojects {
 
 dependencies {
     implementation 'test:test:1.3'
-    
+
     artifactTypes.getByName("jar") {
         attributes.attribute(minified, false)
     }
-    
+
     registerTransform(FileSizer) {
         from.attribute(artifactType, 'jar')
         to.attribute(artifactType, 'size')
     }
-    
+
     registerTransform(Minifier) {
         from.attribute(minified, false)
         to.attribute(minified, true)
@@ -442,15 +436,15 @@ project(':child') {
         }
         runtimeElements {
             extendsFrom(runtimeOnly)
-            canBeConsumed = true
+            assert canBeConsumed
             canBeResolved = false
             attributes {
                 attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
             }
         }
     }
-    
-    
+
+
     artifacts {
         buildDir.mkdirs()
         file("\$buildDir/test.jar").text = "toto"
@@ -460,11 +454,11 @@ project(':child') {
 
 dependencies {
     api project(':child')
-    
+
     artifactTypes.getByName("jar") {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
     }
-    
+
     if ($apiFirst) {
         registerTransform(Identity) {
             from.attribute(artifactType, 'jar')

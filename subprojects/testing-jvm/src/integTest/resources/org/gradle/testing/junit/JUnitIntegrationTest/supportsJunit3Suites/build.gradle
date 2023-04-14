@@ -17,7 +17,8 @@
 apply plugin: 'java'
 repositories { mavenCentral() }
 dependencies {
-    testImplementation "junit:junit:3.8"
+    testCompileOnly "junit:junit:3.8"
+    testRuntimeOnly "junit:junit:4.13.2"
 }
 
 test {

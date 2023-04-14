@@ -18,8 +18,8 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory;
+import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 
 import java.io.File;
 import java.util.Set;
@@ -37,6 +37,11 @@ public class AutoInstalledInstallationSupplier extends AutoDetectingInstallation
     }
 
     @Override
+    public String getSourceName() {
+        return "Auto-provisioned by Gradle";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         return cacheDirProvider.listJavaHomes().stream()
             .map(this::asInstallation)
@@ -44,7 +49,7 @@ public class AutoInstalledInstallationSupplier extends AutoDetectingInstallation
     }
 
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, "Auto-provisioned by Gradle");
+        return new InstallationLocation(javaHome, getSourceName(), true);
     }
 
     @Override

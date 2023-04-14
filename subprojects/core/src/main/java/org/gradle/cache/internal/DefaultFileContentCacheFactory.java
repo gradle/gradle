@@ -18,9 +18,9 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -46,12 +46,12 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
     private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<>();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemAccess fileSystemAccess, ScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemAccess fileSystemAccess, ScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.listenerManager = listenerManager;
         this.fileSystemAccess = fileSystemAccess;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        cache = cacheRepository
-            .cache("fileContent")
+        cache = cacheBuilderFactory
+            .createCacheBuilder("fileContent")
             .withDisplayName("file content cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
@@ -64,9 +64,9 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
 
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
-        PersistentIndexedCacheParameters<HashCode, V> parameters = PersistentIndexedCacheParameters.of(name, hashCodeSerializer, serializer)
+        IndexedCacheParameters<HashCode, V> parameters = IndexedCacheParameters.of(name, hashCodeSerializer, serializer)
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
-        PersistentIndexedCache<HashCode, V> store = cache.createCache(parameters);
+        IndexedCache<HashCode, V> store = cache.createIndexedCache(parameters);
 
         DefaultFileContentCache<V> cache = Cast.uncheckedCast(caches.get(name));
         if (cache == null) {
@@ -92,10 +92,10 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         private final Map<File, V> locationCache = new ConcurrentHashMap<>();
         private final String name;
         private final FileSystemAccess fileSystemAccess;
-        private final PersistentIndexedCache<HashCode, V> contentCache;
+        private final IndexedCache<HashCode, V> contentCache;
         private final Calculator<? extends V> calculator;
 
-        DefaultFileContentCache(String name, FileSystemAccess fileSystemAccess, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+        DefaultFileContentCache(String name, FileSystemAccess fileSystemAccess, IndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
             this.name = name;
             this.fileSystemAccess = fileSystemAccess;
             this.contentCache = contentCache;
@@ -118,7 +118,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
                 ));
         }
 
-        private void assertStoredIn(PersistentIndexedCache<HashCode, V> store) {
+        private void assertStoredIn(IndexedCache<HashCode, V> store) {
             if (this.contentCache != store) {
                 throw new IllegalStateException("Cache " + name + " cannot be recreated with different parameters");
             }

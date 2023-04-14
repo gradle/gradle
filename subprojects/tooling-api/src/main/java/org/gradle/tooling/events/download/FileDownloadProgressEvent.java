@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.download;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.events.ProgressEvent;
  *
  * @since 7.3
  */
-@Incubating
 public interface FileDownloadProgressEvent extends ProgressEvent {
     @Override
     FileDownloadOperationDescriptor getDescriptor();

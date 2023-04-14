@@ -18,6 +18,7 @@ import common.JvmVendor
 import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
+import common.pluginPortalUrlOverride
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -47,7 +48,7 @@ class PerformanceTestBuildTypeTest {
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = VersionedSettingsBranch("master", true),
+        branch = VersionedSettingsBranch("master"),
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     )
@@ -88,19 +89,19 @@ class PerformanceTestBuildTypeTest {
 
         val expectedRunnerParams = listOf(
             "-PperformanceBaselines=%performance.baselines%",
-            "-PtestJavaVersion=8",
-            "-PtestJavaVendor=oracle",
+            "-PtestJavaVersion=11",
+            "-PtestJavaVendor=openjdk",
             "-PautoDownloadAndroidStudio=true",
             "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java18.openjdk.64bit%,%linux.java8.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java19.openjdk.64bit%,%linux.java8.openjdk.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
             "-DenableTestDistribution=%enableTestDistribution%",
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
-            "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+            pluginPortalUrlOverride,
             "-s",
             "--no-configuration-cache",
             "%additional.gradle.parameters%",

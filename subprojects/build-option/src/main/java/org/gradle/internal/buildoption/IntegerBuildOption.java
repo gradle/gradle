@@ -27,6 +27,10 @@ public abstract class IntegerBuildOption<T> extends AbstractBuildOption<T, Comma
         super(gradleProperty);
     }
 
+    public IntegerBuildOption(String gradleProperty, String deprecatedGradleProperty) {
+        super(gradleProperty, deprecatedGradleProperty);
+    }
+
     public IntegerBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(gradleProperty, commandLineOptionConfigurations);
     }
@@ -34,9 +38,10 @@ public abstract class IntegerBuildOption<T> extends AbstractBuildOption<T, Comma
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        String value = properties.get(gradleProperty);
+        OptionValue<String> propertyValue = getFromProperties(properties);
+        String value = propertyValue.getValue();
         if (value != null) {
-            applyTo(Integer.parseInt(value), settings, Origin.forGradleProperty(gradleProperty));
+            applyTo(Integer.parseInt(value), settings, propertyValue.getOrigin());
         }
     }
 

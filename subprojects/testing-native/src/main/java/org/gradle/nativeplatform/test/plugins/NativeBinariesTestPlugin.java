@@ -60,7 +60,7 @@ import java.util.concurrent.Callable;
  * A plugin that sets up the infrastructure for testing native binaries.
  */
 @Incubating
-public class NativeBinariesTestPlugin implements Plugin<Project> {
+public abstract class NativeBinariesTestPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {

@@ -22,15 +22,16 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalCo
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInAnotherBuildProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactSetResolver
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
+import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
+import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configuration.internal.DynamicCallContextTracker
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
 import org.gradle.configuration.project.DelayedConfigurationActions
@@ -39,7 +40,8 @@ import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
+import org.gradle.configurationcache.flow.FlowServicesProvider
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.DefaultEnvironment
@@ -72,10 +74,8 @@ class DefaultBuildModelControllerServices(
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, owner)
             registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
-            registration.add(DeprecatedFeaturesListenerManagerAction::class.java)
+            registration.addProvider(FlowServicesProvider)
             if (buildModelParameters.isConfigurationCache) {
-                registration.add(ConfigurationCacheBuildEnablement::class.java)
-                registration.add(ConfigurationCacheProblemsListenerManagerAction::class.java)
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
                 registration.add(ConfigurationCacheEnvironment::class.java)
             } else {
@@ -145,11 +145,28 @@ class DefaultBuildModelControllerServices(
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             problemsListener: ProblemsListener,
-            userCodeApplicationContext: UserCodeApplicationContext,
-            listenerManager: ListenerManager
+            problemFactory: ProblemFactory,
+            listenerManager: ListenerManager,
+            dynamicCallProblemReporting: DynamicCallProblemReporting
         ): CrossProjectModelAccess {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
-            return ProblemReportingCrossProjectModelAccess(delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), userCodeApplicationContext)
+            return ProblemReportingCrossProjectModelAccess(
+                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting
+            )
+        }
+
+        fun createDynamicCallProjectIsolationProblemReporting(dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting =
+            DefaultDynamicCallProblemReporting().also { reporting ->
+                dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
+                dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
+            }
+
+        fun createDynamicLookupRoutine(
+            dynamicCallContextTracker: DynamicCallContextTracker,
+            buildModelParameters: BuildModelParameters
+        ): DynamicLookupRoutine = when {
+            buildModelParameters.isIsolatedProjects -> TrackingDynamicLookupRoutine(dynamicCallContextTracker)
+            else -> DefaultDynamicLookupRoutine()
         }
     }
 
@@ -160,6 +177,9 @@ class DefaultBuildModelControllerServices(
         ): CrossProjectModelAccess {
             return DefaultCrossProjectModelAccess(projectRegistry)
         }
+
+        fun createDynamicLookupRoutine(): DynamicLookupRoutine =
+            DefaultDynamicLookupRoutine()
     }
 
     private
@@ -181,11 +201,10 @@ class DefaultBuildModelControllerServices(
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             cache: BuildTreeConfigurationCache,
             provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider,
-            projectArtifactSetResolver: ProjectArtifactSetResolver
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
             val effectiveProvider = ConfigurationCacheAwareLocalComponentProvider(provider, cache)
-            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider, projectArtifactSetResolver)
+            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider)
         }
     }
 
@@ -210,10 +229,9 @@ class DefaultBuildModelControllerServices(
             projectStateRegistry: ProjectStateRegistry,
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider,
-            projectArtifactSetResolver: ProjectArtifactSetResolver
-        ): LocalComponentRegistry {
-            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider, projectArtifactSetResolver)
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
+        ): DefaultLocalComponentRegistry {
+            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
         }
     }
 }

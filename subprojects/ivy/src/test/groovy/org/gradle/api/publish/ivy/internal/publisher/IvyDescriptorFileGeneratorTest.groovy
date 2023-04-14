@@ -22,6 +22,7 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
@@ -233,12 +234,12 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied publication artifacts"() {
         when:
-        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), new DefaultIvyPublicationIdentity("org", "module", "rev"))
+        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), new DefaultIvyPublicationIdentity("org", "module", "rev"), DefaultTaskDependencyFactory.withNoAssociatedProject())
         artifact1.classifier = "classy"
-        def artifact2 = new FileBasedIvyArtifact(new File("foo"), new DefaultIvyPublicationIdentity("", "", ""))
+        def artifact2 = new FileBasedIvyArtifact(new File("foo"), new DefaultIvyPublicationIdentity("", "", ""), DefaultTaskDependencyFactory.withNoAssociatedProject())
         artifact2.setConf("runtime")
-        generator.addArtifact(artifact1)
-        generator.addArtifact(artifact2)
+        generator.addArtifact(artifact1.asNormalisedArtifact())
+        generator.addArtifact(artifact2.asNormalisedArtifact())
 
         then:
         includesMavenNamespace()

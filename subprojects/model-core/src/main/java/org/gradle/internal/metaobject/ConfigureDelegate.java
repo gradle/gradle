@@ -18,7 +18,6 @@ package org.gradle.internal.metaobject;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
-import groovy.lang.MissingMethodException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,16 +25,22 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class ConfigureDelegate extends GroovyObjectSupport {
     protected final DynamicObject _owner;
     protected final DynamicObject _delegate;
+    private final Object _original_owner;
     private boolean _configuring;
 
-    public ConfigureDelegate(Closure configureClosure, Object delegate) {
-        _owner = DynamicObjectUtil.asDynamicObject(configureClosure.getOwner());
+    public ConfigureDelegate(Closure<?> configureClosure, Object delegate) {
+        _original_owner = configureClosure.getOwner();
+        _owner = DynamicObjectUtil.asDynamicObject(_original_owner);
         _delegate = DynamicObjectUtil.asDynamicObject(delegate);
     }
 
     @Override
     public String toString() {
         return _delegate.toString();
+    }
+
+    public Object _original_owner() {
+        return _original_owner;
     }
 
     protected DynamicInvokeResult _configure(String name, Object[] params) {
@@ -58,16 +63,9 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 return result.getValue();
             }
 
-            MissingMethodException failure = null;
             if (!isAlreadyConfiguring) {
                 // Try to configure element
-                try {
-                    result = _configure(name, params);
-                } catch (MissingMethodException e) {
-                    // Workaround for backwards compatibility. Previously, this case would unintentionally cause the method to be invoked on the owner
-                    // continue below
-                    failure = e;
-                }
+                result = _configure(name, params);
                 if (result.isFound()) {
                     return result.getValue();
                 }
@@ -77,10 +75,6 @@ public class ConfigureDelegate extends GroovyObjectSupport {
             result = _owner.tryInvokeMethod(name, params);
             if (result.isFound()) {
                 return result.getValue();
-            }
-
-            if (failure != null) {
-                throw failure;
             }
 
             throw _delegate.methodMissingException(name, params);

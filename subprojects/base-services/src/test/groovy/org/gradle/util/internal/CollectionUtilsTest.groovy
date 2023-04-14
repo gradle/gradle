@@ -15,7 +15,8 @@
  */
 package org.gradle.util.internal
 
-import org.gradle.api.Transformer
+
+import org.gradle.internal.InternalTransformer
 import spock.lang.Specification
 
 import static org.gradle.util.internal.CollectionUtils.addAll
@@ -68,7 +69,7 @@ class CollectionUtilsTest extends Specification {
     }
 
     def "list collecting"() {
-        def transformer = new Transformer() {
+        def transformer = new InternalTransformer() {
             def transform(i) { i * 2 }
         }
         def collect = { Integer[] nums -> collect(nums as List, transformer) }
@@ -410,7 +411,7 @@ class CollectionUtilsTest extends Specification {
         nonEmptyOrNull([]) == null
     }
 
-    Transformer<?, ?> transformer(Closure c) {
-        c as Transformer
+    InternalTransformer<?, ?> transformer(Closure c) {
+        c as InternalTransformer
     }
 }

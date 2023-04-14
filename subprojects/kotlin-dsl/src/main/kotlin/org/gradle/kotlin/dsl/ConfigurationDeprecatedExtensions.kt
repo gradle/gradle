@@ -32,10 +32,13 @@ import org.gradle.api.tasks.TaskDependency
 import java.io.File
 
 
+// TODO: Remove these methods entirely when we no longer support plugins that were built using these methods.
+
+
 /**
  * See [Configuration.getBuildDependencies].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().buildDependencies"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().buildDependencies"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.buildDependencies: TaskDependency
     get() = get().buildDependencies
 
@@ -43,7 +46,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.buildDependencies: TaskDepe
 /**
  * See [Configuration.getSingleFile].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().singleFile"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().singleFile"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.singleFile: File
     get() = get().singleFile
 
@@ -51,7 +54,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.singleFile: File
 /**
  * See [Configuration.getFiles].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().files"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().files"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.files: Set<File>
     get() = get().files
 
@@ -59,7 +62,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.files: Set<File>
 /**
  * See [Configuration.contains].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().contains(element)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().contains(element)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.contains(element: File): Boolean =
     get().contains(element)
 
@@ -67,7 +70,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.contains(element: File): Bo
 /**
  * See [Configuration.getAsPath].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().asPath"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().asPath"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.asPath: String
     get() = get().asPath
 
@@ -75,7 +78,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.asPath: String
 /**
  * See [Configuration.plus].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().plus(collection)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().plus(collection)"), level = DeprecationLevel.HIDDEN)
 operator fun <T : Configuration> NamedDomainObjectProvider<T>.plus(collection: FileCollection): FileCollection =
     get().plus(collection)
 
@@ -83,7 +86,7 @@ operator fun <T : Configuration> NamedDomainObjectProvider<T>.plus(collection: F
 /**
  * See [Configuration.plus].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().plus(configuration)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().plus(configuration)"), level = DeprecationLevel.HIDDEN)
 operator fun <T : Configuration> FileCollection.plus(configuration: NamedDomainObjectProvider<T>): FileCollection =
     plus(configuration.get())
 
@@ -91,7 +94,7 @@ operator fun <T : Configuration> FileCollection.plus(configuration: NamedDomainO
 /**
  * See [Configuration.minus].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().minus(collection)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().minus(collection)"), level = DeprecationLevel.HIDDEN)
 operator fun <T : Configuration> NamedDomainObjectProvider<T>.minus(collection: FileCollection): FileCollection =
     get().minus(collection)
 
@@ -99,7 +102,7 @@ operator fun <T : Configuration> NamedDomainObjectProvider<T>.minus(collection: 
 /**
  * See [Configuration.minus].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().minus(configuration)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().minus(configuration)"), level = DeprecationLevel.HIDDEN)
 operator fun <T : Configuration> FileCollection.minus(configuration: NamedDomainObjectProvider<T>): FileCollection =
     minus(configuration.get())
 
@@ -107,7 +110,7 @@ operator fun <T : Configuration> FileCollection.minus(configuration: NamedDomain
 /**
  * See [Configuration.filter].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().filter(filterSpec"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().filter(filterSpec"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.filter(filterSpec: Spec<File>) =
     get().filter(filterSpec)
 
@@ -115,7 +118,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.filter(filterSpec: Spec<Fil
 /**
  * See [Configuration.isEmpty].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isEmpty"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isEmpty"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.isEmpty: Boolean
     get() = get().isEmpty
 
@@ -123,7 +126,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.isEmpty: Boolean
 /**
  * See [Configuration.getAsFileTree].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().asFileTree"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().asFileTree"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.asFileTree: FileTree
     get() = get().asFileTree
 
@@ -131,7 +134,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.asFileTree: FileTree
 /**
  * See [Configuration.getResolutionStrategy].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolutionStrategy"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolutionStrategy"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.resolutionStrategy
     get() = get().resolutionStrategy
 
@@ -139,7 +142,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.resolutionStrategy
 /**
  * See [Configuration.resolutionStrategy].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolutionStrategy"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolutionStrategy"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.resolutionStrategy(action: ResolutionStrategy.() -> Unit) =
     get().resolutionStrategy(action)
 
@@ -147,7 +150,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.resolutionStrategy(action: 
 /**
  * See [Configuration.getState].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().state"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().state"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.state
     get() = get().state
 
@@ -155,7 +158,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.state
 /**
  * See [Configuration.isVisible].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isVisible"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isVisible"), level = DeprecationLevel.HIDDEN)
 var <T : Configuration> NamedDomainObjectProvider<T>.isVisible
     get() = get().isVisible
     set(value) {
@@ -166,7 +169,7 @@ var <T : Configuration> NamedDomainObjectProvider<T>.isVisible
 /**
  * See [Configuration.getExtendsFrom].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().extendsFrom"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().extendsFrom"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.extendsFrom: Set<Configuration>
     get() = get().extendsFrom
 
@@ -174,7 +177,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.extendsFrom: Set<Configurat
 /**
  * See [Configuration.setExtendsFrom].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().setExtendsFrom(superConfigs)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().setExtendsFrom(superConfigs)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.setExtendsFrom(superConfigs: Iterable<Configuration>): Configuration =
     get().setExtendsFrom(superConfigs)
 
@@ -182,7 +185,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.setExtendsFrom(superConfigs
 /**
  * See [Configuration.extendsFrom].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().extendsFrom(superConfigs)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().extendsFrom(superConfigs)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.extendsFrom(vararg superConfigs: Configuration) =
     get().extendsFrom(*superConfigs)
 
@@ -190,7 +193,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.extendsFrom(vararg superCon
 /**
  * See [Configuration.isTransitive].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isTransitive"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isTransitive"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.isTransitive
     get() = get().isTransitive
 
@@ -198,7 +201,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.isTransitive
 /**
  * See [Configuration.setTransitive].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().setTransitive(t)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().setTransitive(t)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.setTransitive(t: Boolean): Configuration =
     get().setTransitive(t)
 
@@ -206,7 +209,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.setTransitive(t: Boolean): 
 /**
  * See [Configuration.getDescription].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().description"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().description"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.description
     get() = get().description
 
@@ -214,7 +217,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.description
 /**
  * See [Configuration.setDescription].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().setDescription(description)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().setDescription(description)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.setDescription(description: String?): Configuration =
     get().setDescription(description)
 
@@ -222,7 +225,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.setDescription(description:
 /**
  * See [Configuration.getHierarchy].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().hierarchy"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().hierarchy"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.hierarchy: Set<Configuration>
     get() = get().hierarchy
 
@@ -230,7 +233,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.hierarchy: Set<Configuratio
 /**
  * See [Configuration.resolve].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolve()"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolve()"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.resolve(): Set<File> =
     get().resolve()
 
@@ -238,7 +241,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.resolve(): Set<File> =
 /**
  * See [Configuration.files].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().files(dependencySpec)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().files(dependencySpec)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.files(dependencySpec: Spec<Dependency>): Set<File> =
     get().files(dependencySpec)
 
@@ -246,7 +249,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.files(dependencySpec: Spec<
 /**
  * See [Configuration.files].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().files(dependencies)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().files(dependencies)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.files(vararg dependencies: Dependency): Set<File> =
     get().files(*dependencies)
 
@@ -254,7 +257,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.files(vararg dependencies: 
 /**
  * See [Configuration.fileCollection].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().fileCollection(dependencySpec)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().fileCollection(dependencySpec)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(dependencySpec: Spec<Dependency>): FileCollection =
     get().fileCollection(dependencySpec)
 
@@ -262,7 +265,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(dependencySp
 /**
  * See [Configuration.fileCollection].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().fileCollection(dependencies)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().fileCollection(dependencies)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(vararg dependencies: Dependency): FileCollection =
     get().fileCollection(*dependencies)
 
@@ -270,7 +273,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(vararg depen
 /**
  * See [Configuration.getResolvedConfiguration].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolvedConfiguration"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolvedConfiguration"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.resolvedConfiguration
     get() = get().resolvedConfiguration
 
@@ -278,7 +281,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.resolvedConfiguration
 /**
  * See [Configuration.getTaskDependencyFromProjectDependency].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().getTaskDependencyFromProjectDependency(useDependedOn, taskName)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().getTaskDependencyFromProjectDependency(useDependedOn, taskName)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.getTaskDependencyFromProjectDependency(useDependedOn: Boolean, taskName: String): TaskDependency =
     get().getTaskDependencyFromProjectDependency(useDependedOn, taskName)
 
@@ -286,7 +289,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.getTaskDependencyFromProjec
 /**
  * See [Configuration.getDependencies].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().dependencies"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().dependencies"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.dependencies
     get() = get().dependencies
 
@@ -294,7 +297,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.dependencies
 /**
  * See [Configuration.getAllDependencies].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().allDependencies"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().allDependencies"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.allDependencies
     get() = get().allDependencies
 
@@ -302,7 +305,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.allDependencies
 /**
  * See [Configuration.getDependencyConstraints].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().dependencyConstraints"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().dependencyConstraints"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.dependencyConstraints
     get() = get().dependencyConstraints
 
@@ -310,7 +313,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.dependencyConstraints
 /**
  * See [Configuration.getAllDependencyConstraints].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().allDependencyConstraints"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().allDependencyConstraints"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.allDependencyConstraints
     get() = get().allDependencyConstraints
 
@@ -318,7 +321,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.allDependencyConstraints
 /**
  * See [Configuration.getArtifacts].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().artifacts"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().artifacts"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.artifacts
     get() = get().artifacts
 
@@ -326,7 +329,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.artifacts
 /**
  * See [Configuration.getAllArtifacts].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().allArtifacts"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().allArtifacts"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.allArtifacts
     get() = get().allArtifacts
 
@@ -334,7 +337,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.allArtifacts
 /**
  * See [Configuration.getExcludeRules].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().excludeRules"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().excludeRules"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.excludeRules: Set<ExcludeRule>
     get() = get().excludeRules
 
@@ -342,7 +345,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.excludeRules: Set<ExcludeRu
 /**
  * See [Configuration.exclude].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().exclude(excludeProperties)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().exclude(excludeProperties)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.exclude(excludeProperties: Map<String, String>): Configuration =
     get().exclude(excludeProperties)
 
@@ -350,7 +353,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.exclude(excludeProperties: 
 /**
  * See [Configuration.exclude].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().exclude(excludeProperties)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().exclude(excludeProperties)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.exclude(vararg excludeProperties: Pair<String, String>): Configuration =
     get().exclude(excludeProperties.toMap())
 
@@ -358,7 +361,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.exclude(vararg excludePrope
 /**
  * See [Configuration.defaultDependencies].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().defaultDependencies(action)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().defaultDependencies(action)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.defaultDependencies(action: DependencySet.() -> Unit) =
     get().defaultDependencies(action)
 
@@ -366,7 +369,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.defaultDependencies(action:
 /**
  * See [Configuration.withDependencies].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().withDependencies(action)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().withDependencies(action)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.withDependencies(action: DependencySet.() -> Unit) =
     get().withDependencies(action)
 
@@ -374,7 +377,8 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.withDependencies(action: De
 /**
  * See [Configuration.all].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().all"))
+@Suppress("DEPRECATION")
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().all"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.all: Set<Configuration>
     get() = get().all
 
@@ -382,7 +386,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.all: Set<Configuration>
 /**
  * See [Configuration.getIncoming].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().incoming"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().incoming"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.incoming
     get() = get().incoming
 
@@ -390,7 +394,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.incoming
 /**
  * See [Configuration.getOutgoing].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().outgoing"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().outgoing"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.outgoing
     get() = get().outgoing
 
@@ -398,7 +402,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.outgoing
 /**
  * See [Configuration.outgoing].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().outgoing(action)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().outgoing(action)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.outgoing(action: ConfigurationPublications.() -> Unit) =
     get().outgoing(action)
 
@@ -406,7 +410,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.outgoing(action: Configurat
 /**
  * See [Configuration.copy].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copy()"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copy()"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.copy() =
     get().copy()
 
@@ -414,7 +418,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.copy() =
 /**
  * See [Configuration.copyRecursive].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copyRecursive()"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copyRecursive()"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.copyRecursive() =
     get().copyRecursive()
 
@@ -422,7 +426,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.copyRecursive() =
 /**
  * See [Configuration.copy].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copy(dependencySpec)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copy(dependencySpec)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.copy(dependencySpec: Spec<Dependency>) =
     get().copy(dependencySpec)
 
@@ -430,7 +434,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.copy(dependencySpec: Spec<D
 /**
  * See [Configuration.copyRecursive].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copyRecursive(dependencySpec)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copyRecursive(dependencySpec)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.copyRecursive(dependencySpec: Spec<Dependency>) =
     get().copyRecursive(dependencySpec)
 
@@ -438,7 +442,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.copyRecursive(dependencySpe
 /**
  * See [Configuration.isCanBeConsumed].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isCanBeConsumed"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isCanBeConsumed"), level = DeprecationLevel.HIDDEN)
 var <T : Configuration> NamedDomainObjectProvider<T>.isCanBeConsumed
     get() = get().isCanBeConsumed
     set(value) {
@@ -449,7 +453,7 @@ var <T : Configuration> NamedDomainObjectProvider<T>.isCanBeConsumed
 /**
  * See [Configuration.isCanBeResolved].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isCanBeResolved"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().isCanBeResolved"), level = DeprecationLevel.HIDDEN)
 var <T : Configuration> NamedDomainObjectProvider<T>.isCanBeResolved
     get() = get().isCanBeResolved
     set(value) {
@@ -460,7 +464,7 @@ var <T : Configuration> NamedDomainObjectProvider<T>.isCanBeResolved
 /**
  * See [Configuration.getAttributes].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().attributes"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().attributes"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.attributes
     get() = get().attributes
 
@@ -468,7 +472,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.attributes
 /**
  * See [Configuration.attributes].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().attributes(action)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().attributes(action)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.attributes(action: AttributeContainer.() -> Unit) =
     get().attributes(action)
 
@@ -476,7 +480,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.attributes(action: Attribut
 /**
  * See [Configuration.addToAntBuilder].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().addToAntBuilder(builder, nodeName, type)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().addToAntBuilder(builder, nodeName, type)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.addToAntBuilder(builder: Any, nodeName: String, type: FileCollection.AntType): Unit =
     get().addToAntBuilder(builder, nodeName, type)
 
@@ -484,10 +488,10 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.addToAntBuilder(builder: An
 /**
  * See [Configuration.addToAntBuilder].
  */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().addToAntBuilder(builder, nodeName)"))
+@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().addToAntBuilder(builder, nodeName)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.addToAntBuilder(builder: Any, nodeName: String): Any =
     get().addToAntBuilder(builder, nodeName)
 
 
 private
-const val deprecationMessage = "Scheduled to be removed in Gradle 8.0"
+const val deprecationMessage = "Scheduled to be removed in Gradle 9.0"

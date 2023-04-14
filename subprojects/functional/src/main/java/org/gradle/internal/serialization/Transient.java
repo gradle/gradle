@@ -45,6 +45,10 @@ public abstract class Transient<T> implements java.io.Serializable {
     @Nullable
     public abstract T get();
 
+    public boolean isPresent() {
+        return true;
+    }
+
     private static class ImmutableTransient<T> extends Transient<T> {
 
         private final T value;
@@ -97,6 +101,11 @@ public abstract class Transient<T> implements java.io.Serializable {
         @Override
         public T get() {
             throw new IllegalStateException("The value of this property has been discarded during serialization.");
+        }
+
+        @Override
+        public boolean isPresent() {
+            return false;
         }
 
         private Object readResolve() {

@@ -20,13 +20,16 @@ import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
 @ToolingApiVersion(">=7.3")
 @TargetGradleVersion(">=7.3")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3765")
 class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHttpCrossVersionSpec {
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "generates typed events for downloads during dependency resolution"() {
         def modules = setupBuildWithArtifactDownloadDuringConfiguration()
         modules.useLargeJars()
@@ -62,6 +65,48 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         events.operation("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact)
     }
 
+    @TargetGradleVersion('>=7.3')
+    def "generates success event for failing first attempt to get dependency"() {
+        toolingApi.requireIsolatedUserHome()
+
+        def projectFModuleMissing = mavenHttpRepo.module('group', 'projectF', '2.0')
+        projectFModuleMissing.missing()
+        def projectF2 = getMavenHttpRepo("/repo2").module('group', 'projectF', '2.0').publish()
+        projectF2.pom.expectGet()
+        projectF2.artifact.expectGet()
+
+        initSettingsFile()
+
+        buildFile << """
+            allprojects {
+                apply plugin:'java-library'
+            }
+            ${repositories(mavenHttpRepo, getMavenHttpRepo("/repo2"))}
+            dependencies {
+                implementation "group:projectF:2.0"
+            }
+        """
+        addConfigurationClassPathPrintToBuildFile()
+
+        when:
+        def events = ProgressEvents.create()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            collectOutputs(build)
+            build.addProgressListener(events, OperationType.FILE_DOWNLOAD)
+                .run()
+        }
+
+        then:
+        events.operations.size() == 3
+        events.trees == events.operations
+        events.operations.every { it.successful }
+        events.operation("Download ${projectFModuleMissing.pom.uri}").assertIsDownload(projectFModuleMissing.pom)
+        events.operation("Download ${projectF2.pom.uri}").assertIsDownload(projectF2.pom)
+        events.operation("Download ${projectF2.artifact.uri}").assertIsDownload(projectF2.artifact)
+    }
+
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "generates typed events for failed downloads during dependency resolution"() {
         def modules = setupBuildWithFailedArtifactDownloadDuringTaskExecution()
 

@@ -1,10 +1,9 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
-import org.gradle.test.fixtures.Flaky
+import org.gradle.kotlin.dsl.provider.KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY
 import org.gradle.util.Matchers.isEmpty
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.endsWith
@@ -12,11 +11,8 @@ import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.experimental.categories.Category
-import spock.lang.Issue
 import java.io.File
 import java.util.UUID
 import java.util.regex.Pattern
@@ -30,8 +26,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     @Before
     fun init() {
-        assumeTrue(BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED)
-
         cacheBuster = UUID.randomUUID()
 
         withSettings(
@@ -39,6 +33,44 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             rootProject.name = "test-project"
             """
         )
+    }
+
+    @Test
+    fun `script compilation avoidance can be disabled via a system property`() {
+
+        withFile("gradle.properties", "systemProp.$KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY=false")
+
+        val className = givenJavaClassInBuildSrcContains("""public void foo() { System.out.println("foo"); }""")
+        withUniqueScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        givenJavaClassInBuildSrcContains("""public void foo() { System.out.println("bar"); }""")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
+    }
+
+    @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
+    fun `avoids buildscript recompilation on included build JAR rebuild`() {
+
+        withDefaultSettingsIn("build-logic")
+            .appendText("""rootProject.name = "build-logic"""")
+        withKotlinDslPluginIn("build-logic")
+        withFile("build-logic/src/main/kotlin/my-plugin.gradle.kts", "")
+        val className = kotlinClassSourceFile("build-logic", """
+            inline fun foo() { println("bar") }
+        """)
+        withSettings(""" pluginManagement { includeBuild("build-logic") } """)
+
+        withUniqueScript("""
+            plugins { id("my-plugin") }
+            $className().foo()
+        """)
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+
+        // Delete the JAR as this is not cacheable and by default JARs are not reproducible
+        require(existing("build-logic/build/libs/build-logic.jar").delete())
+
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
     @Test
@@ -126,8 +158,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache(because = "test rely on configuration phase output")
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `avoids buildscript recompilation on non ABI change in buildscript classpath`() {
         val (className, jarPath) = buildJarForBuildScriptClasspath(
             """
@@ -157,8 +189,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache(because = "test rely on configuration phase output")
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `recompiles buildscript on ABI change in buildscript classpath`() {
         val (className, jarPath) = buildJarForBuildScriptClasspath(
             """
@@ -189,8 +221,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache(because = "test rely on configuration phase output")
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `avoids buildscript recompilation when jar that can not be used for compile avoidance initially on buildsript classpath is touched`() {
         val (className, jarPath) = buildKotlinJarForBuildScriptClasspath(
             """
@@ -383,8 +415,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             .assertNumberOfCompileAvoidanceWarnings(1)
     }
 
-    @ToBeFixedForConfigurationCache(because = "test rely on configuration phase output")
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `avoids buildscript recompilation when resource file metadata is changed`() {
         val className = givenKotlinClassInBuildSrcContains(
             """
@@ -659,8 +691,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle-private/issues/3496")
-    @Category(Flaky::class)
     fun `recompiles buildscript when not able to determine Kotlin metadata kind for class on buildscript classpath`() {
         givenJavaClassInBuildSrcContains(
             """
@@ -851,7 +881,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun configureProjectAndExpectCompileAvoidanceWarnings(vararg tasks: String): BuildOperationsAssertions {
-        ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16()
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
         val output = executer.withArgument("--info").withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output, true)

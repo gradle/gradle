@@ -203,10 +203,6 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         }
 
         @Override
-        public void executionPhaseStarted() {
-        }
-
-        @Override
         public void buildFinished(@Nullable Throwable buildFailure) {
             if (listener != null) {
                 listener.execute(new BuildResult() {

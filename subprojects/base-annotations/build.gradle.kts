@@ -9,4 +9,5 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(libs.jsr305)
+    api(libs.jetbrainsAnnotations)
 }

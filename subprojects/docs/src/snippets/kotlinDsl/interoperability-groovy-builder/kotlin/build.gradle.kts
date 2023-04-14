@@ -14,6 +14,7 @@ val aReference = ""
 target.withGroovyBuilder {                                          // <1>
 
     // GroovyObject methods available                               // <2>
+    if (hasProperty("foo")) { /*...*/ }
     val foo = getProperty("foo")
     setProperty("foo", "bar")
     invokeMethod("name", arrayOf("parameters", 42, aReference))

@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -61,17 +62,19 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final Factory<PatternSet> patternSetFactory;
     private final PropertyFactory propertyFactory;
     private final FilePropertyFactory filePropertyFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-                                PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+                                PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patternSetFactory = patternSetFactory;
         this.propertyFactory = propertyFactory;
         this.filePropertyFactory = filePropertyFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
     }
@@ -98,7 +101,7 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public SourceDirectorySet sourceDirectorySet(final String name, final String displayName) {
-        return new DefaultSourceDirectorySet(name, displayName, patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
+        return newInstance(DefaultSourceDirectorySet.class, name, displayName, patternSetFactory, taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
     }
 
     @Override

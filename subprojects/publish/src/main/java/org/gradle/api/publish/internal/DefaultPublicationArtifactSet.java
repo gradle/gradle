@@ -21,8 +21,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.PublicationArtifact;
 
 import java.io.File;
@@ -34,31 +32,36 @@ public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extend
     private final String name;
     private final FileCollection files;
 
-    public DefaultPublicationArtifactSet(Class<T> type, String name, FileCollectionFactory fileCollectionFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultPublicationArtifactSet(
+        Class<T> type,
+        String name,
+        FileCollectionFactory fileCollectionFactory,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+    ) {
         super(type, collectionCallbackActionDecorator);
         this.name = name;
-        files = fileCollectionFactory.create(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
+        files = fileCollectionFactory.create(
+            new MinimalFileSet() {
+                @Override
+                public String getDisplayName() {
+                    return DefaultPublicationArtifactSet.this.name;
+                }
+
+                @Override
+                public Set<File> getFiles() {
+                    Set<File> result = new LinkedHashSet<File>();
+                    for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
+                        result.add(artifact.getFile());
+                    }
+                    return result;
+                }
+            },
+            context -> {
                 for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
                     context.add(artifact.getBuildDependencies());
                 }
             }
-        }, new MinimalFileSet() {
-            @Override
-            public String getDisplayName() {
-                return DefaultPublicationArtifactSet.this.name;
-            }
-
-            @Override
-            public Set<File> getFiles() {
-                Set<File> result = new LinkedHashSet<File>();
-                for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
-                    result.add(artifact.getFile());
-                }
-                return result;
-            }
-        });
+        );
     }
 
     @Override

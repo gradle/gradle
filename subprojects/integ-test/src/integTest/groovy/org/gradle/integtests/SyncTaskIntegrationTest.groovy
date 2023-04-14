@@ -458,13 +458,13 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled()
-        runAndFail "sync", "--info"
+        runAndFail "sync"
         then:
-        outputContains("Cannot access output property 'destinationDir' of task ':sync'")
-        failure.assertHasDocumentedCause("Cannot access a file in the destination directory (see --info log for details). " +
+        failure.assertHasDocumentedCause("Cannot access a file in the destination directory. " +
             "Syncing to a directory which contains unreadable content is not supported. " +
             "Use a Copy task with Task.doNotTrackState() instead. " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
+        failureHasCause("Failed to create MD5 hash for file '${unreadableOutput}' as it does not exist.")
 
         cleanup:
         unreadableOutput.makeReadable()

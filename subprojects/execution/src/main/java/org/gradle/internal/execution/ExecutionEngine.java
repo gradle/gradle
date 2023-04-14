@@ -26,6 +26,7 @@ import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface ExecutionEngine {
@@ -60,7 +61,7 @@ public interface ExecutionEngine {
     }
 
     interface Result {
-        Try<ExecutionResult> getExecutionResult();
+        Try<Execution> getExecution();
 
         CachingState getCachingState();
 
@@ -80,5 +81,61 @@ public interface ExecutionEngine {
          */
         @VisibleForTesting
         Optional<AfterExecutionState> getAfterExecutionState();
+    }
+
+    // TOOD Make this a class
+    interface Execution {
+        /**
+         * Get how the outputs have been produced.
+         */
+        ExecutionOutcome getOutcome();
+
+        /**
+         * Get the object representing the produced output.
+         * The type of value returned here depends on the {@link UnitOfWork} implmenetation.
+         */
+        // TODO Parametrize UnitOfWork with this generated result
+        @Nullable
+        Object getOutput();
+
+        /**
+         * Whether the outputs of this execution should be stored in the build cache.
+         */
+        default boolean canStoreOutputsInCache() {
+            return true;
+        }
+    }
+
+    /**
+     * The way the outputs have been produced.
+     */
+    enum ExecutionOutcome {
+        /**
+         * The outputs haven't been changed, because the work is already up-to-date
+         * (i.e. its inputs and outputs match that of the previous execution in the
+         * same workspace).
+         */
+        UP_TO_DATE,
+
+        /**
+         * The outputs of the work have been loaded from the build cache.
+         */
+        FROM_CACHE,
+
+        /**
+         * Executing the work was not necessary to produce the outputs.
+         * This is usually due to the work having no inputs to process.
+         */
+        SHORT_CIRCUITED,
+
+        /**
+         * The work has been executed with information about the changes that happened since the previous execution.
+         */
+        EXECUTED_INCREMENTALLY,
+
+        /**
+         * The work has been executed with no incremental change information.
+         */
+        EXECUTED_NON_INCREMENTALLY
     }
 }

@@ -87,7 +87,7 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
 
         private
         fun currentVersionEnabled(currentVersionUnderTest: String): Boolean {
-            val versionUnderTest = GradleVersion.version(currentVersionUnderTest)
+            val versionUnderTest = GradleVersion.version(currentVersionUnderTest).baseVersion
             return GradleVersion.version(startVersionInclusive) <= versionUnderTest
                 && versionUnderTest < GradleVersion.version(endVersionExclusive)
         }

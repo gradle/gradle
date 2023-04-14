@@ -16,9 +16,9 @@
 
 package org.gradle.api.tasks.compile
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.Resources
@@ -32,6 +32,66 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Resources resources = new Resources()
+
+    def "emits deprecation warning if executable specified as relative path"() {
+        given:
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javacExecutable.toString())
+
+        buildFile << """
+            apply plugin: "java"
+            tasks.withType(JavaCompile) {
+                options.fork = true
+                options.forkOptions.executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+            "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
+            "Configure an absolute path to a Java executable instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
+        run("compileJava")
+
+        then:
+        result.assertTaskExecuted(":compileJava")
+    }
+
+    def "task does nothing when only minimal configuration applied"() {
+        buildFile << """
+            // No plugins applied
+            task compile(type: JavaCompile)
+        """
+
+        when:
+        run("compile")
+
+        then:
+        result.assertTasksSkipped(":compile")
+    }
+
+    @Issue("GRADLE-3152")
+    def "can use the task without applying java-base plugin"() {
+        buildFile << """
+            task compile(type: JavaCompile) {
+                classpath = files()
+                sourceCompatibility = JavaVersion.current()
+                targetCompatibility = JavaVersion.current()
+                destinationDirectory = file("build/classes")
+                source "src/main/java"
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        run("compile")
+
+        then:
+        file("build/classes/Foo.class").exists()
+    }
 
     def "uses default platform settings when applying java plugin"() {
         buildFile << """
@@ -60,7 +120,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                     implementation project(':a')
                 }
             }
-"""
+        """
 
         file("a/src/main/resources/Foo.java") << "public class Foo {}"
 
@@ -230,8 +290,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task checkClasspath {
+                def classpath = compileJava.classpath
                 doLast {
-                    def compileClasspath = compileJava.classpath.files*.name
+                    def compileClasspath = classpath.files*.name
                     assert !compileClasspath.contains('b.jar')
                     assert compileClasspath.contains('other-1.0.jar')
                     assert !compileClasspath.contains('shared-1.0.jar')
@@ -381,8 +442,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
         task checkClasspath {
+            def runtimeClasspathFiles = test.classpath.files
             doLast {
-                def runtimeClasspath = test.classpath.files*.name
+                def runtimeClasspath = runtimeClasspathFiles*.name
                 assert runtimeClasspath.contains('compile-1.0.jar')
                 assert !runtimeClasspath.contains('compileonly-1.0.jar')
                 assert runtimeClasspath.contains('runtimeonly-1.0.jar')
@@ -901,7 +963,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "clean", "compileJava"
 
-        executer.withStacktraceDisabled()
         fails "-Pjava7", "clean", "compileJava"
         failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
 
@@ -1070,15 +1131,13 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             package com.example;
             public class Main {}
         """
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
 
         then:
         succeeds("compileJava")
     }
 
-    // Enable deprecation nagging: https://github.com/gradle/gradle/issues/16782
-    @NotYetImplemented
-    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory is deprecated"() {
+    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(File) is deprecated"() {
         when:
         buildFile << """
             plugins {
@@ -1092,7 +1151,27 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             package com.example;
             public class Main {}
         """
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
+
+        then:
+        succeeds("compileJava")
+    }
+
+    def "CompileOptions.setAnnotationProcessorGeneratedSourcesDirectory(Provider<File>) is deprecated"() {
+        when:
+        buildFile << """
+            plugins {
+                id("java")
+            }
+            tasks.withType(JavaCompile) {
+                options.annotationProcessorGeneratedSourcesDirectory = provider(() -> file("build/annotation-processor-out"))
+            }
+        """
+        file("src/main/java/com/example/Main.java") << """
+            package com.example;
+            public class Main {}
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
 
         then:
         succeeds("compileJava")

@@ -13,9 +13,10 @@
 // limitations under the License.
 
 [[upgrading_version_6]]
-= Upgrading your build from Gradle 6.x to the latest
+= Upgrading your build from Gradle 6.x to 7.0
 
-This chapter provides the information you need to migrate your Gradle 6.x builds to the latest Gradle release. For migrating from Gradle 4.x or 5.x, see the <<upgrading_version_5.adoc#upgrading_version_5, older migration guide>> first.
+This chapter provides the information you need to migrate your Gradle 6.x builds to Gradle 7.0.
+For migrating from Gradle 5.x or earlier, complete the <<upgrading_version_5.adoc#upgrading_version_5, older migration guide>> first.
 
 We recommend the following steps for all users:
 
@@ -34,7 +35,7 @@ Some plugins will break with this new version of Gradle, for example because the
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_7.0]]
-== Upgrading from 6.8
+== Upgrading from 6.9
 
 === Changes in the IDE integration
 
@@ -297,7 +298,7 @@ The `layout` method taking a configuration block has been removed and is replace
 A Gradle build is defined by its `settings.gradle(.kts)` file found in the current or parent directory.
 Without a settings file, a Gradle build is undefined and Gradle produces an error when attempting to execute tasks.
 
-To fix this error, <<build_lifecycle.adoc#sec:settings_file,create a `settings.gradle(.kts)` file>> for the build.
+To fix this error, <<organizing_gradle_projects.adoc#sec:settings_file,create a `settings.gradle(.kts)` file>> for the build.
 
 Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 
@@ -444,13 +445,18 @@ See https://github.com/gradle/gradle/issues/16706[this issue] for more context.
 ==== Missing dependencies between tasks
 
 Having a task which produces an output in a location and another task consuming that location by referring to it as an input without the consumer task depending on the producer task has been deprecated.
-A fix for this problem is to <<more_about_tasks.adoc#sec:link_output_dir_to_input_files,add a dependency from the consumer to the producer>>.
+A fix for this problem is to <<incremental_build.adoc#sec:link_output_dir_to_input_files,add a dependency from the consumer to the producer>>.
 
 [[duplicates-strategy]]
 ==== Duplicates strategy
 
 Gradle 7 now fails when a copy operation (or any operation which uses a `org.gradle.api.file.CopySpec`) encounters a duplicate entry, and that the duplicates strategy isn't set.
 Please look at link:{javadocPath}/org/gradle/api/file/CopySpec.html#setDuplicatesStrategy-org.gradle.api.file.DuplicatesStrategy-[the CopySpec docs] for details.
+
+[[changes_6.9]]
+== Upgrading from 6.8
+
+No upgrade notes from 6.8 to 6.9, as 6.9 only contains bug fixes.
 
 [[changes_6.8]]
 == Upgrading from 6.7

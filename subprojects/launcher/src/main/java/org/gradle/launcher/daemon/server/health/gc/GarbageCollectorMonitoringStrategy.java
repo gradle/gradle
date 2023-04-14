@@ -16,26 +16,36 @@
 
 package org.gradle.launcher.daemon.server.health.gc;
 
-import org.gradle.api.Transformer;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryManagerMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.util.List;
 
-public enum GarbageCollectorMonitoringStrategy {
+public class GarbageCollectorMonitoringStrategy {
 
-    ORACLE_PARALLEL_CMS("PS Old Gen", "Metaspace", "PS MarkSweep", 1.2, 80, 80, 5.0),
-    ORACLE_6_CMS("CMS Old Gen", "Metaspace", "ConcurrentMarkSweep", 1.2, 80, 80, 5.0),
-    ORACLE_SERIAL("Tenured Gen", "Metaspace", "MarkSweepCompact", 1.2, 80, 80, 5.0),
-    ORACLE_G1("G1 Old Gen", "Metaspace", "G1 Old Generation", 0.4, 75, 80, 2.0),
-    IBM_ALL("Java heap", "Not Used", "MarkSweepCompact", 0.8, 70, -1, 6.0),
-    UNKNOWN(null, null, null, -1, -1, -1, -1);
+    public static final GarbageCollectorMonitoringStrategy ORACLE_PARALLEL_CMS =
+        new GarbageCollectorMonitoringStrategy("PS Old Gen", "Metaspace", "PS MarkSweep", 1.2, 80, 80, 5.0);
+    public static final GarbageCollectorMonitoringStrategy ORACLE_6_CMS =
+        new GarbageCollectorMonitoringStrategy("CMS Old Gen", "Metaspace", "ConcurrentMarkSweep", 1.2, 80, 80, 5.0);
+    public static final GarbageCollectorMonitoringStrategy ORACLE_SERIAL =
+        new GarbageCollectorMonitoringStrategy("Tenured Gen", "Metaspace", "MarkSweepCompact", 1.2, 80, 80, 5.0);
+    public static final GarbageCollectorMonitoringStrategy ORACLE_G1 =
+        new GarbageCollectorMonitoringStrategy("G1 Old Gen", "Metaspace", "G1 Old Generation", 0.4, 75, 80, 2.0);
+    public static final GarbageCollectorMonitoringStrategy IBM_ALL =
+        new GarbageCollectorMonitoringStrategy("Java heap", "Not Used", "MarkSweepCompact", 0.8, 70, -1, 6.0);
+    public static final GarbageCollectorMonitoringStrategy UNKNOWN =
+        new GarbageCollectorMonitoringStrategy(null, null, null, -1, -1, -1, -1);
+
+    public static final List<GarbageCollectorMonitoringStrategy> STRATEGIES = ImmutableList.of(
+        ORACLE_PARALLEL_CMS, ORACLE_6_CMS, ORACLE_SERIAL, ORACLE_G1, IBM_ALL, UNKNOWN
+    );
 
     private static final Logger LOGGER = Logging.getLogger(GarbageCollectionMonitor.class);
 
@@ -47,7 +57,8 @@ public enum GarbageCollectorMonitoringStrategy {
     private final int nonHeapUsageThreshold;
     private final double thrashingThreshold;
 
-    GarbageCollectorMonitoringStrategy(String heapPoolName, String nonHeapPoolName, String garbageCollectorName, double gcRateThreshold, int heapUsageThreshold, int nonHeapUsageThreshold, double thrashingThreshold) {
+    @VisibleForTesting
+    public GarbageCollectorMonitoringStrategy(String heapPoolName, String nonHeapPoolName, String garbageCollectorName, double gcRateThreshold, int heapUsageThreshold, int nonHeapUsageThreshold, double thrashingThreshold) {
         this.heapPoolName = heapPoolName;
         this.nonHeapPoolName = nonHeapPoolName;
         this.garbageCollectorName = garbageCollectorName;
@@ -59,6 +70,10 @@ public enum GarbageCollectorMonitoringStrategy {
 
     public String getHeapPoolName() {
         return heapPoolName;
+    }
+
+    public String getNonHeapPoolName() {
+        return nonHeapPoolName;
     }
 
     public String getGarbageCollectorName() {
@@ -73,10 +88,6 @@ public enum GarbageCollectorMonitoringStrategy {
         return heapUsageThreshold;
     }
 
-    public String getNonHeapPoolName() {
-        return nonHeapPoolName;
-    }
-
     public int getNonHeapUsageThreshold() {
         return nonHeapUsageThreshold;
     }
@@ -85,35 +96,39 @@ public enum GarbageCollectorMonitoringStrategy {
         return thrashingThreshold;
     }
 
-    public static GarbageCollectorMonitoringStrategy determineGcStrategy() {
-        final List<String> garbageCollectors = CollectionUtils.collect(ManagementFactory.getGarbageCollectorMXBeans(), new Transformer<String, GarbageCollectorMXBean>() {
-            @Override
-            public String transform(GarbageCollectorMXBean garbageCollectorMXBean) {
-                return garbageCollectorMXBean.getName();
-            }
-        });
-        GarbageCollectorMonitoringStrategy gcStrategy = CollectionUtils.findFirst(GarbageCollectorMonitoringStrategy.values(), new Spec<GarbageCollectorMonitoringStrategy>() {
-            @Override
-            public boolean isSatisfiedBy(GarbageCollectorMonitoringStrategy strategy) {
-                return garbageCollectors.contains(strategy.getGarbageCollectorName());
-            }
-        });
+    public boolean isAboveHeapUsageThreshold(int percent) {
+        return heapUsageThreshold != -1 && percent >= heapUsageThreshold;
+    }
 
+    public boolean isAboveNonHeapUsageThreshold(int percent) {
+        return nonHeapUsageThreshold != -1 && percent >= nonHeapUsageThreshold;
+    }
+
+    public boolean isAboveGcRateThreshold(double gcEventsPerSec) {
+        return gcRateThreshold != -1 && gcEventsPerSec >= gcRateThreshold;
+    }
+
+    public boolean isAboveGcThrashingThreshold(double gcEventsPerSec) {
+        return thrashingThreshold != -1 && gcEventsPerSec >= thrashingThreshold;
+    }
+
+    public static GarbageCollectorMonitoringStrategy determineGcStrategy() {
+        List<String> garbageCollectors = CollectionUtils.collect(ManagementFactory.getGarbageCollectorMXBeans(), MemoryManagerMXBean::getName);
+        GarbageCollectorMonitoringStrategy gcStrategy = CollectionUtils.findFirst(STRATEGIES, strategy -> garbageCollectors.contains(strategy.getGarbageCollectorName()));
+
+        // TODO: These messages we print below are not actionable. Ideally, we would instruct the user to file an issue
+        // noting the GC parameters they are using so that we can add that GC to our STRATEGIES.
         if (gcStrategy == null) {
             LOGGER.info("Unable to determine a garbage collection monitoring strategy for {}", Jvm.current());
             return GarbageCollectorMonitoringStrategy.UNKNOWN;
-        } else {
-            List<String> memoryPools = CollectionUtils.collect(ManagementFactory.getMemoryPoolMXBeans(), new Transformer<String, MemoryPoolMXBean>() {
-                @Override
-                public String transform(MemoryPoolMXBean memoryPoolMXBean) {
-                    return memoryPoolMXBean.getName();
-                }
-            });
-            if (!memoryPools.contains(gcStrategy.heapPoolName) || !memoryPools.contains(gcStrategy.nonHeapPoolName)) {
-                LOGGER.info("Unable to determine which memory pools to monitor for {}", Jvm.current());
-                return GarbageCollectorMonitoringStrategy.UNKNOWN;
-            }
-            return gcStrategy;
         }
+
+        List<String> memoryPools = CollectionUtils.collect(ManagementFactory.getMemoryPoolMXBeans(), MemoryPoolMXBean::getName);
+        if (!memoryPools.contains(gcStrategy.heapPoolName) || !memoryPools.contains(gcStrategy.nonHeapPoolName)) {
+            LOGGER.info("Unable to determine which memory pools to monitor for {}", Jvm.current());
+            return GarbageCollectorMonitoringStrategy.UNKNOWN;
+        }
+
+        return gcStrategy;
     }
 }

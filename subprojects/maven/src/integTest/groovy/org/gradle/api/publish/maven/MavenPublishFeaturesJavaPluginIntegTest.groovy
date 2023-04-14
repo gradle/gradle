@@ -16,10 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with feature using extension"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -30,6 +27,11 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {
@@ -55,10 +57,10 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
         }
-        javaLibrary.parsedPom.scope('compile') {
+        javaLibrary.parsedPom.scope('runtime') {
             assertOptionalDependencies('org:optionaldep:1.0')
         }
-        javaLibrary.parsedPom.hasNoScope('runtime')
+        javaLibrary.parsedPom.hasNoScope('compile')
 
         and:
         resolveArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
@@ -79,7 +81,6 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can update #prop after feature has been registered"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -90,6 +91,11 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {
@@ -113,17 +119,17 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureApiElements") {
+            assert files*.name == ["${name}-${version}.jar"]
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
-            assert files*.name == ["${name}-${version}.jar"]
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
         }
-        javaLibrary.parsedPom.scope('compile') {
+        javaLibrary.parsedPom.scope('runtime') {
             assertOptionalDependencies('org:optionaldep:1.0')
         }
-        javaLibrary.parsedPom.hasNoScope('runtime')
+        javaLibrary.parsedPom.hasNoScope('compile')
 
         and:
         resolveArtifacts(javaLibrary) { expectFiles "${name}-${version}.jar" }

@@ -16,14 +16,12 @@
 
 package org.gradle.api.publish.maven.tasks;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
-import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -36,7 +34,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.internal.credentials.CredentialListener;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -45,9 +43,9 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.net.URI;
+import java.util.Collection;
 
 import static org.gradle.internal.serialization.Transient.varOf;
-
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
@@ -55,10 +53,11 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 1.4
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class PublishToMavenRepository extends AbstractPublishToMaven {
+public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
     private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
+
     /**
      * The repository to publish to.
      *
@@ -93,7 +92,10 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
     @TaskAction
     public void publish() {
         PublishSpec spec = this.spec.get();
-        doPublish(spec.publication, spec.repository.get(getServices()));
+        MavenNormalizedPublication publication = spec.publication;
+        MavenArtifactRepository repository = spec.repository.get(getServices());
+        getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
+        doPublish(publication, repository);
     }
 
     private PublishSpec computeSpec() {
@@ -106,39 +108,11 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
-
-        checkCredentialSafety(repository);
-
-        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
         MavenNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
                 RepositorySpec.of(repository),
                 normalizedPublication
         );
-    }
-
-    private void checkCredentialSafety(DefaultMavenArtifactRepository repository) {
-        Credentials value = repository.getConfiguredCredentials().getOrNull();
-        boolean safeCredentials = value == null || areCredentialsSafe(repository.getName(), value);
-        if (!safeCredentials) {
-            credentialListener().onUnsafeCredentials("repository " + repository.getName(), this);
-        }
-    }
-
-    private CredentialListener credentialListener() {
-        return getListenerManager().getBroadcaster(CredentialListener.class);
-    }
-
-    private boolean areCredentialsSafe(String identity, Credentials toCheck) {
-        ProviderFactory providerFactory = getServices().get(ProviderFactory.class);
-        Credentials referenceCredentials;
-        try {
-            Provider<? extends Credentials> credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
-            referenceCredentials = credentialsProvider.get();
-        } catch (MissingValueException e) {
-            return false;
-        }
-        return EqualsBuilder.reflectionEquals(toCheck, referenceCredentials);
     }
 
     private void doPublish(final MavenNormalizedPublication normalizedPublication, final MavenArtifactRepository repository) {
@@ -192,7 +166,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
 
             private Object writeReplace() {
                 CredentialsSpec credentialsSpec = repository.getConfiguredCredentials().map(it -> CredentialsSpec.of(repository.getName(), it)).getOrNull();
-                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec);
+                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec, repository.getConfiguredAuthentication());
             }
         }
 
@@ -201,12 +175,14 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             private final CredentialsSpec credentials;
             private final boolean allowInsecureProtocol;
             private final String name;
+            private final Collection<Authentication> authentications;
 
-            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials) {
+            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials, Collection<Authentication> authentications) {
                 this.name = name;
                 this.repositoryUrl = repositoryUrl;
                 this.allowInsecureProtocol = allowInsecureProtocol;
                 this.credentials = credentials;
+                this.authentications = authentications;
             }
             @Override
             MavenArtifactRepository get(ServiceRegistry services) {
@@ -218,6 +194,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
                     Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
                     repository.setConfiguredCredentials(provider.get());
                 }
+                repository.authentication(container -> container.addAll(authentications));
                 return repository;
             }
         }

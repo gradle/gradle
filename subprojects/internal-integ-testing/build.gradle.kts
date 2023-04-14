@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
     implementation(libs.ivy)
-    implementation(libs.ant)
+    implementation(libs.commonsCompress)
     implementation(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
@@ -109,29 +109,30 @@ packageCycles {
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
-    destFile.set(layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties"))
-    versions.set(moduleIdentity.releasedVersions.map {
+    destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
+    versions = moduleIdentity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
-    })
-    mostRecent.set(moduleIdentity.releasedVersions.map { it.mostRecentRelease.version })
-    mostRecentSnapshot.set(moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version })
+    }
+    mostRecent = moduleIdentity.releasedVersions.map { it.mostRecentRelease.version }
+    mostRecentSnapshot = moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
-val copyAgpVersionsInfo by tasks.registering(Copy::class) {
+val copyTestedVersionsInfo by tasks.registering(Copy::class) {
     from(rootProject.layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
-    into(layout.buildDirectory.dir("generated-resources/agp-versions"))
+    from(rootProject.layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
+    into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }
 
 val generateLanguageAnnotations by tasks.registering(GenerateLanguageAnnotations::class) {
     classpath.from(configurations.integTestDistributionRuntimeClasspath)
-    packageName.set("org.gradle.integtests.fixtures")
-    destDir.set(layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main"))
+    packageName = "org.gradle.integtests.fixtures"
+    destDir = layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main")
 }
 
 sourceSets.main {
     groovy.srcDir(generateLanguageAnnotations.flatMap { it.destDir })
     output.dir(prepareVersionsInfo.map { it.destFile.get().asFile.parentFile })
-    output.dir(copyAgpVersionsInfo)
+    output.dir(copyTestedVersionsInfo)
 }
 
 @CacheableTask

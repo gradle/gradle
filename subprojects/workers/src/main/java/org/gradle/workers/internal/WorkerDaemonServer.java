@@ -16,12 +16,19 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultClassPathProvider;
+import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.MutationGuards;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.model.ObjectFactory;
@@ -30,6 +37,8 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -73,7 +82,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         return ServiceRegistryBuilder.builder()
             .displayName("worker daemon services")
             .parent(parent)
-            .provider(new WorkerSharedGlobalScopeServices())
+            .provider(new WorkerSharedGlobalScopeServices(ClassPath.EMPTY))
             .provider(new WorkerDaemonServices())
             .provider(new WorkerSharedBuildSessionScopeServices())
             .build();
@@ -113,7 +122,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
 
     private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
 
-        // TODO: configuration-cache - deprecate workers access to ProviderFactory?
+        // TODO:configuration-cache - deprecate workers access to ProviderFactory?
         ProviderFactory createProviderFactory() {
             return new DefaultProviderFactory();
         }
@@ -140,6 +149,14 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
 
         DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
             return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
+        }
+
+        ClassPathRegistry createClassPathRegistry(DefaultModuleRegistry moduleRegistry) {
+            return new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
+        }
+
+        IsolatedAntBuilder createIsolatedAntBuilder(ModuleRegistry moduleRegistry, ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+            return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
         }
     }
 

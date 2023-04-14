@@ -25,6 +25,7 @@ trait KotlinPluginImplementation {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
 
             class SneakyPlugin: Plugin<Project> {
                 override fun apply(project: Project) {
@@ -52,6 +53,8 @@ trait KotlinPluginImplementation {
 
     void kotlinDsl(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
             println("apply = " + ${read.kotlinExpression})
 
             tasks.register("thing") {

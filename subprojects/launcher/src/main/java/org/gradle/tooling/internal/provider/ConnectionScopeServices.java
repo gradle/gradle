@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -45,7 +46,7 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
  */
 public class ConnectionScopeServices {
     void configure(ServiceRegistration serviceRegistration) {
-        serviceRegistration.addProvider(new GlobalScopeServices(true));
+        serviceRegistration.addProvider(new GlobalScopeServices(true, AgentStatus.disabled()));
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
 

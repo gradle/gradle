@@ -13,8 +13,8 @@ In the first instance, all of the required dependencies are present as builds in
 In order to avoid hard-coding the included builds to load, the `settings.gradle` file in `multirepo-app` loads each of these builds dynamically:
 
 ====
-include::sample[dir="groovy",files="settings.gradle[tags=include_builds]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[tags=include_builds]"]
+include::sample[dir="groovy",files="settings.gradle[tags=include_builds]"]
 ====
 
 When the `multirepo-app` build is executed, these module builds are used to generate the dependent artifacts:
@@ -51,8 +51,8 @@ gradle :publishDeps
 The `publishDeps` creates and uploads the artifacts for each included build. It is defined in `multirepo-app` as follows:
 
 ====
-include::sample[dir="groovy",files="build.gradle"]
 include::sample[dir="kotlin",files="build.gradle.kts"]
+include::sample[dir="groovy",files="build.gradle"]
 ====
 
 === Removing the local module source

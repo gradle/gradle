@@ -31,14 +31,13 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.DefaultProjectRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.build.BuildProjectRegistry;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -119,7 +118,7 @@ import java.io.File;
  * A plugin that sets up the infrastructure for defining native binaries.
  */
 @Incubating
-public class NativeComponentModelPlugin implements Plugin<Project> {
+public abstract class NativeComponentModelPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
@@ -421,7 +420,7 @@ public class NativeComponentModelPlugin implements Plugin<Project> {
 
         @Defaults
         void registerNativeDependentBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
-            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(DefaultProjectRegistry.class));
+            BuildProjectRegistry projectRegistry = serviceRegistry.get(BuildState.class).getProjects();
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             resolver.register(new NativeDependentBinariesResolutionStrategy(projectRegistry, projectModelResolver));
         }
