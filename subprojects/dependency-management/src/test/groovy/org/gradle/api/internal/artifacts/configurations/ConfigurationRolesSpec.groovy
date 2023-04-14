@@ -42,6 +42,7 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         consumable  | resolvable    | declarableAgainst
+        false       | false         | false
         true        | true          | false
     }
 

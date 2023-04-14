@@ -42,26 +42,28 @@ public interface DeprecatableConfiguration extends Configuration {
     /**
      * Return the names of configurations that should be used to declare dependencies instead of this configuration.
      *
-     * <p>The returned value is undefined if the configuration is not deprecated for declaration.</p>
+     * <p>This property is only relevant if this configuration deprecated for declaration.</p>
      */
     List<String> getDeclarationAlternatives();
 
     /**
-     * Get configurations that should be used to consume a component instead of consuming this configuration.
+     * Return the names of configurations that should be used to consume a component instead of consuming this configuration.
      *
-     * <p>The returned value is undefined if the configuration is not deprecated for resolution.</p>
+     * <p>This property is only relevant if this configuration deprecated for resolution.</p>
      */
     List<String> getResolutionAlternatives();
 
     /**
      * Sets suggested configurations which can be used for dependency declaration instead of this configuration.
-     * Does nothing if this configuration is not deprecated for declaration.
+     *
+     * <p>This property is only relevant if this configuration deprecated for declaration.</p>
      */
     void addDeclarationAlternatives(String... alternativesForDeclaring);
 
     /**
      * Sets suggested configurations which can be used for dependency resolution instead of this configuration.
-     * Does nothing if this configuration is not deprecated for resolution.
+     *
+     * <p>This property is only relevant if this configuration deprecated for resolution.</p>
      */
     void addResolutionAlternatives(String... alternativesForResolving);
 
@@ -97,8 +99,8 @@ public interface DeprecatableConfiguration extends Configuration {
      */
     default void maybeEmitResolutionDeprecation() {
         if (isDeprecatedForResolution()) {
-            DeprecationLogger.deprecateConfiguration(getName()
-                ).forResolution()
+            DeprecationLogger.deprecateConfiguration(getName())
+                .forResolution()
                 .replaceWith(getResolutionAlternatives())
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")

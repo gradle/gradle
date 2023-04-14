@@ -2019,12 +2019,10 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     @Override
-    @Nullable
     public List<String> getDeclarationAlternatives() {
         return declarationAlternatives;
     }
 
-    @Nullable
     @Override
     public List<String> getResolutionAlternatives() {
         return resolutionAlternatives;

@@ -85,12 +85,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!selectedConfiguration.isCanBeConsumed()) {
             throw new ConfigurationNotConsumableException(dependencyProject.getDisplayName(), selectedConfiguration.getName());
         }
-        warnIfConfigurationIsDeprecated((DeprecatableConfiguration) selectedConfiguration);
+        ((DeprecatableConfiguration) selectedConfiguration).maybeEmitConsumptionDeprecation();
         return selectedConfiguration;
-    }
-
-    private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration selectedConfiguration) {
-        selectedConfiguration.maybeEmitConsumptionDeprecation();
     }
 
     @Override

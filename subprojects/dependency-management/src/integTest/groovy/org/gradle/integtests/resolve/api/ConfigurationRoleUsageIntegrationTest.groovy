@@ -117,7 +117,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         given:
         buildFile << """
             configurations {
-                createWithRole("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.BUCKET_TO_NONE) {
+                createWithRole("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE) {
                     addDeclarationAlternatives("anotherConf")
                 }
             }
@@ -138,7 +138,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         buildFile << """
             configurations {
                 deps
-                createWithRole("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_TO_NONE) {
+                createWithRole("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
                     addResolutionAlternatives("anotherConf")
                     extendsFrom(deps)
                 }

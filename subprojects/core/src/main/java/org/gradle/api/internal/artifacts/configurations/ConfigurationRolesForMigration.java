@@ -39,29 +39,13 @@ public enum ConfigurationRolesForMigration implements ConfigurationRole {
     @Deprecated
     RESOLVABLE_BUCKET_TO_RESOLVABLE(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.RESOLVABLE),
     @Deprecated
-    INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE),
+    CONSUMABLE_BUCKET_TO_CONSUMABLE(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE),
 
     /**
      * A resolvable bucket that will become a bucket in the next major version.
      */
     @SuppressWarnings("deprecation")
-    RESOLVABLE_BUCKET_TO_BUCKET(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.BUCKET),
-
-    /**
-     * A resolvable bucket configuration that will be removed in the next major version.
-     */
-    @SuppressWarnings("deprecation")
-    RESOLVABLE_BUCKET_TO_NONE(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.NONE),
-
-    /**
-     * A bucket configuration that will be removed in the next major version.
-     */
-    BUCKET_TO_NONE(ConfigurationRoles.BUCKET, ConfigurationRoles.NONE),
-
-    /**
-     * A resolvable configuration that will be removed in the next major version.
-     */
-    RESOLVABLE_TO_NONE(ConfigurationRoles.RESOLVABLE, ConfigurationRoles.NONE);
+    RESOLVABLE_BUCKET_TO_BUCKET(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.BUCKET);
 
     private final boolean consumable;
     private final boolean resolvable;
