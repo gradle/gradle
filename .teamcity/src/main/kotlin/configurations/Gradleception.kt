@@ -16,7 +16,7 @@ import model.Stage
 
 /**
  * Build a Gradle distribution (dogfood-first) and use this distribution to build a distribution again (dogfood-second).
- * Use `dogfood-second` to run `test sanityCheck`.
+ * Use `dogfood-second` to run `sanityCheck test packageBuild`.
  */
 class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = false) : BaseGradleBuildType(stage = stage, init = {
     if (bundleGroovy4) id("${model.projectId}_GradleceptionWithGroovy4") else id("${model.projectId}_Gradleception")
@@ -91,7 +91,7 @@ class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = 
 
             localGradle {
                 name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                tasks = "clean sanityCheck test --dry-run"
+                tasks = "clean sanityCheck test --dry-run packageBuild"
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                 gradleParams = defaultParameters
             }
