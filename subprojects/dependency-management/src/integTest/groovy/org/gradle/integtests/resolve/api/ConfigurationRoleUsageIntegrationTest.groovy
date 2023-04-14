@@ -669,17 +669,17 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         }
 
         where:
-        desc                                                        | elementsCreationCode                                                                                          | logLevel      || warningMessage
-        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                                                                       | "--warn"      || null
-        "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--warn"      || null
-        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--warn"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.RESOLVABLE_BUCKET)"                                | "--warn"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.CONSUMABLE_BUCKET)"                                | "--warn"      || null
-        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                                                                       | "--info"      || null
-        "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--info"      || null
-        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--info"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.RESOLVABLE_BUCKET)"                                | "--info"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
+        desc                                                        | elementsCreationCode                                                  | logLevel      || warningMessage
+        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                               | "--warn"      || null
+        "using consumable to make a configuration"                  | "consumable('fooElements')"                                           | "--warn"      || null
+        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                           | "--warn"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.RESOLVABLE_BUCKET)" | "--warn"      || null
+        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.CONSUMABLE_BUCKET)" | "--warn"      || null
+        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                               | "--info"      || null
+        "using consumable to make a configuration"                  | "consumable('fooElements')"                                           | "--info"      || null
+        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                           | "--info"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.RESOLVABLE_BUCKET)" | "--info"      || null
+        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.CONSUMABLE_BUCKET)" | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
     }
 
     def "redundantly calling #setMethod on a configuration that is already #isSetMethod warns when #desc"() {
@@ -701,11 +701,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        desc                                                | confCreationCode                                                          | usage                | isSetMethod                   | setMethod
-        "using consumable to make a configuration"          | "consumable('test')"                                                      | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
-        "using resolvable to make a configuration"          | "resolvable('test')"                                                      | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        desc                                                | confCreationCode                                                 | usage                | isSetMethod                   | setMethod
+        "using consumable to make a configuration"          | "consumable('test')"                                             | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
+        "using resolvable to make a configuration"          | "resolvable('test')"                                             | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
         "using resolvable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.RESOLVABLE_BUCKET)"   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.RESOLVABLE_BUCKET)"   | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
+        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.CONSUMABLE_BUCKET)"   | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
     }
 
     def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {
