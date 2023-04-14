@@ -359,4 +359,28 @@ task war(type: War) {
         then:
         skipped ":war"
     }
+
+    def "emits deprecation message when war convention is accessed"() {
+        setup:
+        buildFile << '''
+            plugins {
+                id 'war'
+            }
+
+            tasks.register('custom') {
+                println webAppDir
+            }
+        '''
+
+        expect:
+        executer
+            .expectDocumentedDeprecationWarning('The org.gradle.api.plugins.Convention type has been deprecated. ' +
+                'This is scheduled to be removed in Gradle 9.0. ' +
+                'Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions')
+            .expectDocumentedDeprecationWarning('The org.gradle.api.plugins.WarPluginConvention type has been deprecated. ' +
+                'This is scheduled to be removed in Gradle 9.0. ' +
+                'Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#war_convention_deprecation')
+
+        succeeds 'custom'
+    }
 }

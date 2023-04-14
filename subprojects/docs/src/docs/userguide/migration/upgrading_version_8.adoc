@@ -40,6 +40,10 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Updates to default tool integration versions
+
+- The JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to https://github.com/jacoco/jacoco/releases/tag/v0.8.9[0.8.9].
+
 ==== Kotlin DSL scripts emit compilation warnings
 
 === Deprecations
@@ -99,6 +103,11 @@ This will become an error in Gradle 9.0.
 You should prefer accessing the extensions and their properties instead.
 
 For specific examples see the next sections.
+
+Prominent community plugins already migrated to using extensions to provide custom DSLs.
+Some of them still registers conventions for backwards compatibility.
+Registering conventions does not emit a deprecation warning yet to provide a migration window.
+Future Gradle versions will do.
 
 [[base_convention_deprecation]]
 ==== Deprecated `base` plugin conventions
@@ -284,10 +293,148 @@ java {
 =====
 ====
 
-Prominent community plugins already migrated to using extensions to provide custom DSLs.
-Some of them still registers conventions for backwards compatibility.
-Registering conventions does not emit a deprecation warning yet to provide a migration window.
-Future Gradle versions will do.
+[[war_convention_deprecation]]
+==== Deprecated `war` plugin conventions
+
+The convention properties contributed by the `war` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("war")
+}
+
+configure<WarPluginConvention> { // Accessing a convention
+    webAppDirName = "src/main/webapp"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'war'
+}
+
+webAppDirName = 'src/main/webapp' // Accessing a convention
+----
+=====
+====
+
+Clients should configure the `war` task  directly.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("war")
+}
+
+tasks.war {
+    webAppDirectory.set(file("src/main/webapp"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'war'
+}
+
+war {
+    webAppDirectory = file('src/main/webapp')
+}
+----
+=====
+====
+
+[[project_report_convention_deprecation]]
+==== Deprecated `project-report` plugin conventions
+
+The convention properties contributed by the `project-reports` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `project-report`
+}
+
+configure<ProjectReportsPluginConvention> {
+    projectReportDirName = "custom" // Accessing a convention
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'project-report'
+}
+
+projectReportDirName = "custom" // Accessing a convention
+----
+=====
+====
+
+Configure your report task instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `project-report`
+}
+
+tasks.withType<HtmlDependencyReportTask>() {
+    projectReportDirectory.set(project.layout.buildDirectory.dir("reports/custom"))
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'project-report'
+}
+
+tasks.withType(HtmlDependencyReportTask) {
+    projectReportDirectory = project.layout.buildDirectory.dir("reports/custom")
+}
+----
+=====
+====
 
 [[redundant_configuration_usage_activation]]
 ==== Redundant configuration usage activation
@@ -343,6 +490,11 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // If using JUnit Vintage
+    testCompileOnly("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     // If using JUnit 4
     testImplementation("junit:junit:4.13.2")
 
@@ -360,6 +512,11 @@ dependencies {
 dependencies {
     // If using JUnit Jupiter
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // If using JUnit Vintage
+    testCompileOnly("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // If using JUnit 4
