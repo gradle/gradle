@@ -803,8 +803,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @ValidationTestFor(
         ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
     )
-    def "key of nested map must be of type String"() {
-        def key = "key1"
+    def "nested map with #supportedType key is validated"() {
+        def gStringValue = "foo"
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
@@ -820,22 +820,22 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
                 @Nested
                 public Map<String, Options> getMapWithGStringKey() {
-                    return Collections.singletonMap("$key", new Options());
+                    return Collections.singletonMap("$gStringValue", new Options());
                 }
 
                 @Nested
-                public Map<String, Options> getMapWithStringKey() {
-                    return Collections.singletonMap("key2", new Options());
+                public Map<$supportedType, Options> getMapWithSupportedKey() {
+                    return Collections.singletonMap($value, new Options());
                 }
 
                 @Nested
-                public Map<String, Options> getMapEmpty() {
+                public Map<$supportedType, Options> getMapEmpty() {
                     return Collections.emptyMap();
                 }
 
                 @Nested
-                public Map<Integer, Options> getMapWithNonStringKey() {
-                    return Collections.singletonMap(Integer.valueOf(0), new Options());
+                public Map<Boolean, Options> getMapWithUnsupportedKey() {
+                    return Collections.singletonMap(true, new Options());
                 }
 
                 public static class Options {
@@ -848,12 +848,21 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 @TaskAction
                 public void doStuff() { }
             }
+
+            enum Letter { A, B, C }
         """
 
         expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=1")
         assertValidationFailsWith([
-            warning(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithNonStringKey").keyType("java.lang.Integer") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
+            warning(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
         ])
+
+        where:
+        supportedType | value
+        'Integer'     | 'Integer.valueOf(0)'
+        'String'      | '"foo"'
+        'Enum'        | 'Letter.A'
     }
 
     def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {
