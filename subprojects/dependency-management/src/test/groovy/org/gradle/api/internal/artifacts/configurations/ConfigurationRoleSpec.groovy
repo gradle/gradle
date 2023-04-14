@@ -26,14 +26,10 @@ class ConfigurationRoleSpec extends Specification {
         where:
         role                                            || usages
         ConfigurationRoles.LEGACY                       || [UsageDescriber.CONSUMABLE, UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
-        ConfigurationRoles.INTENDED_CONSUMABLE          || [UsageDescriber.CONSUMABLE]
-        ConfigurationRoles.INTENDED_RESOLVABLE          || [UsageDescriber.RESOLVABLE]
-        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
-        ConfigurationRoles.INTENDED_BUCKET              || [UsageDescriber.DECLARABLE_AGAINST]
-    }
-
-    private String deprecatedFor(String usage) {
-        return usage + UsageDescriber.describeDeprecation(true)
+        ConfigurationRoles.CONSUMABLE                   || [UsageDescriber.CONSUMABLE]
+        ConfigurationRoles.RESOLVABLE                   || [UsageDescriber.RESOLVABLE]
+        ConfigurationRoles.RESOLVABLE_BUCKET            || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.BUCKET                       || [UsageDescriber.DECLARABLE_AGAINST]
     }
 
     private void assertDescriptionContains(ConfigurationRole role, List<String> usages) {

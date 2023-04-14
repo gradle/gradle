@@ -133,7 +133,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         fails 'help'
 
         and:
-        assertUsageLockedFailure(configuration, 'Intended Resolvable')
+        assertUsageLockedFailure(configuration, 'Resolvable')
 
         where:
         configuration << ['runtimeClasspath', 'compileClasspath']
@@ -269,7 +269,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         fails 'help'
 
         and:
-        assertUsageLockedFailure(configuration, 'Intended Consumable')
+        assertUsageLockedFailure(configuration, 'Consumable')
 
         where:
         configuration << ['runtimeElements', 'apiElements']
@@ -295,9 +295,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
         where:
         role                    | customRoleBasedConf               | displayName
-        'consumable'            | "consumable('custom')"            | 'Intended Consumable'
-        'resolvable'            | "resolvable('custom')"            | 'Intended Resolvable'
-        'bucket'                | "bucket('custom')"                | 'Intended Bucket'
+        'consumable'            | "consumable('custom')"            | 'Consumable'
+        'resolvable'            | "resolvable('custom')"            | 'Resolvable'
+        'bucket'                | "bucket('custom')"                | 'Bucket'
     }
 
     def "exhaustively try all new role-based creation syntax"() {
@@ -316,16 +316,16 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 resolvableBucket('resolvableBucket2', true)
                 bucket('bucket2', true)
 
-                createWithRole('consumable3', ConfigurationRoles.INTENDED_CONSUMABLE)
-                createWithRole('consumable4', ConfigurationRoles.INTENDED_CONSUMABLE, true)
-                createWithRole('consumable5', ConfigurationRoles.INTENDED_CONSUMABLE, true) {
+                createWithRole('consumable3', ConfigurationRoles.CONSUMABLE)
+                createWithRole('consumable4', ConfigurationRoles.CONSUMABLE, true)
+                createWithRole('consumable5', ConfigurationRoles.CONSUMABLE, true) {
                     visible = false
                 }
-                createWithRole('consumable6', ConfigurationRoles.INTENDED_CONSUMABLE) {
+                createWithRole('consumable6', ConfigurationRoles.CONSUMABLE) {
                     visible = false
                 }
 
-                maybeCreateWithRole('resolvable7', ConfigurationRoles.INTENDED_RESOLVABLE, true, true)
+                maybeCreateWithRole('resolvable7', ConfigurationRoles.RESOLVABLE, true, true)
             }
         """
 
@@ -364,7 +364,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
             configurations {
                 assert findByName('implementation')
-                assert maybeCreateWithRole('implementation', ConfigurationRoles.INTENDED_BUCKET, false, true)
+                assert maybeCreateWithRole('implementation', ConfigurationRoles.BUCKET, false, true)
             }
         """
 
@@ -383,13 +383,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
             configurations {
                 assert findByName('implementation')
-                maybeCreateWithRole('implementation', ConfigurationRoles.INTENDED_RESOLVABLE, false, true)
+                maybeCreateWithRole('implementation', ConfigurationRoles.RESOLVABLE, false, true)
             }
         """
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("""Usage for configuration: implementation is not consistent with the role: Intended Resolvable.
+        result.assertHasErrorOutput("""Usage for configuration: implementation is not consistent with the role: Resolvable.
   Expected that it is:
   \tResolvable - this configuration can be resolved by this project to a set of files
   But is actually is:
@@ -404,13 +404,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             configurations {
                 consumable('custom')
                 assert findByName('custom')
-                maybeCreateWithRole('custom', ConfigurationRoles.INTENDED_RESOLVABLE, false, true)
+                maybeCreateWithRole('custom', ConfigurationRoles.RESOLVABLE, false, true)
             }
         """
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("""Usage for configuration: custom is not consistent with the role: Intended Resolvable.
+        result.assertHasErrorOutput("""Usage for configuration: custom is not consistent with the role: Resolvable.
   Expected that it is:
   \tResolvable - this configuration can be resolved by this project to a set of files
   But is actually is:
@@ -424,7 +424,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
             configurations {
                 assert !findByName('custom')
-                def result = maybeCreateWithRole('custom', ConfigurationRoles.INTENDED_RESOLVABLE, true, false)
+                def result = maybeCreateWithRole('custom', ConfigurationRoles.RESOLVABLE, true, false)
                 result.canBeResolved = !result.canBeResolved
             }
         """
@@ -433,7 +433,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         fails 'help'
 
         and:
-        assertUsageLockedFailure('custom', 'Intended Resolvable')
+        assertUsageLockedFailure('custom', 'Resolvable')
     }
 
     def "maybeCreateWithRole can lock existing roles"() {
@@ -456,7 +456,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         fails 'help'
 
         and:
-        assertUsageLockedFailure('implementation', 'Intended Bucket')
+        assertUsageLockedFailure('implementation', 'Bucket')
     }
 
     def "can update all roles for non-locked configurations"() {
@@ -466,11 +466,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
             configurations {
                 def c1 = createWithRole('c1', ConfigurationRoles.LEGACY)
-                def c2 = createWithRole('c2', ConfigurationRoles.INTENDED_CONSUMABLE)
-                def c3 = createWithRole('c3', ConfigurationRoles.INTENDED_RESOLVABLE)
-                def c4 = createWithRole('c4', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)
-                def c5 = createWithRole('c5', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)
-                def c6 = createWithRole('c6', ConfigurationRoles.INTENDED_BUCKET)
+                def c2 = createWithRole('c2', ConfigurationRoles.CONSUMABLE)
+                def c3 = createWithRole('c3', ConfigurationRoles.RESOLVABLE)
+                def c4 = createWithRole('c4', ConfigurationRoles.RESOLVABLE_BUCKET)
+                def c5 = createWithRole('c5', ConfigurationRoles.CONSUMABLE_BUCKET)
+                def c6 = createWithRole('c6', ConfigurationRoles.BUCKET)
             }
 
             configurations.all {
@@ -501,7 +501,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
         expect:
         fails 'help'
-        assertUsageLockedFailure('custom', 'Intended Consumable')
+        assertUsageLockedFailure('custom', 'Consumable')
     }
     // endregion Role-Based Configurations
 
@@ -669,17 +669,17 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         }
 
         where:
-        desc                                                        | elementsCreationCode                                                                                          | logLevel      || warningMessage
-        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                                                                       | "--warn"      || null
-        "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--warn"      || null
-        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--warn"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--warn"      || null
-        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--warn"      || null
-        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                                                                       | "--info"      || null
-        "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--info"      || null
-        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--info"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--info"      || null
-        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
+        desc                                                        | elementsCreationCode                                                  | logLevel      || warningMessage
+        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                               | "--warn"      || null
+        "using consumable to make a configuration"                  | "consumable('fooElements')"                                           | "--warn"      || null
+        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                           | "--warn"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.RESOLVABLE_BUCKET)" | "--warn"      || null
+        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.CONSUMABLE_BUCKET)" | "--warn"      || null
+        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                               | "--info"      || null
+        "using consumable to make a configuration"                  | "consumable('fooElements')"                                           | "--info"      || null
+        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                           | "--info"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.RESOLVABLE_BUCKET)" | "--info"      || null
+        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.CONSUMABLE_BUCKET)" | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
     }
 
     def "redundantly calling #setMethod on a configuration that is already #isSetMethod warns when #desc"() {
@@ -701,11 +701,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        desc                                                | confCreationCode                                                          | usage                | isSetMethod                   | setMethod
-        "using consumable to make a configuration"          | "consumable('test')"                                                      | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
-        "using resolvable to make a configuration"          | "resolvable('test')"                                                      | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using resolvable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"   | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
+        desc                                                | confCreationCode                                                 | usage                | isSetMethod                   | setMethod
+        "using consumable to make a configuration"          | "consumable('test')"                                             | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
+        "using resolvable to make a configuration"          | "resolvable('test')"                                             | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using resolvable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.RESOLVABLE_BUCKET)"   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.CONSUMABLE_BUCKET)"   | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
     }
 
     def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {

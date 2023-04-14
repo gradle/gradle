@@ -157,7 +157,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
         })));
 
-        @SuppressWarnings("deprecation") final Configuration incrementalAnalysisElements = project.getConfigurations().createWithRole("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
+        @SuppressWarnings("deprecation") final Configuration incrementalAnalysisElements = project.getConfigurations().createWithRole("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
         incrementalAnalysisElements.setVisible(false);
         incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
         incrementalAnalysisElements.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
@@ -207,7 +207,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private static Configuration createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.createWithRole("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
+        @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.createWithRole("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
         incrementalAnalysis.setVisible(false);
         incrementalAnalysis.setDescription("Incremental compilation analysis files for " + ((DefaultSourceSet) sourceSet).getDisplayName());
         incrementalAnalysis.extendsFrom(classpath);
