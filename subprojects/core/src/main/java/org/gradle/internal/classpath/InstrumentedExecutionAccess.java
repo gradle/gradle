@@ -17,8 +17,8 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.execution.ExecutionAccessChecker;
-import org.gradle.internal.service.ServiceLookup;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * As {@link Instrumented} is using to augment calls at configuration time, this class is using
@@ -26,6 +26,27 @@ import org.gradle.internal.service.ServiceLookup;
  */
 @NonNullApi
 public class InstrumentedExecutionAccess {
+
+    private static final Listener NO_OP = new Listener() {
+
+        @Override
+        public void disallowedAtExecutionInjectedServiceAccessed(Class<?> injectedServiceType, String propertyName, String consumer) {
+        }
+    };
+
+    private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
+
+    private static Listener listener() {
+        return LISTENER.get();
+    }
+
+    public static void setListener(Listener listener) {
+        LISTENER.set(listener);
+    }
+
+    public static void discardListener() {
+        LISTENER.set(NO_OP);
+    }
 
     /**
      * Called by generated code
@@ -35,12 +56,16 @@ public class InstrumentedExecutionAccess {
      * @param injectedServiceType the type of the injected service that was accessed
      * @param consumer class name of consumer that contains the code accesses the injected service
      */
-    public static void injectedServiceAccessed(
-        ServiceLookup serviceLookup,
+    public static void disallowedAtExecutionInjectedServiceAccessed(
         Class<?> injectedServiceType,
+        String getterName,
         String consumer
     ) {
-        ExecutionAccessChecker executionAccessChecker = (ExecutionAccessChecker) serviceLookup.get(ExecutionAccessChecker.class);
-        executionAccessChecker.notifyInjectedServiceAccess(injectedServiceType, consumer);
+        listener().disallowedAtExecutionInjectedServiceAccessed(injectedServiceType, getterName, consumer);
+    }
+
+    @NonNullApi
+    public interface Listener {
+        void disallowedAtExecutionInjectedServiceAccessed(Class<?> injectedServiceType, String propertyName, String consumer);
     }
 }

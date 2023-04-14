@@ -27,6 +27,7 @@ import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.InputTrackingState
+import org.gradle.configurationcache.InstrumentedExecutionAccessListener
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
@@ -40,6 +41,8 @@ import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildoption.FeatureFlags
+import org.gradle.internal.classpath.InstrumentedExecutionAccess
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
@@ -58,15 +61,26 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val workExecutionTracker: WorkExecutionTracker,
     private val featureFlags: FeatureFlags,
     private val inputTrackingState: InputTrackingState,
-) : ConfigurationCacheProblemsListener {
+    instrumentedExecutionAccessListener: InstrumentedExecutionAccessListener,
+) : ConfigurationCacheProblemsListener, Stoppable {
 
-    override fun onInjectedServiceAccess(injectedServiceType: Class<*>, consumer: String) {
+    init {
+        InstrumentedExecutionAccess.setListener(instrumentedExecutionAccessListener)
+    }
+
+    override fun stop() {
+        InstrumentedExecutionAccess.discardListener()
+    }
+
+    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
         problems.onProblem(
             PropertyProblem(
                 problemFactory.locationForCaller(consumer),
                 StructuredMessage.build {
                     text("accessing non-serializable type ")
                     reference(injectedServiceType)
+                    text(" caused by invocation ")
+                    reference(getterName)
                 },
                 InvalidUserCodeException("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported."),
                 DocumentationSection.RequirementsDisallowedTypes
@@ -206,9 +220,9 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
 
+
     private
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
-
 
     private
     fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
