@@ -69,7 +69,7 @@ public abstract class DefaultWarPluginConvention extends WarPluginConvention imp
     private static void logDeprecation() {
         DeprecationLogger.deprecateType(WarPluginConvention.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "war_convention_deprecation")
+            .withUpgradeGuideSection(8, "war_convention_deprecation")
             .nagUser();
     }
 }
