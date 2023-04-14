@@ -104,6 +104,11 @@ You should prefer accessing the extensions and their properties instead.
 
 For specific examples see the next sections.
 
+Prominent community plugins already migrated to using extensions to provide custom DSLs.
+Some of them still registers conventions for backwards compatibility.
+Registering conventions does not emit a deprecation warning yet to provide a migration window.
+Future Gradle versions will do.
+
 [[base_convention_deprecation]]
 ==== Deprecated `base` plugin conventions
 
@@ -287,11 +292,6 @@ java {
 ----
 =====
 ====
-
-Prominent community plugins already migrated to using extensions to provide custom DSLs.
-Some of them still registers conventions for backwards compatibility.
-Registering conventions does not emit a deprecation warning yet to provide a migration window.
-Future Gradle versions will do.
 
 [[project_report_convention_deprecation]]
 ==== Deprecated `project-report` plugin conventions
