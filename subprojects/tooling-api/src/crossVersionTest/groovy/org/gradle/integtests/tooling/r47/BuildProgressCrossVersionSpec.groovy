@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r47
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -39,6 +40,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         server.after()
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "generates download events during maven publish"() {
         given:
         toolingApi.requireIsolatedUserHome()

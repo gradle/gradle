@@ -17,7 +17,7 @@
                 <header><strong>News</strong></header>
                 <ul class="site-footer__links-list">
                     <li itemprop="name"><a href="https://blog.gradle.org/" itemprop="url">Blog</a></li>
-                    <li itemprop="name"><a href="https://newsletter.gradle.com/" itemprop="url">Newsletter</a></li>
+                    <li itemprop="name"><a href="https://newsletter.gradle.org/" itemprop="url">Newsletter</a></li>
                     <li itemprop="name"><a href="https://twitter.com/gradle" itemprop="url">Twitter</a></li>
                     <li itemprop="name"><a href="https://status.gradle.com/" itemprop="url">Status Page</a></li>
                 </ul>
@@ -35,7 +35,7 @@
                 <ul class="site-footer__links-list">
                     <li itemprop="name"><a href="https://discuss.gradle.org/c/help-discuss" itemprop="url">Forums</a></li>
                     <li itemprop="name"><a href="https://github.com/gradle/" itemprop="url">GitHub</a></li>
-                    <li itemprop="name"><a href="https://gradle.com/training/" itemprop="url">Training</a></li>
+                    <li itemprop="name"><a href="https://gradle.org/training/" itemprop="url">Training</a></li>
                     <li itemprop="name"><a href="https://gradle.org/services/" itemprop="url">Services</a></li>
                 </ul>
             </div>
@@ -62,7 +62,7 @@
 <div class="site-footer-secondary">
     <div class="site-footer-secondary__contents">
         <div class="site-footer__copy">© <a href="https://gradle.com">Gradle Inc.</a>
-            <time>2021</time>
+            <time>2022</time>
             All rights reserved.
         </div>
         <div class="site-footer__logo"><a href="/">
@@ -116,6 +116,11 @@
         return currentChapterFileName;
     }
 
+    // The media query indicating that a device is a desktop.
+    // The `min-width: 64rem` definition should be aligned to
+    // the one of `css/manual.css`.
+    const desktopMediaQuery = window.matchMedia("screen and (min-width: 64rem)");
+
     [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='/" + getCurrentChapterFileName(window.location.pathname) + "']"), function (link) {
         // Add "active" to all links same as current URL
         link.classList.add("active");
@@ -130,8 +135,14 @@
             parentListEl = parentListEl.parentNode.closest("li");
         }
 
-        // Scroll to center of the page
-        link.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' })
+        // Only scroll if the device is a desktop.
+        //
+        // Mobile's `docs-navigation` is always at bottom of `content`,
+        // so we should not slide down to where `docs-navigation` lays.
+        if (desktopMediaQuery.matches) {
+            // Scroll to center of the page
+            link.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'})
+        }
     });
 
     // Expand/contract multi-level side navigation
@@ -143,5 +154,7 @@
             return false;
         }, false);
     });
-</script>
 
+    // Fix a weird issue making the initial screen always at the bottom.
+    document.querySelector(".content").scrollIntoView(true);
+</script>

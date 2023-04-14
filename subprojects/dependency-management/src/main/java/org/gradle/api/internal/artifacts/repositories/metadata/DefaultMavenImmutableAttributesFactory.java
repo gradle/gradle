@@ -23,7 +23,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -51,8 +50,13 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
-    public AttributeContainerInternal mutable(AttributeContainerInternal parent) {
-        return delegate.mutable(parent);
+    public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
+        return delegate.mutable(fallback);
+    }
+
+    @Override
+    public AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+        return delegate.join(fallback, primary);
     }
 
     @Override
@@ -71,8 +75,8 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
-    public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
-        return delegate.concat(attributes1, attributes2);
+    public ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary) {
+        return delegate.concat(fallback, primary);
     }
 
     @Override
@@ -82,11 +86,10 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
 
     @Override
     public ImmutableAttributes compileScope(ImmutableAttributes original) {
-        List<Object> key = ImmutableList.of(original, Usage.JAVA_API, CompileView.JAVA_COMPLETE);
+        List<Object> key = ImmutableList.of(original, Usage.JAVA_API);
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
             result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_API, objectInstantiator));
-            result = concat(result, COMPILE_VIEW_ATTRIBUTE, new CoercingStringValueSnapshot(CompileView.JAVA_COMPLETE, objectInstantiator));
             result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
             result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
             return result;

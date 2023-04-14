@@ -26,7 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
@@ -71,7 +71,7 @@ import java.util.zip.ZipOutputStream;
 
 public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
-    private final GlobalScopedCache cacheRepository;
+    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
     private ClassPath workerClassPath;
@@ -156,8 +156,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "asm"
     };
 
-    public WorkerProcessClassPathProvider(GlobalScopedCache cacheRepository, ModuleRegistry moduleRegistry) {
-        this.cacheRepository = cacheRepository;
+    public WorkerProcessClassPathProvider(GlobalScopedCacheBuilderFactory cacheBuilderFactory, ModuleRegistry moduleRegistry) {
+        this.cacheBuilderFactory = cacheBuilderFactory;
         this.moduleRegistry = moduleRegistry;
     }
 
@@ -166,8 +166,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
-                    PersistentCache workerClassPathCache = cacheRepository
-                        .cache("workerMain")
+                    PersistentCache workerClassPathCache = cacheBuilderFactory
+                        .createCacheBuilder("workerMain")
                         .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
                         .withInitializer(new CacheInitializer())
                         .open();

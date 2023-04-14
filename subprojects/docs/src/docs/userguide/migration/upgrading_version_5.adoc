@@ -72,11 +72,11 @@ When the build is executed with `--warning-mode all`, the individual warnings wi
 
 ```
 > Task :myTask
-Property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
-Property 'outputFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+Property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behavior is scheduled to be removed in Gradle 7.0.
+Property 'outputFile' is not annotated with an input or output annotation. This behavior is scheduled to be removed in Gradle 7.0.
 ```
 
-If you own the code of the tasks in question, you can fix them by <<more_about_tasks.adoc#sec:task_input_validation, following the suggestions>>. You can also use `--stacktrace` to see where in the code each warning originates from.
+If you own the code of the tasks in question, you can fix them by <<incremental_build.adoc#sec:task_input_validation, following the suggestions>>. You can also use `--stacktrace` to see where in the code each warning originates from.
 
 Otherwise, you'll need to report the problems to the maintainer of the relevant task or plugin.
 
@@ -364,7 +364,7 @@ Gradle always uses `configDirectory` as the value for 'config_loc' when running 
 
 ==== New Tooling API progress event
 
-In Gradle 6.0, we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the output of test execution. This new event breaks the convention of having a `StartEvent`-`FinisEvent` pair to express progress. `TaskOutputEvent` is a simple `ProgressEvent`.
+In Gradle 6.0, we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the output of test execution. This new event breaks the convention of having a `StartEvent`-`FinishEvent` pair to express progress. `TaskOutputEvent` is a simple `ProgressEvent`.
 
 ==== Changes to the task container behavior
 
@@ -735,7 +735,7 @@ none
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
- * Setters for `classes` and `classpath` on link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[`ValidateTaskProperties`]
+ * Setters for `classes` and `classpath` on `org.gradle.plugin.devel.tasks.ValidateTaskProperties` (removed)
 
  * There should not be setters for lazy properties like link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].  Use `setFrom` instead. For example,
 ----

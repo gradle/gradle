@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import groovy.test.NotYetImplemented
+import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -35,7 +36,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -59,11 +59,12 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    private TaskResolver taskResolver = Mock(TaskResolver)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
-    private CollectionCallbackActionDecorator callbackActionDecorator = Mock()
+    private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
+        decorate(_ as Action) >> { it[0] }
+    }
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
@@ -75,22 +76,27 @@ class DefaultConfigurationContainerTest extends Specification {
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
+    private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
+        getValidator() >> Mock(MutationValidator)
+    }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+        create(_) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
         listenerManager,
         metaDataProvider,
+        componentIdentifierFactory,
+        lockingProvider,
         domainObjectContext,
         TestFiles.fileCollectionFactory(),
         buildOperationExecutor,
         new PublishArtifactNotationParserFactory(
-            instantiator,
-            metaDataProvider,
-            taskResolver,
-            TestFiles.resolver(),
+                instantiator,
+                metaDataProvider,
+                TestFiles.resolver(),
+                TestFiles.taskDependencyFactory(),
         ),
         immutableAttributesFactory,
         documentationRegistry,
@@ -98,7 +104,8 @@ class DefaultConfigurationContainerTest extends Specification {
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory
+        calculatedValueContainerFactory,
+        TestFiles.taskDependencyFactory()
     )
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,

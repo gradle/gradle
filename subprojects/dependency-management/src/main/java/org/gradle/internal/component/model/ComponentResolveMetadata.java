@@ -26,14 +26,22 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 /**
  * The meta-data for a component instance that is required during dependency resolution.
+ *
+ * <p>Note that this type is being replaced by several other interfaces that separate out the data and state required at various stages of dependency resolution.
+ * You should try to use those interfaces instead of using this interface or introduce a new interface that provides a view over this type but exposes only the
+ * data required.
+ * </p>
+ *
+ * @see ComponentGraphResolveState
+ * @see ComponentGraphResolveMetadata
+ * @see ComponentArtifactResolveState
  */
-public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphResolveMetadata {
+public interface ComponentResolveMetadata extends HasAttributes {
     List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     /**
@@ -42,18 +50,13 @@ public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphR
     ComponentIdentifier getId();
 
     /**
-     * Returns the module version identifier for this component. Currently this reflects the (group, module, version) that was used to request this component.
+     * Returns the module version identifier for this component. Currently, this reflects the (group, module, version) that was used to request this component.
      *
      * <p>This is a legacy identifier and is here while we transition the meta-data away from ivy-like
      * module versions to the more general component instances. Currently, the module version and component identifiers are used interchangeably. However, over
      * time more things will use the component identifier. At some point, the module version identifier will become optional for a component.
      */
     ModuleVersionIdentifier getModuleVersionId();
-
-    @Override
-    default List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
-        return Collections.emptyList();
-    }
 
     /**
      * @return the sources information for this component.
@@ -73,15 +76,9 @@ public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphR
     AttributesSchemaInternal getAttributesSchema();
 
     /**
-     * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.
+     * Returns the names of all legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link ComponentGraphResolveMetadata#getVariantsForGraphTraversal()}.
      */
     Set<String> getConfigurationNames();
-
-    /**
-     * Locates the configuration with the given name, if any.
-     */
-    @Nullable
-    ConfigurationMetadata getConfiguration(String name);
 
     /**
      * Returns true when this metadata represents the default metadata provided for components with missing metadata files.

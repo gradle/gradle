@@ -50,7 +50,7 @@ import java.util.concurrent.Callable;
  * @since 4.5
  */
 @Incubating
-public class NativeTestingBasePlugin implements Plugin<Project> {
+public abstract class NativeTestingBasePlugin implements Plugin<Project> {
     private final TargetMachineFactory targetMachineFactory;
 
     private static final String TEST_TASK_NAME = "test";

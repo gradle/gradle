@@ -37,23 +37,17 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.execution.UnitOfWork.InputBehavior;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
@@ -74,6 +68,12 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
@@ -99,8 +99,9 @@ public class DefaultTransformer implements Transformer {
 
     private final Class<? extends TransformAction<?>> implementationClass;
     private final ImmutableAttributes fromAttributes;
-    private final Class<? extends FileNormalizer> fileNormalizer;
-    private final Class<? extends FileNormalizer> dependenciesNormalizer;
+    private final ImmutableAttributes toAttributes;
+    private final FileNormalizer fileNormalizer;
+    private final FileNormalizer dependenciesNormalizer;
     private final FileLookup fileLookup;
     private final ServiceLookup internalServices;
     private final boolean requiresDependencies;
@@ -117,8 +118,9 @@ public class DefaultTransformer implements Transformer {
         Class<? extends TransformAction<?>> implementationClass,
         @Nullable TransformParameters parameterObject,
         ImmutableAttributes fromAttributes,
-        Class<? extends FileNormalizer> inputArtifactNormalizer,
-        Class<? extends FileNormalizer> dependenciesNormalizer,
+        ImmutableAttributes toAttributes,
+        FileNormalizer inputArtifactNormalizer,
+        FileNormalizer dependenciesNormalizer,
         boolean cacheable,
         DirectorySensitivity artifactDirectorySensitivity,
         DirectorySensitivity dependenciesDirectorySensitivity,
@@ -138,6 +140,7 @@ public class DefaultTransformer implements Transformer {
     ) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
+        this.toAttributes = toAttributes;
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
@@ -162,8 +165,9 @@ public class DefaultTransformer implements Transformer {
         Class<? extends TransformAction<?>> implementationClass,
         CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters,
         ImmutableAttributes fromAttributes,
-        Class<? extends FileNormalizer> inputArtifactNormalizer,
-        Class<? extends FileNormalizer> dependenciesNormalizer,
+        ImmutableAttributes toAttributes,
+        FileNormalizer inputArtifactNormalizer,
+        FileNormalizer dependenciesNormalizer,
         boolean cacheable,
         FileLookup fileLookup,
         InstantiationScheme actionInstantiationScheme,
@@ -175,6 +179,7 @@ public class DefaultTransformer implements Transformer {
     ) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
+        this.toAttributes = toAttributes;
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
@@ -190,9 +195,9 @@ public class DefaultTransformer implements Transformer {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
-    public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
+    public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
-            if (normalizer == AbsolutePathInputNormalizer.class) {
+            if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
                 validationContext.visitPropertyProblem(problem ->
                     problem.withId(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
                         .reportAs(Severity.ERROR)
@@ -207,12 +212,12 @@ public class DefaultTransformer implements Transformer {
     }
 
     @Override
-    public Class<? extends FileNormalizer> getInputArtifactNormalizer() {
+    public FileNormalizer getInputArtifactNormalizer() {
         return fileNormalizer;
     }
 
     @Override
-    public Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
+    public FileNormalizer getInputArtifactDependenciesNormalizer() {
         return dependenciesNormalizer;
     }
 
@@ -294,7 +299,7 @@ public class DefaultTransformer implements Transformer {
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            visitor -> propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
+            visitor -> propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor() {
                 @Override
                 public void visitInputProperty(
                     String propertyName,
@@ -324,17 +329,17 @@ public class DefaultTransformer implements Transformer {
                     InputBehavior behavior,
                     DirectorySensitivity directorySensitivity,
                     LineEndingSensitivity lineEndingNormalization,
-                    @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                    @Nullable FileNormalizer normalizer,
                     PropertyValue value,
                     InputFilePropertyType filePropertyType
                 ) {
-                    validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
+                    validateInputFileNormalizer(propertyName, normalizer, cacheable, validationContext);
                     visitor.visitInputFileProperty(
                         propertyName,
                         behavior,
                         new InputFileValueSupplier(
                             value,
-                            fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
+                            normalizer == null ? InputNormalizer.ABSOLUTE_PATH : normalizer,
                             directorySensitivity,
                             lineEndingNormalization,
                             () -> FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value)));
@@ -402,6 +407,11 @@ public class DefaultTransformer implements Transformer {
     @Override
     public ImmutableAttributes getFromAttributes() {
         return fromAttributes;
+    }
+
+    @Override
+    public ImmutableAttributes getToAttributes() {
+        return toAttributes;
     }
 
     @Override
@@ -600,7 +610,7 @@ public class DefaultTransformer implements Transformer {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             if (parameterObject != null) {
-                parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
+                parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor() {
                     @Override
                     public void visitInputFileProperty(
                         String propertyName,
@@ -608,7 +618,7 @@ public class DefaultTransformer implements Transformer {
                         InputBehavior behavior,
                         DirectorySensitivity directorySensitivity,
                         LineEndingSensitivity lineEndingSensitivity,
-                        @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                        @Nullable FileNormalizer fileNormalizer,
                         PropertyValue value,
                         InputFilePropertyType filePropertyType
                     ) {

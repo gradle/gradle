@@ -20,11 +20,13 @@ import org.gradle.nativeplatform.test.cunit.plugins.CUnitConventionPlugin
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.base.TestSuiteSpec
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 
+@UsesNativeServices
 class CUnitTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())

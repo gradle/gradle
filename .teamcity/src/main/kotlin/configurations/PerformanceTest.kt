@@ -52,7 +52,7 @@ class PerformanceTest(
         val type = performanceTestBuildSpec.type
         val os = performanceTestBuildSpec.os
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
-        applyPerformanceTestSettings(os = os, timeout = type.timeout)
+        applyPerformanceTestSettings(os = os, arch = os.defaultArch, timeout = type.timeout)
         artifactRules = individualPerformanceTestArtifactRules
 
         params {

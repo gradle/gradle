@@ -26,7 +26,7 @@ import org.gradle.util.GradleVersion
  *
  * The commit distributions are generated at the following location:
  *
- * +-- intTestHomeDir
+ * +-- build
  *    +-- commit-distributions
  *        +-- gradle-7.5-commit-1a2b3c4.zip
  *        +-- gradle-7.5-commit-1a2b3c4-tooling-api.jar

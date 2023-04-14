@@ -145,7 +145,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    def 'can aggregate unit test results from subprojects'() {
+    def 'can aggregate unit test results from dependent projects'() {
         given:
         file('application/build.gradle') << '''
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -342,64 +342,6 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         succeeds(':testAggregateTestReport')
 
         then:
-        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/unit-test/aggregated-results')
-        aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest')
-    }
-
-    def 'can apply custom attributes to refine test results'() {
-        setup:
-        file('application/build.gradle') << '''
-            // add a additional Attribute to the test results for the application unit-test suite
-            configurations.testResultsElementsForTest.attributes {
-              attribute(Attribute.of('customAttribute', String), 'foo')
-            }
-        '''
-        file('transitive/build.gradle') << '''
-            // add a additional Attribute to the test results for the transitive unit-test suite
-            configurations.testResultsElementsForTest.attributes {
-              attribute(Attribute.of('customAttribute', String), 'bar')
-            }
-        '''
-        buildFile << '''
-            apply plugin: 'org.gradle.test-report-aggregation'
-
-            dependencies {
-                testReportAggregation project(":application")
-                testReportAggregation project(":direct")
-            }
-
-            reporting {
-                reports {
-                    testAggregateTestReport(AggregateTestReport) {
-                        testType = TestSuiteType.UNIT_TEST
-                    }
-                }
-            }
-
-            // add an Attribute to the configuration tasked with collecting results
-            // as a result, variant selection should exclude the transitive project
-            reporting {
-                reports.withType(AggregateTestReport).configureEach { report ->
-                    Configuration reportConf = configurations.getByName("${report.name}Results")
-                    reportConf.attributes {
-                        attribute(Attribute.of('customAttribute', String), 'foo')
-                    }
-                }
-            }
-        '''
-
-        when:
-        succeeds(':testAggregateTestReport')
-
-        then:
-        result.assertTaskNotExecuted(':transitive:test')
-
-        def directTestResults = new HtmlTestExecutionResult(testDirectory.file('direct'))
-        directTestResults.assertTestClassesExecuted('direct.MultiplierTest')
-
-        def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
-        applicationTestResults.assertTestClassesExecuted('application.AdderTest')
-
         def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/unit-test/aggregated-results')
         aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest')
     }

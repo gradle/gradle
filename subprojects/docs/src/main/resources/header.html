@@ -47,7 +47,7 @@
                     </div>
                 </li>
                 <li class="site-header__navigation-item" itemprop="name">
-                    <a target="_top" class="site-header__navigation-link" href="https://gradle.com/training/" itemprop="url">Training</a>
+                    <a target="_top" class="site-header__navigation-link" href="https://gradle.org/training/" itemprop="url">Training</a>
                 </li>
                 <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
                     <span class="site-header__navigation-link">
@@ -55,7 +55,7 @@
                     </span>
                     <div class="site-header__navigation-submenu">
                         <div class="site-header__navigation-submenu-item" itemprop="name">
-                            <a class="site-header__navigation-submenu-item-link" href="https://newsletter.gradle.com" itemprop="url">
+                            <a class="site-header__navigation-submenu-item-link" href="https://newsletter.gradle.org" itemprop="url">
                                 <span class="site-header__navigation-submenu-item-link-text">Newsletter</span>
                             </a>
                         </div>
@@ -99,6 +99,7 @@
             <li><a href="../release-notes.html">Release Notes</a></li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#upgrading-gradle" aria-expanded="false" aria-controls="upgrading-gradle">Upgrading Gradle</a>
                 <ul id="upgrading-gradle">
+                    <li><a href="../userguide/upgrading_version_8.html">version 8.X to latest</a></li>
                     <li><a href="../userguide/upgrading_version_7.html">version 7.X to 8.0</a></li>
                     <li><a href="../userguide/upgrading_version_6.html">version 6.X to 7.0</a></li>
                     <li><a href="../userguide/upgrading_version_5.html">version 5.X to 6.0</a></li>
@@ -126,7 +127,7 @@
                     <li><a href="../userguide/groovy_build_script_primer.html">Groovy DSL Primer</a></li>
                     <li><a href="../dsl/index.html">Groovy DSL Reference</a></li>
                     <li><a href="../userguide/kotlin_dsl.html">Kotlin DSL Primer</a></li>
-                    <li><a href="https://gradle.github.io/kotlin-dsl-docs/api/" target="_blank">Kotlin DSL API</a></li>
+                    <li><a href="../kotlin-dsl/index.html" target="_blank">Kotlin DSL API</a></li>
                     <li><a href="../userguide/migrating_from_groovy_to_kotlin_dsl.html">Groovy to Kotlin DSL Migration</a></li>
                 </ul>
             </li>
@@ -139,9 +140,10 @@
             <li><a href="../userguide/gradle_wrapper.html">The Gradle Wrapper</a></li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#customizing-execution" aria-expanded="false" aria-controls="customizing-execution">Customizing Execution</a>
                 <ul id="customizing-execution">
-                    <li><a href="../userguide/build_environment.html">Configuring the Build Environment</a></li>
-                    <li><a href="../userguide/gradle_daemon.html">Configuring the Gradle Daemon</a></li>
-                    <li><a href="../userguide/init_scripts.html">Using Initialization Scripts</a></li>
+                    <li><a href="../userguide/build_environment.html">Configure the Build Environment</a></li>
+                    <li><a href="../userguide/gradle_daemon.html">Gradle Daemon</a></li>
+                    <li><a href="../userguide/file_system_watching.html">File System Watching</a></li>
+                    <li><a href="../userguide/init_scripts.html">Initialization Scripts</a></li>
                 </ul>
             </li>
             <li><a href="../userguide/intro_multi_project_builds.html">Executing Multi-Project Builds</a></li>
@@ -186,6 +188,7 @@
             <li><a class="nav-dropdown" data-toggle="collapse" href="#developing-tasks" aria-expanded="false" aria-controls="developing-tasks">Developing Gradle Tasks</a>
                 <ul id="developing-tasks">
                     <li><a href="../userguide/more_about_tasks.html">Authoring Tasks</a></li>
+                    <li><a href="../userguide/incremental_build.html">Incremental build</a></li>
                     <li><a href="../userguide/custom_tasks.html">Writing Gradle Task Types</a></li>
                     <li><a href="../userguide/lazy_configuration.html">Configuring Tasks Lazily</a></li>
                     <li><a href="../userguide/task_configuration_avoidance.html">Avoiding Unnecessary Task Configuration</a></li>
@@ -205,6 +208,7 @@
                 <ul id="other-developing-topics">
                     <li><a href="../userguide/custom_gradle_types.html">Writing Custom Gradle Types and Service Injection</a></li>
                     <li><a href="../userguide/build_services.html">Shared Build Services</a></li>
+                    <li><a href="../userguide/dataflow_actions.html">Dataflow Actions</a></li>
                     <li><a href="../userguide/test_kit.html">Testing a Build with TestKit</a></li>
                     <li><a href="../userguide/ant.html">Using Ant from Gradle</a></li>
                 </ul>
@@ -215,7 +219,12 @@
         <ul>
             <li><a href="../userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
             <li><a href="../userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
-            <li><a href="../userguide/toolchains.html">Toolchains for Java projects</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#java-toolchains" aria-expanded="false" aria-controls="java-toolchains">Java Toolchains</a>
+                <ul id="java-toolchains">
+                    <li><a href="../userguide/toolchains.html">Toolchains for JVM projects</a></li>
+                    <li><a href="../userguide/toolchain_plugins.html">Toolchain Resolver Plugins</a></li>
+                </ul>
+            </li>
             <li><a href="../userguide/dependency_management_for_java_projects.html">Managing Dependencies</a></li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm-plugins" aria-expanded="false" aria-controls="jvm-plugins">JVM Plugins</a>
                 <ul id="jvm-plugins">

@@ -35,7 +35,8 @@ import java.text.SimpleDateFormat
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()
-    private static final List<String> GRADLE_BUILD_TEST_ARGS = [TEST_BUILD_TIMESTAMP]
+    public static final String TEST_JAVA_INSTALLATIONS = "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}"
+    private static final List<String> GRADLE_BUILD_TEST_ARGS = [TEST_BUILD_TIMESTAMP, TEST_JAVA_INSTALLATIONS]
 
     protected BuildResult result
 
@@ -45,6 +46,8 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         and:
         def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
         file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
+        // Enables Kotlin assignment support, should be removed once we enable assignment by default
+        file("gradle.properties") << "systemProp.org.gradle.unsafe.kotlin.assignment=true\n"
     }
 
     BuildResult getResult() {

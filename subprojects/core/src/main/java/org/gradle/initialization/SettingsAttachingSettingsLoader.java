@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 
 class SettingsAttachingSettingsLoader implements SettingsLoader {
@@ -30,10 +29,10 @@ class SettingsAttachingSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        SettingsInternal settings = delegate.findAndLoadSettings(gradle);
-        gradle.setSettings(settings);
-        projectRegistry.registerProjects(gradle.getOwner(), settings.getProjectRegistry());
-        return settings;
+    public SettingsState findAndLoadSettings(GradleInternal gradle) {
+        SettingsState state = delegate.findAndLoadSettings(gradle);
+        gradle.attachSettings(state);
+        projectRegistry.registerProjects(gradle.getOwner(), state.getSettings().getProjectRegistry());
+        return state;
     }
 }

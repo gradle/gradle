@@ -50,7 +50,7 @@ import java.net.URL;
  *
  * @since 3.5
  */
-public class HttpBuildCache extends AbstractBuildCache {
+public abstract class HttpBuildCache extends AbstractBuildCache {
     private final HttpBuildCacheCredentials credentials;
     private URI url;
     private boolean allowUntrustedServer;

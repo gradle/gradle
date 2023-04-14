@@ -61,6 +61,7 @@ The property type must be one of the following:
 - `ConfigurableFileTree`
 - `DomainObjectSet<T>`
 - `NamedDomainObjectContainer<T>`
+- `ExtensiblePolymorphicDomainObjectContainer<T>`
 
 Gradle creates values for managed properties in the same way as link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].
 
@@ -193,6 +194,7 @@ include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/
 ----
 ====
 
+[[property_injection]]
 === Property injection
 
 Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.

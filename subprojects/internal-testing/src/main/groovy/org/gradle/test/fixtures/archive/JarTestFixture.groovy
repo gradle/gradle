@@ -16,9 +16,10 @@
 
 package org.gradle.test.fixtures.archive
 
+import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.io.IOUtils
-import org.apache.tools.zip.ZipFile
-import org.gradle.test.fixtures.file.ClassFile
+import org.gradle.api.JavaVersion
+import org.gradle.internal.classanalysis.JavaClassUtil
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -50,7 +51,7 @@ class JarTestFixture extends ZipTestFixture {
         def zipFile = new ZipFile(file, metadataCharset)
         try {
             def entries = zipFile.getEntries()
-            def zipEntry = entries.nextElement();
+            def zipEntry = entries.nextElement()
             if(zipEntry.getName().equalsIgnoreCase('META-INF/')) {
                 zipEntry = entries.nextElement()
             }
@@ -67,7 +68,7 @@ class JarTestFixture extends ZipTestFixture {
         return super.hasDescendants(allDescendants)
     }
 
-    def getJavaVersion() {
+    JavaVersion getJavaVersion() {
         JarFile jarFile = new JarFile(file)
         try {
             //take the first class file
@@ -75,8 +76,7 @@ class JarTestFixture extends ZipTestFixture {
             if (classEntry == null) {
                 throw new Exception("Could not find a class entry for: " + file)
             }
-            ClassFile classFile = new ClassFile(jarFile.getInputStream(classEntry))
-            return classFile.javaVersion
+            return JavaVersion.forClassVersion(JavaClassUtil.getClassMajorVersion(jarFile.getInputStream(classEntry)))
         } finally {
             jarFile.close()
         }

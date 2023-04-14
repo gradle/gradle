@@ -17,6 +17,7 @@ object PublicApi {
         "org/gradle/caching/**",
         "org/gradle/concurrent/**",
         "org/gradle/deployment/**",
+        "org/gradle/env/**",
         "org/gradle/external/javadoc/**",
         "org/gradle/ide/**",
         "org/gradle/includedbuild/**",

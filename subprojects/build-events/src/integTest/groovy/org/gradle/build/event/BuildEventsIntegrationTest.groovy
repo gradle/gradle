@@ -17,12 +17,8 @@
 package org.gradle.build.event
 
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.events.FinishEvent
@@ -35,7 +31,6 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@ConfigurationCacheTest
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     def "listener can subscribe to task completion events"() {
         loggingListener()
@@ -47,8 +42,9 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
                 doFirst { println("not up-to-date") }
             }
             task upToDate {
-                outputs.file("thing.txt")
-                doFirst { file("thing.txt").text = "thing" }
+                def file = file("thing.txt")
+                outputs.file(file)
+                doFirst { file.text = "thing" }
             }
             task broken {
                 dependsOn notUpToDate, upToDate
@@ -135,8 +131,6 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b:thing")
     }
 
-    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
-    @UnsupportedWithConfigurationCache
     def "listener receives task completion events from included builds"() {
         settingsFile << """
             includeBuild 'a'
@@ -176,6 +170,42 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b:thing")
     }
 
+    @IgnoreIf({ GradleContextualExecuter.configCache }) // already covers CC
+    def "listener is not discarded after configuration phase when used with configuration cache"() {
+        listenerReceivedConfigurationTimeData()
+        registeringPlugin()
+        buildFile << """
+            apply plugin: LoggingPlugin
+
+            def listener = gradle.sharedServices.registrations["listener"].service.get()
+            listener.configTime("data")
+
+            task thing {
+                doLast { }
+            }
+        """
+        executer.beforeExecute {
+            withArgument("--configuration-cache")
+            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
+        }
+
+        when:
+        run("thing")
+
+        then:
+        output.count("service:") == 2
+        outputContains("service: finish :thing with data=data")
+        outputContains("service: closed with data=data")
+
+        when:
+        run("thing")
+
+        then:
+        output.count("service:") == 2
+        outputContains("service: finish :thing with data=null")
+        outputContains("service: closed with data=null")
+    }
+
     def "listener registered from init script can receive task completion events from buildSrc and main build"() {
         def initScript = file("init.gradle")
         loggingListener(initScript)
@@ -198,7 +228,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         run("thing")
 
         then:
-        output.count("EVENT:") == 14
+        output.count("EVENT:") == 6
         outputContains("EVENT: finish :buildSrc:processResources SKIPPED")
         outputContains("EVENT: finish :buildSrc:compileJava OK")
         outputContains("EVENT: finish :thing UP-TO-DATE")
@@ -295,7 +325,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Tries to resolve external (api) jars that are not available in the embedded environment
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    // Tries to resolve external (api) jars that are not available in the embedded environment
     @Issue("https://github.com/gradle/gradle/issues/16774")
     def "can use plugin that registers build event listener with ProjectBuilder"() {
         given:
@@ -338,7 +369,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         result.testClass('my.MyTest').assertTestCount(1, 0, 0)
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Cannot run TestKit in embedded mode
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    // Cannot run TestKit in embedded mode
     def "can use plugin that registers build event listener with TestKit"() {
         given:
         def plugin = file('src/main/groovy/my-plugin.gradle')
@@ -473,6 +505,40 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
                 void onFinish(FinishEvent event) {
                     println("BROKEN: received event")
                     throw new RuntimeException("broken")
+                }
+            }
+        """
+    }
+
+    void listenerReceivedConfigurationTimeData(TestFile file = buildFile) {
+        file << """
+            import ${OperationCompletionListener.name}
+            import ${FinishEvent.name}
+            import ${TaskFinishEvent.name}
+            import ${TaskSuccessResult.name}
+            import ${TaskFailureResult.name}
+            import ${TaskSkippedResult.name}
+            import ${BuildServiceParameters.name}
+
+            abstract class LoggingListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None>, Closeable {
+                String data
+
+                void configTime(String data) {
+                    this.data = data
+                }
+
+                @Override
+                void onFinish(FinishEvent event) {
+                    if (event instanceof TaskFinishEvent) {
+                        println("service: finish \${event.descriptor.taskPath} with data=" + data)
+                    } else {
+                        throw new IllegalArgumentException()
+                    }
+                }
+
+                @Override
+                void close() {
+                    println("service: closed with data=" + data)
                 }
             }
         """

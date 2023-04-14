@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvedFileOrderingIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
@@ -40,6 +41,7 @@ allprojects {
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "result includes files from local and external components and file dependencies in a fixed order and with duplicates removed"() {
         mavenRepo.module("org", "test", "1.0")
             .artifact(classifier: 'from-main')

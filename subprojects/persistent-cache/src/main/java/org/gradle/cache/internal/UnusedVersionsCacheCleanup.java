@@ -54,14 +54,11 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     }
 
     private UnusedVersionsCacheCleanup(final Pattern cacheNamePattern, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
-        super(new FilesFinder() {
-            @Override
-            public Iterable<File> find(File baseDir, FileFilter filter) {
-                FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter(cacheNamePattern), asFileFilter(filter),
-                    asFileFilter(new NonReservedFileFilter(singleton(baseDir))));
-                File[] result = baseDir.getParentFile().listFiles(combinedFilter);
-                return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
-            }
+        super((baseDir, filter) -> {
+            FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter(cacheNamePattern), asFileFilter(filter),
+                asFileFilter(new NonReservedFileFilter(singleton(baseDir))));
+            File[] result = baseDir.getParentFile().listFiles(combinedFilter);
+            return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
         });
         this.cacheNamePattern = cacheNamePattern;
         this.cacheVersionMapping = cacheVersionMapping;

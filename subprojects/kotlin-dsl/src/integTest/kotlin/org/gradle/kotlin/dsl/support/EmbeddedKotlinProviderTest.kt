@@ -47,19 +47,19 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
             buildscript {
                 $repositoriesBlock
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
-                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.7.22")
+                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.7.22")
                 }
             }
             plugins {
-                kotlin("jvm") version "1.6.10"
+                kotlin("jvm") version "1.7.22"
             }
             """
         )
 
         val result = build("buildEnvironment")
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.6.10 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.7.22 -> $embeddedKotlinVersion"))
         }
     }
 

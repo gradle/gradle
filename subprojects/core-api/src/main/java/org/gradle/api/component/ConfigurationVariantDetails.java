@@ -21,6 +21,8 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * The details object used to determine what to do with a
  * configuration variant when publishing.
+ * <p>
+ * This type also contains Maven specific information used to map the variant to a Maven POM file.
  *
  * @since 5.3
  */

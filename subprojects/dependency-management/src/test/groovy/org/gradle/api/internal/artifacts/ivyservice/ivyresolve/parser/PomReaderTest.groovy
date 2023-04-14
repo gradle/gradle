@@ -1017,6 +1017,46 @@ class PomReaderTest extends AbstractPomReaderTest {
         excluded == [DefaultModuleIdentifier.newId('*', '*')]
     }
 
+    @Issue("gradle/gradle#22370")
+    def 'can parse an exclusion block with properties'() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group</groupId>
+    <artifactId>artifact</artifactId>
+    <version>version</version>
+
+    <properties>
+        <excludedGroupId>excluded-group-id</excludedGroupId>
+        <excludedArtifactId>excluded-artifact-id</excludedArtifactId>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>\${excludedGroupId}</groupId>
+                    <artifactId>\${excludedArtifactId}</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
+        def keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        moduleIdentifierFactory.module('excluded-group-id', 'excluded-artifact-id')
+            >> DefaultModuleIdentifier.newId('excluded-group-id', 'excluded-artifact-id')
+
+        then:
+        def excluded = pomReader.dependencies[keyGroupTwo].excludedModules
+        excluded == [DefaultModuleIdentifier.newId('excluded-group-id', 'excluded-artifact-id')]
+    }
+
     def 'parses old gradle module metadata marker'() {
         when:
         pomFile << """

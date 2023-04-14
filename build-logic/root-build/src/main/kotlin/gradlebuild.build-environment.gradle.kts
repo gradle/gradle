@@ -20,6 +20,6 @@ import gradlebuild.basics.parentOrRoot
 
 
 val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
-buildEnvironmentExtension.gitCommitId.set(git("rev-parse", "HEAD"))
-buildEnvironmentExtension.gitBranch.set(git("rev-parse", "--abbrev-ref", "HEAD"))
-buildEnvironmentExtension.repoRoot.set(layout.projectDirectory.parentOrRoot())
+buildEnvironmentExtension.gitCommitId = git("rev-parse", "HEAD")
+buildEnvironmentExtension.gitBranch = git("rev-parse", "--abbrev-ref", "HEAD")
+buildEnvironmentExtension.repoRoot = layout.projectDirectory.parentOrRoot()

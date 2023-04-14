@@ -62,7 +62,7 @@ abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportPar
                             versionToIncubating.getOrPut(version) { mutableSetOf() }.addAll(incubating)
                         }
                     } catch (e: Exception) {
-                        throw Exception("Unable to parse $sourceFile: ${e.message}")
+                        throw Exception("Unable to parse $sourceFile", e)
                     }
                 }
             }

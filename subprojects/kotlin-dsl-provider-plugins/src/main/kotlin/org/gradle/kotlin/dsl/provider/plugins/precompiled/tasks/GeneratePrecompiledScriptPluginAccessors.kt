@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.StartParameter
-import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
@@ -58,6 +57,7 @@ import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptException
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 import org.gradle.kotlin.dsl.support.KotlinScriptType
@@ -69,7 +69,10 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 import java.net.URLClassLoader
 import java.nio.file.Files
 import javax.inject.Inject
@@ -131,6 +134,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         outputs.doNotCacheIf(
             "Generated accessors can only be cached in strict mode."
         ) {
+            @Suppress("DEPRECATION")
             !strict.get()
         }
     }
@@ -220,21 +224,32 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun ClassLoader.scriptPluginPluginsFor(plugin: PrecompiledScriptPlugin): ScriptPluginPlugins? {
-
-        // The compiled script class won't be present for precompiled script plugins
-        // which don't include a `plugins` block
-        if (getResource(compiledScriptClassFile(plugin)) == null) {
-            return null
-        }
-
-        val pluginRequests = collectPluginRequestsOf(plugin)
-        validatePluginRequestsOf(plugin, pluginRequests)
-        return ScriptPluginPlugins(
-            plugin,
-            pluginRequests.map { it.id.id }
+    fun ClassLoader.scriptPluginPluginsFor(plugin: PrecompiledScriptPlugin): ScriptPluginPlugins? =
+        withCapturedOutputOnError(
+            {
+                if (getResource(compiledScriptClassFile(plugin)) == null) {
+                    // The compiled script class won't be present for precompiled script plugins
+                    // which don't include a `plugins` block
+                    null
+                } else {
+                    val pluginRequests = collectPluginRequestsOf(plugin)
+                    validatePluginRequestsOf(plugin, pluginRequests)
+                    ScriptPluginPlugins(
+                        plugin,
+                        pluginRequests.map { it.id.id }
+                    )
+                }
+            },
+            { (error, stdout, stderr) ->
+                throw PrecompiledScriptException(
+                    buildString {
+                        append("Failed to collect plugin requests of '${projectRelativePathOf(plugin)}'")
+                        appendStdoutStderr(stdout, stderr)
+                    },
+                    error
+                )
+            }
         )
-    }
 
     private
     fun validatePluginRequestsOf(plugin: PrecompiledScriptPlugin, requests: PluginRequests) {
@@ -305,14 +320,17 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
 
         pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
-            try {
-                val schema = projectSchemaFor(pluginRequestsOf(scriptPlugins.first(), uniquePluginRequests)).get()
-                val hashed = HashedProjectSchema(schema)
-                scriptPlugins.map { hashed to it }
-            } catch (error: Throwable) {
-                reportProjectSchemaError(scriptPlugins, error)
-                emptyList()
-            }
+            withCapturedOutputOnError(
+                {
+                    val schema = projectSchemaFor(pluginRequestsOf(scriptPlugins.first(), uniquePluginRequests)).get()
+                    val hashed = HashedProjectSchema(schema)
+                    scriptPlugins.map { hashed to it }
+                },
+                { (error, stdout, stderr) ->
+                    reportProjectSchemaError(scriptPlugins, stdout, stderr, error)
+                    emptyList()
+                }
+            )
         }.groupBy(
             { (schema, _) -> schema },
             { (_, plugin) -> plugin }
@@ -331,13 +349,13 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             controller.withEmptyBuild { settings ->
                 Try.ofFailable {
                     val gradle = settings.gradle
-                    val baseScope = classLoaderScopeRegistry.coreAndPluginsScope.createChild("accessors-classpath").apply {
+                    val baseScope = classLoaderScopeRegistry.coreAndPluginsScope.createChild("accessors-classpath", null).apply {
                         // we export the build logic classpath to the base scope here so that all referenced plugins
                         // can be resolved in the root project scope created below.
                         export(buildLogicClassPath)
                         lock()
                     }
-                    val rootProjectScope = baseScope.createChild("accessors-root-project")
+                    val rootProjectScope = baseScope.createChild("accessors-root-project", null)
                     settings.rootProject.name = "gradle-kotlin-dsl-accessors"
                     val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as DefaultProjectDescriptor)
                     projectState.createMutableModel(rootProjectScope, baseScope)
@@ -361,8 +379,11 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     startParameter.gradleHomeDir,
                     startParameter.gradleUserHomeDir,
                     projectDir,
-                    projectDir
-                )
+                    projectDir,
+                    null,
+                    null
+                ),
+                startParameter.isOffline,
             )
         }
 
@@ -370,11 +391,15 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
      * A [StartParameter] subclass that provides no init scripts.
      */
     private
-    class ProjectSchemaBuildStartParameter(buildLayout: BuildLayoutParameters) : StartParameterInternal(buildLayout) {
+    class ProjectSchemaBuildStartParameter(
+        buildLayout: BuildLayoutParameters,
+        offline: Boolean,
+    ) : StartParameterInternal(buildLayout) {
 
         init {
             // Dry run in case a callback tries to access the task graph.
             isDryRun = true
+            isOffline = offline
             doNotSearchUpwards()
             useEmptySettings()
         }
@@ -407,22 +432,35 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         }
 
     private
-    fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, error: Throwable) {
-        if (strict.get()) throw GradleException(failedToGenerateAccessorsFor(plugins), error)
-        else logger.warn(failedToGenerateAccessorsFor(plugins), error)
+    fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String, error: Throwable) {
+        @Suppress("DEPRECATION")
+        if (strict.get()) throw PrecompiledScriptException(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
+        else logger.warn(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
     }
 
     private
-    fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>) =
-        plugins.joinToString(
-            prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
-            separator = "\n",
-            postfix = "\n"
-        ) { " - " + projectRelativePathOf(it) }
+    fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String): String =
+        buildString {
+            append(plugins.joinToString(
+                prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
+                separator = "\n",
+            ) { " - " + projectRelativePathOf(it) })
+            appendStdoutStderr(stdout, stderr)
+        }
+
+    private
+    fun StringBuilder.appendStdoutStderr(stdout: String, stderr: String) {
+        if (stdout.isNotBlank()) {
+            append("\nStandard output:\n${stdout.trim().prependIndent()}")
+        }
+        if (stderr.isNotBlank()) {
+            append("\nStandard error:\n${stderr.trim().prependIndent()}")
+        }
+    }
 
     private
     fun projectRelativePathOf(scriptPlugin: PrecompiledScriptPlugin) =
-        scriptPlugin.scriptFile.toRelativeString(projectLayout.projectDirectory.asFile)
+        normaliseFileSeparators(scriptPlugin.scriptFile.toRelativeString(projectLayout.projectDirectory.asFile))
 
     private
     fun IO.writeTypeSafeAccessorsFor(hashedSchema: HashedProjectSchema) {
@@ -478,3 +516,82 @@ fun ProjectInternal.applyPlugins(pluginRequests: PluginRequests) {
         classLoaderScope
     )
 }
+
+
+private
+fun <T> withCapturedOutputOnError(block: () -> T, onError: (ErrorWithCapturedOutput) -> T): T {
+    val outCapture = ThreadLocalCapturePrintStream(System.out)
+    val errCapture = ThreadLocalCapturePrintStream(System.err)
+    return try {
+        val previousOut = System.out
+        val previousErr = System.err
+        try {
+            System.setOut(outCapture)
+            System.setErr(errCapture)
+            block()
+        } finally {
+            System.out.flush()
+            System.setOut(previousOut)
+            outCapture.stop()
+            System.err.flush()
+            System.setErr(previousErr)
+            errCapture.stop()
+        }
+    } catch (error: Throwable) {
+        onError(ErrorWithCapturedOutput(error, outCapture.captureOutput.toString(), errCapture.captureOutput.toString()))
+    }
+}
+
+
+/**
+ * Captures output for the current thread, forward output to the original stream for other threads.
+ */
+private
+class ThreadLocalCapturePrintStream(originalOutput: PrintStream) : PrintStream(originalOutput) {
+
+    val captureOutput = ByteArrayOutputStream()
+
+    private
+    var isCapturing: ThreadLocal<Boolean>? = ThreadLocal.withInitial { false }
+
+    init {
+        isCapturing!!.set(true)
+    }
+
+    override fun write(buf: ByteArray, off: Int, len: Int) = safely {
+        if (doCapture) captureOutput.write(buf, off, len)
+        else super.write(buf, off, len)
+    }
+
+    override fun write(b: Int) = safely {
+        if (doCapture) captureOutput.write(b)
+        else super.write(b)
+    }
+
+    override fun flush() = safely {
+        captureOutput.flush()
+        super.flush()
+    }
+
+    fun stop() = safely {
+        isCapturing!!.remove()
+        // Give a chance for other threads' weak references to the local to be GCed if any
+        isCapturing = null
+    }
+
+    private
+    fun safely(block: () -> Unit) =
+        try {
+            synchronized(this, block)
+        } catch (ex: InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
+
+    private
+    val doCapture: Boolean
+        get() = isCapturing != null && isCapturing!!.get()
+}
+
+
+private
+data class ErrorWithCapturedOutput(val error: Throwable, val stdout: String, val stderr: String)

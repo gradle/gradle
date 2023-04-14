@@ -15,11 +15,8 @@
  */
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
 
-    @ToBeFixedForConfigurationCache
     void "can publish WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

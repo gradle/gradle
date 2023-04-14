@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 import spock.lang.Issue
 
@@ -447,5 +446,21 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         where:
         type << ProductionType.values()
+    }
+
+    def "build finishes with --continue even when producer task fails"() {
+        def clean = rootBuild.task('clean').destroys('build')
+        def compileJava = rootBuild.task('compileJava').outputs('build/classes/java').fail()
+        def compileGroovy = rootBuild.task('compileGroovy').outputs('build/classes/groovy').dependsOn(compileJava)
+        def classes = rootBuild.task('classes').dependsOn(compileJava).dependsOn(compileGroovy)
+
+        writeAllFiles()
+
+        when:
+        fails(clean.path, classes.path, '--continue')
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasFailures(1)
+        outputDoesNotContain('Unable to make progress running work.')
     }
 }

@@ -28,7 +28,7 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.NestedBuildTree;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
@@ -45,7 +45,6 @@ import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
 public class BuildStateFactory {
     private final BuildTreeState buildTreeState;
     private final ListenerManager listenerManager;
-    private final GradleEnterprisePluginManager enterprisePluginManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final CrossBuildSessionState crossBuildSessionState;
     private final BuildCancellationToken buildCancellationToken;
@@ -53,21 +52,19 @@ public class BuildStateFactory {
     public BuildStateFactory(
         BuildTreeState buildTreeState,
         ListenerManager listenerManager,
-        GradleEnterprisePluginManager enterprisePluginManager,
         GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
         CrossBuildSessionState crossBuildSessionState,
         BuildCancellationToken buildCancellationToken
     ) {
         this.buildTreeState = buildTreeState;
         this.listenerManager = listenerManager;
-        this.enterprisePluginManager = enterprisePluginManager;
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
         this.crossBuildSessionState = crossBuildSessionState;
         this.buildCancellationToken = buildCancellationToken;
     }
 
     public RootBuildState createRootBuild(BuildDefinition buildDefinition) {
-        return new DefaultRootBuildState(buildDefinition, buildTreeState, listenerManager, enterprisePluginManager);
+        return new DefaultRootBuildState(buildDefinition, buildTreeState, listenerManager);
     }
 
     public StandAloneNestedBuild createNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
@@ -99,7 +96,7 @@ public class BuildStateFactory {
             true
         );
         @SuppressWarnings("deprecation")
-        File customBuildFile = buildSrcStartParameter.getBuildFile();
+        File customBuildFile = DeprecationLogger.whileDisabled(buildSrcStartParameter::getBuildFile);
         assert customBuildFile == null;
         return buildDefinition;
     }
@@ -109,7 +106,7 @@ public class BuildStateFactory {
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
         buildSrcStartParameter.doNotSearchUpwards();
-        buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
+        buildSrcStartParameter.setInitScripts(containingBuildParameters.getInitScripts());
         return buildSrcStartParameter;
     }
 }

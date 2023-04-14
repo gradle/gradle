@@ -19,12 +19,16 @@ package org.gradle.util.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -116,11 +120,152 @@ public class TextUtil {
     }
 
     /**
+     * Checks if a String is whitespace, empty ("") or null.
+     * <p>
+     * This function was copied from Apache Commons-Lang to restore TAPI compatibility
+     * with Java 6 on old Gradle versions because StringUtils require SQLException which
+     * is absent from Java 6.
+     */
+    public static boolean isBlank(String str) {
+        int strLen;
+        if (str == null || (strLen = str.length()) == 0) {
+            return true;
+        }
+        for (int i = 0; i < strLen; i++) {
+            if (!Character.isWhitespace(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Capitalizes a String changing the first letter to title case as
+     * per {@link Character#toTitleCase(char)}. No other letters are changed.
+     * <p>
+     * This function was copied from Apache Commons-Lang to restore TAPI compatibility
+     * with Java 6 on old Gradle versions because StringUtils require SQLException which
+     * is absent from Java 6.
+     */
+    public static String capitalize(String str) {
+        if (str == null || str.length() == 0) {
+            return str;
+        }
+        return Character.toTitleCase(str.charAt(0)) + str.substring(1);
+    }
+
+    /**
      * Escapes the toString() representation of {@code obj} for use in a literal string.
      * This is useful for interpolating variables into script strings, as well as in other situations.
      */
     public static String escapeString(Object obj) {
-        return obj == null ? null : StringEscapeUtils.escapeJava(obj.toString());
+        return obj == null ? null : escapeJavaStyleString(obj.toString(), false, false);
+    }
+
+    /**
+     * This function was copied from Apache Commons-Lang to restore TAPI compatibility
+     * with Java 6 on old Gradle versions because StringUtils require SQLException which
+     * is absent from Java 6.
+     */
+    private static String escapeJavaStyleString(String str, boolean escapeSingleQuotes, boolean escapeForwardSlash) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            StringWriter writer = new StringWriter(str.length() * 2);
+            escapeJavaStyleString(writer, str, escapeSingleQuotes, escapeForwardSlash);
+            return writer.toString();
+        } catch (IOException ioe) {
+            // this should never ever happen while writing to a StringWriter
+            throw new UncheckedIOException(ioe);
+        }
+    }
+
+
+    private static void escapeJavaStyleString(
+        Writer out, String str, boolean escapeSingleQuote,
+        boolean escapeForwardSlash
+    ) throws IOException {
+        if (out == null) {
+            throw new IllegalArgumentException("The Writer must not be null");
+        }
+        if (str == null) {
+            return;
+        }
+        int sz;
+        sz = str.length();
+        for (int i = 0; i < sz; i++) {
+            char ch = str.charAt(i);
+
+            // handle unicode
+            if (ch > 0xfff) {
+                out.write("\\u" + hex(ch));
+            } else if (ch > 0xff) {
+                out.write("\\u0" + hex(ch));
+            } else if (ch > 0x7f) {
+                out.write("\\u00" + hex(ch));
+            } else if (ch < 32) {
+                switch (ch) {
+                    case '\b':
+                        out.write('\\');
+                        out.write('b');
+                        break;
+                    case '\n':
+                        out.write('\\');
+                        out.write('n');
+                        break;
+                    case '\t':
+                        out.write('\\');
+                        out.write('t');
+                        break;
+                    case '\f':
+                        out.write('\\');
+                        out.write('f');
+                        break;
+                    case '\r':
+                        out.write('\\');
+                        out.write('r');
+                        break;
+                    default:
+                        if (ch > 0xf) {
+                            out.write("\\u00" + hex(ch));
+                        } else {
+                            out.write("\\u000" + hex(ch));
+                        }
+                        break;
+                }
+            } else {
+                switch (ch) {
+                    case '\'':
+                        if (escapeSingleQuote) {
+                            out.write('\\');
+                        }
+                        out.write('\'');
+                        break;
+                    case '"':
+                        out.write('\\');
+                        out.write('"');
+                        break;
+                    case '\\':
+                        out.write('\\');
+                        out.write('\\');
+                        break;
+                    case '/':
+                        if (escapeForwardSlash) {
+                            out.write('\\');
+                        }
+                        out.write('/');
+                        break;
+                    default:
+                        out.write(ch);
+                        break;
+                }
+            }
+        }
+    }
+
+    private static String hex(char ch) {
+        return Integer.toHexString(ch).toUpperCase(Locale.ENGLISH);
     }
 
     /**
@@ -200,11 +345,20 @@ public class TextUtil {
      *
      * @param s string to be made lowercase
      * @return a lowercase string that ignores locale
-     *
      * @see <a href="https://issues.gradle.org/browse/GRADLE-3470">GRADLE-3470</a>
      * @see <a href="https://haacked.com/archive/2012/07/05/turkish-i-problem-and-why-you-should-care.aspx/">Turkish i problem</a>
      */
     public static String toLowerCaseLocaleSafe(String s) {
         return s.toLowerCase(Locale.ENGLISH);
+    }
+
+    /**
+     * This method returns the plural ending for an english word for trivial cases depending on the number of elements a list has.
+     *
+     * @param collection which size is used to determine the plural ending
+     * @return "s" if the collection has more than one element, an empty string otherwise
+     */
+    public static String getPluralEnding(Collection<?> collection) {
+        return collection.size() > 1 ? "s" : "";
     }
 }

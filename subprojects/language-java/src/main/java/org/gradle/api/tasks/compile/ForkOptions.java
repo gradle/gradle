@@ -26,7 +26,7 @@ import java.io.File;
 /**
  * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
  */
-public class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
+public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;
 
     private String executable;
@@ -36,11 +36,11 @@ public class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private File javaHome;
 
     /**
-     * Returns the compiler executable to be used. If set,
-     * a new compiler process will be forked for every compile task.
-     * Defaults to {@code null}.
-     *
-     * <p>Setting the executable disables task output caching.</p>
+     * Returns the compiler executable to be used.
+     * <p>
+     * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
+     * <p>
+     * Setting the executable disables task output caching.
      */
     @Nullable
     @Optional
@@ -50,11 +50,11 @@ public class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     }
 
     /**
-     * Sets the compiler executable to be used. If set,
-     * a new compiler process will be forked for every compile task.
-     * Defaults to {@code null}.
-     *
-     * <p>Setting the executable disables task output caching.</p>
+     * Sets the compiler executable to be used.
+     * <p>
+     * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
+     * <p>
+     * Setting the executable disables task output caching.
      */
     public void setExecutable(@Nullable String executable) {
         this.executable = executable;
@@ -62,8 +62,8 @@ public class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
 
     /**
      * Returns the Java home which contains the compiler to use.
-     * If set, a new compiler process will be forked for every compile task.
-     * Defaults to {@code null}.
+     * <p>
+     * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
      *
      * @since 3.5
      */
@@ -75,8 +75,8 @@ public class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
 
     /**
      * Sets the Java home which contains the compiler to use.
-     * If set, a new compiler process will be forked for every compile task.
-     * Defaults to {@code null}.
+     * <p>
+     * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
      *
      * @since 3.5
      */

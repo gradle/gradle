@@ -15,6 +15,8 @@
 [[xctest_plugin]]
 = XCTest
 
+WARNING: The XCTest Plugin is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
+
 The XCTest Plugin provides the tasks, configurations and conventions for integrating with a https://developer.apple.com/documentation/xctest[XCTest testing framework on macOS] as well as https://github.com/apple/swift-corelibs-xctest[Linux's open source implementation].
 
 [[sec:xctest_usage]]
@@ -22,8 +24,8 @@ The XCTest Plugin provides the tasks, configurations and conventions for integra
 
 .Applying the XCTest Plugin
 ====
-include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=apply-plugin]"]
 include::sample[dir="snippets/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:xctest_build_varants]]
@@ -41,8 +43,8 @@ The target machine can be configured as follows:
 
 .Configure application target machines
 ====
-include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=configure-target-machines]"]
 include::sample[dir="snippets/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=configure-target-machines]"]
 ====
 
 [[sec:xctest_tasks]]

@@ -1,28 +1,97 @@
 # Execution team
-subprojects/base-annotations/       @gradle/bt-execution
-subprojects/functional/             @gradle/bt-execution @bamboo
-subprojects/build-cache/            @gradle/bt-execution
-subprojects/build-cache-base/       @gradle/bt-execution
-subprojects/build-cache-http/       @gradle/bt-execution
-subprojects/build-cache-packaging/  @gradle/bt-execution
-subprojects/build-operations/       @gradle/bt-execution
-subprojects/execution/              @gradle/bt-execution
-subprojects/file-watching/          @gradle/bt-execution
-subprojects/files/                  @gradle/bt-execution
-subprojects/hashing/                @gradle/bt-execution
-subprojects/normalization-java/     @gradle/bt-execution
-subprojects/snapshots/              @gradle/bt-execution
+subprojects/base-annotations/               @gradle/bt-execution
+subprojects/functional/                     @gradle/bt-execution @bamboo
+subprojects/build-cache/                    @gradle/bt-execution
+subprojects/build-cache-base/               @gradle/bt-execution
+subprojects/build-cache-http/               @gradle/bt-execution
+subprojects/build-cache-packaging/          @gradle/bt-execution
+subprojects/build-operations/               @gradle/bt-execution
+subprojects/execution/                      @gradle/bt-execution
+subprojects/file-watching/                  @gradle/bt-execution
+subprojects/files/                          @gradle/bt-execution
+subprojects/hashing/                        @gradle/bt-execution
+subprojects/normalization-java/             @gradle/bt-execution
+subprojects/snapshots/                      @gradle/bt-execution
+
+# Configuration cache
+subprojects/instrumentation-agent           @gradle/bt-configuration-cache
 
 # Gradle Enterprise
-subprojects/enterprise/             @ldaley @gradle/ge-testing @gradle/ge-build-insights
-subprojects/enterprise-logging/     @gradle/ge-build-insights @gradle/ge-testing
-subprojects/enterprise-operations/  @gradle/ge-build-insights
-subprojects/enterprise-workers/     @gradle/ge-build-insights
+subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/ge-build-insights @gradle/bt-build-scan
+subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/bt-build-scan @gradle/ge-testing
+subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt-build-scan
+subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
 
-# Testing
-subprojects/testing-junit-platform/ @gradle/ge-testing
-subprojects/testing-jvm/            @gradle/ge-testing
+# JVM platform
+subprojects/code-quality/                   @gradle/bt-jvm
+subprojects/ear/                            @gradle/bt-jvm
+subprojects/jacoco/                         @gradle/bt-jvm
+subprojects/java-compiler-plugin/           @gradle/bt-jvm
+subprojects/jvm-services/                   @gradle/bt-jvm
+subprojects/language-groovy/                @gradle/bt-jvm
+subprojects/language-java/                  @gradle/bt-jvm
+subprojects/normalization-java/             @gradle/bt-jvm
+subprojects/platform-jvm/                   @gradle/bt-jvm
+subprojects/plugins/                        @gradle/bt-jvm
+subprojects/scala/                          @gradle/bt-jvm
+subprojects/testing-junit-platform/         @gradle/bt-jvm @gradle/ge-testing
+subprojects/testing-jvm/                    @gradle/bt-jvm @gradle/ge-testing
+subprojects/testing-jvm-infrastructure/     @gradle/bt-jvm @gradle/ge-testing
 
-# Release notes
-subprojects/docs/src/docs/release/notes.md @hythloda
-subprojects/docs/                          @nathan-contino
+# Software platform
+subprojects/build-init/                     @gradle/bt-jvm
+subprojects/dependency-management/          @gradle/bt-jvm
+subprojects/diagnostics/                    @gradle/bt-jvm
+subprojects/ivy/                            @gradle/bt-jvm
+subprojects/maven/                          @gradle/bt-jvm
+subprojects/platform-base/                  @gradle/bt-jvm
+subprojects/publish/                        @gradle/bt-jvm
+subprojects/reporting/                      @gradle/bt-jvm
+subprojects/resources/                      @gradle/bt-jvm
+subprojects/resources-gcs/                  @gradle/bt-jvm
+subprojects/resources-s3/                   @gradle/bt-jvm
+subprojects/resources-sftp/                 @gradle/bt-jvm
+subprojects/security/                       @gradle/bt-jvm
+subprojects/signing/                        @gradle/bt-jvm
+subprojects/testing-base/                   @gradle/bt-jvm
+subprojects/version-control/                @gradle/bt-jvm
+
+# Kotlin DSL
+build-logic/kotlin-dsl/                                                                 @eskatos @jbartok
+subprojects/kotlin-dsl/                                                                 @eskatos @jbartok
+subprojects/kotlin-dsl-integ-tests/                                                     @eskatos @jbartok
+subprojects/kotlin-dsl-plugins/                                                         @eskatos @jbartok
+subprojects/kotlin-dsl-provider-plugins/                                                @eskatos @jbartok
+subprojects/kotlin-dsl-tooling-builders/                                                @eskatos @jbartok
+subprojects/kotlin-dsl-tooling-models/                                                  @eskatos @jbartok
+subprojects/docs/src/snippets/kotlinDsl/                                                @eskatos @jbartok
+subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @eskatos @jbartok
+subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @eskatos @jbartok
+
+# Documentation
+subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm
+
+# Dev-prod team
+.teamcity/                   @gradle/bt-developer-productivity
+.github/                     @gradle/bt-developer-productivity
+gradle/shared-with-buildSrc/ @gradle/bt-developer-productivity
+/build-logic/                 @gradle/bt-developer-productivity
+/build-logic-commons/         @gradle/bt-developer-productivity
+/build-logic-settings/        @gradle/bt-developer-productivity
+subprojects/*/build.gradle*  @gradle/bt-developer-productivity
+/build.gradle*                @gradle/bt-developer-productivity
+/settings.gradle*              @gradle/bt-developer-productivity

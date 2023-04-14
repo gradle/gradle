@@ -16,13 +16,21 @@
 
 package org.gradle.api.internal.catalog;
 
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 
 public class DefaultExternalDependencyFactory extends AbstractExternalDependencyFactory {
 
-    public DefaultExternalDependencyFactory(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects) {
-        super(config, providers, objects);
+    public DefaultExternalDependencyFactory(
+        DefaultVersionCatalog config,
+        ProviderFactory providers,
+        ObjectFactory objects,
+        ImmutableAttributesFactory attributesFactory,
+        CapabilityNotationParser capabilityNotationParser
+    ) {
+        super(config, providers, objects, attributesFactory, capabilityNotationParser);
     }
 
 }

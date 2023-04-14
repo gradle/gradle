@@ -17,7 +17,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
@@ -199,7 +198,6 @@ public interface BuildController {
      * @return The action results. These are returned in the same order as the actions that produce them.
      * @since 6.8
      */
-    @Incubating
     <T> List<T> run(Collection<? extends BuildAction<? extends T>> actions);
 
     /**
@@ -210,6 +208,5 @@ public interface BuildController {
      * @return {@code true} when project models may be queried in parallel.
      * @since 6.8
      */
-    @Incubating
     boolean getCanQueryProjectModelInParallel(Class<?> modelType);
 }

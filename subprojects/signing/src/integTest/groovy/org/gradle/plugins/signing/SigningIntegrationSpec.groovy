@@ -31,7 +31,8 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         GPG_CMD
     }
 
-    @Rule public final TestResources resources = new TestResources(temporaryFolder, "keys")
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder, "keys")
 
     Path gpgHomeSymlink
 
@@ -150,7 +151,6 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     TestFile fileRepoFile(String name) {
         file("build", "fileRepo", name)
     }
-
 
     void jarUploaded(String jarFileName = jarFileName) {
         assert m2RepoFile(jarFileName).exists()

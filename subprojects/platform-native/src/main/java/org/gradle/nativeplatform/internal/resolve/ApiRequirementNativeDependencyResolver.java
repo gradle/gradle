@@ -26,11 +26,9 @@ import org.gradle.nativeplatform.NativeLibraryRequirement;
  */
 public class ApiRequirementNativeDependencyResolver implements NativeDependencyResolver {
     private final NativeDependencyResolver delegate;
-    private final FileCollectionFactory fileCollectionFactory;
 
-    public ApiRequirementNativeDependencyResolver(NativeDependencyResolver delegate, FileCollectionFactory fileCollectionFactory) {
+    public ApiRequirementNativeDependencyResolver(NativeDependencyResolver delegate) {
         this.delegate = delegate;
-        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -49,7 +47,7 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
                 ApiAdaptedNativeLibraryRequirement adaptedRequirement = (ApiAdaptedNativeLibraryRequirement) resolution.getRequirement();
                 resolution.setRequirement(adaptedRequirement.getOriginal());
 //                resolution.setLibraryBinary(null);
-                resolution.setNativeDependencySet(new ApiNativeDependencySet(resolution.getNativeDependencySet(), fileCollectionFactory));
+                resolution.setNativeDependencySet(new ApiNativeDependencySet(resolution.getNativeDependencySet()));
             }
         }
     }
@@ -95,11 +93,9 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
 
     private static class ApiNativeDependencySet implements NativeDependencySet {
         private final NativeDependencySet delegate;
-        private final FileCollectionFactory fileCollectionFactory;
 
-        public ApiNativeDependencySet(NativeDependencySet delegate, FileCollectionFactory fileCollectionFactory) {
+        public ApiNativeDependencySet(NativeDependencySet delegate) {
             this.delegate = delegate;
-            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -109,12 +105,12 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
 
         @Override
         public FileCollection getLinkFiles() {
-            return fileCollectionFactory.empty(delegate.getLinkFiles().toString());
+            return FileCollectionFactory.empty(delegate.getLinkFiles().toString());
         }
 
         @Override
         public FileCollection getRuntimeFiles() {
-            return fileCollectionFactory.empty(delegate.getRuntimeFiles().toString());
+            return FileCollectionFactory.empty(delegate.getRuntimeFiles().toString());
         }
     }
 }

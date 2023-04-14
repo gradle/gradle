@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -27,7 +28,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
@@ -35,6 +35,8 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Cast;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.workers.ForkingWorkerSpec;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
+    private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
 
     protected static ConventionMapping conventionMappingOf(Object object) {
         return ((IConventionAware) object).getConventionMapping();
@@ -93,12 +96,10 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     protected void createConfigurations() {
-        Configuration configuration = project.getConfigurations().create(getConfigurationName());
+        Configuration configuration = project.getConfigurations().resolvableBucket(getConfigurationName());
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
-        configuration.setCanBeResolved(true);
-        configuration.setCanBeConsumed(false);
 
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
@@ -227,18 +228,13 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         project.getPlugins().withType(getBasePlugin(), action);
     }
 
-    /**
-     * Returns the java convention object.
-     *
-     * @return the convention object.
-     * @deprecated use {@link #getJavaPluginExtension()} instead.
-     */
-    @Deprecated
-    protected JavaPluginConvention getJavaPluginConvention() {
-        return project.getConvention().getPlugin(JavaPluginConvention.class);
-    }
-
     protected JavaPluginExtension getJavaPluginExtension() {
         return project.getExtensions().getByType(JavaPluginExtension.class);
+    }
+
+    public static void maybeAddOpensJvmArgs(JavaLauncher javaLauncher, ForkingWorkerSpec spec) {
+        if (JavaVersion.toVersion(javaLauncher.getMetadata().getJavaRuntimeVersion()).isJava9Compatible()) {
+            spec.getForkOptions().jvmArgs("--add-opens", OPEN_MODULES_ARG);
+        }
     }
 }

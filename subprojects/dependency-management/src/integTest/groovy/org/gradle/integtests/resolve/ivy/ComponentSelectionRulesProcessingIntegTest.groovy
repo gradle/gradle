@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.maven.MavenModule
 
 class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "rules are not fired when no candidate matches selector"() {
         buildFile << """
 
@@ -195,9 +196,11 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 
             task resolveConf {
+                def files = configurations.conf
+                def modules = provider { fired }
                 doLast {
-                    configurations.conf.files
-                    assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+                    files.files
+                    assert modules.get().sort() == [ 'child', 'child_dep', 'parent_dep' ]
                 }
             }
         """
@@ -224,7 +227,6 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
 
     // because of the IvyModuleDescriptor rule
     @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
-    @ToBeFixedForConfigurationCache
     def "component metadata is requested only once for rules that do require it" () {
         buildFile << """
             dependencies {
@@ -278,7 +280,6 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
     @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
     // because of branch
     @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-    @ToBeFixedForConfigurationCache
     def "changed component metadata becomes visible when module is refreshed" () {
 
         def commonBuildFile = buildFile.text + """
@@ -401,10 +402,13 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             configurations.add(configurations.conf.copy())
 
             task('assertDeps') {
+                def conf = configurations.conf
+                def confCopy = configurations.confCopy
+                def notCopy = configurations.notCopy
                 doLast {
-                    assert configurations.conf.files*.name == ['api-1.1.jar']
-                    assert configurations.confCopy.files*.name == ['api-1.1.jar']
-                    assert configurations.notCopy.files*.name == ['api-1.2.jar']
+                    assert conf*.name == ['api-1.1.jar']
+                    assert confCopy*.name == ['api-1.1.jar']
+                    assert notCopy*.name == ['api-1.2.jar']
                 }
             }
         """
@@ -469,6 +473,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies()
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can provide component selection rule as rule source"() {
         buildFile << """
 

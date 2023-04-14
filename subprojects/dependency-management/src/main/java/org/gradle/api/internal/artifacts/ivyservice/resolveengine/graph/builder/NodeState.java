@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
@@ -42,22 +43,20 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ShadowedCapability;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantSelectionResult;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
@@ -129,6 +128,11 @@ public class NodeState implements DependencyGraphNode {
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
+    @VisibleForTesting // just for testing purposes
+    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
+        this(resultId, id, component, null, md, selectedByVariantAwareResolution);
+    }
+
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
         this.resultId = resultId;
         this.id = id;
@@ -199,11 +203,11 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
-        if (metadata instanceof LocalConfigurationMetadata) {
+        if (metadata instanceof LocalConfigurationGraphResolveMetadata) {
             // Only when this node has a transitive incoming edge
             for (EdgeState incomingEdge : incomingEdges) {
                 if (incomingEdge.isTransitive()) {
-                    return ((LocalConfigurationMetadata) metadata).getFiles();
+                    return ((LocalConfigurationGraphResolveMetadata) metadata).getFiles();
                 }
             }
         }
@@ -598,7 +602,7 @@ public class NodeState implements DependencyGraphNode {
         }
         if (state == null) {
             // the platform doesn't exist, so we're building a lenient one
-            state = new LenientPlatformGraphResolveState(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
+            state = LenientPlatformGraphResolveState.of(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
             potentialEdge.component.setState(state);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
@@ -628,11 +632,14 @@ public class NodeState implements DependencyGraphNode {
 
         DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
-            ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
-            if (artifactSelectionDetails.isUpdated()) {
-                return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
-            }
-            return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
+            // This caching works because our substitutionResult are cached themselves
+            return dependencyState.withSubstitution(substitutionResult, result -> {
+                ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
+                if (artifactSelectionDetails.isUpdated()) {
+                    return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
+                }
+                return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
+            });
         }
         return dependencyState;
     }
@@ -1327,31 +1334,12 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    private static class NonTransitiveVariantDependencyMetadata implements DependencyMetadata {
+    private static class NonTransitiveVariantDependencyMetadata extends DelegatingDependencyMetadata {
         private final DependencyMetadata dependencyMetadata;
 
         public NonTransitiveVariantDependencyMetadata(DependencyMetadata dependencyMetadata) {
+            super(dependencyMetadata);
             this.dependencyMetadata = dependencyMetadata;
-        }
-
-        @Override
-        public ComponentSelector getSelector() {
-            return dependencyMetadata.getSelector();
-        }
-
-        @Override
-        public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-            return dependencyMetadata.selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
-        }
-
-        @Override
-        public List<ExcludeMetadata> getExcludes() {
-            return dependencyMetadata.getExcludes();
-        }
-
-        @Override
-        public List<IvyArtifactName> getArtifacts() {
-            return dependencyMetadata.getArtifacts();
         }
 
         @Override
@@ -1365,28 +1353,8 @@ public class NodeState implements DependencyGraphNode {
         }
 
         @Override
-        public boolean isChanging() {
-            return dependencyMetadata.isChanging();
-        }
-
-        @Override
         public boolean isTransitive() {
             return false;
-        }
-
-        @Override
-        public boolean isConstraint() {
-            return dependencyMetadata.isConstraint();
-        }
-
-        @Override
-        public boolean isEndorsingStrictVersions() {
-            return dependencyMetadata.isEndorsingStrictVersions();
-        }
-
-        @Override
-        public String getReason() {
-            return dependencyMetadata.getReason();
         }
 
         @Override

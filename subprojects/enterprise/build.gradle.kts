@@ -15,7 +15,9 @@ dependencies {
     implementation(project(":build-option"))
     implementation(project(":core"))
     implementation(project(":core-api"))
+    implementation(project(":dependency-management"))
     implementation(project(":execution"))
+    implementation(project(":configuration-cache"))
     implementation(project(":file-collections"))
     implementation(project(":jvm-services"))
     implementation(project(":launcher"))
@@ -36,6 +38,7 @@ dependencies {
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":internal-integ-testing"))
+    integTestImplementation(testFixtures(project(":core")))
 
     // Dependencies of the integ test fixtures
     integTestImplementation(project(":build-option"))
@@ -45,4 +48,9 @@ dependencies {
     integTestImplementation(libs.guava)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

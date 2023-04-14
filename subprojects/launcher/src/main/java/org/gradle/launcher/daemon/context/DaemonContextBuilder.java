@@ -42,6 +42,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private Integer idleTimeout;
     private Locale locale = Locale.getDefault();
     private List<String> daemonOpts = Lists.newArrayList();
+    private boolean applyInstrumentationAgent;
     private DaemonParameters.Priority priority;
 
     public DaemonContextBuilder(ProcessEnvironment processEnvironment) {
@@ -76,7 +77,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     public Long getPid() {
         return pid;
     }
-    
+
     public void setPid(Long pid) {
         this.pid = pid;
     }
@@ -84,7 +85,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     public Integer getIdleTimeout() {
         return idleTimeout;
     }
-    
+
     public void setIdleTimeout(Integer idleTimeout) {
         this.idleTimeout = idleTimeout;
     }
@@ -105,6 +106,10 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.daemonOpts = daemonOpts;
     }
 
+    public void setApplyInstrumentationAgent(boolean applyInstrumentationAgent) {
+        this.applyInstrumentationAgent = applyInstrumentationAgent;
+    }
+
     public void setPriority(DaemonParameters.Priority priority) {
         this.priority = priority;
     }
@@ -112,6 +117,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     public void useDaemonParameters(DaemonParameters daemonParameters) {
         setJavaHome(daemonParameters.getEffectiveJvm().getJavaHome());
         setDaemonOpts(daemonParameters.getEffectiveJvmArgs());
+        setApplyInstrumentationAgent(daemonParameters.shouldApplyInstrumentationAgent());
         setPriority(daemonParameters.getPriority());
     }
 
@@ -123,6 +129,6 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         if (daemonRegistryDir == null) {
             throw new IllegalStateException("Registry dir must be specified.");
         }
-        return new DefaultDaemonContext(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, priority);
+        return new DefaultDaemonContext(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, applyInstrumentationAgent, priority);
     }
 }

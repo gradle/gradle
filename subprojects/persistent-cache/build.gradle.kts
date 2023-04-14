@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.commonsLang)
 
     testImplementation(project(":core-api"))
+    testImplementation(project(":functional"))
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":distributions-core")) {

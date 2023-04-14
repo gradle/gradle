@@ -152,7 +152,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
         def otherAttr = Attribute.of('other', String)
 
         when:
-        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, [new ImmutableCapability("org", "blah", "1.5")])
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, [new DefaultImmutableCapability("org", "blah", "1.5")])
 
         then:
         selector.group == 'some-group'
@@ -163,7 +163,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.attributes.isEmpty()
-        selector.requestedCapabilities == [new ImmutableCapability("org", "blah", "1.5")]
+        selector.requestedCapabilities == [new DefaultImmutableCapability("org", "blah", "1.5")]
         selector.displayName == 'some-group:some-name:1.0'
         selector.toString() == 'some-group:some-name:1.0'
     }

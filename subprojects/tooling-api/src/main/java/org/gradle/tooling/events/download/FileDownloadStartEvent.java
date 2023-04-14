@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.download;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.StartEvent;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.tooling.events.StartEvent;
  *
  * @since 7.3
  */
-@Incubating
 public interface FileDownloadStartEvent extends FileDownloadProgressEvent, StartEvent {
 }

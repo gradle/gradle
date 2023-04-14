@@ -68,6 +68,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "archive is not pushed to remote when packing fails"() {
+        executer.withStacktraceEnabled()
+
         when:
         file("input.txt") << "data"
         settingsFile << remoteCache.remoteCacheConfiguration()
@@ -128,6 +130,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "corrupt archive loaded from local cache is purged"() {
+        executer.withStacktraceEnabled()
+
         when:
         file("input.txt") << "data"
         buildFile << """
@@ -188,6 +192,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheFiles().size() == 1
 
         when:
+        executer.withStacktraceEnabled()
         cleanBuildDir()
 
         and:

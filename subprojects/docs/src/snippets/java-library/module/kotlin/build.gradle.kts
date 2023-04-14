@@ -11,7 +11,7 @@ version = "1.2"
 
 tasks.compileJava {
     // use the project's version or define one directly
-    options.javaModuleVersion.set(provider { project.version as String })
+    options.javaModuleVersion.set(provider { version as String })
 }
 // end::declareVersion[]
 

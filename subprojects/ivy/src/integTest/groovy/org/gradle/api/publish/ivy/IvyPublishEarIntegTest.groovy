@@ -16,10 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
-    @ToBeFixedForConfigurationCache
     void "can publish EAR only for mixed java and WAR and EAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishEar' "
@@ -87,5 +84,4 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
             }
         }
     }
-
 }

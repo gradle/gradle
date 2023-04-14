@@ -21,6 +21,12 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -101,7 +107,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -126,7 +132,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -157,11 +163,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", ":buildC", "org.test:buildC:1.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -182,11 +188,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
-            edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
+            edge("org.test:b2:1.0", ":buildB:b2", "org.test:b2:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -211,10 +217,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
-                edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
+                edge("org.test:b2:1.0", ":buildB:b2", "org.test:b2:2.0") {
                     configuration = "runtimeElements"
                     compositeSubstitute()
                 }
@@ -242,7 +248,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
                 module("org.test:transitive2:1.0") {
@@ -279,11 +285,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
                 project(":buildB:b1", "org.test:b1:2.0") {
-                    project(":buildB:b1:b11", "org.test:b11:2.0") {}
+                    project(":buildB:b1:b11", "org.test:b11:2.0")
                 }
             }
         }
@@ -311,7 +317,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
                 module("org.test:transitive2:1.0")
@@ -343,10 +349,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", ":buildC", "org.test:buildC:1.0") {
                     configuration = "runtimeElements"
                     compositeSubstitute()
                 }
@@ -370,30 +376,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                     compositeSubstitute()
                 }
-            }
-        }
-    }
-
-    def "substitutes forced direct dependency"() {
-        given:
-        buildA.buildFile << """
-            dependencies {
-                implementation("org.test:buildB:1.0") { force = true }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        checkDependencies()
-
-        then:
-        checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
-                compositeSubstitute()
             }
         }
     }
@@ -415,7 +400,8 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
+                    forced()
                     compositeSubstitute()
                 }
             }
@@ -451,10 +437,12 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:something:1.0", "project :buildB", "org.test:buildB:2.0") {
+                edge("org.test:something:1.0", ":buildB", "org.test:buildB:2.0") {
+                    selectedByRule()
                     compositeSubstitute()
                 }
-                edge("org.other:something-else:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+                edge("org.other:something-else:1.0", ":buildB:b1", "org.test:b1:2.0") {
+                    selectedByRule()
                     compositeSubstitute()
                 }
             }
@@ -481,7 +469,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("group.requires.subproject.evaluation:b1:1.0", "project :buildB:b1", "group.requires.subproject.evaluation:b1:2.0") {
+            edge("group.requires.subproject.evaluation:b1:1.0", ":buildB:b1", "group.requires.subproject.evaluation:b1:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -520,11 +508,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", ":buildC", "org.test:buildC:1.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -554,11 +542,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
-            edge("org.test:c1:1.0", "project :buildC:c1", "org.test:c1:1.0") {
+            edge("org.test:c1:1.0", ":buildC:c1", "org.test:c1:1.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -637,10 +625,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
-                project(":buildB:b1", "org.test:b1:2.0") {}
+                project(":buildB:b1", "org.test:b1:2.0")
             }
         }
     }
@@ -685,7 +673,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -711,6 +699,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             "  - None of the consumable configurations have attributes.")
     }
 
+    public static final REPOSITORY_HINT = repositoryHint("Maven POM")
     @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "includes build identifier in error message on failure to resolve dependencies of included build"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
@@ -760,9 +749,14 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
   - ${m.pom.file.toURL()}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :buildC""")
+        failure.assertHasResolutions(REPOSITORY_HINT,
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
+
 
         when:
         m.publish()
@@ -805,7 +799,7 @@ Required by:
         def expectSubstitution = rootIsIncluded.contains("yes")
         checkGraph {
             if (expectSubstitution) {
-                edge("org.test:subproject1:2.0", "project :subproject1", "org.test:subproject1:1.0") {
+                edge("org.test:subproject1:2.0", ":subproject1", "org.test:subproject1:1.0") {
                     configuration = "runtimeElements"
                     compositeSubstitute()
                 }

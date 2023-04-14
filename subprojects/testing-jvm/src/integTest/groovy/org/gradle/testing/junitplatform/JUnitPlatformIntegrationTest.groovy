@@ -18,26 +18,15 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
-    void createSimpleJupiterTest() {
-        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
-            package org.gradle;
-
-            import org.junit.jupiter.api.Test;
-
-            public class JUnitJupiterTest {
-                @Test
-                public void ok() { }
-            }
-            '''
-    }
 
     def 'can work with junit-platform-runner'() {
         given:
@@ -50,28 +39,6 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
 
         expect:
         succeeds('test')
-    }
-
-    def 'should prompt user to add dependencies when they are not in test runtime classpath'() {
-        given:
-        buildFile.text = """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies {
-                testCompileOnly 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
-            }
-
-            test { useJUnitPlatform() }
-            """
-        createSimpleJupiterTest()
-
-        when:
-        fails('test')
-
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
     }
 
     def 'can handle class level ignored tests'() {
@@ -408,5 +375,90 @@ public class StaticInnerTest {
         scenario       | extraArgs
         "w/o filters"  | []
         "with filters" | ['--tests', 'JUnitJupiterTest']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23602")
+    def "handles unserializable exception thrown from test"() {
+        given:
+        file('src/test/java/PoisonTest.java') << """
+            import org.junit.jupiter.api.Test;
+
+            public class PoisonTest {
+                @Test
+                public void passingTest() { }
+
+                @Test
+                public void testWithUnserializableException() {
+                    throw new UnserializableException();
+                }
+
+                @Test
+                public void normalFailingTest() {
+                    assert false;
+                }
+
+                private static class WriteReplacer implements java.io.Serializable {
+                    private Object readResolve() {
+                        return new RuntimeException();
+                    }
+                }
+
+                private static class UnserializableException extends RuntimeException {
+                    private Object writeReplace() {
+                        return new WriteReplacer();
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
+            assertTestPassed("passingTest")
+            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+            assertTestFailed("normalFailingTest", containsString("AssertionError"))
+        }
+    }
+
+    // When running embedded with test distribution, the remote distribution has a newer version of
+    // junit-platform-launcher which is not compatible with the junit jupiter jars we test against.
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    // JUnitCoverage is quite limited and doesn't test older versions or the newest version.
+    // Future work is planned to improve junit test rewriting, and at the same time should verify
+    // greater ranges of junit platform testing. This is only reproducible with the newest version
+    // of junit, so test that version explicitly here.
+    @Issue("https://github.com/gradle/gradle/issues/24429")
+    def "works with parameterized tests for larger version range"() {
+        given:
+        buildScriptWithJupiterDependencies("""
+            test {
+                useJUnitPlatform()
+            }
+        """, version)
+
+        file("src/test/java/SomeTest.java") << """
+            import java.util.stream.Stream;
+            import org.junit.jupiter.params.ParameterizedTest;
+            import org.junit.jupiter.params.provider.Arguments;
+            import org.junit.jupiter.params.provider.MethodSource;
+
+            class SomeTest {
+                public static Stream<Arguments> args() {
+                    return Stream.of(Arguments.of("blah"));
+                }
+
+                @ParameterizedTest
+                @MethodSource("args")
+                void someTest(String value) { }
+            }
+        """
+
+        expect:
+        succeeds "test"
+
+        where:
+        version << ["5.9.2", "5.6.3"]
     }
 }

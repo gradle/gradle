@@ -35,7 +35,7 @@ testing {
             useJUnitJupiter() // <3>
         }
 
-        val integrationTest by registering(JvmTestSuite::class) { // <4>
+        register<JvmTestSuite>("integrationTest") { // <4>
             dependencies {
                 implementation(project()) // <5>
             }

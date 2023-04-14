@@ -27,12 +27,13 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.ExecutionEngine
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.FileCollectionSnapshotter
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -45,7 +46,9 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 
-const val BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED = true
+internal
+const val KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY =
+    "org.gradle.kotlin.dsl.scriptCompilationAvoidance"
 
 
 internal
@@ -104,7 +107,8 @@ object BuildServices {
         workspaceProvider: KotlinDslWorkspaceProvider,
         @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer,
         fileCollectionFactory: FileCollectionFactory,
-        inputFingerprinter: InputFingerprinter
+        inputFingerprinter: InputFingerprinter,
+        gradlePropertiesController: GradlePropertiesController,
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -125,7 +129,8 @@ object BuildServices {
             executionEngine,
             workspaceProvider,
             fileCollectionFactory,
-            inputFingerprinter
+            inputFingerprinter,
+            gradlePropertiesController,
         )
 
     @Suppress("unused")
@@ -137,7 +142,7 @@ object BuildServices {
         classpathFingerprinter: ClasspathFingerprinter
     ) =
         DefaultClasspathHasher(
-            if (BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED) {
+            if (isKotlinScriptCompilationAvoidanceEnabled) {
                 KotlinCompileClasspathFingerprinter(
                     cacheService,
                     fileCollectionSnapshotter,
@@ -156,4 +161,8 @@ object BuildServices {
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
         { id, creator -> jarCache[id, creator] }
+
+    private
+    val isKotlinScriptCompilationAvoidanceEnabled: Boolean
+        get() = System.getProperty(KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY, "true") == "true"
 }

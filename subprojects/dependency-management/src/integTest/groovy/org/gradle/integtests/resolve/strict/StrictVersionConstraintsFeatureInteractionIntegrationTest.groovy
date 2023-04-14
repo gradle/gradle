@@ -20,11 +20,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class StrictVersionConstraintsFeatureInteractionIntegrationTest extends AbstractModuleDependencyResolveTest {
-
-    def setup() {
-        resolve.withStrictReasonsCheck()
-    }
-
     def "can turn constraint into strict constraint by using a component metadata rule"() {
         given:
         repository {
@@ -77,7 +72,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:bar:1.0') {
-                    edge('org:baz:{strictly 1.0}', 'org:baz:1.0').byRequest()
+                    edge('org:baz:{strictly 1.0}', 'org:baz:1.0')
                     edge('org:foo:{strictly 1.0}', 'org:foo:1.0') {
                         edge('org:baz:2.0', 'org:baz:1.0').byAncestor()
                     }
@@ -144,7 +139,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                 module('org:bar:1.0') {
                     edge('org:baz:1.0', 'org:baz:2.0').byConflictResolution('between versions 2.0 and 1.0')
                     module('org:foo:1.0') {
-                        module('org:baz:2.0').byRequest()
+                        module('org:baz:2.0')
                     }
                 }
             }
@@ -189,15 +184,19 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0')
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                    edge('org:foo:2.0', 'org:foo:1.0') {
+                        notRequested()
+                        byAncestor()
+                        byConstraint()
+                    }
                 }
             }
         }
     }
 
-    def "cannot force a version over an ancestor provided version"() {
+    def "will use a project strict version over an ancestor provided strict version"() {
         given:
         repository {
             'org:bar:1.0'()
@@ -210,7 +209,9 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                 configurations.create('conf')
                 artifacts { add('conf', file('foo.jar')) }
                 dependencies {
-                    conf('org:bar:2.0') { force = true }
+                    conf('org:bar') {
+                        version { strictly '2.0' }
+                    }
                 }
             }
             dependencies {
@@ -225,17 +226,14 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
 
         when:
         repositoryInteractions {
-            'org:bar:2.0' {
+            'org:bar:1.0' {
                 expectGetMetadata()
+                expectGetArtifact()
             }
         }
-        executer.expectDeprecationWarning()
-        fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:bar' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'test:foo:unspecified' (conf) --> 'org:bar:2.0'
-   Constraint path ':test:unspecified' --> 'org:bar:{strictly 1.0}'"""
+        succeeds ':checkDeps'
     }
 
     def "can force a version over an ancestor provided version via resolution strategy"() {
@@ -277,10 +275,10 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:bar:{strictly 1.0}', 'org:bar:2.0').byConstraint()
+                constraint('org:bar:{strictly 1.0}', 'org:bar:2.0').byConstraint().forced()
                 project(':foo', 'test:foo:') {
                     configuration = 'conf'
-                    module('org:bar:2.0').byRequest().forced()
+                    module('org:bar:2.0')
                 }
             }
         }
@@ -325,7 +323,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:foo:{strictly 1.0}', 'org:foo:1.0').byRequest()
+                edge('org:foo:{strictly 1.0}', 'org:foo:1.0')
                 module('org:bar:1.0') {
                     edge('org:old:2.0', 'org:foo:1.0').selectedByRule("better foo than old").byAncestor()
                 }
@@ -390,9 +388,14 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{strictly 1.0}', 'org:foo:1.0')
                 module('org:bar:1.0') {
-                    edge("org:foo:2.2", 'org:foo:1.0').selectedByRule("bad version").byAncestor()
+                    edge("org:foo:2.2", 'org:foo:1.0') {
+                        selectedByRule("bad version")
+                        byAncestor()
+                        byConstraint()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -443,7 +446,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:0.11').byConstraint()
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:0.11').byRequest().selectedByRule('because I can')
+                    edge('org:foo:2.0', 'org:foo:0.11').selectedByRule('because I can')
                 }
             }
         }
@@ -494,7 +497,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:foo:{strictly 1.0}', 'org:new:1.0').byRequest().selectedByRule()
+                edge('org:foo:{strictly 1.0}', 'org:new:1.0').selectedByRule()
                 module('org:bar:1.0') {
                     module('org:foo:2.0')
                 }

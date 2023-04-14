@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
-class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.kt"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.kt"
@@ -78,6 +78,29 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         and:
         commonJvmFilesGenerated(scriptDsl)
         dslFixture.assertHasTestSuite('test')
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello World!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
 
         when:
         run("build")

@@ -17,8 +17,6 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 
 abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -136,7 +134,6 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         executedAndNotSkipped ":b:compileGroovy"
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy ast transformation")
     def "recompile with change of local ast transformation"() {
         given:
         executer.beforeExecute {
@@ -178,7 +175,6 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         failure.assertHasCause('Bad AST transformation!')
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy ast transformation")
     def "recompile with change of global ast transformation"() {
         given:
         executer.beforeExecute {

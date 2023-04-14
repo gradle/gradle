@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
+import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -36,12 +36,13 @@ import java.util.regex.Pattern
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static java.util.concurrent.TimeUnit.SECONDS
+import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.hamcrest.Matchers.containsString
 
-class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker {
-    private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture {
+    static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES / 2 as int)
 
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
@@ -194,7 +195,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << """
             subprojects {
                 task badTask {
-                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
+                    def projectLayout = project.layout
+                    outputs.file { projectLayout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
                     doLast { }
                 }
             }
@@ -394,7 +396,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 configurations {
                     green {
                         extendsFrom(compile)
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                         attributes {
                             attribute(artifactType, 'green')
@@ -428,16 +430,41 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         run(":app:toBeFinalized", "withDependency")
 
+        def lib1Message = "Transforming lib1.jar with MakeGreen"
+        def lib2Message = "Transforming lib2.jar with MakeGreen"
+
         then:
-        output.count("Transforming lib1.jar with MakeGreen") == 1
-        output.count("Transforming lib2.jar with MakeGreen") == 1
+        if (!GradleContextualExecuter.configCache) {
+            // Only runs once, as the transform execution in-memory cache is not discarded prior to execution time
+            output.count(lib1Message) == 1
+            output.count(lib2Message) == 1
+        } else {
+            // Transform is also executed at execution time, as the artifact has changed and the execution cache is discarded on load from cache
+            output.count(lib1Message) == 2
+            output.count(lib2Message) == 2
+        }
 
         when:
         run(":app:toBeFinalized", "withDependency")
 
         then:
-        output.count("Transforming lib1.jar with MakeGreen") == 1
-        output.count("Transforming lib2.jar with MakeGreen") == 1
+        if (!GradleContextualExecuter.configCache) {
+            // Runs again, as the artifact has changed
+            output.count(lib1Message) == 1
+            output.count(lib2Message) == 1
+        } else {
+            // Not executed at configuration time, and the transform has already executed for the artifact
+            output.count(lib1Message) == 0
+            output.count(lib2Message) == 0
+        }
+
+        when:
+        run(":app:toBeFinalized", "withDependency")
+
+        then:
+        // Not executed as the transform has already executed for the artifact
+        output.count(lib1Message) == 0
+        output.count(lib2Message) == 0
     }
 
     def "each file is transformed once per set of configuration parameters"() {
@@ -1564,7 +1591,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -1573,6 +1600,116 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         outputDir1.assertDoesNotExist()
+        outputDir2.assertExists()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
+    }
+
+    def "cleans up cache when retention is configured less than the default"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+        withCreatedResourcesRetentionInDays(HALF_DEFAULT_MAX_AGE_IN_DAYS)
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        gcFile.lastModified = daysAgo(2)
+
+        and:
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertDoesNotExist()
+        outputDir2.assertExists()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
+    }
+
+    def "always cleans up cache when configured"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+        withCreatedResourcesRetentionInDays(HALF_DEFAULT_MAX_AGE_IN_DAYS)
+        alwaysCleanupCaches()
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+
+        then:
+        gcFile.assertExists()
+
+        when:
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+
+        and:
+        executer.beforeExecute {
+            if (!GradleContextualExecuter.embedded) {
+                executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+            }
+        }
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertDoesNotExist()
+        outputDir2.assertExists()
+    }
+
+    def "does not clean up cache when retention is configured greater than the default"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+        withCreatedResourcesRetentionInDays(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES * 2)
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        gcFile.lastModified = daysAgo(2)
+
+        and:
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertExists()
         outputDir2.assertExists()
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
@@ -1614,10 +1751,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
 
                 task waitForTransformBarrier {
+                    def files = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'blocking') }
+                    }.artifacts.artifactFiles
                     doLast {
-                        def files = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'blocking') }
-                        }.artifacts.artifactFiles
                         println "files: " + files.collect { it.name }
                     }
                 }
@@ -1662,6 +1799,80 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then: 'transforming build finishes successfully'
         transformingBuild.waitForFinish()
+    }
+
+    def "does not clean up cache when cache cleanup is disabled via #cleanupMethod"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        disableCacheCleanup(cleanupMethod)
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        executer.noDeprecationChecks()
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        gcFile.lastModified = daysAgo(2)
+
+        and:
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertExists()
+        outputDir2.assertExists()
+
+        where:
+        cleanupMethod << CleanupMethod.values()
+    }
+
+    def "cleans up cache when DSL is configured even if legacy property is set"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        disableCacheCleanupViaProperty()
+        explicitlyEnableCacheCleanupViaDsl()
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        gcFile.lastModified = daysAgo(2)
+
+        and:
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertDoesNotExist()
+        outputDir2.assertExists()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
 
     String getResolveTask() {
@@ -1924,5 +2135,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     void writeLastTransformationAccessTimeToJournal(TestFile workspaceDir, long millis) {
         writeLastFileAccessTimeToJournal(workspaceDir, millis)
+    }
+
+    @Override
+    TestFile getGradleUserHomeDir() {
+        return executer.gradleUserHomeDir
     }
 }

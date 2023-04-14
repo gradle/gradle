@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.concurrent
 
-import com.google.common.annotations.VisibleForTesting
-
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -34,7 +32,7 @@ import kotlin.coroutines.startCoroutine
  *
  * The [computation] executes synchronously until its first suspension point.
  */
-@VisibleForTesting
+internal
 fun <T> future(context: CoroutineContext = EmptyCoroutineContext, computation: suspend () -> T): Future<T> =
     FutureContinuation<T>(context).also { k ->
         computation.startCoroutine(completion = k)

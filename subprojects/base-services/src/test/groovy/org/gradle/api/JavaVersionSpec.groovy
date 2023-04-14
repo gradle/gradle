@@ -43,8 +43,8 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_1_6.toString() == "1.6"
         JavaVersion.VERSION_1_7.toString() == "1.7"
         JavaVersion.VERSION_1_8.toString() == "1.8"
-        JavaVersion.VERSION_1_9.toString() == "1.9"
-        JavaVersion.VERSION_1_10.toString() == "1.10"
+        JavaVersion.VERSION_1_9.toString() == "9"
+        JavaVersion.VERSION_1_10.toString() == "10"
         JavaVersion.VERSION_11.toString() == "11"
         JavaVersion.VERSION_12.toString() == "12"
         JavaVersion.VERSION_13.toString() == "13"
@@ -55,7 +55,11 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_18.toString() == "18"
         JavaVersion.VERSION_19.toString() == "19"
         JavaVersion.VERSION_20.toString() == "20"
-        JavaVersion.VERSION_HIGHER.toString() == "21"
+        JavaVersion.VERSION_21.toString() == "21"
+        JavaVersion.VERSION_22.toString() == "22"
+        JavaVersion.VERSION_23.toString() == "23"
+        JavaVersion.VERSION_24.toString() == "24"
+        JavaVersion.VERSION_HIGHER.toString() == "25"
     }
 
     def convertsStringToVersion() {
@@ -115,6 +119,13 @@ class JavaVersionSpec extends Specification {
         JavaVersion.forClassVersion(59) == JavaVersion.VERSION_15
         JavaVersion.forClassVersion(60) == JavaVersion.VERSION_16
         JavaVersion.forClassVersion(61) == JavaVersion.VERSION_17
+        JavaVersion.forClassVersion(62) == JavaVersion.VERSION_18
+        JavaVersion.forClassVersion(63) == JavaVersion.VERSION_19
+        JavaVersion.forClassVersion(64) == JavaVersion.VERSION_20
+        JavaVersion.forClassVersion(65) == JavaVersion.VERSION_21
+        JavaVersion.forClassVersion(66) == JavaVersion.VERSION_22
+        JavaVersion.forClassVersion(67) == JavaVersion.VERSION_23
+        JavaVersion.forClassVersion(68) == JavaVersion.VERSION_24
         JavaVersion.forClassVersion(999) == JavaVersion.VERSION_HIGHER
     }
 
@@ -266,7 +277,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion('9-pre-opt') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('42+---bar') == JavaVersion.VERSION_HIGHER
         JavaVersion.toVersion('2.91+-8061493-') == JavaVersion.VERSION_1_2
-        JavaVersion.toVersion('24+-foo.bar') == JavaVersion.VERSION_HIGHER
+        JavaVersion.toVersion('999+-foo.bar') == JavaVersion.VERSION_HIGHER
         JavaVersion.toVersion('9-ribbit+17-...') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion("7+1-$TOO_BIG_STR") == JavaVersion.VERSION_1_7
     }

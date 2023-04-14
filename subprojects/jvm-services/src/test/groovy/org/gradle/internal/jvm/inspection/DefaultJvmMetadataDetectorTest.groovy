@@ -120,12 +120,9 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'temurinjdk17'   | temurinJvm('17')         | JavaVersion.VERSION_17  | 'Eclipse Temurin JDK 17'     | false
         'temurinjre8'    | temurin8Jvm('8')         | JavaVersion.VERSION_1_8 | 'Eclipse Temurin JRE 8'      | true
         'temurinjre11'   | temurin11Jvm('11')       | JavaVersion.VERSION_11  | 'Eclipse Temurin JRE 11'     | true
-        'semerujdk8'     | semeruJvm('8')           | JavaVersion.VERSION_1_8 | 'IBM Semeru Runtimes JDK 8'  | false
-        'semerujdk11'    | semeruJvm('11')          | JavaVersion.VERSION_11  | 'IBM Semeru Runtimes JDK 11' | false
-        'semerujdk16'    | semeruJvm('16')          | JavaVersion.VERSION_16  | 'IBM Semeru Runtimes JDK 16' | false
-        'semerujre8'     | semeruJvm('8')           | JavaVersion.VERSION_1_8 | 'IBM Semeru Runtimes JRE 8'  | true
-        'semerujre11'    | semeruJvm('11')          | JavaVersion.VERSION_11  | 'IBM Semeru Runtimes JRE 11' | true
-        'semerujre16'    | semeruJvm('16')          | JavaVersion.VERSION_16  | 'IBM Semeru Runtimes JRE 16' | true
+        'semerujdk11'    | semeruJvm11()            | JavaVersion.VERSION_11  | 'IBM JDK 11'                 | false
+        'semerujdk16'    | semeruJvm16()            | JavaVersion.VERSION_16  | 'IBM JDK 16'                 | false
+        'semerujdk17'    | semeruJvm17()            | JavaVersion.VERSION_17  | 'IBM JDK 17'                 | false
         'whitespaces'    | whitespaces('11.0.3')    | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'        | true
     }
 
@@ -154,9 +151,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'ibmJdk7'        | ibmJvm('7')              | true
         'ibmJdk8'        | ibmJvm('8')              | true
         'ibmJdk9'        | ibmJvm('9')              | true
-        'semeru8'        | semeruJvm('8')           | true
-        'semeru11'       | semeruJvm('11')          | true
-        'semeru16'       | semeruJvm('16')          | true
+        'semeru11'       | semeruJvm11()            | true
+        'semeru16'       | semeruJvm16()            | true
         'temurin8'       | temurin8Jvm('8')         | false
         'temurin11'      | temurin11Jvm('11')       | false
         'temurin17'      | temurinJvm('17')         | false
@@ -436,16 +432,42 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         ]
     }
 
-    private static Map<String, String> semeruJvm(String version) {
+    private static Map<String, String> semeruJvm11() {
         ['java.home': "java-home",
-         'java.version': "${version}",
+         'java.version': "11.0.17",
+         'java.vendor': "IBM Corporation",
+         'os.arch': "x86_64",
+         'java.vm.name': "Eclipse OpenJ9 VM",
+         'java.vm.version': "openj9-0.35.0",
+         'java.vm.vendor': "Eclipse OpenJ9",
+         'java.runtime.name': "IBM Semeru Runtime Open Edition",
+         'java.runtime.version': "11.0.17+8"
+        ]
+    }
+
+    private static Map<String, String> semeruJvm16() {
+        ['java.home': "java-home",
+         'java.version': "16.0.2",
          'java.vendor': "International Business Machines Corporation",
          'os.arch': "x86_64",
          'java.vm.name': "Eclipse OpenJ9 VM",
          'java.vm.version': "openj9-0.27.0",
-         'java.vm.vendor': "International Business Machines Corporation",
+         'java.vm.vendor': "Eclipse OpenJ9",
          'java.runtime.name': "IBM Semeru Runtime Open Edition",
-         'java.runtime.version': "${version}-b08"
+         'java.runtime.version': "16.0.2+7"
+        ]
+    }
+
+    private static Map<String, String> semeruJvm17() {
+        ['java.home': "java-home",
+         'java.version': "17.0.5",
+         'java.vendor': "IBM Corporation",
+         'os.arch': "x86_64",
+         'java.vm.name': "Eclipse OpenJ9 VM",
+         'java.vm.version': "openj9-0.35.0",
+         'java.vm.vendor': "Eclipse OpenJ9",
+         'java.runtime.name': "IBM Semeru Runtime Open Edition",
+         'java.runtime.version': "17.0.5+8"
         ]
     }
 

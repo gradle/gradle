@@ -37,6 +37,8 @@ val soakTest = "soakTest"
 
 val smokeTest = "smokeTest"
 
+val docsTest = "docs:docsTest"
+
 setupTimeoutMonitorOnCI()
 setupGlobalState()
 
@@ -50,8 +52,8 @@ tasks.registerEarlyFeedbackRootLifecycleTasks()
 fun setupTimeoutMonitorOnCI() {
     if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
         project.gradle.sharedServices.registerIfAbsent("printStackTracesOnTimeoutBuildService", PrintStackTracesOnTimeoutBuildService::class.java) {
-            parameters.timeoutMillis.set(determineTimeoutMillis())
-            parameters.projectDirectory.set(layout.projectDirectory)
+            parameters.timeoutMillis = determineTimeoutMillis()
+            parameters.projectDirectory = layout.projectDirectory
         }.get()
     }
 }
@@ -59,6 +61,7 @@ fun setupTimeoutMonitorOnCI() {
 fun determineTimeoutMillis() = when {
     isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest) -> Duration.ofMinutes(30).toMillis()
     isRequestedTask(smokeTest) -> Duration.ofHours(1).plusMinutes(30).toMillis()
+    isRequestedTask(docsTest) -> Duration.ofMinutes(45).toMillis()
     else -> Duration.ofHours(2).plusMinutes(45).toMillis()
 }
 

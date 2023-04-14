@@ -22,8 +22,6 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
@@ -34,6 +32,9 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.file.Deleter
 
 import java.time.Duration
+
+import static org.gradle.internal.execution.ExecutionEngine.Execution
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE
 
 class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnapshotterFixture {
     def buildCacheController = Mock(BuildCacheController)
@@ -51,13 +52,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def step = new BuildCacheStep(buildCacheController, deleter, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
-    @Override
-    protected IncrementalChangesContext createContext() {
-        Stub(IncrementalChangesContext)
-    }
-
     def "loads from cache"() {
-        def cachedOriginMetadata = Mock(OriginMetadata)
+        def cachedOriginMetadata = Stub(OriginMetadata)
+        cachedOriginMetadata.executionTime >> Duration.ofSeconds(1)
         def outputsFromCache = snapshotsOf("test": [])
         def localStateFile = file("local-state.txt") << "local state"
 
@@ -65,7 +62,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def result = step.execute(work, context)
 
         then:
-        result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
+        result.execution.get().outcome == FROM_CACHE
         result.afterExecutionState.get().reused
         result.afterExecutionState.get().originMetadata == cachedOriginMetadata
         result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
@@ -94,6 +91,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     }
 
     def "executes work and stores in cache on cache miss"() {
+        given:
+        def execution = Mock(Execution)
+
         when:
         def result = step.execute(work, context)
 
@@ -108,7 +108,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.execution >> Try.successful(execution)
+        1 * execution.canStoreOutputsInCache() >> true
 
         then:
         interaction { outputStored {} }
@@ -144,6 +145,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     }
 
     def "does not store untracked result in cache"() {
+        given:
+        def execution = Mock(Execution)
+
         when:
         def result = step.execute(work, context)
 
@@ -158,8 +162,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.execution >> Try.successful(execution)
         1 * delegateResult.afterExecutionState >> Optional.empty()
+        1 * execution.canStoreOutputsInCache() >> true
 
         then:
         0 * buildCacheController.store(_)
@@ -181,7 +186,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.failure(new RuntimeException("failure"))
+        1 * delegateResult.execution >> Try.failure(new RuntimeException("failure"))
 
         then:
         0 * buildCacheController.store(_)
@@ -189,6 +194,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     }
 
     def "does not load but stores when loading is disabled"() {
+        given:
+        def execution = Mock(Execution)
+
         when:
         def result = step.execute(work, context)
 
@@ -202,7 +210,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.execution >> Try.successful(execution)
+        1 * execution.canStoreOutputsInCache() >> true
 
         then:
         interaction { outputStored {} }
@@ -210,6 +219,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     }
 
     def "fails when cache backend throws exception while storing cached result"() {
+        given:
+        def execution = Mock(Execution)
         def failure = new RuntimeException("store failure")
 
         when:
@@ -227,7 +238,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.execution >> Try.successful(execution)
+        1 * execution.canStoreOutputsInCache() >> true
 
         then:
         interaction { outputStored { throw failure } }
@@ -243,6 +255,24 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         _ * context.cachingState >> CachingState.disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         1 * delegate.execute(work, context) >> delegateResult
+        0 * _
+    }
+
+    def "executes and doesn't store when storing is disabled"() {
+        given:
+        def execution = Mock(Execution)
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+
+        interaction { withValidCacheKey() }
+
+        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegateResult.execution >> Try.successful(execution)
+        1 * execution.canStoreOutputsInCache() >> false
         0 * _
     }
 

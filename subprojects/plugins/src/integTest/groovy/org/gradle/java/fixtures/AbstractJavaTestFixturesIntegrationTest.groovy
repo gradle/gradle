@@ -290,7 +290,7 @@ hamcrest-core-1.3.jar
 
         and: "appears as optional dependency in Maven POM"
         MavenPom pom = new MavenPom(file("build/repo/com/acme/root/1.3/root-1.3.pom"))
-        pom.scope("compile") {
+        pom.scope("runtime") {
             assertOptionalDependencies(
                 "org.apache.commons:commons-lang3:3.9"
             )
@@ -401,10 +401,10 @@ hamcrest-core-1.3.jar
                     ])
                     firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
-                        variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'org.gradle.compile-view': 'java-complete'])
-                        artifact(name: 'external-module', version: '1.3')
+                        variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                        artifact(name: 'external-module')
                     }
-                    artifact(name: 'external-module', version: '1.3', classifier: 'test-fixtures')
+                    artifact(name: 'external-module', classifier: 'test-fixtures')
                 }
             }
         }
@@ -428,12 +428,12 @@ hamcrest-core-1.3.jar
                     firstLevelConfigurations = ['testFixturesRuntimeElements']
                     module('com.acme:external-module:1.3') {
                         variant("runtime", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                        artifact(name: 'external-module', version: '1.3')
+                        artifact(name: 'external-module')
                     }
                     module("org.apache.commons:commons-lang3:3.9") {
                         configuration = 'runtime' // external POM
                     }
-                    artifact(name: 'external-module', version: '1.3', classifier: 'test-fixtures')
+                    artifact(name: 'external-module', classifier: 'test-fixtures')
                 }
             }
         }
@@ -508,11 +508,13 @@ hamcrest-core-1.3.jar
 
     protected void dumpCompileAndRuntimeTestClasspath() {
         buildFile << """
-            void printClasspathFile(File it) {
-                if (it.absolutePath.contains('intTestHomeDir')) {
-                    println it.name
-                } else {
-                    println it.absolutePath.substring(it.absolutePath.lastIndexOf('build') + 6).replace(File.separatorChar, (char) '/')
+            class Utils {
+                static void printClasspathFile(File it) {
+                    if (it.absolutePath.contains('intTestHomeDir')) {
+                        println it.name
+                    } else {
+                        println it.absolutePath.substring(it.absolutePath.lastIndexOf('build') + 6).replace(File.separatorChar, (char) '/')
+                    }
                 }
             }
 
@@ -520,7 +522,7 @@ hamcrest-core-1.3.jar
                doFirst {
                    println "Test compile classpath"
                    println "---"
-                   classpath.each { printClasspathFile(it) }
+                   classpath.each { Utils.printClasspathFile(it) }
                    println "---"
                }
             }
@@ -529,7 +531,7 @@ hamcrest-core-1.3.jar
                doFirst {
                   println "Test runtime classpath"
                   println "---"
-                  classpath.each { printClasspathFile(it) }
+                  classpath.each { Utils.printClasspathFile(it) }
                   println "---"
                }
             }

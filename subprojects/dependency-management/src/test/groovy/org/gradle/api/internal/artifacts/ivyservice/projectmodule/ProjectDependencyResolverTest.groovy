@@ -39,8 +39,7 @@ class ProjectDependencyResolverTest extends Specification {
     final ComponentIdentifierFactory componentIdentifierFactory = Mock()
     final ProjectStateRegistry projectRegistry = Stub()
     final ProjectArtifactResolver projectArtifactResolver = Stub()
-    final ProjectArtifactSetResolver projectArtifactSetResolver = Stub()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectArtifactSetResolver, projectArtifactResolver)
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectArtifactResolver)
 
     def setup() {
         def projectState = Stub(ProjectState)

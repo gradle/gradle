@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlu
 /**
  * Registers the standard tool chains.
  */
-public class StandardToolChainsPlugin implements Plugin<Project> {
+public abstract class StandardToolChainsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(MicrosoftVisualCppCompilerPlugin.class);

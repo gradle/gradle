@@ -39,10 +39,6 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
             """
     }
 
-    @Override
-    protected String noJavaLibraryPluginFlag() {
-        "def noJavaLibraryPlugin = hasProperty('noJavaLibraryPlugin')"
-    }
 
     @Override
     protected String tasksConfiguration() {
@@ -52,7 +48,7 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
         int testForkEvery = getProperty('testForkEvery') as Integer
         List<String> javaCompileJvmArgs = findProperty('javaCompileJvmArgs')?.tokenize(';') ?: []
 
-        tasks.withType(AbstractCompile) {
+        tasks.withType(AbstractCompile).configureEach {
             options.fork = true
             options.incremental = true
             options.forkOptions.memoryInitialSize = compilerMemory
@@ -60,23 +56,19 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
             options.forkOptions.jvmArgs.addAll(javaCompileJvmArgs)
         }
 
-        tasks.withType(GroovyCompile) {
+        tasks.withType(GroovyCompile).configureEach {
             groovyOptions.fork = true
             groovyOptions.forkOptions.memoryInitialSize = compilerMemory
             groovyOptions.forkOptions.memoryMaximumSize = compilerMemory
             groovyOptions.forkOptions.jvmArgs.addAll(javaCompileJvmArgs)
         }
 
-        tasks.withType(Test) {
+        tasks.withType(Test).configureEach {
             ${config.useTestNG ? 'useTestNG()' : ''}
             minHeapSize = testRunnerMemory
             maxHeapSize = testRunnerMemory
             maxParallelForks = ${config.maxParallelForks}
             forkEvery = testForkEvery
-
-            if (!JavaVersion.current().java8Compatible) {
-                jvmArgs '-XX:MaxPermSize=512m'
-            }
             jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
         }
 
@@ -88,8 +80,8 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
-    protected String imperativelyApplyPlugin(String plugin) {
-        "apply plugin: '$plugin'"
+    protected String pluginBlockApply(String plugin) {
+        "id '$plugin'"
     }
 
     @Override
@@ -101,17 +93,6 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
         """
     }
 
-    @Override
-    protected String addJavaLibraryConfigurationsIfNecessary(boolean hasParent) {
-        """
-        if (noJavaLibraryPlugin) {
-            configurations {
-                ${hasParent ? 'api' : ''}
-                ${hasParent ? 'compile.extendsFrom api' : ''}
-            }
-        }
-        """
-    }
 
     @Override
     protected String directDependencyDeclaration(String configuration, String notation) {

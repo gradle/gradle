@@ -54,6 +54,6 @@ public interface CachedClasspathTransformer {
     interface Transform {
         void applyConfigurationTo(Hasher hasher);
 
-        Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) throws IOException;
+        Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException;
     }
 }

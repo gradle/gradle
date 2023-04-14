@@ -17,35 +17,23 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateFactory;
 import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
-import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
-import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLogger;
 
-import java.io.File;
-import java.time.Duration;
 import java.util.Formatter;
 import java.util.List;
-import java.util.Optional;
 
 public class ResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
@@ -73,7 +61,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
             cachingState = BUILD_CACHE_DISABLED_STATE;
-        } else if (context.getValidationProblems().isPresent()) {
+        } else if (!context.getValidationProblems().isEmpty()) {
             cachingState = VALIDATION_FAILED_STATE;
         } else {
             cachingState = context.getBeforeExecutionState()
@@ -86,93 +74,8 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
         );
 
-        UpToDateResult result = delegate.execute(work, new CachingContext() {
-            @Override
-            public CachingState getCachingState() {
-                return cachingState;
-            }
-
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
-
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return context.getInputProperties();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return context.getInputFileProperties();
-            }
-
-            @Override
-            public UnitOfWork.Identity getIdentity() {
-                return context.getIdentity();
-            }
-
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<ExecutionHistoryStore> getHistory() {
-                return context.getHistory();
-            }
-
-            @Override
-            public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                return context.getPreviousExecutionState();
-            }
-
-            @Override
-            public Optional<ValidationResult> getValidationProblems() {
-                return context.getValidationProblems();
-            }
-
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
-            }
-        });
-        return new CachingResult() {
-            @Override
-            public CachingState getCachingState() {
-                return cachingState;
-            }
-
-            @Override
-            public ImmutableList<String> getExecutionReasons() {
-                return result.getExecutionReasons();
-            }
-
-            @Override
-            public Optional<AfterExecutionState> getAfterExecutionState() {
-                return result.getAfterExecutionState();
-            }
-
-            @Override
-            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return result.getReusedOutputOriginMetadata();
-            }
-
-            @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return result.getExecutionResult();
-            }
-
-            @Override
-            public Duration getDuration() {
-                return result.getDuration();
-            }
-        };
+        UpToDateResult result = delegate.execute(work, new CachingContext(context, cachingState));
+        return new CachingResult(result, cachingState);
     }
 
     private CachingState calculateCachingState(UnitOfWork work, BeforeExecutionState beforeExecutionState) {
@@ -189,8 +92,9 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             .orElse(null);
         work.shouldDisableCaching(detectedOverlappingOutputs)
             .ifPresent(cachingDisabledReasonsBuilder::add);
+        String cacheSalt = NextGenBuildCacheController.isNextGenCachingEnabled() ? "next-gen" : null;
 
-        return cachingStateFactory.createCachingState(beforeExecutionState, cachingDisabledReasonsBuilder.build());
+        return cachingStateFactory.createCachingState(beforeExecutionState, cacheSalt, cachingDisabledReasonsBuilder.build());
     }
 
     private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork work) {

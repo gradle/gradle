@@ -15,6 +15,8 @@
 [[cpp_library_plugin]]
 = {cpp} Library
 
+WARNING: The {cpp} Library Plugin is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
+
 The {cpp} Library Plugin provides the tasks, conventions and conventions for building a {cpp} library.
 In particular, a {cpp} library provides functionality that can be used by consumers (i.e., other projects using this plugin or the <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application Plugin>>).
 
@@ -23,8 +25,8 @@ In particular, a {cpp} library provides functionality that can be used by consum
 
 .Applying the {cpp} Library Plugin
 ====
-include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=apply-plugin]"]
 include::sample[dir="snippets/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:cpp_library_build_variants]]
@@ -45,8 +47,8 @@ The linkage can be configured as follows:
 
 .Configure library linkages
 ====
-include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=configure-linkages]"]
 include::sample[dir="snippets/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=configure-linkages]"]
+include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=configure-linkages]"]
 ====
 
 Target machines - defaults to the build host::
@@ -58,8 +60,8 @@ The target machine can be configured as follows:
 
 .Configure library target machines
 ====
-include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=configure-target-machines]"]
 include::sample[dir="snippets/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=configure-target-machines]"]
 ====
 
 [[sec:cpp_library_tasks]]
@@ -198,8 +200,8 @@ The `api` configuration should be used to declare dependencies which are exporte
 
 .Adding dependencies
 ====
-include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=dependency-management]"]
 include::sample[dir="snippets/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=dependency-management]"]
+include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=dependency-management]"]
 ====
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile include root and link libraries of consumers.
