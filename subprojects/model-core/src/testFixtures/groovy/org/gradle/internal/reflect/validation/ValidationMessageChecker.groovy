@@ -430,8 +430,8 @@ trait ValidationMessageChecker {
     String nestedMapUnsupportedKeyType(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(NestedMapUnsupportedKeyType, "unsupported_key_type_of_nested_map", spec)
         config.description("where key of nested map is of type '${config.keyType}'.")
-            .reason("Key of nested map must be of type 'String', 'Integer', or 'Enum'.")
-            .solution("Change type of key to 'String', 'Integer', or 'Enum'")
+            .reason("Key of nested map must be one of the following types: 'Enum', 'Integer', 'String'")
+            .solution("Change type of key to one of the following types: 'Enum', 'Integer', 'String'")
             .render()
     }
 

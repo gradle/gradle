@@ -784,7 +784,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     @Issue("https://github.com/gradle/gradle/issues/24594")
     @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
-    def "nested map with #type key is validated"() {
+    def "nested map with #type key is validated without deprecation warning"() {
         buildFile << """
             abstract class CustomTask extends DefaultTask {
                 @Nested
@@ -793,6 +793,44 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 @Nested
                 Map<$type, Object> eagerMap = [:]
 
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute() {
+                    outputFile.getAsFile().get() << lazyMap.get()
+                    outputFile.getAsFile().get() << eagerMap
+                }
+            }
+
+            tasks.register("customTask", CustomTask) {
+                lazyMap.put($value, "example")
+                eagerMap.put($value, "example")
+                outputFile = file("output.txt")
+            }
+
+            enum Letter { A, B, C }
+        """
+
+        when:
+        run("customTask")
+
+        then:
+        executedAndNotSkipped(":customTask")
+        file("output.txt").text == "[$expectedValue:example][$expectedValue:example]"
+
+        where:
+        type      | value      | expectedValue
+        'Integer' | 100        | 100
+        'String'  | '"foo"'    | 'foo'
+        'Enum'    | 'Letter.A' | 'A'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24594")
+    @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
+    def "nested map with unsupported key type is validated with deprecation warning"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
                 @Nested
                 abstract MapProperty<Boolean, Object> getUnsupportedLazyMap()
 
@@ -804,41 +842,29 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
                 @TaskAction
                 void execute() {
-                    outputFile.getAsFile().get() << lazyMap.get()
-                    outputFile.getAsFile().get() << eagerMap
                     outputFile.getAsFile().get() << unsupportedLazyMap.get()
                     outputFile.getAsFile().get() << unsupportedEagerMap
                 }
             }
 
             tasks.register("customTask", CustomTask) {
-                lazyMap.put($value, "example")
-                eagerMap.put($value, "example")
                 unsupportedLazyMap.put(true, "example")
                 unsupportedEagerMap.put(false, "example")
                 outputFile = file("output.txt")
             }
-
-            enum Letter { A, B, C }
         """
 
         when:
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'CustomTask' property 'unsupportedEagerMap' where key of nested map is of type 'java.lang.Boolean'. " +
-                "Reason: Key of nested map must be of type 'String', 'Integer', or 'Enum'.",
+                "Reason: Key of nested map must be one of the following types: 'Enum', 'Integer', 'String'.",
             'validation_problems',
             'unsupported_key_type_of_nested_map')
         run("customTask")
 
         then:
         executedAndNotSkipped(":customTask")
-        file("output.txt").text == "[$expectedValue:example][$expectedValue:example][true:example][false:example]"
-
-        where:
-        type      | value      | expectedValue
-        'Integer' | 100        | 100
-        'String'  | '"foo"'    | 'foo'
-        'Enum'    | 'Letter.A' | 'A'
+        file("output.txt").text == "[true:example][false:example]"
     }
 
     private static String namedBeanClass() {
