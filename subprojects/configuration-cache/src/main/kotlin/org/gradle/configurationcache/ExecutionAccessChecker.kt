@@ -16,18 +16,9 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.Project
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
-import org.gradle.api.invocation.Gradle
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
-
-
-private
-val disallowedAtExecutionTimeServices = setOf(
-    Project::class.java,
-    Gradle::class.java
-)
 
 
 internal
@@ -35,24 +26,20 @@ class ConfigurationTimeBarrierBasedExecutionAccessChecker(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val broadcaster: ExecutionAccessListener
 ) : ExecutionAccessChecker {
-    override fun notifyInjectedServiceAccess(injectedServiceType: Class<*>, consumer: String) {
-        if (shouldReportExecutionTimeAccess() &&
-            isDisallowedAtExecutionTimeService(injectedServiceType)) {
-            broadcaster.onInjectedServiceAccess(injectedServiceType, consumer)
+    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
+        if (shouldReportExecutionTimeAccess()) {
+            broadcaster.disallowedAtExecutionInjectedServiceAccessed(injectedServiceType, getterName, consumer)
         }
     }
-
-    private
-    fun isDisallowedAtExecutionTimeService(injectedServiceType: Class<*>): Boolean =
-        disallowedAtExecutionTimeServices.any { it.isAssignableFrom(injectedServiceType) }
 
     private
     fun shouldReportExecutionTimeAccess(): Boolean =
         !configurationTimeBarrier.isAtConfigurationTime
 }
 
+
 internal
 class DefaultExecutionAccessChecker : ExecutionAccessChecker {
 
-    override fun notifyInjectedServiceAccess(injectedServiceType: Class<*>, consumer: String) {}
+    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {}
 }

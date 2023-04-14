@@ -67,7 +67,7 @@ class DeprecatedFeaturesListener(
         }
     }
 
-    override fun onInjectedServiceAccess(injectedServiceType: Class<*>, consumer: String) {
+    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
         if (shouldNag()) {
             throwUnsupported("Invocation of $injectedServiceType at execution time")
         }

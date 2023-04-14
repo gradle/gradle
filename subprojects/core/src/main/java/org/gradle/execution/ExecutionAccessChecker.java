@@ -19,8 +19,8 @@ package org.gradle.execution;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scopes.BuildTree.class)
 public interface ExecutionAccessChecker {
 
-    void notifyInjectedServiceAccess(Class<?> injectedServiceType, String consumer);
+    void disallowedAtExecutionInjectedServiceAccessed(Class<?> injectedServiceType, String getterName, String consumer);
 }
