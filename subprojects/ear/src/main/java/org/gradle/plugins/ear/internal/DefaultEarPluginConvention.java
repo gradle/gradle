@@ -137,7 +137,7 @@ public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.
     private static void logDeprecation() {
         DeprecationLogger.deprecateType(org.gradle.plugins.ear.EarPluginConvention.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "ear_convention_deprecation")
+            .withUpgradeGuideSection(8, "ear_convention_deprecation")
             .nagUser();
     }
 }
