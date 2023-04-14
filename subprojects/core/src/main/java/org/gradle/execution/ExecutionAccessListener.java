@@ -19,11 +19,11 @@ package org.gradle.execution;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
-@EventScope(Scopes.Build.class)
+@EventScope(Scopes.BuildTree.class)
 public interface ExecutionAccessListener {
 
     /**
      * Called when accessing the injected service during execution phase.
      */
-    void onInjectedServiceAccess(Class<?> injectedServiceType, String consumer);
+    void disallowedAtExecutionInjectedServiceAccessed(Class<?> injectedServiceType, String getterName, String consumer);
 }
