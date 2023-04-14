@@ -22,6 +22,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.plugins.ear.EarPluginConvention;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.util.internal.ConfigureUtil;
@@ -32,7 +33,7 @@ import java.io.File;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @Deprecated
-public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.EarPluginConvention implements HasPublicType {
+public abstract class DefaultEarPluginConvention extends EarPluginConvention implements HasPublicType {
     private ObjectFactory objectFactory;
 
     private DeploymentDescriptor deploymentDescriptor;
@@ -135,7 +136,7 @@ public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.
     }
 
     private static void logDeprecation() {
-        DeprecationLogger.deprecateType(org.gradle.plugins.ear.EarPluginConvention.class)
+        DeprecationLogger.deprecateType(EarPluginConvention.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "ear_convention_deprecation")
             .nagUser();

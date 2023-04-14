@@ -390,7 +390,6 @@ project(':contrib') {
         //given
         file('xxxSource').createDir()
         file('xxxResource').createDir()
-        executer.expectDocumentedDeprecationWarning('The org.gradle.plugins.ear.EarPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#ear_convention_deprecation')
 
         //when
         runEclipseTask """
@@ -424,7 +423,6 @@ project(':contrib') {
     void "component for ear plugin contains the app dir"() {
         //given
         file('coolAppDir').createDir()
-        executer.expectDocumentedDeprecationWarning('The org.gradle.plugins.ear.EarPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#ear_convention_deprecation')
 
         //when
         runEclipseTask """
