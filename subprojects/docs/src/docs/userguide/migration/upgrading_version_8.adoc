@@ -104,6 +104,11 @@ You should prefer accessing the extensions and their properties instead.
 
 For specific examples see the next sections.
 
+Prominent community plugins already migrated to using extensions to provide custom DSLs.
+Some of them still registers conventions for backwards compatibility.
+Registering conventions does not emit a deprecation warning yet to provide a migration window.
+Future Gradle versions will do.
+
 [[base_convention_deprecation]]
 ==== Deprecated `base` plugin conventions
 
@@ -288,10 +293,76 @@ java {
 =====
 ====
 
-Prominent community plugins already migrated to using extensions to provide custom DSLs.
-Some of them still registers conventions for backwards compatibility.
-Registering conventions does not emit a deprecation warning yet to provide a migration window.
-Future Gradle versions will do.
+[[war_convention_deprecation]]
+==== Deprecated `war` plugin conventions
+
+The convention properties contributed by the `war` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("war")
+}
+
+configure<WarPluginConvention> { // Accessing a convention
+    webAppDirName = "src/main/webapp"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'war'
+}
+
+webAppDirName = 'src/main/webapp' // Accessing a convention
+----
+=====
+====
+
+Clients should configure the `war` task  directly.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("war")
+}
+
+tasks.war {
+    webAppDirectory.set(file("src/main/webapp"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'war'
+}
+
+war {
+    webAppDirectory = file('src/main/webapp')
+}
+----
+=====
+====
 
 [[project_report_convention_deprecation]]
 ==== Deprecated `project-report` plugin conventions
@@ -447,7 +518,7 @@ dependencies {
     testCompileOnly("junit:junit:4.13.2")
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    
+
     // If using JUnit 4
     testImplementation("junit:junit:4.13.2")
 
