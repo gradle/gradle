@@ -67,7 +67,7 @@ public enum ConfigurationRoles implements ConfigurationRole {
     /**
      * Meant to be used only for declaring dependencies.
      *
-     * AKA {@code INTENDED_DECLARABLE}.
+     * AKA {@code DECLARABLE}.
      */
     BUCKET(false, false, true);
 
