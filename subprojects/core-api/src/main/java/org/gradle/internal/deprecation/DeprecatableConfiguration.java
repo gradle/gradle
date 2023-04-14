@@ -40,7 +40,7 @@ import java.util.List;
 public interface DeprecatableConfiguration extends Configuration {
 
     /**
-     * Get configurations that should be used to declare dependencies instead of this configuration.
+     * Return the names of configurations that should be used to declare dependencies instead of this configuration.
      *
      * <p>The returned value is undefined if the configuration is not deprecated for declaration.</p>
      */
@@ -54,13 +54,13 @@ public interface DeprecatableConfiguration extends Configuration {
     List<String> getResolutionAlternatives();
 
     /**
-     * Set the configuration which should be used for dependency declaration instead of this configuration.
+     * Sets suggested configurations which can be used for dependency declaration instead of this configuration.
      * Does nothing if this configuration is not deprecated for declaration.
      */
     void addDeclarationAlternatives(String... alternativesForDeclaring);
 
     /**
-     * Set the configuration which should be used for dependency resolution instead of this configuration.
+     * Sets suggested configurations which can be used for dependency resolution instead of this configuration.
      * Does nothing if this configuration is not deprecated for resolution.
      */
     void addResolutionAlternatives(String... alternativesForResolving);
