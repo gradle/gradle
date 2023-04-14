@@ -126,9 +126,10 @@ allprojects {
         buildFile << """
 project(':a') {
     task writeOutputFile {
+        def outputDir = file('build')
         doLast {
-            file('build').mkdirs()
-            file('build/output.txt') << "${outputValue}"
+            outputDir.mkdirs()
+            new File(outputDir, 'output.txt') << "${outputValue}"
         }
     }
 }
@@ -181,6 +182,7 @@ project(':c') {
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})  // 'c' + 'd' _may_ be built with parallel executer
+    @IgnoreIf({GradleContextualExecuter.configCache}) // test can't handle parallel task execution
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']

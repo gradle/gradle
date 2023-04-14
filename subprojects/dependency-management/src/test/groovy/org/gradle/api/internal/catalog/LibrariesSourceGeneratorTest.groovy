@@ -22,6 +22,9 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
@@ -40,6 +43,7 @@ import org.gradle.internal.management.VersionCatalogBuilderInternal
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -60,6 +64,8 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
 
     private GeneratedSource sources
     final ObjectFactory objects = TestUtil.objectFactory()
+    final ImmutableAttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
+    final CapabilityNotationParser capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
             new DefaultListenerManager(Scopes.Build),
@@ -335,6 +341,20 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${escapedContext}")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20060")
+    def "no name conflicting of library accessors"() {
+        when:
+        generate {
+            library('com-company-libs-a', 'com.company:libs-a:1.0')
+            library('com-companylibs-b', 'com.companylibs:libs-b:1.0')
+        }
+
+        then:
+        sources.hasLibraryAccessor('ComCompanyLibraryAccessors')
+        sources.hasLibraryAccessor('ComCompanylibsLibraryAccessors')
+        sources.hasLibraryAccessor('ComCompanyLibsLibraryAccessors$1')
+    }
+
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
         DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), Stub(Supplier))
         spec.delegate = builder
@@ -369,9 +389,13 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             }
         }
 
+        void hasLibraryAccessor(String name) {
+            def result = Lookup.find(lines, "public static class $name extends SubDependencyFactory {")
+            assert result.match
+        }
+
         void hasDependencyAlias(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
-            name = AliasNormalizer.normalize(name)
-            def lookup = "public Provider<MinimalExternalModuleDependency> $methodName() { return create(\"$name\"); }"
+            def lookup = "public Provider<MinimalExternalModuleDependency> $methodName() {"
             def result = Lookup.find(lines, lookup)
             assert result.match
             if (javadoc) {
@@ -380,8 +404,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         void hasBundle(String name, String methodName = "get${toJavaName(name)}Bundle", String javadoc = null) {
-            name = AliasNormalizer.normalize(name)
-            def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() { return createBundle(\"$name\"); }"
+            def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() {"
             def result = Lookup.find(lines, lookup)
             assert result.match
             if (javadoc) {
@@ -390,8 +413,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         void hasVersion(String name, String methodName = "get${toJavaName(name)}Version", String javadoc = null) {
-            name = AliasNormalizer.normalize(name)
-            def lookup = "public Provider<String> $methodName() { return getVersion(\"$name\"); }"
+            def lookup = "public Provider<String> $methodName() {"
             def result = Lookup.find(lines, lookup)
             assert result.match
             if (javadoc) {
@@ -406,7 +428,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             def cl = new URLClassLoader([dstDir.toURI().toURL()] as URL[], this.class.classLoader)
             factory = cl.loadClass("org.test.$className")
             assert factory
-            factory.newInstance(model, providerFactory, objects)
+            factory.newInstance(model, providerFactory, objects, attributesFactory, capabilityNotationParser)
         }
     }
 

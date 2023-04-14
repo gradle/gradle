@@ -18,11 +18,13 @@ package org.gradle.internal.model
 
 import org.gradle.internal.Describables
 import org.gradle.internal.Factory
+import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
+import java.util.function.Function
 import java.util.function.Supplier
 
 class StateTransitionControllerTest extends ConcurrentSpec {
@@ -691,5 +693,174 @@ class StateTransitionControllerTest extends ConcurrentSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can transition to new state and take previous failure as input when nothing has failed"() {
+        def action = Mock(Function)
+        def controller = controller(TestState.A)
+
+        when:
+        def result = asWorker {
+            controller.transition(TestState.A, TestState.B, action)
+        }
+
+        then:
+        1 * action.apply(_) >> { ExecutionResult r ->
+            assert r.failures.empty
+            ExecutionResult.succeeded()
+        }
+        0 * action._
+        result.failures.empty
+    }
+
+    def "can transition to new state and take previous failure as input"() {
+        def action = Mock(Function)
+        def controller = controller(TestState.A)
+
+        given:
+        asWorker {
+            makeBroken(controller)
+        }
+
+        when:
+        def result = asWorker {
+            controller.transition(TestState.A, TestState.B, action)
+        }
+
+        then:
+        1 * action.apply(_) >> { ExecutionResult r ->
+            assert r.failures.size() == 1
+            ExecutionResult.succeeded()
+        }
+        0 * action._
+        result.failures.empty
+    }
+
+    def "retains failure in action that takes previous failure as input"() {
+        def action = Mock(Function)
+        def failure = new RuntimeException()
+        def controller = controller(TestState.A)
+
+        when:
+        def result = asWorker {
+            controller.transition(TestState.A, TestState.B, action)
+        }
+
+        then:
+        1 * action.apply(_) >> { ExecutionResult r ->
+            throw failure
+        }
+        0 * action._
+        result.failures == [failure]
+
+        when:
+        asWorker {
+            controller.transition(TestState.B, TestState.A) {}
+        }
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+    }
+
+    def "transition that takes previous failure as input fails when in unexpected state"() {
+        def action = Mock(Function)
+        def controller = controller(TestState.A)
+
+        when:
+        asWorker {
+            controller.transition(TestState.B, TestState.C, action)
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Can only transition <state> to state C from state B however it is currently in state A.'
+    }
+
+    def "can reset state to initial state"() {
+        def action = Mock(Runnable)
+        def resetAction = Mock(Runnable)
+        def controller = controller(TestState.A)
+
+        given:
+        asWorker {
+            controller.transition(TestState.A, TestState.B) {}
+        }
+
+        when:
+        asWorker {
+            controller.restart(TestState.B, TestState.A, resetAction)
+        }
+
+        then:
+        1 * resetAction.run()
+        0 * _
+
+        when:
+        asWorker {
+            controller.transition(TestState.A, TestState.B, action)
+        }
+
+        then:
+        1 * action.run()
+        0 * _
+    }
+
+    def "can reset state to initial state and discard collected failure"() {
+        def action = Mock(Runnable)
+        def resetAction = Mock(Runnable)
+        def controller = controller(TestState.A)
+
+        given:
+        asWorker {
+            makeBroken(controller)
+        }
+
+        when:
+        asWorker {
+            controller.restart(TestState.B, TestState.A, resetAction)
+        }
+
+        then:
+        1 * resetAction.run()
+        0 * _
+
+        when:
+        asWorker {
+            controller.transition(TestState.A, TestState.B, action)
+        }
+
+        then:
+        1 * action.run()
+        0 * _
+    }
+
+    def "reset state fails when not in expected from state"() {
+        def resetAction = Mock(Runnable)
+        def controller = controller(TestState.A)
+
+        given:
+        asWorker {
+            controller.transition(TestState.A, TestState.C) {}
+        }
+
+        when:
+        asWorker {
+            controller.restart(TestState.B, TestState.A, resetAction)
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Can only transition <state> to state A from state B however it is currently in state C.'
+    }
+
+    private makeBroken(StateTransitionController<TestState> controller) {
+        try {
+            controller.transition(TestState.A, TestState.B) {
+                throw new RuntimeException("broken")
+            }
+        } catch (RuntimeException e) {
+            // ignore
+        }
     }
 }

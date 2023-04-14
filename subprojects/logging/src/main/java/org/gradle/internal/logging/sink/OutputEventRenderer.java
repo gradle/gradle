@@ -66,7 +66,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final Clock clock;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
-    private final OutputEventTransformer transformer = new OutputEventTransformer(formatters.getSource());
+    private final OutputEventTransformer transformer = new OutputEventTransformer(formatters.getSource(), lock);
 
     private ColorMap colourMap;
     private OutputStream originalStdOut;
@@ -427,9 +427,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
             this.logLevel.set(newLogLevel);
         }
-        synchronized (lock) {
-            transformer.onOutput(event);
-        }
+        transformer.onOutput(event);
     }
 
     private boolean isProgressEvent(OutputEvent event) {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def module = mavenHttpRepo.module("test", "test", "1.0").publish()
@@ -34,7 +35,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
                     create('default').extendsFrom compile
                 }
             }
-            
+
             dependencies {
                 compile project(':child')
             }
@@ -42,7 +43,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
                 dependencies {
                     compile 'test:test:1.0'
                     compile 'test:test2:1.0'
-                }                
+                }
             }
 """
     }
@@ -51,8 +52,9 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         given:
         buildFile << """
             task graph {
+                def root = configurations.compile.incoming.resolutionResult.rootComponent
                 doLast {
-                    println configurations.compile.incoming.resolutionResult.allComponents
+                    root.get()
                 }
             }
 """
@@ -65,6 +67,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("graph")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Uses Configuration API in task action")
     def "downloads only the metadata when resolved artifacts are queried"() {
         given:
         buildFile << """
@@ -87,8 +90,9 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         given:
         buildFile << """
             task artifacts {
+                def files = configurations.compile
                 doLast {
-                    configurations.compile.${expression}.each { it }
+                    files*.name
                 }
             }
 """

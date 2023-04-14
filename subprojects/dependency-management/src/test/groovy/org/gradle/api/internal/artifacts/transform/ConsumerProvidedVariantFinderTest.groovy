@@ -16,288 +16,326 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import com.google.common.collect.ImmutableList
-import junit.framework.AssertionFailedError
 import org.gradle.api.Action
-import org.gradle.api.Transformer
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.internal.Deferrable
-import org.gradle.internal.Try
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static org.spockframework.util.CollectionUtil.mapOf
-
 class ConsumerProvidedVariantFinderTest extends Specification {
-    def matcher = Mock(AttributeMatcher)
-    def schema = Mock(AttributesSchemaInternal)
-    def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-    def transformRegistrations = Mock(VariantTransformRegistry)
-    def matchingCache = new ConsumerProvidedVariantFinder(transformRegistrations, schema, immutableAttributesFactory)
+    def attributeMatcher = Mock(AttributeMatcher)
+    def transformRegistry = Mock(VariantTransformRegistry)
 
-    def a1 = Attribute.of("a1", String)
-    def a2 = Attribute.of("a2", Integer)
-    def c1 = attributes().attribute(a1, "1").attribute(a2, 1).asImmutable()
-    def c2 = attributes().attribute(a1, "1").attribute(a2, 2).asImmutable()
-    def c3 = attributes().attribute(a1, "1").attribute(a2, 3).asImmutable()
+    ConsumerProvidedVariantFinder transformations
 
-    /**
-     * Match all AttributeContainer that contains the same attributes.
-     *
-     * This method is for writing argument constraint in spock interaction. When search for
-     * chains, ConsumerProvidedVariantFinder may create a new instance of the AttributeContainer
-     * to call {@link AttributeMatcher#isMatching(AttributeContainerInternal, AttributeContainerInternal)}.
-     * So we cannot use the origin object instance to write method specification in spock interaction.
-     */
-    def attributesIs(AttributeContainer except, Map<Attribute<Object>, Object> vals) {
-        return except.keySet().size() == vals.size() && vals.every { entry ->
-            except.getAttribute(entry.key) == entry.value
-        }
+    def setup() {
+        def schema = Mock(AttributesSchemaInternal)
+        schema.matcher() >> attributeMatcher
+        transformations = new ConsumerProvidedVariantFinder(transformRegistry, schema, AttributeTestUtil.attributesFactory())
     }
 
     def "selects transform that can produce variant that is compatible with requested"() {
-        def reg1 = registration(c1, c3, {})
-        def reg2 = registration(c1, c2, {})
-        def reg3 = registration(c2, c3, {})
-        def requested = attributes().attribute(a1, "requested")
-        def source = attributes().attribute(a1, "source")
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def compatible = AttributeTestUtil.attributes(usage: "compatible")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+
+        def transform1 = registration(fromSource, incompatible)
+        def transform2 = registration(fromSource, compatible)
+        def transform3 = registration(compatible, incompatible)
+
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
+        def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2, reg3]
+        transformRegistry.transforms >> [transform1, transform2, transform3]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result.matches.size() == 1
-        result.matches.first().attributes == c2
-        result.matches.first().transformation.is(reg2.transformationStep)
+        result.size() == 1
+        assertTransformChain(result.first(), sourceVariant, compatible, transform2)
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        1 * matcher.isMatching(c3, requested) >> false
-        1 * matcher.isMatching(c2, requested) >> true
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(source, c1) >> true
-        0 * matcher._
+        // sourceVariant can be transformed by a transform starting with fromSource attributes
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        // otherVariant cannot be transformed by a transform starting with fromSource attributes
+        1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromSource) >> false
+        // incompatible attributes are not compatible with requested
+        1 * attributeMatcher.isMatching(incompatible, requested) >> false
+        // compatible attributes are compatible with requested
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+
+        0 * attributeMatcher._
     }
 
     def "selects all transforms that can produce variant that is compatible with requested"() {
-        def reg1 = registration(c1, c3, {})
-        def reg2 = registration(c1, c2, {})
-        def reg3 = registration(c2, c3, {})
-        def requested = attributes().attribute(a1, "requested")
-        def source = attributes().attribute(a1, "source")
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def fromOther = AttributeTestUtil.attributes(usage: "fromOther")
+        def compatible = AttributeTestUtil.attributes(usage: "compatible")
+        def compatible2 = AttributeTestUtil.attributes(usage: "compatible2")
+
+        def transform1 = registration(fromSource, compatible)
+        def transform2 = registration(fromSource, compatible2)
+        def transform3 = registration(fromOther, compatible2)
+        def transform4 = registration(fromOther, compatible)
+
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
+        def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2, reg3]
+        transformRegistry.transforms >> [transform1, transform2, transform3, transform4]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result.matches.size() == 2
-        result.matches*.attributes == [c3, c2]
-        result.matches*.transformation == [reg1.transformationStep, reg2.transformationStep]
+        result.size() == 4
+        assertTransformChain(result[0], sourceVariant, compatible, transform1)
+        assertTransformChain(result[1], sourceVariant, compatible2, transform2)
+        assertTransformChain(result[2], otherVariant, compatible2, transform3)
+        assertTransformChain(result[3], otherVariant, compatible, transform4)
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        1 * matcher.isMatching(c3, requested) >> true
-        1 * matcher.isMatching(c2, requested) >> true
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(source, c1) >> true
-        1 * matcher.isMatching(source, c2) >> false
-        0 * matcher._
+        // source variant matches fromSource, but not fromOther
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromOther) >> false
+        // other variant matches fromOther, but not fromSource
+        1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromSource) >> false
+        1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromOther) >> true
+
+        // compatible and compatible2 are compatible with requested attributes
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        1 * attributeMatcher.isMatching(compatible2, requested) >> true
+
+        0 * attributeMatcher._
     }
 
     def "transform match is reused"() {
-        def reg1 = registration(c1, c3, {})
-        def reg2 = registration(c1, c2, {})
-        def requested = attributes().attribute(a1, "requested")
-        def source = attributes().attribute(a1, "source")
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def compatible = AttributeTestUtil.attributes(usage: "compatible")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+
+        def transform1 = registration(fromSource, incompatible)
+        def transform2 = registration(fromSource, compatible)
+
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
+        def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2]
+        transformRegistry.transforms >> [transform1, transform2]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        def match = result.matches.first()
-        match.transformation.is(reg2.transformationStep)
+        result.size() == 1
+        assertTransformChain(result.first(), sourceVariant, compatible, transform2)
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        1 * matcher.isMatching(source, c1) >> true
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(c3, requested) >> false
-        1 * matcher.isMatching(c2, requested) >> true
-        0 * matcher._
+        // source variant matches fromSource, other variant does not
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromSource) >> false
+
+        // incompatible is not compatible with requested
+        1 * attributeMatcher.isMatching(incompatible, requested) >> false
+        // compatible is compatible with requested
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        0 * attributeMatcher._
 
         when:
-        def result2 = matchingCache.collectConsumerVariants(source, requested)
+        def anotherVariants = [
+                variant(otherVariant.getAttributes()),
+                variant(sourceVariant.getAttributes())
+        ]
+        def result2 = transformations.findTransformedVariants(anotherVariants, requested)
 
         then:
-        def match2 = result2.matches.first()
-        match2.attributes.is(match.attributes)
-        match2.transformation.is(match.transformation)
+        result2.size() == 1
+        assertTransformChain(result2.first(), anotherVariants[1], compatible, transform2)
 
         and:
-        0 * matcher._
+        0 * attributeMatcher._
     }
 
     def "selects chain of transforms that can produce variant that is compatible with requested"() {
-        def c4 = attributes().attribute(a1, "4")
-        def c5 = attributes().attribute(a1, "5")
-        def requested = attributes().attribute(a1, "requested")
-        def source = attributes().attribute(a1, "source")
-        def reg1 = registration(c1, c3, { throw new AssertionFailedError() })
-        def reg2 = registration(c1, c2, { File f -> [new File(f.name + ".2a"), new File(f.name + ".2b")] })
-        def reg3 = registration(c4, c5, { File f -> [new File(f.name + ".5")] })
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def fromOther = AttributeTestUtil.attributes([usage: "fromOther"])
+
+        def fromIntermediate = AttributeTestUtil.attributes([usage: "fromIntermediate"])
+        def intermediate = AttributeTestUtil.attributes(usage: "intermediate")
+
+        def fromIntermediate2 = AttributeTestUtil.attributes([usage: "fromIntermediate2"])
+        def intermediate2 = AttributeTestUtil.attributes([usage: "intermediate2"])
+
+        def compatible = AttributeTestUtil.attributes([usage: "compatible"])
+        def compatible2 = AttributeTestUtil.attributes([usage: "compatible2"])
+
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+        def incompatible2 = AttributeTestUtil.attributes([usage: "incompatible2"])
+
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
+        def variants = [ sourceVariant, otherVariant ]
+
+        def transform1 = registration(fromSource, incompatible)
+        def transform2 = registration(fromSource, intermediate)
+        def transform3 = registration(fromIntermediate, compatible)
+        def transform4 = registration(fromOther, intermediate2)
+        def transform5 = registration(fromIntermediate2, compatible2)
+        def transform6 = registration(fromIntermediate2, incompatible2)
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2, reg3]
+        transformRegistry.transforms >> [transform1, transform2, transform3, transform4, transform5, transform6]
 
         when:
-        def matchResult = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        def match = matchResult.matches.first()
-        match != null
+        result.size() == 2
+        // sourceVariant + transform2 + transform3 = compatible
+        assertTransformChain(result[0], sourceVariant, compatible, transform2, transform3)
+        // otherVariant + transform2 + transform4 = compatible2
+        assertTransformChain(result[1], otherVariant, compatible2, transform4, transform5)
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(c3, requested) >> false
-        1 * matcher.isMatching(c2, requested) >> false
-        1 * matcher.isMatching(c5, requested) >> true
-        1 * matcher.isMatching(source, c4) >> false
-        1 * matcher.isMatching(c3, { attributesIs(it, mapOf(a1, "4")) }) >> false
-        1 * matcher.isMatching(c2, { attributesIs(it, mapOf(a1, "4")) }) >> true
-        1 * matcher.isMatching(source, c1) >> true
-        1 * matcher.isMatching(c5, { attributesIs(it, mapOf(a1, "4")) }) >> false
-        0 * matcher._
+        // source variant matches fromSource, other variant matches fromOther
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromOther) >> true
 
-        when:
-        def result = run(match.transformation, initialSubject("in.txt"))
+        // intermediate matches fromIntermediate and intermediate2 matches fromIntermediate2
+        // this lets us build the chain from one transform to the next
+        1 * attributeMatcher.isMatching(intermediate, fromIntermediate) >> true
+        1 * attributeMatcher.isMatching(intermediate2, fromIntermediate2) >> true
 
-        then:
-        result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
-        0 * _
-    }
+        // compatible and compatible2 are compatible with requested attributes
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        1 * attributeMatcher.isMatching(compatible2, requested) >> true
 
-    TransformationSubject run(Transformation transformation, TransformationSubject initialSubject) {
-        def steps = [] as List<TransformationStep>
-        transformation.visitTransformationSteps { step ->
-            steps.add(step)
-        }
-        def first = steps.first()
-        def invocation = first.createInvocation(initialSubject, Mock(TransformUpstreamDependencies), null)
-        steps.drop(1).forEach { step ->
-            invocation = invocation
-                .flatMap { result ->
-                    result
-                        .map(subject -> step.createInvocation(subject, Mock(TransformUpstreamDependencies), null))
-                        .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)))
-                }
-        }
-        return invocation.completeAndGet().get()
+        // all other matching attempts are not compatible
+        _ * attributeMatcher.isMatching(_ ,_) >> false
+        0 * attributeMatcher._
     }
 
     def "prefers direct transformation over indirect"() {
-        def c4 = attributes().attribute(a1, "4")
-        def c5 = attributes().attribute(a1, "5")
-        def requested = attributes().attribute(a1, "requested")
-        def source = attributes().attribute(a1, "source")
-        def reg1 = registration(c1, c3, {})
-        def reg2 = registration(c1, c2, {})
-        def reg3 = registration(c4, c5, {})
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def concat = immutableAttributesFactory.concat(source.asImmutable(), c5.asImmutable())
+        def fromSource = AttributeTestUtil.attributes([usage: "fromSource"])
+        def fromOther = AttributeTestUtil.attributes([usage: "fromOther"])
+
+        def compatible = AttributeTestUtil.attributes([usage: "compatible"])
+        def compatible2 = AttributeTestUtil.attributes([usage: "compatible2"])
+        def compatibleIndirect = AttributeTestUtil.attributes(usage: "compatibleIndirect")
+        def fromIndirect = AttributeTestUtil.attributes(usage: "fromIndirect")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
+        def variants = [ sourceVariant, otherVariant ]
+
+        def transform1 = registration(fromIndirect, incompatible)
+        def transform2 = registration(fromIndirect, compatibleIndirect)
+        def transform3 = registration(fromSource, compatible)
+        def transform4 = registration(fromOther, compatible2)
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2, reg3]
+        transformRegistry.transforms >> [transform1, transform2, transform3, transform4]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result.matches.first().transformation.is(reg3.transformationStep)
+        result.size() == 2
+        assertTransformChain(result[0], sourceVariant, compatible, transform3)
+        assertTransformChain(result[1], otherVariant, compatible2, transform4)
+        // possible longer chains
+        // (sourceVariant:fromSource) + transform3 -> (compatible:fromIndirect) + transform2 -> (compatibleIndirect:requested)
+        // (otherVariant:fromOther) + transform4 -> (compatible2:fromIndirect) + transform2 -> (compatibleIndirect:requested)
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(c3, requested) >> false
-        1 * matcher.isMatching(c2, requested) >> true
-        1 * matcher.isMatching(c5, requested) >> true
-        1 * matcher.isMatching(source, c1) >> false
-        1 * matcher.isMatching(source, c4) >> true
-        1 * matcher.isMatching(concat, requested) >> true
-        0 * matcher._
+        // source variant matches fromSource, other variant matches fromOther
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromOther) >> true
+
+        // We should not attempt to compare compatible/compatible2 with fromIndirect because we should not attempt to make this chain
+        0 * attributeMatcher.isMatching(compatible, fromIndirect) >> true
+        0 * attributeMatcher.isMatching(compatible2, fromIndirect) >> true
+
+        // compatible, compatible2 and compatibleIndirect are all compatible with requested attributes
+        1 * attributeMatcher.isMatching(compatibleIndirect, requested) >> true
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        1 * attributeMatcher.isMatching(compatible2, requested) >> true
+
+        // all other matching attempts are not compatible
+        _ * attributeMatcher.isMatching(_, _) >> false
+        0 * attributeMatcher._
     }
 
     def "prefers shortest chain of transforms #registrationsIndex"() {
-        def transform1 = Mock(Transformer)
-        def transform2 = Mock(Transformer)
-        def c4 = attributes().attribute(a1, "4")
-        def c5 = attributes().attribute(a1, "5")
-        def requested = attributes().attribute(a1, "requested")
-        def source = attributes().attribute(a1, "source")
-        def reg1 = registration(c2, c3, {})
-        def reg2 = registration(c2, c4, transform1)
-        def reg3 = registration(c3, c4, {})
-        def reg4 = registration(c4, c5, transform2)
-        def registrations = [reg1, reg2, reg3, reg4]
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def requestedForReg4 = immutableAttributesFactory.concat(requested.asImmutable(), c4.asImmutable())
-        def concatReg2 = immutableAttributesFactory.concat(source.asImmutable(), c4.asImmutable())
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def fromOther = AttributeTestUtil.attributes(usage: "fromOther")
+
+        def intermediate = AttributeTestUtil.attributes([usage: "intermediate"])
+
+        def compatible = AttributeTestUtil.attributes([usage: "compatible"])
+
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
+
+        def transform1 = registration(fromSource, fromOther)
+        def transform2 = registration(fromSource, intermediate)
+        def transform3 = registration(fromOther, intermediate)
+        def transform4 = registration(intermediate, compatible)
+        def registrations = [transform1, transform2, transform3, transform4]
+
+        def fromIntermediate = AttributeTestUtil.attributesFactory().concat(requested, intermediate)
 
         given:
-        transformRegistrations.transforms >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
+        transformRegistry.transforms >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result.matches.size() == 1
+        result.size() == 1
+        assertTransformChain(result.first(), sourceVariant, compatible, transform2, transform4)
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(c3, requested) >> false
-        1 * matcher.isMatching(c4, requested) >> false
-        1 * matcher.isMatching(c5, requested) >> true
-        1 * matcher.isMatching(source, c4) >> false
-        1 * matcher.isMatching(c4, requestedForReg4) >> true
-        1 * matcher.isMatching(c3, requestedForReg4) >> false
-        1 * matcher.isMatching(c5, requestedForReg4) >> false
-        1 * matcher.isMatching(source, c2) >> true
-        1 * matcher.isMatching(source, c3) >> false
-        1 * matcher.isMatching(concatReg2, requestedForReg4) >> true
-        0 * matcher._
+        // source variant matches fromSource, but not fromOther
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromOther) >> false
 
-        when:
-        def files = run(result.matches.first().transformation, initialSubject("a")).files
+        // fromOther, intermediate and source variant are incompatible with each other
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), intermediate) >> false
+        1 * attributeMatcher.isMatching(fromOther, fromIntermediate) >> false
+        1 * attributeMatcher.isMatching(intermediate, fromIntermediate) >> true
 
-        then:
-        files == [new File("d"), new File("e")]
-        transform1.transform(new File("a")) >> [new File("b"), new File("c")]
-        transform2.transform(new File("b")) >> [new File("d")]
-        transform2.transform(new File("c")) >> [new File("e")]
+        // fromOther and intermediate are not acceptable matches for requested attributes
+        1 * attributeMatcher.isMatching(fromOther, requested) >> false
+        1 * attributeMatcher.isMatching(intermediate, requested) >> false
+        // compatible is compatible with requested attributes
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+
+        0 * attributeMatcher._
 
         where:
         registrationsIndex << (0..3).permutations()
@@ -305,151 +343,181 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
     @Issue("gradle/gradle#7061")
     def "selects chain of transforms that only all the attributes are satisfied"() {
-        def c1 = attributes().attribute(a1, "1").attribute(a2, 1).asImmutable()
-        def c4 = attributes().attribute(a1, "2").attribute(a2, 2).asImmutable()
-        def c5 = attributes().attribute(a1, "2").attribute(a2, 3).asImmutable()
-        def c6 = attributes().attribute(a1, "2").asImmutable()
-        def c7 = attributes().attribute(a1, "3").asImmutable()
-        def requested = attributes().attribute(a1, "3").attribute(a2, 3).asImmutable()
-        def source = c1
-        def reg1 = registration(c1, c4, {})
-        def reg2 = registration(c1, c5, {})
-        def reg3 = registration(c6, c7, {})
+        def requested = AttributeTestUtil.attributes([usage: "requested", other: "transform3"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource", other: "fromSource")
+        def fromIntermediate = AttributeTestUtil.attributes([usage: "fromIntermediate"])
+        def partialTransformed = AttributeTestUtil.attributes([usage: "fromIntermediate", other: "transform3"])
+
+        def incompatible = AttributeTestUtil.attributes([usage: "incompatible"])
+        def intermediate = AttributeTestUtil.attributes([usage: "intermediate", other: "transform2"])
+        def compatible = AttributeTestUtil.attributes([usage: "compatible", other: "transform3"])
+
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
+
+        def transform1 = registration(fromSource, incompatible)
+        def transform2 = registration(fromSource, intermediate)
+        def transform3 = registration(fromIntermediate, compatible)
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2, reg3]
+        transformRegistry.transforms >> [transform1, transform2, transform3]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result.matches.size() == 1
+        result.size() == 1
+        assertTransformChain(result.first(), sourceVariant, compatible, transform2, transform3)
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalProducerAttributes() >> matcher
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(c4, requested) >> false
-        1 * matcher.isMatching(c5, requested) >> false
-        1 * matcher.isMatching(c7, requested) >> true
-        1 * matcher.isMatching(source, c6) >> false
-        1 * matcher.isMatching(c4, { attributesIs(it, mapOf(a1, "2", a2, 3)) }) >> false // "2" 3 ; c5
-        1 * matcher.isMatching(c5, { attributesIs(it, mapOf(a1, "2", a2, 3)) }) >> true
-        1 * matcher.isMatching(source, c1) >> true
-        1 * matcher.isMatching(c7, { attributesIs(it, mapOf(a1, "2", a2, 3)) }) >> false
-        0 * matcher._
+        // source variant matches fromSource, but not fromIntermediate
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromIntermediate) >> false
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
 
-        expect:
-        result.matches.size() == 1
+        // partialTransformed is compatible with intermediate
+        1 * attributeMatcher.isMatching(incompatible, partialTransformed) >> false
+        1 * attributeMatcher.isMatching(intermediate, partialTransformed) >> true
+
+        // compatible is compatible with requested attributes, but incompatible and intermediate are not
+        1 * attributeMatcher.isMatching(incompatible, requested) >> false
+        1 * attributeMatcher.isMatching(intermediate, requested) >> false
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+
+        0 * attributeMatcher._
     }
 
     def "returns empty list when no transforms are available to produce requested variant"() {
-        def reg1 = registration(c1, c3, {})
-        def reg2 = registration(c1, c2, {})
-        def requested = attributes().attribute(a1, "requested")
-        def source = attributes().attribute(a1, "source")
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+        def incompatible2 = AttributeTestUtil.attributes(usage: "incompatible2")
+
+        def transform1 = registration(fromSource, incompatible)
+        def transform2 = registration(fromSource, incompatible2)
+
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2]
+        transformRegistry.transforms >> [transform1, transform2]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result.matches.empty
+        result.empty
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(c3, requested) >> false
-        1 * matcher.isMatching(c2, requested) >> false
-        0 * matcher._
+        // incompatible and incompatible2 are not compatible with requested attributes
+        1 * attributeMatcher.isMatching(incompatible, requested) >> false
+        1 * attributeMatcher.isMatching(incompatible2, requested) >> false
+        0 * attributeMatcher._
     }
 
     def "caches negative match"() {
-        def reg1 = registration(c1, c3, {})
-        def reg2 = registration(c1, c2, {})
-        def requested = attributes().attribute(a1, "requested")
-        def source = attributes().attribute(a1, "source")
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+        def incompatible2 = AttributeTestUtil.attributes(usage: "incompatible2")
+
+        def transform1 = registration(fromSource, incompatible2)
+        def transform2 = registration(fromSource, incompatible)
+
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
 
         given:
-        transformRegistrations.transforms >> [reg1, reg2]
+        transformRegistry.transforms >> [transform1, transform2]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result.matches.empty
+        result.empty
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(c3, requested) >> false
-        1 * matcher.isMatching(c2, requested) >> false
-        0 * matcher._
+        // incompatible and incompatible2 are not compatible with requested attributes
+        1 * attributeMatcher.isMatching(incompatible2, requested) >> false
+        1 * attributeMatcher.isMatching(incompatible, requested) >> false
+        0 * attributeMatcher._
 
         when:
-        def result2 = matchingCache.collectConsumerVariants(source, requested)
+        def result2 = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result2.matches.empty
+        result2.empty
 
         and:
-        0 * matcher._
+        0 * attributeMatcher._
     }
 
     def "does not match on unrelated transform"() {
-        def from = attributes().attribute(a2, 1).asImmutable()
-        def to = attributes().attribute(a2, 42).asImmutable()
+        def requested = AttributeTestUtil.attributes([usage: "hello"])
 
-        def source = attributes().attribute(a1, "source")
-        def requested = attributes().attribute(a1, "hello")
+        def fromSource = AttributeTestUtil.attributes([other: "fromSource"])
+        def compatible = AttributeTestUtil.attributes([other: "compatible"])
 
-        def reg1 = registration(from, to, {})
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
 
-        def concatTo = immutableAttributesFactory.concat(source.asImmutable(), to)
-        def concatFrom = immutableAttributesFactory.concat(requested.asImmutable(), from)
+        def transform1 = registration(fromSource, compatible)
+
+        def finalAttributes = AttributeTestUtil.attributesFactory().concat(sourceVariant.getAttributes().asImmutable(), compatible)
 
         given:
-        transformRegistrations.transforms >> [reg1]
+        transformRegistry.transforms >> [transform1]
 
         when:
-        def result = matchingCache.collectConsumerVariants(source, requested)
+        def result = transformations.findTransformedVariants(variants, requested)
 
         then:
-        result.matches.empty
+        // sourceVariant transformed by transform1 produces a variant with attributes incompatible with requested
+        result.empty
 
         and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(to, requested) >> true
-        1 * matcher.isMatching(source, from) >> true
-        1 * matcher.isMatching(concatTo, requested) >> false
-        1 * matcher.isMatching(to, concatFrom) >> false
-        0 * matcher._
+        // source variant matches fromSource
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        // compatible is compatible with requested attributes
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        // attributes that are the result of the transform are not compatible with the request
+        1 * attributeMatcher.isMatching(finalAttributes, requested) >> false
+
+        0 * attributeMatcher._
     }
 
-    private TransformationSubject initialSubject(String path) {
-        def artifact = Stub(ResolvableArtifact) {
-            getFile() >> new File(path)
+    private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, ArtifactTransformRegistration... steps) {
+        assert chain.root == source
+        assert chain.attributes == finalAttributes
+        def actualSteps = []
+        chain.transformationChain.visitTransformationSteps {
+            actualSteps << it
         }
-        TransformationSubject.initial(artifact)
+        def expectedSteps = steps*.transformationStep
+        assert actualSteps == expectedSteps
     }
 
-    private AttributeContainerInternal attributes() {
-        immutableAttributesFactory.mutable()
-    }
-
-    private ArtifactTransformRegistration registration(AttributeContainer from, AttributeContainer to, Transformer<List<File>, File> transformer) {
-        def reg = Stub(ArtifactTransformRegistration)
-        reg.from >> from
-        reg.to >> to
+    private ArtifactTransformRegistration registration(AttributeContainer from, AttributeContainer to) {
         def transformationStep = Stub(TransformationStep)
         _ * transformationStep.visitTransformationSteps(_) >> { Action action -> action.execute(transformationStep) }
-        _ * transformationStep.createInvocation(_ as TransformationSubject, _ as TransformUpstreamDependencies, null) >> { TransformationSubject subject, TransformUpstreamDependencies dependenciesResolver, services ->
-            return Deferrable.completed(Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
+        _ * transformationStep.stepsCount() >> 1
+
+        return Mock(ArtifactTransformRegistration) {
+            getFrom() >> from
+            getTo() >> to
+            getTransformationStep() >> transformationStep
         }
-        _ * reg.transformationStep >> transformationStep
-        reg
+    }
+
+    private ResolvedVariant variant(Map<String, Object> attributes) {
+        return variant(AttributeTestUtil.attributes(attributes))
+    }
+
+    private ResolvedVariant variant(AttributeContainerInternal attributes) {
+        return Mock(ResolvedVariant) {
+            getAttributes() >> attributes
+        }
     }
 }

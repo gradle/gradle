@@ -187,7 +187,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         MeasuredOperationList results,
         Consumer<T> scenarioReporter
     ) {
-        AtomicInteger iterationCount = new AtomicInteger(0);
+        AtomicInteger iterationCount = new AtomicInteger();
         return invocationResult -> {
             int currentIteration = iterationCount.incrementAndGet();
             if (currentIteration > scenarioDefinition.getWarmUpCount()) {

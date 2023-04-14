@@ -69,6 +69,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private final Set<Node> waitingToStartNodes = new HashSet<>();
     private final ExecutionQueue readyNodes = new ExecutionQueue();
     private final List<Throwable> failures = new ArrayList<>();
+    private final List<DiagnosticEvent> diagnosticEvents = new ArrayList<>();
     private final String displayName;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
@@ -123,9 +124,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             node.prepareForExecution(this::monitoredNodeReady);
             node.updateAllDependenciesComplete();
             maybeNodeReady(node);
-            if (node.getDependencyPredecessors().isEmpty()) {
-                waitingToStartNodes.add(node);
-            }
+            maybeWaitingForNewNode(node, "scheduled");
         }
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
     }
@@ -181,18 +180,26 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             ordinalGroups.add(group.diagnostics());
         }
 
-        List<String> waitingForNodeNames = new ArrayList<>(this.waitingToStartNodes.size());
+        List<String> waitingToStartItems = new ArrayList<>(waitingToStartNodes.size());
         for (Node node : waitingToStartNodes) {
-            waitingForNodeNames.add(node.healthDiagnostics());
+            waitingToStartItems.add(node.healthDiagnostics());
         }
-        List<String> otherNodeNames = new ArrayList<>();
+        List<String> readyToStartItems = new ArrayList<>(readyNodes.size());
+        for (Node node : readyNodes.nodes) {
+            readyToStartItems.add(node.toString());
+        }
+        List<String> otherWaitingItems = new ArrayList<>();
         visitWaitingNodes(node -> {
             if (!waitingToStartNodes.contains(node)) {
-                otherNodeNames.add(node.healthDiagnostics());
+                otherWaitingItems.add(node.healthDiagnostics());
             }
         });
+        List<String> eventItems = new ArrayList<>(diagnosticEvents.size());
+        for (DiagnosticEvent event : diagnosticEvents) {
+            eventItems.add(event.message());
+        }
 
-        return new Diagnostics(displayName, ordinalGroups, waitingForNodeNames, otherNodeNames);
+        return new Diagnostics(displayName, ordinalGroups, waitingToStartItems, readyToStartItems, otherWaitingItems, eventItems);
     }
 
     /**
@@ -296,10 +303,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     }
 
     private void addNodeToPlan(Node node) {
-        if (node.getDependencyPredecessors().isEmpty()) {
-            waitingToStartNodes.add(node);
-        }
         maybeNodeReady(node);
+        maybeWaitingForNewNode(node, "runtime");
     }
 
     private boolean attemptToStart(Node node, List<ResourceLock> resources) {
@@ -510,7 +515,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             // Wait for any dependencies of this node that have not started yet
             for (Node successor : node.getDependencySuccessors()) {
                 if (successor.isRequired()) {
-                    waitingToStartNodes.add(successor);
+                    waitingForNode(successor, "other node completed", node);
                 }
             }
         }
@@ -586,6 +591,24 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             maybeNodesSelectable = true;
             readyNodes.insert(node);
         }
+    }
+
+    private void maybeWaitingForNewNode(Node node, String whenAdded) {
+        // Add some diagnostics to track down sporadic issue
+        if (node instanceof OrdinalNode) {
+            diagnosticEvents.add(new NodeAdded(node, whenAdded, readyNodes.nodes.contains(node)));
+        }
+        if (node.getDependencyPredecessors().isEmpty()) {
+            waitingForNode(node, whenAdded, null);
+        }
+    }
+
+    private void waitingForNode(Node node, String whenAdded, @Nullable Node waitingDueTo) {
+        // Add some diagnostics to track down sporadic issue
+        if (node instanceof OrdinalNode) {
+            diagnosticEvents.add(new WaitingForNode(node, waitingDueTo, whenAdded, readyNodes.nodes.contains(node)));
+        }
+        waitingToStartNodes.add(node);
     }
 
     private void handleFailure(Node node) {
@@ -712,6 +735,52 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             if (nodes.add(node)) {
                 current = null;
             }
+        }
+    }
+
+    private interface DiagnosticEvent {
+        String message();
+    }
+
+    private static abstract class AbstractNodeEvent implements DiagnosticEvent {
+        final Node node;
+        final String whenAdded;
+        final Node.ExecutionState state;
+        final int dependencyCount;
+        final boolean readyNode;
+
+        public AbstractNodeEvent(Node node, String whenAdded, boolean readyNode) {
+            this.node = node;
+            this.whenAdded = whenAdded;
+            this.state = node.getState();
+            this.dependencyCount = node.getDependencySuccessors().size();
+            this.readyNode = readyNode;
+        }
+    }
+
+    private static class NodeAdded extends AbstractNodeEvent {
+        public NodeAdded(Node node, String whenAdded, boolean readyNode) {
+            super(node, whenAdded, readyNode);
+        }
+
+        @Override
+        public String message() {
+            return String.format("node added to plan: %s, when: %s, state: %s, dependencies: %s, is ready node? %s", node, whenAdded, state, dependencyCount, readyNode);
+        }
+    }
+
+    private static class WaitingForNode extends AbstractNodeEvent {
+        @Nullable
+        private final Node waitingDueTo;
+
+        public WaitingForNode(Node node, @Nullable Node waitingDueTo, String whenAdded, boolean readyNode) {
+            super(node, whenAdded, readyNode);
+            this.waitingDueTo = waitingDueTo;
+        }
+
+        @Override
+        public String message() {
+            return String.format("node added to waiting-for-set: %s, when: %s, due-to: %s, state: %s, dependencies: %s, is ready node? %s", node, whenAdded, waitingDueTo, state, dependencyCount, readyNode);
         }
     }
 }

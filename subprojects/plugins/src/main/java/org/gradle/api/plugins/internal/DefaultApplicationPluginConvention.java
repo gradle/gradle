@@ -21,12 +21,14 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.plugins.ApplicationPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
+public abstract class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
     private String applicationName;
     private String mainClassName;
     private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
@@ -35,6 +37,7 @@ public class DefaultApplicationPluginConvention extends ApplicationPluginConvent
 
     private final Project project;
 
+    @Inject
     public DefaultApplicationPluginConvention(Project project) {
         this.project = project;
         applicationDistribution = project.copySpec();
@@ -47,56 +50,74 @@ public class DefaultApplicationPluginConvention extends ApplicationPluginConvent
 
     @Override
     public String getApplicationName() {
+        logDeprecation();
         return applicationName;
     }
 
     @Override
     public void setApplicationName(String applicationName) {
+        logDeprecation();
         this.applicationName = applicationName;
     }
 
     @Override
     public String getMainClassName() {
+        logDeprecation();
         return mainClassName;
     }
 
     @Override
     public void setMainClassName(String mainClassName) {
+        logDeprecation();
         this.mainClassName = mainClassName;
     }
 
     @Override
     public Iterable<String> getApplicationDefaultJvmArgs() {
+        logDeprecation();
         return applicationDefaultJvmArgs;
     }
 
     @Override
     public void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs) {
+        logDeprecation();
         this.applicationDefaultJvmArgs = applicationDefaultJvmArgs;
     }
 
     @Override
     public String getExecutableDir() {
+        logDeprecation();
         return executableDir;
     }
 
     @Override
     public void setExecutableDir(String executableDir) {
+        logDeprecation();
         this.executableDir = executableDir;
     }
 
     @Override
     public CopySpec getApplicationDistribution() {
+        logDeprecation();
         return applicationDistribution;
     }
 
     @Override
     public void setApplicationDistribution(CopySpec applicationDistribution) {
+        logDeprecation();
         this.applicationDistribution = applicationDistribution;
     }
 
     @Override
     public Project getProject() {
+        logDeprecation();
         return project;
+    }
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(ApplicationPluginConvention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "application_convention_deprecation")
+            .nagUser();
     }
 }

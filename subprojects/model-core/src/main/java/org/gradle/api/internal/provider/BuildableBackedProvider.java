@@ -19,9 +19,10 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Factory;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
@@ -72,7 +73,7 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
     }
 
     private Set<? extends Task> buildableDependencies() {
-        return buildable.getBuildDependencies().getDependencies(null);
+        return TaskDependencyUtil.getDependenciesForInternalUse(buildable.getBuildDependencies(), null);
     }
 
     @Override

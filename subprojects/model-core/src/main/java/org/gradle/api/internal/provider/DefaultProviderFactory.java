@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
+import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
@@ -141,6 +142,19 @@ public class DefaultProviderFactory implements ProviderFactory {
         return of(
             GradlePropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
+        );
+    }
+
+    @Override
+    public Provider<Map<String, String>> gradlePropertiesPrefixedBy(String variableNamePrefix) {
+        return gradlePropertiesPrefixedBy(Providers.of(variableNamePrefix));
+    }
+
+    @Override
+    public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> variableNamePrefix) {
+        return of(
+            GradlePropertiesPrefixedByValueSource.class,
+            spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
         );
     }
 

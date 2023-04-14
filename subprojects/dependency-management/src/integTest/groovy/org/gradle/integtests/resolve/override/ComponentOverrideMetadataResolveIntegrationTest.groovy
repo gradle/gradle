@@ -65,6 +65,7 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:foo', 'org:foo:1.0') {
+                    byConstraint()
                     artifact(type: 'distribution-tgz')
                 }
                 constraint('org:foo:1.0')
@@ -114,6 +115,7 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:foo', 'org:foo:1.0') {
+                    byConstraint()
                     artifact(name: artifactName, type: 'distribution-tgz')
                     artifact(name: artifactName, type: 'zip')
                 }
@@ -164,7 +166,11 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         def notSelectedModule = "org:foo:$otherVersion"
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:foo:1.0')
+                module('org:foo:1.0') {
+                    if (notSelectedModule != 'org:foo:1.0') {
+                        byConflictResolution('between versions 1.0 and 0.9')
+                    }
+                }
                 if (notSelectedModule != 'org:foo:1.0') {
                     edge(notSelectedModule, 'org:foo:1.0')
                 }
@@ -214,6 +220,7 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.1') {
+                    byConflictResolution('between versions 1.1 and 1.0')
                     module('org:bar:1.0')
                 }
                 edge('org:foo:[1.0,1.1]', 'org:foo:1.1')

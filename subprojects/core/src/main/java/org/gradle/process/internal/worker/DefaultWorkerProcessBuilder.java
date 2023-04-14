@@ -240,7 +240,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
         workerProcess.setExecHandle(execHandle);
 
-        return new MemoryRequestingWorkerProcess(workerProcess, memoryManager, MemoryAmount.parseNotation(javaCommand.getMinHeapSize()));
+        return new MemoryRequestingWorkerProcess(workerProcess, memoryManager, MemoryAmount.parseNotation(javaCommand.getMaxHeapSize()));
     }
 
     private static class MemoryRequestingWorkerProcess implements WorkerProcess {

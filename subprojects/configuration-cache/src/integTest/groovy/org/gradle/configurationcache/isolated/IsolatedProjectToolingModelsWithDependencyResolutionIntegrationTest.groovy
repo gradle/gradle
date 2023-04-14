@@ -16,7 +16,11 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
+@Ignore("https://github.com/gradle/gradle/issues/23196")
 class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+
     def "caches BuildAction that queries model that performs dependency resolution"() {
         given:
         withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc()
@@ -98,7 +102,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c", ":d")
+            modelsReused(":", ":b", ":c", ":d", ":buildSrc")
         }
     }
 
@@ -173,7 +177,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":")
             projectConfigured(":b") // has not been consumed by project dependency previously, but is now
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c")
+            modelsReused(":", ":b", ":c", ":buildSrc")
         }
 
         when:
@@ -208,7 +212,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c")
+            modelsReused(":", ":b", ":c", ":buildSrc")
         }
     }
 
@@ -286,7 +290,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":")
             projectConfigured(":b") // has not been consumed by project dependency previously, but is now
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c")
+            modelsReused(":", ":b", ":c", ":buildSrc")
         }
 
         when:
@@ -321,7 +325,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c")
+            modelsReused(":", ":b", ":c", ":buildSrc")
         }
     }
 
@@ -398,7 +402,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c")
+            modelsReused(":", ":b", ":c", ":buildSrc")
         }
 
         when:
@@ -433,7 +437,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c")
+            modelsReused(":", ":b", ":c", ":buildSrc")
         }
     }
 
@@ -511,7 +515,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b", ":c")
-            modelsReused(":")
+            modelsReused(":", ":buildSrc")
         }
 
         when:
@@ -546,7 +550,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
-            modelsReused(":", ":c")
+            modelsReused(":", ":c", ":buildSrc")
         }
     }
 
@@ -637,7 +641,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":")
             projectConfigured(":d")
             modelsCreated(":a", ":b", ":c")
-            modelsReused(":", ":d")
+            modelsReused(":", ":d", ":buildSrc")
         }
     }
 }

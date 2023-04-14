@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -67,6 +68,7 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         operation.progress.size() == 1000
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle/issues/24223")
     def "log messages are still delivered to the build process after a worker action runs"() {
         def lastOutput = ""
         def startFile = file("start")
@@ -78,6 +80,7 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
             new Thread({
                 while (true) {
                     sleep 1000
+                    println "checking..."
                     if (new File("${TextUtil.normaliseFileSeparators(startFile.absolutePath)}").exists()) {
                         println "beep..."
                     }

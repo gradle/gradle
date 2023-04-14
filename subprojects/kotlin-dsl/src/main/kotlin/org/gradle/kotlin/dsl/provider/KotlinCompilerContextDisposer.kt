@@ -26,6 +26,7 @@ import org.gradle.kotlin.dsl.support.disposeKotlinCompilerContext
 /**
  * Disposes Kotlin compiler environment once all scripts are compiled.
  */
+internal
 class KotlinCompilerContextDisposer(
     private val listenerManager: ListenerManager
 ) : InternalBuildAdapter(), Stoppable {

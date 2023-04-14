@@ -213,6 +213,14 @@ If you use the `@Input` annotation on a file-based property, Gradle wouldn't con
 To fix this problem, you need to tell Gradle if the file property represents an input file, in which case you should annotate it with `@InputFile`, or a directory, in which case it should be annotated with `@InputDirectory`.
 If what you really wanted to say is that the actual file path is an input, then you should return a `String` instead which corresponds to the absolute path of the file.
 
+
+[[service_reference_must_be_a_build_service]]
+== Property annotated with `@ServiceReference` is not a BuildService
+
+This error indicates that a property annotated with `@ServiceReference` has a type that does not implement the `link:{javadocPath}/org/gradle/api/services/BuildService.html[BuildService]` interface.
+
+Properties annotated with `link:{javadocPath}/org/gradle/api/services/ServiceReference.html[@ServiceReference]` are meant to hold references to <<build_services#build_services,shared build services>>.
+
 [[implicit_dependency]]
 == Implicit dependencies between tasks
 
@@ -275,8 +283,8 @@ If the file isn't produced by another task, you may want to make sure that it ex
 If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can use `@InputFiles` that won't fail for non-existing inputs:
 
 ====
-include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
 include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
 ====
 
 [[unexpected_input_file_type]]
@@ -380,4 +388,13 @@ To fix this, look at the error message which indicates the list of possible solu
 
 Please find below the list of unsupported value type and links to respective sections of the user manual:
 
-`ResolvedArtifactResult`:: <<more_about_tasks#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+`ResolvedArtifactResult`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+
+[[unsupported_key_type_of_nested_map]]
+== Key of nested map must be of type String
+
+This error indicates that a nested map declares a key of an unsupported type.
+Gradle uses the key to generate a name for the (sub)property.
+Only allowing keys of type String guarantees that these names are unique and well-formed, and is preferable to relying on `toString()` for producing such names.
+
+To fix this problem, change the type of the key to String.

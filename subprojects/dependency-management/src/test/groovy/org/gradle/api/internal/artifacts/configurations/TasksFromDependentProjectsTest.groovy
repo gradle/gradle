@@ -18,6 +18,7 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -34,7 +35,7 @@ class TasksFromDependentProjectsTest extends AbstractProjectBuilderSpec {
     def checker = Mock(TasksFromDependentProjects.TaskDependencyChecker)
 
     def "provides all tasks from dependent projects"() {
-        def dep = new TasksFromDependentProjects("buildDependents", "testRuntime", checker)
+        def dep = new TasksFromDependentProjects("buildDependents", "testRuntime", checker, TestFiles.taskDependencyFactory())
 
         [child1, child2, child3].each {
             it.configurations.create "testRuntime"

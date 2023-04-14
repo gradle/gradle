@@ -18,11 +18,13 @@ package org.gradle.kotlin.dsl.fixtures
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
@@ -150,12 +152,11 @@ class SimplifiedKotlinScriptEvaluator(
 
         override fun cachedDirFor(
             scriptHost: KotlinScriptHost<*>,
-            templateId: String,
-            sourceHash: HashCode,
+            programId: ProgramId,
             compilationClassPath: ClassPath,
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
-        ): File = baseCacheDir.resolve(sourceHash.toString()).resolve(templateId).also { cacheDir ->
+        ): File = baseCacheDir.resolve(programId.sourceHash.toString()).resolve(programId.templateId).also { cacheDir ->
             cacheDir.mkdirs()
             initializer(cacheDir)
         }
@@ -163,7 +164,10 @@ class SimplifiedKotlinScriptEvaluator(
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
             scriptCompilationClassPath
 
-        override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+        override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+            ClassPath.EMPTY
+
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             ClassPath.EMPTY
 
         override fun startCompilerOperation(description: String): AutoCloseable =
@@ -172,6 +176,7 @@ class SimplifiedKotlinScriptEvaluator(
         override fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
+            origin: ClassLoaderScopeOrigin,
             location: File,
             className: String,
             accessorsClassPath: ClassPath
@@ -200,6 +205,12 @@ class SimplifiedKotlinScriptEvaluator(
 
         override val implicitImports: List<String>
             get() = ImplicitImports(DefaultImportsReader()).list
+
+        override val jvmTarget: JavaVersion
+            get() = JavaVersion.current()
+
+        override val allWarningsAsErrors: Boolean
+            get() = false
     }
 }
 

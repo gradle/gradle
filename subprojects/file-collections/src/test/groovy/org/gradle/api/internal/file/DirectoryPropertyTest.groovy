@@ -53,11 +53,6 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
     }
 
     @Override
-    PropertyInternal<Directory> propertyWithDefaultValue() {
-        return factory.newDirectoryProperty()
-    }
-
-    @Override
     ManagedFactory managedFactory() {
         new ManagedFactories.DirectoryPropertyManagedFactory(factory)
     }

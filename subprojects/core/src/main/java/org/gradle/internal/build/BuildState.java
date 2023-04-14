@@ -95,7 +95,7 @@ public interface BuildState {
     File getBuildRootDir();
 
     /**
-     * Returns the current state of the mutable model of this build.
+     * Returns the current state of the mutable model of this build. Try to avoid using the model directly.
      */
     GradleInternal getMutableModel();
 
@@ -108,4 +108,19 @@ public interface BuildState {
      * Runs an action against the tooling model creators of this build. May configure the build as required.
      */
     <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
+
+    /**
+     * Runs whatever work is required prior to discarding the model for this build. Called prior to {@link #resetModel()}.
+     */
+    ExecutionResult<Void> beforeModelReset();
+
+    /**
+     * Restarts the lifecycle of the model of this build, discarding all current model state.
+     */
+    void resetModel();
+
+    /**
+     * Runs whatever work is required prior to discarding the model for this build. Called at the end of the build.
+     */
+    ExecutionResult<Void> beforeModelDiscarded(boolean failed);
 }

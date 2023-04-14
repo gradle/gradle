@@ -31,5 +31,13 @@ public interface ArchitectureInternal extends Architecture {
     boolean isIa64();
 
     @Internal
-    boolean isArm();
+    default boolean isArm() {
+        return isArm32() || isArm64();
+    }
+
+    @Internal
+    boolean isArm32();
+
+    @Internal
+    boolean isArm64();
 }

@@ -18,36 +18,91 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.internal.Actions;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 
-public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDependency implements MinimalExternalModuleDependency, DependencyVariant {
-    private final MinimalExternalModuleDependency delegate;
-    private final Action<? super AttributeContainer> attributesMutator;
-    private final Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator;
-    private final String classifier;
-    private final String artifactType;
+public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDependency implements MinimalExternalModuleDependencyInternal, DependencyVariant {
+    private Action<? super AttributeContainer> attributesMutator;
+    private Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator;
+    private String classifier;
+    private String artifactType;
 
     public DefaultMinimalDependencyVariant(MinimalExternalModuleDependency delegate,
                                            @Nullable Action<? super AttributeContainer> attributesMutator,
                                            @Nullable Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
                                            @Nullable String classifier,
-                                           @Nullable String artifactType) {
-        super(delegate.getModule(), new DefaultMutableVersionConstraint(delegate.getVersionConstraint()));
-        this.delegate = delegate;
-        boolean delegateIsVariant = delegate instanceof DefaultMinimalDependencyVariant;
-        this.attributesMutator = delegateIsVariant ? Actions.composite(((DefaultMinimalDependencyVariant) delegate).attributesMutator, attributesMutator == null ? Actions.doNothing() : attributesMutator) : attributesMutator;
-        this.capabilitiesMutator = delegateIsVariant ? Actions.composite(((DefaultMinimalDependencyVariant) delegate).capabilitiesMutator, capabilitiesMutator == null ? Actions.doNothing() : capabilitiesMutator) : capabilitiesMutator;
-        if (classifier == null && delegateIsVariant) {
-            classifier = ((DefaultMinimalDependencyVariant) delegate).getClassifier();
+                                           @Nullable String artifactType
+    ) {
+        super(delegate.getModule(), new DefaultMutableVersionConstraint(delegate.getVersionConstraint()), delegate.getTargetConfiguration());
+
+        attributesMutator = GUtil.elvis(attributesMutator, Actions.doNothing());
+        capabilitiesMutator = GUtil.elvis(capabilitiesMutator, Actions.doNothing());
+
+        if (delegate instanceof DefaultMinimalDependencyVariant) {
+            this.attributesMutator = Actions.composite(((DefaultMinimalDependencyVariant) delegate).attributesMutator, attributesMutator);
+            this.capabilitiesMutator = Actions.composite(((DefaultMinimalDependencyVariant) delegate).capabilitiesMutator, capabilitiesMutator);
+            this.classifier = GUtil.elvis(classifier, ((DefaultMinimalDependencyVariant) delegate).getClassifier());
+            this.artifactType = GUtil.elvis(classifier, ((DefaultMinimalDependencyVariant) delegate).getArtifactType());
+        } else {
+            this.attributesMutator = attributesMutator;
+            this.capabilitiesMutator = capabilitiesMutator;
+            this.classifier = classifier;
+            this.artifactType = artifactType;
         }
-        if (artifactType == null && delegateIsVariant) {
-            artifactType = ((DefaultMinimalDependencyVariant) delegate).getArtifactType();
-        }
+
+        MinimalExternalModuleDependencyInternal internal = (MinimalExternalModuleDependencyInternal) delegate;
+        setAttributesFactory(internal.getAttributesFactory());
+        setCapabilityNotationParser(internal.getCapabilityNotationParser());
+    }
+
+    private DefaultMinimalDependencyVariant(
+        ModuleIdentifier id,
+        MutableVersionConstraint versionConstraint,
+        @Nullable String configuration,
+        Action<? super AttributeContainer> attributesMutator,
+        Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
+        @Nullable String classifier,
+        @Nullable String artifactType
+    ) {
+        super(id, versionConstraint, configuration);
+        this.attributesMutator = attributesMutator;
+        this.capabilitiesMutator = capabilitiesMutator;
         this.classifier = classifier;
         this.artifactType = artifactType;
+    }
+
+    @Override
+    public void copyTo(AbstractExternalModuleDependency target) {
+        super.copyTo(target);
+        if (target instanceof DefaultMinimalDependencyVariant) {
+            DefaultMinimalDependencyVariant depVariant = (DefaultMinimalDependencyVariant) target;
+            depVariant.attributesMutator = attributesMutator;
+            depVariant.capabilitiesMutator = capabilitiesMutator;
+            depVariant.classifier = classifier;
+            depVariant.artifactType = artifactType;
+        } else {
+            target.attributes(attributesMutator);
+            target.capabilities(capabilitiesMutator);
+            if (classifier != null || artifactType != null) {
+                ModuleFactoryHelper.addExplicitArtifactsIfDefined(target, artifactType, classifier);
+            }
+        }
+    }
+
+    @Override
+    public MinimalExternalModuleDependency copy() {
+        DefaultMinimalDependencyVariant dependency = new DefaultMinimalDependencyVariant(
+            getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration(),
+            attributesMutator, capabilitiesMutator, classifier, artifactType
+        );
+        copyTo(dependency);
+        return dependency;
     }
 
     @Override
@@ -67,16 +122,12 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
 
     @Override
     public void mutateAttributes(AttributeContainer attributes) {
-        if (attributesMutator!= null) {
-            attributesMutator.execute(attributes);
-        }
+        attributesMutator.execute(attributes);
     }
 
     @Override
     public void mutateCapabilities(ModuleDependencyCapabilitiesHandler capabilitiesHandler) {
-        if (capabilitiesMutator != null) {
-            capabilitiesMutator.execute(capabilitiesHandler);
-        }
+        capabilitiesMutator.execute(capabilitiesHandler);
     }
 
     @Nullable
@@ -93,6 +144,11 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
 
     @Override
     public String toString() {
-        return delegate.toString();
+        return "DefaultMinimalDependencyVariant{" +
+            ", attributesMutator=" + attributesMutator +
+            ", capabilitiesMutator=" + capabilitiesMutator +
+            ", classifier='" + classifier + '\'' +
+            ", artifactType='" + artifactType + '\'' +
+            "} " + super.toString();
     }
 }

@@ -37,7 +37,7 @@ import java.util.Map;
 /**
  * Compilation options to be passed to the Groovy compiler.
  */
-public class GroovyCompileOptions extends AbstractOptions {
+public abstract class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private boolean failOnError = true;
@@ -54,7 +54,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     private List<String> fileExtensions = ImmutableList.of("java", "groovy");
 
-    private GroovyForkOptions forkOptions = new GroovyForkOptions();
+    private GroovyForkOptions forkOptions = getObjectFactory().newInstance(GroovyForkOptions.class);
 
     private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
 

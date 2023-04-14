@@ -27,7 +27,7 @@ import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.api.Incubating
 
 class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleSpecification {
-    IncubatingInternalInterfaceAddedRule rule = new IncubatingInternalInterfaceAddedRule(getInitializationParams())
+    IncubatingInternalInterfaceAddedRule rule
 
     static class OldSuper {}
 
@@ -58,6 +58,7 @@ class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleS
     Map interfaces
 
     def setup() {
+        rule = new IncubatingInternalInterfaceAddedRule(getInitializationParams())
         rule.context = context
 
         oldBase = instanceScopedPool.get(OldBase.name)

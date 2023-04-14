@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.transaction
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.compile.ApiCompilerResult
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
@@ -25,14 +26,19 @@ import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.TestUtil
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.function.Supplier
 import java.util.stream.Stream
 
 import static com.google.common.base.Preconditions.checkNotNull
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.CLASS_OUTPUT
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.NATIVE_HEADER_OUTPUT
+import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource.Location.SOURCE_OUTPUT
 
 class CompileTransactionTest extends Specification {
 
@@ -42,15 +48,18 @@ class CompileTransactionTest extends Specification {
     File temporaryFolder
     File transactionDir
     File stashDir
+    @Shared
+    File classBackupDir
     JavaCompileSpec spec
 
     def setup() {
         transactionDir = new File(temporaryFolder, "compileTransaction")
         transactionDir.mkdir()
         stashDir = new File(transactionDir, "stash-dir")
+        classBackupDir = new File(transactionDir, "backup-dir")
         spec = new DefaultJavaCompileSpec()
         spec.setTempDir(temporaryFolder)
-        spec.setCompileOptions(new CompileOptions(TestUtil.objectFactory()))
+        spec.setCompileOptions(TestUtil.newInstance(CompileOptions, TestUtil.objectFactory()))
         spec.setDestinationDir(createNewDirectory(file("classes")))
         spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(true)
     }
@@ -98,9 +107,9 @@ class CompileTransactionTest extends Specification {
         spec.getCompileOptions().setHeaderOutputDirectory(headerOutput)
         def classesToDelete = new PatternSet().include("**/*.class")
         Map<GeneratedResource.Location, PatternSet> sourcesToDelete = [:]
-        sourcesToDelete[GeneratedResource.Location.CLASS_OUTPUT] = new PatternSet().include("**/*.txt")
-        sourcesToDelete[GeneratedResource.Location.SOURCE_OUTPUT] = new PatternSet().include("**/*.ann")
-        sourcesToDelete[GeneratedResource.Location.NATIVE_HEADER_OUTPUT] = new PatternSet().include("**/*.h")
+        sourcesToDelete[CLASS_OUTPUT] = new PatternSet().include("**/*.txt")
+        sourcesToDelete[SOURCE_OUTPUT] = new PatternSet().include("**/*.ann")
+        sourcesToDelete[NATIVE_HEADER_OUTPUT] = new PatternSet().include("**/*.h")
 
         when:
         newCompileTransaction(classesToDelete, sourcesToDelete).execute {
@@ -243,52 +252,7 @@ class CompileTransactionTest extends Specification {
         new PatternSet().include("**/*.txt") | null          | "empty directory"
     }
 
-    def "on success all files are moved from staging dir to an output directory"() {
-        def destinationDir = spec.getDestinationDir()
-        def annotationOutput = createNewDirectory(file("annotationOut"))
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationOutput)
-        def headerOutput = createNewDirectory(file("headerOut"))
-        spec.getCompileOptions().setHeaderOutputDirectory(headerOutput)
-        def compileStagingDir = fileInTransactionDir("compile-output")
-        def annotationsStagingDir = fileInTransactionDir("annotation-output")
-        def headerStagingDir = fileInTransactionDir("header-output")
-
-        when:
-        newCompileTransaction().execute {
-            new File(compileStagingDir, "file.txt").createNewFile()
-            new File(compileStagingDir, "subDir").mkdir()
-            new File(compileStagingDir, "subDir/another-file.txt").createNewFile()
-            new File(annotationsStagingDir, "annotation-file.txt").createNewFile()
-            new File(headerStagingDir, "header-file.txt").createNewFile()
-            return DID_WORK
-        }
-
-        then:
-        destinationDir.list() as Set ==~ ["file.txt", "subDir"]
-        new File(destinationDir,"subDir").list() as Set ==~ ["another-file.txt"]
-        annotationOutput.list() as Set ==~ ["annotation-file.txt"]
-        headerOutput.list() as Set ==~ ["header-file.txt"]
-    }
-
-    def "on compile failure files are not moved to an output directory"() {
-        def destinationDir = createNewDirectory(file("someDir"))
-        def stagingDir = fileInTransactionDir("compile-output")
-        spec.setDestinationDir(destinationDir)
-
-        when:
-        newCompileTransaction().execute {
-                new File(stagingDir, "file.txt").createNewFile()
-                new File(stagingDir, "subDir").mkdir()
-                new File(stagingDir, "subDir/another-file.txt").createNewFile()
-                throw new CompilationFailedException()
-            }
-
-        then:
-        thrown(CompilationFailedException)
-        isEmptyDirectory(destinationDir)
-    }
-
-    def "unique directory is generated for stash directory and every staging directory that exists"() {
+    def "stash and backup directory are generated"() {
         given:
         spec.setDestinationDir(createNewFile(file("compile")))
         spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(createNewFile(file("annotation")))
@@ -300,57 +264,105 @@ class CompileTransactionTest extends Specification {
         }
 
         then:
-        directories as Set ==~ ["stash-dir", "compile-output", "annotation-output", "header-output"]
+        directories as Set ==~ ["stash-dir", "backup-dir"]
     }
 
-    def "#stagingDir directory is cleaned before the execution and folder structure is the same as in #originalDir"() {
-        createNewDirectory(file("$originalDir/dir1/dir1"))
-        createNewDirectory(file("$originalDir/dir2"))
-        // This is a file, so folder ./dir1/dir2 in transactional dir should be deleted
-        createNewFile(file("$originalDir/dir1/dir2"))
-        createNewFile(fileInTransactionDir("$stagingDir/dir1/dir1/file1.txt")) // only file should be deleted
-        createNewDirectory(fileInTransactionDir("$stagingDir/dir1/dir2")) // dir2 directory should be deleted
-        createNewDirectory(fileInTransactionDir("$stagingDir/dir3")) // dir3 directory should be deleted
-        createNewFile(fileInTransactionDir("$stagingDir/dir2/file1.txt")) // only file should be deleted
-        createNewDirectory(fileInTransactionDir("some-other-dir")) // some-other-dir directory should be deleted
-        spec.setDestinationDir(file("classes"))
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(file("annotation-generated-sources"))
-        spec.getCompileOptions().setHeaderOutputDirectory(file("header-sources"))
+    def "generated classes and resources are deleted and classes in backup dir are restored on a failure"() {
+        def destinationDir = spec.getDestinationDir()
+        def annotationGeneratedSourcesDir = createNewDirectory(file("generated/annotation-resources"))
+        def overwrittenFile = createNewFile(new File(destinationDir, "Overwritten.class"))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationGeneratedSourcesDir)
 
-        expect:
+        when:
         newCompileTransaction().execute {
-            assert transactionDir.list() as Set ==~ ["stash-dir", "compile-output", "annotation-output", "header-output"]
-            assert fileInTransactionDir(stagingDir).list() as Set ==~ ["dir1", "dir2"]
-            assert fileInTransactionDir("$stagingDir/dir1").list() as Set ==~ ["dir1"]
-            assert hasOnlyDirectories(fileInTransactionDir(stagingDir))
-            return DID_WORK
+            def compilerResult = simulateGeneratingClassesAndResources(destinationDir, annotationGeneratedSourcesDir, overwrittenFile)
+            throw new CompilationFailedException(compilerResult)
         }
+
+        then:
+        thrown(CompilationFailedException)
+        overwrittenFile.text == ""
+        destinationDir.list() as Set<String> == ["Overwritten.class"] as Set<String>
+        isEmptyDirectory(annotationGeneratedSourcesDir)
+    }
+
+    def "generated classes and resources are not deleted and classes in backup dir are not restored on a success"() {
+        def destinationDir = spec.getDestinationDir()
+        def annotationGeneratedSourcesDir = createNewDirectory(file("generated/annotation-resources"))
+        def overwrittenFile = createNewFile(new File(destinationDir, "Overwritten.class"))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationGeneratedSourcesDir)
+
+        when:
+        newCompileTransaction().execute {
+            return simulateGeneratingClassesAndResources(destinationDir, annotationGeneratedSourcesDir, overwrittenFile)
+        }
+
+        then:
+        overwrittenFile.text == "Overwritten"
+        listAllFiles(destinationDir) == ["Overwritten.class", "com/example/A.class", "com/example/A.txt", "com/example/B.class", "com/example/C\$D.class", "com/example/C.class"]
+        listAllFiles(annotationGeneratedSourcesDir) == ["com/example/A.java", "com/example/B.java", "com/example/B.txt"]
+    }
+
+    def "generated classes and resources are not deleted and classes in backup dir are not restored if incremental compilation after failure is not supported"() {
+        def destinationDir = spec.getDestinationDir()
+        def annotationGeneratedSourcesDir = createNewDirectory(file("generated/annotation-resources"))
+        def overwrittenFile = createNewFile(new File(destinationDir, "Overwritten.class"))
+        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(annotationGeneratedSourcesDir)
+        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false)
+
+        when:
+        newCompileTransaction().execute {
+            def compilerResult = simulateGeneratingClassesAndResources(destinationDir, annotationGeneratedSourcesDir, overwrittenFile)
+            throw new CompilationFailedException(compilerResult)
+        }
+
+        then:
+        thrown(CompilationFailedException)
+        overwrittenFile.text == "Overwritten"
+        listAllFiles(destinationDir) == ["Overwritten.class", "com/example/A.class", "com/example/A.txt", "com/example/B.class", "com/example/C\$D.class", "com/example/C.class"]
+        listAllFiles(annotationGeneratedSourcesDir) == ["com/example/A.java", "com/example/B.java", "com/example/B.txt"]
+    }
+
+    ApiCompilerResult simulateGeneratingClassesAndResources(File destinationDir, File annotationGeneratedSourcesDir, File overwrittenFile) {
+        def compilerResult = new ApiCompilerResult()
+        compilerResult.annotationProcessingResult.generatedAggregatingTypes.addAll(["com.example.A"])
+        compilerResult.annotationProcessingResult.generatedAggregatingResources.addAll(new GeneratedResource(CLASS_OUTPUT, "com.example", "A.txt"))
+        compilerResult.annotationProcessingResult.addGeneratedType("com.example.B", ["ElementA"] as Set<String>)
+        compilerResult.annotationProcessingResult.addGeneratedResource(new GeneratedResource(SOURCE_OUTPUT, "com.example", "B.txt"), ["ElementB"] as Set<String>)
+        compilerResult.sourceClassesMapping.put("com/example/C.java", ["com.example.C", "com.example.C\$D"] as Set<String>)
+        def fileInBackupDir = new File(classBackupDir, "Overwritten.class")
+        Files.copy(overwrittenFile.toPath(), fileInBackupDir.toPath())
+        overwrittenFile.text = "Overwritten"
+        compilerResult.backupClassFiles.put(overwrittenFile.absolutePath, fileInBackupDir.absolutePath)
+
+        createNewFile(new File(destinationDir, "com/example/A.class"))
+        createNewFile(new File(annotationGeneratedSourcesDir, "com/example/A.java"))
+        createNewFile(new File(destinationDir, "com/example/B.class"))
+        createNewFile(new File(annotationGeneratedSourcesDir, "com/example/B.java"))
+        createNewFile(new File(destinationDir, "com/example/A.txt"))
+        createNewFile(new File(annotationGeneratedSourcesDir, "com/example/B.txt"))
+        createNewFile(new File(destinationDir, "com/example/C.class"))
+        createNewFile(new File(destinationDir, "com/example/C\$D.class"))
+        return compilerResult
+    }
+
+    def "class backup directory is #description when compile after failure is set to #compileAfterFailure"() {
+        given:
+        spec.setDestinationDir(createNewFile(file("compile")))
+        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(compileAfterFailure)
+
+        when:
+        def classBackupDir = newCompileTransaction().execute {
+            return spec.getClassBackupDir()
+        }
+
+        then:
+        classBackupDir == (expectedClassBackupDir as Supplier<File>).get()
 
         where:
-        originalDir | stagingDir
-        "classes"                      | "compile-output"
-        "annotation-generated-sources" | "annotation-output"
-        "header-sources"               | "header-output"
-    }
-
-    def "modifies spec output directories before execution and restores them after execution"() {
-        spec.setDestinationDir(file("classes"))
-        spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(file("annotation-generated-sources"))
-        spec.getCompileOptions().setHeaderOutputDirectory(file("header-sources"))
-
-        expect:
-        // Modify output folders before
-        newCompileTransaction().execute {
-            assert spec.getDestinationDir() == fileInTransactionDir("compile-output")
-            assert spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() == fileInTransactionDir("annotation-output")
-            assert spec.getCompileOptions().getHeaderOutputDirectory() == fileInTransactionDir("header-output")
-            return DID_WORK
-        }
-
-        // And restore output folders after
-        spec.getDestinationDir() == file("classes")
-        spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() == file("annotation-generated-sources")
-        spec.getCompileOptions().getHeaderOutputDirectory() == file("header-sources")
+        description | compileAfterFailure | expectedClassBackupDir
+        "set"       | true                | { classBackupDir }
+        "not set"   | false               | { null }
     }
 
     private File fileInTransactionDir(String path) {
@@ -375,6 +387,12 @@ class CompileTransactionTest extends Specification {
 
     private boolean isEmptyDirectory(File file) {
         file.listFiles().length == 0
+    }
+
+    private List<String> listAllFiles(File file) {
+        return Files.find(file.toPath(), 99, { path, attributes -> attributes.isRegularFile() })
+            .collect { file.toPath().relativize(it).toString().replace("\\", "/") }
+            .toSorted()
     }
 
     private boolean hasOnlyDirectories(File file) {

@@ -1,0 +1,2 @@
+Configuration cache state could not be cached: field `javaCompiler` of task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'
+> No matching toolchains found for requested specification: {languageVersion=11, vendor=matching('customString'), implementation=vendor-specific}.

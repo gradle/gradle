@@ -22,7 +22,7 @@ import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class DefaultVisitedArtifactResultsTest extends Specification {
-    def "selection includes selected variant of each node"() {
+    def "strict selection includes selected variant of each node"() {
         def artifacts1 = Stub(ArtifactSet)
         def artifacts2 = Stub(ArtifactSet)
         def variant1Artifacts = Stub(ResolvedArtifactSet)
@@ -46,4 +46,95 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         selected.getArtifactsWithId(1) == variant2Artifacts
     }
 
+    def "strict selection includes all failed artifacts"() {
+        def artifacts1 = Stub(ArtifactSet)
+        def artifacts2 = Stub(ArtifactSet)
+        def variant1Artifacts = new BrokenResolvedArtifactSet(new Exception())
+        def variant2Artifacts = new UnavailableResolvedArtifactSet(new Exception())
+
+        def selector = Stub(VariantSelector)
+        def spec = Stub(Spec)
+
+        given:
+        artifacts1.select(spec, selector) >> variant1Artifacts
+        artifacts2.select(spec, selector) >> variant2Artifacts
+
+        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
+        def selected = results.select(spec, selector)
+
+        expect:
+        selected.getArtifacts() instanceof CompositeResolvedArtifactSet
+        selected.getArtifacts().sets == [variant1Artifacts, variant2Artifacts]
+
+        selected.getArtifactsWithId(0) == variant1Artifacts
+        selected.getArtifactsWithId(1) == variant2Artifacts
+    }
+
+    def "lenient selection includes selected variant of each node"() {
+        def artifacts1 = Stub(ArtifactSet)
+        def artifacts2 = Stub(ArtifactSet)
+        def variant1Artifacts = Stub(ResolvedArtifactSet)
+        def variant2Artifacts = Stub(ResolvedArtifactSet)
+
+        def selector = Stub(VariantSelector)
+        def spec = Stub(Spec)
+
+        given:
+        artifacts1.select(spec, selector) >> variant1Artifacts
+        artifacts2.select(spec, selector) >> variant2Artifacts
+
+        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
+        def selected = results.selectLenient(spec, selector)
+
+        expect:
+        selected.getArtifacts() instanceof CompositeResolvedArtifactSet
+        selected.getArtifacts().sets == [variant1Artifacts, variant2Artifacts]
+
+        selected.getArtifactsWithId(0) == variant1Artifacts
+        selected.getArtifactsWithId(1) == variant2Artifacts
+    }
+
+    def "lenient selection does not include unavailable selected variant"() {
+        def artifacts1 = Stub(ArtifactSet)
+        def artifacts2 = Stub(ArtifactSet)
+        def variant1Artifacts = new UnavailableResolvedArtifactSet(new Exception())
+        def variant2Artifacts = Stub(ResolvedArtifactSet)
+
+        def selector = Stub(VariantSelector)
+        def spec = Stub(Spec)
+
+        given:
+        artifacts1.select(spec, selector) >> variant1Artifacts
+        artifacts2.select(spec, selector) >> variant2Artifacts
+
+        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
+        def selected = results.selectLenient(spec, selector)
+
+        expect:
+        selected.getArtifacts() == variant2Artifacts
+    }
+
+    def "lenient selection includes broken artifacts"() {
+        def artifacts1 = Stub(ArtifactSet)
+        def artifacts2 = Stub(ArtifactSet)
+        def variant1Artifacts = new BrokenResolvedArtifactSet(new Exception())
+        def variant2Artifacts = Stub(ResolvedArtifactSet)
+
+        def selector = Stub(VariantSelector)
+        def spec = Stub(Spec)
+
+        given:
+        artifacts1.select(spec, selector) >> variant1Artifacts
+        artifacts2.select(spec, selector) >> variant2Artifacts
+
+        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
+        def selected = results.selectLenient(spec, selector)
+
+        expect:
+        selected.getArtifacts() instanceof CompositeResolvedArtifactSet
+        selected.getArtifacts().sets == [variant1Artifacts, variant2Artifacts]
+
+        selected.getArtifactsWithId(0) == variant1Artifacts
+        selected.getArtifactsWithId(1) == variant2Artifacts
+    }
 }

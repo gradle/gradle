@@ -52,28 +52,10 @@ dependencies {
     compile "ch.qos.logback:logback-classic:0.9.30"
     compile "org.hibernate:hibernate-core:3.6.7.Final"
 }
-
-task check {
-    doLast {
-        def compile = configurations.compile
-
-        def filteredDependencies = compile.resolvedConfiguration.getFirstLevelModuleDependencies({ it.name == 'logback-classic' } as Spec)
-        assert filteredDependencies.collect { it.name } == [
-            'ch.qos.logback:logback-classic:0.9.30'
-        ]
-
-        def filteredFiles = compile.resolvedConfiguration.getFiles({ it.name == 'logback-classic' } as Spec)
-        assert filteredFiles.collect { it.name } == [
-            'logback-classic-0.9.30.jar',
-            'slf4j-api-1.6.2.jar',
-            'logback-core-0.9.30.jar'
-        ]
-    }
-}
 """
 
         expect:
-        succeeds "check", "checkDep"
+        succeeds "checkDep"
         resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(':', ':testproject:') {
@@ -102,6 +84,4 @@ task check {
             }
         }
     }
-
-
 }

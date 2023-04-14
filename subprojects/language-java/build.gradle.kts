@@ -34,7 +34,8 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
-    implementation(libs.ant) // for 'ZipFile' and 'ZipEntry'
+    implementation(libs.ant)
+    implementation(libs.commonsCompress)
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.inject)
@@ -74,7 +75,7 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(null as? Int)
+    options.release = null
     sourceCompatibility = "8"
     targetCompatibility = "8"
 }
@@ -85,9 +86,13 @@ strictCompile {
 
 packageCycles {
     // These public packages have classes that are tangled with the corresponding internal package.
-    excludePatterns.add("org/gradle/api/tasks/compile/**")
+    excludePatterns.add("org/gradle/api/tasks/**")
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
 
+integTest.usesJavadocCodeSnippets = true
 
-integTest.usesJavadocCodeSnippets.set(true)
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

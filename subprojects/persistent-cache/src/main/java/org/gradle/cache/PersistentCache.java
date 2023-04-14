@@ -33,7 +33,7 @@ import java.io.File;
  * lock on the cache.
  * </p>
  */
-public interface PersistentCache extends CacheAccess, Closeable, CleanableStore {
+public interface PersistentCache extends ExclusiveCacheAccessCoordinator, Closeable, CleanableStore, HasCleanupAction {
     /**
      * Returns the base directory for this cache.
      */
@@ -47,7 +47,7 @@ public interface PersistentCache extends CacheAccess, Closeable, CleanableStore 
      * In this instance, an exclusive lock will be held on the cache.
      *
      */
-    <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters);
+    <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters);
 
     /**
      * Creates an indexed cache implementation that is contained within this store. This method may be used at any time.
@@ -56,9 +56,9 @@ public interface PersistentCache extends CacheAccess, Closeable, CleanableStore 
      * In this instance, an exclusive lock will be held on the cache.
      *
      */
-    <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
+    <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 
-    <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters);
+    <K, V> boolean indexedCacheExists(IndexedCacheParameters<K, V> parameters);
 
     /**
      * Closes this cache, blocking until all operations are complete.

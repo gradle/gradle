@@ -108,5 +108,4 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
     protected MavenDuplicatePublicationTracker getDuplicatePublicationTracker() {
         throw new UnsupportedOperationException();
     }
-
 }

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
@@ -44,7 +45,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * task from the command-line.</p>
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectReportTask.ProjectReportModel> {
+public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectReportTask.ProjectReportModel> {
 
     private final TextReportRenderer renderer = new TextReportRenderer();
 
@@ -102,7 +103,7 @@ public class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectRep
     }
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
-        List<Project> childProjects = CollectionUtils.sort(project.getChildProjects().values());
+        List<Project> childProjects = CollectionUtils.sort(ProjectHierarchyUtils.getChildProjectsForInternalUse(project));
         List<ProjectReportModel> children = new ArrayList<>(childProjects.size());
         for (Project childProject : childProjects) {
             children.add(calculateReportModelFor(childProject));
@@ -121,12 +122,12 @@ public class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectRep
 
     @Override
     protected void generateReportFor(ProjectDetails project, ProjectReportModel model) {
-        renderProjectTree(project, model);
+        renderProjectTree(model);
         renderIncludedBuilds(model);
         renderHelp(project, model);
     }
 
-    private void renderProjectTree(ProjectDetails project, ProjectReportModel model) {
+    private void renderProjectTree(ProjectReportModel model) {
         StyledTextOutput textOutput = getRenderer().getTextOutput();
         renderProject(model, new GraphRenderer(textOutput), true, textOutput);
         if (model.children.isEmpty()) {

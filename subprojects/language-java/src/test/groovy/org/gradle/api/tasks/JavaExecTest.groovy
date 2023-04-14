@@ -16,16 +16,114 @@
 
 package org.gradle.api.tasks
 
-import spock.lang.Specification
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.provider.AbstractProperty
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
-class JavaExecTest extends Specification {
+class JavaExecTest extends AbstractProjectBuilderSpec {
 
-    def 'javaLauncher is annotated with @Nested and @Optional'() {
-        given:
-        def launcherMethod = JavaExec.class.getMethod('getJavaLauncher', [] as Class[])
+    def 'Jvm arguments are empty by default'() {
+        when:
+        def task = project.tasks.create("run", JavaExec)
 
-        expect:
-        launcherMethod.isAnnotationPresent(Nested)
-        launcherMethod.isAnnotationPresent(Optional)
+        then:
+        task.jvmArgs != null
+        task.jvmArgs.isEmpty()
+    }
+
+    def 'fails if custom executable does not exist'() {
+        def task = project.tasks.create("run", JavaExec)
+        def invalidExecutable = temporaryFolder.file("invalid")
+
+        when:
+        task.executable = invalidExecutable
+        execute(task)
+
+        then:
+        def e = thrown(TaskExecutionException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable does not exist")
+        cause.message.contains(invalidExecutable.absolutePath)
+    }
+
+    def 'fails if custom executable is a directory'() {
+        def task = project.tasks.create("run", JavaExec)
+        def executableDir = temporaryFolder.createDir("javac")
+
+        when:
+        task.executable = executableDir.absolutePath
+        execute(task)
+
+        then:
+        def e = thrown(TaskExecutionException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable is a directory")
+        cause.message.contains(executableDir.name)
+    }
+
+    def 'fails if custom executable is not from a valid JVM'() {
+        def task = project.tasks.create("run", JavaExec)
+        def invalidJavac = temporaryFolder.createFile("invalidJavac")
+
+        when:
+        task.executable = invalidJavac.absolutePath
+        execute(task)
+
+        then:
+        def e = thrown(TaskExecutionException)
+        assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed:"))
+        assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
+    }
+
+    def "fails if custom Java home does not exist"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.fileValue(temporaryFolder.createDir())
+        def invalidJavaHome = "invalidJavaHome"
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.javaHome = new File("invalidJavaHome")
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured Java home does not exist")
+        cause.message.contains(invalidJavaHome)
+    }
+
+    def "fails if custom Java home is not a directory"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.fileValue(temporaryFolder.createDir())
+        def javaHomeFile = temporaryFolder.createFile("javaHome")
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.javaHome = javaHomeFile
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured Java home is not a directory")
+        cause.message.contains(javaHomeFile.absolutePath)
+    }
+
+    def "fails if custom Java home is not a valid JVM"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.fileValue(temporaryFolder.createDir())
+        def javaHomeDir = temporaryFolder.createDir("javaHome")
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.javaHome = javaHomeDir
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${javaHomeDir.absolutePath}' could not be probed:"))
+        assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
     }
 }

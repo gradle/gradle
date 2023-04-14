@@ -41,11 +41,13 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
         buildFile << """
             dependencies {
                 testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+                testRuntimeOnly("org.junit.platform:junit-platform-launcher")
             }
 
             test {
+                def markerFile = file("marker.file")
                 doFirst {
-                    file("marker.file").delete()
+                    markerFile.delete()
                 }
 
                 useJUnitPlatform()
@@ -73,8 +75,9 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
                         targets {
                             all {
                                 testTask.configure {
+                                    def markerFile = file("marker.file")
                                     doFirst {
-                                        file("marker.file").delete()
+                                        markerFile.delete()
                                     }
                                     retry {
                                         maxRetries = 2

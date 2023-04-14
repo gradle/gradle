@@ -28,19 +28,27 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
 /**
- * <p>A {@code DependencyAdder} is used to add dependencies to a specific configuration.</p>
+ * A {@code DependencyAdder} is used to add dependencies to a specific configuration.
+ *
+ * @apiNote
+ * Gradle has specific extensions to make explicit calls to {@code add(...)} unnecessary from the DSL.
+ * <ul>
+ * <li>For Groovy DSL, we create {@code call(...)} equivalents for all the {@code add(...)} methods.</li>
+ * <li>For Kotlin DSL, we create {@code invoke(...)} equivalents for all the {@code add(...)} methods.</li>
+ * </ul>
+ *
+ * @implSpec This interface should not be implemented by end users or plugins.
+ * @implNote
+ * Changes to this interface may require changes to the
+ * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
+ * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
  *
  * @since 7.6
  */
 @Incubating
 @NonExtensible
+@SuppressWarnings("JavadocReference")
 public interface DependencyAdder {
-    /*
-    NOTE: If you add new dependency notations, you also need to consider how this affects these files:
-    - DependencyAdderExtensionModule.java
-    - DependencyAdderExtensions.kt
-    */
-
     /**
      * Add a dependency.
      *

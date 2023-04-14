@@ -16,12 +16,16 @@
 
 package org.gradle.internal.file;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 import java.io.IOException;
 
 /**
  * A file deleter that doesn't give up if deletion doesn't work on the first try.
  */
+@ServiceScope(Scope.Global.class)
 public interface Deleter {
     /**
      * Attempts to delete the given file or directory recursively.

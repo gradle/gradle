@@ -54,7 +54,7 @@ public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T>
      * {@inheritDoc}
      */
     @Override
-    ListProperty<T> convention(Iterable<? extends T> elements);
+    ListProperty<T> convention(@Nullable Iterable<? extends T> elements);
 
     /**
      * {@inheritDoc}

@@ -174,4 +174,9 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     public boolean isExternalVariant() {
         return variant.isExternalVariant();
     }
+
+    @Override
+    public boolean isEligibleForCaching() {
+        return variant.isEligibleForCaching();
+    }
 }

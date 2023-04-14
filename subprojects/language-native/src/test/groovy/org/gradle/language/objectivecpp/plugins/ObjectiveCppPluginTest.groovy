@@ -22,7 +22,9 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
 import org.gradle.language.AbstractNativeComponentPluginTest
 import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle-private/issues/3818")
 class ObjectiveCppPluginTest extends AbstractNativeComponentPluginTest {
     @Override
     Class<? extends Plugin> getPluginClass() {

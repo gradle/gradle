@@ -16,32 +16,24 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
-public class Language {
-    public static final Language NONE = Language.withName("none");
-    public static final Language JAVA = Language.withName("Java");
-    public static final Language GROOVY = Language.withName("Groovy");
-    public static final Language KOTLIN = Language.withNameAndExtension("Kotlin", "kt");
-    public static final Language SCALA = Language.withName("Scala");
-    public static final Language CPP = Language.withName("C++", "cpp");
-    public static final Language SWIFT = Language.withName("Swift", "swift");
+public enum Language {
+    NONE("none"),
+    JAVA("Java"),
+    GROOVY("Groovy"),
+    KOTLIN("kotlin", "Kotlin", "kt"),
+    SCALA("Scala"),
+    CPP("cpp", "C++", "cpp"),
+    SWIFT("swift", "Swift", "swift");
 
     private final String displayName;
     private final String name;
     private final String extension;
 
-    public static Language withName(String displayName) {
-        return new Language(displayName.toLowerCase(), displayName, displayName.toLowerCase());
+    Language(String displayName) {
+        this(displayName.toLowerCase(), displayName, displayName.toLowerCase());
     }
 
-    public static Language withName(String displayName, String name) {
-        return new Language(name, displayName, name);
-    }
-
-    public static Language withNameAndExtension(String displayName, String extension) {
-        return new Language(displayName.toLowerCase(), displayName, extension);
-    }
-
-    private Language(String name, String displayName, String extension) {
+    Language(String name, String displayName, String extension) {
         this.name = name;
         this.displayName = displayName;
         this.extension = extension;

@@ -34,6 +34,7 @@ public class CheckstyleReportsImpl extends TaskReportContainer<SingleFileReport>
 
         add(CustomizableHtmlReportImpl.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "xml", task);
+        add(TaskGeneratedSingleFileReport.class, "sarif", task);
     }
 
     @Override
@@ -44,5 +45,10 @@ public class CheckstyleReportsImpl extends TaskReportContainer<SingleFileReport>
     @Override
     public SingleFileReport getXml() {
         return getByName("xml");
+    }
+
+    @Override
+    public SingleFileReport getSarif() {
+        return getByName("sarif");
     }
 }

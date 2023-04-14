@@ -108,6 +108,11 @@ public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantB
             return delegate.isExternalVariant();
         }
 
+        @Override
+        public boolean isEligibleForCaching() {
+            return delegate.isEligibleForCaching();
+        }
+
         private ImmutableAttributes mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
             return attributesFactory.concat(componentLevelAttributes, variantAttributes.asImmutable());
         }

@@ -10,13 +10,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailu
 import model.ALL_CROSS_VERSION_BUCKETS
 import model.CIBuildModel
 import model.DefaultFunctionalTestBucketProvider
-import model.FunctionalTestBucketProvider
 import model.GradleSubproject
 import model.JsonBasedGradleSubprojectProvider
 import model.QUICK_CROSS_VERSION_BUCKETS
-import model.SmallSubprojectBucket
-import model.Stage
-import model.StageName
 import model.TestCoverage
 import model.TestType
 import model.ignoredSubprojects
@@ -53,20 +49,6 @@ class CIConfigIntegrationTests {
     }
 
     @Test
-    fun macOSBuildsSubset() {
-        val readyForRelease = rootProject.subProjects.find { it.name.contains(StageName.READY_FOR_RELEASE.stageName) }!!
-        val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
-
-        macOS.buildTypes.forEach { buildType ->
-            assertFalse(
-                Os.MACOS.ignoredSubprojects.any { subProject ->
-                    buildType.name.endsWith("($subProject)")
-                }
-            )
-        }
-    }
-
-    @Test
     fun configurationsHaveDependencies() {
         val stagePassConfigs = rootProject.buildTypes
         assertEquals(model.stages.size, stagePassConfigs.size)
@@ -80,17 +62,10 @@ class CIConfigIntegrationTests {
             }
 
             assertEquals(
-                stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + (if (prevStage != null) 1 else 0),
+                stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + stage.docsTests.size + (if (prevStage != null) 1 else 0),
                 it.dependencies.items.size, stage.stageName.stageName
             )
         }
-    }
-
-    class SubProjectBucketProvider(private val model: CIBuildModel) : FunctionalTestBucketProvider {
-        override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage) =
-            model.subprojects.subprojects.map {
-                SmallSubprojectBucket(it, false).createFunctionalTestsFor(model, stage, testCoverage, Int.MAX_VALUE)
-            }
     }
 
     private

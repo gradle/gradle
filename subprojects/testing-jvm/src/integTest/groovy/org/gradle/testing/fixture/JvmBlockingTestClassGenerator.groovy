@@ -28,14 +28,14 @@ class JvmBlockingTestClassGenerator {
     private final TestFile root
     private final BlockingHttpServer server
     private final String testAnnotationClass
-    private final String testDependency
+    private final String testDependencies
     private final String testFrameworkConfiguration
 
-    JvmBlockingTestClassGenerator(TestFile root, BlockingHttpServer server, String testAnnotationClass, String testDependency, String testFrameworkConfiguration) {
+    JvmBlockingTestClassGenerator(TestFile root, BlockingHttpServer server, String testAnnotationClass, String testDependencies, String testFrameworkConfiguration) {
         this.root = root
         this.server = server
         this.testAnnotationClass = testAnnotationClass
-        this.testDependency = testDependency
+        this.testDependencies = testDependencies
         this.testFrameworkConfiguration = testFrameworkConfiguration
     }
 
@@ -46,7 +46,7 @@ class JvmBlockingTestClassGenerator {
             ${RepoScriptBlockUtil.mavenCentralRepository()}
 
             dependencies {
-                testImplementation '$testDependency'
+                $testDependencies
             }
 
             tasks.withType(Test) {

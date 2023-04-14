@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -38,6 +37,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.GUtil;
 import org.gradle.workers.WorkQueue;
@@ -52,13 +52,13 @@ import java.util.List;
  * Generates HTML API documentation for Scala source files.
  */
 @CacheableTask
-public class ScalaDoc extends SourceTask {
+public abstract class ScalaDoc extends SourceTask {
 
     private File destinationDir;
 
     private FileCollection classpath;
     private FileCollection scalaClasspath;
-    private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
+    private ScalaDocOptions scalaDocOptions;
     private String title;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
@@ -67,23 +67,10 @@ public class ScalaDoc extends SourceTask {
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.maxMemory = objectFactory.property(String.class);
-        this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        JavaToolchainService javaToolchainService = getJavaToolchainService();
+        this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
         this.compilationOutputs = objectFactory.fileCollection();
-    }
-
-    @Inject
-    protected IsolatedAntBuilder getAntBuilder() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public WorkerExecutor getWorkerExecutor() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
+        this.scalaDocOptions = objectFactory.newInstance(ScalaDocOptions.class);
     }
 
     /**
@@ -121,7 +108,6 @@ public class ScalaDoc extends SourceTask {
      * @return the compilation outputs produced from the sources
      * @since 7.3
      */
-    @Incubating
     @InputFiles
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -135,7 +121,6 @@ public class ScalaDoc extends SourceTask {
      * @return the compilation outputs produced from the sources
      * @since 7.3
      */
-    @Incubating
     @Internal
     public ConfigurableFileCollection getCompilationOutputs() {
         return compilationOutputs;
@@ -205,11 +190,10 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * Optional JavaLauncher for toolchain support
+     * A JavaLauncher used to run the Scaladoc tool.
      * @since 7.2
      */
     @Nested
-    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
@@ -228,9 +212,7 @@ public class ScalaDoc extends SourceTask {
                 forkOptions.setMaxHeapSize(getMaxMemory().get());
             }
 
-            if(javaLauncher.isPresent()) {
-                forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            }
+            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
             @Nullable
@@ -289,4 +271,15 @@ public class ScalaDoc extends SourceTask {
         return new File(getTemporaryDir(), "scaladoc.options");
     }
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract IsolatedAntBuilder getAntBuilder();
+
+    @Inject
+    protected abstract WorkerExecutor getWorkerExecutor();
+
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService();
 }

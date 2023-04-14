@@ -16,8 +16,12 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.Collection;
 
+@ServiceScope(Scopes.Build.class)
 public interface PluginResolverContributor {
     void collectResolversInto(Collection<PluginResolver> resolvers);
 }

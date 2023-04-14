@@ -39,7 +39,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
     void withDefaultVariantToTest() {
         repository {
-            'org.test:moduleA:1.0'() {
+            id('org.test:moduleA:1.0') {
                 variant 'customVariant', [format: 'custom']
                 dependsOn('org.test:moduleB:1.0')
             }
@@ -88,18 +88,18 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            'org.test:moduleB:1.0' {
+            id('org.test:moduleB:1.0') {
                 variant 'customVariant', [:]
             }
         }
 
         when:
         repositoryInteractions {
-            'org.test:moduleA:1.0' {
+            id('org.test:moduleA:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            'org.test:moduleB:1.0'() {
+            id('org.test:moduleB:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -149,7 +149,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            'org.test:moduleB:1.0' {
+            id('org.test:moduleB:1.0') {
                 variant('customVariant') {
                     if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                         artifact 'variant1'
@@ -161,11 +161,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            'org.test:moduleA:1.0' {
+            id('org.test:moduleA:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            'org.test:moduleB:1.0'() {
+            id('org.test:moduleB:1.0') {
                 expectGetMetadata()
                 if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                     expectGetVariantArtifacts('customVariant')
@@ -189,7 +189,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                             // and here, they do not define any "usage". However, they do define a "status". The selected variant
                             // is target to the metadata rule, which explains we find the "format" attribute here
                             expectedTargetVariant = expectedVariant
-                            artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
+                            artifact classifier: 'variant1'
                             expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
                         } else {
                             if (GradleMetadataResolveRunner.useIvy()) {
@@ -206,7 +206,6 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                                 expectedAttributes['org.gradle.usage'] = 'java-api'
                                 expectedAttributes['org.gradle.category'] = 'library'
                                 expectedAttributes['org.gradle.libraryelements'] = 'jar'
-                                expectedAttributes['org.gradle.compile-view'] = 'java-complete'
                             }
                         }
                         variant(expectedTargetVariant, expectedAttributes)
@@ -259,7 +258,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            'org.test:moduleB:1.0' {
+            id('org.test:moduleB:1.0') {
                 variant('customVariant') {
                     if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                         artifact 'variant1'
@@ -270,11 +269,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            'org.test:moduleA:1.0' {
+            id('org.test:moduleA:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            'org.test:moduleB:1.0'() {
+            id('org.test:moduleB:1.0') {
                 expectGetMetadata()
                 if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                     expectGetVariantArtifacts('customVariant')
@@ -292,7 +291,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
-                            artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
+                            artifact classifier: 'variant1'
                         }
                     }
                 }
@@ -327,18 +326,18 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            'org.test:moduleB:1.0' {
+            id('org.test:moduleB:1.0') {
                 variant 'customVariant', [format: 'custom']
             }
         }
 
         when:
         repositoryInteractions {
-            'org.test:moduleA:1.0' {
+            id('org.test:moduleA:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            'org.test:moduleB:1.0'() {
+            id('org.test:moduleB:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -391,7 +390,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            'org.test:moduleB:1.0' {
+            id('org.test:moduleB:1.0') {
                 variant('customVariant1') {
                     attribute 'format', 'custom'
                     artifact 'variant1'
@@ -407,11 +406,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         // @RequiredFeatures not compatible with @Unroll at method level
         if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
             repositoryInteractions {
-                'org.test:moduleA:1.0' {
+                id('org.test:moduleA:1.0') {
                     expectGetMetadata()
                     expectGetArtifact()
                 }
-                'org.test:moduleB:1.0'() {
+                id('org.test:moduleB:1.0') {
                     expectGetMetadata()
                     expectGetVariantArtifacts(selectedVariant)
                 }
@@ -444,7 +443,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
     def "published variant metadata can be overwritten"() {
         given:
         repository {
-            'org.test:module:1.0' {
+            id('org.test:module:1.0') {
                 variant('customVariant1') {
                     attribute 'quality', 'canary'
                 }
@@ -492,7 +491,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            'org.test:module:1.0' {
+            id('org.test:module:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -507,4 +506,69 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
+    // published attributes are only available in Gradle metadata
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    def "component metadata rules can mutate attributes returned from getAttributes()"() {
+        given:
+        repository {
+            id('org.test:module:1.0') {
+                variant('customVariant1') {
+                    attribute 'quality', 'canary'
+                }
+                variant('customVariant2') {
+                    attribute 'quality', 'canary'
+                }
+            }
+        }
+        buildFile << """
+            def quality = Attribute.of("quality", String)
+
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute attribute
+
+                @javax.inject.Inject
+                AttributeRule(Attribute attribute) {
+                    this.attribute = attribute
+                }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('customVariant2') {
+                        getAttributes().attribute(attribute, 'qa')
+                    }
+                }
+            }
+
+            configurations {
+                ${variantToTest}.attributes.attribute(quality, 'qa')
+            }
+
+            dependencies {
+                attributesSchema {
+                    attribute(quality)
+                }
+                components {
+                    withModule('org.test:module', AttributeRule) {
+                        params(quality)
+                    }
+                }
+                $variantToTest 'org.test:module:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            id('org.test:module:1.0') {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        run ':checkDeps'
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.test:module:1.0:customVariant2')
+            }
+        }
+    }
 }

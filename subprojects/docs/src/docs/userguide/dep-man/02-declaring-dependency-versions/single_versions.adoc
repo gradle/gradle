@@ -51,8 +51,8 @@ When you declare a version using the short-hand notation, for example:
 
 .A simple declaration
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=required-version]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=required-version]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=required-version]"]
 ====
 
 Then the version is considered a <<rich_versions.adoc#sec:required-version,required version>> which means that it should _minimally_ be `1.7.15` but can be upgraded by the engine (optimistic upgrade).
@@ -61,8 +61,8 @@ There is, however, a shorthand notation for <<rich_versions.adoc#sec:strict-vers
 
 .Shorthand notation for strict dependencies
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=strict-shorthand]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=strict-shorthand]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=strict-shorthand]"]
 ====
 
 A strict version _cannot be upgraded_ and overrides whatever transitive dependencies originating from this dependency provide.
@@ -83,6 +83,6 @@ The advantage is that dependency constraints allow you to manage versions of all
 
 .Declaring a dependency without version
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
 ====

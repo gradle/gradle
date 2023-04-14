@@ -26,8 +26,10 @@ import java.lang.annotation.Target;
 
 
 /**
- * Denotes a test that is unsupported with configuration cache.
- * The annotated test will be skipped by the {@link ConfigurationCacheGradleExecuter}.
+ * Denotes a test for a feature that is unsupported with configuration cache.
+ * Do not use this for tests for features that are supported by configuration cache but where the test happens to be incompatible.
+ *
+ * <p>The annotated test will be skipped by the {@link ConfigurationCacheGradleExecuter}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})

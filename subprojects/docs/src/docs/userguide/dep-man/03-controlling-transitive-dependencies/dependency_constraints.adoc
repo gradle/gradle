@@ -29,8 +29,8 @@ If a dependency constraint influenced the resolution result, any type of <<resol
 
 .Define dependency constraints
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-constraints]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
 ====
 
 In the example, all versions are omitted from the dependency declaration.

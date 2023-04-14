@@ -33,7 +33,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         withFailingTest() // ensures that withTestsFor statements are not ignored
     }
 
-    @TargetGradleVersion('>=2.7 <7.6')
+    @TargetGradleVersion('>=3.0 <7.6')
     def "older Gradle versions ignore withTestsFor calls"() {
         when:
         launchTests { TestLauncher launcher ->

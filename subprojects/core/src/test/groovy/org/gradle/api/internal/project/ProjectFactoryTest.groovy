@@ -47,7 +47,6 @@ class ProjectFactoryTest extends Specification {
     def baseScope = Mock(ClassLoaderScope)
 
     def setup() {
-        gradle.serviceRegistryFactory >> serviceRegistryFactory
         owner.buildIdentifier >> buildId
     }
 
@@ -62,7 +61,7 @@ class ProjectFactoryTest extends Specification {
         gradle.projectRegistry >> projectRegistry
 
         when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, null, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, projectState, null, serviceRegistryFactory, rootProjectScope, baseScope)
 
         then:
         result == project
@@ -81,7 +80,7 @@ class ProjectFactoryTest extends Specification {
         gradle.projectRegistry >> projectRegistry
 
         when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, null, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, projectState, null, serviceRegistryFactory, rootProjectScope, baseScope)
 
         then:
         result == project
@@ -101,7 +100,7 @@ class ProjectFactoryTest extends Specification {
         gradle.projectRegistry >> projectRegistry
 
         when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, parent, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, projectState, parent, serviceRegistryFactory, rootProjectScope, baseScope)
 
         then:
         result == project

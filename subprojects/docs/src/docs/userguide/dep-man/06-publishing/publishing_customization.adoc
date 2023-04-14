@@ -20,8 +20,8 @@ Adding a variant is then very simple:
 
 .Adding a variant to an existing software component
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]"]
 ====
 
 In other cases, you might want to modify a variant that was added by one of the Java plugins already.
@@ -30,8 +30,8 @@ If you only want to publish one of them, e.g. only Javadoc but no sources, you c
 
 .Publish a java library with Javadoc but without sources
 ====
-include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=publish-modify-component]"]
 include::sample[dir="snippets/maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=publish-modify-component]"]
+include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=publish-modify-component]"]
 ====
 
 [[sec:publishing-custom-components]]
@@ -45,8 +45,8 @@ At the moment, this is only possible via a plugin because you need to get a hand
 
 .Injecting the software component factory
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=inject_software_component_factory]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=inject_software_component_factory]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=inject_software_component_factory]"]
 ====
 
 Declaring _what_ a custom component publishes is still done via the link:{javadocPath}/org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
@@ -55,8 +55,8 @@ At this stage, what you should have is variants which can be used in cross-proje
 
 .Creating a custom, adhoc component
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=create_adhoc_component]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=create_adhoc_component]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=create_adhoc_component]"]
 ====
 
 First we use the factory to create a new adhoc component.
@@ -102,20 +102,20 @@ In general, there are two options:
 - Add artifacts to a publication based on a component with metadata (not recommended, instead <<sec:adding-variants-to-existing-components,adjust a component>> or use a <<#sec:publishing-custom-components,adhoc component publication>> which will both also produce metadata fitting your artifacts)
 
 To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle <<dependency_management_terminology.adoc#sub:terminology_configuration,configuration>> of your choice.
-The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `archives` configuration:
+The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `conf` configuration:
 
 .Defining a custom artifact for a configuration
 ====
-include::sample[dir="snippets/maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact]"]
 include::sample[dir="snippets/maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact]"]
+include::sample[dir="snippets/maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact]"]
 ====
 
 The `artifacts.add()` method — from link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ArtifactHandler.html[ArtifactHandler] — returns an artifact object of type link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[PublishArtifact] that can then be used in defining a publication, as shown in the following sample:
 
 .Attaching a custom PublishArtifact to a publication
 ====
-include::sample[dir="snippets/maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact-publication]"]
 include::sample[dir="snippets/maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact-publication]"]
+include::sample[dir="snippets/maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact-publication]"]
 ====
 
 * The `artifact()` method accepts _publish artifacts_ as argument — like `rpmArtifact` in the sample — as well as any type of argument accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)], such as a `File` instance, a string file path or a archive task.
@@ -134,8 +134,8 @@ When you have defined multiple publications or repositories, you often want to c
 
 .Adding multiple publications and repositories
 ====
-include::sample[dir="snippets/maven-publish/conditional-publishing/groovy",files="build.gradle[tags=publishing]"]
 include::sample[dir="snippets/maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=publishing]"]
+include::sample[dir="snippets/maven-publish/conditional-publishing/groovy",files="build.gradle[tags=publishing]"]
 ====
 
 The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let's say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
@@ -144,8 +144,8 @@ Gradle allows you to skip any task you want based on a condition via the link:{g
 
 .Configuring which artifacts should be published to which repositories
 ====
-include::sample[dir="snippets/maven-publish/conditional-publishing/groovy",files="build.gradle[tags=task-config]"]
 include::sample[dir="snippets/maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=task-config]"]
+include::sample[dir="snippets/maven-publish/conditional-publishing/groovy",files="build.gradle[tags=task-config]"]
 ====
 
 .Output of `gradle publish`
@@ -160,8 +160,8 @@ The following sample demonstrates how you can do this by defining an aggregate t
 
 .Defining your own shorthand tasks for publishing
 ====
-include::sample[dir="snippets/maven-publish/conditional-publishing/groovy",files="build.gradle[tags=shorthand-tasks]"]
 include::sample[dir="snippets/maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=shorthand-tasks]"]
+include::sample[dir="snippets/maven-publish/conditional-publishing/groovy",files="build.gradle[tags=shorthand-tasks]"]
 ====
 
 This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] with the link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository] task type. You can do the same with link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository] if you're publishing to Ivy-compatible repositories.
@@ -175,8 +175,8 @@ For example, imagine you want to change where the `generatePomFileFor__PubName__
 
 .Configuring a dynamically named task created by the publishing plugins
 ====
-include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-generate-task]"]
 include::sample[dir="snippets/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-generate-task]"]
+include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-generate-task]"]
 ====
 
 The above sample uses a regular expression to extract the name of the publication from the name of the task. This is so that there is no conflict between the file paths of all the POM files that might be generated. If you only have one publication, then you don't have to worry about such conflicts since there will only be one POM file.

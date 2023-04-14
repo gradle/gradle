@@ -19,6 +19,7 @@ package org.gradle.test.fixtures.server.http
 import com.google.common.base.Preconditions
 import org.eclipse.jetty.servlet.FilterHolder
 import org.eclipse.jetty.webapp.WebAppContext
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
@@ -50,6 +51,14 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
 
     TestFile getCacheDir() {
         Preconditions.checkNotNull(cacheDir)
+    }
+
+    List<TestFile> listCacheFiles() {
+        cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{${Hashing.defaultFunction().hexDigits}}/ }.sort()
+    }
+
+    void deleteCacheFiles() {
+        listCacheFiles().each { it.delete() }
     }
 
     @Override

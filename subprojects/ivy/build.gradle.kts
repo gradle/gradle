@@ -10,11 +10,11 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
+    implementation(project(":functional"))
     implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":publish"))
-    implementation(project(":plugins")) // for base plugin to get archives conf
     implementation(project(":plugin-use"))
     implementation(project(":dependency-management"))
 
@@ -61,4 +61,4 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

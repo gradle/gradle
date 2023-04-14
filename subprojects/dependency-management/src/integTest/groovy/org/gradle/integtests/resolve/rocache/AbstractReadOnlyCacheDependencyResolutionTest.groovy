@@ -60,7 +60,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
             expectResolve(it)
             it.metaData.allowGetOrHead()
             it.rootMetaData.allowGetOrHead()
-            deps.append("""                implementation '${it.group}:${it.module}:${resolveDynamic?'+':it.version}'
+            deps.append("""                implementation '${it.group}:${it.module}:${resolveDynamic ? '+' : it.version}'
 """)
             if (publishJavadocsAndSources) {
                 it.getArtifact(classifier: 'javadoc').allowGetOrHead()
@@ -86,6 +86,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
                 }
             }
         """
+        executer.withArgument("--no-configuration-cache") // task uses Configuration API
         run ":populateCache"
         executer.stop()
         copyToReadOnlyCache()
@@ -132,9 +133,11 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
         buildFile << """
             allprojects {
                 tasks.named("checkDeps") {
+                    def outputFile = rootProject.file("\${rootProject.buildDir}/${config}-files.txt")
+                    def files = configurations.${config}
                     doLast {
-                        rootProject.file("\${rootProject.buildDir}/${config}-files.txt").withWriter { wrt ->
-                            configurations.${config}.files.each { f ->
+                        outputFile.withWriter { wrt ->
+                            files.each { f ->
                                 wrt.println("\${f.name}: \${f.toURI()}")
                             }
                         }
@@ -187,7 +190,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
 
     void assertInReadOnlyCache(File file) {
         boolean inCache = isInRoCache(file)
-        assert inCache : "File ${file} wasn't found in read-only cache"
+        assert inCache: "File ${file} wasn't found in read-only cache"
     }
 
     private boolean isInRoCache(File file) {
@@ -209,7 +212,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
 
     void assertNotInReadOnlyCache(File file) {
         boolean inCache = isInRoCache(file)
-        assert !inCache : "File ${file} was found in read-only cache"
+        assert !inCache: "File ${file} was found in read-only cache"
     }
 
     void assertInReadOnlyCache(String... fileNames) {

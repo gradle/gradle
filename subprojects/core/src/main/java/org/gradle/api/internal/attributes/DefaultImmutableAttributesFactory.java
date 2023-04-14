@@ -54,13 +54,18 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public AttributeContainerInternal mutable() {
+    public DefaultMutableAttributeContainer mutable() {
         return new DefaultMutableAttributeContainer(this);
     }
 
     @Override
-    public AttributeContainerInternal mutable(AttributeContainerInternal parent) {
-        return new DefaultMutableAttributeContainer(this, parent);
+    public HierarchicalAttributeContainer mutable(AttributeContainerInternal fallback) {
+        return join(fallback, new DefaultMutableAttributeContainer(this));
+    }
+
+    @Override
+    public HierarchicalAttributeContainer join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+        return new HierarchicalAttributeContainer(this, fallback, primary);
     }
 
     @Override
@@ -109,20 +114,20 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
-        if (attributes1 == ImmutableAttributes.EMPTY) {
-            return attributes2;
+    public ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary) {
+        if (fallback == ImmutableAttributes.EMPTY) {
+            return primary;
         }
-        if (attributes2 == ImmutableAttributes.EMPTY) {
-            return attributes1;
+        if (primary == ImmutableAttributes.EMPTY) {
+            return fallback;
         }
-        ImmutableAttributes current = attributes2;
-        for (Attribute<?> attribute : attributes1.keySet()) {
+        ImmutableAttributes current = primary;
+        for (Attribute<?> attribute : fallback.keySet()) {
             if (!current.findEntry(attribute.getName()).isPresent()) {
-                if (attributes1 instanceof DefaultImmutableAttributes) {
-                    current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
+                if (fallback instanceof DefaultImmutableAttributes) {
+                    current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) fallback).getIsolatableAttribute(attribute));
                 } else {
-                    current = concat(current, Cast.uncheckedNonnullCast(attribute), attributes1.getAttribute(attribute));
+                    current = concat(current, Cast.uncheckedNonnullCast(attribute), fallback.getAttribute(attribute));
                 }
             }
         }

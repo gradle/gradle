@@ -22,5 +22,11 @@ import java.util.Map;
 import java.util.Set;
 
 public interface IncrementalCompilationAwareJavaCompiler extends JavaCompiler {
-    JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, Map<String, Set<String>> sourceToClassMapping, ConstantsAnalysisResult constantsAnalysisResult, CompilationSourceDirs compilationSourceDirs);
+    JavaCompiler.CompilationTask makeIncremental(
+        JavaCompiler.CompilationTask task,
+        Map<String, Set<String>> sourceToClassMapping,
+        ConstantsAnalysisResult constantsAnalysisResult,
+        CompilationSourceDirs compilationSourceDirs,
+        CompilationClassBackupService classBackupService
+    );
 }

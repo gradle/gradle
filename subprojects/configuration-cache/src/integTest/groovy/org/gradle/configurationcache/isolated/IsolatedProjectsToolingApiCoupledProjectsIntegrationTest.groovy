@@ -16,7 +16,11 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
+@Ignore("https://github.com/gradle/gradle/issues/23196")
 class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+
     def "projects are treated as coupled when parent mutates child project"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -99,7 +103,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectConfigured(":buildSrc")
             modelsCreated(":a", ":b")
             modelsQueriedAndNotPresent(":")
-            modelsReused(":c")
+            modelsReused(":c", ":buildSrc")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'", 3)
             problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
@@ -166,7 +170,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             modelsQueriedAndNotPresent(":", ":a")
-            modelsReused(":b")
+            modelsReused(":b", ":buildSrc")
             problem("Build file 'a/build.gradle': Cannot access project ':' from project ':a'", 2)
         }
     }
@@ -237,7 +241,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
-            modelsReused(":", ":c")
+            modelsReused(":", ":c", ":buildSrc")
             problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
         }
 
@@ -270,7 +274,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
-            modelsReused(":", ":c")
+            modelsReused(":", ":c", ":buildSrc")
             problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
         }
     }
@@ -341,7 +345,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectConfigured(":buildSrc")
             projectsConfigured(":", ":a") // :a and :b are coupled, so configure a but reuse its model
             modelsCreated(":b")
-            modelsReused(":", ":a", ":c")
+            modelsReused(":", ":a", ":c", ":buildSrc")
             problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
         }
     }

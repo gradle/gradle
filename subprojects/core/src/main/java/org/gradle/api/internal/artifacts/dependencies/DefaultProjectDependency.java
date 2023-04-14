@@ -26,10 +26,10 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.internal.GUtil;
@@ -41,15 +41,21 @@ import java.util.Set;
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private final ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
+    private final TaskDependencyFactory taskDependencyFactory;
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies) {
-        this(dependencyProject, null, buildProjectDependencies);
+    public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies, TaskDependencyFactory taskDependencyFactory) {
+        this(dependencyProject, null, buildProjectDependencies, taskDependencyFactory);
     }
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration, boolean buildProjectDependencies) {
+    public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies) {
+        this(dependencyProject, null, buildProjectDependencies, DefaultTaskDependencyFactory.withNoAssociatedProject());
+    }
+
+    public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration, boolean buildProjectDependencies, TaskDependencyFactory taskDependencyFactory) {
         super(configuration);
         this.dependencyProject = dependencyProject;
         this.buildProjectDependencies = buildProjectDependencies;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -93,7 +99,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public ProjectDependency copy() {
-        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getTargetConfiguration(), buildProjectDependencies);
+        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getTargetConfiguration(), buildProjectDependencies, taskDependencyFactory);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -105,7 +111,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public Set<File> resolve(boolean transitive) {
-        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive, Collections.emptyMap());
+        CachingDependencyResolveContext context = new CachingDependencyResolveContext(taskDependencyFactory, transitive, Collections.emptyMap());
         context.add(this);
         return context.resolve().getFiles();
     }
@@ -126,7 +132,15 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public TaskDependencyInternal getBuildDependencies() {
-        return new TaskDependencyImpl();
+        return taskDependencyFactory.visitingDependencies(context -> {
+            if (!buildProjectDependencies) {
+                return;
+            }
+
+            Configuration configuration = findProjectConfiguration();
+            context.add(configuration);
+            context.add(configuration.getAllArtifacts());
+        });
     }
 
     @Override
@@ -185,18 +199,4 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"
             + (getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : getTargetConfiguration()) + '\'' + '}';
     }
-
-    private class TaskDependencyImpl extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            if (!buildProjectDependencies) {
-                return;
-            }
-
-            Configuration configuration = findProjectConfiguration();
-            context.add(configuration);
-            context.add(configuration.getAllArtifacts());
-        }
-    }
-
 }
