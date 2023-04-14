@@ -63,8 +63,10 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheRepository::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
+            add(InstrumentedExecutionAccessListener::class.java)
             add(ConfigurationCacheFingerprintController::class.java)
             addProvider(RemoteScriptUpToDateCheckerProvider)
+            addProvider(ExecutionAccessCheckerProvider)
         }
     }
 
@@ -72,7 +74,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
-            addProvider(ExecutionAccessCheckerProvider)
         }
     }
 
