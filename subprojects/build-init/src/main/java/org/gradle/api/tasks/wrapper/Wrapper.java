@@ -113,7 +113,6 @@ public abstract class Wrapper extends DefaultTask {
     private final DistributionLocator locator = new DistributionLocator();
     private final boolean isOffline;
     private boolean distributionUrlConfigured = false;
-    private final Property<Boolean> validateDistributionUrl = getProject().getObjects().property(Boolean.class);
 
     public Wrapper() {
         scriptFile = "gradlew";
@@ -121,7 +120,7 @@ public abstract class Wrapper extends DefaultTask {
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         isOffline = getProject().getGradle().getStartParameter().isOffline();
-        validateDistributionUrl.set(true);
+        getValidateDistributionUrl().convention(true);
     }
 
     @Inject
@@ -171,7 +170,7 @@ public abstract class Wrapper extends DefaultTask {
     private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
     private void validateDistributionUrl() {
-        if (distributionUrlConfigured && validateDistributionUrl.get()) {
+        if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
             String url = getDistributionUrl();
             URI uri = URI.create(url);
             if (uri.getScheme().equals("file")) {
@@ -214,6 +213,7 @@ public abstract class Wrapper extends DefaultTask {
         if (networkTimeout.isPresent()) {
             wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout.get()));
         }
+        wrapperProperties.put(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, String.valueOf(getValidateDistributionUrl().get()));
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
         } catch (IOException e) {
@@ -535,17 +535,6 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     /**
-     * Sets if the task will validate the distribution url that has been configured.
-     *
-     * @since 8.2
-     */
-    @Incubating
-    @Option(option = "validate-url", description = "Sets task to validate the configured distribution url")
-    public void setValidateDistributionUrl(Boolean validateDistributionUrl) {
-        this.validateDistributionUrl.set(validateDistributionUrl);
-    }
-
-    /**
      * Indicates if this task will validate the distribution url that has been configured.
      *
      * @since 8.2
@@ -553,8 +542,6 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Incubating
     @Input
-    @Optional
-    public Property<Boolean> getValidateDistributionUrl() {
-        return validateDistributionUrl;
-    }
+    @Option(option = "validate-url", description = "Sets task to validate the configured distribution url")
+    public abstract Property<Boolean> getValidateDistributionUrl();
 }
