@@ -1037,7 +1037,7 @@ compileClasspath - Compile classpath for source set 'main'.
         buildFile << """
             subprojects {
                 configurations {
-                    createWithRole('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.BUCKET_TO_NONE)
+                    createWithRole('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE)
                     'default' { extendsFrom compile }
                 }
                 group = "group"
