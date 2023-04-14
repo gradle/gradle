@@ -149,8 +149,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             case TRIPLET_PLAY_PLUGIN_ID:
                 buildFile << """
                     play {
-                        serviceAccountCredentials.set(file("your-key.json"))
-                        updatePriority.set(2)
+                        serviceAccountCredentials = file("your-key.json")
+                        updatePriority = 2
                     }
                 """
                 break
