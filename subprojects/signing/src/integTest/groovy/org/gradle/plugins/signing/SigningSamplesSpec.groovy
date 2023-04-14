@@ -61,7 +61,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         inDirectory(projectDir)
 
         and:
-        run "signArchives"
+        run "signRuntimeElements"
 
         then:
         projectDir.file("build/libs/gnupg-signatory-1.0.jar.asc").assertExists()
