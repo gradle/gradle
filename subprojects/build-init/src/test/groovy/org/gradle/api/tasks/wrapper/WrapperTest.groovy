@@ -56,7 +56,6 @@ class WrapperTest extends AbstractTaskTest {
         new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
         wrapper.setDistributionPath("somepath")
         wrapper.setDistributionSha256Sum("somehash")
-        wrapper.setValidateDistributionUrl(true)
     }
 
     Wrapper getTask() {
@@ -193,7 +192,6 @@ class WrapperTest extends AbstractTaskTest {
 
         then:
         properties.getProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL) == "false"
-
     }
 
     def "check inputs"() {
