@@ -395,6 +395,6 @@ Please find below the list of unsupported value type and links to respective sec
 
 This error indicates that a nested map declares a key of an unsupported type.
 Gradle uses the key to generate a name for the (sub)property.
-Only allowing keys of type String, Integer, and Enum guarantees that these names are unique and well-formed, and is preferable to relying on `toString()` for producing such names.
+Only allowing keys of type `Enum`, `Integer`, and `String` guarantees that these names are unique and well-formed, and is preferable to relying on `toString()` for producing such names.
 
-To fix this problem, change the type of the key to String, Integer, or Enum.
+To fix this problem, change the type of the key to `Enum`, `Integer`, or `String`.

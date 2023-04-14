@@ -28,9 +28,11 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
@@ -59,6 +61,10 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
 
     private static final Set<Class<?>> SUPPORTED_KEY_TYPES = new HashSet<>(Arrays.asList(String.class, Integer.class, Enum.class));
 
+    private static String getSupportedKeyTypes() {
+        return SUPPORTED_KEY_TYPES.stream().sorted(Comparator.comparing(Class::toString)).map(cls -> "'" + cls.getSimpleName() + "'").collect(Collectors.joining(", "));
+    }
+
     private static void validateKeyType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> keyType) {
         if (!SUPPORTED_KEY_TYPES.contains(keyType)) {
             validationContext.visitPropertyProblem(problem ->
@@ -66,8 +72,8 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
                     .reportAs(WARNING)
                     .forProperty(propertyMetadata.getPropertyName())
                     .withDescription(() -> "where key of nested map is of type '" + keyType.getName() + "'")
-                    .happensBecause("Key of nested map must be of type 'String', 'Integer', or 'Enum'")
-                    .addPossibleSolution("Change type of key to 'String', 'Integer', or 'Enum'")
+                    .happensBecause("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
+                    .addPossibleSolution("Change type of key to one of the following types: " + getSupportedKeyTypes())
                     .documentedAt("validation_problems", "unsupported_key_type_of_nested_map")
             );
         }
