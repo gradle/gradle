@@ -46,12 +46,17 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Pair;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     /**
@@ -69,7 +74,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 // spock-core references junit-jupiter's BOM, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
-        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.8.20", Collections.singletonList(
+        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", getAppropriateKotlinVersion(), Collections.singletonList(
                 // kotlin-test-junit5 depends on junit-jupiter, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
@@ -116,6 +121,14 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 return "2.2-groovy-4.0";
             }
             return "2.2-groovy-3.0";
+        }
+
+        private static String getAppropriateKotlinVersion() {
+            ClassLoader loader = DefaultJvmTestSuite.class.getClassLoader();
+            URL resource = loader.getResource("gradle-kotlin-dsl-versions.properties");
+            checkNotNull(resource, "Gradle Kotlin DSL versions manifest was not found");
+            Properties versions = GUtil.loadProperties(resource);
+            return checkNotNull(versions.getProperty("kotlin"), "Kotlin version not found in Gradle Kotlin DSL versions manifest");
         }
     }
 
