@@ -16,25 +16,21 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
-
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
-class TestProgressLoggingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
-    @Rule final TestResources resources = new TestResources(temporaryFolder)
+abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
     @Rule ProgressLoggingFixture events = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def setup() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation "junit:junit:4.13" }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
         """
     }
 
@@ -126,8 +122,9 @@ class TestProgressLoggingIntegrationTest extends JUnitMultiVersionIntegrationSpe
     def createTestClass(int index, String type, String method, String assertion) {
         String className = "${type.capitalize()}Test${index}"
         file("src/test/java/${className}.java") << """
+            ${testFrameworkImports}
             public class ${className} {
-                @org.junit.Test
+                @Test
                 public void ${method}() {
                     ${assertion};
                 }
@@ -136,15 +133,15 @@ class TestProgressLoggingIntegrationTest extends JUnitMultiVersionIntegrationSpe
     }
 
     def createGoodTestClass(int index=1) {
-        createTestClass(index, "good", "shouldPass", "org.junit.Assert.assertEquals(1,1)")
+        createTestClass(index, "good", "shouldPass", "assertEquals(1,1)")
     }
 
     def createFailingTestClass(int index=1) {
-        createTestClass(index, "failing", "shouldFail", "org.junit.Assert.assertEquals(1,2)")
+        createTestClass(index, "failing", "shouldFail", "assertEquals(1,2)")
     }
 
     def createSkippedTestClass(int index=1) {
-        createTestClass(index, "skipped", "shouldBeSkipped", "org.junit.Assume.assumeTrue(false)")
+        createTestClass(index, "skipped", "shouldBeSkipped", "assumeTrue(false)")
     }
 
     def withGoodTestClasses(int count) {

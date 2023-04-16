@@ -29,6 +29,7 @@ trait JUnit4CommonTestSources {
             return """
                 import org.junit.*;
                 import static org.junit.Assert.*;
+                import static org.junit.Assume.*;
             """.stripIndent()
         }
 
