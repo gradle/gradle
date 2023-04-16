@@ -137,11 +137,13 @@ cygwin=false
 msys=false
 darwin=false
 nonstop=false
+s390x=false
 case "\$( uname )" in                #(
   CYGWIN* )         cygwin=true  ;; #(
   Darwin* )         darwin=true  ;; #(
   MSYS* | MINGW* )  msys=true    ;; #(
-  NONSTOP* )        nonstop=true ;;
+  NONSTOP* )        nonstop=true ;; #(
+  OS/390 )          s390x=true   ;;
 esac
 
 CLASSPATH=$classpath
@@ -191,6 +193,12 @@ if ! "\$cygwin" && ! "\$darwin" && ! "\$nonstop" ; then
         ulimit -n "\$MAX_FD" ||
             warn "Could not set maximum file descriptor limit to \$MAX_FD"
     esac
+fi
+
+# When running on s390x the JVM must run in UTF-8 instead of IBM-1047 (platform default)
+# This is added to the DEFAULT_JVM_OPTS to allow overrides with JAVA_OPTS and/or GRADLE_OPTS
+if "$s390x" ; then
+  DEFAULT_JVM_OPTS=$DEFAULT_JVM_OPTS' "-Dfile.encoding=UTF-8"'
 fi
 
 # Collect all arguments for the java command, stacking in reverse order:
