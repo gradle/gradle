@@ -46,17 +46,14 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Pair;
-import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.KotlinDslVersion;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
-import java.net.URL;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     /**
@@ -82,7 +79,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         private final String groupName;
 
-        private final String defaultVersion;
+        private final Supplier<String> defaultVersion;
         private final List<String> runtimeDependencies;
 
         TestingFramework(String group, String name, String defaultVersion) {
@@ -90,13 +87,17 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         }
 
         TestingFramework(String group, String name, String defaultVersion, List<String> runtimeDependencies) {
+            this(group, name, () -> defaultVersion, runtimeDependencies);
+        }
+
+        TestingFramework(String group, String name, Supplier<String> defaultVersion, List<String> runtimeDependencies) {
             this.groupName = group + ":" + name;
             this.defaultVersion = defaultVersion;
             this.runtimeDependencies = runtimeDependencies;
         }
 
         public String getDefaultVersion() {
-            return defaultVersion;
+            return defaultVersion.get();
         }
 
         public List<String> getImplementationDependencies(String version) {
@@ -123,12 +124,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             return "2.2-groovy-3.0";
         }
 
-        private static String getAppropriateKotlinVersion() {
-            ClassLoader loader = DefaultJvmTestSuite.class.getClassLoader();
-            URL resource = loader.getResource("gradle-kotlin-dsl-versions.properties");
-            checkNotNull(resource, "Gradle Kotlin DSL versions manifest was not found");
-            Properties versions = GUtil.loadProperties(resource);
-            return checkNotNull(versions.getProperty("kotlin"), "Kotlin version not found in Gradle Kotlin DSL versions manifest");
+        private static Supplier<String> getAppropriateKotlinVersion() {
+            return () -> KotlinDslVersion.current().getKotlinVersion();
         }
     }
 
