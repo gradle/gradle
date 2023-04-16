@@ -18,15 +18,15 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+@SuppressWarnings("deprecation")
 @NonNullApi
-public class NaggingBasePluginConvention extends BasePluginConvention {
+public class NaggingBasePluginConvention extends org.gradle.api.plugins.BasePluginConvention {
 
-    private final BasePluginConvention delegate;
+    private final org.gradle.api.plugins.BasePluginConvention delegate;
 
-    public NaggingBasePluginConvention(BasePluginConvention delegate) {
+    public NaggingBasePluginConvention(org.gradle.api.plugins.BasePluginConvention delegate) {
         this.delegate = delegate;
     }
 
@@ -79,7 +79,7 @@ public class NaggingBasePluginConvention extends BasePluginConvention {
     }
 
     private static void logDeprecation() {
-        DeprecationLogger.deprecateType(BasePluginConvention.class)
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.BasePluginConvention.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "base_convention_deprecation")
             .nagUser();
