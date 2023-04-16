@@ -25,11 +25,12 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
-import kotlin.io.path.writeLines
 
 
 /**
- * Fetch the latest Kotlin version and updates embedded Kotlin version in all subprojects and build logic.
+ * Fetches the latest Kotlin version and updates embedded Kotlin version. It also updates the Kotlin version in all folders passed
+ * in UpdateKotlinEmbeddedVersion#foldersWithFilesToUpdateKotlinVersion.
+ *
  * Never up-to-date, non-cacheable.
  */
 @DisableCachingByDefault(because = "Not worth caching")
@@ -38,22 +39,18 @@ abstract class UpdateKotlinEmbeddedVersion : DefaultTask() {
     companion object {
         val SUPPORTED_FILE_FORMATS = setOf(".java", ".groovy", ".kt", ".kts", ".gradle", ".properties", ".adoc")
         val IGNORED_FOLDERS = setOf("build", ".git", ".idea", ".gradle")
-        const val EXTERNAL_MODULES_PATH = "build-logic/dependency-modules/src/main/kotlin/gradlebuild/modules/extension/ExternalModulesExtension.kt"
         val KOTLIN_EMBEDDED_VERSION_REGEX = Regex("val\\s*kotlinVersion\\s*=\\s*\"([-0-9.a-zA-Z]+)\"")
-        enum class LineChange {
-            UNCHANGED,
-            CHANGED
-        }
+        const val FILE_WITH_EMBEDDED_VERSION = "build-logic/dependency-modules/src/main/kotlin/gradlebuild/modules/extension/ExternalModulesExtension.kt"
     }
 
     @get:Internal
     abstract val nextVersion: Property<String>
 
     @get:Internal
-    abstract val ignorePathsThatContain: SetProperty<String>
+    abstract val foldersWithFilesToUpdateKotlinVersion: SetProperty<String>
 
     @get:Internal
-    abstract val ignoreLinesThatContain: SetProperty<String>
+    abstract val ignorePathsThatContains: SetProperty<String>
 
     @get:Internal
     abstract val rootDir: DirectoryProperty
@@ -62,16 +59,17 @@ abstract class UpdateKotlinEmbeddedVersion : DefaultTask() {
     fun action() {
         val currentVersion = getCurrentVersion()
         val nextVersion = getNextVersion()
-        getSubprojectsAndBuildLogicFolders()
+        rootDir.file(FILE_WITH_EMBEDDED_VERSION).get().asFile.updateKotlinVersion(currentVersion, nextVersion)
+        getAdditionalFolders()
             .flatMap { it.findFilesForUpdate() }
             .forEach { it.updateKotlinVersion(currentVersion, nextVersion) }
     }
 
     private
     fun getCurrentVersion(): String {
-        val externalModules = rootDir.file(EXTERNAL_MODULES_PATH).get().asFile
-        return KOTLIN_EMBEDDED_VERSION_REGEX.find(externalModules.readText())?.groupValues?.get(1)
-            ?: throw IllegalStateException("Could not find current Kotlin version in $externalModules")
+        val fileWithEmbeddedVersion = rootDir.file(FILE_WITH_EMBEDDED_VERSION).get().asFile
+        return KOTLIN_EMBEDDED_VERSION_REGEX.find(fileWithEmbeddedVersion.readText())?.groupValues?.get(1)
+            ?: throw IllegalStateException("Could not find current Kotlin version in $fileWithEmbeddedVersion")
     }
 
     private
@@ -91,10 +89,10 @@ abstract class UpdateKotlinEmbeddedVersion : DefaultTask() {
     }
 
     private
-    fun getSubprojectsAndBuildLogicFolders(): List<File> {
-        return rootDir.get().asFile.listFiles().orEmpty().filter {
-            it.name.startsWith("subprojects") || it.name.startsWith("build-logic")
-        }.toList()
+    fun getAdditionalFolders(): Set<File> {
+        return foldersWithFilesToUpdateKotlinVersion.get().map {
+            rootDir.file(it).get().asFile
+        }.toSet()
     }
 
     private
@@ -103,22 +101,15 @@ abstract class UpdateKotlinEmbeddedVersion : DefaultTask() {
             !IGNORED_FOLDERS.contains(it.name)
         }
             .filter { it.isFile }
-            .filter { f ->
-                SUPPORTED_FILE_FORMATS.any { f.name.endsWith(it) } && ignorePathsThatContain.get().none { f.path.contains(it) }
-            }.toList()
+            .filter { f -> SUPPORTED_FILE_FORMATS.any { f.name.endsWith(it) } && ignorePathsThatContains.get().none { f.path.contains(it) } }
+            .toList()
     }
 
     private
     fun File.updateKotlinVersion(currentVersion: String, nextVersion: String) {
-        val content = this.readLines().map { line ->
-            if (line.contains(currentVersion) && ignoreLinesThatContain.get().none { line.contains(it) }) {
-                LineChange.CHANGED to line.replace(currentVersion, nextVersion)
-            } else {
-                LineChange.UNCHANGED to line
-            }
-        }
-        if (content.any { it.first == LineChange.CHANGED }) {
-            this.toPath().writeLines(content.map { it.second })
+        val content = this.readText()
+        if (content.contains(currentVersion)) {
+            this.writeText(content.replace(currentVersion, nextVersion))
         }
     }
 }

@@ -44,21 +44,13 @@ tasks.register<UpdateKotlinVersions>("updateKotlinVersions") {
 }
 
 tasks.register<UpdateKotlinEmbeddedVersion>("updateKotlinEmbeddedVersion") {
+    description = "Updates the embedded Kotlin version and the Kotlin version used in samples and snippets. " +
+        "When no -PnextVersion is passed to a task, latest version is fetched from MavenCentral."
     rootDir = rootProject.layout.projectDirectory
     nextVersion = providers.gradleProperty("nextVersion")
-    ignorePathsThatContain = listOf(
-        // Smoke tests often have some Kotlin version checks
-        "/smoke-test/",
-        // Don't update compatibility and migration guide
-        "compatibility.adoc",
-        "userguide/migration/upgrading_version_",
-        // Version here has to be upgraded with the kotlin-dsl plugin
-        "build-logic-commons/gradle-plugin/build.gradle.kts"
-    )
-    ignoreLinesThatContain = listOf(
-        // Dokka lags a bit behind
-        "org.jetbrains.dokka:dokka-core:",
-        "// Kotlin 1.8.0 has wrong warning message for assign plugin"
+    foldersWithFilesToUpdateKotlinVersion = setOf(
+        "subprojects/docs/src/snippets",
+        "subprojects/docs/src/samples",
     )
 }
 
