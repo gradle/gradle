@@ -27,6 +27,7 @@ dependencies {
 // tag::java-basic-test-config[]
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.named<Test>("test") {
@@ -51,11 +52,13 @@ sourceSets {
 val intTestImplementation by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
+val intTestRuntimeOnly by configurations.getting
 
 configurations["intTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
 dependencies {
     intTestImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    intTestRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 // end::practical-integ-test-source-set[]
 

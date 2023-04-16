@@ -37,6 +37,7 @@ dependencies {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
+    ignoreDeprecations()
 }
 
 packageCycles {

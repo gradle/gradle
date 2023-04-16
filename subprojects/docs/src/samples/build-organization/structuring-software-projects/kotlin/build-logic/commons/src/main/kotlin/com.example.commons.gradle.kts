@@ -16,6 +16,7 @@ dependencies {
 
     testImplementation(platform("com.example.platform:test-platform"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.test {
