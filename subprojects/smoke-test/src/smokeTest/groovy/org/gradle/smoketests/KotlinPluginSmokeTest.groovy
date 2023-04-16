@@ -45,6 +45,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(version)
                 expectProjectConventionDeprecation(version)
                 expectConventionTypeDeprecation(version)
+                expectJavaPluginConventionDeprecation(version)
+                if (GradleContextualExecuter.isConfigCache()) {
+                    expectBasePluginConventionDeprecation(version)
+                }
             }.build()
 
         then:
@@ -58,6 +62,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     expectOrgGradleUtilWrapUtilDeprecation(version)
                     expectProjectConventionDeprecation(version)
                     expectConventionTypeDeprecation(version)
+                    expectJavaPluginConventionDeprecation(version)
                 }
             }.build()
 
@@ -94,6 +99,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(version)
                 expectProjectConventionDeprecation(version)
                 expectConventionTypeDeprecation(version)
+                expectJavaPluginConventionDeprecation(version)
+                expectBasePluginConventionDeprecation(version)
             }.build()
 
         then:
@@ -143,6 +150,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
+                expectJavaPluginConventionDeprecation(kotlinVersion)
+                if (GradleContextualExecuter.isConfigCache()) {
+                    expectBasePluginConventionDeprecation(kotlinVersion)
+                }
             }.build()
 
         then:
@@ -185,6 +196,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
+                expectJavaPluginConventionDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -197,6 +209,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
                     expectProjectConventionDeprecation(kotlinVersion)
                     expectConventionTypeDeprecation(kotlinVersion)
+                    expectJavaPluginConventionDeprecation(kotlinVersion)
                 }
             }.build()
 
@@ -237,6 +250,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectTestReportDestinationDirOnDeprecation(kotlinVersion)
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
+                expectJavaPluginConventionDeprecation(kotlinVersion)
             }
             .build()
 
@@ -298,6 +312,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             2.times {
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
+                expectJavaPluginConventionDeprecation(kotlinVersion)
             }
         }
 
@@ -481,6 +496,34 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             runner.expectDeprecationWarningIf(
                 kotlinVersionNumber < VersionNumber.parse("1.7.22"),
                 PROJECT_CONVENTION_DEPRECATION,
+                ""
+            )
+        }
+
+        void expectBasePluginConventionDeprecation(String kotlinVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+            runner.expectDeprecationWarningIf(
+                kotlinVersionNumber < VersionNumber.parse("1.7.0"),
+                BASE_PLUGIN_CONVENTION_DEPRECATION,
+                ""
+            )
+        }
+
+        void expectBasePluginConventionDeprecation(String kotlinVersion, String agpVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+            VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+            runner.expectDeprecationWarningIf(
+                agpVersionNumber < VersionNumber.parse("7.4.0") || kotlinVersionNumber < VersionNumber.parse("1.7.0"),
+                BASE_PLUGIN_CONVENTION_DEPRECATION,
+                ""
+            )
+        }
+
+        void expectJavaPluginConventionDeprecation(String kotlinVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+            runner.expectDeprecationWarningIf(
+                kotlinVersionNumber < VersionNumber.parse("1.7.22"),
+                JAVA_PLUGIN_CONVENTION_DEPRECATION,
                 ""
             )
         }

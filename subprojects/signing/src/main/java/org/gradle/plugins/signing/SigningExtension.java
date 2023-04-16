@@ -162,7 +162,7 @@ public abstract class SigningExtension {
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
             ? configuration
-            : configurations.createWithRole(DEFAULT_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_INTENDED_CONSUMABLE);
+            : configurations.createWithRole(DEFAULT_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE);
     }
 
     /**
@@ -324,7 +324,7 @@ public abstract class SigningExtension {
     /**
      * Creates signing tasks that sign {@link Configuration#getAllArtifacts() all artifacts} of the given configurations.
      *
-     * <p>The created tasks will be named "sign<i>&lt;configuration name capitalized&gt;</i>". That is, given a configuration with the name "archives" the created task will be named "signArchives".
+     * <p>The created tasks will be named "sign<i>&lt;configuration name capitalized&gt;</i>". That is, given a configuration with the name "conf" the created task will be named "signConf".
      *
      * The signature artifacts for the created tasks are added to the {@link #getConfiguration() configuration} for this settings object.
      *

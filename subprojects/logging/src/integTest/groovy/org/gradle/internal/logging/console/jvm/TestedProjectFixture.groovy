@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console.jvm
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -34,30 +33,6 @@ class TestedProjectFixture {
                 public void longRunningTest() {
                     ${server.callFromBuild(serverResource)}
                 }
-            }
-        """
-    }
-
-    static String testableJavaProject(String testDependency, int maxWorkers) {
-        """
-            apply plugin: 'java'
-
-            ${RepoScriptBlockUtil.mavenCentralRepository()}
-
-            dependencies {
-                testImplementation '${testDependency}'
-            }
-
-            tasks.withType(Test) {
-                maxParallelForks = $maxWorkers
-            }
-        """
-    }
-
-    static String useTestNG() {
-        """
-            tasks.withType(Test) {
-                useTestNG()
             }
         """
     }

@@ -257,7 +257,7 @@ fun accessibleConfigurationsOf(project: Project) =
 
 private
 fun toConfigurationEntry(configuration: Configuration) = (configuration as DeprecatableConfiguration).run {
-    ConfigurationEntry(name, declarationAlternatives ?: listOf())
+    ConfigurationEntry(name, declarationAlternatives)
 }
 
 

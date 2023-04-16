@@ -56,6 +56,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             if (GradleContextualExecuter.notConfigCache) {
                 expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
+                expectBasePluginConventionDeprecation(agpVersion)
             }
         }.build()
     }
@@ -66,6 +67,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
                 expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
+                expectBasePluginConventionDeprecation(agpVersion)
             }.build()
     }
 
@@ -86,6 +88,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(projectDir, agpVersion, "clean").deprecations(SantaTrackerDeprecations) {
             expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            expectBasePluginConventionDeprecation(agpVersion)
         }.build()
     }
 
