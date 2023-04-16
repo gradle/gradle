@@ -47,7 +47,7 @@ The <<#sec:controlling-dynamic-version-caching,threshold can be configured>> as 
 A team might decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a module with a so-called _changing version_.
 A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
 
-In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions].
+In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#what-is-a-snapshot-version[snapshot versions].
 Snapshot versions contain the suffix `-SNAPSHOT`.
 The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
