@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 public class InterceptorDeclaration {
-    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImpl";
+    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.generated.InterceptorDeclaration_JvmBytecodeImpl";
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = JVM_BYTECODE_GENERATED_CLASS_NAME + "PropertyUpgrades";
-    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_GroovyInterceptorsImpl";
+    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.generated.InterceptorDeclaration_GroovyInterceptorsImpl";
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME + "PropertyUpgrades";
 
     public static final List<String> JVM_BYTECODE_GENERATED_CLASS_NAMES = ImmutableList.of(

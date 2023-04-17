@@ -49,7 +49,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
 
         then:
         def expectedJvmInterceptors = source """
-            package org.gradle.internal.classpath;
+            package org.gradle.internal.classpath.generated;
             class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
 
                 private final MethodVisitor methodVisitor;
