@@ -16,18 +16,13 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.util.GradleVersion;
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL;
 
 public class DocumentationUtils {
     public static final String DOCS_GRADLE_ORG = "https://docs.gradle.org/";
     public static final String PATTERN = DOCS_GRADLE_ORG + "current/";
 
     public static String normalizeDocumentationLink(String message) {
-        String replacement = DOCS_GRADLE_ORG + GradleVersion.current().getVersion() + "/";
-        String expectedMessage = message.replace(PATTERN, replacement);
-        if (message.equals(expectedMessage)) {
-            throw new IllegalArgumentException("Message must reference '" + PATTERN + "'.");
-        }
-        return expectedMessage;
+        return message.replace(PATTERN, BASE_URL + "/");
     }
 }

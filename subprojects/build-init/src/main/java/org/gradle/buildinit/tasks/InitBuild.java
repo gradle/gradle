@@ -19,7 +19,6 @@ package org.gradle.buildinit.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -222,7 +221,7 @@ public abstract class InitBuild extends DefaultTask {
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings)
-            .ifPresent(link -> getLogger().lifecycle(String.format(DocumentationRegistry.RECOMMENDATION, "information", link)));
+            .ifPresent(link -> getLogger().lifecycle(link));
     }
 
     private static void validatePackageName(String packageName) {

@@ -72,7 +72,7 @@ Possible solutions:
   1. Assign a value to 'someProperty'.
   2. Mark property 'someProperty' as optional.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "value_not_set")}
+${validationMessage("value_not_set")}
 """
     }
 
@@ -89,6 +89,7 @@ ${new DocumentationRegistry().getDocumentationRecommendationFor("information", "
             includeLink()
         }
 
+
         then:
         outputEquals """
 Type 'MyTask' method 'setFoo()' should not be annotated with: @SomeAnnotation.
@@ -99,8 +100,12 @@ Possible solutions:
   1. Remove the annotations.
   2. Rename the method.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "ignored_annotations_on_method")}
+${validationMessage("ignored_annotations_on_method")}
 """
+    }
+
+    private validationMessage(String ignoredAnnotationsOnMethod) {
+        new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", ignoredAnnotationsOnMethod)
     }
 
     @ValidationTestFor(
@@ -124,7 +129,7 @@ Possible solutions:
   1. Make the getter public.
   2. Annotate the public version of the getter.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "private_getter_must_not_be_annotated")}
+${validationMessage("private_getter_must_not_be_annotated")}
 """
     }
 
@@ -150,7 +155,7 @@ Possible solutions:
   1. Remove the input annotations.
   2. Remove the @Internal annotation.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "ignored_property_must_not_be_annotated")}
+${validationMessage("ignored_property_must_not_be_annotated")}
 """
     }
 
@@ -173,7 +178,7 @@ Reason: The different annotations have different semantics and Gradle cannot det
 
 Possible solution: Choose between one of the conflicting annotations.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "conflicting_annotations")}
+${validationMessage("conflicting_annotations")}
 """
     }
 
@@ -199,7 +204,7 @@ Possible solutions:
   1. Remove the property.
   2. Use a different annotation, e.g one of @Inject, @InputArtifact or @InputArtifactDependencies.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "annotation_invalid_in_context")}
+${validationMessage("annotation_invalid_in_context")}
 """
         when:
         render annotationInvalidInContext {
@@ -260,7 +265,7 @@ Possible solutions:
   1. Remove the annotation.
   2. Use a different annotation, e.g one of @Classpath, @CompileClasspath or @PathSensitive.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "annotation_invalid_in_context")}
+${validationMessage("annotation_invalid_in_context")}
 """
     }
 
@@ -285,7 +290,7 @@ Possible solutions:
   1. Add something cool.
   2. Mark it as @Internal.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "missing_annotation")}
+${validationMessage("missing_annotation")}
 """
     }
 
@@ -310,7 +315,7 @@ Possible solutions:
   1. Add a getter for field 'claws'.
   2. Remove the annotations on 'claws'.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "ignored_annotations_on_field")}
+${validationMessage("ignored_annotations_on_field")}
 """
     }
 
@@ -334,7 +339,7 @@ Reason: This modifier is used in conjunction with a property of type 'SuperPower
 
 Possible solution: Remove the '@Boring' annotation.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "incompatible_annotations")}
+${validationMessage("incompatible_annotations")}
 """
     }
 
@@ -360,7 +365,7 @@ Possible solutions:
   2. Annotate with @InputFiles for collections of files.
   3. If you want to track the path, return File.absolutePath as a String and keep @Input.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "incorrect_use_of_input_annotation")}
+${validationMessage("incorrect_use_of_input_annotation")}
 """
     }
 
@@ -387,7 +392,7 @@ Possible solutions:
   1. Make 'mypackage.FooBar' implement '${BuildService.class.name}'.
   2. Replace the @ServiceReference annotation on 'someService' with @Internal and assign a value of type 'mypackage.FooBar' explicitly.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "service_reference_must_be_a_build_service")}
+${validationMessage("service_reference_must_be_a_build_service")}
 """
     }
 
@@ -410,7 +415,7 @@ Reason: If you don't declare the normalization, outputs can't be re-used between
 
 Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "missing_normalization_annotation")}
+${validationMessage("missing_normalization_annotation")}
 """
     }
 
@@ -438,7 +443,7 @@ Possible solutions:
   2. Declare an explicit dependency on 'producer' from 'consumer' using Task#dependsOn.
   3. Declare an explicit dependency on 'producer' from 'consumer' using Task#mustRunAfter.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "implicit_dependency")}
+${validationMessage("implicit_dependency")}
 """
     }
 
@@ -464,7 +469,7 @@ Possible solutions:
   1. Make sure the file exists before the task is called.
   2. Make sure that the task which produces the file is declared as an input.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "input_file_does_not_exist")}
+${validationMessage("input_file_does_not_exist")}
 """
 
         render inputDoesNotExist {
@@ -483,7 +488,7 @@ Possible solutions:
   1. Make sure the directory exists before the task is called.
   2. Make sure that the task which produces the directory is declared as an input.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "input_file_does_not_exist")}
+${validationMessage("input_file_does_not_exist")}
 """
 
     }
@@ -512,7 +517,7 @@ Possible solutions:
   1. Use a file as an input.
   2. Declare the input as a directory instead.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "unexpected_input_file_type")}
+${validationMessage("unexpected_input_file_type")}
 """
     }
 
@@ -539,7 +544,7 @@ Reason: Expected '${location}' to be a directory but it's a file.
 
 Possible solution: Make sure that the 'output' is configured to a directory.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "cannot_write_output")}
+${validationMessage("cannot_write_output")}
 """
 
         when:
@@ -558,7 +563,7 @@ Reason: Expected '${ancestor}' to be a directory but it's a file.
 
 Possible solution: Make sure that the 'output' is configured to a directory.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "cannot_write_output")}
+${validationMessage("cannot_write_output")}
 """
     }
 
@@ -587,7 +592,7 @@ Possible solutions:
   1. Configure 'output' to point to a file, not a directory.
   2. Annotate 'output' with @OutputDirectory instead of @OutputFiles.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "cannot_write_output")}
+${validationMessage("cannot_write_output")}
 """
 
         when:
@@ -606,7 +611,7 @@ Reason: Cannot create parent directories that are existing as file.
 
 Possible solution: Configure 'output' to point to the correct location.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "cannot_write_output")}
+${validationMessage("cannot_write_output")}
 """
     }
 
@@ -631,7 +636,7 @@ Reason: Trying to write an output to a read-only location which is for Gradle in
 
 Possible solution: Select a different output location.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "cannot_write_to_reserved_location")}
+${validationMessage("cannot_write_to_reserved_location")}
 """
     }
 
@@ -656,7 +661,7 @@ Reason: Expected the root of the file tree '${location}' to be a directory but i
 
 Possible solution: Make sure that the root of the file tree 'output' is configured to a directory.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "cannot_write_output")}
+${validationMessage("cannot_write_output")}
 """
     }
 
@@ -683,7 +688,7 @@ Possible solutions:
   1. Use a mask.
   2. Use a vaccine.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "unsupported_notation")}
+${validationMessage("unsupported_notation")}
 """
     }
 
@@ -707,7 +712,7 @@ Reason: This annotation only makes sense on Task types.
 
 Possible solution: Remove the annotation.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "invalid_use_of_cacheable_annotation")}
+${validationMessage("invalid_use_of_cacheable_annotation")}
 """
     }
 
@@ -732,7 +737,7 @@ Possible solutions:
   1. Remove the @Optional annotation.
   2. Use the java.lang.Integer type instead.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "cannot_use_optional_on_primitive_types")}
+${validationMessage("cannot_use_optional_on_primitive_types")}
 """
     }
 
@@ -756,7 +761,7 @@ Possible solutions:
   1. Remove one of the getters.
   2. Annotate one of the getters with @Internal.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "redundant_getters")}
+${validationMessage("redundant_getters")}
 """
     }
 
@@ -779,7 +784,7 @@ Reason: Properties of type 'Property<String>' are already mutable.
 
 Possible solution: Remove the 'setSomeProperty' method.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "mutable_type_with_setter")}
+${validationMessage("mutable_type_with_setter")}
 """
     }
 
@@ -801,7 +806,7 @@ Reason: This is not allowed for cacheable transforms.
 
 Possible solution: Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "cacheable_transform_cant_use_absolute_sensitivity")}
+${validationMessage("cacheable_transform_cant_use_absolute_sensitivity")}
 """
     }
 
@@ -824,7 +829,7 @@ Reason: Using Java lambdas is not supported as task inputs.
 
 Possible solution: Use an (anonymous inner) class instead.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "implementation_unknown")}
+${validationMessage("implementation_unknown")}
 """
     }
 
@@ -847,7 +852,7 @@ Reason: Using Java lambdas is not supported as task inputs.
 
 Possible solution: Use an (anonymous inner) class instead.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "implementation_unknown")}"""
+${validationMessage("implementation_unknown")}"""
     }
 
     @ValidationTestFor(
@@ -869,7 +874,7 @@ Reason: Gradle cannot track the implementation for classes loaded with an unknow
 
 Possible solution: Load your class by using one of Gradle's built-in ways.
 
-${new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", "implementation_unknown")}"""
+${validationMessage("implementation_unknown")}"""
     }
 
     @ValidationTestFor(

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
@@ -101,7 +102,7 @@ The following types/formats are supported:
             failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
                 "Accessing unreadable inputs or outputs is not supported. " +
                 "Declare the task as untracked by using Task.doNotTrackState(). " +
-                "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details."
+                new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking")
             )
             failure.assertHasCause("java.nio.file.AccessDeniedException: ${dir}")
         } finally {
