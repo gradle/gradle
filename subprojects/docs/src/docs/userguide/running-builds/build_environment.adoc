@@ -41,7 +41,7 @@ The final configuration taken into account by Gradle is a combination of all Gra
 * `gradle.properties` in the project's directory, then its parent project's directory up to the build's root directory.
 * `gradle.properties` in Gradle installation directory.
 
-Note that the location of the Gradle user home may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
+Note that the location of the Gradle User Home may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
 
 The following properties can be used to configure the Gradle build environment:
 
@@ -213,7 +213,7 @@ Specify user name to download Gradle distributions from servers using HTTP Basic
 `gradle.wrapperPassword=(mypassword)`::
 Specify password for downloading a Gradle distribution using the Gradle wrapper.
 `gradle.user.home=(path to directory)`::
-Specify the Gradle user home directory.
+Specify the Gradle User Home directory.
 `https.protocols`::
 Specify the supported TLS versions in a comma separated format. For example: `TLSv1.2,TLSv1.3`.
 
@@ -254,7 +254,7 @@ The following environment variables are available for the `gradle` command. Note
 Specifies JVM arguments to use when starting the Gradle client VM. The client VM only handles command line input/output, so it is rare that one would need to change its VM options.
 The actual build is run by the Gradle daemon, which is not affected by this environment variable.
 `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`::
-Specifies the Gradle user home directory (which defaults to `<home directory of the current user>/.gradle` if not set).
+Specifies the Gradle User Home directory (which defaults to `<home directory of the current user>/.gradle` if not set).
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
 

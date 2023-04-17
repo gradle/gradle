@@ -49,6 +49,8 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
                 implementation localGroovy()
             }
 
+            testing.suites.test.useJUnit()
+
             ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
             """
             configurations.codenarc {

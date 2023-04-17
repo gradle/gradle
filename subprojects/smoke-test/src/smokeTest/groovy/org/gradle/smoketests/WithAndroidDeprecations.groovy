@@ -45,4 +45,8 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
     void expectAndroidConventionTypeDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
     }
+
+    void expectBasePluginConventionDeprecation(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
+    }
 }
