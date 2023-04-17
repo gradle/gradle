@@ -28,9 +28,9 @@ trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
         String configureTestFramework = "useJUnit()"
 
         @Override
-        String getTestFrameworkDependencies() {
+        String getTestFrameworkDependencies(String sourceSet) {
             return """
-                testImplementation 'junit:junit:${MultiVersionIntegrationSpec.version}'
+                ${sourceSet}Implementation 'junit:junit:${MultiVersionIntegrationSpec.version}'
             """
         }
 

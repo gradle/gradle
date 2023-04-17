@@ -48,7 +48,11 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
     abstract TestSourceConfiguration getTestSourceConfiguration()
 
     String getTestFrameworkDependencies() {
-        return buildScriptConfiguration.testFrameworkDependencies
+        return buildScriptConfiguration.getTestFrameworkDependencies('test')
+    }
+
+    String getTestFrameworkDependencies(String sourceSet) {
+        return buildScriptConfiguration.getTestFrameworkDependencies(sourceSet)
     }
 
     String getConfigureTestFramework() {
@@ -95,7 +99,7 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
      * an implementation of this interface specific to the test framework.
      */
     interface BuildScriptConfiguration {
-        String getTestFrameworkDependencies()
+        String getTestFrameworkDependencies(String sourceSet)
         String getConfigureTestFramework()
         String getIncludeCategoryOrTagConfigurationElement()
         String getExcludeCategoryOrTagConfigurationElement()
