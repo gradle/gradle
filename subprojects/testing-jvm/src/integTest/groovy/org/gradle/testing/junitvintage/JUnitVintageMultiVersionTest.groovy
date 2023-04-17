@@ -31,11 +31,11 @@ trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
         String configureTestFramework = "useJUnitPlatform()"
 
         @Override
-        String getTestFrameworkDependencies() {
+        String getTestFrameworkDependencies(String sourceSet) {
             return """
-                testCompileOnly 'junit:junit:${JUNIT_4_LATEST}'
-                testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+                ${sourceSet}CompileOnly 'junit:junit:${JUNIT_4_LATEST}'
+                ${sourceSet}RuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
+                ${sourceSet}RuntimeOnly 'org.junit.platform:junit-platform-launcher'
             """
         }
 

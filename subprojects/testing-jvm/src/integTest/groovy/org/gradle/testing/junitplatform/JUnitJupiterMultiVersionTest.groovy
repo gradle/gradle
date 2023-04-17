@@ -36,11 +36,11 @@ trait JUnitJupiterMultiVersionTest {
         String configureTestFramework = "useJUnitPlatform()"
 
         @Override
-        String getTestFrameworkDependencies() {
+        String getTestFrameworkDependencies(String sourceSet) {
             return """
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
-                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+                ${sourceSet}Implementation 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
+                ${sourceSet}RuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
+                ${sourceSet}RuntimeOnly 'org.junit.platform:junit-platform-launcher'
             """
         }
 

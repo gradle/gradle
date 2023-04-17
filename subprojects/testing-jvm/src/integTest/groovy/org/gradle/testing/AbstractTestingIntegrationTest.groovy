@@ -18,28 +18,22 @@ package org.gradle.testing
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.jvm.Jvm
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.internal.TextUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
-import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
-import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 import static org.hamcrest.CoreMatchers.equalTo
 
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
-class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements JavaToolchainFixture {
+abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest implements JavaToolchainFixture {
+    abstract String testMethod(String testMethodName)
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
@@ -47,12 +41,15 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation "junit:junit:4.13" }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
         """
 
         and:
         file("src/test/java/SomeTest.java") << """
-            import org.junit.*;
+            ${testFrameworkImports}
 
             public class SomeTest {
                 @Test public void foo() {
@@ -71,7 +68,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
         given:
         file('src/test/java/ExceptionTest.java') << """
-            import org.junit.*;
+            ${testFrameworkImports}
             import java.io.*;
 
             public class ExceptionTest {
@@ -95,7 +92,10 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation '$testJunitCoordinates' }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
         """
 
         when:
@@ -114,7 +114,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         given:
 
         file('src/test/java/ExceptionTest.java') << """
-            import org.junit.*;
+            ${testFrameworkImports}
             import java.io.*;
 
             public class ExceptionTest {
@@ -138,8 +138,9 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation '$testJunitCoordinates'
+                ${testFrameworkDependencies}
             }
+            test.${configureTestFramework}
         """
 
         when:
@@ -167,13 +168,16 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation "$testJunitCoordinates" }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
             test.workingDir = "${testWorkingDir.toURI()}"
         """
 
         and:
         file("src/test/java/SomeTest.java") << """
-            import org.junit.*;
+            ${testFrameworkImports}
 
             public class SomeTest {
                 @Test public void foo() {
@@ -186,37 +190,9 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         succeeds "test"
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-2313")
-    def "can clean test after extracting class file with #framework"() {
-        when:
-        ignoreWhenJUnitPlatform()
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { testImplementation "$dependency" }
-            test { $framework() }
-        """
-        and:
-        file("src/test/java/SomeTest.java") << """
-            public class SomeTest extends $superClass {
-            }
-        """
-        then:
-        succeeds "clean", "test"
-
-        and:
-        file("build/tmp/test").exists() // ensure we extracted classes
-
-        where:
-        framework   | dependency                | superClass
-        "useJUnit"  | "$testJunitCoordinates"   | "org.junit.runner.Result"
-        "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
-    }
-
     @Issue("https://issues.gradle.org/browse/GRADLE-2527")
     def "test class detection works for custom test tasks"() {
         given:
-        ignoreWhenJUnitPlatform()
         buildFile << """
                 apply plugin:'java'
                 ${mavenCentralRepository()}
@@ -229,28 +205,23 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
                 }
 
                 dependencies{
-	                othertestsImplementation "$testJunitCoordinates"
+	                ${getTestFrameworkDependencies('othertests')}
                 }
 
                 task othertestsTest(type:Test){
-	                useJUnit()
+	                ${configureTestFramework}
 	                classpath = sourceSets.othertests.runtimeClasspath
 	                testClassesDirs = sourceSets.othertests.output.classesDirs
 	            }
             """
 
         and:
-        file("src/othertests/java/AbstractTestClass.java") << """
-                import junit.framework.TestCase;
-                public abstract class AbstractTestClass extends TestCase {
-                }
-            """
-
-        file("src/othertests/java/TestCaseExtendsAbstractClass.java") << """
-                import org.junit.Assert;
-                public class TestCaseExtendsAbstractClass extends AbstractTestClass{
+        file("src/othertests/java/SomeTestClass.java") << """
+                ${testFrameworkImports}
+                public class SomeTestClass {
+                    @Test
                     public void testTrue() {
-                        Assert.assertTrue(true);
+                        assertTrue(true);
                     }
                 }
             """
@@ -259,7 +230,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         run "othertestsTest"
         then:
         def result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'othertestsTest')
-        result.assertTestClassesExecuted("TestCaseExtendsAbstractClass")
+        result.assertTestClassesExecuted("SomeTestClass")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
@@ -296,13 +267,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
                 last 'com.google.collections:google-collections:1.0'
                 implementation configurations.first + configurations.last
 
-                testImplementation '$testJunitCoordinates'
+                ${testFrameworkDependencies}
             }
+            test.${configureTestFramework}
         """
 
         and:
         file("src/test/java/TestCase.java") << """
-            import org.junit.Test;
+            ${testFrameworkImports}
             public class TestCase {
                 @Test
                 public void test() throws Exception {
@@ -329,13 +301,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation '$testJunitCoordinates'
+                ${testFrameworkDependencies}
             }
             tasks.withType(JavaCompile) {
                 options.with {
                     compilerArgs << '-parameters'
                 }
             }
+            test.${configureTestFramework}
         """
 
         and:
@@ -350,8 +323,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
 
         and:
         file("src/test/java/TestCase.java") << """
-            import org.junit.Test;
-            import static org.junit.Assert.assertTrue;
+            ${testFrameworkImports}
             public class TestCase {
                 @Test
                 public void test() {
@@ -376,9 +348,10 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation '$testJunitCoordinates'
+                ${testFrameworkDependencies}
             }
             test {
+                ${configureTestFramework}
                 testLogging {
                     events "passed", "skipped", "failed"
                 }
@@ -387,14 +360,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
 
         and:
         file("src/test/java/FirstTest.java") << """
-            import org.junit.*;
+            ${testFrameworkImports}
             public class FirstTest {
                 @Test public void test() {}
             }
         """
 
         file("src/test/java/SecondTest.java") << """
-            import org.junit.*;
+            ${testFrameworkImports}
             public class SecondTest {
                 @Test public void test() {}
             }
@@ -404,8 +377,8 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         run "test"
         then:
         executedAndNotSkipped ":test"
-        output.contains("FirstTest > test PASSED")
-        output.contains("SecondTest > test PASSED")
+        output.contains("FirstTest > ${testMethod('test')} PASSED")
+        output.contains("SecondTest > ${testMethod('test')} PASSED")
 
         when:
         run "test"
@@ -424,52 +397,8 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         run "test"
         then:
         executedAndNotSkipped ":test"
-        output.contains("FirstTest > test PASSED")
-        !output.contains("SecondTest > test PASSED")
-    }
-
-    def "emits deprecation warning if executable specified as relative path"() {
-        given:
-        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
-
-        buildFile << """
-            apply plugin:'java'
-            test {
-                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
-            }
-        """
-        when:
-        executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
-            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-            "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
-            "Configure an absolute path to a Java executable instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
-
-        then:
-        succeeds("test")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/2661")
-    def "test logging can be configured on turkish locale"() {
-        given:
-        buildFile << """
-            apply plugin:'java'
-            test {
-                testLogging {
-                    events "passed", "skipped", "failed"
-                }
-            }
-        """
-        when:
-        executer
-            .requireDaemon()
-            .requireIsolatedDaemons()
-            .withBuildJvmOpts("-Duser.language=tr", "-Duser.country=TR")
-            .withTasks("help")
-            .run()
-
-        then:
-        noExceptionThrown()
+        output.contains("FirstTest > ${testMethod('test')} PASSED")
+        !output.contains("SecondTest > ${testMethod('test')} PASSED")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5305")
@@ -485,12 +414,15 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             }
             ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
-            dependencies { testImplementation '$testJunitCoordinates' }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
         """
 
         and:
         file('src/test/java/SecurityManagerInstallationTest.java') << """
-            import org.junit.Test;
+            ${testFrameworkImports}
             import java.security.Permission;
 
             public class SecurityManagerInstallationTest {
@@ -521,15 +453,18 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         buildFile << """
             apply plugin:'java-library'
             ${mavenCentralRepository()}
-            dependencies { testImplementation '$testJunitCoordinates' }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
 
             test {
+                ${configureTestFramework}
                 jvmArgs("-XX:+ShowCodeDetailsInExceptionMessages")
             }
         """
 
         file('src/test/java/UsefulNPETest.java') << """
-            import org.junit.Test;
+            ${testFrameworkImports}
 
             public class UsefulNPETest {
                 @Test
@@ -574,45 +509,5 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             .testFailed("testDeepUsefulNPE", equalTo('java.lang.RuntimeException: java.lang.NullPointerException: Cannot invoke "Object.toString()" because "param" is null'))
         result.testClass("UsefulNPETest")
             .testFailed("testFailingGetMessage", equalTo('Could not determine failure message for exception of type UsefulNPETest$1: java.lang.RuntimeException'))
-    }
-
-    def "test thread name is reset after test execution"() {
-        when:
-        ignoreWhenJUnitPlatform()
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation "junit:junit:${NEWEST}"
-            }
-            test { useJUnit() }
-        """
-
-        and:
-        file("src/test/java/SomeTest.java") << threadNameCheckTest("SomeTest")
-        file("src/test/java/AnotherTest.java") << threadNameCheckTest("AnotherTest")
-
-        then:
-        succeeds "clean", "test"
-
-        and:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("SomeTest").assertTestPassed("checkThreadName")
-        result.testClass("AnotherTest").assertTestPassed("checkThreadName")
-    }
-
-    private static String threadNameCheckTest(String className) {
-        return """
-            import org.junit.Test;
-            import static org.junit.Assert.assertEquals;
-
-            public class ${className} {
-                @Test
-                public void checkThreadName() {
-                    assertEquals("Test worker", Thread.currentThread().getName());
-                    Thread.currentThread().setName(getClass().getSimpleName());
-                }
-            }
-        """
     }
 }
