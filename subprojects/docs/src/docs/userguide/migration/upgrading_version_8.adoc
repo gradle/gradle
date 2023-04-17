@@ -627,6 +627,12 @@ Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.17.h
 
 Since the previous version was 3.0.10, the https://groovy-lang.org/changelogs/changelog-3.0.16.html[3.0.16] changes are also included.
 
+==== Upgrade to Ant 1.10.13
+
+Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
+
+Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
+
 ==== Upgrade to CodeNarc 3.2.0
 
 The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v3.2.0/CHANGELOG.md#version-320----jan-2023[CodeNarc 3.2.0].
@@ -637,16 +643,9 @@ PMD has been updated to https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_release_not
 
 Since the previous version was 6.48.0, all changes since then are included.
 
-==== Upgrade to Ant 1.10.13
+==== Upgrade to JaCoCo 0.8.9
 
-Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
-
-Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
-
-==== Updates to default tool integration versions
-
-- PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.55.0[PMD 6.55.0].
-- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v3.2.0/CHANGELOG.md#version-320----jan-2023[CodeNarc 3.2.0].
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.9].
 
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
