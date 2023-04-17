@@ -82,7 +82,7 @@ public abstract class WarPlugin implements Plugin<Project> {
         DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
 
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> pluginConvention.getWebAppDir())));
+            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() -> pluginConvention.getWebAppDir()))));
             task.from(task.getWebAppDirectory());
             task.dependsOn((Callable) () -> mainFeature.getSourceSet().getRuntimeClasspath());
             task.classpath((Callable) () -> {

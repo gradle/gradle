@@ -32,14 +32,20 @@ import com.google.common.base.Preconditions;
  */
 public enum ConfigurationRolesForMigration implements ConfigurationRole {
     @Deprecated
-    LEGACY_TO_INTENDED_RESOLVABLE_BUCKET(ConfigurationRoles.LEGACY, ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET),
+    LEGACY_TO_RESOLVABLE_BUCKET(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_BUCKET),
     @Deprecated
-    LEGACY_TO_INTENDED_CONSUMABLE(ConfigurationRoles.LEGACY, ConfigurationRoles.INTENDED_CONSUMABLE),
+    LEGACY_TO_CONSUMABLE(ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE),
 
     @Deprecated
-    INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE(ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET, ConfigurationRoles.INTENDED_RESOLVABLE),
+    RESOLVABLE_BUCKET_TO_RESOLVABLE(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.RESOLVABLE),
     @Deprecated
-    INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE(ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET, ConfigurationRoles.INTENDED_CONSUMABLE);
+    CONSUMABLE_BUCKET_TO_CONSUMABLE(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE),
+
+    /**
+     * A resolvable bucket that will become a bucket in the next major version.
+     */
+    @SuppressWarnings("deprecation")
+    RESOLVABLE_BUCKET_TO_BUCKET(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.BUCKET);
 
     private final boolean consumable;
     private final boolean resolvable;

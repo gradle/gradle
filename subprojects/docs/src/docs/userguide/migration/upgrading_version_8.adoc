@@ -38,6 +38,14 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
+=== Potential breaking changes
+
+==== Updates to default tool integration versions
+
+- The JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to https://github.com/jacoco/jacoco/releases/tag/v0.8.9[0.8.9].
+
+==== Kotlin DSL scripts emit compilation warnings
+
 === Deprecations
 
 [[compile_options_generated_sources_directory]]
@@ -50,6 +58,31 @@ The following methods on `CompileOptions` are deprecated:
 - `setAnnotationProcessorGeneratedSourcesDirectory(Provider<File>)`
 
 Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getGeneratedSourceOutputDirectory--[DirectoryProperty getGeneratedSourceOutputDirectory()]`
+
+[[deprecated_configuration_usage]]
+==== Using configurations incorrectly
+
+Gradle will now warn at runtime when methods of link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] are called inconsistently with the configuration's intended usage.
+
+This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements.
+
+Currently, the following methods should only be called with these listed allowed usages:
+
+- `resolve()` - RESOLVABLE configurations only
+- `files(Closure)`, `files(Spec)`, `files(Dependency…)`, `fileCollection(Spec)`, `fileCollection(Closure)`, `fileCollection(Dependency…)` - RESOLVABLE configurations only
+- `getResolvedConfigurations()` - RESOLVABLE configurations only
+- `defaultDependencies(Action)` - DECLARABLE configurations only
+- `shouldResolveConsistentlyWith(Configuration)` - RESOLVABLE configurations only
+- `disableConsistentResolution()` - RESOLVABLE configurations only
+- `getDependencyConstraints()` - DECLARABLE configurations only
+
+Intended usage is noted in the `Configuration` interface's Javadoc.
+This list is likely to grow in future releases.
+
+Starting in Gradle 9.0, using a configuration inconsistently with its intended usage will be prohibited.
+
+Also note that although it is not currently restricted, the `getDependencies()` method is really only intended for use with DECLARABLE configurations.
+The `getAllDependencies()` method, which retrieves all declared dependencies on a configuration and any superconfigurations, will not be restricted to any particular usage.
 
 [[deprecated_access_to_conventions]]
 ==== Deprecated access to plugin conventions
@@ -71,10 +104,62 @@ You should prefer accessing the extensions and their properties instead.
 
 For specific examples see the next sections.
 
-[[application_convention_deprecation]]
-==== Deprecated ApplicationPluginConvention
+Prominent community plugins already migrated to using extensions to provide custom DSLs.
+Some of them still registers conventions for backwards compatibility.
+Registering conventions does not emit a deprecation warning yet to provide a migration window.
+Future Gradle versions will do.
 
-As stated in the <<deprecated_access_to_conventions, section about plugin convention deprecation>>, the Application Plugin's convention is deprecated.
+[[base_convention_deprecation]]
+==== Deprecated `base` plugin conventions
+
+The convention properties contributed by the `base` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The conventions are replaced by the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
+The old convention object defines the `distsDirName`, `libsDirName` and `archivesBaseName` properties with simple getter and setter methods.
+Those methods are available in the extension only to maintain backwards compatibility.
+Build scripts should solely use the properties of type `Property`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    base
+}
+
+base {
+    archivesName.set("gradle")
+    distsDirectory.set(layout.buildDirectory.dir("custom-dist"))
+    libsDirectory.set(layout.buildDirectory.dir("custom-libs"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'base'
+}
+
+base {
+    archivesName = "gradle"
+    distsDirectory = layout.buildDirectory.dir('custom-dist')
+    libsDirectory = layout.buildDirectory.dir('custom-libs')
+}
+----
+=====
+====
+
+[[application_convention_deprecation]]
+==== Deprecated `application` plugin conventions
+
+The convention properties contributed by the `application` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -105,7 +190,7 @@ applicationDefaultJvmArgs = ['-Dgreeting.language=en'] // Accessing a convention
 =====
 ====
 
-This should be changed to use the `application` plugin's extension instead:
+This should be changed to use the `application { }` configuration block, backed by link:{groovyDslPath}/org.gradle.api.plugins.JavaApplication.html[JavaApplication], instead:
 
 ====
 [.multi-language-sample]
@@ -139,9 +224,10 @@ application {
 ====
 
 [[java_convention_deprecation]]
-==== Deprecated JavaPluginConvention
+==== Deprecated `java` plugin conventions
 
-As stated in the <<deprecated_access_to_conventions, section about plugin convention deprecation>>, the Java Plugin's convention is deprecated.
+The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
 
 The following code will now emit deprecation warnings:
 
@@ -174,7 +260,7 @@ sourceCompatibility = 18 // Accessing a convention
 =====
 ====
 
-This should be changed to use the `java` plugin's extension instead:
+This should be changed to use the `java { }` configuration block, backed by link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension], instead:
 
 ====
 [.multi-language-sample]
@@ -207,10 +293,219 @@ java {
 =====
 ====
 
-Prominent community plugins already migrated to using extensions to provide custom DSLs.
-Some of them still registers conventions for backwards compatibility.
-Registering conventions does not emit a deprecation warning yet to provide a migration window.
-Future Gradle versions will do.
+[[war_convention_deprecation]]
+==== Deprecated `war` plugin conventions
+
+The convention properties contributed by the `war` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("war")
+}
+
+configure<WarPluginConvention> { // Accessing a convention
+    webAppDirName = "src/main/webapp"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'war'
+}
+
+webAppDirName = 'src/main/webapp' // Accessing a convention
+----
+=====
+====
+
+Clients should configure the `war` task  directly.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("war")
+}
+
+tasks.war {
+    webAppDirectory.set(file("src/main/webapp"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'war'
+}
+
+war {
+    webAppDirectory = file('src/main/webapp')
+}
+----
+=====
+====
+
+[[ear_convention_deprecation]]
+==== Deprecated `ear` plugin conventions
+
+The convention properties contributed by the `ear` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("ear")
+}
+
+configure<EarPluginConvention> { // Accessing a convention
+    appDirName = "src/main/app"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'ear'
+}
+
+appDirName = 'src/main/app' // Accessing a convention
+----
+=====
+====
+
+Clients should configure the `ear` task directly.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(Ear.class).configureEach(...)] can be used to configure each task of type `Ear`.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("ear")
+}
+
+tasks.ear {
+    appDirectory.set(file("src/main/app"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'ear'
+}
+
+ear {
+    appDirectory = file('src/main/app')  // use application metadata found in this folder
+}
+----
+=====
+====
+
+[[project_report_convention_deprecation]]
+==== Deprecated `project-report` plugin conventions
+
+The convention properties contributed by the `project-reports` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `project-report`
+}
+
+configure<ProjectReportsPluginConvention> {
+    projectReportDirName = "custom" // Accessing a convention
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'project-report'
+}
+
+projectReportDirName = "custom" // Accessing a convention
+----
+=====
+====
+
+Configure your report task instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `project-report`
+}
+
+tasks.withType<HtmlDependencyReportTask>() {
+    projectReportDirectory.set(project.layout.buildDirectory.dir("reports/custom"))
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'project-report'
+}
+
+tasks.withType(HtmlDependencyReportTask) {
+    projectReportDirectory = project.layout.buildDirectory.dir("reports/custom")
+}
+----
+=====
+====
 
 [[redundant_configuration_usage_activation]]
 ==== Redundant configuration usage activation
@@ -266,6 +561,11 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // If using JUnit Vintage
+    testCompileOnly("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     // If using JUnit 4
     testImplementation("junit:junit:4.13.2")
 
@@ -283,6 +583,11 @@ dependencies {
 dependencies {
     // If using JUnit Jupiter
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // If using JUnit Vintage
+    testCompileOnly("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // If using JUnit 4
