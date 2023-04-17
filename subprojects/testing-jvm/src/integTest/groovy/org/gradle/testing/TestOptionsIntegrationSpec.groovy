@@ -153,7 +153,8 @@ public class SomeIntegTestClass {
         given:
         buildFile << """
         dependencies {
-            implementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+            testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         }
 
         test {
@@ -353,6 +354,7 @@ public class SomeIntegTestClass {
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
         """.stripIndent()
 

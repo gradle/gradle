@@ -28,7 +28,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.internal.GUtil;
 
@@ -170,9 +170,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (!toConfiguration.isCanBeConsumed()) {
             throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
         }
-        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation = toConfiguration.getConsumptionDeprecation();
-        if (consumptionDeprecation != null) {
-            consumptionDeprecation.nagUser();
+
+        if (toConfiguration.isDeprecatedForConsumption()) {
+            DeprecationLogger.deprecateConfiguration(toConfiguration.getName())
+                .forConsumption()
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .nagUser();
         }
     }
 

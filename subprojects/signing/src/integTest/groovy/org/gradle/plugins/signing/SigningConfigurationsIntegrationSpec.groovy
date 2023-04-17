@@ -136,4 +136,26 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
     }
+
+    def "signatures configuration is deprecated for resolution and will warn if resolved, but not fail"() {
+        buildFile.text = """
+            plugins {
+                id 'signing'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                signatures 'org.apache.commons:commons-lang3:3.9'
+            }
+
+            assert configurations.signatures.isDeprecatedForResolution()
+            configurations.signatures.files
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        succeeds("help")
+    }
 }

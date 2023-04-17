@@ -118,6 +118,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         '''
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses the Configuration API")
     def "configurations are wired properly"() {
         withVariants(buildFile)
 

@@ -124,7 +124,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             attributes,
             ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet())),
             configuration.isCanBeConsumed(),
-            configuration.getConsumptionDeprecation(),
+            configuration.isDeprecatedForConsumption(),
             configuration.isCanBeResolved(),
             maybeForceDependencies(dependencies.dependencies, attributes),
             dependencies.files,
@@ -197,6 +197,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * Calculate the defined dependencies and excludes for {@code configuration}, while converting the
      * DSL representation to the internal representation.
      */
+    @SuppressWarnings("deprecation")
     private DependencyState doGetDefinedState(ConfigurationInternal configuration, ComponentIdentifier componentId) {
 
         AttributeContainer attributes = configuration.getAttributes();
@@ -205,11 +206,18 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet.Builder<LocalFileDependencyMetadata> fileBuilder = ImmutableSet.builder();
         ImmutableList.Builder<ExcludeMetadata> excludeBuilder = ImmutableList.builder();
 
+        // Configurations that are not declarable should not have dependencies or constraints present,
+        // but we need to allow dependencies to be checked to avoid emitting many warnings when the
+        // Kotlin plugin is applied.  This is because applying the Kotlin plugin adds dependencies
+        // to the testRuntimeClasspath configuration, which is not declarable.
+        // To demonstrate this, add a check for configuration.isCanBeDeclared() && configuration.assertHasNoDeclarations() if not
+        // and run tests such as KotlinDslPluginTest, or the building-kotlin-applications samples and you'll configurations which
+        // aren't declarable against but have declared dependencies present.
         for (Dependency dependency : configuration.getDependencies()) {
             if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;
                 dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
-                    componentId, configuration.getName(), attributes, moduleDependency
+                        componentId, configuration.getName(), attributes, moduleDependency
                 ));
             } else if (dependency instanceof FileCollectionDependency) {
                 final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
@@ -219,9 +227,13 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             }
         }
 
+        // Configurations that are not declarable should not have dependencies or constraints present,
+        // no smoke-tested plugins add constraints, so we should be able to safely throw an exception here
+        // if we find any - but we'll avoid doing so for now to avoid breaking any existing builds and to
+        // remain consistent with the behavior for dependencies.
         for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
             dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
-                componentId, configuration.getName(), attributes, dependencyConstraint)
+                    componentId, configuration.getName(), attributes, dependencyConstraint)
             );
         }
 

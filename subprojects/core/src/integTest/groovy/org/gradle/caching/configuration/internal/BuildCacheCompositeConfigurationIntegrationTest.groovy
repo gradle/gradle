@@ -162,6 +162,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                             Thread.sleep(1000)
                         }
                     }
+                    ${mavenCentralRepository()}
+                    testing.suites.test.useJUnitJupiter()
                 }
                 tasks.build.dependsOn(subprojects.tasks.build)
                 tasks.clean.dependsOn(subprojects.tasks.clean)

@@ -27,7 +27,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataPublished || gradleCompatible)
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses '#rule' rule to choose component for #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -117,7 +116,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         chosenModule
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible)
@@ -256,7 +255,7 @@ Required by:
 """)
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "uses '#rule' rule to reject candidate for static version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -373,6 +372,7 @@ Required by:
         selector << ["1.1", "1.+"]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can control selection of components by module rule #rule for #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -430,7 +430,6 @@ Required by:
     }
 
     @Issue("GRADLE-3236")
-    @ToBeFixedForConfigurationCache
     def "can select a different component for the same selector in different configurations"() {
         def descriptorArg = GradleMetadataResolveRunner.useIvy() ? 'selection.getDescriptor(IvyModuleDescriptor)' : 'selection.metadata'
         buildFile << """
@@ -469,9 +468,11 @@ Required by:
             }
 
             task verify {
+                def filesA = configurations.modulesA
+                def filesB = configurations.modulesB
                 doLast {
-                    assert configurations.modulesA.files.collect { it.name } == [ 'api-1.1.jar']
-                    assert configurations.modulesB.files.collect { it.name } == [ 'api-1.0.jar']
+                    assert filesA.collect { it.name } == [ 'api-1.1.jar']
+                    assert filesB.collect { it.name } == [ 'api-1.0.jar']
                 }
             }
         """
