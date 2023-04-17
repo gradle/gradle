@@ -51,7 +51,7 @@ public class InstrumentedExecutionAccess {
     /**
      * Called by generated code
      *
-     * Invoked when the code accesses the injected service.
+     * Invoked when the code accesses the injected service of type that disallowed at execution time (eg. Project)
      *
      * @param injectedServiceType the type of the injected service that was accessed
      * @param consumer class name of consumer that contains the code accesses the injected service
