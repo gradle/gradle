@@ -54,6 +54,7 @@ import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProc
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Internal;
@@ -111,6 +112,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
+    private final Property<Boolean> failOnNoTest;
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
@@ -126,6 +128,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         reports.getHtml().getRequired().set(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
+        failOnNoTest = getProject().getObjects().property(Boolean.class).convention(false);
     }
 
     @Inject
@@ -481,7 +484,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private void handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
-        } else if (testCountLogger.getTotalTests() == 0 && shouldFailOnNoMatchingTests()) {
+        } else if ((testCountLogger.getTotalTests() == 0 && shouldFailOnNoMatchingTests())
+            || failOnNoTest.get()) {
             throw new TestExecutionException(createNoMatchingTestErrorMessage());
         }
     }
@@ -564,6 +568,26 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     void setFailFast(boolean failFast) {
         this.failFast = failFast;
+    }
+
+    /**
+     * Indicates if this task will fail when there is no test to run.
+     *
+     * @return whether this task will fail when there is no test to run
+     * @since 8.3
+     */
+    @Internal
+    Property<Boolean> getFailOnNoTest() {
+        return failOnNoTest;
+    }
+
+    /**
+     * Sets the task to fail when there is no test to run.
+     *
+     * @since 8.3
+     */
+    void setFailOnNoTest(Boolean failOnNoTest) {
+        this.failOnNoTest.set(failOnNoTest);
     }
 
     /**

@@ -198,7 +198,11 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         """
         and:
         file("src/test/java/SomeTest.java") << """
+            import $annotation;
+
             public class SomeTest extends $superClass {
+                @Test
+                public void foo() { }
             }
         """
         then:
@@ -208,9 +212,9 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         file("build/tmp/test").exists() // ensure we extracted classes
 
         where:
-        framework   | dependency                | superClass
-        "useJUnit"  | "$testJunitCoordinates"   | "org.junit.runner.Result"
-        "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
+        framework   | dependency                | superClass                | annotation
+        "useJUnit"  | "$testJunitCoordinates"   | "org.junit.runner.Result" | "org.junit.Test"
+        "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"    | "org.testng.annotations.Test"
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2527")

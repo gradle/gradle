@@ -55,6 +55,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -490,7 +491,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         forkOptions.setDebug(enabled);
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -524,6 +524,30 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     public boolean getFailFast() {
         return super.getFailFast();
+    }
+
+    /**
+     * Sets the task to fail when there is no test to run.
+     *
+     * @since 8.3
+     */
+    @Option(option = "fail-on-no-test", description = "Sets task to fail when there is no test to run.")
+    @Override
+    public void setFailOnNoTest(Boolean failOnNoTest) {
+        super.setFailOnNoTest(failOnNoTest);
+    }
+
+    /**
+     * Indicates if this task will fail when there is no test to run.
+     *
+     * @return whether this task will fail when there is no test to run
+     * @since 8.3
+     */
+    @Input
+    @Optional
+    @Override
+    public Property<Boolean> getFailOnNoTest() {
+        return super.getFailOnNoTest();
     }
 
     /**

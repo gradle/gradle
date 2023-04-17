@@ -17,13 +17,16 @@
 package org.gradle;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 public class SomeTestClass {
+    @Category(CategoryA.class)
     @Test
     public void ok1() {
     }
 
     @Test
+    @Category(CategoryB.class)
     public void ok2() {
     }
 }

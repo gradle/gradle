@@ -90,6 +90,11 @@ Set this to `true` if you want the build to fail and finish as soon as one of yo
 +
 You can also enable this behavior by using the `--fail-fast` command line option.
 
+`failOnNoTest` —  (since Gradle 8.3) default: false::
+Set this to `true` if you want the build to fail when there is no test to run. This can reveal configuration issues in testing, for example after migrating to a new test framework.
++
+You can also use the command line option `--fail-on-no-test` to enable and `--no-fail-on-no-test` to disable the behaviour respectively.
+
 `testLogging` — default: _not set_::
 This property represents a set of options that control which test events are logged and at what level. You can also configure other logging behavior via this property. See link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html[TestLoggingContainer] for more detail.
 
