@@ -78,6 +78,7 @@
          <trusted-key id="07dbc3c1ab1f4468471656061c8d5ef0df2b70d4" group="cglib"/>
          <trusted-key id="07e20f0103d9dfc697c490d0368557390486f2c5" group="org.awaitility"/>
          <trusted-key id="08f0aab4d0c1a4bdde340765b341ddb020fcb6ab" group="org.bouncycastle"/>
+         <trusted-key id="0a123c1ed3f13a6a0140e166c71fb765cd9de313" group="org.apache.ant"/>
          <trusted-key id="0cb5871fb7bf3b351614bbf6ca85ffe638d4407a" group="it.unimi.dsi" name="fastutil"/>
          <trusted-key id="0e18eae07b7774eac5db3f2113bb90ce8eafbe37" group="com.microsoft.playwright"/>
          <trusted-key id="160a7a9cf46221a56b06ad64461a804f2609fd89" group="^com[.]github[.]shyiko($|([.].*))" regex="true"/>
