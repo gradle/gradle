@@ -17,14 +17,9 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
-class Specs2IntegrationTest extends JUnitMultiVersionIntegrationSpec {
+abstract class AbstractSpecs2IntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
 
     def 'can run Specs2 tests'() {
         given:
@@ -39,7 +34,7 @@ class Specs2IntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 implementation 'org.scala-lang:scala-library:2.11.8'
                 testImplementation 'org.specs2:specs2_2.11:3.7'
                 testImplementation 'org.specs2:specs2-junit_2.11:4.7.0'
-                ${getDependencyBlockContents()}
+                ${testFrameworkDependencies}
             }
         """
         file('src/test/scala/BasicSpec.scala') << '''
