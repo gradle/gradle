@@ -39,7 +39,7 @@ class ProjectDependencyResolverTest extends Specification {
     final ComponentIdentifierFactory componentIdentifierFactory = Mock()
     final ProjectStateRegistry projectRegistry = Stub()
     final ProjectArtifactResolver projectArtifactResolver = Stub()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectArtifactResolver)
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, projectArtifactResolver)
 
     def setup() {
         def projectState = Stub(ProjectState)
@@ -61,7 +61,6 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(dependencyMetaData, null, null, result)
 
         then:
-        1 * componentIdentifierFactory.createProjectComponentIdentifier(selector) >> id
         1 * registry.getComponent(id) >> componentState
         1 * result.resolved(componentState)
         0 * result._
