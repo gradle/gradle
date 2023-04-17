@@ -24,8 +24,8 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInt
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
 @SuppressWarnings("unused")
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
+@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class ConfigurationCacheInterceptorsStub {
     /**
      * Make sure that there is at least one interceptor declaration so the classes are generated and the integration works.
