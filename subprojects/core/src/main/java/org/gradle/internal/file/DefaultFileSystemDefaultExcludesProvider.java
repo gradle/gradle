@@ -66,7 +66,9 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
 
     @Override
     public void updateCurrentDefaultExcludes(List<String> excludes) {
-        DirectoryScanner.resetDefaultExcludes();
+        for (String exclude : DirectoryScanner.getDefaultExcludes()) {
+            DirectoryScanner.removeDefaultExclude(exclude);
+        }
         for (String exclude : excludes) {
             DirectoryScanner.addDefaultExclude(exclude);
         }

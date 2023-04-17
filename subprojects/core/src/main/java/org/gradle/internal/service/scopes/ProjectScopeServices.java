@@ -19,6 +19,8 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultConfigurationServices;
+import org.gradle.api.internal.DefaultExecutionServices;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.MutationGuards;
@@ -116,6 +118,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(registration -> {
             registration.add(ProjectInternal.class, project);
+            registration.add(DefaultConfigurationServices.class);
+            registration.add(DefaultExecutionServices.class);
             parent.get(DependencyManagementServices.class).addDslServices(registration, project);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerProjectServices(registration);

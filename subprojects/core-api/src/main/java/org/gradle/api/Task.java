@@ -19,12 +19,17 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.file.ArchiveOperations;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.specs.Spec;
@@ -35,6 +40,7 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.process.ExecOperations;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -832,4 +838,30 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @since 6.1
      */
     void usesService(Provider<? extends BuildService<?>> service);
+
+    @Incubating
+    @Internal
+    AllTimeServices getDslServices();  // getServices clashes with internal method
+
+    @Incubating
+    @Internal
+    ExecutionServices getExecutionServices();
+
+    @Incubating
+    interface AllTimeServices {
+        ArchiveOperations getArchiveOperations();
+
+        ObjectFactory getObjectFactory();
+
+        ProjectLayout getProjectLayout();
+
+        ProviderFactory getProviderFactory();
+
+        FileSystemOperations getFileSystemOperations();
+    }
+
+    @Incubating
+    interface ExecutionServices extends AllTimeServices {
+        ExecOperations getExecOperations();
+    }
 }

@@ -172,11 +172,13 @@ fun getDestDir() = file("some-dir")
 // tag::copy-method[]
 tasks.register("copyMethod") {
     doLast {
-        copy {
-            from("src/main/webapp")
-            into(layout.buildDirectory.dir("explodedWar"))
-            include("**/*.html")
-            include("**/*.jsp")
+        with(executionServices) {
+            fileSystemOperations.copy {
+                from("src/main/webapp")
+                into(projectLayout.buildDirectory.dir("explodedWar"))
+                include("**/*.html")
+                include("**/*.jsp")
+            }
         }
     }
 }
@@ -191,7 +193,7 @@ tasks.register("copyMethodWithExplicitDependencies") {
     outputs.dir("some-dir") // up-to-date check for outputs
         .withPropertyName("outputDir")
     doLast {
-        copy {
+        dslServices.fileSystemOperations.copy {
             // Copy the output of copyTask
             from(copyTask)
             into("some-dir")

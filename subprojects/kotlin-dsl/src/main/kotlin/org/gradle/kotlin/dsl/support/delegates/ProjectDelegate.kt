@@ -475,4 +475,8 @@ abstract class ProjectDelegate : Project {
 
     override fun getBuildFile(): File =
         delegate.buildFile
+
+    override fun getDslServices(): Project.ConfigurationServices = delegate.dslServices
+
+    override fun getExecutionServices(): Project.ExecutionServices = delegate.executionServices
 }

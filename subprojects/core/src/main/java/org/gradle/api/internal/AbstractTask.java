@@ -87,6 +87,7 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -1075,5 +1076,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private BuildServiceRegistryInternal getBuildServiceRegistry() {
         return getServices().get(BuildServiceRegistryInternal.class);
+    }
+
+    @Override
+    @Inject
+    public AllTimeServices getDslServices() {
+        throw new UnsupportedOperationException("inject");
+    }
+
+    @Override
+    @Inject
+    public ExecutionServices getExecutionServices() {
+        throw new UnsupportedOperationException("inject");
     }
 }

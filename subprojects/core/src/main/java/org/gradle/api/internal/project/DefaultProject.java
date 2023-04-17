@@ -1054,6 +1054,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract DependencyFactory getDependencyFactory();
 
     @Override
+    @Inject
+    public abstract ConfigurationServices getDslServices();
+
+    @Override
+    @Inject
+    public abstract ExecutionServices getExecutionServices();
+
+    @Override
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
         return evaluationListener.getSource();
     }

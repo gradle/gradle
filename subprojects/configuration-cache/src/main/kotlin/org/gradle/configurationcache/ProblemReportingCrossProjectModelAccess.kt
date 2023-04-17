@@ -1042,5 +1042,15 @@ class ProblemReportingCrossProjectModelAccess(
                 delegate.owner.ensureConfigured()
             }
         }
+
+        override fun getDslServices(): Project.ConfigurationServices {
+            onAccess()
+            return delegate.dslServices
+        }
+
+        override fun getExecutionServices(): Project.ExecutionServices {
+            onAccess()
+            return delegate.executionServices
+        }
     }
 }

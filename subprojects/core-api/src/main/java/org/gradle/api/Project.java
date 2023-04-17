@@ -26,10 +26,12 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
@@ -50,6 +52,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.normalization.InputNormalizationHandler;
+import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -1801,4 +1804,28 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 4.8
      */
     DependencyLockingHandler getDependencyLocking();
+
+    @Incubating
+    ConfigurationServices getDslServices(); // getServices clashes with internal method
+
+    @Incubating
+    ExecutionServices getExecutionServices();
+
+    @Incubating
+    interface AllTimeServices {
+        ArchiveOperations getArchiveOperations();
+        ObjectFactory getObjectFactory();
+        ProjectLayout getProjectLayout();
+        ProviderFactory getProviderFactory();
+        FileSystemOperations getFileSystemOperations();
+    }
+
+    @Incubating
+    interface ConfigurationServices extends AllTimeServices {
+    }
+
+    @Incubating
+    interface ExecutionServices extends AllTimeServices {
+        ExecOperations getExecOperations();
+    }
 }
