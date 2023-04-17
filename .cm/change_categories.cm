@@ -101,7 +101,7 @@ build_logic_files:
   - 'build.gradle'
   - 'settings.gradle.kts'
   - 'settings.gradle'
-  - 
+
 author:
   on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
 
