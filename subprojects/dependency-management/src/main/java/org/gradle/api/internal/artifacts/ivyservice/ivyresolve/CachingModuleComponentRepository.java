@@ -411,6 +411,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     }
                     DefaultModuleComponentGraphResolveState state = new DefaultModuleComponentGraphResolveState(processedMetadata);
                     cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), state);
+                    localResult.applyTo(result);
                     result.resolved(state);
                     break;
                 case Failed:
