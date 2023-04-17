@@ -73,8 +73,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
      * Must be the same as in the  org.gradle.internal.classpath.declarations.InterceptorDeclaration class.
      */
     // TODO: Should be read from an annotation
-    private static final String JVM_BYTECODE_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImplPropertyUpgrades";
-    private static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_GroovyInterceptorsImplPropertyUpgrades";
+    private static final String JVM_BYTECODE_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.generated.InterceptorDeclaration_JvmBytecodeImplPropertyUpgrades";
+    private static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.generated.InterceptorDeclaration_GroovyInterceptorsImplPropertyUpgrades";
 
     @Override
     public Collection<Result> readRequest(ExecutableElement input) {
@@ -180,7 +180,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private static String getGeneratedClassName(Element originalType) {
-        return "org.gradle.internal.instrumentation." + originalType.getSimpleName() + "_Adapter";
+        return "org.gradle.internal.classpath.generated." + originalType.getSimpleName() + "_Adapter";
     }
 
     private static Type[] toArray(Type owner, List<ParameterInfo> parameters) {

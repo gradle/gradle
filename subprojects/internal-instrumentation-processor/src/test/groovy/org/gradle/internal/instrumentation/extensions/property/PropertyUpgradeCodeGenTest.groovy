@@ -44,7 +44,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         then:
         def generatedClass = source """
-            package org.gradle.internal.instrumentation;
+            package org.gradle.internal.classpath.generated;
             import org.gradle.test.Task;
 
             public class Task_Adapter {
@@ -85,7 +85,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         then:
         def generatedClass = source """
-            package org.gradle.internal.instrumentation;
+            package org.gradle.internal.classpath.generated;
             import $fullImport;
             import org.gradle.test.Task;
 
