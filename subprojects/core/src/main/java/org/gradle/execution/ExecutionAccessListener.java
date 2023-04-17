@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.asm;
+package org.gradle.execution;
 
-import org.objectweb.asm.MethodVisitor;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
-public interface BytecodeFragment {
+@EventScope(Scopes.BuildTree.class)
+public interface ExecutionAccessListener {
 
-    BytecodeFragment NO_OP = visitor -> {};
-
-    void emit(MethodVisitor visitor);
+    /**
+     * Called when accessing the injected service of type that disallowed during execution phase (eg. Project).
+     */
+    void disallowedAtExecutionInjectedServiceAccessed(Class<?> injectedServiceType, String getterName, String consumer);
 }
