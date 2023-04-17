@@ -53,12 +53,12 @@ public class PropertyUpgradeClassGenerator extends RequestGroupingInstrumentatio
         Consumer<? super GenerationResult.HasFailures.FailureInfo> onFailure
     ) {
         List<MethodSpec> methods = requestsClassGroup.stream()
-            .map(PropertyUpgradeClassGenerator::mapToMethodSpec)
+            .map(request -> mapToMethodSpec(request, onProcessedRequest))
             .collect(Collectors.toList());
         return builder -> builder.addModifiers(Modifier.PUBLIC).addMethods(methods);
     }
 
-    private static MethodSpec mapToMethodSpec(CallInterceptionRequest request) {
+    private static MethodSpec mapToMethodSpec(CallInterceptionRequest request, Consumer<? super CallInterceptionRequest> onProcessedRequest) {
         PropertyUpgradeRequestExtra implementationExtra = request.getRequestExtras()
             .getByType(PropertyUpgradeRequestExtra.class)
             .orElseThrow(() -> new RuntimeException(PropertyUpgradeRequestExtra.class.getSimpleName() + " should be present at this stage!"));
@@ -68,6 +68,7 @@ public class PropertyUpgradeClassGenerator extends RequestGroupingInstrumentatio
         List<ParameterSpec> parameters = callable.getParameters().stream()
             .map(parameter -> ParameterSpec.builder(typeName(parameter.getParameterType()), parameter.getName()).build())
             .collect(Collectors.toList());
+        onProcessedRequest.accept(request);
         return MethodSpec.methodBuilder(implementation.getName())
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addParameter(typeName(callable.getOwner().getType()), SELF_PARAMETER_NAME)
@@ -78,7 +79,7 @@ public class PropertyUpgradeClassGenerator extends RequestGroupingInstrumentatio
     }
 
     private static CodeBlock generateMethodBody(ImplementationInfo implementation, PropertyUpgradeRequestExtra implementationExtra) {
-        String propertyGetterName = implementationExtra.getInterceptedPropertyGetterName();
+        String propertyGetterName = implementationExtra.getInterceptedPropertyAccessorName();
         boolean isSetter = implementation.getName().startsWith("access_set_");
         UpgradedPropertyType upgradedPropertyType = implementationExtra.getUpgradedPropertyType();
         if (isSetter) {
