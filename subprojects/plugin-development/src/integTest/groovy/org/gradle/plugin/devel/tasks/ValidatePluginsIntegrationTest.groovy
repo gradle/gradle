@@ -61,7 +61,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         report.verify(messages.collectEntries {
             def fullMessage = it.message
             if (!it.defaultDocLink) {
-                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}."
+                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}"
             }
             [(fullMessage): it.severity]
         })

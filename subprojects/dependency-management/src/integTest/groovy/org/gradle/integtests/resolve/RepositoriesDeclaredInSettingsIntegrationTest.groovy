@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
-import org.gradle.util.GradleVersion
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
@@ -768,7 +767,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         failure.assertHasCause("""Could not resolve all dependencies for configuration ':conf'.""")
             .assertHasResolutions("""The project declares repositories, effectively ignoring the repositories you have declared in the settings.
    You can figure out how project repositories are declared by configuring your build to fail on project repositories.
-   For more information on this, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_repositories.html#sub:fail_build_on_project_repositories in the Gradle documentation.""",
+   ${documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")}""",
                 repositoryHint("Maven POM"),
                 STACKTRACE_MESSAGE,
                 INFO_DEBUG,

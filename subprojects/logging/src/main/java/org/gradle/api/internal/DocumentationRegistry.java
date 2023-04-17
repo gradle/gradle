@@ -25,8 +25,9 @@ import org.gradle.util.GradleVersion;
  */
 @ServiceScope(Scope.Global.class)
 public class DocumentationRegistry {
-    private final static String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
+    public final static String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
+    public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
 
     public DocumentationRegistry() {
     }
@@ -49,7 +50,11 @@ public class DocumentationRegistry {
 
     public String getDslRefForProperty(Class<?> clazz, String property) {
         String className = clazz.getName();
-        return String.format("%s/dsl/%s.html#%s:%s", BASE_URL, className, className, property);
+        return String.format(DSL_PROPERTY_URL_FORMAT, BASE_URL, className, className, property);
+    }
+
+    public String getDslRefForProperty(String className, String property) {
+        return String.format(DSL_PROPERTY_URL_FORMAT, BASE_URL, className, className, property);
     }
 
     public String getSampleIndex() {
@@ -57,7 +62,15 @@ public class DocumentationRegistry {
     }
 
     public String getSampleFor(String id) {
-        return String.format("%s/samples/sample_%s.html", BASE_URL, id);
+        return String.format(getSampleIndex() + "/sample_%s.html", id);
+    }
+
+    public String getSampleForMessage(String id) {
+        return String.format("Learn more about Gradle by exploring Samples at %s", getSampleFor(id));
+    }
+
+    public String getSampleForMessage() {
+        return "Learn more about Gradle by exploring Samples at " + getSampleIndex();
     }
 
     public String getDocumentationRecommendationFor(String topic, String id) {

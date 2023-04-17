@@ -74,7 +74,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getSampleFor("building_swift_" + getComponentType().pluralName()));
+        return Optional.of(documentationRegistry.getSampleForMessage("building_swift_" + getComponentType().pluralName()));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);

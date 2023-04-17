@@ -92,7 +92,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
         String multi = isSingleProject(settings) ? "" : "_multi_project";
-        return Optional.of(documentationRegistry.getSampleFor("building_" + getLanguage().getName() + "_" + getComponentType().pluralName() + multi));
+        return Optional.of(documentationRegistry.getSampleForMessage("building_" + getLanguage().getName() + "_" + getComponentType().pluralName() + multi));
     }
 
     @Override

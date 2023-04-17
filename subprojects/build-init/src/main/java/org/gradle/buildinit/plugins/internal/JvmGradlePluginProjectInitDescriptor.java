@@ -107,7 +107,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getDocumentationFor("custom_plugins"));
+        return Optional.of(documentationRegistry.getDocumentationRecommendationFor("information", "custom_plugins"));
     }
 
     protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName);
