@@ -733,7 +733,7 @@ Lazy property assignment reduces the verbosity for Kotlin DSL when <<lazy_config
 It works for properties that are publicly seen as `final` (without a setter) and have type `Property` or `ConfigurableFileCollection`.
 Since properties have to be `final`, our general recommendation is not to implement custom setters for properties with lazy types and, if possible, implement such properties via an abstract getter.
 
-Once the feature is released out of incubating status, using the `=` operator will be the preferred way to calling `set()` in the Kotlin DSL.
+Once the feature is promoted to stable, using the `=` operator will be the preferred way to call `set()` in the Kotlin DSL.
 
 .Kotlin lazy property assignment
 ====
