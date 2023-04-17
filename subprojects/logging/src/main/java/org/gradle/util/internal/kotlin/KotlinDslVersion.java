@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util.internal;
+package org.gradle.util.internal.kotlin;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import org.gradle.util.internal.GUtil;
 
 import java.net.URL;
 import java.util.Properties;
