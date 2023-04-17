@@ -23,9 +23,7 @@ import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -88,9 +86,6 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
     boolean isVisible();
 
     boolean isCanBeConsumed();
-
-    @Nullable
-    DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation();
 
     boolean isCanBeResolved();
 

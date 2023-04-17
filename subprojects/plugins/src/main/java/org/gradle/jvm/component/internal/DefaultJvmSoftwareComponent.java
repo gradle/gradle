@@ -85,7 +85,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
         this.mainFeature = new DefaultJvmFeature(
             sourceSetName, sourceSet, Collections.emptyList(),
-            (ProjectInternal) project, ConfigurationRoles.INTENDED_CONSUMABLE, false);
+            (ProjectInternal) project, ConfigurationRoles.CONSUMABLE, false);
 
         // TODO: Should all features also have this variant? Why just the main feature?
         createSourceElements(configurations, providerFactory, objectFactory, mainFeature);
@@ -125,7 +125,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // of the component's API?
         String variantName = feature.getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
+        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
         variant.extendsFrom(mainFeature.getImplementationConfiguration());

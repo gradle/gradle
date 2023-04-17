@@ -194,9 +194,9 @@ ear {
         ear.assertFileContent("META-INF/application.xml", applicationXml)
 
         where:
-        location    | descriptorConfig             | appDirectory
-        "specified" | "appDirectory = file('app')" | "app"
-        "default"   | ""                           | "src/main/application"
+        location    | descriptorConfig                                                                   | appDirectory
+        "specified" | "tasks.named('ear') { appDirectory = project.layout.projectDirectory.dir('app') }" | "app"
+        "default"   | ""                                                                                 | "src/main/application"
     }
 
     @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")

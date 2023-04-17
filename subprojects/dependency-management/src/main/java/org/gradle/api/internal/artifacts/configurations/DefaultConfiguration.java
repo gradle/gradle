@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -118,9 +119,7 @@ import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.lazy.Lazy;
@@ -145,6 +144,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -155,7 +155,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -237,9 +236,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeConsumed;
     private boolean canBeResolved;
     private boolean canBeDeclaredAgainst;
-    private boolean consumptionDeprecated;
-    private boolean resolutionDeprecated;
-    private boolean declarationDeprecated;
+    private final boolean consumptionDeprecated;
+    private final boolean resolutionDeprecated;
+    private final boolean declarationDeprecated;
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
 
@@ -259,9 +258,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private Action<? super ConfigurationInternal> beforeLocking;
 
-    private List<String> declarationAlternatives;
-    private DeprecationMessageBuilder.WithDocumentation consumptionDeprecation;
-    private List<String> resolutionAlternatives;
+    private List<String> declarationAlternatives = ImmutableList.of();
+    private List<String> resolutionAlternatives = ImmutableList.of();
 
     private final CalculatedModelValue<ResolveState> currentResolveState;
 
@@ -352,19 +350,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
         this.canBeDeclaredAgainst = roleAtCreation.isDeclarableAgainst();
-
-        // Calling these during construction is not ideal, but we'd have to call the deprecateForConsumption(), etc.
-        // methods anyway even if replicated the code inside these methods here, so at least this keeps a single
-        // code path for the deprecation.
-        if (roleAtCreation.isConsumptionDeprecated()) {
-            deprecateForConsumption();
-        }
-        if (roleAtCreation.isResolutionDeprecated()) {
-            deprecateForResolution();
-        }
-        if (roleAtCreation.isDeclarationAgainstDeprecated()) {
-            deprecateForDeclarationAgainst();
-        }
+        this.consumptionDeprecated = roleAtCreation.isConsumptionDeprecated();
+        this.resolutionDeprecated = roleAtCreation.isResolutionDeprecated();
+        this.declarationDeprecated = roleAtCreation.isDeclarationAgainstDeprecated();
 
         if (lockUsage) {
             preventUsageMutation();
@@ -398,8 +386,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    /**
+     * Get the current resolved state of this configuration.
+     * <p>
+     * Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
+     *
+     * @return the current resolved state of this configuration
+     */
     @VisibleForTesting
     public InternalState getResolvedState() {
+        warnOnInvalidInternalAPIUsage("getResolvedState()", ProperMethodUsage.RESOLVABLE);
         return currentResolveState.get().state;
     }
 
@@ -517,6 +514,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
+        warnOnDeprecatedUsage("defaultDependencies(Action)", ProperMethodUsage.DECLARABLE_AGAINST);
         validateMutation(MutationType.DEPENDENCIES);
         defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
             if (dependencies.isEmpty()) {
@@ -561,6 +559,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Set<File> resolve() {
+        warnOnDeprecatedUsage("resolve()", ProperMethodUsage.RESOLVABLE);
         return getFiles();
     }
 
@@ -579,8 +578,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         formatter.node("configuration: " + identityPath);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Override
     public boolean contains(File file) {
+        warnOnInvalidInternalAPIUsage("contains(File)", ProperMethodUsage.RESOLVABLE);
         return intrinsicFiles.contains(file);
     }
 
@@ -607,6 +613,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
         assertIsResolvable();
+        // After asserting, we are definitely allowed, but might be deprecated, so check to warn now
+        warnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
         return fileCollectionFromSpec(dependencySpec);
     }
 
@@ -621,11 +629,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public FileCollection fileCollection(Closure dependencySpecClosure) {
+        warnOnDeprecatedUsage("fileCollection(Closure)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(Specs.convertClosureToSpec(dependencySpecClosure));
     }
 
     @Override
     public FileCollection fileCollection(Dependency... dependencies) {
+        warnOnDeprecatedUsage("fileCollection(Dependency...)", ProperMethodUsage.RESOLVABLE);
         Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
         return fileCollection(deps::contains);
     }
@@ -652,12 +662,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
+        warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
         return resolveToStateOrLater(ARTIFACTS_RESOLVED).getResolvedConfiguration();
     }
 
     private ResolveState resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
-        warnIfConfigurationIsDeprecatedForResolving();
+        maybeEmitResolutionDeprecation();
         logIfImproperConfiguration();
 
         ResolveState currentState = currentResolveState.get();
@@ -678,15 +689,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
         return resolveExclusively(requestedState);
-    }
-
-    private void warnIfConfigurationIsDeprecatedForResolving() {
-        if (resolutionAlternatives != null) {
-            DeprecationLogger.deprecateConfiguration(this.name).forResolution().replaceWith(resolutionAlternatives)
-                    .willBecomeAnErrorInGradle9()
-                    .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-                    .nagUser();
-        }
     }
 
     private ResolveState resolveExclusively(InternalState requestedState) {
@@ -787,6 +789,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ConfigurationInternal getConsistentResolutionSource() {
+        warnOnInvalidInternalAPIUsage("getConsistentResolutionSource()", ProperMethodUsage.RESOLVABLE);
         return consistentResolutionSource;
     }
 
@@ -903,6 +906,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
+        warnOnInvalidInternalAPIUsage("getDependenciesResolver()", ProperMethodUsage.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
@@ -919,6 +923,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void resetResolutionState() {
+        warnOnInvalidInternalAPIUsage("resetResolutionState()", ProperMethodUsage.RESOLVABLE);
         currentResolveState.set(ResolveState.NOT_RESOLVED);
     }
 
@@ -1113,7 +1118,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    /**
+     * Adds exclude rules to this configuration.
+     * <p>
+     * Usage: This method should only be called on resolvable or declarable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
+     *
+     * @param excludeRules the exclude rules to add.
+     */
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
+        warnOnInvalidInternalAPIUsage("setExcludeRules(Set)", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
         validateMutation(MutationType.DEPENDENCIES);
         parsedExcludeRules = null;
         this.excludeRules.clear();
@@ -1147,11 +1161,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public ConfigurationPublications getOutgoing() {
         return outgoing;
-    }
-
-    @Override
-    public OutgoingVariant convertToOutgoingVariant() {
-        return outgoing.convertToOutgoingVariant();
     }
 
     @Override
@@ -1312,9 +1321,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      */
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
         // Begin by allowing everything, and setting deprecations for disallowed roles in a new role implementation
-        boolean deprecateConsumption = !canBeConsumed || consumptionDeprecation != null;
-        boolean deprecateResolution = !canBeResolved || resolutionAlternatives != null;
-        boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationAlternatives != null;
+        boolean deprecateConsumption = !canBeConsumed || consumptionDeprecated;
+        boolean deprecateResolution = !canBeResolved || resolutionDeprecated;
+        boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationDeprecated;
         ConfigurationRole adjustedCurrentUsage = new CopiedConfigurationRole(deprecateConsumption, deprecateResolution, deprecateDeclarationAgainst);
 
         DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
@@ -1329,14 +1338,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
 
-        copiedConfiguration.declarationAlternatives =
-            canBeDeclaredAgainst || declarationAlternatives != null ? declarationAlternatives : Collections.emptyList();
-        copiedConfiguration.resolutionAlternatives =
-            canBeResolved || resolutionAlternatives != null ? resolutionAlternatives : Collections.emptyList();
-        copiedConfiguration.consumptionDeprecation =
-            canBeConsumed || consumptionDeprecation != null ? consumptionDeprecation
-                : DeprecationLogger.deprecateConfiguration(name).forConsumption()
-                    .willBecomeAnErrorInGradle9().undocumented();
+        copiedConfiguration.declarationAlternatives = declarationAlternatives;
+        copiedConfiguration.resolutionAlternatives = resolutionAlternatives;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -1414,11 +1417,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public LocalComponentMetadata toRootComponentMetaData() {
+        warnOnInvalidInternalAPIUsage("toRootComponentMetaData()", ProperMethodUsage.RESOLVABLE);
         return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 
     @Override
     public List<? extends DependencyMetadata> getSyntheticDependencies() {
+        warnOnInvalidInternalAPIUsage("getSyntheticDependencies()", ProperMethodUsage.RESOLVABLE);
         return syntheticDependencies.get();
     }
 
@@ -1587,6 +1592,38 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         String projectPath = domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().toString();
         String buildPath = domainObjectContext.getBuildPath().toString();
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
+    }
+
+    private boolean isProperUsage(boolean allowDeprecated, ProperMethodUsage... properUsages) {
+        for (ProperMethodUsage properUsage : properUsages) {
+            if (properUsage.isProperUsage(this, allowDeprecated)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void warnOnInvalidInternalAPIUsage(String methodName, ProperMethodUsage... properUsages) {
+        warnOnDeprecatedUsage(methodName, true, properUsages);
+    }
+
+    private void warnOnDeprecatedUsage(String methodName, ProperMethodUsage... properUsages) {
+        warnOnDeprecatedUsage(methodName, false, properUsages);
+    }
+
+    private void warnOnDeprecatedUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
+        if (!isProperUsage(allowDeprecated, properUsages)) {
+            String msgTemplate = "Calling configuration method '%s' is deprecated for configuration '%s', which has permitted usage(s):\n" +
+                    "%s\n" +
+                    "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
+            String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
+            String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
+
+            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc))
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "deprecated_configuration_usage")
+                    .nagUser();
+        }
     }
 
     private static class ConfigurationDescription implements Describable {
@@ -1768,8 +1805,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return configurationAttributes;
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * @implNote Usage: This method should only be called on consumable or resolvable configurations and will emit a deprecation warning if
+     * called on a configuration that does not permit this usage, or has had allowed this usage but marked it as deprecated.
+     */
     @Override
     public Configuration attributes(Action<? super AttributeContainer> action) {
+        warnOnDeprecatedUsage("attributes(Action)", ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE);
         action.execute(configurationAttributes);
         return this;
     }
@@ -1975,58 +2019,34 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     @Override
-    @Nullable
     public List<String> getDeclarationAlternatives() {
         return declarationAlternatives;
     }
 
-    @Nullable
-    @Override
-    public DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation() {
-        return consumptionDeprecation;
-    }
-
-    @Nullable
     @Override
     public List<String> getResolutionAlternatives() {
         return resolutionAlternatives;
     }
 
     @Override
-    public DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring) {
-        validateMutation(MutationType.USAGE);
-        this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
-        if (!declarationDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for declaration against", true);
-        }
-        declarationDeprecated = true;
-        return this;
+    public void addDeclarationAlternatives(String... alternativesForDeclaring) {
+        this.declarationAlternatives = ImmutableList.<String>builder()
+            .addAll(declarationAlternatives)
+            .addAll(Arrays.asList(alternativesForDeclaring))
+            .build();
     }
 
     @Override
-    public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
-        validateMutation(MutationType.USAGE);
-        this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
-        if (!consumptionDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for resolution", true);
-        }
-        resolutionDeprecated = true;
-        return this;
-    }
-
-    @Override
-    public DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation) {
-        validateMutation(MutationType.USAGE);
-        this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
-        if (!consumptionDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for consumption", true);
-        }
-        consumptionDeprecated = true;
-        return this;
+    public void addResolutionAlternatives(String... alternativesForResolving) {
+        this.resolutionAlternatives = ImmutableList.<String>builder()
+            .addAll(resolutionAlternatives)
+            .addAll(Arrays.asList(alternativesForResolving))
+            .build();
     }
 
     @Override
     public Configuration shouldResolveConsistentlyWith(Configuration versionsSource) {
+        warnOnDeprecatedUsage("shouldResolveConsistentlyWith(Configuration)", ProperMethodUsage.RESOLVABLE);
         this.consistentResolutionSource = (ConfigurationInternal) versionsSource;
         this.consistentResolutionReason = "version resolved in " + versionsSource + " by consistent resolution";
         return this;
@@ -2034,6 +2054,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public Configuration disableConsistentResolution() {
+        warnOnDeprecatedUsage("disableConsistentResolution()", ProperMethodUsage.RESOLVABLE);
         this.consistentResolutionSource = null;
         this.consistentResolutionReason = null;
         return this;
@@ -2124,6 +2145,14 @@ since users cannot create non-legacy configurations and there is no current publ
     @Override
     public ConfigurationRole getRoleAtCreation() {
         return roleAtCreation;
+    }
+
+    @Deprecated
+    @Override
+    public void assertHasNoDeclarations() {
+        if (!dependencies.isEmpty()) {
+            throw new GradleException("Dependency declarations are present on a configuration that does not allow them: " + getName() + ".");
+        }
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
@@ -2463,6 +2492,60 @@ since users cannot create non-legacy configurations and there is no current publ
         @Override
         public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
             return DefaultConfiguration.this.mapFailure(type, failures);
+        }
+    }
+
+    private enum ProperMethodUsage {
+        CONSUMABLE {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeConsumed();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForConsumption();
+            }
+        },
+        RESOLVABLE {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeResolved();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForResolution();
+            }
+        },
+        DECLARABLE_AGAINST {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeDeclaredAgainst();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForDeclarationAgainst();
+            }
+        };
+
+        abstract boolean isAllowed(ConfigurationInternal configuration);
+
+        abstract boolean isDeprecated(ConfigurationInternal configuration);
+
+        boolean isProperUsage(ConfigurationInternal configuration, boolean allowDeprecated) {
+            return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
+        }
+
+        public static String buildProperName(ProperMethodUsage usage) {
+            return WordUtils.capitalizeFully(usage.name().replace('_', ' '));
+        }
+
+        public static String summarizeProperUsage(ProperMethodUsage... properUsages) {
+            return Arrays.stream(properUsages)
+                    .map(ProperMethodUsage::buildProperName)
+                    .collect(Collectors.joining(", "));
         }
     }
 
