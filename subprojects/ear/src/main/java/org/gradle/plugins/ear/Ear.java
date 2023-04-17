@@ -31,9 +31,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -45,9 +43,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import static java.util.Collections.singleton;
@@ -110,16 +106,11 @@ public abstract class Ear extends Jar {
                     getTemporaryDirFactory(),
                     descriptorFileName,
                     action(file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
-                    action(outputStream -> {
-                        try {
-                            // delay obtaining contents to account for descriptor changes
-                            // (for instance, due to modules discovered)
-                            byte[] descriptorContents = cachedContentsOf(descriptor).get();
-                            outputStream.write(descriptorContents);
-                        } catch (IOException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                    })
+                    action(outputStream ->
+                        // delay obtaining contents to account for descriptor changes
+                        // (for instance, due to modules discovered)
+                        descriptor.writeTo(new OutputStreamWriter(outputStream))
+                    )
                 );
             }
 
@@ -127,14 +118,6 @@ public abstract class Ear extends Jar {
         }));
 
         appDir = getObjectFactory().directoryProperty();
-    }
-
-    private Cached<byte[]> cachedContentsOf(DeploymentDescriptor descriptor) {
-        return Cached.of(() -> {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            descriptor.writeTo(new OutputStreamWriter(bytes));
-            return bytes.toByteArray();
-        });
     }
 
     private FileCollectionFactory fileCollectionFactory() {

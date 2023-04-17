@@ -81,6 +81,8 @@ ear {
         def ear = new JarTestFixture(file('build/libs/root.ear'))
         ear.assertContainsFile("CUSTOM/lib/earLib.jar")
         ear.assertFileContent("META-INF/application.xml", CoreMatchers.containsString("cool ear"))
+        def appXml = new XmlSlurper().parseText(ear.content('META-INF/application.xml'))
+        appXml.'library-directory'.text() == 'CUSTOM/lib'
     }
 
     void "includes modules in deployment descriptor"() {
