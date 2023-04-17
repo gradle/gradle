@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.Scopes;
 public interface ExecutionAccessListener {
 
     /**
-     * Called when accessing the injected service during execution phase.
+     * Called when accessing the injected service of type that disallowed during execution phase (eg. Project).
      */
     void disallowedAtExecutionInjectedServiceAccessed(Class<?> injectedServiceType, String getterName, String consumer);
 }
