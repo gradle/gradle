@@ -46,7 +46,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Pair;
-import org.gradle.util.internal.KotlinDslVersion;
+import org.gradle.util.internal.kotlin.KotlinDslVersion;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;

@@ -16,7 +16,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.internal.KotlinDslVersion;
+import org.gradle.util.internal.kotlin.KotlinDslVersion;
 
 import java.io.IOException;
 import java.util.Properties;

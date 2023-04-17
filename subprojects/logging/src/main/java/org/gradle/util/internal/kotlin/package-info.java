@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.util.internal
-
-import spock.lang.Specification
-
-class KotlinDslVersionTest extends Specification {
-
-    def "kotlin version should be present"() {
-        expect:
-        KotlinDslVersion.current().kotlinVersion != null
-    }
-}
+/**
+ * This package contains utility classes for Kotlin related functions.
+ * It contains internal classes that can change any time.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.util.internal.kotlin;
