@@ -1130,6 +1130,34 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             assertNotOutput("w: Classpath entry points to a non-existent location")
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/24788")
+    @Test
+    fun `fail with a reasonable message when kotlin-dsl plugin compiler arguments have been tempered with`() {
+        assumeNonEmbeddedGradleExecuter()
+
+        withKotlinDslPlugin().appendText(
+            """
+            tasks.compileKotlin {
+                compilerOptions {
+                    freeCompilerArgs.set(listOf("some"))
+                }
+            }
+            """
+        )
+        withPrecompiledKotlinScript("some.gradle.kts", "")
+
+        buildAndFail("compileKotlin").apply {
+            assertHasFailure("Execution failed for task ':compileKotlin'.") {
+                assertHasCause(
+                    "Kotlin compiler arguments of task ':compileKotlin' do not work for the `kotlin-dsl` plugin. " +
+                        "The 'freeCompilerArgs' property has been reassigned. " +
+                        "It must instead be appended to. " +
+                        "Please use 'freeCompilerArgs.addAll(\"your\", \"args\")' to fix this."
+                )
+            }
+        }
+    }
 }
 
 
