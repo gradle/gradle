@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.Objects;
+
 /**
  * Default implementation of {@link ConfigurationRole}.
  */
-public class DefaultConfigurationRole implements ConfigurationRole {
+public final class DefaultConfigurationRole implements ConfigurationRole {
 
     private final String name;
     private final boolean consumable;
@@ -80,6 +82,29 @@ public class DefaultConfigurationRole implements ConfigurationRole {
     @Override
     public boolean isDeclarationAgainstDeprecated() {
         return declarationDeprecated;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultConfigurationRole that = (DefaultConfigurationRole) o;
+        return consumable == that.consumable &&
+            resolvable == that.resolvable &&
+            declarableAgainst == that.declarableAgainst &&
+            consumptionDeprecated == that.consumptionDeprecated &&
+            resolutionDeprecated == that.resolutionDeprecated &&
+            declarationDeprecated == that.declarationDeprecated &&
+            name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationDeprecated);
     }
 
     @Override
