@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * This type exposes only the information and operations required to do this. In particular, it does not expose any information about artifacts unless this is actually required for graph resolution,
  * which only happens in certain specific cases (and something we should deprecate).</p>
  *
- * <p>The subsequent resolution steps, to select artifacts, are performed using the instance returned by {@link #prepareForArtifactResolution()}.</p>
+ * <p>The subsequent resolution steps to select artifacts, are performed using the instance returned by {@link #prepareForArtifactResolution()}.</p>
  *
  * <p>This interface says nothing about thread safety, however some subtypes may be required to be thread safe.</p>
  */
@@ -41,13 +41,18 @@ public interface ComponentGraphResolveState {
     ComponentGraphResolveMetadata getMetadata();
 
     /**
-     * When this component is a lenient platform, create a copy with the given ids. Otherwise returns {@code null}.
+     * Returns the candidates for variant selection during graph resolution.
+     */
+    GraphSelectionCandidates getCandidatesForGraphVariantSelection();
+
+    /**
+     * When this component is a lenient platform, create a copy with the given ids. Otherwise, returns {@code null}.
      */
     @Nullable
     ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
 
     /**
-     * Determines the set of artifacts for the given variant of this component.
+     * Determines the set of artifacts for the given variant of this component, if required during graph resolution.
      *
      * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be used only when
      * required.

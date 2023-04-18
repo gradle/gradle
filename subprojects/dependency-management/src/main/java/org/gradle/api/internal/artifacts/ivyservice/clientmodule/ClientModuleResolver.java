@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -51,6 +50,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @NonNullApi
@@ -156,7 +156,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
         @Override
         public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         @Override

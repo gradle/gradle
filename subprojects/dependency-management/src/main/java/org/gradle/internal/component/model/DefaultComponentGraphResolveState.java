@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Optional;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
@@ -26,6 +25,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -42,7 +42,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
 
     public DefaultComponentGraphResolveState(T graphMetadata, S artifactMetadata) {
         super(graphMetadata, artifactMetadata);
-        allVariantsForArtifactSelection = graphMetadata.getVariantsForGraphTraversal().transform(variants ->
+        allVariantsForArtifactSelection = graphMetadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .flatMap(variant -> variant.getVariants().stream())
@@ -66,7 +66,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     @Override
     public VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant) {
         ConfigurationMetadata configurationMetadata = (ConfigurationMetadata) variant;
-        return variants.computeIfAbsent(configurationMetadata, c -> new DefaultVariantArtifactResolveState(getMetadata(), getArtifactMetadata(), configurationMetadata, allVariantsForArtifactSelection));
+        return variants.computeIfAbsent(configurationMetadata, c -> new DefaultVariantArtifactResolveState(getArtifactMetadata(), configurationMetadata, allVariantsForArtifactSelection));
     }
 
     private static class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
@@ -75,11 +75,11 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         private final Set<? extends VariantResolveMetadata> legacyVariants;
         private final Set<? extends VariantResolveMetadata> allVariants;
 
-        public DefaultVariantArtifactResolveState(ComponentGraphResolveMetadata graphMetadata, ComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedVariant, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
+        public DefaultVariantArtifactResolveState(ComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedVariant, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
             this.artifactMetadata = artifactMetadata;
             this.graphSelectedVariant = graphSelectedVariant;
             this.legacyVariants = graphSelectedVariant.getVariants();
-            allVariants = allVariantsForArtifactSelection.or(legacyVariants);
+            allVariants = allVariantsForArtifactSelection.orElse(legacyVariants);
         }
 
         @Override

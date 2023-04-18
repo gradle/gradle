@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.base.Optional;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -39,6 +38,7 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -57,7 +57,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata) {
         super(metadata, metadata);
-        allVariantsForArtifactSelection = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().transform(variants ->
+        allVariantsForArtifactSelection = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream().
                 map(LocalConfigurationGraphResolveMetadata.class::cast).
                 map(LocalConfigurationGraphResolveMetadata::prepareToResolveArtifacts).
@@ -134,7 +134,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         @Override
         public Set<? extends VariantResolveMetadata> getAllVariants() {
-            return allVariants.get().or(legacyVariants);
+            return allVariants.get().orElse(legacyVariants);
         }
 
         @Override
