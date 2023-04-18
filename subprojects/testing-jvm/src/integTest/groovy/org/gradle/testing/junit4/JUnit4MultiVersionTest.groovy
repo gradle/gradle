@@ -18,6 +18,7 @@ package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.JUnitCoverage
 
 trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
     AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
@@ -29,9 +30,16 @@ trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
 
         @Override
         String getTestFrameworkDependencies(String sourceSet) {
-            return """
-                ${sourceSet}Implementation 'junit:junit:${MultiVersionIntegrationSpec.version}'
-            """
+            if (MultiVersionIntegrationSpec.version.startsWith("3")) {
+                return """
+                    ${sourceSet}CompileOnly 'junit:junit:${MultiVersionIntegrationSpec.version}'
+                    ${sourceSet}RuntimeOnly 'junit:junit:${JUnitCoverage.JUNIT_4_LATEST}'
+                """
+            } else {
+                return """
+                    ${sourceSet}Implementation 'junit:junit:${MultiVersionIntegrationSpec.version}'
+                """
+            }
         }
 
         @Override
