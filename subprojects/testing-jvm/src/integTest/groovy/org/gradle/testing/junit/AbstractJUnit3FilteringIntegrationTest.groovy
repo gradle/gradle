@@ -18,21 +18,17 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.FILTER_JUNIT3_TESTS
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-
-@TargetCoverage({ FILTER_JUNIT3_TESTS + JUNIT_VINTAGE })
-class JUnit3FilteringIntegrationTest extends JUnitMultiVersionIntegrationSpec {
+abstract class AbstractJUnit3FilteringIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
     void "filters tests implemented using 3.x test cases"() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                ${getDependencyBlockContents()}
+                ${testFrameworkDependencies}
             }
+            test.${configureTestFramework}
         """
 
         file("src/test/java/FooTest.java") << """
