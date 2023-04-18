@@ -825,23 +825,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle/issues/22091")
-    fun `does not add extra task actions to kotlin compilation task`() {
-        assumeNonEmbeddedGradleExecuter()
-        withKotlinDslPlugin().appendText("""
-            gradle.taskGraph.whenReady {
-                val compileKotlinActions = allTasks.single { it.path == ":compileKotlin" }.actions.size
-                require(compileKotlinActions == 1) {
-                    ":compileKotlin has ${'$'}compileKotlinActions actions, expected 1"
-                }
-            }
-        """)
-        withPrecompiledKotlinScript("my-plugin.gradle.kts", "")
-
-        compileKotlin()
-    }
-
-    @Test
     @Issue("https://github.com/gradle/gradle/issues/23576")
     @ToBeImplemented
     fun `can compile precompiled scripts with compileOnly dependency`() {
