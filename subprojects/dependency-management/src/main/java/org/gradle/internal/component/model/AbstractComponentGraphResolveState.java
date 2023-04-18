@@ -43,7 +43,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return graphMetadata.getId();
     }
 
-    @Nullable
     @Override
     public ModuleSources getSources() {
         return artifactMetadata.getSources();

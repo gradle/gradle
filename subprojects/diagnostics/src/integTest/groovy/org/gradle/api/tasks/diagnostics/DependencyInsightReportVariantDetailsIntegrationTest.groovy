@@ -27,7 +27,7 @@ import org.gradle.internal.logging.text.StyledTextOutput
 
 import static org.gradle.api.tasks.diagnostics.DependencyInsightReportVariantDetailsIntegrationTest.AttributeValueTuple.of
 
-class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractIntegrationSpec {
+class   DependencyInsightReportVariantDetailsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
 

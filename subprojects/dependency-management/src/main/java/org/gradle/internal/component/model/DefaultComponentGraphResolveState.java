@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -36,10 +35,18 @@ import java.util.stream.Collectors;
  * Holds the resolution state for an external component.
  */
 public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
+    // The artifact resolve state for each variant of this component
     private final ConcurrentMap<ConfigurationMetadata, DefaultVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
+    // The variants of this component to use when variant reselection is enabled
+    private final Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection;
 
     public DefaultComponentGraphResolveState(T graphMetadata, S artifactMetadata) {
         super(graphMetadata, artifactMetadata);
+        allVariantsForArtifactSelection = graphMetadata.getVariantsForGraphTraversal().transform(variants ->
+            variants.stream()
+                .map(ModuleConfigurationMetadata.class::cast)
+                .flatMap(variant -> variant.getVariants().stream())
+                .collect(Collectors.toSet()));
     }
 
     public static ComponentGraphResolveState of(ModuleComponentResolveMetadata metadata) {
@@ -59,21 +66,20 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     @Override
     public VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant) {
         ConfigurationMetadata configurationMetadata = (ConfigurationMetadata) variant;
-        return variants.computeIfAbsent(configurationMetadata, c -> new DefaultVariantArtifactResolveState(getMetadata(), getArtifactMetadata(), configurationMetadata));
+        return variants.computeIfAbsent(configurationMetadata, c -> new DefaultVariantArtifactResolveState(getMetadata(), getArtifactMetadata(), configurationMetadata, allVariantsForArtifactSelection));
     }
 
     private static class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
         private final ComponentResolveMetadata artifactMetadata;
         private final ConfigurationMetadata graphSelectedVariant;
-        private final Set<? extends VariantResolveMetadata> fallbackVariants;
+        private final Set<? extends VariantResolveMetadata> legacyVariants;
         private final Set<? extends VariantResolveMetadata> allVariants;
 
-        public DefaultVariantArtifactResolveState(ComponentGraphResolveMetadata graphMetadata, ComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedVariant) {
+        public DefaultVariantArtifactResolveState(ComponentGraphResolveMetadata graphMetadata, ComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedVariant, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
             this.artifactMetadata = artifactMetadata;
             this.graphSelectedVariant = graphSelectedVariant;
-            this.fallbackVariants = graphSelectedVariant.getVariants();
-            Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = graphMetadata.getVariantsForGraphTraversal();
-            allVariants = buildAllVariants(fallbackVariants, variantsForGraphTraversal);
+            this.legacyVariants = graphSelectedVariant.getVariants();
+            allVariants = allVariantsForArtifactSelection.or(legacyVariants);
         }
 
         @Override
@@ -83,17 +89,27 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), () -> allVariants, fallbackVariants, exclusions, overriddenAttributes);
+            return artifactSelector.resolveArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), new ExternalVariantArtifactSelectionMetadata(allVariants, legacyVariants), exclusions, overriddenAttributes);
+        }
+    }
+
+    private static class ExternalVariantArtifactSelectionMetadata implements VariantArtifactSelectionMetadata {
+        private final Set<? extends VariantResolveMetadata> allVariants;
+        private final Set<? extends VariantResolveMetadata> legacyVariants;
+
+        public ExternalVariantArtifactSelectionMetadata(Set<? extends VariantResolveMetadata> allVariants, Set<? extends VariantResolveMetadata> legacyVariants) {
+            this.allVariants = allVariants;
+            this.legacyVariants = legacyVariants;
         }
 
-        private static Set<? extends VariantResolveMetadata> buildAllVariants(Set<? extends VariantResolveMetadata> fallbackVariants, Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal) {
-            final Set<? extends VariantResolveMetadata> allVariants;
-            if (variantsForGraphTraversal.isPresent()) {
-                allVariants = variantsForGraphTraversal.get().stream().map(ModuleConfigurationMetadata.class::cast).flatMap(variant -> variant.getVariants().stream()).collect(Collectors.toSet());
-            } else {
-                allVariants = fallbackVariants;
-            }
+        @Override
+        public Set<? extends VariantResolveMetadata> getAllVariants() {
             return allVariants;
+        }
+
+        @Override
+        public Set<? extends VariantResolveMetadata> getLegacyVariants() {
+            return legacyVariants;
         }
     }
 
