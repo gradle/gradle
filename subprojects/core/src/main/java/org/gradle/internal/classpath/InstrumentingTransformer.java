@@ -41,6 +41,7 @@ import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -328,17 +329,23 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             this.asNode = asNode;
             generatedInterceptors = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAMES.stream()
                 .map(className -> newInterceptor(className, methodVisitor))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(toImmutableList());
         }
 
-        private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor methodVisitor) {
+        private static Optional<JvmBytecodeCallInterceptor> newInterceptor(String className, MethodVisitor methodVisitor) {
             try {
                 //noinspection Convert2MethodRef
                 InstrumentationMetadata metadata = (type, superType) -> type.equals(superType); // TODO implement properly
-                return (JvmBytecodeCallInterceptor) Class.forName(className)
-                    .getConstructor(MethodVisitor.class, InstrumentationMetadata.class)
-                    .newInstance(methodVisitor, metadata);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+                Constructor<?> constructor = Class.forName(className).getConstructor(MethodVisitor.class, InstrumentationMetadata.class);
+                // Generated classes are not public and in the org.gradle.internal.classpath.generated package
+                constructor.setAccessible(true);
+                return Optional.of((JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata));
+            } catch (ClassNotFoundException e) {
+                // No interceptor definition for this class
+                return Optional.empty();
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         }

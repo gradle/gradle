@@ -46,6 +46,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -142,8 +143,13 @@ public class Instrumented {
         try {
             Class<?> generatedClass = Class.forName(className);
             Method callInterceptorsGetter = generatedClass.getDeclaredMethod("getCallInterceptors");
+            // Generated classes are not public and in the org.gradle.internal.classpath.generated package
+            callInterceptorsGetter.setAccessible(true);
             return Cast.uncheckedCast(callInterceptorsGetter.invoke(null));
-        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+        } catch (ClassNotFoundException e) {
+            // No interceptor definition for this class
+            return Collections.emptyList();
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
