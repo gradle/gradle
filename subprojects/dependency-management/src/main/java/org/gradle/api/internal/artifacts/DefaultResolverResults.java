@@ -49,7 +49,6 @@ public class DefaultResolverResults implements ResolverResults {
     private final ResolvedConfiguration resolvedConfiguration;
     private final VisitedArtifactSet visitedArtifacts;
     private final ArtifactResolveState artifactResolveState;
-
     private final ResolveException failure;
 
     public DefaultResolverResults(
@@ -126,22 +125,6 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public ResolverResults withoutNonFatalFailure() {
-        if (failure == null || isFatalError(failure)) {
-            return this;
-        }
-
-        return new DefaultResolverResults(
-            resolvedLocalComponentsResult,
-            resolutionResult,
-            visitedArtifacts,
-            resolvedConfiguration,
-            artifactResolveState,
-            null
-        );
-    }
-
-    @Override
     public Throwable getNonFatalFailure() {
         return failure != null && !isFatalError(failure) ? failure : null;
     }
@@ -163,6 +146,7 @@ public class DefaultResolverResults implements ResolverResults {
         );
     }
 
+    @Override
     public ResolverResults updateResolutionResult(Function<ResolutionResult, ResolutionResult> updater) {
         return new DefaultResolverResults(
             resolvedLocalComponentsResult,

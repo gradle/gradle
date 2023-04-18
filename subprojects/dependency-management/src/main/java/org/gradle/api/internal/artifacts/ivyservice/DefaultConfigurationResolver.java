@@ -216,6 +216,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         VisitedArtifactSet visitedArtifactSet = new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, artifactTransforms, resolveContext.getDependenciesResolver());
         ResolverResults results = DefaultResolverResults.graphResolved(newModelBuilder.complete(extraFailures), localComponentsVisitor, visitedArtifactSet, artifactResolveState);
 
+        // TODO: Attach these failures to the resolution result instead of the ResolverResults.
         if (failures.isEmpty()) {
             try {
                 artifactsVisitor.complete();
