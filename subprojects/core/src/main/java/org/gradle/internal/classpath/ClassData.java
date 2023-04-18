@@ -16,22 +16,37 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.internal.classpath.TypeCollectingClasspathFileTransformer.TypeRegistry;
 import org.gradle.internal.lazy.Lazy;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class ClassData {
-    ClassData(ClassReader reader) {
+    private final TypeRegistry typeRegistry;
+    private final Lazy<ClassNode> lazyClassNode;
+
+    ClassData(ClassReader reader, TypeRegistry typeRegistry) {
         lazyClassNode = Lazy.unsafe().of(() -> {
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, 0);
             return classNode;
         });
+        this.typeRegistry = typeRegistry;
     }
 
-    private final Lazy<ClassNode> lazyClassNode;
 
     public ClassNode readClassAsNode() {
         return lazyClassNode.get();
+    }
+
+    public Set<String> getSubtypes(String superType) {
+        return typeRegistry.getSubTypes(superType);
+    }
+
+    public Set<String> getSuperTypes(String type) {
+        return typeRegistry.getSuperTypes(type);
     }
 }

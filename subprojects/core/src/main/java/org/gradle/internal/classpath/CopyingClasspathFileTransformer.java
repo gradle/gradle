@@ -31,7 +31,7 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, TypeCollectingClasspathFileTransformer.TypeRegistry typeRegistry) {
         // Copy files into the cache, if it is possible that loading the file in a ClassLoader may cause locking problems if the file is deleted
 
         if (sourceSnapshot.getType() != FileType.RegularFile) {

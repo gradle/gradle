@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.TypeCollectingClasspathFileTransformer.TypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -127,7 +128,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, TypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
@@ -146,7 +147,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 // Lock was acquired after a concurrent writer had already finished.
                 return transformed;
             }
-            transform(source, transformed);
+            transform(source, transformed, typeRegistry);
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
@@ -177,19 +178,19 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         return hasher.hash().toString();
     }
 
-    private void transform(File source, File dest) {
+    private void transform(File source, File dest, TypeRegistry typeRegistry) {
         if (policy.instrumentFile(source)) {
-            instrument(source, dest);
+            instrument(source, dest, typeRegistry);
         } else {
             LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
             GFileUtils.copyFile(source, dest);
         }
     }
 
-    private void instrument(File source, File dest) {
+    private void instrument(File source, File dest, TypeRegistry typeRegistry) {
         classpathBuilder.jar(dest, builder -> {
             try {
-                visitEntries(source, builder);
+                visitEntries(source, builder, typeRegistry);
             } catch (FileException e) {
                 // Badly formed archive, so discard the contents and produce an empty JAR
                 LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
@@ -197,7 +198,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         });
     }
 
-    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
+    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder, TypeRegistry typeRegistry) throws IOException, FileException {
         classpathWalker.visit(source, entry -> {
             try {
                 if (!policy.includeEntry(entry)) {
@@ -206,7 +207,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 if (isClassFile(entry)) {
                     ClassReader reader = new ClassReader(entry.getContent());
                     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter, new ClassData(reader));
+                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter, new ClassData(reader, typeRegistry));
                     reader.accept(chain.right, 0);
                     byte[] bytes = classWriter.toByteArray();
                     builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
