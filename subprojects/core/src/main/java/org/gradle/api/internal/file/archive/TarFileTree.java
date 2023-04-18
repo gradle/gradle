@@ -215,8 +215,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
         @Override
         public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
-            int unixNumeric = entry.getMode() & 0777;
-            return Providers.of(new DefaultImmutableFileAccessPermissions(unixNumeric));
+            return Providers.of(new DefaultImmutableFileAccessPermissions(entry.getMode()));
         }
 
         @Override

@@ -40,7 +40,6 @@ import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.internal.reflect.Instantiator
 
 
-@Suppress("DEPRECATION")
 internal
 class DefaultCopySpecCodec(
     private val patternSetFactory: Factory<PatternSet>,

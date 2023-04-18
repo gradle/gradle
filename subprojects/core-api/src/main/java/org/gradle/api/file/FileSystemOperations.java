@@ -85,7 +85,7 @@ public interface FileSystemOperations {
     FileAccessPermissions directoryPermissions(Action<? super FileAccessPermissions> configureAction);
 
     /**
-     * Creates file/directory access permissions and initilises them via a Unix style permission string.
+     * Creates file/directory access permissions and initializes them via a Unix style permission string.
      * For details see {@link FileAccessPermissions#unix(String)}.
      * <p>
      * Doesn't have separate variants for files and directories, like other configuration methods,
