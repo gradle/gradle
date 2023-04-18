@@ -37,7 +37,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.ImmutableFileAccessPermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileAccessPermissions;
-import org.gradle.api.internal.file.FileAccessPermissionsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
@@ -784,18 +783,30 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
+        @Deprecated
         public Integer getFileMode() {
+            DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getFileMode()")
+                .replaceWith("getImmutableFilePermissions()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+                .nagUser();
             return getMode(getImmutableFilePermissions());
         }
 
         @Override
+        @Deprecated
         public Integer getDirMode() {
+            DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getDirMode()")
+                .replaceWith("getImmutableDirPermissions()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+                .nagUser();
             return getMode(getImmutableDirPermissions());
         }
 
         @Nullable
         private Integer getMode(Provider<ImmutableFileAccessPermissions> permissions) {
-            return permissions.isPresent() ? ((FileAccessPermissionsInternal) permissions.get()).toUnixNumeric() : null;
+            return permissions.isPresent() ? permissions.get().toUnixNumeric() : null;
         }
 
         @Override

@@ -40,7 +40,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Chmod;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FilterReader;
@@ -167,17 +166,16 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
             return Providers.of(new DefaultImmutableFileAccessPermissions(permissions.get().toUnixNumeric()));
         }
 
-        Integer specMode = getSpecMode();
-        if (specMode != null) {
-            return Providers.of(new DefaultImmutableFileAccessPermissions(specMode));
+        Provider<ImmutableFileAccessPermissions> specMode = getSpecMode();
+        if (specMode.isPresent()) {
+            return specMode;
         }
 
         return Providers.of(new DefaultImmutableFileAccessPermissions(fileDetails.getMode()));
     }
 
-    @Nullable
-    private Integer getSpecMode() {
-        return fileDetails.isDirectory() ? specResolver.getDirMode() : specResolver.getFileMode();
+    private Provider<ImmutableFileAccessPermissions> getSpecMode() {
+        return fileDetails.isDirectory() ? specResolver.getImmutableDirPermissions() : specResolver.getImmutableFilePermissions();
     }
 
     @Override
