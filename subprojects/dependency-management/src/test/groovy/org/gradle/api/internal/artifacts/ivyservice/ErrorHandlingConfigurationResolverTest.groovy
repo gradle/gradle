@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -28,6 +27,7 @@ import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
+import org.gradle.api.internal.artifacts.result.ResolutionResultInternal
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ import static org.junit.Assert.fail
 class ErrorHandlingConfigurationResolverTest extends Specification {
     private delegate = Mock(ConfigurationResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
-    private resolutionResult = Mock(ResolutionResult)
+    private resolutionResult = Mock(ResolutionResultInternal)
     private projectConfigResult = Mock(ResolvedLocalComponentsResult)
     private visitedArtifactSet = Mock(VisitedArtifactSet)
     private artifactResolveState = Mock(ArtifactResolveState)

@@ -70,12 +70,6 @@ public interface ResolverResults {
     ArtifactResolveState getArtifactResolveState();
 
     /**
-     * Returns a new result with any non-fatal failure omitted.
-     * If this result has no non-fatal failure, this result is returned without modification.
-     */
-    ResolverResults withoutNonFatalFailure();
-
-    /**
      * Returns the non-fatal failure, if present.
      */
     @Nullable

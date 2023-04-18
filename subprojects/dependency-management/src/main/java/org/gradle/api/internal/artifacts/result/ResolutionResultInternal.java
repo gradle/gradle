@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.ResolvableDependencies;
+package org.gradle.api.internal.artifacts.result;
+
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.provider.Provider;
 
-public interface ResolvableDependenciesInternal extends ResolvableDependencies  {
-    ResolutionResult getLenientResolutionResult();
+/**
+ * Internal counterpart to {@link ResolutionResult}.
+ */
+public interface ResolutionResultInternal extends ResolutionResult {
+
+    /**
+     * An optional non-fatal failure which may be attached to a resolution result.
+     */
+    Provider<Throwable> getNonFatalFailure();
 }

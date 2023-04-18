@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -178,8 +179,8 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
     }
 
-    private static class ErrorHandlingResolutionResult implements ResolutionResult {
-        private final ResolutionResult resolutionResult;
+    private static class ErrorHandlingResolutionResult implements ResolutionResultInternal {
+        private final ResolutionResultInternal resolutionResult;
         private final ResolveContext resolveContext;
         private final ResolveExceptionContextualizer contextualizer;
 
@@ -188,7 +189,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             ResolveContext configuration,
             ResolveExceptionContextualizer contextualizer
         ) {
-            this.resolutionResult = resolutionResult;
+            this.resolutionResult = (ResolutionResultInternal) resolutionResult;
             this.resolveContext = configuration;
             this.contextualizer = contextualizer;
         }
@@ -205,6 +206,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         @Override
         public Provider<ResolvedComponentResult> getRootComponent() {
             return new DefaultProvider<>(this::getRoot);
+        }
+
+        @Override
+        public Provider<Throwable> getNonFatalFailure() {
+            return resolutionResult.getNonFatalFailure().map(e -> contextualizer.contextualize(e, resolveContext));
         }
 
         @Override
