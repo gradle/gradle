@@ -2179,6 +2179,12 @@ since users cannot create non-legacy configurations and there is no current publ
         }
     }
 
+    @Override
+    public void copyResolutionStrategy(Configuration other) {
+        ResolutionStrategyInternal otherStrategy = (ResolutionStrategyInternal) other.getResolutionStrategy();
+        resolutionStrategy = otherStrategy.copy();
+    }
+
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
         @Override

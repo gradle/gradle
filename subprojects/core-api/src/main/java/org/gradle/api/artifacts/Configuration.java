@@ -637,7 +637,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration disableConsistentResolution();
 
     /**
-     * Copies the {@link DependencyResolutionListener}s associated with the other configuration
+     * Adds all existing {@link DependencyResolutionListener}s associated with the other configuration
      * to this one.
      *
      * @param other the configuration to use as source for copying
@@ -645,4 +645,14 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      */
     @Incubating
     void addDependencyResolutionListeners(Configuration other);
+
+    /**
+     * Adds a copy of the {@link ResolutionStrategy} associated with the other configuration
+     * to this one.
+     *
+     * @param other the configuration to use as the source of the copy
+     * @since 8.2
+     */
+    @Incubating
+    void copyResolutionStrategy(Configuration other);
 }

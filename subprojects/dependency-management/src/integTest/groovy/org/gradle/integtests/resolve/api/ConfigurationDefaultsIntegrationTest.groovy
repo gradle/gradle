@@ -394,16 +394,22 @@ task check {
                 id 'java-library'
             }
             
+            configurations.runtimeClasspath {
+                resolutionStrategy {
+                    failOnVersionConflict()
+                    failOnDynamicVersions()
+                }
+                
+                incoming.beforeResolve {
+                    logger.info("runtimeClasspath beforeResolve")
+                }
+            }
+            
             def runtimeClasspathCopy = configurations.runtimeClasspath.copy()
 
             configurations {
                 runtimeClasspathExtension {
                     extendsFrom runtimeClasspath
-                    
-                    // Deprecation on copy != deprecation on original, so match the copy
-                    if (runtimeClasspathCopy.deprecatedForConsumption) deprecateForConsumption()
-                    if (runtimeClasspathCopy.deprecatedForResolution) deprecateForResolution()
-                    if (runtimeClasspathCopy.deprecatedForDeclarationAgainst) deprecateForDeclarationAgainst()
                     
                     visible = runtimeClasspath.visible
                     transitive = runtimeClasspath.transitive
@@ -414,6 +420,7 @@ task check {
                     //withDependencyActions = runtimeClasspath.withDependencyActions
                     
                     addDependencyResolutionListeners(runtimeClasspath)
+                    copyResolutionStrategy(runtimeClasspath)
                     
                     // NO API - copying these is unnecessary
                     //declarationAlternatives.addAll(runtimeClasspath.declarationAlternatives)
@@ -443,9 +450,6 @@ task check {
             assert configurations.runtimeClasspathExtension.canBeConsumed == runtimeClasspathCopy.canBeConsumed
             assert configurations.runtimeClasspathExtension.canBeResolved == runtimeClasspathCopy.canBeResolved
             assert configurations.runtimeClasspathExtension.canBeDeclaredAgainst == runtimeClasspathCopy.canBeDeclaredAgainst
-            assert configurations.runtimeClasspathExtension.deprecatedForConsumption == runtimeClasspathCopy.deprecatedForConsumption
-            assert configurations.runtimeClasspathExtension.deprecatedForResolution == runtimeClasspathCopy.deprecatedForResolution
-            assert configurations.runtimeClasspathExtension.deprecatedForDeclarationAgainst == runtimeClasspathCopy.deprecatedForDeclarationAgainst
             
             assert configurations.runtimeClasspathExtension.visible == runtimeClasspathCopy.visible
             assert configurations.runtimeClasspathExtension.transitive == runtimeClasspathCopy.transitive
@@ -456,6 +460,10 @@ task check {
             //assert configurations.runtimeClasspathExtension.withDependencyActions == runtimeClasspathCopy.withDependencyActions
             
             assert configurations.runtimeClasspathExtension.dependencyResolutionListeners.size() == runtimeClasspathCopy.dependencyResolutionListeners.size()
+            assert configurations.runtimeClasspathExtension.resolutionStrategy != runtimeClasspathCopy.resolutionStrategy
+            assert configurations.runtimeClasspathExtension.resolutionStrategy.isFailingOnDynamicVersions() == runtimeClasspathCopy.resolutionStrategy.isFailingOnDynamicVersions()
+            assert configurations.runtimeClasspathExtension.resolutionStrategy.isFailingOnChangingVersions() == runtimeClasspathCopy.resolutionStrategy.isFailingOnChangingVersions()
+            assert configurations.runtimeClasspathExtension.resolutionStrategy.isDependencyVerificationEnabled() == runtimeClasspathCopy.resolutionStrategy.isDependencyVerificationEnabled()
             
             // No API to check these
             //assert configurations.runtimeClasspathExtension.declarationAlternatives == runtimeClasspathCopy.declarationAlternatives
