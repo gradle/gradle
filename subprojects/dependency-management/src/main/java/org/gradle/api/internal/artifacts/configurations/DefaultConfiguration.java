@@ -1324,7 +1324,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         boolean deprecateConsumption = !canBeConsumed || consumptionDeprecated;
         boolean deprecateResolution = !canBeResolved || resolutionDeprecated;
         boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationDeprecated;
-        ConfigurationRole adjustedCurrentUsage = new CopiedConfigurationRole(deprecateConsumption, deprecateResolution, deprecateDeclarationAgainst);
+        ConfigurationRole adjustedCurrentUsage = new DefaultConfigurationRole(
+            "adjusted current usage with deprecations",
+            true, true, true,
+            deprecateConsumption, deprecateResolution, deprecateDeclarationAgainst
+        );
+
 
         DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
@@ -1807,7 +1812,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @implNote Usage: This method should only be called on consumable or resolvable configurations and will emit a deprecation warning if
      * called on a configuration that does not permit this usage, or has had allowed this usage but marked it as deprecated.
      */
@@ -2547,60 +2552,5 @@ since users cannot create non-legacy configurations and there is no current publ
                     .map(ProperMethodUsage::buildProperName)
                     .collect(Collectors.joining(", "));
         }
-    }
-
-    /**
-     * A custom configuration role that is used to copy a configuration.
-     *
-     * We allow copied configurations to assume any role. However, any roles which were previously disabled will become
-     * deprecated in the copied configuration.
-     *
-     * See the notes on {@link DefaultConfiguration#createCopy(Set, Set)}.
-     */
-    private final static class CopiedConfigurationRole implements ConfigurationRole {
-        private final boolean deprecateConsumption;
-        private final boolean deprecateResolution;
-        private final boolean deprecateDeclarationAgainst;
-
-        public CopiedConfigurationRole(boolean deprecateConsumption, boolean deprecateResolution, boolean deprecateDeclarationAgainst) {
-            this.deprecateConsumption = deprecateConsumption;
-            this.deprecateResolution = deprecateResolution;
-            this.deprecateDeclarationAgainst = deprecateDeclarationAgainst;
-        }
-
-        @Override
-        public String getName() {
-            return "adjusted current usage with deprecations";
-        }
-
-        @Override
-        public boolean isConsumable() {
-            return true;
-        }
-
-        @Override
-        public boolean isResolvable() {
-            return true;
-        }
-
-        @Override
-        public boolean isDeclarableAgainst() {
-            return true;
-        }
-
-        @Override
-        public boolean isConsumptionDeprecated() {
-            return deprecateConsumption;
-        }
-
-        @Override
-        public boolean isResolutionDeprecated() {
-            return deprecateResolution;
-        }
-
-        @Override
-        public boolean isDeclarationAgainstDeprecated() {
-            return deprecateDeclarationAgainst;
-            }
     }
 }
