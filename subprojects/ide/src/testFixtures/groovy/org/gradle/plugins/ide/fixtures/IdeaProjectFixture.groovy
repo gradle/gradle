@@ -67,7 +67,7 @@ class IdeaProjectFixture extends IdeWorkspaceFixture {
     }
 
     static class ProjectModules {
-        List<String> modules
+        List<String> modules = []
 
         private ProjectModules(List<String> modules) {
             this.modules = modules
@@ -82,7 +82,7 @@ class IdeaProjectFixture extends IdeWorkspaceFixture {
         }
 
         void assertHasModules(String... name) {
-            List<String> modules = Arrays.asList(name)
+            List<String> modules = name.toList()
             assert this.modules.every { modules.contains(it) }
         }
     }
