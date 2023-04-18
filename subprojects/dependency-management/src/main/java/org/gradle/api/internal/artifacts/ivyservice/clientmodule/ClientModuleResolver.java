@@ -31,6 +31,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
@@ -40,7 +41,6 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
@@ -57,10 +57,12 @@ import java.util.Set;
 public class ClientModuleResolver implements ComponentMetaDataResolver {
     private final ComponentMetaDataResolver resolver;
     private final DependencyMetadataFactory dependencyMetadataFactory;
+    private final ModuleComponentGraphResolveStateFactory resolveStateFactory;
 
-    public ClientModuleResolver(ComponentMetaDataResolver resolver, DependencyMetadataFactory dependencyMetadataFactory) {
+    public ClientModuleResolver(ComponentMetaDataResolver resolver, DependencyMetadataFactory dependencyMetadataFactory, ModuleComponentGraphResolveStateFactory resolveStateFactory) {
         this.resolver = resolver;
         this.dependencyMetadataFactory = dependencyMetadataFactory;
+        this.resolveStateFactory = resolveStateFactory;
     }
 
     @Override
@@ -77,7 +79,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
             ModuleComponentArtifactMetadata clientModuleArtifact = createClientModuleArtifact(originalMetadata);
             ClientModuleComponentResolveMetadata clientModuleMetaData = new ClientModuleComponentResolveMetadata(originalMetadata, clientModuleArtifact, clientModuleDependencies);
 
-            result.setResult(new DefaultComponentGraphResolveState<>(clientModuleMetaData, clientModuleMetaData));
+            result.setResult(resolveStateFactory.stateFor(clientModuleMetaData, clientModuleMetaData));
         }
     }
 

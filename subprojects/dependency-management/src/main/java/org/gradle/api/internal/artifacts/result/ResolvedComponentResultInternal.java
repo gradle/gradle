@@ -31,7 +31,8 @@ public interface ResolvedComponentResultInternal extends ResolvedComponentResult
     String getRepositoryName();
 
     /**
-     * Returns all the variants for this component, even ones that weren't selected.
+     * Returns all the variants of this component available for selection. Does not include variants that cannot be consumed, which means this
+     * may not include all the variants returned by {@link #getVariants()}.
      *
      * <p>
      * Note: for performance reasons,
@@ -42,5 +43,5 @@ public interface ResolvedComponentResultInternal extends ResolvedComponentResult
      * @return all variants for this component
      * @since 7.5
      */
-    List<ResolvedVariantResult> getAllVariants();
+    List<ResolvedVariantResult> getAvailableVariants();
 }

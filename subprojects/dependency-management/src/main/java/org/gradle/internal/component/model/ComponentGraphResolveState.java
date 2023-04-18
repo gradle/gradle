@@ -19,8 +19,10 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * State for a component instance (e.g. version of a component) that is used to perform dependency graph resolution.
@@ -39,6 +41,11 @@ public interface ComponentGraphResolveState {
     ModuleSources getSources();
 
     ComponentGraphResolveMetadata getMetadata();
+
+    /**
+     * Returns the public view of all variants of this component that are available for variant selection, either during graph resolution or artifact resolution.
+     */
+    List<ResolvedVariantResult> getAllSelectableVariantResults();
 
     /**
      * Returns the candidates for variant selection during graph resolution.
