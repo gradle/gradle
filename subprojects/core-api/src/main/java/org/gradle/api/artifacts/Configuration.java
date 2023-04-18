@@ -639,6 +639,9 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Adds all existing {@link DependencyResolutionListener}s associated with the other configuration
      * to this one.
+     * <p>
+     * This method does <strong>NOT</strong> copy the listeners, but adds the same instances to this configuration's
+     * collection of listeners.  This is meant for use in copying parts of one configuration to another.
      *
      * @param other the configuration to use as source for copying
      * @since 8.2
@@ -649,6 +652,9 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Adds a copy of the {@link ResolutionStrategy} associated with the other configuration
      * to this one.
+     * <p>
+     * This will create a new instance of the existing {@link ResolutionStrategy} used by {@code other}, containing
+     * duplicate behavior.  This is meant for use in copying parts of one configuration to another.
      *
      * @param other the configuration to use as the source of the copy
      * @since 8.2
