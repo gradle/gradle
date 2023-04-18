@@ -121,7 +121,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, _) >> { id, m, r ->
-            r.resolved(Mock(ModuleComponentResolveMetadata))
+            r.resolved(Stub(ModuleComponentResolveMetadata))
         }
         0 * _
     }
