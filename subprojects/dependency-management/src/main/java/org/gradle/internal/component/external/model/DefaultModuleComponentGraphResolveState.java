@@ -17,12 +17,16 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 
+/**
+ * <p>The aim is to create only a single instance of this type per component and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
+ */
 public class DefaultModuleComponentGraphResolveState extends DefaultComponentGraphResolveState<ComponentGraphResolveMetadata, ModuleComponentResolveMetadata> implements ModuleComponentGraphResolveState {
-    public DefaultModuleComponentGraphResolveState(ModuleComponentResolveMetadata metadata) {
-        super(metadata, metadata);
+    public DefaultModuleComponentGraphResolveState(ModuleComponentResolveMetadata metadata, AttributeDesugaring attributeDesugaring) {
+        super(metadata, metadata, attributeDesugaring);
     }
 
     @Override

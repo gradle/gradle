@@ -16,13 +16,20 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
@@ -37,6 +44,7 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -52,10 +60,12 @@ import java.util.stream.Collectors;
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata, LocalComponentMetadata> implements LocalComponentGraphResolveState {
     // The artifact resolve state for each variant of this component
     private final ConcurrentMap<LocalConfigurationGraphResolveMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
-    // The variants of this component to use when variant reselection is enabled
+    // The variants of this component to use for artifact selection when variant reselection is enabled
     private final Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection;
+    // The public view of all variants of this component
+    private final Lazy<List<ResolvedVariantResult>> allVariantResults;
 
-    public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata) {
+    public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring) {
         super(metadata, metadata);
         allVariantsForArtifactSelection = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream().
@@ -63,6 +73,25 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
                 map(LocalConfigurationGraphResolveMetadata::prepareToResolveArtifacts).
                 flatMap(variant -> variant.getVariants().stream()).
                 collect(Collectors.toSet())));
+        allVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream().
+            map(LocalConfigurationGraphResolveMetadata.class::cast).
+            flatMap(variant -> variant.getVariants().stream()).
+            map(variant -> {
+                List<? extends Capability> capabilities = variant.getCapabilities().getCapabilities();
+                if (capabilities.isEmpty()) {
+                    capabilities = ImmutableList.of(DefaultImmutableCapability.defaultCapabilityForComponent(getModuleVersionId()));
+                } else {
+                    capabilities = ImmutableList.copyOf(capabilities);
+                }
+                return new DefaultResolvedVariantResult(
+                    getId(),
+                    Describables.of(variant.getName()),
+                    attributeDesugaring.desugar(variant.getAttributes().asImmutable()),
+                    capabilities,
+                    null
+                );
+            }).
+            collect(Collectors.toList()));
     }
 
     @Override
@@ -78,6 +107,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     @Override
     public ComponentArtifactResolveMetadata getResolveMetadata() {
         return new LocalComponentArtifactResolveMetadata(getMetadata());
+    }
+
+    @Override
+    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
+        return allVariantResults.get();
     }
 
     @Override
