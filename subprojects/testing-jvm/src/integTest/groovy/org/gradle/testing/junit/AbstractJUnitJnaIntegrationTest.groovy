@@ -17,22 +17,37 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
-
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
-class JUnitJnaIntegrationTest extends JUnitMultiVersionIntegrationSpec {
-    @Rule
-    final TestResources resources = new TestResources(testDirectoryProvider)
-
+abstract class AbstractJUnitJnaIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
     @Requires(TestPrecondition.WINDOWS)
     def canRunTestsUsingJna() {
+        given:
+        file('src/test/java/OkTest.java') << """
+            ${testFrameworkImports}
+            import com.sun.jna.platform.win32.Shell32;
+
+            public class OkTest {
+                @Test
+                public void ok() {
+                    assert Shell32.INSTANCE != null;
+                }
+            }
+        """
+        buildFile << """
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                ${testFrameworkDependencies}
+                testImplementation 'net.java.dev.jna:jna-platform:4.1.0'
+            }
+
+        """
+
         when:
         executer.withTasks('build').run()
 
