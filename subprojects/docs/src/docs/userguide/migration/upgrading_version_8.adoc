@@ -75,6 +75,7 @@ Currently, the following methods should only be called with these listed allowed
 - `shouldResolveConsistentlyWith(Configuration)` - RESOLVABLE configurations only
 - `disableConsistentResolution()` - RESOLVABLE configurations only
 - `getDependencyConstraints()` - DECLARABLE configurations only
+- `copy()`, `copy(Spec)`, `copy(Closure)`, `copyRecursive()`, `copyRecursive(Spec)`, `copyRecursive(Closure)` - RESOLVABLE configurations only
 
 Intended usage is noted in the `Configuration` interface's Javadoc.
 This list is likely to grow in future releases.

@@ -94,6 +94,9 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
         settingsFile << "include 'lib'"
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Calling configuration method 'copy()' is deprecated for configuration 'api', which has permitted usage(s):\n" +
+                "\tDeclarable Against - this configuration can have dependencies added to it\n" +
+                "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage")
         succeeds ":help"
     }
 }
