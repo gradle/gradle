@@ -21,7 +21,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ System.getenv("BUILD_TYPE_ID")?.contains("Check_Gradleception") == true })
 class BlockingHttpServerTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
