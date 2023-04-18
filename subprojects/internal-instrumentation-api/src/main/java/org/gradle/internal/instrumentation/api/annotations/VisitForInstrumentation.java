@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
 
 /**
  * A method that can be used to visit classes for an instrumentation from other projects.
+ * TODO: We should discover classes to visit automatically.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE})

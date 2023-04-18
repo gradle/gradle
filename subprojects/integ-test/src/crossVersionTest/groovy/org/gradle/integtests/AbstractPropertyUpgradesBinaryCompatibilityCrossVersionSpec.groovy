@@ -31,7 +31,6 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
-                implementation localGroovy()
                 implementation gradleApi()
             }
         """
@@ -61,7 +60,6 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
-                implementation localGroovy()
                 implementation gradleApi()
             }
         """
