@@ -29,8 +29,8 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
-import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
@@ -43,41 +43,45 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class ArtifactSetFactory {
-    public static ArtifactSet createFromVariantMetadata(ComponentIdentifier componentIdentifier,
-                                                        ComponentArtifactResolveVariantState allVariants,
-                                                        Set<ResolvedVariant> legacyVariants,
-                                                        AttributesSchemaInternal schema,
-                                                        ImmutableAttributes selectionAttributes
+    public static ArtifactSet createFromVariantMetadata(
+        ComponentIdentifier componentIdentifier,
+        ComponentArtifactResolveVariantState allVariants,
+        Set<ResolvedVariant> legacyVariants,
+        AttributesSchemaInternal schema,
+        ImmutableAttributes selectionAttributes
     ) {
         return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, allVariants, legacyVariants);
     }
-    public static ArtifactSet adHocVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, Collection<? extends ComponentArtifactMetadata> artifacts, ModuleSources moduleSources, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, ImmutableAttributes variantAttributes, ImmutableAttributes selectionAttributes) {
+
+    public static ArtifactSet adHocVariant(ComponentArtifactResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, ImmutableAttributes variantAttributes, ImmutableAttributes selectionAttributes) {
         VariantResolveMetadata.Identifier identifier = null;
         if (artifacts.size() == 1) {
             identifier = new SingleArtifactVariantIdentifier(artifacts.iterator().next().getId());
         }
-        ResolvedVariant resolvedVariant = toResolvedVariant(identifier, Describables.of(componentIdentifier), variantAttributes, ImmutableList.copyOf(artifacts), ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(ownerId)), ownerId, moduleSources, artifactResolver);
+        ComponentIdentifier componentIdentifier = component.getId();
+        ModuleVersionIdentifier ownerId = component.getModuleVersionId();
+        ResolvedVariant resolvedVariant = toResolvedVariant(identifier, Describables.of(componentIdentifier), variantAttributes, ImmutableList.copyOf(artifacts), ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(ownerId)), component, artifactResolver);
         return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, () -> Collections.singleton(resolvedVariant), Collections.singleton(resolvedVariant));
     }
 
-    public static ResolvedVariant toResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier,
-                                                    DisplayName displayName,
-                                                    ImmutableAttributes variantAttributes,
-                                                    List<? extends ComponentArtifactMetadata> artifacts,
-                                                    CapabilitiesMetadata capabilitiesMetadata,
-                                                    ModuleVersionIdentifier ownerId,
-                                                    ModuleSources moduleSources,
-                                                    ArtifactResolver artifactResolver
+    public static ResolvedVariant toResolvedVariant(
+        @Nullable VariantResolveMetadata.Identifier identifier,
+        DisplayName displayName,
+        ImmutableAttributes variantAttributes,
+        List<? extends ComponentArtifactMetadata> artifacts,
+        CapabilitiesMetadata capabilitiesMetadata,
+        ComponentArtifactResolveMetadata component,
+        ArtifactResolver artifactResolver
     ) {
-        return ArtifactBackedResolvedVariant.create(identifier, displayName, variantAttributes, capabilitiesMetadata, supplyLazilyResolvedArtifacts(ownerId, moduleSources, artifacts, artifactResolver));
+        return ArtifactBackedResolvedVariant.create(identifier, displayName, variantAttributes, capabilitiesMetadata, supplyLazilyResolvedArtifacts(component, artifacts, artifactResolver));
     }
 
-    private static Supplier<Collection<? extends ResolvableArtifact>> supplyLazilyResolvedArtifacts(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifacts, ArtifactResolver artifactResolver) {
+    private static Supplier<Collection<? extends ResolvableArtifact>> supplyLazilyResolvedArtifacts(ComponentArtifactResolveMetadata component, List<? extends ComponentArtifactMetadata> artifacts, ArtifactResolver artifactResolver) {
         return () -> {
             ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
             for (ComponentArtifactMetadata artifact : artifacts) {
                 DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
-                artifactResolver.resolveArtifact(ownerId, artifact, moduleSources, result);
+                artifactResolver.resolveArtifact(component, artifact, result);
                 if (artifact.isOptionalArtifact()) {
                     try {
                         // probe if the artifact exists

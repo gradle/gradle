@@ -20,9 +20,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
+/**
+ * Responsible for resolving a {@link ComponentIdentifier} to a {@link org.gradle.internal.component.model.ComponentGraphResolveState} instance for that component.
+ */
 public interface ComponentMetaDataResolver {
     /**
-     * Resolves the metadata for a component instance. Failures should be attached to the returned result.
+     * Resolves the resolution state for a component instance. Failures should be attached to the returned result.
      */
     void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result);
 
