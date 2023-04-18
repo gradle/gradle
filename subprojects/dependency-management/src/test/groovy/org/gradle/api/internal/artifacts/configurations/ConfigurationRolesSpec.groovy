@@ -30,10 +30,10 @@ class ConfigurationRolesSpec extends Specification {
         where:
         consumable  | resolvable    | declarableAgainst || role
         true        | true          | true              || ConfigurationRoles.LEGACY
-        true        | false         | false             || ConfigurationRoles.INTENDED_CONSUMABLE
-        false       | true          | false             || ConfigurationRoles.INTENDED_RESOLVABLE
-        false       | true          | true              || ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET
-        false       | false         | true              || ConfigurationRoles.INTENDED_BUCKET
+        true        | false         | false             || ConfigurationRoles.CONSUMABLE
+        false       | true          | false             || ConfigurationRoles.RESOLVABLE
+        false       | true          | true              || ConfigurationRoles.RESOLVABLE_BUCKET
+        false       | false         | true              || ConfigurationRoles.BUCKET
     }
 
     def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarableAgainst=#declarableAgainst"() {
@@ -52,10 +52,10 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         role                                            || name
-        ConfigurationRoles.INTENDED_BUCKET              || "Intended Bucket"
-        ConfigurationRoles.INTENDED_CONSUMABLE          || "Intended Consumable"
-        ConfigurationRoles.INTENDED_RESOLVABLE          || "Intended Resolvable"
-        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || "Intended Resolvable Bucket"
+        ConfigurationRoles.BUCKET                       || "Bucket"
+        ConfigurationRoles.CONSUMABLE                   || "Consumable"
+        ConfigurationRoles.RESOLVABLE                   || "Resolvable"
+        ConfigurationRoles.RESOLVABLE_BUCKET            || "Resolvable Bucket"
         ConfigurationRoles.LEGACY                       || "Legacy"
     }
 }

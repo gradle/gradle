@@ -9,6 +9,8 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+- [esfomeado](https://github.com/esfomeado)
+- [Lee Euije](https://github.com/euije)
 
 ## Upgrade instructions
 
@@ -49,6 +51,10 @@ Example:
 ==========================================================
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+### JaCoCo version upgraded
+
+The version of the JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to 0.8.9. 
 
 ### Wrapper task validates distribution url
 

@@ -1,0 +1,113 @@
+# -*- mode: yaml -*-
+manifest:
+  version: 1.0
+
+# The `automations` section lists automations to run on PRs in this repository.
+# Each automation has an `if` key that defines conditions to run the automation,
+# as well as a `run` key with the actions to do. All the conditions need to be true
+# for the actions to run (there is an implicit AND relation between
+# the conditions on each line).  Each condition is specified as a Jinja expression.  You
+# can also use the constant `true` if you want to always run the actions.
+
+# Each automation is independent of the others.  Every time a PR is opened or changed,
+# the conditions are evaluated and the actions are executed one by one in order
+# if all the conditions pass.  You can define multiple automations in a .cm file, but
+# each automation name should be unique within the file.
+
+# Every action only runs if a JVM team member is the author of the change, for testing purposes.
+automations:
+
+  # Add the a:documentation label to docs-only changes
+  docs_only:
+    if:
+      - {{ author.on_jvm_team }}
+      - {{ is.docs }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'a:documentation'
+  # Add the a:chore label and auto-approve formatting-only changes
+  formatting_only:
+    if:
+      - {{ author.on_jvm_team }}
+      - {{ is.formatting }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'a:chore'
+      - action: approve@v1
+
+  # Label changes by affected platforms (in blue)
+  label_platform_jvm:
+    if:
+      - {{ author.on_jvm_team }}
+      - {{ is.platform.jvm }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'platform:jvm'
+          color: '0000FF'
+  label_platform_cc:
+    if:
+      - {{ author.on_jvm_team }}
+      - {{ is.platform.cc }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'platform:configuration-cache'
+          color: '0000FF'
+  label_platform_execution:
+    if:
+      - {{ author.on_jvm_team }}
+      - {{ is.platform.execution }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'platform:execution'
+          color: '0000FF'
+
+  # Call out PRs that change the build script (and will be longer to checkout and review)
+  label_build_script_change:
+    if:
+      - {{ author.on_jvm_team }}
+      - {{ is.build_script_change }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'build-script-change'
+          color: 'E94637'
+
+# To simplify the automations section, some calculations are placed under unique YAML keys defined here.
+# Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
+
+# The results of these calculations are assigned to `is.formatting`, `is.docs` and `is.tests`.
+is:
+  formatting: {{ source.diff.files | isFormattingChange }}
+  docs: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | every) }} # This won't catch a mix of .adoc and non .adoc changes, see: https://github.com/linear-b/gitstream/issues/93
+  tests: {{ files | allTests }}
+
+  # This is not a complete list, just a demonstration
+  # Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
+  platform:
+    cc: {{ files | match(list=['subprojects/instrumentation-agent']) | some }}
+    jvm: {{ files | match(list=['subprojects/code-quality/', 'subprojects/ear/', 'subprojects/platform-jvm/']) | some }}
+    execution: {{ files | match(list=['subprojects/execution/']) | some }}
+
+  # Also just an approximation
+  build_script_change: {{ files | reject(regex=r/\/src\/(samples|snippets)\//) | match(list=build_logic_files) | some }}
+
+build_logic_files:
+  - 'build.gradle.kts'
+  - 'build.gradle'
+  - 'settings.gradle.kts'
+  - 'settings.gradle'
+
+author:
+  on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
+
+jvm_team_members:
+  - 'big-guy'
+  - 'tresat'
+  - 'ghale'
+  - 'jvandort'
+  - 'octylFractal'

@@ -71,6 +71,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         return KotlinPluginSmokeTest.runnerFor(this, workers, VersionNumber.parse(kotlinVersion), tasks)
             .deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                expectBasePluginConventionDeprecation(kotlinVersion, androidPluginVersion)
                 expectProjectConventionDeprecation(kotlinVersion, androidPluginVersion)
                 expectConventionTypeDeprecation(kotlinVersion, androidPluginVersion)
             }
