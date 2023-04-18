@@ -765,7 +765,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     }
 
     void "deprecations are passed to copies when corresponding role is #state"() {
-        ConfigurationRole role = new TestConfigurationRole("test", enabled, enabled, enabled, true, true, true)
+        ConfigurationRole role = new DefaultConfigurationRole("test", enabled, enabled, enabled, true, true, true)
         def configuration = prepareConfigurationForCopyTest(role)
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
@@ -1673,7 +1673,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         dump(configuration) == """
-Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'  role='LEGACY'
+Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'  role='Legacy'
 Current Usage:
 \tConsumable - this configuration can be selected by another project as a dependency
 \tResolvable - this configuration can be resolved by this project to a set of files
