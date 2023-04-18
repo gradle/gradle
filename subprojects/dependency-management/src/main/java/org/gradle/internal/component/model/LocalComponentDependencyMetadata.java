@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -142,9 +141,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
+        GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
-        Optional<List<? extends VariantGraphResolveMetadata>> targetVariants = targetComponent.getVariantsForGraphTraversal();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || targetVariants.isPresent());
+        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || candidates.isUseVariants());
         if (useConfigurationAttributes) {
             return AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
@@ -160,7 +159,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration, targetVariants.isPresent(), DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
+                throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration, candidates.isUseVariants(), DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
             }
         }
         return new VariantSelectionResult(ImmutableList.of(toConfiguration), false);

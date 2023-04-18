@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -28,6 +30,9 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final T graphMetadata;
@@ -55,6 +60,41 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     public S getArtifactMetadata() {
         return artifactMetadata;
+    }
+
+    @Override
+    public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
+        Optional<List<? extends VariantGraphResolveMetadata>> variants = graphMetadata.getVariantsForGraphTraversal();
+        return new GraphSelectionCandidates() {
+            @Override
+            public boolean isUseVariants() {
+                return variants.isPresent();
+            }
+
+            @Override
+            public List<? extends VariantGraphResolveMetadata> getVariants() {
+                return variants.get();
+            }
+
+            @Nullable
+            @Override
+            public ConfigurationGraphResolveMetadata getLegacyConfiguration() {
+                return graphMetadata.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
+            }
+
+            @Override
+            public List<? extends ConfigurationGraphResolveMetadata> getCandidateConfigurations() {
+                Set<String> configurationNames = graphMetadata.getConfigurationNames();
+                ImmutableList.Builder<ConfigurationGraphResolveMetadata> builder = new ImmutableList.Builder<>();
+                for (String configurationName : configurationNames) {
+                    ConfigurationGraphResolveMetadata configuration = graphMetadata.getConfiguration(configurationName);
+                    if (configuration.isCanBeConsumed()) {
+                        builder.add(configuration);
+                    }
+                }
+                return builder.build();
+            }
+        };
     }
 
     @Nullable
