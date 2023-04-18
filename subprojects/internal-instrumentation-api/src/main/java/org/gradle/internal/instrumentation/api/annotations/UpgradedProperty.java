@@ -28,7 +28,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface UpgradedProperty {
     /**
-     * Overrides original type that will be used for generated code. By default, original type is picked from the generic, e.g.
+     * Overrides original type that will be used for generated code.
+     * By default, the original type is determined from the lazy property type, e.g.:
      * Property[T] -> original type becomes T (also Property[Integer] -> Integer and not int)
      * RegularFileProperty -> original type becomes File
      * DirectoryProperty -> original type becomes File
