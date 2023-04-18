@@ -19,12 +19,14 @@ import org.apache.commons.io.IOUtils
 import org.gradle.api.GradleException
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
+import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver
 import org.gradle.api.internal.file.archive.compression.GzipArchiver
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -132,7 +134,7 @@ class TarCopyActionSpec extends Specification {
         details.getLastModified() >> 1000L
         details.getSize() >> content.getBytes().length
         details.isDirectory() >> false
-        details.getMode() >> 1
+        details.getImmutablePermissions() >> Providers.of(new DefaultImmutableFileAccessPermissions(1))
         details.copyTo(_ as OutputStream) >> {OutputStream out -> IOUtils.write(content, out)}
 
         return details
@@ -144,7 +146,7 @@ class TarCopyActionSpec extends Specification {
         details.getRelativePath() >> RelativePath.parse(false, path)
         details.getLastModified() >> 1000L
         details.isDirectory() >> true
-        details.getMode() >> 2
+        details.getImmutablePermissions() >> Providers.of(new DefaultImmutableFileAccessPermissions(2))
 
         return details
     }
@@ -156,7 +158,7 @@ class TarCopyActionSpec extends Specification {
         details.getLastModified() >> 1000L
         details.getSize() >> 1000L
         details.isDirectory() >> false
-        details.getMode() >> 1
+        details.getImmutablePermissions() >> Providers.of(new DefaultImmutableFileAccessPermissions(1))
         details.toString() >> "[dir/file1]"
         details.copyTo(_ as OutputStream) >> {OutputStream out -> throw failure }
 

@@ -100,7 +100,8 @@ public interface FileTreeElement {
      */
     RelativePath getRelativePath();
 
-    int getMode(); //TODO: deprecate it
+    @Deprecated
+    int getMode();
 
     /**
      * Provides a read-only view of access permissions of this file.

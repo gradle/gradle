@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -146,7 +147,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        @Deprecated
         public int getMode() {
+            DeprecationLogger.deprecateMethod(FileTreeElement.class, "getMode()")
+                .replaceWith("getImmutablePermissions()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+                .nagUser();
             return getImmutablePermissions().get().toUnixNumeric();
         }
 
@@ -227,7 +234,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        @Deprecated
         public int getMode() {
+            DeprecationLogger.deprecateMethod(FileTreeElement.class, "getMode()")
+                .replaceWith("getImmutablePermissions()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+                .nagUser();
             return getImmutablePermissions().get().toUnixNumeric();
         }
 

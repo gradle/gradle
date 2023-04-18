@@ -71,8 +71,8 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
         def file = new TestFileTreeElement(temporaryFolder.file("someFile"), chmod)
 
         expect:
-        dir.getMode() == FileSystem.DEFAULT_DIR_MODE
-        file.getMode() == FileSystem.DEFAULT_FILE_MODE
+        dir.getImmutablePermissions().get().toUnixNumeric() == FileSystem.DEFAULT_DIR_MODE
+        file.getImmutablePermissions().get().toUnixNumeric() == FileSystem.DEFAULT_FILE_MODE
     }
 
     private TestFile writeToFile(String name, String content) {

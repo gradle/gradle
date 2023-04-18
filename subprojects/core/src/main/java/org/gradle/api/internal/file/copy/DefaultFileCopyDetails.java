@@ -146,7 +146,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     private void adaptPermissions(File target) {
-        int specMode = getMode();
+        int specMode = getImmutablePermissions().get().toUnixNumeric();
         getChmod().chmod(target, specMode);
     }
 
@@ -171,7 +171,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
             return specMode;
         }
 
-        return Providers.of(new DefaultImmutableFileAccessPermissions(fileDetails.getMode()));
+        return Providers.of(new DefaultImmutableFileAccessPermissions(fileDetails.getImmutablePermissions().get().toUnixNumeric()));
     }
 
     private Provider<ImmutableFileAccessPermissions> getSpecMode() {
