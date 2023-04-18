@@ -115,7 +115,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         return resolveException;
     }
 
-    private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {
+    public static class ErrorHandlingLenientConfiguration implements LenientConfiguration {
         private final LenientConfiguration lenientConfiguration;
         private final ResolveContext resolveContext;
 
@@ -197,7 +197,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
     }
 
-    private static class ErrorHandlingResolutionResult implements ResolutionResult {
+    public static class ErrorHandlingResolutionResult implements ResolutionResult {
         private final ResolutionResult resolutionResult;
         private final ResolveContext resolveContext;
 
@@ -266,7 +266,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
     }
 
-    private static class ErrorHandlingResolvedConfiguration implements ResolvedConfiguration {
+    public static class ErrorHandlingResolvedConfiguration implements ResolvedConfiguration {
         private final ResolvedConfiguration resolvedConfiguration;
         private final ResolveContext resolveContext;
 

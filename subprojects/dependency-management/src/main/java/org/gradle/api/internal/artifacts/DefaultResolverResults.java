@@ -128,12 +128,8 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public ResolveException consumeNonFatalFailure() {
-        try {
-            return nonFatalFailure;
-        } finally {
-            nonFatalFailure = null;
-        }
+    public ResolveException getNonFatalFailure() {
+        return nonFatalFailure;
     }
 
     @Override

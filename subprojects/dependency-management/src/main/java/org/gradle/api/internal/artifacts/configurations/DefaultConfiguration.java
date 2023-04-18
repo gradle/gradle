@@ -51,7 +51,6 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
@@ -98,10 +97,8 @@ import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -174,10 +171,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 @SuppressWarnings("rawtypes")
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfiguration.class);
-
-    private static final Action<Throwable> DEFAULT_ERROR_HANDLER = throwable -> {
-        throw UncheckedException.throwAsUncheckedException(throwable);
-    };
 
     private final ConfigurationResolver resolver;
     private final DependencyMetaDataProvider metaDataProvider;
@@ -1807,7 +1800,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @implNote Usage: This method should only be called on consumable or resolvable configurations and will emit a deprecation warning if
      * called on a configuration that does not permit this usage, or has had allowed this usage but marked it as deprecated.
      */
@@ -2213,8 +2206,21 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         public ResolutionResult getResolutionResult() {
-            assertIsResolvable();
-            return new LenientResolutionResult(DEFAULT_ERROR_HANDLER);
+            return getResolutionResult(failure -> {
+                throw UncheckedException.throwAsUncheckedException(failure);
+            });
+        }
+
+        @Override
+        public ResolutionResult getResolutionResult(Action<? super Throwable> nonFatalErrorHandler) {
+            ResolverResults results = resolveToStateOrLater(ARTIFACTS_RESOLVED).getCachedResolverResults();
+
+            Throwable failure = results.getNonFatalFailure();
+            if (failure != null) {
+                nonFatalErrorHandler.execute(failure);
+            }
+
+            return results.getResolutionResult();
         }
 
         @Override
@@ -2245,11 +2251,6 @@ since users cannot create non-legacy configurations and there is no current publ
         @Override
         public AttributeContainer getAttributes() {
             return configurationAttributes;
-        }
-
-        @Override
-        public ResolutionResult getResolutionResult(Action<? super Throwable> errorHandler) {
-            return new LenientResolutionResult(errorHandler);
         }
 
         private class ConfigurationArtifactView implements ArtifactView {
@@ -2286,102 +2287,6 @@ since users cannot create non-legacy configurations and there is no current publ
                     new DefaultResolutionHost(),
                     taskDependencyFactory
                 );
-            }
-        }
-
-        private class LenientResolutionResult implements ResolutionResult {
-            private final Action<? super Throwable> errorHandler;
-            private volatile ResolutionResult delegate;
-
-            private LenientResolutionResult(Action<? super Throwable> errorHandler) {
-                this.errorHandler = errorHandler;
-            }
-
-            private void resolve() {
-                if (delegate == null) {
-                    synchronized (this) {
-                        if (delegate == null) {
-                            ResolveState currentState = resolveToStateOrLater(ARTIFACTS_RESOLVED);
-                            delegate = currentState.getCachedResolverResults().getResolutionResult();
-                            Throwable failure = currentState.getCachedResolverResults().consumeNonFatalFailure();
-                            if (failure != null) {
-                                errorHandler.execute(failure);
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public ResolvedComponentResult getRoot() {
-                resolve();
-                return delegate.getRoot();
-            }
-
-            @Override
-            public Provider<ResolvedComponentResult> getRootComponent() {
-                return new DefaultProvider<>(this::getRoot);
-            }
-
-            @Override
-            public Set<? extends DependencyResult> getAllDependencies() {
-                resolve();
-                return delegate.getAllDependencies();
-            }
-
-            @Override
-            public void allDependencies(Action<? super DependencyResult> action) {
-                resolve();
-                delegate.allDependencies(action);
-            }
-
-            @Override
-            public void allDependencies(Closure closure) {
-                resolve();
-                delegate.allDependencies(closure);
-            }
-
-            @Override
-            public Set<ResolvedComponentResult> getAllComponents() {
-                resolve();
-                return delegate.getAllComponents();
-            }
-
-            @Override
-            public void allComponents(Action<? super ResolvedComponentResult> action) {
-                resolve();
-                delegate.allComponents(action);
-            }
-
-            @Override
-            public void allComponents(Closure closure) {
-                resolve();
-                delegate.allComponents(closure);
-            }
-
-            @Override
-            public AttributeContainer getRequestedAttributes() {
-                return delegate.getRequestedAttributes();
-            }
-
-            @Override
-            public int hashCode() {
-                resolve();
-                return delegate.hashCode();
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (obj instanceof LenientResolutionResult) {
-                    resolve();
-                    return delegate.equals(((LenientResolutionResult) obj).delegate);
-                }
-                return false;
-            }
-
-            @Override
-            public String toString() {
-                return "lenient resolution result for " + delegate;
             }
         }
     }

@@ -69,18 +69,14 @@ public interface ResolverResults {
     void artifactsResolved(ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts);
 
     /**
-     * Consumes the failure, allowing to either throw or do something else with it. Consuming effectively
-     * removes the exception from the underlying resolver results, meaning that subsequent calls to consume
-     * will return null.
+     * Gets any non-fatal attached failure, or null if no non-fatal failure is attached.
      */
     @Nullable
-    ResolveException consumeNonFatalFailure();
+    ResolveException getNonFatalFailure();
 
     /**
      * Returns the failure, fatal or non fatal, or null if there's no failure. Used internally to
-     * set the failure on the resolution build operation result. In opposite to {@link #consumeNonFatalFailure()},
-     * this doesn't consume the error, so subsequent calls will return the same instance, unless the error was
-     * consumed in between.
+     * set the failure on the resolution build operation result.
      */
     @Nullable
     Throwable getFailure();
