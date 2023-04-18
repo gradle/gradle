@@ -2366,8 +2366,6 @@ Class <org.gradle.internal.classpath.declarations.InterceptorDeclaration> is not
 Class <org.gradle.internal.classpath.declarations.KotlinFileExtensionsInterceptorsDeclaration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (KotlinFileExtensionsInterceptorsDeclaration.java:0)
 Class <org.gradle.internal.classpath.declarations.KotlinStdlibFileInterceptors> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (KotlinStdlibFileInterceptors.java:0)
 Class <org.gradle.internal.classpath.declarations.NioFileInterceptors> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (NioFileInterceptors.java:0)
-Class <org.gradle.internal.classpath.declarations.stubs.ConfigurationCacheInterceptorsStub> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConfigurationCacheInterceptorsStub.java:0)
-Class <org.gradle.internal.classpath.declarations.stubs.PropertyUpgradesInterceptorsStub> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PropertyUpgradesInterceptorsStub.java:0)
 Class <org.gradle.internal.classpath.intercept.AbstractInvocation> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractInvocation.java:0)
 Class <org.gradle.internal.classpath.intercept.CallInterceptor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CallInterceptor.java:0)
 Class <org.gradle.internal.classpath.intercept.CallInterceptorsSet$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CallInterceptorsSet.java:0)

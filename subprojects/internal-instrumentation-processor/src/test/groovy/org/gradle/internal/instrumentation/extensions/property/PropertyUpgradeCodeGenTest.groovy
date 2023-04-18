@@ -20,8 +20,12 @@ import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
 import static com.google.testing.compile.CompilationSubject.assertThat
+import static org.gradle.internal.classpath.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
 
 class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
+
+    private static final String GENERATED_CLASSES_PACKAGE_NAME = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
+        .split("\\.").dropRight(1).join(".")
 
     def "should auto generate adapter for upgraded property with originalType"() {
         given:
@@ -44,7 +48,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         then:
         def generatedClass = source """
-            package org.gradle.internal.classpath.generated;
+            package $GENERATED_CLASSES_PACKAGE_NAME;
             import org.gradle.test.Task;
 
             public class Task_Adapter {
@@ -85,7 +89,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         then:
         def generatedClass = source """
-            package org.gradle.internal.classpath.generated;
+            package $GENERATED_CLASSES_PACKAGE_NAME;
             import $fullImport;
             import org.gradle.test.Task;
 
