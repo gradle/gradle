@@ -601,6 +601,19 @@ dependencies {
 ======
 =====
 
+[[build_identifier_name_and_current_deprecation]]
+==== `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html[BuildIdentifier]` method deprecations
+
+The following methods on `BuildIdentifier` are deprecated:
+
+- `getName()`
+- `isCurrentBuild()`
+
+These methods allowed to externally recreate identifiers for builds.
+However, for certain composite build setups, they did not provide enough information to guarantee uniqueness.
+
+Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath--[String getBuildPath()]`.
+
 === Potential breaking changes
 
 [[kotlin_1_8.20]]
