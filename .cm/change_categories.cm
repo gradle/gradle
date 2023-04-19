@@ -38,33 +38,17 @@ automations:
       - action: approve@v1
 
   # Label changes by affected platforms (in blue)
-  label_platform_jvm:
+  {% for platform in platforms %}
+  label_platform_{{ loop.index }}:
     if:
       - {{ author.on_jvm_team }}
-      - {{ is.platform.jvm }}
+      - {{ files | match(list=platform.subprojects) | some }}
     run:
       - action: add-label@v1
         args:
-          label: 'platform:jvm'
+          label: 'platform:{{ platform }}'
           color: '0000FF'
-  label_platform_cc:
-    if:
-      - {{ author.on_jvm_team }}
-      - {{ is.platform.cc }}
-    run:
-      - action: add-label@v1
-        args:
-          label: 'platform:configuration-cache'
-          color: '0000FF'
-  label_platform_execution:
-    if:
-      - {{ author.on_jvm_team }}
-      - {{ is.platform.execution }}
-    run:
-      - action: add-label@v1
-        args:
-          label: 'platform:execution'
-          color: '0000FF'
+  {% endfor %}
 
   # Call out PRs that change the build script (and will be longer to checkout and review)
   label_build_script_change:
@@ -86,13 +70,6 @@ is:
   docs: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | every) }} # This won't catch a mix of .adoc and non .adoc changes, see: https://github.com/linear-b/gitstream/issues/93
   tests: {{ files | allTests }}
 
-  # This is not a complete list, just a demonstration
-  # Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
-  platform:
-    cc: {{ files | match(list=['subprojects/instrumentation-agent']) | some }}
-    jvm: {{ files | match(list=['subprojects/code-quality/', 'subprojects/ear/', 'subprojects/platform-jvm/']) | some }}
-    execution: {{ files | match(list=['subprojects/execution/']) | some }}
-
   # Also just an approximation
   build_script_change: {{ files | reject(regex=r/\/src\/(samples|snippets)\//) | match(list=build_logic_files) | some }}
 
@@ -101,6 +78,155 @@ build_logic_files:
   - 'build.gradle'
   - 'settings.gradle.kts'
   - 'settings.gradle'
+
+# Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
+platforms:
+  - build_infrastructure:
+    subprojects:
+      - 'subprojects/architecture-test/'
+      - 'subprojects/build-scan-performance/'
+      - 'subprojects/distributions-basics/'
+      - 'subprojects/distributions-core/'
+      - 'subprojects/distributions-dependencies/'
+      - 'subprojects/distributions-full/'
+      - 'subprojects/distributions-integ-tests/'
+      - 'subprojects/distributions-jvm/'
+      - 'subprojects/distributions-native/'
+      - 'subprojects/distributions-publishing/'
+      - 'subprojects/internal-architecture-testing/'
+      - 'subprojects/internal-build-reports/'
+      - 'subprojects/internal-integ-testing/'
+      - 'subprojects/internal-performance-testing/'
+      - 'subprojects/internal-testing/'
+      - 'subprojects/build-logic/'
+      - 'subprojects/build-logic-commons/'
+      - 'subprojects/build-logic-settings/'
+  - cc:
+    subprojects:
+      - 'subprojects/instrumentation-agent'
+      - 'subprojects/api-metadata/' # also core
+      - 'subprojects/base-annotations/' # also core
+      - 'subprojects/configuration-cache/' # also core
+      - 'subprojects/installation-beacon/' # also core
+      - 'subprojects/internal-instrumentation-api/' # also core
+      - 'subprojects/internal-instrumentation-processor/' # also core
+      - 'subprojects/kotlin-dsl/' # also core
+      - 'subprojects/kotlin-dsl-integ-tests/' # also core
+      - 'subprojects/kotlin-dsl-plugins/' # also core
+      - 'subprojects/kotlin-dsl-provider-plugins/' # also core
+  - core:
+    subprojects:
+      - 'subprojects/api-metadata/' # also cc
+      - 'subprojects/base-annotations/' # also cc
+      - 'subprojects/base-services/'
+      - 'subprojects/base-services-groovy/'
+      - 'subprojects/bootstrap/'
+      - 'subprojects/build-cache/' # also execution
+      - 'subprojects/build-cache-base/' # also execution
+      - 'subprojects/build-cache-http/' # also execution
+      - 'subprojects/build-cache-packaging/' # also execution
+      - 'subprojects/build-option/' # also execution
+      - 'subprojects/build-profile/' # also execution
+      - 'subprojects/cli/'
+      - 'subprojects/configuration-cache/' # also cc
+      - 'subprojects/core-platform/'
+      - 'subprojects/file-collections/'
+      - 'subprojects/file-temp/'
+      - 'subprojects/file-watching/'
+      - 'subprojects/files/'
+      - 'subprojects/hashing/'
+      - 'subprojects/installation-beacon/' # also cc
+      - 'subprojects/instrumentation-agent/'
+      - 'subprojects/internal-instrumentation-api/' # also cc
+      - 'subprojects/internal-instrumentation-processor/' # also cc
+      - 'subprojects/kotlin-dsl/' # also cc
+      - 'subprojects/kotlin-dsl-integ-tests/' # also cc
+      - 'subprojects/kotlin-dsl-plugins/' # also cc
+      - 'subprojects/kotlin-dsl-provider-plugins/' # also cc
+      - 'subprojects/launcher/'
+      - 'subprojects/logging/'
+      - 'subprojects/logging-api/'
+      - 'subprojects/messaging/'
+      - 'subprojects/model-core/'
+      - 'subprojects/model-groovy/'
+      - 'subprojects/persistent-cache/'
+      - 'subprojects/problems/'
+      - 'subprojects/process-services/'
+      - 'subprojects/snapshots/'
+      - 'subprojects/worker-processes/'
+      - 'subprojects/worker-services/'
+      - 'subprojects/workers/'
+      - 'subprojects/wrapper/'
+      - 'subprojects/wrapper-shared/'
+  - documentation:
+    subprojects:
+      - 'subprojects/docs/'
+      - 'subprojects/docs-asciidoctor-extensions/'
+      - 'subprojects/docs-asciidoctor-extensions-base/'
+      - 'subprojects/samples/'
+  - execution:
+    subprojects:
+      - 'subprojects/build-cache/' # also core
+      - 'subprojects/build-cache-base/' # also core
+      - 'subprojects/build-cache-http/' # also core
+      - 'subprojects/build-cache-packaging/' # also core
+      - 'subprojects/build-option/' # also core
+      - 'subprojects/build-profile/' # also core
+      - 'subprojects/execution/'
+  - extensibility:
+    subprojects:
+      - 'subprojects/plugin-development/'
+      - 'subprojects/plugin-use/'
+      - 'subprojects/test-kit/'
+  - ge_integration:
+    subprojects:
+      - 'subprojects/enterprise/'
+      - 'subprojects/enterprise-logging/'
+      - 'subprojects/enterprise-operations/'
+      - 'subprojects/enterprise-workers/'
+  - ide:
+    subprojects:
+      - 'subprojects/ide/'
+      - 'subprojects/tooling-api/'
+      - 'subprojects/tooling-api-builders/'
+  - jvm:
+    subprojects:
+      - 'subprojects/code-quality/'
+      - 'subprojects/ear/'
+      - 'subprojects/jacoco/'
+      - 'subprojects/java-compiler-plugin/'
+      - 'subprojects/jvm-services/'
+      - 'subprojects/language-groovy/'
+      - 'subprojects/language-java/'
+      - 'subprojects/language-jvm/'
+      - 'subprojects/normalization-java/'
+      - 'subprojects/platform-jvm/'
+      - 'subprojects/plugins/'
+      - 'subprojects/scala/'
+      - 'subprojects/testing-junit-platform/'
+      - 'subprojects/testing-jvm/'
+      - 'subprojects/testing-jvm-infrastructure/'
+  - software:
+    subprojects:
+      - 'subprojects/antlr/'
+      - 'subprojects/build-init/'
+      - 'subprojects/dependency-management/'
+      - 'subprojects/diagnostics/'
+      - 'subprojects/ivy/'
+      - 'subprojects/maven/'
+      - 'subprojects/platform-base/'
+      - 'subprojects/platform-native/'
+      - 'subprojects/publish/'
+      - 'subprojects/reporting/'
+      - 'subprojects/resources/'
+      - 'subprojects/resources-gcs/'
+      - 'subprojects/resources-http/'
+      - 'subprojects/resources-s3/'
+      - 'subprojects/resources-sftp/'
+      - 'subprojects/security/'
+      - 'subprojects/signing/'
+      - 'subprojects/testing-base/'
+      - 'subprojects/version-control/'
 
 author:
   on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
