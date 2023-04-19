@@ -37,10 +37,6 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-strictCompile {
-    ignoreDeprecations() // uses deprecated software model types
-}
-
 packageCycles {
     excludePatterns.add("org/gradle/**")
 }

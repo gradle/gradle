@@ -26,8 +26,6 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
@@ -59,8 +57,8 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         server.expect(server.get("/custom-dist.zip").expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion())).sendFile(distribution.binDistribution))
 
         and:
-        toolingApi.withConnector { GradleConnector connector ->
-            connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+        toolingApi.withConnector {
+            it.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
         }
 
         when:
@@ -84,14 +82,13 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
-        toolingApi.withConnector { GradleConnector connector ->
-            connector.useDistribution(distUri)
+        toolingApi.withConnector {
+            it.useDistribution(distUri)
         }
 
         when:
-        toolingApi.withConnection { connection ->
-            BuildLauncher launcher = connection.newBuild().forTasks("help")
-            launcher.run()
+        toolingApi.withConnection {
+             it.newBuild().forTasks("help").run()
         }
 
         then:
@@ -110,15 +107,12 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
-        toolingApi.withConnector { GradleConnector connector ->
-            connector.useBuildDistribution()
+        toolingApi.withConnector {
+            it.useBuildDistribution()
         }
 
         when:
-        toolingApi.withConnection { connection ->
-            BuildLauncher launcher = connection.newBuild().forTasks("help")
-            launcher.run()
-        }
+        toolingApi.withConnection { it.newBuild().forTasks("help").run() }
 
         then:
         file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
@@ -131,14 +125,14 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
-        toolingApi.withConnector { GradleConnector connector ->
-            connector.useDistribution(distUri)
+        toolingApi.withConnector {
+            it.useDistribution(distUri)
         }
 
         when:
         def events = ProgressEvents.create()
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild()
+        toolingApi.withConnection {
+            it.newBuild()
                 .forTasks("help")
                 .addProgressListener(events)
                 .run()
@@ -174,14 +168,14 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
-        toolingApi.withConnector { GradleConnector connector ->
-            connector.useDistribution(distUri)
+        toolingApi.withConnector {
+            it.useDistribution(distUri)
         }
 
         when:
         def events = ProgressEvents.create()
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild()
+        toolingApi.withConnection {
+            it.newBuild()
                 .forTasks("help")
                 .addProgressListener(events)
                 .run()
@@ -207,14 +201,14 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
-        toolingApi.withConnector { GradleConnector connector ->
-            connector.useDistribution(distUri)
+        toolingApi.withConnector {
+            it.useDistribution(distUri)
         }
 
         when:
         def events = ProgressEvents.create()
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild()
+        toolingApi.withConnection {
+            it.newBuild()
                 .forTasks("help")
                 .addProgressListener(events, EnumSet.complementOf(EnumSet.of(OperationType.FILE_DOWNLOAD)))
                 .run()
@@ -241,16 +235,16 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         server.expect(downloadHandle)
 
         and:
-        toolingApi.withConnector { GradleConnector connector ->
-            connector.useDistribution(distUri)
-            connector.useGradleUserHomeDir(userHomeDir)
+        toolingApi.withConnector {
+            it.useDistribution(distUri)
+            it.useGradleUserHomeDir(userHomeDir)
         }
 
         when:
         def events = ProgressEvents.create()
         def handler = new TestResultHandler()
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild()
+        toolingApi.withConnection {
+            it.newBuild()
                 .forTasks("help")
                 .withCancellationToken(tokenSource.token())
                 .addProgressListener(events)

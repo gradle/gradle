@@ -30,6 +30,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -54,13 +55,13 @@ import java.util.concurrent.Callable;
  * This implementation will also disable any repository that throws a critical failure, failing-fast with that
  * repository for any subsequent requests.
  */
-public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository {
+public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository<ModuleComponentGraphResolveState> {
 
-    private final ModuleComponentRepository delegate;
+    private final ModuleComponentRepository<ModuleComponentGraphResolveState> delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
-    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate, RepositoryDisabler remoteRepositoryBlacklister) {
+    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryBlacklister) {
         this.delegate = delegate;
         local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpBlacklister.INSTANCE, getName());
         remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryBlacklister, getName());
@@ -82,12 +83,12 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getLocalAccess() {
         return local;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getRemoteAccess() {
         return remote;
     }
 
@@ -101,25 +102,25 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         return delegate.getComponentMetadataSupplier();
     }
 
-    private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
+    private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
         private static final Logger LOGGER = Logging.getLogger(ErrorHandlingModuleComponentRepositoryAccess.class);
         private final static String MAX_TENTATIVES_BEFORE_BLACKLISTING = "org.gradle.internal.repository.max.tentatives";
         private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.repository.initial.backoff";
 
         private final static String BLACKLISTED_REPOSITORY_ERROR_MESSAGE = "Skipped due to earlier error";
 
-        private final ModuleComponentRepositoryAccess delegate;
+        private final ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate;
         private final String repositoryId;
         private final RepositoryDisabler repositoryBlacklister;
         private final int maxTentativesCount;
         private final int initialBackOff;
         private final String repositoryName;
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryDisabler repositoryBlacklister, String repositoryName) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryBlacklister, String repositoryName) {
             this(delegate, repositoryId, repositoryBlacklister, Integer.getInteger(MAX_TENTATIVES_BEFORE_BLACKLISTING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000), repositoryName);
         }
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryDisabler repositoryBlacklister, int maxTentativesCount, int initialBackoff, String repositoryName) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryBlacklister, int maxTentativesCount, int initialBackoff, String repositoryName) {
             this.repositoryName = repositoryName;
             assert maxTentativesCount > 0 : "Max tentatives must be > 0";
             assert initialBackoff >= 0 : "Initial backoff must be >= 0";
@@ -147,7 +148,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             performOperationWithRetries(result,
                     () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
                     () -> new ModuleVersionResolveException(moduleComponentIdentifier, () -> BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
@@ -202,12 +203,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 return;
             }
 
-            tryResolveAndMaybeBlacklist(result, operation, onBlacklisted, onError);
+            tryResolveAndMaybeBlacklist(result, operation, onError);
         }
 
         private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeBlacklist(R result,
                                                                                                            Runnable operation,
-                                                                                                           Factory<E> onBlacklisted,
                                                                                                            Transformer<E, Throwable> onError) {
             tryResolveAndMaybeBlacklist(result, () -> {
                 operation.run();

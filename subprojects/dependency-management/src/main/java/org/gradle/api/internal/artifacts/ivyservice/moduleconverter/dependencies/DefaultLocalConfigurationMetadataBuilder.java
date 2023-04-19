@@ -124,7 +124,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             attributes,
             ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet())),
             configuration.isCanBeConsumed(),
-            configuration.getConsumptionDeprecation(),
+            configuration.isDeprecatedForConsumption(),
             configuration.isCanBeResolved(),
             maybeForceDependencies(dependencies.dependencies, attributes),
             dependencies.files,

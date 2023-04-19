@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  *
  * <p>Resolution happens in multiple steps. The first step is to calculate the dependency graph, which involves selecting component instances and one or more variants of each instance.
  * This type exposes only the information and operations required to do this. In particular, it does not expose any information about artifacts unless this is actually required for graph resolution,
- * which is only required in certain specific cases (and something we should deprecate).</p>
+ * which only happens in certain specific cases (and something we should deprecate).</p>
  *
  * <p>The subsequent resolution steps, to select artifacts, are performed using the instance returned by {@link #prepareForArtifactResolution()}.</p>
  *

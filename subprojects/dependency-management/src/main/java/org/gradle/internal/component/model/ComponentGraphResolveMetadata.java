@@ -64,4 +64,6 @@ public interface ComponentGraphResolveMetadata {
 
     @Nullable
     String getStatus();
+
+    boolean isMissing();
 }

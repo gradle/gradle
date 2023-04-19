@@ -76,7 +76,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         if (GradleContextualExecuter.notConfigCache) {
             buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
         } else {
-            buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+            buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(checkoutDir, agpVersion)
         }
 
         def md5After = compiledClassFile.md5Hash

@@ -32,6 +32,8 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR
  * https://developer.android.com/studio/releases/gradle-plugin.html
  * https://androidstudio.googleblog.com/
  *
+ * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
+ * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
 class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 

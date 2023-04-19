@@ -49,12 +49,12 @@ class BaseDeprecations {
         "Consult the upgrading guide for further information: " +
         "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#application_convention_deprecation"
 
-    public static final String BASE_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.internal.DefaultBasePluginConvention type has been deprecated. " +
+    public static final String BASE_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.BasePluginConvention type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +
         "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#base_convention_deprecation"
 
-    public static final String JAVA_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.internal.DefaultJavaPluginConvention type has been deprecated. " +
+    public static final String JAVA_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +
         "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_convention_deprecation"

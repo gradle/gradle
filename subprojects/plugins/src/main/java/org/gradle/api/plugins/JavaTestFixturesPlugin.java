@@ -62,7 +62,7 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
             SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
 
             @SuppressWarnings("deprecation")
-            ConfigurationRole role = ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE;
+            ConfigurationRole role = ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE;
 
             JvmFeatureInternal feature = new DefaultJvmFeature(
                 TEST_FIXTURES_FEATURE_NAME,
