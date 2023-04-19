@@ -23,6 +23,10 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
+    def shouldCheckForDeprecationWarnings(){
+        false
+    }
+
     def "can build the eclipse model for a java project"() {
 
         projectDir.file('build.gradle').text = '''

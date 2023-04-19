@@ -364,6 +364,77 @@ war {
 =====
 ====
 
+[[ear_convention_deprecation]]
+==== Deprecated `ear` plugin conventions
+
+The convention properties contributed by the `ear` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("ear")
+}
+
+configure<EarPluginConvention> { // Accessing a convention
+    appDirName = "src/main/app"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'ear'
+}
+
+appDirName = 'src/main/app' // Accessing a convention
+----
+=====
+====
+
+Clients should configure the `ear` task directly.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(Ear.class).configureEach(...)] can be used to configure each task of type `Ear`.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("ear")
+}
+
+tasks.ear {
+    appDirectory.set(file("src/main/app"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'ear'
+}
+
+ear {
+    appDirectory = file('src/main/app')  // use application metadata found in this folder
+}
+----
+=====
+====
+
 [[project_report_convention_deprecation]]
 ==== Deprecated `project-report` plugin conventions
 
@@ -883,7 +954,7 @@ These members will be removed in Gradle 9.0.
 * `WrapUtil.toDomainObjectSet(...)`
 * `GUtil.toCamelCase(...)`
 * `GUtil.toLowerCase(...)`
-* `ConfigureUtil.configureByMap(...)`
+* `ConfigureUtil`
 
 [[ibm_semeru_should_not_be_used]]
 ==== Deprecated JVM vendor IBM Semeru

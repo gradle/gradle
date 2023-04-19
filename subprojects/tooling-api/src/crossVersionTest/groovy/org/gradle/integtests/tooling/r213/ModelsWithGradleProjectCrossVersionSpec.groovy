@@ -22,8 +22,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -180,15 +178,15 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
-        GradleConnector connector = connector()
+        def connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        connector.searchUpwards(searchUpwards)
         def model = withConnection(connector) { it.getModel(modelType) }
         return toGradleProject(model)
     }
 
     private <T> T getModelWithProjectConnection(TestFile rootDir, Class<T> modelType) {
-        GradleConnector connector = connector()
+        def connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
         return withConnection(connector) { it.getModel(modelType) }
     }
@@ -204,9 +202,9 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private getGradleProjectsWithProjectConnectionUsingBuildModel(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
-        GradleConnector connector = connector()
+        def connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        connector.searchUpwards(searchUpwards)
         def buildModel = withConnection(connector) { it.getModel(modelType) }
         return toGradleProjects(buildModel)
     }

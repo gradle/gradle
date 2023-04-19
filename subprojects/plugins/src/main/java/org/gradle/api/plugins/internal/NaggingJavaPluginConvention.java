@@ -174,7 +174,7 @@ public class NaggingJavaPluginConvention extends JavaPluginConvention {
     }
 
     private static void logDeprecation() {
-        DeprecationLogger.deprecateType(DefaultJavaPluginConvention.class)
+        DeprecationLogger.deprecateType(JavaPluginConvention.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "java_convention_deprecation")
             .nagUser();

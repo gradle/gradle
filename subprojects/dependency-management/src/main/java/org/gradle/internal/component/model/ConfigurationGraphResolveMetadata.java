@@ -16,9 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
-
-import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -31,6 +28,7 @@ public interface ConfigurationGraphResolveMetadata extends VariantGraphResolveMe
 
     boolean isVisible();
 
-    @Nullable
-    DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation();
+    default boolean isDeprecatedForConsumption() {
+        return false;
+    }
 }

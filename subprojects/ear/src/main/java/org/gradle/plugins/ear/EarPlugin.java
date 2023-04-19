@@ -81,9 +81,11 @@ public abstract class EarPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         EarPluginConvention earPluginConvention = objectFactory.newInstance(org.gradle.plugins.ear.internal.DefaultEarPluginConvention.class);
-        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("ear", earPluginConvention));
-        earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
-        earPluginConvention.setAppDirName("src/main/application");
+        DeprecationLogger.whileDisabled(() -> {
+            project.getConvention().getPlugins().put("ear", earPluginConvention);
+            earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
+            earPluginConvention.setAppDirName("src/main/application");
+        });
 
         configureConfigurations((ProjectInternal) project);
 
@@ -111,7 +113,7 @@ public abstract class EarPlugin implements Plugin<Project> {
         TaskProvider<Ear> ear = project.getTasks().register(EAR_TASK_NAME, Ear.class, task -> {
             task.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
             task.setGroup(BasePlugin.BUILD_GROUP);
-            task.getGenerateDeploymentDescriptor().convention(convention.getGenerateDeploymentDescriptor());
+            DeprecationLogger.whileDisabled(() -> task.getGenerateDeploymentDescriptor().convention(convention.getGenerateDeploymentDescriptor()));
 
             plugins.withType(JavaPlugin.class, javaPlugin -> {
                 final JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
@@ -119,7 +121,7 @@ public abstract class EarPlugin implements Plugin<Project> {
             });
         });
 
-        DeploymentDescriptor deploymentDescriptor = convention.getDeploymentDescriptor();
+        DeploymentDescriptor deploymentDescriptor =  DeprecationLogger.whileDisabled(() -> convention.getDeploymentDescriptor());
         if (deploymentDescriptor != null) {
             if (deploymentDescriptor.getDisplayName() == null) {
                 deploymentDescriptor.setDisplayName(project.getName());
@@ -133,17 +135,17 @@ public abstract class EarPlugin implements Plugin<Project> {
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
         project.getTasks().withType(Ear.class).configureEach(task -> {
-            task.getAppDirectory().convention(project.provider(() -> project.getLayout().getProjectDirectory().dir(earConvention.getAppDirName())));
+            task.getAppDirectory().convention(project.provider(() -> project.getLayout().getProjectDirectory().dir(DeprecationLogger.whileDisabled(() -> earConvention.getAppDirName()))));
             task.getConventionMapping().map("libDirName", new Callable<String>() {
                 @Override
                 public String call() throws Exception {
-                    return earConvention.getLibDirName();
+                    return DeprecationLogger.whileDisabled(() -> earConvention.getLibDirName());
                 }
             });
             task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
                 @Override
                 public DeploymentDescriptor call() throws Exception {
-                    return earConvention.getDeploymentDescriptor();
+                    return DeprecationLogger.whileDisabled(() -> earConvention.getDeploymentDescriptor());
                 }
             });
 
