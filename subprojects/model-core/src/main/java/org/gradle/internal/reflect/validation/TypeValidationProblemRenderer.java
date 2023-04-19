@@ -23,7 +23,7 @@ import org.gradle.problems.Solution;
 import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.util.internal.TextUtil.maybeAppendDot;
+import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
 
@@ -42,10 +42,10 @@ public class TypeValidationProblemRenderer {
 
     public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getWhere()) + maybeAppendDot(problem.getShortDescription()));
+        formatter.node(introductionFor(problem.getWhere()) + endLineWithDot(problem.getShortDescription()));
         problem.getWhy().ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(maybeAppendDot(reason)));
+            formatter.node("Reason: " + capitalize(endLineWithDot(reason)));
         });
         if (renderSolutions) {
             renderSolutions(formatter, problem.getPossibleSolutions());
@@ -64,12 +64,12 @@ public class TypeValidationProblemRenderer {
         if (solutionCount > 0) {
             formatter.blankLine();
             if (solutionCount == 1) {
-                formatter.node("Possible solution: " + capitalize(maybeAppendDot(possibleSolutions.get(0).getShortDescription())));
+                formatter.node("Possible solution: " + capitalize(endLineWithDot(possibleSolutions.get(0).getShortDescription())));
             } else {
                 formatter.node("Possible solutions");
                 formatter.startNumberedChildren();
                 possibleSolutions.forEach(solution ->
-                    formatter.node(capitalize(maybeAppendDot(solution.getShortDescription())))
+                    formatter.node(capitalize(endLineWithDot(solution.getShortDescription())))
                 );
                 formatter.endChildren();
             }

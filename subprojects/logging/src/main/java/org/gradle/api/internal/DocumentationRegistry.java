@@ -66,7 +66,7 @@ public class DocumentationRegistry {
     }
 
     public String getSampleForMessage(String id) {
-        return String.format("Learn more about Gradle by exploring Samples at %s", getSampleFor(id));
+        return String.format("To learn more about Gradle by exploring our Samples at %s", getSampleFor(id));
     }
 
     public String getSampleForMessage() {

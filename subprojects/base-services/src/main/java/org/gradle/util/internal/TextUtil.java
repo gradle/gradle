@@ -362,7 +362,7 @@ public class TextUtil {
         return collection.size() > 1 ? "s" : "";
     }
 
-    public static String maybeAppendDot(String txt) {
+    public static String endLineWithDot(String txt) {
         if (txt.endsWith(".") || txt.endsWith("\n")) {
             return txt;
         }
