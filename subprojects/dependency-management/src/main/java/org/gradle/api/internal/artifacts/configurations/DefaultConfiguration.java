@@ -1291,21 +1291,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ConfigurationInternal copy() {
+        warnOnDeprecatedUsage("copy()", ProperMethodUsage.RESOLVABLE);
         return createCopy(getDependencies(), getDependencyConstraints());
     }
 
     @Override
     public Configuration copyRecursive() {
+        warnOnDeprecatedUsage("copyRecursive()", ProperMethodUsage.RESOLVABLE);
         return createCopy(getAllDependencies(), getAllDependencyConstraints());
     }
 
     @Override
     public Configuration copy(Spec<? super Dependency> dependencySpec) {
+        warnOnDeprecatedUsage("copy(Spec)", ProperMethodUsage.RESOLVABLE);
         return createCopy(CollectionUtils.filter(getDependencies(), dependencySpec), getDependencyConstraints());
     }
 
     @Override
     public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
+        warnOnDeprecatedUsage("copyRecursive(Spec)", ProperMethodUsage.RESOLVABLE);
         return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), getAllDependencyConstraints());
     }
 
