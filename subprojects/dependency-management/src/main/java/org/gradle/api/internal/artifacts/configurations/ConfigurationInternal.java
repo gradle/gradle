@@ -107,8 +107,8 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      *
      * @return {@code true} if so; {@code false} otherwise
      */
-    default boolean isDeclarableAgainstByExtension() {
-        return isDeclarableAgainstByExtension(this);
+    default boolean isDeclarableByExtension() {
+        return isDeclarableByExtension(this);
     }
 
     /**
@@ -135,13 +135,13 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      * @param configuration the configuration to test
      * @return {@code true} if so; {@code false} otherwise
      */
-    static boolean isDeclarableAgainstByExtension(ConfigurationInternal configuration) {
+    static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
         if (configuration.isCanBeDeclaredAgainst()) {
             return true;
         } else {
             return configuration.getExtendsFrom().stream()
                     .map(ConfigurationInternal.class::cast)
-                    .anyMatch(ci -> ci.isDeclarableAgainstByExtension());
+                    .anyMatch(ci -> ci.isDeclarableByExtension());
         }
     }
 

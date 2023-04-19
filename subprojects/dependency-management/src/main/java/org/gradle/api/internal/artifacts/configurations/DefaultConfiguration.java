@@ -349,7 +349,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
-        this.canBeDeclaredAgainst = roleAtCreation.isDeclarableAgainst();
+        this.canBeDeclaredAgainst = roleAtCreation.isDeclarable();
         this.consumptionDeprecated = roleAtCreation.isConsumptionDeprecated();
         this.resolutionDeprecated = roleAtCreation.isResolutionDeprecated();
         this.declarationDeprecated = roleAtCreation.isDeclarationAgainstDeprecated();
@@ -1551,7 +1551,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void preventIllegalMutation(MutationType type) {
         // TODO: Deprecate and eventually prevent these mutations when already resolved
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
-            assertIsDeclarableAgainst();
+            assertIsDeclarable();
             return;
         }
 
@@ -1774,7 +1774,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void assertIsDeclarableAgainst() {
+    private void assertIsDeclarable() {
         if (!canBeDeclaredAgainst) {
             throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
         }
@@ -2016,9 +2016,9 @@ since users cannot create non-legacy configurations and there is no current publ
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-            maybeWarnOnChangingUsage("declarable against", allowed);
+            maybeWarnOnChangingUsage("declarable", allowed);
         } else if (canBeDeclaredAgainst && allowed) {
-            maybeWarnOnRedundantUsageActivation("declarable against", "setCanBeDeclaredAgainst(true)");
+            maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclaredAgainst(true)");
         }
     }
 

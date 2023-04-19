@@ -202,7 +202,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
         public static boolean isUsageConsistentWithRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
             return (role.isConsumable() == configuration.isCanBeConsumed())
                     && (role.isResolvable() == configuration.isCanBeResolved())
-                    && (role.isDeclarableAgainst() == configuration.isCanBeDeclaredAgainst())
+                    && (role.isDeclarable() == configuration.isCanBeDeclaredAgainst())
                     && (role.isConsumptionDeprecated() == configuration.isDeprecatedForConsumption())
                     && (role.isResolutionDeprecated() == configuration.isDeprecatedForResolution())
                     && (role.isDeclarationAgainstDeprecated() == configuration.isDeprecatedForDeclarationAgainst());

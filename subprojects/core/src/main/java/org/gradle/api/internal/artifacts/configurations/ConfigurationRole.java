@@ -31,7 +31,7 @@ public interface ConfigurationRole {
 
     boolean isConsumable();
     boolean isResolvable();
-    boolean isDeclarableAgainst();
+    boolean isDeclarable();
     boolean isConsumptionDeprecated();
     boolean isResolutionDeprecated();
     boolean isDeclarationAgainstDeprecated();
