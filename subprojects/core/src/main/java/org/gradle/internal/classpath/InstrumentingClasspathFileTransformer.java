@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classpath.TypeCollectingClasspathFileTransformer.TypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -128,7 +127,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, TypeRegistry typeRegistry) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, TypeHierarchyRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
@@ -178,7 +177,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         return hasher.hash().toString();
     }
 
-    private void transform(File source, File dest, TypeRegistry typeRegistry) {
+    private void transform(File source, File dest, TypeHierarchyRegistry typeRegistry) {
         if (policy.instrumentFile(source)) {
             instrument(source, dest, typeRegistry);
         } else {
@@ -187,7 +186,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
     }
 
-    private void instrument(File source, File dest, TypeRegistry typeRegistry) {
+    private void instrument(File source, File dest, TypeHierarchyRegistry typeRegistry) {
         classpathBuilder.jar(dest, builder -> {
             try {
                 visitEntries(source, builder, typeRegistry);
@@ -198,7 +197,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         });
     }
 
-    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder, TypeRegistry typeRegistry) throws IOException, FileException {
+    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder, TypeHierarchyRegistry typeRegistry) throws IOException, FileException {
         classpathWalker.visit(source, entry -> {
             try {
                 if (!policy.includeEntry(entry)) {

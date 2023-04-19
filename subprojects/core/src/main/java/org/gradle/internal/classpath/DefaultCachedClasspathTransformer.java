@@ -17,14 +17,12 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Task;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentStatus;
-import org.gradle.internal.classpath.TypeCollectingClasspathFileTransformer.TypeRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -165,11 +163,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         if (urls.isEmpty()) {
             return ImmutableList.of();
         }
-        List<File> files = urls.stream()
-            .filter(url -> url.getProtocol().equals("file"))
-            .map(Convert::urlToFile)
-            .collect(Collectors.toList());
-        TypeRegistry typeRegistry = getTypeRegistry(files);
+        TypeHierarchyRegistry typeRegistry = getTypeRegistry(urls);
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
         return transformAll(
             urls,
@@ -178,7 +172,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        TypeRegistry typeRegistry = getTypeRegistry(classPath.getAsFiles());;
+        TypeHierarchyRegistry typeRegistry = getTypeRegistry(classPath.getAsFiles());;
         return DefaultClassPath.of(
             transformAll(
                 classPath.getAsFiles(),
@@ -187,23 +181,35 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         );
     }
 
-    private TypeRegistry getTypeRegistry(List<File> files) {
-        TypeRegistry typeRegistry = new TypeRegistry();
-        TypeCollectingClasspathFileTransformer typeVisitor = new TypeCollectingClasspathFileTransformer(classpathWalker, InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader());
-        files.forEach(file -> typeVisitor.transform(file, null, null, typeRegistry));
+    private TypeHierarchyRegistry getTypeRegistry(Collection<URL> urls) {
+        List<File> files = urls.stream()
+            .filter(url -> url.getProtocol().equals("file"))
+            .map(Convert::urlToFile)
+            .collect(Collectors.toList());
+        return getTypeRegistry(files);
+    }
+
+    private TypeHierarchyRegistry getTypeRegistry(List<File> files) {
+        List<TypeHierarchyRegistry> typeRegistries = transformAll(files, this::visitClassHierarchyForFile);
+        return TypeHierarchyRegistry.of(typeRegistries);
+    }
+
+    private Optional<Either<TypeHierarchyRegistry, Callable<TypeHierarchyRegistry>>> visitClassHierarchyForFile(File source, Set<HashCode> seen) {
         try {
-            com.google.common.reflect.ClassPath.from(Task.class.getClassLoader()).getAllClasses().stream()
-                .filter(c -> c.getName().startsWith("org.gradle"))
-                .forEach(classInfo -> {
-                    Class<?> clazz = classInfo.load();
-                    String className = clazz.getName().replace(".", "/");
-                    typeRegistry.registerSuperType(className, clazz.getSuperclass());
-                    typeRegistry.registerInterfaces(className, clazz.getInterfaces());
-                });
+            TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
+            InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
+            classpathWalker.visit(source, entry -> {
+                if (!policy.includeEntry(entry)) {
+                    return;
+                }
+                if (entry.getName().endsWith(".class")) {
+                    typeRegistry.visit(entry.getContent());
+                }
+            });
+            return Optional.of(Either.left(typeRegistry));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return typeRegistry;
     }
 
     private Transform transformerFor(StandardTransform transform) {
@@ -229,7 +235,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, transform);
     }
 
-    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, TypeRegistry typeRegistry) {
+    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, TypeHierarchyRegistry typeRegistry) {
         if (original.getProtocol().equals("file")) {
             return cachedFile(Convert.urlToFile(original), transformer, seen, typeRegistry).map(
                 result -> result.fold(
@@ -245,7 +251,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         File original,
         ClasspathFileTransformer transformer,
         Set<HashCode> seen,
-        TypeRegistry typeRegistry
+        TypeHierarchyRegistry typeRegistry
     ) {
         FileSystemLocationSnapshot snapshot = snapshotOf(original);
         if (snapshot.getType() == FileType.Missing) {
@@ -265,7 +271,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return Optional.of(left(original));
     }
 
-    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer, TypeRegistry typeRegistry) {
+    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer, TypeHierarchyRegistry typeRegistry) {
         final File result = transformer.transform(original, snapshot, cache.getBaseDir(), typeRegistry);
         markAccessed(result, original);
         return result;

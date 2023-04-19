@@ -266,7 +266,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor methodVisitor, ClassData classData) {
             try {
-                InstrumentationMetadata metadata = (type, superType) -> classData.getSubtypes(superType).contains(type);
+                InstrumentationMetadata metadata = classData::isInstanceOf;
                 Constructor<?> constructor = Class.forName(className).getConstructor(MethodVisitor.class, InstrumentationMetadata.class);
                 return (JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata);
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
