@@ -16,7 +16,6 @@
 
 package org.gradle.internal.deprecation;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 
 import java.util.List;
@@ -122,22 +121,4 @@ public interface DeprecatableConfiguration extends Configuration {
      * to throw an exception.
      */
     void preventUsageMutation();
-
-    /**
-     * Configures if a configuration can have dependencies declared upon it.
-     *
-     * @since 8.0
-     */
-    @Incubating
-    void setCanBeDeclaredAgainst(boolean allowed);
-
-    /**
-     * Returns true if it is allowed to declare dependencies upon this configuration.
-     * Defaults to true.
-     * @return true if this configuration can have dependencies declared
-     *
-     * @since 8.0
-     */
-    @Incubating
-    boolean isCanBeDeclaredAgainst();
 }
