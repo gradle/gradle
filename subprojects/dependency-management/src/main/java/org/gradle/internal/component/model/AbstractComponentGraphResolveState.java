@@ -21,9 +21,12 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -115,5 +118,15 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     @Override
     public ArtifactSet prepareForArtifactResolution(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
         return artifactSelector.resolveArtifacts(getResolveMetadata(), artifacts, overriddenAttributes);
+    }
+
+    protected List<? extends Capability> capabilitiesFor(CapabilitiesMetadata variantCapabilities) {
+        List<? extends Capability> capabilities = variantCapabilities.getCapabilities();
+        if (capabilities.isEmpty()) {
+            capabilities = ImmutableList.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
+        } else {
+            capabilities = ImmutableList.copyOf(capabilities);
+        }
+        return capabilities;
     }
 }

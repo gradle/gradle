@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
@@ -282,10 +281,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     ResolvedVersionConstraint resolveVersionConstraint(VersionConstraint vc) {
         return resolvedVersionConstraints.computeIfAbsent(vc, key -> new DefaultResolvedVersionConstraint(key, versionSelectorScheme));
-    }
-
-    ImmutableAttributes desugar(ImmutableAttributes attributes) {
-        return attributeDesugaring.desugar(attributes);
     }
 
     ComponentSelector desugarSelector(ComponentSelector requested) {
