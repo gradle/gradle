@@ -31,7 +31,6 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileAccessPermissions;
 import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions;
 import org.gradle.api.internal.file.FileAccessPermissionsInternal;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -163,7 +162,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
         if (permissions != null) {
             permissions.finalizeValue();
-            return Providers.of(new DefaultImmutableFileAccessPermissions(permissions.flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get()));
+            return permissions.flatMap(ImmutableFileAccessPermissions::toUnixNumeric).map(DefaultImmutableFileAccessPermissions::new);
         }
 
         Provider<ImmutableFileAccessPermissions> specMode = getSpecMode();
@@ -171,7 +170,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
             return specMode;
         }
 
-        return Providers.of(new DefaultImmutableFileAccessPermissions(fileDetails.getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get()));
+        return fileDetails.getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).map(DefaultImmutableFileAccessPermissions::new);
     }
 
     private Provider<ImmutableFileAccessPermissions> getSpecMode() {

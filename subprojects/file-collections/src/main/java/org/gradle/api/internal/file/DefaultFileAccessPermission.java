@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 
 import javax.inject.Inject;
 
@@ -37,7 +38,7 @@ public abstract class DefaultFileAccessPermission extends AbstractImmutableFileA
     public abstract Property<Boolean> getExecute();
 
     @Override
-    public int toUnixNumeric() {
+    public Provider<Integer> toUnixNumeric() {
         getRead().finalizeValue();
         getWrite().finalizeValue();
         getExecute().finalizeValue();
