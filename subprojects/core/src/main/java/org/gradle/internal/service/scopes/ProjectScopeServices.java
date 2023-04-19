@@ -101,7 +101,6 @@ import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegi
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 /**
  * Contains the services for a given project.
@@ -168,7 +167,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
-        return new DefaultTemporaryFileProvider(() -> new File(project.getBuildDir(), "tmp"));
+        return new DefaultTemporaryFileProvider(() -> project.getLayout().getBuildDirectory().dir("tmp").get().getAsFile());
     }
 
     protected Factory<AntBuilder> createAntBuilderFactory() {
