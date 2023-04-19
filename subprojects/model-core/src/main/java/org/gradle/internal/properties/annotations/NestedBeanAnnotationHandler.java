@@ -26,12 +26,8 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.reflect.validation.Severity.WARNING;
@@ -59,10 +55,10 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
     }
 
-    private static final Set<Class<?>> SUPPORTED_KEY_TYPES = new HashSet<>(Arrays.asList(String.class, Integer.class, Enum.class));
+    private static final ImmutableSet<Class<?>> SUPPORTED_KEY_TYPES = ImmutableSet.of(Enum.class, Integer.class, String.class);
 
     private static String getSupportedKeyTypes() {
-        return SUPPORTED_KEY_TYPES.stream().sorted(Comparator.comparing(Class::toString)).map(cls -> "'" + cls.getSimpleName() + "'").collect(Collectors.joining(", "));
+        return SUPPORTED_KEY_TYPES.stream().map(cls -> "'" + cls.getSimpleName() + "'").collect(Collectors.joining(", "));
     }
 
     private static void validateKeyType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> keyType) {
