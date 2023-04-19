@@ -26,7 +26,7 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
     private final String name;
     private final boolean consumable;
     private final boolean resolvable;
-    private final boolean declarableAgainst;
+    private final boolean declarable;
     private final boolean consumptionDeprecated;
     private final boolean resolutionDeprecated;
     private final boolean declarationDeprecated;
@@ -35,7 +35,7 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
         String name,
         boolean consumable,
         boolean resolvable,
-        boolean declarableAgainst,
+        boolean declarable,
         boolean consumptionDeprecated,
         boolean resolutionDeprecated,
         boolean declarationDeprecated
@@ -43,7 +43,7 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
         this.name = name;
         this.consumable = consumable;
         this.resolvable = resolvable;
-        this.declarableAgainst = declarableAgainst;
+        this.declarable = declarable;
         this.consumptionDeprecated = consumptionDeprecated;
         this.resolutionDeprecated = resolutionDeprecated;
         this.declarationDeprecated = declarationDeprecated;
@@ -65,8 +65,8 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
     }
 
     @Override
-    public boolean isDeclarableAgainst() {
-        return declarableAgainst;
+    public boolean isDeclarable() {
+        return declarable;
     }
 
     @Override
@@ -95,7 +95,7 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
         DefaultConfigurationRole that = (DefaultConfigurationRole) o;
         return consumable == that.consumable &&
             resolvable == that.resolvable &&
-            declarableAgainst == that.declarableAgainst &&
+            declarable == that.declarable &&
             consumptionDeprecated == that.consumptionDeprecated &&
             resolutionDeprecated == that.resolutionDeprecated &&
             declarationDeprecated == that.declarationDeprecated &&
@@ -104,7 +104,7 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationDeprecated);
+        return Objects.hash(name, consumable, resolvable, declarable, consumptionDeprecated, resolutionDeprecated, declarationDeprecated);
     }
 
     @Override

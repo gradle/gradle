@@ -203,7 +203,7 @@ This method is only meant to be called on configurations which allow the ${allow
     private String buildAllowedUsages(String role) {
         switch (role) {
             case 'bucket':
-                return "\tDeclarable Against - this configuration can have dependencies added to it"
+                return "\tDeclarable - this configuration can have dependencies added to it"
             case 'consumable':
                 return "\tConsumable - this configuration can be selected by another project as a dependency"
             case 'resolvable':

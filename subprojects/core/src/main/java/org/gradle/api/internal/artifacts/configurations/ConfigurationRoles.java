@@ -80,8 +80,8 @@ public final class ConfigurationRoles {
     /**
      * Creates a new role which is not deprecated for any usage.
      */
-    private static ConfigurationRole createNonDeprecatedRole(String name, boolean consumable, boolean resolvable, boolean declarableAgainst) {
-        return new DefaultConfigurationRole(name, consumable, resolvable, declarableAgainst, false, false, false);
+    private static ConfigurationRole createNonDeprecatedRole(String name, boolean consumable, boolean resolvable, boolean declarable) {
+        return new DefaultConfigurationRole(name, consumable, resolvable, declarable, false, false, false);
     }
 
     private static final Set<ConfigurationRole> ALL = ImmutableSet.of(
@@ -93,13 +93,13 @@ public final class ConfigurationRoles {
      *
      * @param consumable whether this role is consumable
      * @param resolvable whether this role is resolvable
-     * @param declarableAgainst whether this role is declarable against
+     * @param declarable whether this role is declarable
      *
      * @return the role enum token with matching usage characteristics, if one exists; otherwise {@link Optional#empty()}
      */
-    public static Optional<ConfigurationRole> byUsage(boolean consumable, boolean resolvable, boolean declarableAgainst) {
+    public static Optional<ConfigurationRole> byUsage(boolean consumable, boolean resolvable, boolean declarable) {
         for (ConfigurationRole role : ALL) {
-            if (role.isConsumable() == consumable && role.isResolvable() == resolvable && role.isDeclarableAgainst() == declarableAgainst) {
+            if (role.isConsumable() == consumable && role.isResolvable() == resolvable && role.isDeclarable() == declarable) {
                 return Optional.of(role);
             }
         }

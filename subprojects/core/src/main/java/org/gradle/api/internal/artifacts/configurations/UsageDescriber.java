@@ -29,7 +29,7 @@ public abstract class UsageDescriber {
 
     private static final String CONSUMABLE = "Consumable - this configuration can be selected by another project as a dependency";
     private static final String RESOLVABLE = "Resolvable - this configuration can be resolved by this project to a set of files";
-    private static final String DECLARABLE_AGAINST = "Declarable Against - this configuration can have dependencies added to it";
+    private static final String DECLARABLE_AGAINST = "Declarable - this configuration can have dependencies added to it";
     private static final String UNUSABLE = "This configuration does not allow any usage";
 
     private static final String IS_DEPRECATED = "(but this behavior is marked deprecated)";
@@ -43,7 +43,7 @@ public abstract class UsageDescriber {
      * @return a human-readable description of the role's allowed usage
      */
     public static String describeRole(ConfigurationRole role) {
-        return describeUsage(role.isConsumable(), role.isResolvable(), role.isDeclarableAgainst(),
+        return describeUsage(role.isConsumable(), role.isResolvable(), role.isDeclarable(),
             role.isConsumptionDeprecated(), role.isResolutionDeprecated(), role.isDeclarationAgainstDeprecated());
     }
 
@@ -63,13 +63,13 @@ public abstract class UsageDescriber {
      *
      * @param isConsumable whether the configuration is consumable
      * @param isResolvable whether the configuration is resolvable
-     * @param isDeclarableAgainst whether the configuration is declarable against
+     * @param isDeclarable whether the configuration is declarable
      * @param isConsumptionDeprecated whether the configuration's consumable behavior is deprecated
      * @param isResolutionDeprecated whether the configuration's resolvable behavior is deprecated
-     * @param isDeclarationAgainstDeprecated whether the configuration's declarable against behavior is deprecated
+     * @param isDeclarationAgainstDeprecated whether the configuration's declarable behavior is deprecated
      * @return description of the given usage
      */
-    public static String describeUsage(boolean isConsumable, boolean isResolvable, boolean isDeclarableAgainst,
+    public static String describeUsage(boolean isConsumable, boolean isResolvable, boolean isDeclarable,
                                        boolean isConsumptionDeprecated, boolean isResolutionDeprecated, boolean isDeclarationAgainstDeprecated) {
         List<String> descriptions = new ArrayList<>();
         if (isConsumable) {
@@ -78,7 +78,7 @@ public abstract class UsageDescriber {
         if (isResolvable) {
             descriptions.add("\t" + RESOLVABLE + describeDeprecation(isResolutionDeprecated));
         }
-        if (isDeclarableAgainst) {
+        if (isDeclarable) {
             descriptions.add("\t" + DECLARABLE_AGAINST + describeDeprecation(isDeclarationAgainstDeprecated));
         }
         if (descriptions.isEmpty()) {
