@@ -1524,14 +1524,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning) {
-        expectedDeprecationWarnings.add(warning);
+    public GradleExecuter expectDeprecationWarning(int times, ExpectedDeprecationWarning warning) {
+        if (times <= 0) {
+            throw new IllegalArgumentException("times must be positive");
+        }
+
+        for (int i = 0; i < times; i++) {
+            expectedDeprecationWarnings.add(warning);
+        }
         return this;
     }
 
     @Override
-    public GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning.getMessage()));
+    public GradleExecuter expectDocumentedDeprecationWarning(int times, ExpectedDeprecationWarning warning) {
+        return expectDeprecationWarning(times, normalizeDocumentationLink(warning.getMessage()));
     }
 
     @Override
