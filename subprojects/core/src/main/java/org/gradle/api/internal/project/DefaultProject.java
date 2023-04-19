@@ -824,16 +824,19 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Deprecated
     public File getBuildDir() {
         return getLayout().getBuildDirectory().getAsFile().get();
     }
 
     @Override
+    @Deprecated
     public void setBuildDir(File path) {
         setBuildDir((Object) path);
     }
 
     @Override
+    @Deprecated
     public void setBuildDir(Object path) {
         getLayout().setBuildDirectory(path);
     }
