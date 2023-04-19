@@ -203,6 +203,6 @@ class DaemonClientTest extends ConcurrentSpecification {
         0 * connection3.stop()
         def exception = thrown(NoUsableDaemonFoundException)
         exception.message.contains 'A new daemon was started but could not be connected to'
-        exception.message.contains 'userguide/troubleshooting.html#network_connection for more details'
+        exception.resolutions[0].contains 'userguide/troubleshooting.html#network_connection for more details'
     }
 }

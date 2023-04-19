@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.client;
+package org.gradle.caching.http.internal;
 
-import org.gradle.internal.deprecation.Documentation;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.internal.exceptions.ResolutionProvider;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-public class NoUsableDaemonFoundException extends DefaultMultiCauseException implements ResolutionProvider {
+public class InsecureProtocolException extends InvalidUserCodeException implements ResolutionProvider {
 
-    private static final List<String> RESOLUTION = Collections.singletonList(Documentation.userManual("troubleshooting", "network_connection").consultDocumentationMessage());
+    private final List<String> resolutions;
 
-    public NoUsableDaemonFoundException(String message, Iterable<? extends Throwable> causes) {
-        super(message, causes);
+    public InsecureProtocolException(String message, String... resolutions) {
+        super(message);
+        this.resolutions = Arrays.asList(resolutions);
     }
 
     @Override
     public List<String> getResolutions() {
-        return RESOLUTION;
+        return resolutions;
     }
 }
