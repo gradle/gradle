@@ -4,5 +4,3 @@ plugins {
 }
 
 description = "Generated metadata about Gradle API needed by Kotlin DSL"
-
-// Sampel change for testing gitStream
