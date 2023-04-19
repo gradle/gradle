@@ -16,7 +16,10 @@
 
 package org.gradle.execution.plan;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Sorts {@link Node}s to execute in the following order:
@@ -32,6 +35,8 @@ import java.util.Comparator;
 public class NodeComparator implements Comparator<Node> {
 
     public static final NodeComparator INSTANCE = new NodeComparator();
+
+    public final Set<Long> precedence = Collections.synchronizedSet(new LinkedHashSet<>());
 
     private NodeComparator() {
     }
@@ -62,9 +67,7 @@ public class NodeComparator implements Comparator<Node> {
 
         if (o1 instanceof LocalTaskNode) {
             if (o2 instanceof LocalTaskNode) {
-                return ((LocalTaskNode) o1).getTask().compareTo(
-                    ((LocalTaskNode) o2).getTask()
-                );
+                return compareLocalTaskNodes((LocalTaskNode) o1, (LocalTaskNode) o2);
             }
             return -1;
         }
@@ -89,5 +92,32 @@ public class NodeComparator implements Comparator<Node> {
             return diff;
         }
         return -1;
+    }
+
+    private int compareLocalTaskNodes(LocalTaskNode o1, LocalTaskNode o2) {
+        if (o1.getTask() == o2.getTask()) {
+            return 0;
+        }
+        int o1Identity = System.identityHashCode(o1.getTask());
+        int o2Identity = System.identityHashCode(o2.getTask());
+        if (precedence.contains(toLong(o1Identity, o2Identity))) {
+            return -1;
+        }
+        if (precedence.contains(toLong(o2Identity, o1Identity))) {
+            return 1;
+        }
+        int computed = o1.getTask().compareTo(
+            o2.getTask()
+        );
+        if (computed < 0) {
+            precedence.add(toLong(o1Identity, o2Identity));
+        } else if (computed > 0) {
+            precedence.add(toLong(o2Identity, o1Identity));
+        }
+        return computed;
+    }
+
+    private static Long toLong(int x, int y) {
+        return ((long) x << 32) | (y & 0xffffffffL);
     }
 }
