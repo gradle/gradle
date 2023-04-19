@@ -39,14 +39,14 @@ automations:
 
   # Label changes by affected platforms (in blue)
   {% for platform in platforms %}
-  label_platform_{{ loop.index }}:
+  label_platform_{{ platform.name }}:
     if:
       - {{ author.on_jvm_team }}
       - {{ files | match(list=platform.subprojects) | some }}
     run:
       - action: add-label@v1
         args:
-          label: 'platform:{{ platform }}'
+          label: 'platform:{{ platform.name }}'
           color: '0000FF'
   {% endfor %}
 
@@ -82,6 +82,7 @@ build_logic_files:
 # Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
 platforms:
   - build_infrastructure:
+    name: 'build-infrastructure'
     subprojects:
       - 'subprojects/architecture-test/'
       - 'subprojects/build-scan-performance/'
@@ -102,6 +103,7 @@ platforms:
       - 'subprojects/build-logic-commons/'
       - 'subprojects/build-logic-settings/'
   - cc:
+    name: 'configuration-cache'
     subprojects:
       - 'subprojects/instrumentation-agent'
       - 'subprojects/api-metadata/' # also core
@@ -115,6 +117,7 @@ platforms:
       - 'subprojects/kotlin-dsl-plugins/' # also core
       - 'subprojects/kotlin-dsl-provider-plugins/' # also core
   - core:
+    name: 'core'
     subprojects:
       - 'subprojects/api-metadata/' # also cc
       - 'subprojects/base-annotations/' # also cc
@@ -159,12 +162,14 @@ platforms:
       - 'subprojects/wrapper/'
       - 'subprojects/wrapper-shared/'
   - documentation:
+    name: 'documentation'
     subprojects:
       - 'subprojects/docs/'
       - 'subprojects/docs-asciidoctor-extensions/'
       - 'subprojects/docs-asciidoctor-extensions-base/'
       - 'subprojects/samples/'
   - execution:
+    name: 'execution'
     subprojects:
       - 'subprojects/build-cache/' # also core
       - 'subprojects/build-cache-base/' # also core
@@ -174,22 +179,26 @@ platforms:
       - 'subprojects/build-profile/' # also core
       - 'subprojects/execution/'
   - extensibility:
+    name: 'extensibility'
     subprojects:
       - 'subprojects/plugin-development/'
       - 'subprojects/plugin-use/'
       - 'subprojects/test-kit/'
   - ge_integration:
+    name: 'ge-integration'
     subprojects:
       - 'subprojects/enterprise/'
       - 'subprojects/enterprise-logging/'
       - 'subprojects/enterprise-operations/'
       - 'subprojects/enterprise-workers/'
   - ide:
+    name: 'ide'
     subprojects:
       - 'subprojects/ide/'
       - 'subprojects/tooling-api/'
       - 'subprojects/tooling-api-builders/'
   - jvm:
+    name: 'jvm'
     subprojects:
       - 'subprojects/code-quality/'
       - 'subprojects/ear/'
@@ -207,6 +216,7 @@ platforms:
       - 'subprojects/testing-jvm/'
       - 'subprojects/testing-jvm-infrastructure/'
   - software:
+    name: 'software'
     subprojects:
       - 'subprojects/antlr/'
       - 'subprojects/build-init/'
