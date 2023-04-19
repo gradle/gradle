@@ -527,6 +527,13 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * (without contributions from superconfigurations).  The new configuration will be in the
      * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.
      * {@link #getHierarchy()} for the copy will not include any superconfigurations.
+     * <p>
+     * This method is only intended for use for specific situations involving resolvable configuration, it is
+     * <strong>NOT</strong> intended as a general-purpose copying mechanism.
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
+     * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
+     *
      * @return copy of this configuration
      */
     Configuration copy();
@@ -536,6 +543,13 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * and those derived from superconfigurations.  The new configuration will be in the
      * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.
      * {@link #getHierarchy()} for the copy will not include any superconfigurations.
+     * <p>
+     * This method is only intended for use for specific situations involving resolvable configuration, it is
+     * <strong>NOT</strong> intended as a general-purpose copying mechanism.
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
+     * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
+     *
      * @return copy of this configuration
      */
     Configuration copyRecursive();
@@ -543,6 +557,12 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Creates a copy of this configuration ignoring superconfigurations (see {@link #copy()} but filtering
      * the dependencies using the specified dependency spec.
+     * <p>
+     * This method is only intended for use for specific situations involving resolvable configuration, it is
+     * <strong>NOT</strong> intended as a general-purpose copying mechanism.
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
+     * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
@@ -552,6 +572,12 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Creates a copy of this configuration with dependencies from superconfigurations (see {@link #copyRecursive()})
      * but filtering the dependencies using the dependencySpec.
+     * <p>
+     * This method is only intended for use for specific situations involving resolvable configuration, it is
+     * <strong>NOT</strong> intended as a general-purpose copying mechanism.
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
+     * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
@@ -560,6 +586,12 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copy(org.gradle.api.specs.Spec)}
+     *  <p>
+     * This method is only intended for use for specific situations involving resolvable configuration, it is
+     * <strong>NOT</strong> intended as a general-purpose copying mechanism.
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
+     * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
@@ -568,6 +600,12 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
 
     /**
      * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copyRecursive(org.gradle.api.specs.Spec)}
+     * <p>
+     * This method is only intended for use for specific situations involving resolvable configuration, it is
+     * <strong>NOT</strong> intended as a general-purpose copying mechanism.
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
+     * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
