@@ -65,7 +65,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 29;
+    private static final int DECORATION_FORMAT = 30;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
