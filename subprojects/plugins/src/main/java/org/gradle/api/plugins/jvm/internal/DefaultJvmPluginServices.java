@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.DefaultProviderWithValue;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -236,7 +237,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     private <COMPILE extends AbstractCompile & HasCompileOptions> Provider<Integer> getMajorVersion(COMPILE compileTask) {
-        return compileTask.getOptions().getRelease().orElse(providerFactory.provider(() -> {
+        return compileTask.getOptions().getRelease().orElse(new DefaultProviderWithValue<>(() -> {
             List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
             int flagIndex = compilerArgs.indexOf("--release");
 

@@ -19,7 +19,7 @@ package org.gradle.jvm.toolchain.internal;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileFactory;
-import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.DefaultProviderWithValue;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -100,7 +100,7 @@ public class JavaToolchainQueryService {
 
     public ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) Objects.requireNonNull(filter);
-        return new DefaultProvider<>(() -> resolveToolchain(filterInternal));
+        return new DefaultProviderWithValue<>(() -> resolveToolchain(filterInternal));
     }
 
     private JavaToolchain resolveToolchain(JavaToolchainSpecInternal requestedSpec) throws Exception {
