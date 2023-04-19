@@ -288,7 +288,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
         // TODO: The jmh plugin prevents asserting this role upon creation; if it has been applied, then it will pre-create a runtime classpath configuration
-        // for the jmg sourceset, which is both resolvable and declarable against, so this would fail if we assert the role's usage here.
+        // for the jmg sourceset, which is both resolvable and declarable, so this would fail if we assert the role's usage here.
         warnIfConfigurationAlreadyExists(configurations, runtimeClasspathConfigurationName);
         Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
         runtimeClasspathConfiguration.setVisible(false);

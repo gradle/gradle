@@ -21,14 +21,14 @@ import spock.lang.Specification
 class ConfigurationRolesSpec extends Specification {
     def "can find predefined role #role"() {
         when:
-        def result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst)
+        def result = ConfigurationRoles.byUsage(consumable, resolvable, declarable)
 
         then:
         result.isPresent()
         result.get() == role
 
         where:
-        consumable  | resolvable    | declarableAgainst || role
+        consumable  | resolvable    | declarable        || role
         true        | true          | true              || ConfigurationRoles.LEGACY
         true        | false         | false             || ConfigurationRoles.CONSUMABLE
         false       | true          | false             || ConfigurationRoles.RESOLVABLE
@@ -36,12 +36,12 @@ class ConfigurationRolesSpec extends Specification {
         false       | false         | true              || ConfigurationRoles.BUCKET
     }
 
-    def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarableAgainst=#declarableAgainst"() {
+    def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarable=#declarable"() {
         expect:
-        !ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst).isPresent()
+        !ConfigurationRoles.byUsage(consumable, resolvable, declarable).isPresent()
 
         where:
-        consumable  | resolvable    | declarableAgainst
+        consumable  | resolvable    | declarable
         false       | false         | false
         true        | true          | false
     }
