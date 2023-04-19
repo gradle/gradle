@@ -27,7 +27,7 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
                 allprojects {
                     apply plugin: 'java'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }
@@ -177,6 +177,9 @@ Required by:
             }
         """
 
+        executer.expectDocumentedDeprecationWarning(4, "The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
+        executer.expectDocumentedDeprecationWarning(3, "The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
+
         expect:
         execute(buildA, ":assemble")
 
@@ -244,6 +247,8 @@ Required by:
                 assert self == rootComponent
             }
         """
+
+        executer.expectDocumentedDeprecationWarning(8, "The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
 
         expect:
         execute(buildA, ":buildC:assemble", ":buildB:assemble", ":assemble")
