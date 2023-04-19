@@ -806,7 +806,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Nullable
         private Integer getMode(Provider<ImmutableFileAccessPermissions> permissions) {
-            return permissions.isPresent() ? permissions.get().toUnixNumeric() : null;
+            return permissions.flatMap(ImmutableFileAccessPermissions::toUnixNumeric).getOrNull();
         }
 
         @Override

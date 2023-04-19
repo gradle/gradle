@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.ImmutableFileAccessPermission;
 
 public abstract class AbstractImmutableFileAccessPermission implements ImmutableFileAccessPermission {
 
-    @Override
-    public int toUnixNumeric() {
+    /**
+     * Converts the user permission to a numeric Unix permission.
+     * See {@link FileAccessPermissions#unix(String)} for details,
+     * returned value is equivalent to one of the three octal digits.
+     */
+    protected int toUnixNumeric() {
         int unixNumeric = 0;
         unixNumeric += getRead().get() ? 4 : 0;
         unixNumeric += getWrite().get() ? 2 : 0;

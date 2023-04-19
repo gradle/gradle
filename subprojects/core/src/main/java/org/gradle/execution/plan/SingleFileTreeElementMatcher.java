@@ -135,7 +135,7 @@ public class SingleFileTreeElementMatcher {
                 .willBeRemovedInGradle9()
                 .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
                 .nagUser();
-            return getImmutablePermissions().get().toUnixNumeric();
+            return getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get();
         }
 
         @Override

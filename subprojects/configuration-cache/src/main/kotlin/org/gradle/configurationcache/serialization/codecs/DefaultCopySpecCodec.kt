@@ -58,8 +58,8 @@ class DefaultCopySpecCodec(
             writeBoolean(value.includeEmptyDirs)
             writeBoolean(value.isCaseSensitive)
             writeString(value.filteringCharset)
-            writeNullableSmallInt(value.dirPermissions.orNull?.toUnixNumeric())
-            writeNullableSmallInt(value.filePermissions.orNull?.toUnixNumeric())
+            writeNullableSmallInt(value.dirPermissions.flatMap { it.toUnixNumeric() }.orNull)
+            writeNullableSmallInt(value.filePermissions.flatMap { it.toUnixNumeric() }.orNull)
             writeCollection(value.copyActions)
             writeCollection(value.children)
         }

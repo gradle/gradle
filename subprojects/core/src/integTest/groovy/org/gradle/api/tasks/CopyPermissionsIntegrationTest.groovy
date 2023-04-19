@@ -480,7 +480,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
                                     permissions.set(p)
                                 }
                               """
-        "file mode"         | "fileMode = p.toUnixNumeric()"
+        "file mode"         | "fileMode = p.toUnixNumeric().get()"
         "file permissions"  | "filePermissions.set(p)"
     }
 

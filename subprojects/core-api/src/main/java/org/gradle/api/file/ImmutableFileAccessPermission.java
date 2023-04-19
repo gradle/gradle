@@ -34,11 +34,4 @@ public interface ImmutableFileAccessPermission {
 
     Provider<Boolean> getExecute();
 
-    /**
-     * Converts the user permission to a numeric Unix permission.
-     * See {@link FileAccessPermissions#unix(String)} for details,
-     * returned value is equivalent to one of the three octal digits.
-     */
-    int toUnixNumeric();
-
 }

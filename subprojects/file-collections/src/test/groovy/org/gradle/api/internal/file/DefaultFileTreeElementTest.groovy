@@ -34,6 +34,6 @@ class DefaultFileTreeElementTest extends Specification {
         stat.getUnixMode(f) >> 0644
 
         expect:
-        e.getImmutablePermissions().get().toUnixNumeric() == 0644
+        e.getImmutablePermissions().flatMap {it.toUnixNumeric()}.get() == 0644
     }
 }

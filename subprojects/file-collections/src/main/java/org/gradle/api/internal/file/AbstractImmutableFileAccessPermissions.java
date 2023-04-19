@@ -17,15 +17,20 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 
 public abstract class AbstractImmutableFileAccessPermissions implements ImmutableFileAccessPermissions {
 
     @Override
-    public int toUnixNumeric() {
-        return toUnixNumericPermissions(
-            getUser().toUnixNumeric(),
-            getGroup().toUnixNumeric(),
-            getOther().toUnixNumeric());
+    public Provider<Integer> toUnixNumeric() {
+        return Providers.changing(() ->
+            toUnixNumericPermissions(
+                ((AbstractImmutableFileAccessPermission) getUser()).toUnixNumeric(),
+                ((AbstractImmutableFileAccessPermission) getGroup()).toUnixNumeric(),
+                ((AbstractImmutableFileAccessPermission) getOther()).toUnixNumeric()
+            )
+        );
     }
 
     @SuppressWarnings("OctalInteger")
