@@ -825,23 +825,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle/issues/22091")
-    fun `does not add extra task actions to kotlin compilation task`() {
-        assumeNonEmbeddedGradleExecuter()
-        withKotlinDslPlugin().appendText("""
-            gradle.taskGraph.whenReady {
-                val compileKotlinActions = allTasks.single { it.path == ":compileKotlin" }.actions.size
-                require(compileKotlinActions == 1) {
-                    ":compileKotlin has ${'$'}compileKotlinActions actions, expected 1"
-                }
-            }
-        """)
-        withPrecompiledKotlinScript("my-plugin.gradle.kts", "")
-
-        compileKotlin()
-    }
-
-    @Test
     @Issue("https://github.com/gradle/gradle/issues/23576")
     @ToBeImplemented
     fun `can compile precompiled scripts with compileOnly dependency`() {
@@ -1128,6 +1111,34 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         build(":consumer:classes").apply {
             assertTaskExecuted(":consumer:compilePluginsBlocks")
             assertNotOutput("w: Classpath entry points to a non-existent location")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24788")
+    @Test
+    fun `fail with a reasonable message when kotlin-dsl plugin compiler arguments have been tempered with`() {
+        assumeNonEmbeddedGradleExecuter()
+
+        withKotlinDslPlugin().appendText(
+            """
+            tasks.compileKotlin {
+                compilerOptions {
+                    freeCompilerArgs.set(listOf("some"))
+                }
+            }
+            """
+        )
+        withPrecompiledKotlinScript("some.gradle.kts", "")
+
+        buildAndFail("compileKotlin").apply {
+            assertHasFailure("Execution failed for task ':compileKotlin'.") {
+                assertHasCause(
+                    "Kotlin compiler arguments of task ':compileKotlin' do not work for the `kotlin-dsl` plugin. " +
+                        "The 'freeCompilerArgs' property has been reassigned. " +
+                        "It must instead be appended to. " +
+                        "Please use 'freeCompilerArgs.addAll(\"your\", \"args\")' to fix this."
+                )
+            }
         }
     }
 }

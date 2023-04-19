@@ -16,6 +16,7 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -318,6 +319,9 @@ fun configureKotlinCompilerArguments(
         taskContainer.compileKotlin {
             if (hasLazyKotlinCompilerOptions) {
                 configureKotlinCompilerArgumentsLazily(resolverEnvironment)
+                doFirst {
+                    validateKotlinCompilerArguments()
+                }
             } else {
                 doFirst {
                     configureKotlinCompilerArgumentsEagerly(resolverEnvironment)
@@ -341,6 +345,25 @@ fun Task.configureKotlinCompilerArgumentsLazily(resolverEnvironment: Provider<St
             val freeCompilerArgs = getProperty("freeCompilerArgs") as ListProperty<String>
             freeCompilerArgs.addAll(scriptTemplatesArgs)
             freeCompilerArgs.add(resolverEnvironment.mappedToScriptResolverEnvironmentArg)
+        }
+    }
+}
+
+
+private
+fun Task.validateKotlinCompilerArguments() {
+    withGroovyBuilder {
+        getProperty("compilerOptions").withGroovyBuilder {
+            @Suppress("unchecked_cast")
+            val freeCompilerArgs = getProperty("freeCompilerArgs") as ListProperty<String>
+            if (!freeCompilerArgs.get().containsAll(scriptTemplatesArgs)) {
+                throw InvalidUserCodeException(
+                    "Kotlin compiler arguments of ${this@validateKotlinCompilerArguments} do not work for the `kotlin-dsl` plugin. " +
+                        "The 'freeCompilerArgs' property has been reassigned. " +
+                        "It must instead be appended to. " +
+                        "Please use 'freeCompilerArgs.addAll(\"your\", \"args\")' to fix this."
+                )
+            }
         }
     }
 }
