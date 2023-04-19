@@ -17,7 +17,7 @@
 package org.gradle.internal.reflect.validation
 
 
-import static org.gradle.util.internal.TextUtil.maybeAppendDot
+import static org.gradle.util.internal.TextUtil.endLineWithDot
 
 class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayConfiguration<T>> {
     private final ValidationMessageChecker checker
@@ -113,13 +113,13 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     }
 
     static String formatEntry(String entry) {
-        maybeAppendDot(entry.capitalize())
+        endLineWithDot(entry.capitalize())
     }
 
     String render(boolean renderSolutions = true) {
         def newLine = "\n${checker.messageIndent}"
         StringBuilder sb = new StringBuilder(intro)
-        sb.append(maybeAppendDot(description))
+        sb.append(endLineWithDot(description))
             .append(newLine)
             .append(newLine)
         if (reason) {

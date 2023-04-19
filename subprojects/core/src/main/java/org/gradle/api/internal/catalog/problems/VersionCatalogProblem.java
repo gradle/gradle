@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.apache.commons.lang.StringUtils.uncapitalize;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutions;
-import static org.gradle.util.internal.TextUtil.maybeAppendDot;
+import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class VersionCatalogProblem extends BaseProblem<VersionCatalogProblemId, StandardSeverity, String> {
     VersionCatalogProblem(VersionCatalogProblemId versionCatalogProblemId,
@@ -42,10 +42,10 @@ public class VersionCatalogProblem extends BaseProblem<VersionCatalogProblemId, 
 
     public void reportInto(TreeFormatter output) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Problem: In " + uncapitalize(getWhere()) + ", " + maybeAppendDot(uncapitalize(getShortDescription())));
+        formatter.node("Problem: In " + uncapitalize(getWhere()) + ", " + endLineWithDot(uncapitalize(getShortDescription())));
         getWhy().ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(maybeAppendDot(reason)));
+            formatter.node("Reason: " + capitalize(endLineWithDot(reason)));
         });
         renderSolutions(formatter, getPossibleSolutions());
         getDocumentationLink().ifPresent(docLink -> {
