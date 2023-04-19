@@ -58,6 +58,7 @@ abstract class KotlinDslBasePlugin : Plugin<Project> {
         }
 
     private
-    fun Project.disableKotlinCompilationAvoidance() =
-        setProperty("kotlin.incremental.useClasspathSnapshot", "false")
+    fun Project.disableKotlinCompilationAvoidance() {
+        extra["kotlin.incremental.useClasspathSnapshot"] = "false"
+    }
 }
