@@ -20,7 +20,7 @@ automations:
   # If someone adds a TODO, remind them about it by requesting removal
   point_out_todos:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ source.diff.files | matchDiffLines(regex=r/(TODO)|(todo)/) | some }}
     run:
       - action: request-changes@v1
@@ -32,11 +32,22 @@ automations:
 # This section could also appear ahead of the automations section.
 
 author:
-  on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
+  using_gitstream: {{ (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.jvm.members)) }}
 
-jvm_team_members:
-  - 'big-guy'
-  - 'tresat'
-  - 'ghale'
-  - 'jvandort'
-  - 'octylFractal'
+teams:
+  - execution:
+    members:
+      - 'lptr'
+      - 'asodja'
+      - 'FrauBoes'
+  - ide:
+    members:
+      - 'donat'
+      - 'reinsch82'
+  - jvm:
+    members:
+      - 'big-guy'
+      - 'tresat'
+      - 'ghale'
+      - 'jvandort'
+      - 'octylFractal'

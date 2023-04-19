@@ -20,7 +20,7 @@ automations:
   # Add a label that indicates how many minutes it will take to review the PR and categorizes it
   estimated_time_to_review:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
     run:
       - action: add-label@v1
         # etr is defined in the last section of this example
@@ -38,11 +38,22 @@ calc:
   etr: {{ branch | estimatedReviewTime }}
 
 author:
-  on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
+  using_gitstream: {{ (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.jvm.members)) }}
 
-jvm_team_members:
-  - 'big-guy'
-  - 'tresat'
-  - 'ghale'
-  - 'jvandort'
-  - 'octylFractal'
+teams:
+  - execution:
+    members:
+      - 'lptr'
+      - 'asodja'
+      - 'FrauBoes'
+  - ide:
+    members:
+      - 'donat'
+      - 'reinsch82'
+  - jvm:
+    members:
+      - 'big-guy'
+      - 'tresat'
+      - 'ghale'
+      - 'jvandort'
+      - 'octylFractal'
