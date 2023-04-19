@@ -47,6 +47,8 @@ abstract class KotlinDslBasePlugin : Plugin<Project> {
 
         apply<KotlinDslCompilerPlugins>()
         addGradleKotlinDslDependencyTo(kotlinArtifactConfigurationNames)
+
+        disableKotlinCompilationAvoidance()
     }
 
     private
@@ -54,4 +56,8 @@ abstract class KotlinDslBasePlugin : Plugin<Project> {
         configurations.forEach {
             dependencies.add(it, gradleKotlinDsl())
         }
+
+    private
+    fun Project.disableKotlinCompilationAvoidance() =
+        setProperty("kotlin.incremental.useClasspathSnapshot", "false")
 }
