@@ -28,7 +28,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -41,8 +40,6 @@ import java.util.stream.Collectors;
  * Holds the resolution state for an external component.
  */
 public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
-    private final AttributeDesugaring attributeDesugaring;
-
     // The artifact resolve state for each variant of this component
     private final ConcurrentMap<ConfigurationMetadata, DefaultVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
     // The variants of this component to use when variant reselection is enabled
@@ -51,13 +48,12 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     private final List<ResolvedVariantResult> selectableVariantResults;
 
     public DefaultComponentGraphResolveState(T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
-        super(graphMetadata, artifactMetadata);
+        super(graphMetadata, artifactMetadata, attributeDesugaring);
         allVariantsForArtifactSelection = graphMetadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .flatMap(variant -> variant.getVariants().stream())
                 .collect(Collectors.toSet()));
-        this.attributeDesugaring = attributeDesugaring;
         selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream().
             flatMap(variant -> variant.getVariants().stream()).
             map(variant -> new DefaultResolvedVariantResult(
@@ -78,16 +74,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
         return selectableVariantResults;
-    }
-
-    @Override
-    public ResolvedVariantResult getVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant) {
-        return new DefaultResolvedVariantResult(
-            getId(),
-            Describables.of(metadata.getName()),
-            attributeDesugaring.desugar(metadata.getAttributes()),
-            capabilitiesFor(metadata.getCapabilities()),
-            externalVariant);
     }
 
     @Override
