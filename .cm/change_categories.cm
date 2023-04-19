@@ -20,7 +20,7 @@ automations:
   # Add the a:documentation label to docs-only changes
   docs_only:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ is.docs }}
     run:
       - action: add-label@v1
@@ -29,7 +29,7 @@ automations:
   # Add the a:chore label and auto-approve formatting-only changes
   formatting_only:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ is.formatting }}
     run:
       - action: add-label@v1
@@ -40,7 +40,7 @@ automations:
   # Label changes by affected platforms (in blue)
   label_platform_jvm:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ is.platform.jvm }}
     run:
       - action: add-label@v1
@@ -49,7 +49,7 @@ automations:
           color: '0000FF'
   label_platform_cc:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ is.platform.cc }}
     run:
       - action: add-label@v1
@@ -58,7 +58,7 @@ automations:
           color: '0000FF'
   label_platform_execution:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ is.platform.execution }}
     run:
       - action: add-label@v1
@@ -69,7 +69,7 @@ automations:
   # Call out PRs that change the build script (and will be longer to checkout and review)
   label_build_script_change:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ is.build_script_change }}
     run:
       - action: add-label@v1
@@ -103,11 +103,22 @@ build_logic_files:
   - 'settings.gradle'
 
 author:
-  on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
+  using_gitstream: {{ (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.jvm.members)) }}
 
-jvm_team_members:
-  - 'big-guy'
-  - 'tresat'
-  - 'ghale'
-  - 'jvandort'
-  - 'octylFractal'
+teams:
+  - execution:
+    members:
+      - 'lptr'
+      - 'asodja'
+      - 'FrauBoes'
+  - ide:
+    members:
+      - 'donat'
+      - 'reinsch82'
+  - jvm:
+    members:
+      - 'big-guy'
+      - 'tresat'
+      - 'ghale'
+      - 'jvandort'
+      - 'octylFractal'
