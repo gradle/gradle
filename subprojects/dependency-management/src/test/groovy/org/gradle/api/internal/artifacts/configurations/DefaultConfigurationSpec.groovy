@@ -909,7 +909,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         configuration.artifacts.add(artifact("name1", "ext1", "type1", "classifier1"))
         configuration.artifacts.add(artifact("name2", "ext2", "type2", "classifier2"))
 
-        if (role.declarableAgainst) {
+        if (role.declarable) {
             configuration.dependencies.add(dependency("group1", "name1", "version1"))
             configuration.dependencies.add(dependency("group2", "name2", "version2"))
         }
@@ -1677,7 +1677,7 @@ Configuration:  class='class org.gradle.api.internal.artifacts.configurations.De
 Current Usage:
 \tConsumable - this configuration can be selected by another project as a dependency
 \tResolvable - this configuration can be resolved by this project to a set of files
-\tDeclarable Against - this configuration can have dependencies added to it
+\tDeclarable - this configuration can have dependencies added to it
 Local Dependencies:
    DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
 Local Artifacts:
@@ -1787,7 +1787,7 @@ All Artifacts:
         usageName               | changeUsage
         'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
         'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
-        'declarable against'    | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
+        'declarable'            | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
     }
 
     def "locking all changes prevents #usageName usage changes"() {
@@ -1806,7 +1806,7 @@ All Artifacts:
         usageName               | changeUsage
         'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
         'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
-        'declarable against'    | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
+        'declarable'            | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
     }
 
     def 'locking constraints are attached to a configuration and not its children'() {

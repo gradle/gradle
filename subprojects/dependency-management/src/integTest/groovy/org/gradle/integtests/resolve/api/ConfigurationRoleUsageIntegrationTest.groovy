@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.api
 
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -214,7 +213,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         expect:
         expectConsumableChanging(':buildSrc:implementation', true)
         expectResolvableChanging(':buildSrc:implementation', true)
-        expectDeclarableAgainstChanging(':buildSrc:implementation', false)
+        expectDeclarableChanging(':buildSrc:implementation', false)
         succeeds 'myTask'
     }
 
@@ -256,10 +255,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         expect:
         expectConsumableChanging(':projectA:implementation', true)
         expectResolvableChanging(':projectA:implementation', true)
-        expectDeclarableAgainstChanging(':projectA:implementation', false)
+        expectDeclarableChanging(':projectA:implementation', false)
         expectConsumableChanging(':projectB:implementation', true)
         expectResolvableChanging(':projectB:implementation', true)
-        expectDeclarableAgainstChanging(':projectB:implementation', false)
+        expectDeclarableChanging(':projectB:implementation', false)
         succeeds 'help'
     }
     // endregion Roleless (Implicit LEGACY Role) Configurations
@@ -275,7 +274,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 doLast {
                     assert configurations.custom.canBeConsumed == $consumable
                     assert configurations.custom.canBeResolved == $resolvable
-                    assert configurations.custom.canBeDeclaredAgainst == $declarableAgainst
+                    assert configurations.custom.canBeDeclaredAgainst == $declarable
                     assert configurations.custom.deprecatedForConsumption == $consumptionDeprecated
                     assert configurations.custom.deprecatedForResolution == $resolutionDeprecated
                     assert configurations.custom.deprecatedForDeclarationAgainst == $declarationAgainstDeprecated
@@ -287,7 +286,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds('checkConfUsage')
 
         where:
-        role                    | customRoleBasedConf               || consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
+        role                    | customRoleBasedConf               || consumable  | resolvable    | declarable | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
         'consumable'            | "consumable('custom')"            || true        | false         | false             | false                 | false                 | false
         'resolvable'            | "resolvable('custom')"            || false       | true          | false             | false                 | false                 | false
         'resolvableBucket'      | "resolvableBucket('custom')"      || false       | true          | true              | false                 | false                 | false
@@ -437,7 +436,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
   Expected that it is:
   \tResolvable - this configuration can be resolved by this project to a set of files
   But is actually is:
-  \tDeclarable Against - this configuration can have dependencies added to it""")
+  \tDeclarable - this configuration can have dependencies added to it""")
     }
 
     def "maybeCreateWithRole verifies usage of existing custom configurations' roles when matching configuration is found, failing on mismatch"() {
@@ -749,7 +748,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "using consumable to make a configuration"          | "consumable('test')"                                             | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
         "using resolvable to make a configuration"          | "resolvable('test')"                                             | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
         "using resolvable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.RESOLVABLE_BUCKET)"   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.CONSUMABLE_BUCKET)"   | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
+        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.CONSUMABLE_BUCKET)"   | "declarable" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
     }
 
     def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {
