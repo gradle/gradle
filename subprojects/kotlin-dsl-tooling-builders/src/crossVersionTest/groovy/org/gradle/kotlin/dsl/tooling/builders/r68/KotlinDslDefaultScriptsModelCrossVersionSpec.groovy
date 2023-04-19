@@ -35,7 +35,7 @@ class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScri
 
         when:
         def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
-            setModelParameters(it, false, true, [])
+            setModelParameters(it, false)
         }
 
         then:

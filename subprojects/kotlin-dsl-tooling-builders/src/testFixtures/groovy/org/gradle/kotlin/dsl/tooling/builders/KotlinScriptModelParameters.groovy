@@ -24,7 +24,7 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRep
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.newCorrelationId
 
 class KotlinScriptModelParameters {
-    static setModelParameters(modelBuilder, boolean lenient, boolean explicitlyRequestPreparationTasks, Iterable<File> scripts) {
+    static setModelParameters(modelBuilder, boolean lenient, boolean explicitlyRequestPreparationTasks = true, Iterable<File> scripts = []) {
         if (lenient) {
             modelBuilder.setJvmArguments([KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION])
         } else {
