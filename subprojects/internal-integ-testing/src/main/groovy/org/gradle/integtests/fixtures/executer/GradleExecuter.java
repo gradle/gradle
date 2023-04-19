@@ -351,7 +351,19 @@ public interface GradleExecuter extends Stoppable {
         return expectDeprecationWarning(new ExpectedDeprecationWarning(warning));
     }
 
-    GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
+    default GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning) {
+        return expectDeprecationWarning(1, warning);
+    }
+
+    /**
+     * Expects exactly the given number of deprecation warnings with given message.
+     * If fewer or more warnings are produced during the execution, the assertion fails.
+     */
+    default GradleExecuter expectDeprecationWarning(int times, String warning) {
+        return expectDeprecationWarning(times, new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDeprecationWarning(int times, ExpectedDeprecationWarning warning);
 
     /**
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
@@ -360,7 +372,19 @@ public interface GradleExecuter extends Stoppable {
         return expectDocumentedDeprecationWarning(new ExpectedDeprecationWarning(warning));
     }
 
-    GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning);
+    default GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning) {
+        return expectDocumentedDeprecationWarning(1, warning);
+    }
+
+    /**
+     * Expects exactly the given number of deprecation warnings with given message.
+     * If fewer or more warnings are produced during the execution, the assertion fails.
+     */
+    default GradleExecuter expectDocumentedDeprecationWarning(int times, String warning) {
+        return expectDocumentedDeprecationWarning(times, new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDocumentedDeprecationWarning(int times, ExpectedDeprecationWarning warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
