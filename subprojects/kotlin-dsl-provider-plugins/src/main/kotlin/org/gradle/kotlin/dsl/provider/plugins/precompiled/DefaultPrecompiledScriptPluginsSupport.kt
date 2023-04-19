@@ -459,18 +459,23 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw PrecompiledScriptException(
             String.format(
-                "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.\n\n%s", this.relativePath(scriptPlugin.scriptFile),
-                DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
-                PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
-            )
+                "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.", this.relativePath(scriptPlugin.scriptFile),
+                DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE
+            ),
+            null,
+            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
         )
     }
     val existingPlugin = plugins.findPlugin(scriptPlugin.id)
     if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw PrecompiledScriptException(
             String.format(
-                "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.\n\n%s", this.relativePath(scriptPlugin.scriptFile), scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
-            )
+                "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.",
+                this.relativePath(scriptPlugin.scriptFile),
+                scriptPlugin.id
+            ),
+            null,
+            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
         )
     }
 }
