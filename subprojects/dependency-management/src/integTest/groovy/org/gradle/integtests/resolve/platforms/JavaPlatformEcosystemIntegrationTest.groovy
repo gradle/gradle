@@ -75,6 +75,36 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
         }
     }
 
+    def "Configuration.copy() should when configuration contains project dependency constraints"() {
+        setup:
+        buildFile << """
+            configurations {
+                custom {
+                    canBeResolved = true
+                }
+            }
+
+            dependencies {
+                constraints {
+                    custom(project(":lib")) { because "platform alignment" }
+                }
+            }
+
+            configurations.custom.copy()
+        """
+        settingsFile << "include 'lib'"
+
+        expect:
+        succeeds ":help"
+    }
+
+    /**
+     * I think the test above: {@link JavaPlatformEcosystemIntegrationTest#"Configuration.copy() should when configuration contains project dependency constraints"}
+     * should be sufficient to cover this case, which seems to apply to any configurations that has a project dependency constraint
+     * and is independent of the involvement of the Java Platform plugin.  But I'll leave this test here just in case for now.
+     *
+     * Once the deprecation becomes an error, this test should be removed.
+     */
     @Issue("https://github.com/gradle/gradle/issues/17179")
     def "Configuration.copy() should work when platform declares project dependency constraints"() {
         setup:
