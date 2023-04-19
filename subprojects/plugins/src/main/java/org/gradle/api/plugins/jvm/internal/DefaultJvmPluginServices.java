@@ -48,10 +48,10 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -226,27 +226,27 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             return Providers.notDefined();
         }
 
-        Iterator<TaskProvider<COMPILE>> iterator = compileTasks.iterator();
-        Provider<Integer> maxMajorVersion = iterator.next().flatMap(this::getMajorVersion);
-
-        while(iterator.hasNext()) {
-            TaskProvider<COMPILE> task = iterator.next();
-            maxMajorVersion = maxMajorVersion.flatMap(max -> task.flatMap(this::getMajorVersion).map(current -> Math.max(max, current)));
-        }
-        return maxMajorVersion;
+        return new DefaultProviderWithValue<>(() ->
+            compileTasks.stream()
+                .map(task -> getMajorVersion(task.get()))
+                .max(Comparator.naturalOrder())
+                .get()
+        );
     }
 
-    private <COMPILE extends AbstractCompile & HasCompileOptions> Provider<Integer> getMajorVersion(COMPILE compileTask) {
-        return compileTask.getOptions().getRelease().orElse(new DefaultProviderWithValue<>(() -> {
-            List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
-            int flagIndex = compilerArgs.indexOf("--release");
+    private static <COMPILE extends AbstractCompile & HasCompileOptions> int getMajorVersion(COMPILE compileTask) {
+        if (compileTask.getOptions().getRelease().isPresent()) {
+            return compileTask.getOptions().getRelease().get();
+        }
 
-            if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
-                return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
-            } else {
-                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
-            }
-        }));
+        List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
+        int flagIndex = compilerArgs.indexOf("--release");
+
+        if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
+            return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
+        } else {
+            return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
+        }
     }
 
     /**
