@@ -41,7 +41,6 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -56,8 +55,6 @@ import java.util.stream.Collectors;
  * <p>The aim is to create only a single instance of this type per project and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
  */
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata, LocalComponentMetadata> implements LocalComponentGraphResolveState {
-    private final AttributeDesugaring attributeDesugaring;
-
     // The artifact resolve state for each variant of this component
     private final ConcurrentMap<LocalConfigurationGraphResolveMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
     // The variants of this component to use for artifact selection when variant reselection is enabled
@@ -66,14 +63,13 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
     public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring) {
-        super(metadata, metadata);
+        super(metadata, metadata, attributeDesugaring);
         allVariantsForArtifactSelection = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream().
                 map(LocalConfigurationGraphResolveMetadata.class::cast).
                 map(LocalConfigurationGraphResolveMetadata::prepareToResolveArtifacts).
                 flatMap(variant -> variant.getVariants().stream()).
                 collect(Collectors.toSet())));
-        this.attributeDesugaring = attributeDesugaring;
         selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream().
             map(LocalConfigurationGraphResolveMetadata.class::cast).
             flatMap(variant -> variant.getVariants().stream()).
@@ -105,16 +101,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
         return selectableVariantResults.get();
-    }
-
-    @Override
-    public ResolvedVariantResult getVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant) {
-        return new DefaultResolvedVariantResult(
-            getId(),
-            Describables.of(metadata.getName()),
-            attributeDesugaring.desugar(metadata.getAttributes()),
-            capabilitiesFor(metadata.getCapabilities()),
-            externalVariant);
     }
 
     @Override
