@@ -26,37 +26,37 @@ abstract class AbstractJUnitTestClassDetectionIntegrationTest extends AbstractJU
     def "test class detection works for custom test tasks"() {
         given:
         buildFile << """
-                apply plugin:'java'
-                ${mavenCentralRepository()}
+            apply plugin:'java'
+            ${mavenCentralRepository()}
 
-                sourceSets {
-	                othertests {
-		                java.srcDir file('src/othertests/java')
-	                    resources.srcDir file('src/othertests/resources')
-	                }
+            sourceSets {
+                othertests {
+                    java.srcDir file('src/othertests/java')
+                    resources.srcDir file('src/othertests/resources')
                 }
+            }
 
-                dependencies{
-	                ${getTestFrameworkDependencies('othertests')}
-                }
+            dependencies{
+                ${getTestFrameworkDependencies('othertests')}
+            }
 
-                task othertestsTest(type:Test){
-	                ${configureTestFramework}
-	                classpath = sourceSets.othertests.runtimeClasspath
-	                testClassesDirs = sourceSets.othertests.output.classesDirs
-	            }
-            """
+            task othertestsTest(type:Test){
+                ${configureTestFramework}
+                classpath = sourceSets.othertests.runtimeClasspath
+                testClassesDirs = sourceSets.othertests.output.classesDirs
+            }
+        """.stripIndent()
 
         and:
         file("src/othertests/java/SomeTestClass.java") << """
-                ${testFrameworkImports}
-                public class SomeTestClass {
-                    @Test
-                    public void testTrue() {
-                        assertTrue(true);
-                    }
+            ${testFrameworkImports}
+            public class SomeTestClass {
+                @Test
+                public void testTrue() {
+                    assertTrue(true);
                 }
-            """
+            }
+        """.stripIndent()
 
         when:
         run "othertestsTest"
@@ -80,7 +80,7 @@ abstract class AbstractJUnitTestClassDetectionIntegrationTest extends AbstractJU
                 }
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         and:
         file("src/test/java/TestHelper.java") << """
@@ -90,7 +90,7 @@ abstract class AbstractJUnitTestClassDetectionIntegrationTest extends AbstractJU
                     // in org.objectweb.asm.MethodVisitor#visitParameter
                 }
             }
-        """
+        """.stripIndent()
 
         and:
         file("src/test/java/TestCase.java") << """
@@ -101,7 +101,7 @@ abstract class AbstractJUnitTestClassDetectionIntegrationTest extends AbstractJU
                     assertTrue(Double.parseDouble(System.getProperty("java.specification.version")) >= 1.8);
                 }
             }
-        """
+        """.stripIndent()
 
         then:
         run "test"

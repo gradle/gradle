@@ -35,12 +35,12 @@ class JUnit4TestingIntegrationTest extends AbstractTestingIntegrationTest implem
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
         and:
         file("src/test/java/SomeTest.java") << """
             public class SomeTest extends org.junit.runner.Result {
             }
-        """
+        """.stripIndent()
         then:
         succeeds "clean", "test"
 
@@ -57,7 +57,7 @@ class JUnit4TestingIntegrationTest extends AbstractTestingIntegrationTest implem
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         and:
         file("src/test/java/SomeTest.java") << threadNameCheckTest("SomeTest")
@@ -83,6 +83,6 @@ class JUnit4TestingIntegrationTest extends AbstractTestingIntegrationTest implem
                     Thread.currentThread().setName(getClass().getSimpleName());
                 }
             }
-        """
+        """.stripIndent()
     }
 }

@@ -30,7 +30,8 @@ class TestTaskLocaleIntegrationTest extends AbstractIntegrationSpec {
                     events "passed", "skipped", "failed"
                 }
             }
-        """
+        """.stripIndent()
+
         when:
         executer
             .requireDaemon()

@@ -111,6 +111,6 @@ abstract class AbstractJUnit4TestClassDetectionIntegrationTest extends AbstractJ
                     }
                 }
             }
-        """
+        """.stripIndent()
     }
 }

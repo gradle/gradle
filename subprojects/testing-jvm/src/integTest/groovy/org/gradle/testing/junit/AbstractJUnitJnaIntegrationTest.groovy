@@ -35,7 +35,7 @@ abstract class AbstractJUnitJnaIntegrationTest extends AbstractJUnitMultiVersion
                     assert Shell32.INSTANCE != null;
                 }
             }
-        """
+        """.stripIndent()
         buildFile << """
             apply plugin: 'java'
 
@@ -46,7 +46,7 @@ abstract class AbstractJUnitJnaIntegrationTest extends AbstractJUnitMultiVersion
                 testImplementation 'net.java.dev.jna:jna-platform:4.1.0'
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         when:
         executer.withTasks('build').run()

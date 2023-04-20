@@ -38,7 +38,7 @@ abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractJUn
                     fail("epic");
                 }
             }
-        """
+        """.stripIndent()
         file('src/test/java/org/gradle/Junit4Test.java') << """
             package org.gradle;
 
@@ -59,7 +59,7 @@ abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractJUn
                 public void helpermethod() {
                 }
             }
-        """
+        """.stripIndent()
         file('src/test/java/org/gradle/NoTest.java') << """
             package org.gradle;
 
@@ -67,7 +67,7 @@ abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractJUn
                 public void notATest() {
                 }
             }
-        """
+        """.stripIndent()
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -75,7 +75,7 @@ abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractJUn
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         when:
         fails('test')
