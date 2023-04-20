@@ -66,18 +66,16 @@ public interface ComponentGraphResolveState {
     GraphSelectionCandidates getCandidatesForGraphVariantSelection();
 
     /**
+     * Returns the configuration with the given name. A component does not necessarily define any configurations.
+     */
+    @Nullable
+    ConfigurationGraphResolveState getConfiguration(String configurationName);
+
+    /**
      * When this component is a lenient platform, create a copy with the given ids. Otherwise, returns {@code null}.
      */
     @Nullable
     ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
-
-    /**
-     * Determines the set of artifacts for the given variant of this component, if required during graph resolution.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be used only when
-     * required.
-     */
-    VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
 
     /**
      * Creates the state that can be used for artifact resolution for this component instance.

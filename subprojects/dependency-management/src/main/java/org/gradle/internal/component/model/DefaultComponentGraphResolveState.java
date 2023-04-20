@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
@@ -26,8 +27,10 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -40,15 +43,25 @@ import java.util.stream.Collectors;
  * Holds the resolution state for an external component.
  */
 public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
-    // The artifact resolve state for each variant of this component
-    private final ConcurrentMap<ConfigurationMetadata, DefaultVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
+    // The resolve state for each configuration of this component
+    private final ConcurrentMap<ModuleConfigurationMetadata, DefaultConfigurationGraphResolveState> variants = new ConcurrentHashMap<>();
+
+    // The variants to use for variant selection during graph resolution
+    private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
+
     // The variants of this component to use when variant reselection is enabled
     private final Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection;
+
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
     public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
         super(instanceId, graphMetadata, artifactMetadata, attributeDesugaring);
+        allVariantsForGraphResolution = Lazy.locking().of(() -> graphMetadata.getVariantsForGraphTraversal().map(variants ->
+            variants.stream()
+                .map(ModuleConfigurationMetadata.class::cast)
+                .map(variant -> resolveStateFor(variant).asVariant())
+                .collect(Collectors.toList())));
         allVariantsForArtifactSelection = graphMetadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
                 .map(ModuleConfigurationMetadata.class::cast)
@@ -77,32 +90,90 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     @Override
-    public VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant) {
-        return (VariantArtifactGraphResolveMetadata) variant;
+    protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
+        return allVariantsForGraphResolution.get();
     }
 
+    @Nullable
     @Override
-    public VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant) {
-        ConfigurationMetadata configurationMetadata = (ConfigurationMetadata) variant;
-        return variants.computeIfAbsent(configurationMetadata, c -> new DefaultVariantArtifactResolveState(getArtifactMetadata(), configurationMetadata, allVariantsForArtifactSelection));
+    public ConfigurationGraphResolveState getConfiguration(String configurationName) {
+        ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) getMetadata().getConfiguration(configurationName);
+        if (configuration == null) {
+            return null;
+        } else {
+            return resolveStateFor(configuration);
+        }
     }
 
-    private static class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
+    private DefaultConfigurationGraphResolveState resolveStateFor(ModuleConfigurationMetadata configuration) {
+        return variants.computeIfAbsent(configuration, c -> new DefaultConfigurationGraphResolveState(getArtifactMetadata(), configuration, allVariantsForArtifactSelection));
+    }
+
+    protected VariantGraphResolveState newResolveStateFor(ModuleConfigurationMetadata configuration) {
+        return new DefaultConfigurationGraphResolveState(getArtifactMetadata(), configuration, allVariantsForArtifactSelection);
+    }
+
+    private static class DefaultConfigurationGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+        private final ModuleConfigurationMetadata configuration;
+        private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
+
+        public DefaultConfigurationGraphResolveState(ComponentResolveMetadata component, ModuleConfigurationMetadata configuration, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
+            this.configuration = configuration;
+            this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(component, configuration, allVariantsForArtifactSelection));
+        }
+
+        @Override
+        public String getName() {
+            return configuration.getName();
+        }
+
+        @Override
+        public ImmutableAttributes getAttributes() {
+            return configuration.getAttributes();
+        }
+
+        @Override
+        public CapabilitiesMetadata getCapabilities() {
+            return configuration.getCapabilities();
+        }
+
+        @Override
+        public ConfigurationGraphResolveMetadata getMetadata() {
+            return configuration;
+        }
+
+        @Override
+        public VariantGraphResolveState asVariant() {
+            return this;
+        }
+
+        @Override
+        public VariantArtifactGraphResolveMetadata resolveArtifacts() {
+            return configuration;
+        }
+
+        @Override
+        public VariantArtifactResolveState prepareForArtifactResolution() {
+            return artifactResolveState.get();
+        }
+    }
+
+    private static class DefaultConfigurationArtifactResolveState implements VariantArtifactResolveState {
         private final ComponentResolveMetadata artifactMetadata;
-        private final ConfigurationMetadata graphSelectedVariant;
+        private final ConfigurationMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> legacyVariants;
         private final Set<? extends VariantResolveMetadata> allVariants;
 
-        public DefaultVariantArtifactResolveState(ComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedVariant, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
+        public DefaultConfigurationArtifactResolveState(ComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedConfiguration, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
             this.artifactMetadata = artifactMetadata;
-            this.graphSelectedVariant = graphSelectedVariant;
-            this.legacyVariants = graphSelectedVariant.getVariants();
+            this.graphSelectedConfiguration = graphSelectedConfiguration;
+            this.legacyVariants = graphSelectedConfiguration.getVariants();
             allVariants = allVariantsForArtifactSelection.orElse(legacyVariants);
         }
 
         @Override
         public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            return graphSelectedVariant.artifact(artifact);
+            return graphSelectedConfiguration.artifact(artifact);
         }
 
         @Override

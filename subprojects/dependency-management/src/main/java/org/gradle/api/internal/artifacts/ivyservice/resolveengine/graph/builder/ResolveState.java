@@ -45,7 +45,7 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
@@ -147,7 +147,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
         // Create root node
         ResolvedConfigurationIdentifier rootNodeId = new ResolvedConfigurationIdentifier(moduleVersionId, rootConfigurationName);
-        VariantGraphResolveMetadata rootVariant = rootComponentMetadata.getConfiguration(rootConfigurationName);
+        VariantGraphResolveState rootVariant = rootComponentState.getConfiguration(rootConfigurationName).asVariant();
         root = new RootNode(idGenerator.nextGraphNodeId(), rootComponent, rootNodeId, this, syntheticDependencies, rootVariant);
         nodes.put(rootNodeId, root);
     }
@@ -193,7 +193,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return nodes.values();
     }
 
-    public NodeState getNode(ComponentState module, VariantGraphResolveMetadata variant, boolean selectedByVariantAwareResolution) {
+    public NodeState getNode(ComponentState module, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
         ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.getId(), variant.getName());
         return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.nextGraphNodeId(), id, module, this, variant, selectedByVariantAwareResolution));
     }
