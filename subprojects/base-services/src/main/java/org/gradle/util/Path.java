@@ -89,7 +89,7 @@ public class Path implements Comparable<Path> {
 
     public String getPath() {
         if (fullPath == null) {
-            fullPath = createFullPath();
+            fullPath = createFullPath().intern();
         }
         return fullPath;
     }
@@ -128,7 +128,7 @@ public class Path implements Comparable<Path> {
 
     @Override
     public int hashCode() {
-        int result = Arrays.hashCode(segments);
+        int result = getPath().hashCode();
         result = 31 * result + (absolute ? 1 : 0);
         return result;
     }
@@ -140,6 +140,9 @@ public class Path implements Comparable<Path> {
         }
         if (!absolute && other.absolute) {
             return -1;
+        }
+        if (getPath() == other.getPath()) {
+            return 0;
         }
         for (int i = 0; i < Math.min(segments.length, other.segments.length); i++) {
             int diff = STRING_COMPARATOR.compare(segments[i], other.segments[i]);
