@@ -2008,18 +2008,18 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     @Override
-    public boolean isCanBeDeclaredAgainst() {
+    public boolean isCanBeDeclared() {
         return canBeDeclaredAgainst;
     }
 
     @Override
-    public void setCanBeDeclaredAgainst(boolean allowed) {
+    public void setCanBeDeclared(boolean allowed) {
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
             maybeWarnOnChangingUsage("declarable", allowed);
         } else if (canBeDeclaredAgainst && allowed) {
-            maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclaredAgainst(true)");
+            maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclared(true)");
         }
     }
 
@@ -2531,7 +2531,7 @@ since users cannot create non-legacy configurations and there is no current publ
         DECLARABLE_AGAINST {
             @Override
             boolean isAllowed(ConfigurationInternal configuration) {
-                return configuration.isCanBeDeclaredAgainst();
+                return configuration.isCanBeDeclared();
             }
 
             @Override
