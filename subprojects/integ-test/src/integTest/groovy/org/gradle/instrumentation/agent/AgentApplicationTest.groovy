@@ -19,11 +19,9 @@ package org.gradle.instrumentation.agent
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
-import org.gradle.util.TestPrecondition
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -70,8 +68,8 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        IntegTestPreconditions.IsConfigCached,
-        reason = "Agent injection is not implemented for non-daemon and embedded modes"
+        value = IntegTestPreconditions.IsConfigCached,
+        reason = "Tests the configuration cache behavior"
     )
     def "keeping agent status does not invalidate the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
@@ -97,7 +95,10 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentStatus << [true, false]
     }
 
-    @Requires(IntegTestPreconditions.IsConfigCached, reason = "Tests the configuration cache behavior")
+    @Requires(
+        value = IntegTestPreconditions.IsConfigCached,
+        reason = "Tests the configuration cache behavior"
+    )
     def "changing agent status invalidates the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
