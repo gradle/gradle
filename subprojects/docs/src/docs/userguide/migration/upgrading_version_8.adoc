@@ -610,8 +610,8 @@ The following methods on `BuildIdentifier` are deprecated:
 - `getName()`
 - `isCurrentBuild()`
 
-These methods allowed to externally recreate identifiers for builds.
-However, for certain composite build setups, they did not provide enough information to guarantee uniqueness.
+You could use these methods to distinguish between different project components with the same name but from different builds.
+However, for certain composite build setups, these methods do not provide enough information to guarantee uniqueness.
 
 Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath--[String getBuildPath()]`.
 
