@@ -28,7 +28,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         settingsFile << "rootProject.name = 'test'"
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "displays dependents report for all components of the task's project"() {
         given:
         buildScript simpleCppBuild()
@@ -42,7 +41,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         outputContains simpleCppMainDependents()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "displays dependents of targeted '#component' component"() {
         given:
         buildScript simpleCppBuild()
@@ -60,7 +58,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         'main'    | simpleCppMainDependents()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "fails when targeted component is not found"() {
         given:
         buildScript simpleCppBuild()
@@ -72,7 +69,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         failure.assertHasCause "Component 'unknown' not found."
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "fails when some of the targeted components are not found"() {
         given:
         buildScript simpleBuildWithTestSuites()
@@ -84,7 +80,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         failure.assertHasCause "Components 'unknown', 'anonymous' and 'whatever' not found."
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "displays dependent of multiple targeted components"() {
         given:
         buildScript simpleCppBuild()
@@ -98,7 +93,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         !output.contains(simpleCppUtilDependents())
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "hide non-buildable dependents by default #nonBuildables"() {
         given:
         buildScript simpleCppBuild()
@@ -136,7 +130,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         ['util', 'lib', 'main'] | _
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "displays non-buildable dependents when using #option"() {
         given:
         buildScript simpleCppBuild() + '''
@@ -179,7 +172,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '--non-buildable' | _
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "consider components with no buildable binaries as non-buildables"() {
         given:
         buildScript simpleCppBuild()
@@ -203,7 +195,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains('Some non-buildable components were not shown, use --non-buildable or --all to show them.')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "displays dependents across projects in a build"() {
         given:
         settingsFile.text = multiProjectSettings()
@@ -229,7 +220,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "can show dependent components in parallel"() {
         given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()
@@ -277,7 +267,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "don't fail with prebuilt libraries"() {
         given:
         buildScript simpleBuildWithPrebuiltLibrary()
@@ -286,7 +275,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         succeeds 'dependentComponents'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "hide test suites by default"() {
         given:
         buildScript simpleBuildWithTestSuites()
@@ -301,7 +289,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains 'Some test suites were not shown, use --test-suites or --all to show them.'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "displays dependent test suites when using #option"() {
         given:
         buildScript simpleBuildWithTestSuites()
@@ -346,7 +333,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '--test-suites' | _
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "direct circular dependencies are handled gracefully"() {
         buildScript simpleCppBuild()
         buildFile << '''
@@ -376,7 +362,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent().trim()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "indirect circular dependencies are handled gracefully"() {
         buildScript simpleCppBuild()
         buildFile << '''
@@ -412,7 +397,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent().trim()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "circular dependencies across projects are handled gracefully"() {
         given:
         settingsFile.text = multiProjectSettings()
@@ -447,7 +431,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "report renders variant binaries"() {
         buildFile << """
             apply plugin: 'cpp'

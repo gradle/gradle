@@ -1,0 +1,45 @@
+name: Documentation
+description: Report a problem with our documentation
+labels: [ "a:documentation", "to-triage" ]
+assignees: [ ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search related information in our [latest documentation](https://docs.gradle.org/current/userguide/userguide.html) before opening a documentation issue.
+        If you need help with Gradle or have a usage question, please reach [our community](http://help.gradle.org/) instead of creating an issue.
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue type
+      options:
+        - Typo
+        - Wrong or misleading information
+        - Missing information
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem description
+      description: |
+        Please describe the problem as concisely as possible.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (optional)
+      description: |
+        How has this issue affected you? What are you trying to accomplish?
+        Providing context helps us come up with a solution that is most useful in the real world
+    validations:
+      required: false
+  - type: input
+    id: page
+    attributes:
+      label: Page with the problem
+      description: Please, provide a link to the relevant documentation page
+    validations:
+      required: true

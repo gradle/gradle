@@ -186,10 +186,17 @@ public class TransformReplacer implements Closeable {
             IoActions.closeQuietly(jarFile);
         }
 
+        @SuppressWarnings("Since15")
         private JarFile getJarFileLocked() throws IOException {
             ensureOpened();
             if (jarFile == null) {
-                jarFile = new JarFile(jarFilePath);
+                try {
+                    // Set up the MR-JAR properly when running on Java 9+.
+                    jarFile = new JarFile(jarFilePath, true, JarFile.OPEN_READ, JarFile.runtimeVersion());
+                } catch (NoSuchMethodError e) {
+                    // Running on Java 8, fall back to the old ways.
+                    jarFile = new JarFile(jarFilePath);
+                }
             }
             return jarFile;
         }

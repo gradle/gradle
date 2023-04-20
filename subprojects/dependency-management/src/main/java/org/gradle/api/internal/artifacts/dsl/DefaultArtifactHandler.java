@@ -89,9 +89,9 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
      * Exists only to maintain the existing fully deprecated logic in Gradle 8.0 - DO NOT USE.
      */
     private boolean isFullyDeprecated(DeprecatableConfiguration configuration) {
-        return configuration.getDeclarationAlternatives() != null &&
-                (!configuration.isCanBeConsumed() || configuration.getConsumptionDeprecation() != null) &&
-                (!configuration.isCanBeResolved() || configuration.getResolutionAlternatives() != null);
+        return configuration.isDeprecatedForDeclarationAgainst() &&
+            (!configuration.isCanBeConsumed() || configuration.isDeprecatedForConsumption()) &&
+            (!configuration.isCanBeResolved() || configuration.isDeprecatedForResolution());
     }
 
     private void assertConfigurationIsValidForArtifacts(DeprecatableConfiguration configuration) {

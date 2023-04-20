@@ -72,7 +72,7 @@ The build type can be specified by using the `--type` command-line option. For e
 
 If a `--type` option is not provided, Gradle will attempt to infer the type from the environment. For example, it will infer a type of “`pom`” if it finds a `pom.xml` file to convert to a Gradle build. If the type could not be inferred, the type “`basic`” will be used.
 
-The `init` task also supports generating build scripts using either the Gradle Groovy DSL or the Gradle Kotlin DSL. The build script DSL defaults to the Groovy DSL for most build types and to the Kotlin DSL for Kotlin build types. The DSL can be selected by using the `--dsl` command-line option. For example, to create a Java library project with Kotlin DSL build scripts  run: `gradle init --type java-library --dsl kotlin`.
+The `init` task also supports generating build scripts using either the Gradle Kotlin DSL or the Gradle Groovy DSL. The build script DSL defaults to the Kotlin DSL for most build types and to the Groovy DSL for Groovy build types. The DSL can be selected by using the `--dsl` command-line option. For example, to create a Java library project with Kotlin DSL build scripts  run: `gradle init --type java-library --dsl kotlin`.
 
 You can change the name of the generated project using the `--project-name` option. It defaults to the name of the directory where the `init` task is run.
 

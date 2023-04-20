@@ -62,16 +62,18 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
             SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
 
             @SuppressWarnings("deprecation")
-            ConfigurationRole role = ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE;
+            ConfigurationRole role = ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE;
 
             JvmFeatureInternal feature = new DefaultJvmFeature(
                 TEST_FIXTURES_FEATURE_NAME,
                 testFixturesSourceSet,
                 Collections.singletonList(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
                 (ProjectInternal) project,
-                "test fixtures",
-                role
+                role,
+                false
             );
+
+            feature.withApi();
 
             DefaultJvmSoftwareComponent component = (DefaultJvmSoftwareComponent) JavaPluginHelper.getJavaComponent(project);
             component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));

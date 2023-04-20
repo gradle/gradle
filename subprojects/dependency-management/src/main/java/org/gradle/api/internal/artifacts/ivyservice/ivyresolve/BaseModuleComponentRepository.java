@@ -22,18 +22,18 @@ import org.gradle.internal.action.InstantiatingAction;
 
 import java.util.Map;
 
-public class BaseModuleComponentRepository implements ModuleComponentRepository {
-    protected final ModuleComponentRepository delegate;
-    private final ModuleComponentRepositoryAccess localAccess;
-    private final ModuleComponentRepositoryAccess remoteAccess;
+public class BaseModuleComponentRepository<T> implements ModuleComponentRepository<T> {
+    protected final ModuleComponentRepository<T> delegate;
+    private final ModuleComponentRepositoryAccess<T> localAccess;
+    private final ModuleComponentRepositoryAccess<T> remoteAccess;
 
-    public BaseModuleComponentRepository(ModuleComponentRepository delegate, ModuleComponentRepositoryAccess localAccess, ModuleComponentRepositoryAccess remoteAccess) {
+    public BaseModuleComponentRepository(ModuleComponentRepository<T> delegate, ModuleComponentRepositoryAccess<T> localAccess, ModuleComponentRepositoryAccess<T> remoteAccess) {
         this.delegate = delegate;
         this.localAccess = localAccess;
         this.remoteAccess = remoteAccess;
     }
 
-    public BaseModuleComponentRepository(ModuleComponentRepository delegate) {
+    public BaseModuleComponentRepository(ModuleComponentRepository<T> delegate) {
         this.delegate = delegate;
         this.localAccess = delegate.getLocalAccess();
         this.remoteAccess = delegate.getRemoteAccess();
@@ -55,12 +55,12 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<T> getLocalAccess() {
         return localAccess;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<T> getRemoteAccess() {
         return remoteAccess;
     }
 

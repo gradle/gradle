@@ -9,6 +9,8 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+- [esfomeado](https://github.com/esfomeado)
+- [Lee Euije](https://github.com/euije)
 
 ## Upgrade instructions
 
@@ -50,7 +52,73 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### JaCoCo version upgraded
 
+The version of the JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to 0.8.9. 
+
+### Wrapper task validates distribution url
+
+The wrapper task now validates the configured distribution url before writing it to the `gradle-wrapper.properties` file.
+This surfaces invalid urls early and can prevent IO exceptions at execution time.
+
+More details can be found in the dedicated section of the [Gradle Wrapper](gradle_wrapper.html#[adding_the_gradle_wrapper](sec:adding_wrapper)) user manual chapter.
+
+### Java toolchains discovery progress display
+
+Progress is now displayed during [Java toolchains discovery](userguide/jvm/toochains.html#auto_detection).
+This can be useful during a cold-start of Gradle for users who have environments with a lot of JVM installations in them.
+
+### Kotlin DSL improvements
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring documentation, and more.
+
+#### Kotlin DSL reference
+
+A versioned reference documentation for the Gradle Kotlin DSL is now published alongside the user manual.
+This reference covers both the Kotlin DSL and the Gradle Java API.
+
+You can use the [Kotlin DSL reference](kotlin-dsl/) search functionality to drill through the available members.
+
+#### Gradle `init` defaults to the Kotlin DSL
+
+Starting with this release running `gradle init` now defaults to generating new builds using the Kotlin DSL.
+
+In interactive mode you can choose which DSL to use and the Kotlin one is now listed first:
+
+```text
+Select build script DSL:
+  1: Kotlin
+  2: Groovy
+Enter selection (default: Kotlin) [1..2]
+```
+
+See the [build init](userguide/build_init.html#sec:what_to_set_up) user manual chapter for more information.
+
+#### Fail on script compilation warnings
+
+Gradle [Kotlin DSL scripts](userguide/kotlin_dsl.html#sec:scripts) are compiled by Gradle during the configuration phase of your build.
+Deprecation warnings found by the Kotlin compiler are reported on the console when compiling the scripts.
+
+It is now possible to configure your build to fail on any warning emitted during script compilation by setting the `org.gradle.kotlin.dsl.allWarningsAsErrors` Gradle property to `true`:
+
+```properties
+# gradle.properties
+org.gradle.kotlin.dsl.allWarningsAsErrors=true
+```
+
+More details can be found in the dedicated section of the [Kotlin DSL](userguide/kotlin_dsl.html#sec:compilation_warnings) user manual chapter.
+
+### Dependency verification keys stripping
+
+PGP keys for dependency verification downloaded from key servers are now stripped to contain only necessary data.
+This feature can significantly reduce keyrings size.
+
+### Boolean task options generate opposite option
+
+Task options of type `boolean`, `Boolean`, and `Property<Boolean>` now generate an opposite option to facilitate setting the value to `false`.
+For example, `--no-foo` is created for the provided option `--foo`.
+
+See the [task options](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options) user manual section for more information.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -58,7 +126,15 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+### Improved console output
+
+A series of small improvements were added to the console output when the build fails:
+suggestions are moved from the error message to the `* Try` section, a link help.gradle.org is not shown for recoverable errors (e.g. upon compilation failure), just to name a few.
+The complete list of suggestions is available [here](https://github.com/gradle/gradle/issues?q=is%3Aissue+sort%3Aupdated-desc+milestone%3A%228.2+RC1%22+label%3Ain%3Aconsole+is%3Aclosed).
+This change is a first step towards implementing the [clean and actionable error reporting](https://github.com/gradle/build-tool-roadmap/issues/49) item in the public roadmap.
+
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 

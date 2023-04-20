@@ -333,6 +333,7 @@ class ConfigurationCacheIO internal constructor(
             documentationRegistry = service(),
             javaSerializationEncodingLookup = service(),
             flowProviders = service(),
+            transformationNodeFactory = service(),
         )
 
     private

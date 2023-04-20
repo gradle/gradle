@@ -18,6 +18,8 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+
 class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
     def "jvm argument providers are passed to the test worker"() {
@@ -37,13 +39,13 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: "java"
 
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation "junit:junit:4.13"
+                testImplementation "$testJunitCoordinates"
             }
 
             class MyTestSystemProperties implements CommandLineArgumentProvider {
@@ -81,5 +83,6 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
         fails "test", "-PinputFile=different-file.txt"
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
+        failure.assertHasResolutions(SCAN)
     }
 }

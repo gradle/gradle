@@ -18,15 +18,21 @@ package org.gradle.jvm.toolchain
 
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownloadSpiIntegrationTest {
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}               
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -68,7 +74,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "downloaded JDK is checked against the spec"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("BrokenToolchainResolver", brokenToolchainResolverCode())}               
+            ${applyToolchainResolverPlugin("BrokenToolchainResolver", brokenToolchainResolverCode())}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -111,7 +117,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     def "custom toolchain registries are consulted in order"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}
-            ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -197,7 +203,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
 
     def "fails on implementation class collision"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -232,13 +238,13 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .runWithFailure()
 
         then:
-        failure.assertHasCause("Duplicate configuration for repository implementation 'UselessToolchainResolver'.")
+        failure.assertHasDescription("Duplicate configuration for repository implementation 'UselessToolchainResolver'.")
     }
 
     def "fails on repository name collision"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}            
-            ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -278,9 +284,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
 
     def "list of requested repositories can be queried"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}            
-            ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}            
-            ${applyToolchainResolverPlugin("UselessToolchainResolver3", uselessToolchainResolverCode("UselessToolchainResolver3"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver3", uselessToolchainResolverCode("UselessToolchainResolver3"))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -293,7 +299,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                     }
                 }
             }
-            
+
             println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().getAsList().collect { it.getName() }}.\"\"\")
         """
 
@@ -322,9 +328,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
 
     def "created repository can be removed"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}            
-            ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}            
-            ${applyToolchainResolverPlugin("UselessToolchainResolver3", uselessToolchainResolverCode("UselessToolchainResolver3"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver3", uselessToolchainResolverCode("UselessToolchainResolver3"))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -340,9 +346,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                     }
                 }
             }
-            
+
             toolchainManagement.jvm.javaRepositories.remove('useless2')
-            
+
             println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().getAsList().collect { it.getName() }}.\"\"\")
         """
 
@@ -371,7 +377,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
 
     def "cannot mutate repository rules after settings have been evaluated"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -397,7 +403,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "throws informative error on repositories not being configured"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())} 
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}
         """
 
         buildFile << """
@@ -423,8 +429,14 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
-                        "and toolchain download repositories have not been configured (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories).")
+                .assertHasCause("No locally installed toolchains match and toolchain download repositories have not been configured.")
+                .assertHasResolutions(
+                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
+                    STACKTRACE_MESSAGE,
+                    INFO_DEBUG,
+                    SCAN,
+                    GET_HELP)
     }
 
     private static String customToolchainResolverCode() {

@@ -143,7 +143,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
+        return BuildInitDsl.KOTLIN;
     }
 
     @Override

@@ -23,7 +23,6 @@ import org.junit.Assume
 
 import java.util.regex.Pattern
 
-import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.replaceCategoriesWithTags
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.rewriteWithJupiter
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.rewriteWithVintage
 
@@ -74,7 +73,6 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         if (isJupiter()) {
             rewriteWithJupiter(executer.workingDir, dependencyVersion)
         } else if (isVintage()) {
-            replaceCategoriesWithTags(executer.workingDir)
             rewriteWithVintage(executer.workingDir, dependencyVersion)
         }
     }
@@ -92,13 +90,26 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         }
     }
 
-    protected List<String> getDependencyNotation() {
+    protected String getDependencyBlockContents() {
         if (isJupiter()) {
-            return ["org.junit.jupiter:junit-jupiter-api:${dependencyVersion}", "org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"]
+            return """
+                testImplementation "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}"
+                testImplementation "org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"
+            """
         } else if (isVintage()) {
-            return ["org.junit.vintage:junit-vintage-engine:${dependencyVersion}","junit:junit:4.13"]
+            return """
+                testImplementation "org.junit.vintage:junit-vintage-engine:${dependencyVersion}"
+                testImplementation "junit:junit:4.13"
+            """
+        } else if (version.startsWith("3")) {
+            return """
+                testImplementation "junit:junit:${version}"
+                testRuntimeOnly "junit:junit:4.13"
+            """
         } else {
-            return ["junit:junit:${version}"]
+            return """
+                testImplementation "junit:junit:${version}"
+            """
         }
     }
 

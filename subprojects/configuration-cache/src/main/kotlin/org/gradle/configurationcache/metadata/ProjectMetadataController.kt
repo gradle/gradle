@@ -151,7 +151,7 @@ class ProjectMetadataController(
 
         return DefaultLocalConfigurationMetadata(
             configurationName, configurationName, componentId, true, true, setOf(configurationName), configurationAttributes,
-            ImmutableCapabilities.EMPTY, true, null, true, dependencies, emptySet(), emptyList(),
+            ImmutableCapabilities.EMPTY, true, false, true, dependencies, emptySet(), emptyList(),
             variants, factory, emptyList()
         )
     }

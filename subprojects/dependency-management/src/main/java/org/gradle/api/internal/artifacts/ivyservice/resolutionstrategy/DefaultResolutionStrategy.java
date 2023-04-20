@@ -87,7 +87,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean failOnChangingVersions;
     private boolean verifyDependencies = true;
     private final Property<Boolean> useGlobalDependencySubstitutionRules;
-
+    private boolean returnAllVariants = false;
 
     public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules,
                                      VcsResolver vcsResolver,
@@ -388,5 +388,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public ResolutionStrategy enableDependencyVerification() {
         verifyDependencies = true;
         return this;
+    }
+
+    @Override
+    public void setReturnAllVariants(boolean returnAllVariants) {
+        mutationValidator.validateMutation(STRATEGY);
+        this.returnAllVariants = returnAllVariants;
+    }
+
+    @Override
+    public boolean getReturnAllVariants() {
+        return this.returnAllVariants;
     }
 }

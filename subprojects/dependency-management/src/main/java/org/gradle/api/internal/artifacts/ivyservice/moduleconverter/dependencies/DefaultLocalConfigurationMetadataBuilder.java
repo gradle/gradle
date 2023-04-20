@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -50,7 +51,11 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * Encapsulates all logic required to build a {@link LocalConfigurationMetadata} from a
@@ -101,6 +106,9 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             }
         });
 
+        // We must call this before collecting dependency state, since dependency actions may modify the hierarchy.
+        runDependencyActionsInHierarchy(configuration);
+
         // Collect all dependencies and excludes in hierarchy.
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
@@ -116,7 +124,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             attributes,
             ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet())),
             configuration.isCanBeConsumed(),
-            configuration.getConsumptionDeprecation(),
+            configuration.isDeprecatedForConsumption(),
             configuration.isCanBeResolved(),
             maybeForceDependencies(dependencies.dependencies, attributes),
             dependencies.files,
@@ -127,6 +135,30 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             calculatedValueContainerFactory,
             parent
         );
+    }
+
+    /**
+     * Runs the dependency actions for all configurations in {@code conf}'s hierarchy.
+     *
+     * <p>Specifically handles the case where {@link Configuration#extendsFrom} is called during the
+     * dependency action execution.</p>
+     */
+    private static void runDependencyActionsInHierarchy(ConfigurationInternal conf) {
+        Set<Configuration> seen = new HashSet<>();
+        Queue<Configuration> remaining = new ArrayDeque<>();
+        remaining.add(conf);
+        seen.add(conf);
+
+        while (!remaining.isEmpty()) {
+            Configuration current = remaining.remove();
+            ((ConfigurationInternal) current).runDependencyActions();
+
+            for (Configuration parent : current.getExtendsFrom()) {
+                if (seen.add(parent)) {
+                    remaining.add(parent);
+                }
+            }
+        }
     }
 
     /**
@@ -165,9 +197,8 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * Calculate the defined dependencies and excludes for {@code configuration}, while converting the
      * DSL representation to the internal representation.
      */
+    @SuppressWarnings("deprecation")
     private DependencyState doGetDefinedState(ConfigurationInternal configuration, ComponentIdentifier componentId) {
-        // Run any actions to add/modify dependencies
-        configuration.runDependencyActions();
 
         AttributeContainer attributes = configuration.getAttributes();
 
@@ -175,11 +206,18 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet.Builder<LocalFileDependencyMetadata> fileBuilder = ImmutableSet.builder();
         ImmutableList.Builder<ExcludeMetadata> excludeBuilder = ImmutableList.builder();
 
+        // Configurations that are not declarable should not have dependencies or constraints present,
+        // but we need to allow dependencies to be checked to avoid emitting many warnings when the
+        // Kotlin plugin is applied.  This is because applying the Kotlin plugin adds dependencies
+        // to the testRuntimeClasspath configuration, which is not declarable.
+        // To demonstrate this, add a check for configuration.isCanBeDeclared() && configuration.assertHasNoDeclarations() if not
+        // and run tests such as KotlinDslPluginTest, or the building-kotlin-applications samples and you'll configurations which
+        // aren't declarable but have declared dependencies present.
         for (Dependency dependency : configuration.getDependencies()) {
             if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;
                 dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
-                    componentId, configuration.getName(), attributes, moduleDependency
+                        componentId, configuration.getName(), attributes, moduleDependency
                 ));
             } else if (dependency instanceof FileCollectionDependency) {
                 final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
@@ -189,9 +227,13 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             }
         }
 
+        // Configurations that are not declarable should not have dependencies or constraints present,
+        // no smoke-tested plugins add constraints, so we should be able to safely throw an exception here
+        // if we find any - but we'll avoid doing so for now to avoid breaking any existing builds and to
+        // remain consistent with the behavior for dependencies.
         for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
             dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
-                componentId, configuration.getName(), attributes, dependencyConstraint)
+                    componentId, configuration.getName(), attributes, dependencyConstraint)
             );
         }
 

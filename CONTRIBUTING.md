@@ -37,7 +37,7 @@ If you run into any trouble, please reach out to us on the issue you are working
 
 In order to make changes to Gradle, you'll need:
 
-* A [Java Development Kit](http://jdk.java.net/) (JDK) **version 11**.
+* A [Java Development Kit](http://jdk.java.net/) (JDK) **version 11**. Fixed version is required to use [remote cache](#remote-build-cache). 
 * A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/).  IntelliJ Ultimate will also work. You'll need IntelliJ 2021.2.2 or newer.
 * [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
 
@@ -144,6 +144,7 @@ Then force push your branch:
 The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
+Some tests require multiple JDKs to be installed on your computer, be aware of this if you make changes related to anything toolchains related.
 
 If you want to explicitly run tests with a different Java version, you need to specify `-PtestJavaVersion=#` with the major version of the JDK you want the tests to run with (e.g. `-PtestJavaVersion=14`).
 
@@ -157,11 +158,19 @@ To disable the configuration cache, run the build with `--no-configuration-cache
 
 Tasks known to have problems are listed in the build logic. You can find this list at:
 
-    build-logic-settings/build-logic-settings-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
+    build-logic/root-build/src/main/kotlin/gradlebuild.internal.cc-experiment.gradle.kts
 
 If you discover a task that doesn't work with the configuration but it not in this list, please add it.
 
 For more information on the configuration cache, see the [user manual](https://docs.gradle.org/current/userguide/configuration_cache.html).
+
+### Remote build cache
+
+Gradle, Inc runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
+
+The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can use a different build cache node by specifying `-DcacheNode=us` for a build cache node in the US or `-DcacheNode=au` for a build cache node in Australia.
+
+If you are not getting cache hits from the build cache, you may be using the wrong version of Java. A fixed version (Java 11) is required to get remote cache hits.
 
 ### Building a distribution from source
 

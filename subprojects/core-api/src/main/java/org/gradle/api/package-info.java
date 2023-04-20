@@ -15,13 +15,8 @@
  */
 
 /**
- * <p><b>Start Here:</b> Gradle's {@link org.gradle.api.Project} API, which is available from your build files. The
- * API used from your build files is made up of 2 main interfaces:</p>
- *
- * <ul>
- * <li>{@link org.gradle.api.Project}</li>
- * <li>{@link org.gradle.api.Task}</li>
- * </ul>
+ * <p>Gradle's build language API, which is available from your build files.
+ * Location of the main interfaces involved in build scripts.</p>
  */
 @org.gradle.api.NonNullApi
 package org.gradle.api;

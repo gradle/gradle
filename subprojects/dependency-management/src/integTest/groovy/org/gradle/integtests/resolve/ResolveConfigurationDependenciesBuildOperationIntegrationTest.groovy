@@ -403,7 +403,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
         op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
-        failure.assertHasCause("""Conflict(s) found for the following module(s):
+        failure.assertHasCause("""Conflict found for the following module:
   - org:leaf between versions 2.0 and 1.0""")
         op.result != null
         op.result.resolvedDependenciesCount == 2
@@ -638,21 +638,26 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         settingsFile << "include 'fixtures'"
         buildFile << """
-            allprojects {
-                apply plugin: "java"
-                apply plugin: "java-test-fixtures"
-                repositories {
-                    maven { url '${mavenHttpRepo.uri}' }
-                }
+            plugins {
+                id 'java-library'
             }
-            dependencies {
-                testImplementation(testFixtures(project(':fixtures')))
-            }
-
-            project(':fixtures') {
+            ${mavenCentralRepository()}
+            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            testing.suites.test {
+                useJUnit()
                 dependencies {
-                    testFixturesApi('org.foo:stuff:1.0')
+                    implementation testFixtures(project(':fixtures'))
                 }
+            }
+        """
+        file("fixtures/build.gradle") << """
+            plugins {
+                id 'java-library'
+                id 'java-test-fixtures'
+            }
+            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            dependencies {
+                testFixturesApi('org.foo:stuff:1.0')
             }
         """
         file("fixtures/src/testFixtures/java/SomeClass.java") << "class SomeClass {}"

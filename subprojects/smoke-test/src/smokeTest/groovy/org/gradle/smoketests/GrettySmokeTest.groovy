@@ -62,14 +62,11 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('checkContainerUp')
-            .expectDeprecationWarningIf(
-                grettyVersion < VersionNumber.parse('4.0.0'),
-                "The org.gradle.util.VersionNumber type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations",
-                ""
-            ).build()
+            .expectDeprecationWarning(
+                "The org.gradle.api.plugins.WarPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#war_convention_deprecation",
+                "https://github.com/gretty-gradle-plugin/gretty/issues/266")
+            .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+            .build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS

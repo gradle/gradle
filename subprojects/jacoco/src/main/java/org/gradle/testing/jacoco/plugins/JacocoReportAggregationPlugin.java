@@ -74,7 +74,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         jacocoAggregation.setTransitive(true);
 
         ObjectFactory objects = project.getObjects();
-        @SuppressWarnings("deprecation") Configuration codeCoverageResultsConf = configurations.createWithRole("aggregateCodeCoverageReportResults", ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
+        @SuppressWarnings("deprecation") Configuration codeCoverageResultsConf = configurations.createWithRole("aggregateCodeCoverageReportResults", ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
         codeCoverageResultsConf.setDescription("Graph needed for the aggregated JaCoCo coverage report.");
         codeCoverageResultsConf.extendsFrom(jacocoAggregation);
         codeCoverageResultsConf.setVisible(false);

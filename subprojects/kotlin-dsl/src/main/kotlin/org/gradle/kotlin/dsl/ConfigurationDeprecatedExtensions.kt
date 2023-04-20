@@ -377,6 +377,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.withDependencies(action: De
 /**
  * See [Configuration.all].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().all"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.all: Set<Configuration>
     get() = get().all

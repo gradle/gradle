@@ -189,6 +189,30 @@ class Main {
         result.assertNormalExitValue()
     }
 
+    def canUseDefaultJvmArgsInRunTask() {
+        file("build.gradle") << '''
+        application.applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
+        '''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+        package org.gradle.test;
+
+        class Main {
+            public static void main(String[] args) {
+                if (!"value1".equals(System.getProperty("var1"))) {
+                    throw new RuntimeException("Expected system property not specified (var1)");
+                }
+                if (!"value2".equals(System.getProperty("var2"))) {
+                    throw new RuntimeException("Expected system property not specified (var2)");
+                }
+            }
+        }
+        '''
+
+        expect:
+        run 'run'
+    }
+
+
     def "can customize application name"() {
         file('build.gradle') << '''
 application.applicationName = 'mega-app'
@@ -345,7 +369,7 @@ class Main {
 
         and:
         buildFile << """
-            applicationDistribution.from("src/somewhere-else") {
+            application.applicationDistribution.from("src/somewhere-else") {
                 include "**/r2.*"
             }
         """
@@ -375,7 +399,7 @@ class Main {
                 }
             }
 
-            applicationDistribution.from(createDocs) {
+            application.applicationDistribution.from(createDocs) {
                 into "docs"
                 rename 'readme(.*)', 'READ-ME\$1'
             }

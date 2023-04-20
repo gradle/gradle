@@ -61,7 +61,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().createWithRole(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE, cnf -> {
+        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().createWithRole(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, cnf -> {
             cnf.setDescription("Artifacts for the version catalog");
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
@@ -75,7 +75,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private Configuration createDependenciesConfiguration(ProjectInternal project) {
-        return project.getConfigurations().createWithRole(GRADLE_PLATFORM_DEPENDENCIES, ConfigurationRoles.INTENDED_BUCKET, cnf -> {
+        return project.getConfigurations().createWithRole(GRADLE_PLATFORM_DEPENDENCIES, ConfigurationRoles.BUCKET, cnf -> {
             cnf.setVisible(false);
         });
     }

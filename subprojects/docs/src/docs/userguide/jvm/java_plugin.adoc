@@ -113,7 +113,7 @@ Prepares the given source set's classes and resources for packaging and executio
 The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
 
 `assemble`::
-_Depends on_: `jar`, and all other tasks that create artifacts attached to the `archives` configuration
+_Depends on_: `jar`
 +
 Aggregate task that assembles all the archives in the project. This task is added by the Base Plugin.
 
@@ -294,7 +294,12 @@ Tasks such as `compileJava` and `test` then use one or more of those configurati
 [NOTE]
 ====
 
-To find information on the `api` configuration, please consult the <<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
+For information on the `default` and `archives` configurations, please consult the
+<<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
+
+For information on the `api` or `compileOnlyApi` configurations, please consult the
+<<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
+<<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
 
 ====
 
@@ -331,15 +336,8 @@ Runtime only dependencies for running tests.
 `testRuntimeClasspath` extends `testRuntimeOnly, testImplementation`::
 Runtime classpath for running tests. Used by task `test`.
 
-`archives`::
-Artifacts (e.g. jars) produced by this project. Used by Gradle to determine "default" tasks to execute when building.
-
-`default` extends `runtimeElements`::
-The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
-
 The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
 
- * Gray text — the configuration is _deprecated_.
  * Green background — you can declare dependencies against the configuration.
  * Blue-gray background — the configuration is for consumption by tasks, not for you to declare dependencies.
  * Light blue background with monospace text — a task.

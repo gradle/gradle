@@ -649,7 +649,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             if (Boolean.getBoolean("externalDependency")) {
                 dependencies { implementation 'org.external:external-tool:1.0' }
             }
-            configurations.runtimeClasspath.returnAllVariants = true
+            configurations.runtimeClasspath.resolutionStrategy.returnAllVariants = true
         """
 
         when: "Task without changes is executed & not skipped"

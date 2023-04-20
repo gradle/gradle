@@ -159,12 +159,12 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         buildFile << """
             configurations {
                 conf1 {
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
                 }
                 conf2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                 }
             }
 
