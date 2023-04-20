@@ -1,5 +1,16 @@
 The Gradle team is excited to announce Gradle @version@.
 
+This is the first patch release for Gradle 8.1.
+
+It fixes the following issues:
+* [#24748](https://github.com/gradle/gradle/issues/24748) MethodTooLargeException when instrumenting a class with thousand of lambdas for configuration cache
+* [#24754](https://github.com/gradle/gradle/issues/24754) Kotlin DSL precompiled script plugins built with Gradle 8.1 cannot be used with earlier versions of Gradle
+* [#24788](https://github.com/gradle/gradle/issues/24788) Gradle 8.1 configure freeCompilerArgs for Kotlin in buildSrc breaks build with unhelpful errors
+
+We recommend users upgrade to @version@ instead of 8.1.
+
+---
+
 You'll be happy to know that the configuration cache is now stable and ready for general use.
 The configuration cache was introduced in Gradle 6.6 to help speed up builds by caching the result of the [configuration phase](userguide/build_lifecycle.html) and reusing it for subsequent builds.
 Plus, there are [several other improvements](#configuration-cache-improvements) that enhance its usability and compatibility that pave the way for further  performance boosts.
