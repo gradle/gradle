@@ -47,6 +47,9 @@ public class Path implements Comparable<Path> {
 
     private static Path parsePath(String path) {
         String[] segments = StringUtils.split(path, SEPARATOR);
+        for (int i = 0; i < segments.length; i++) {
+            segments[i] = segments[i].intern();
+        }
         boolean absolute = path.startsWith(SEPARATOR);
         return new Path(segments, absolute);
     }
@@ -123,7 +126,7 @@ public class Path implements Comparable<Path> {
         if (absolute != path.absolute) {
             return false;
         }
-        return Arrays.equals(segments, path.segments);
+        return getPath() == path.getPath();
     }
 
     @Override
@@ -197,7 +200,7 @@ public class Path implements Comparable<Path> {
     public Path child(String name) {
         String[] childSegments = new String[segments.length + 1];
         System.arraycopy(segments, 0, childSegments, 0, segments.length);
-        childSegments[segments.length] = name;
+        childSegments[segments.length] = name.intern();
         return new Path(childSegments, absolute);
     }
 
