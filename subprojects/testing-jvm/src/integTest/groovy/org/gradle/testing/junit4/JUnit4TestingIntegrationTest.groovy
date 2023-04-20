@@ -25,11 +25,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 
 @TargetCoverage({ JUNIT_4_LATEST })
 class JUnit4TestingIntegrationTest extends AbstractTestingIntegrationTest implements JUnit4MultiVersionTest {
-    @Override
-    String testMethod(String testMethodName) {
-        return testMethodName
-    }
-
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")
     def "can clean test after extracting class file with #framework"() {
         when:
