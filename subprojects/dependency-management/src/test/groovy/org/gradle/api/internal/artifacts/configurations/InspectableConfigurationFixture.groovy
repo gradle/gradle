@@ -40,7 +40,7 @@ trait InspectableConfigurationFixture {
 
         if (configuration instanceof DefaultConfiguration) {
             reply.append("  role='").append(configuration.roleAtCreation).append("'")
-            String roleDesc = UsageDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+            String roleDesc = UsageDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclared(),
                     configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst())
             reply.append("\nCurrent Usage:\n").append(roleDesc)
         }

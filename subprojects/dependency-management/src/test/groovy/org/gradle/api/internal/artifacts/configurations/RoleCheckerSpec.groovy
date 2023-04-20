@@ -27,7 +27,7 @@ class RoleCheckerSpec extends Specification {
         def configuration = Mock(ConfigurationInternal)
         configuration.isCanBeConsumed() >> consumable
         configuration.isCanBeResolved() >> resolvable
-        configuration.isCanBeDeclaredAgainst() >> declarable
+        configuration.isCanBeDeclared() >> declarable
         configuration.isDeprecatedForConsumption() >> consumptionDeprecated
         configuration.isDeprecatedForResolution() >> resolutionDeprecated
         configuration.isDeprecatedForDeclarationAgainst() >> declarationAgainstDeprecated
@@ -50,7 +50,7 @@ class RoleCheckerSpec extends Specification {
         def configuration = Mock(ConfigurationInternal)
         configuration.isCanBeConsumed() >> true
         configuration.isCanBeResolved() >> false
-        configuration.isCanBeDeclaredAgainst() >> false
+        configuration.isCanBeDeclared() >> false
         configuration.isDeprecatedForConsumption() >> true
         configuration.isDeprecatedForResolution() >> false
         configuration.isDeprecatedForDeclarationAgainst() >> false
@@ -74,7 +74,7 @@ class RoleCheckerSpec extends Specification {
         configuration.getName() >> 'custom'
         configuration.isCanBeConsumed() >> true
         configuration.isCanBeResolved() >> false
-        configuration.isCanBeDeclaredAgainst() >> false
+        configuration.isCanBeDeclared() >> false
         configuration.isDeprecatedForConsumption() >> false
         configuration.isDeprecatedForResolution() >> false
         configuration.isDeprecatedForDeclarationAgainst() >> false
