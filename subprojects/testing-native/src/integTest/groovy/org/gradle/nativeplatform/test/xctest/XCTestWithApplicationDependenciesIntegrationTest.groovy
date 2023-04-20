@@ -34,7 +34,7 @@ class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUni
 """
         file("src/main/swift/App.swift") << """
             import Lib
-            
+
             class App {
                 var util = Util()
             }
@@ -42,9 +42,13 @@ class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUni
         file("src/test/swift/Test.swift") << """
             @testable import Root
             import XCTest
-                        
-            class Test {
+
+            class Test : XCTestCase {
                 var app = App()
+
+                func test() {
+                    XCTAssertNotNil(app.util)
+                }
             }
 """
         file("lib/src/main/swift/Util.swift") << """
