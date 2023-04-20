@@ -46,8 +46,4 @@ public abstract class AbstractImmutableFileAccessPermissions implements Immutabl
         return unixNumeric & 0_007;
     }
 
-    private static int toUnixNumericPermissions(int user, int group, int other) {
-        return 64 * user + 8 * group + other;
-    }
-
 }

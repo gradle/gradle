@@ -18,6 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
 /**
  * Provides the means of specifying file and directory access permissions.
@@ -155,5 +156,10 @@ public interface FileAccessPermissions extends ImmutableFileAccessPermissions {
      * </table>
      */
     void unix(String permissions);
+
+    /**
+     * {@link Provider} based version of {@link #unix(String)} to facilitate wiring into property chains.
+     */
+    void unix(Provider<String> permissions);
 
 }

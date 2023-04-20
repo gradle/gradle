@@ -37,7 +37,8 @@ public abstract class AbstractImmutableFileAccessPermission implements Immutable
         return (unixNumeric & 4) >> 2 == 1;
     }
 
-    protected static boolean isRead(char symbol) {
+    protected static boolean isRead(String unixSymbolic) {
+        char symbol = unixSymbolic.charAt(0);
         if (symbol == 'r') {
             return true;
         } else if (symbol == '-') {
@@ -51,7 +52,8 @@ public abstract class AbstractImmutableFileAccessPermission implements Immutable
         return (unixNumeric & 2) >> 1 == 1;
     }
 
-    protected static boolean isWrite(char symbol) {
+    protected static boolean isWrite(String unixSymbolic) {
+        char symbol = unixSymbolic.charAt(1);
         if (symbol == 'w') {
             return true;
         } else if (symbol == '-') {
@@ -65,7 +67,8 @@ public abstract class AbstractImmutableFileAccessPermission implements Immutable
         return (unixNumeric & 1) == 1;
     }
 
-    protected static boolean isExecute(char symbol) {
+    protected static boolean isExecute(String unixSymbolic) {
+        char symbol = unixSymbolic.charAt(2);
         if (symbol == 'x') {
             return true;
         } else if (symbol == '-') {

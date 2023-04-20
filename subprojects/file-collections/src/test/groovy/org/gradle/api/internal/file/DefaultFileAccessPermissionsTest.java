@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
@@ -90,7 +89,6 @@ public class DefaultFileAccessPermissionsTest {
 
     @Test
     public void unixPermissionBadValues() {
-        assertInvalidUnixPermission(null, "Null isn't a proper Unix permission. A value must be specified.");
         assertInvalidUnixPermission("", "'' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
         assertInvalidUnixPermission(" ", "' ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
         assertInvalidUnixPermission("   ", "'   ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
@@ -111,7 +109,7 @@ public class DefaultFileAccessPermissionsTest {
         assertInvalidUnixPermission("rwxrw xrwx", "'rwxrw xrwx' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
     }
 
-    private static DefaultFileAccessPermissions newUnixPermission(@Nullable String unixPermission) {
+    private static DefaultFileAccessPermissions newUnixPermission(String unixPermission) {
         DefaultFileAccessPermissions permissions = newPermission(false);
         permissions.unix(unixPermission);
         return permissions;
@@ -129,10 +127,10 @@ public class DefaultFileAccessPermissionsTest {
 
     private static void assertInvalidUnixPermission(@Nullable String unixPermission, String errorMessage) {
         try {
-            newUnixPermission(unixPermission);
+            newUnixPermission(unixPermission).toUnixNumeric().get();
             fail("Expected exception not thrown!");
-        } catch (InvalidUserDataException e) {
-            assertEquals(errorMessage, e.getMessage());
+        } catch (Exception e) {
+            assertEquals(errorMessage, e.getCause().getMessage());
         }
     }
 

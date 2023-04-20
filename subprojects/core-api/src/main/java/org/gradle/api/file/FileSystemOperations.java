@@ -18,6 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -96,4 +97,12 @@ public interface FileSystemOperations {
      */
     @Incubating
     FileAccessPermissions permissions(String permissions);
+
+    /**
+     * {@link Provider} based version of {@link #permissions(String)},  to facilitate wiring into property chains.
+     *
+     * @since 8.2
+     */
+    @Incubating
+    FileAccessPermissions permissions(Provider<String> permissions);
 }

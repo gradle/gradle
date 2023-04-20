@@ -20,7 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
 import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 
 import javax.inject.Inject;
 
@@ -78,51 +80,27 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
 
     @Override
     public void unix(String permissions) {
-        try {
-            if (permissions == null) {
-                throw new IllegalArgumentException("A value must be specified.");
+        unix(Providers.of(permissions));
+    }
+
+    @Override
+    public void unix(Provider<String> permissions) {
+        Provider<String> normalizedPermissions = normalizeUnixPermissions(permissions);
+        user.unix(normalizedPermissions, 0);
+        group.unix(normalizedPermissions, 1);
+        other.unix(normalizedPermissions, 2);
+    }
+
+    private static Provider<String> normalizeUnixPermissions(Provider<String> permissions) {
+        return permissions.map(p -> {
+            String trimmed = p.trim();
+            if (trimmed.length() == 4 && trimmed.startsWith("0")) {
+                return trimmed.substring(1);
             }
-            String normalizedPermissions = normalizeUnixPermissions(permissions);
-            user.unix(getUserPartOf(normalizedPermissions));
-            group.unix(getGroupPartOf(normalizedPermissions));
-            other.unix(getOtherPartOf(normalizedPermissions));
-        } catch (IllegalArgumentException cause) {
-            throw new InvalidUserDataException((permissions == null ? "Null" : "'" + permissions + "'") + " isn't a proper Unix permission. " + cause.getMessage());
-        }
-    }
-
-    private String getUserPartOf(String permissions) {
-        if (permissions.length() == 3) {
-            return permissions.substring(0, 1);
-        } else {
-            return permissions.substring(0, 3);
-        }
-    }
-
-    private String getGroupPartOf(String permissions) {
-        if (permissions.length() == 3) {
-            return permissions.substring(1, 2);
-        } else {
-            return permissions.substring(3, 6);
-        }
-    }
-
-    private String getOtherPartOf(String permissions) {
-        if (permissions.length() == 3) {
-            return permissions.substring(2, 3);
-        } else {
-            return permissions.substring(6, 9);
-        }
-    }
-
-    private static String normalizeUnixPermissions(String permissions) {
-        String trimmed = permissions.trim();
-        if (trimmed.length() == 4 && trimmed.startsWith("0")) {
-            return trimmed.substring(1);
-        }
-        if (trimmed.length() != 3 && trimmed.length() != 9) {
-            throw new IllegalArgumentException("Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-        }
-        return trimmed;
+            if (trimmed.length() != 3 && trimmed.length() != 9) {
+                throw new InvalidUserDataException("'" + p + "' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+            }
+            return trimmed;
+        });
     }
 }

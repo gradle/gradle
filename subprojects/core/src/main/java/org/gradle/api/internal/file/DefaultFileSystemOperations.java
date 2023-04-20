@@ -22,6 +22,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
 
 
@@ -63,6 +64,11 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
 
     @Override
     public FileAccessPermissions permissions(String permissions) {
+        return permissions(false, fileAccessPermissions -> fileAccessPermissions.unix(permissions));
+    }
+
+    @Override
+    public FileAccessPermissions permissions(Provider<String> permissions) {
         return permissions(false, fileAccessPermissions -> fileAccessPermissions.unix(permissions));
     }
 
