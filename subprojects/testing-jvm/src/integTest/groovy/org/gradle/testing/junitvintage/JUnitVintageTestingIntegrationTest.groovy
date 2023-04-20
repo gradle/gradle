@@ -23,8 +23,4 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageTestingIntegrationTest extends AbstractTestingIntegrationTest implements JUnitVintageMultiVersionTest {
-    @Override
-    String testMethod(String testMethodName) {
-        return testMethodName
-    }
 }

@@ -33,8 +33,6 @@ import static org.hamcrest.CoreMatchers.equalTo
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
 abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest implements JavaToolchainFixture {
-    abstract String testMethod(String testMethodName)
-
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
         given:
@@ -190,49 +188,6 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
         succeeds "test"
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-2527")
-    def "test class detection works for custom test tasks"() {
-        given:
-        buildFile << """
-                apply plugin:'java'
-                ${mavenCentralRepository()}
-
-                sourceSets {
-	                othertests {
-		                java.srcDir file('src/othertests/java')
-	                    resources.srcDir file('src/othertests/resources')
-	                }
-                }
-
-                dependencies{
-	                ${getTestFrameworkDependencies('othertests')}
-                }
-
-                task othertestsTest(type:Test){
-	                ${configureTestFramework}
-	                classpath = sourceSets.othertests.runtimeClasspath
-	                testClassesDirs = sourceSets.othertests.output.classesDirs
-	            }
-            """
-
-        and:
-        file("src/othertests/java/SomeTestClass.java") << """
-                ${testFrameworkImports}
-                public class SomeTestClass {
-                    @Test
-                    public void testTrue() {
-                        assertTrue(true);
-                    }
-                }
-            """
-
-        when:
-        run "othertestsTest"
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'othertestsTest')
-        result.assertTestClassesExecuted("SomeTestClass")
-    }
-
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
     def "incompatible user versions of classes that we also use don't affect test execution"() {
 
@@ -294,54 +249,6 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
         }
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-3157")
-    def "test class detection works when '-parameters' compiler option is used (JEP 118)"() {
-        when:
-        buildScript """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies {
-                ${testFrameworkDependencies}
-            }
-            tasks.withType(JavaCompile) {
-                options.with {
-                    compilerArgs << '-parameters'
-                }
-            }
-            test.${configureTestFramework}
-        """
-
-        and:
-        file("src/test/java/TestHelper.java") << """
-            public class TestHelper {
-                public void helperMethod(String foo, int bar) {
-                    // this method shouldn't cause failure due to API version check
-                    // in org.objectweb.asm.MethodVisitor#visitParameter
-                }
-            }
-        """
-
-        and:
-        file("src/test/java/TestCase.java") << """
-            ${testFrameworkImports}
-            public class TestCase {
-                @Test
-                public void test() {
-                    assertTrue(Double.parseDouble(System.getProperty("java.specification.version")) >= 1.8);
-                }
-            }
-        """
-
-        then:
-        run "test"
-
-        and:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("TestCase").with {
-            assertTestCount(1, 0, 0)
-        }
-    }
-
     def "tests are re-executed when set of candidate classes change"() {
         given:
         buildFile << """
@@ -377,8 +284,8 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
         run "test"
         then:
         executedAndNotSkipped ":test"
-        output.contains("FirstTest > ${testMethod('test')} PASSED")
-        output.contains("SecondTest > ${testMethod('test')} PASSED")
+        output.contains("FirstTest > ${maybeParentheses('test')} PASSED")
+        output.contains("SecondTest > ${maybeParentheses('test')} PASSED")
 
         when:
         run "test"
@@ -397,8 +304,8 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
         run "test"
         then:
         executedAndNotSkipped ":test"
-        output.contains("FirstTest > ${testMethod('test')} PASSED")
-        !output.contains("SecondTest > ${testMethod('test')} PASSED")
+        output.contains("FirstTest > ${maybeParentheses('test')} PASSED")
+        !output.contains("SecondTest > ${maybeParentheses('test')} PASSED")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5305")

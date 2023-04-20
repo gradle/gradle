@@ -65,6 +65,7 @@ trait JUnitJupiterMultiVersionTest {
         String getTestFrameworkImports() {
             return """
                 import org.junit.jupiter.api.*;
+                import org.junit.jupiter.api.extension.*;
                 import static org.junit.jupiter.api.Assertions.*;
                 import static org.junit.jupiter.api.Assumptions.*;
             """.stripIndent()
@@ -88,6 +89,16 @@ trait JUnitJupiterMultiVersionTest {
         @Override
         String getAfterTestAnnotation() {
             return "@AfterEach"
+        }
+
+        @Override
+        String getRunOrExtendWithAnnotation(String runOrExtendWithClasses) {
+            return "@ExtendWith({ ${runOrExtendWithClasses} })"
+        }
+
+        @Override
+        String maybeParentheses(String methodName) {
+            return "${methodName}()"
         }
     }
 }
