@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.assignment.internal
 
 import org.gradle.util.internal.IncubationLogger
 
+
 object KotlinDslAssignment {
 
     const val ASSIGNMENT_SYSTEM_PROPERTY = "org.gradle.unsafe.kotlin.assignment"
