@@ -25,7 +25,9 @@ public abstract class DefaultFileAccessPermission extends AbstractImmutableFileA
 
     @Inject
     public DefaultFileAccessPermission(int unixNumeric) {
-        fromUnixNumeric(unixNumeric);
+        getRead().value(isRead(unixNumeric));
+        getWrite().value(isWrite(unixNumeric));
+        getExecute().value(isExecute(unixNumeric));
     }
 
     @Override
@@ -46,46 +48,41 @@ public abstract class DefaultFileAccessPermission extends AbstractImmutableFileA
     }
 
     @Override
-    public void fromUnixNumeric(int unixNumeric) {
-        getRead().value(isRead(unixNumeric));
-        getWrite().value(isWrite(unixNumeric));
-        getExecute().value(isExecute(unixNumeric));
+    public void unix(String permission) {
+        getRead().value(isRead(permission));
+        getWrite().value(isWrite(permission));
+        getExecute().value(isExecute(permission));
     }
 
-    @Override
-    public void fromUnixSymbolic(String unixSymbolic) {
-        getRead().value(isRead(unixSymbolic.charAt(0)));
-        getWrite().value(isWrite(unixSymbolic.charAt(1)));
-        getExecute().value(isExecute(unixSymbolic.charAt(2)));
-    }
-
-    private static boolean isRead(char symbol) {
-        if (symbol == 'r') {
-            return true;
-        } else if (symbol == '-') {
-            return false;
+    private static boolean isRead(String permission) {
+        if (permission.length() == 1) {
+            return isRead(toUnixNumericPermissions(permission));
         } else {
-            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+            return isRead(permission.charAt(0));
         }
     }
 
-    private static boolean isWrite(char symbol) {
-        if (symbol == 'w') {
-            return true;
-        } else if (symbol == '-') {
-            return false;
+    private static boolean isWrite(String permission) {
+        if (permission.length() == 1) {
+            return isWrite(toUnixNumericPermissions(permission));
         } else {
-            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+            return isWrite(permission.charAt(1));
         }
     }
 
-    private static boolean isExecute(char symbol) {
-        if (symbol == 'x') {
-            return true;
-        } else if (symbol == '-') {
-            return false;
+    private static boolean isExecute(String permission) {
+        if (permission.length() == 1) {
+            return isExecute(toUnixNumericPermissions(permission));
         } else {
-            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+            return isExecute(permission.charAt(2));
+        }
+    }
+
+    private static int toUnixNumericPermissions(String permissions) {
+        try {
+            return Integer.parseInt(permissions, 8);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Can't be parsed as octal number.");
         }
     }
 }

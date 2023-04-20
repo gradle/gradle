@@ -19,6 +19,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
+import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
@@ -26,7 +27,7 @@ import javax.inject.Inject;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_DIR_MODE;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_FILE_MODE;
 
-public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPermissions implements FileAccessPermissionsInternal {
+public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPermissions implements FileAccessPermissions {
 
     public static int getDefaultUnixNumeric(boolean isDirectory) {
         return isDirectory ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
@@ -82,31 +83,36 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
                 throw new IllegalArgumentException("A value must be specified.");
             }
             String normalizedPermissions = normalizeUnixPermissions(permissions);
-            if (normalizedPermissions.length() == 3) {
-                int unixNumeric = toUnixNumericPermissions(normalizedPermissions);
-                fromUnixNumeric(unixNumeric);
-            } else if (normalizedPermissions.length() == 9) {
-                fromUnixSymbolic(normalizedPermissions);
-            } else {
-                throw new IllegalArgumentException("Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-            }
+            user.unix(getUserPartOf(normalizedPermissions));
+            group.unix(getGroupPartOf(normalizedPermissions));
+            other.unix(getOtherPartOf(normalizedPermissions));
         } catch (IllegalArgumentException cause) {
             throw new InvalidUserDataException((permissions == null ? "Null" : "'" + permissions + "'") + " isn't a proper Unix permission. " + cause.getMessage());
         }
     }
 
-    @Override
-    public void fromUnixNumeric(int unixNumeric) {
-        user.fromUnixNumeric(getUserPartOf(unixNumeric));
-        group.fromUnixNumeric(getGroupPartOf(unixNumeric));
-        other.fromUnixNumeric(getOtherPartOf(unixNumeric));
+    private String getUserPartOf(String permissions) {
+        if (permissions.length() == 3) {
+            return permissions.substring(0, 1);
+        } else {
+            return permissions.substring(0, 3);
+        }
     }
 
-    @Override
-    public void fromUnixSymbolic(String unixSymbolic) {
-        user.fromUnixSymbolic(unixSymbolic.substring(0, 3));
-        group.fromUnixSymbolic(unixSymbolic.substring(3, 6));
-        other.fromUnixSymbolic(unixSymbolic.substring(6, 9));
+    private String getGroupPartOf(String permissions) {
+        if (permissions.length() == 3) {
+            return permissions.substring(1, 2);
+        } else {
+            return permissions.substring(3, 6);
+        }
+    }
+
+    private String getOtherPartOf(String permissions) {
+        if (permissions.length() == 3) {
+            return permissions.substring(2, 3);
+        } else {
+            return permissions.substring(6, 9);
+        }
     }
 
     private static String normalizeUnixPermissions(String permissions) {
@@ -114,14 +120,9 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
         if (trimmed.length() == 4 && trimmed.startsWith("0")) {
             return trimmed.substring(1);
         }
-        return trimmed;
-    }
-
-    private static int toUnixNumericPermissions(String permissions) {
-        try {
-            return Integer.parseInt(permissions, 8);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Can't be parsed as octal number.");
+        if (trimmed.length() != 3 && trimmed.length() != 9) {
+            throw new IllegalArgumentException("Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
         }
+        return trimmed;
     }
 }

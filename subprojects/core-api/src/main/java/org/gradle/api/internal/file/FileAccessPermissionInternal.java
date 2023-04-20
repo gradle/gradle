@@ -22,17 +22,10 @@ import org.gradle.api.file.FileAccessPermissions;
 public interface FileAccessPermissionInternal extends FileAccessPermission {
 
     /**
-     * Sets the user permission from a numeric Unix permission.
+     * Sets the permission for a specific user from a complete Unix-style permission.
      * See {@link FileAccessPermissions#unix(String)} for details,
-     * input value is equivalent to one of the three octal digits.
+     * input value here is the user-specific third of the complete permission.
      */
-    void fromUnixNumeric(int unixNumeric);
-
-    /**
-     * Sets the user permission from a symbolic Unix permission.
-     * See {@link FileAccessPermissions#unix(String)} for details,
-     * input value is equivalent to one of the three sets of symbol triplets.
-     */
-    void fromUnixSymbolic(String unixSymbolic);
+    void unix(String permission);
 
 }

@@ -37,12 +37,42 @@ public abstract class AbstractImmutableFileAccessPermission implements Immutable
         return (unixNumeric & 4) >> 2 == 1;
     }
 
+    protected static boolean isRead(char symbol) {
+        if (symbol == 'r') {
+            return true;
+        } else if (symbol == '-') {
+            return false;
+        } else {
+            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+        }
+    }
+
     protected static boolean isWrite(int unixNumeric) {
         return (unixNumeric & 2) >> 1 == 1;
     }
 
+    protected static boolean isWrite(char symbol) {
+        if (symbol == 'w') {
+            return true;
+        } else if (symbol == '-') {
+            return false;
+        } else {
+            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+        }
+    }
+
     protected static boolean isExecute(int unixNumeric) {
         return (unixNumeric & 1) == 1;
+    }
+
+    protected static boolean isExecute(char symbol) {
+        if (symbol == 'x') {
+            return true;
+        } else if (symbol == '-') {
+            return false;
+        } else {
+            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+        }
     }
 
 }

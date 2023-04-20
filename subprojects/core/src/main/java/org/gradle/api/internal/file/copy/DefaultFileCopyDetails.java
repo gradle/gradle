@@ -30,7 +30,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileAccessPermissions;
 import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions;
-import org.gradle.api.internal.file.FileAccessPermissionsInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -56,7 +55,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private RelativePath relativePath;
     private boolean excluded;
 
-    private Property<FileAccessPermissionsInternal> permissions;
+    private Property<FileAccessPermissions> permissions;
     private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
@@ -223,7 +222,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Override
     public Property<FileAccessPermissions> getPermissions() {
         if (permissions == null) {
-            permissions = objectFactory.property(FileAccessPermissionsInternal.class);
+            permissions = objectFactory.property(FileAccessPermissions.class);
         }
         return Cast.uncheckedCast(permissions);
     }
