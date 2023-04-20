@@ -32,7 +32,7 @@ final class DebugLoggerWarningAction implements Action<ExecutionListener> {
     static final String WARNING_MESSAGE_BODY = "\n" +
         "#############################################################################\n" +
         "   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n" +
-        "\n"+
+        "\n" +
         "   Debug level logging will leak security sensitive information!\n" +
         "\n" +
         "   " + new DocumentationRegistry().getDocumentationRecommendationFor("details", "logging", "sec:debug_security") + "\n" +

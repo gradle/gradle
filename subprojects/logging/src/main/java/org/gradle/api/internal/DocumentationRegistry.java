@@ -28,6 +28,7 @@ public class DocumentationRegistry {
     public final static String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
+    public static final String LEARN_MORE_STRING = "To learn more about Gradle by exploring our Samples at ";
 
     public DocumentationRegistry() {
     }
@@ -66,11 +67,11 @@ public class DocumentationRegistry {
     }
 
     public String getSampleForMessage(String id) {
-        return String.format("To learn more about Gradle by exploring our Samples at %s", getSampleFor(id));
+        return LEARN_MORE_STRING + getSampleFor(id);
     }
 
     public String getSampleForMessage() {
-        return "Learn more about Gradle by exploring Samples at " + getSampleIndex();
+        return LEARN_MORE_STRING + getSampleIndex();
     }
 
     public String getDocumentationRecommendationFor(String topic, String id) {
