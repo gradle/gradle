@@ -84,38 +84,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     @Override
     public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        Optional<List<? extends VariantGraphResolveMetadata>> variants = graphMetadata.getVariantsForGraphTraversal();
-        return new GraphSelectionCandidates() {
-            @Override
-            public boolean isUseVariants() {
-                return variants.isPresent() && !variants.get().isEmpty();
-            }
-
-            @Override
-            public List<? extends VariantGraphResolveMetadata> getVariants() {
-                return variants.get();
-            }
-
-            @Nullable
-            @Override
-            public ConfigurationGraphResolveMetadata getLegacyConfiguration() {
-                return graphMetadata.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
-            }
-
-            @Override
-            public List<? extends ConfigurationGraphResolveMetadata> getCandidateConfigurations() {
-                Set<String> configurationNames = graphMetadata.getConfigurationNames();
-                ImmutableList.Builder<ConfigurationGraphResolveMetadata> builder = new ImmutableList.Builder<>();
-                for (String configurationName : configurationNames) {
-                    ConfigurationGraphResolveMetadata configuration = graphMetadata.getConfiguration(configurationName);
-                    if (configuration.isCanBeConsumed()) {
-                        builder.add(configuration);
-                    }
-                }
-                return builder.build();
-            }
-        };
+        Optional<List<? extends VariantGraphResolveState>> variants = getVariantsForGraphTraversal();
+        return new DefaultGraphSelectionCandidates(variants);
     }
+
+    protected abstract Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal();
 
     @Override
     public ResolvedVariantResult getVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant) {
@@ -165,5 +138,42 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
             capabilities = ImmutableList.copyOf(capabilities);
         }
         return capabilities;
+    }
+
+    private class DefaultGraphSelectionCandidates implements GraphSelectionCandidates {
+        private final Optional<List<? extends VariantGraphResolveState>> variants;
+
+        public DefaultGraphSelectionCandidates(Optional<List<? extends VariantGraphResolveState>> variants) {
+            this.variants = variants;
+        }
+
+        @Override
+        public boolean isUseVariants() {
+            return variants.isPresent() && !variants.get().isEmpty();
+        }
+
+        @Override
+        public List<? extends VariantGraphResolveState> getVariants() {
+            return variants.get();
+        }
+
+        @Nullable
+        @Override
+        public ConfigurationGraphResolveState getLegacyConfiguration() {
+            return getConfiguration(Dependency.DEFAULT_CONFIGURATION);
+        }
+
+        @Override
+        public List<? extends ConfigurationGraphResolveMetadata> getCandidateConfigurations() {
+            Set<String> configurationNames = graphMetadata.getConfigurationNames();
+            ImmutableList.Builder<ConfigurationGraphResolveMetadata> builder = new ImmutableList.Builder<>();
+            for (String configurationName : configurationNames) {
+                ConfigurationGraphResolveMetadata configuration = graphMetadata.getConfiguration(configurationName);
+                if (configuration.isCanBeConsumed()) {
+                    builder.add(configuration);
+                }
+            }
+            return builder.build();
+        }
     }
 }
