@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.http
 
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
@@ -63,7 +64,7 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
                     startsWith("The server may not support the client's requested TLS protocol versions:") // Windows
                 ),
                 containsString("You may need to configure the client to allow other protocols to be used."),
-                containsString("See: https://docs.gradle.org/")
+                containsString(documentationRegistry.getDocumentationRecommendationFor("on this", "build_environment", "sec:gradle_system_properties"))
             )
         )
     }

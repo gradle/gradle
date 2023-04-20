@@ -57,7 +57,9 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.buildFile.assertContents(
             allOf(
                 containsString("This is a general purpose Gradle build"),
-                containsString("Learn more about Gradle by exploring our samples at")))
+                containsString(documentationRegistry.getSampleForMessage())
+            )
+        )
 
         expect:
         succeeds 'properties'
@@ -81,7 +83,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.buildFile.assertContents(
             allOf(
                 containsString("This is a general purpose Gradle build"),
-                containsString("Learn more about Gradle by exploring our samples at"),
+                containsString(documentationRegistry.getSampleForMessage()),
                 containsString(BuildScriptBuilder.getIncubatingApisWarning())))
 
         expect:
@@ -174,7 +176,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         executer.usingSettingsFile(customSettings)
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: ${documentationRegistry.getDocumentationFor("upgrading_version_7", "configuring_custom_build_layout")}")
         runInitWith targetScriptDsl as BuildInitDsl
 
         then:

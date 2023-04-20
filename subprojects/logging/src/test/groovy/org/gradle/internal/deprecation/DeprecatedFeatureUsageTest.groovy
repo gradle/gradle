@@ -16,6 +16,7 @@
 
 package org.gradle.internal.deprecation
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
@@ -33,7 +34,7 @@ class DeprecatedFeatureUsageTest extends Specification {
         "summary" | "removalDetails" | null     | null               | Documentation.NO_DOCUMENTATION         | "summary removalDetails"
         "summary" | "removalDetails" | "advice" | null               | Documentation.NO_DOCUMENTATION         | "summary removalDetails advice"
         "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.NO_DOCUMENTATION         | "summary removalDetails contextualAdvice advice"
-        "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.userManual("foo", "bar") | "summary removalDetails contextualAdvice advice See https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar for more details."
+        "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.userManual("userguide", "bar") | "summary removalDetails contextualAdvice advice ${new DocumentationRegistry().getDocumentationRecommendationFor("information", "userguide", "bar")}"
     }
 
     def "returns documentation url"() {

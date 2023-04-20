@@ -416,7 +416,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void appendDocumentationResolution(String prefix, String userGuideId, String userGuideSection) {
-            appendResolution(output -> output.text(prefix + " " + documentationRegistry.getDocumentationFor(userGuideId, userGuideSection) + "."));
+            appendResolution(output -> output.text(documentationRegistry.getDocumentationRecommendationFor(prefix, userGuideId, userGuideSection)));
         }
     }
 }

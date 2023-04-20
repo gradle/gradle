@@ -14,6 +14,7 @@ dependencies {
     testImplementation(libs.commonsCompress)
 
     integTestImplementation(project(":dependency-management"))
+    integTestImplementation(project(":logging"))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
