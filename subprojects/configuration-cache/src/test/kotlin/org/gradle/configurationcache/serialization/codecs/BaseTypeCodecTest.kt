@@ -16,9 +16,10 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.util.Hashtable
 import java.util.Properties
 
 
@@ -27,10 +28,21 @@ class BaseTypeCodecTest : AbstractUserTypeCodecTest() {
     @Test
     fun `can handle Properties`() {
         val properties = Properties()
-        properties.put("prop1", "value1")
-        properties.put("prop2", "value2")
+        properties.setProperty("prop1", "value1")
+        properties.setProperty("prop2", "value2")
         configurationCacheRoundtripOf(properties).run {
-            MatcherAssert.assertThat(properties, CoreMatchers.equalTo(this))
+            assertThat(properties, equalTo(this))
+        }
+    }
+
+    @Test
+    fun `can handle Hashtable`() {
+        val hashtable = Hashtable<String, Any>(100)
+        hashtable.put("key1", "value1")
+        hashtable.put("key2", true)
+        hashtable.put("key3", 42)
+        configurationCacheRoundtripOf(hashtable).run {
+            assertThat(hashtable, equalTo(this))
         }
     }
 }
