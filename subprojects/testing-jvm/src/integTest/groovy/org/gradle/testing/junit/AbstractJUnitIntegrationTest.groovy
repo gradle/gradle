@@ -317,12 +317,12 @@ abstract class AbstractJUnitIntegrationTest extends AbstractJUnitMultiVersionInt
 
     def "can use test super classes from another project"() {
         given:
-        testDirectory.file('settings.gradle').write("include 'a', 'b'")
-        testDirectory.file('b/build.gradle') << """
+        file('settings.gradle').write("include 'a', 'b'")
+        file('b/build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                ${testFrameworkDependencies}
+                ${getTestFrameworkDependencies('main')}
             }
             test.${configureTestFramework}
         """.stripIndent()

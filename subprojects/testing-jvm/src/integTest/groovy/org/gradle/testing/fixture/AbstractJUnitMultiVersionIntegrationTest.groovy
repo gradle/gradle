@@ -111,6 +111,14 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
         String getConfigureTestFramework()
         String getIncludeCategoryOrTagConfigurationElement()
         String getExcludeCategoryOrTagConfigurationElement()
+
+        default getSourceSetConfiguration(String sourceSet, String configurationName) {
+            if (sourceSet == 'main') {
+                return configurationName
+            } else {
+                return sourceSet + configurationName.capitalize()
+            }
+        }
     }
 
     /**
