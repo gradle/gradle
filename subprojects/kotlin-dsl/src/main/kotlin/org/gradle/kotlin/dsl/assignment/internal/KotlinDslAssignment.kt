@@ -26,6 +26,7 @@ object KotlinDslAssignment {
     fun isAssignmentOverloadEnabled() =
         System.getProperty(ASSIGNMENT_SYSTEM_PROPERTY, "true").trim() != "false"
 
+    internal
     fun emitIncubatingLogMessage() {
         if (isAssignmentOverloadEnabled()) {
             // If the assignment overload is disabled for a project but some plugin was compiled using it, we should not do any logging.
