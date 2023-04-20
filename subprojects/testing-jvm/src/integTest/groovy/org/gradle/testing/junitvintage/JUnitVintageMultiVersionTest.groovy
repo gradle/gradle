@@ -33,9 +33,9 @@ trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
         @Override
         String getTestFrameworkDependencies(String sourceSet) {
             return """
-                ${getSourceSetConfiguration(sourceSet, 'compileOnly')} 'junit:junit:${LATEST_JUNIT4_VERSION}'
-                ${getSourceSetConfiguration(sourceSet, 'runtimeOnly')} 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
-                ${getSourceSetConfiguration(sourceSet, 'runtimeOnly')} 'org.junit.platform:junit-platform-launcher'
+                ${configurationFor(sourceSet, 'compileOnly')} 'junit:junit:${LATEST_JUNIT4_VERSION}'
+                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
+                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.platform:junit-platform-launcher'
             """
         }
 

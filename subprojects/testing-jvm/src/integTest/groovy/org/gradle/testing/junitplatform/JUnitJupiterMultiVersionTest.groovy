@@ -38,9 +38,9 @@ trait JUnitJupiterMultiVersionTest {
         @Override
         String getTestFrameworkDependencies(String sourceSet) {
             return """
-                ${getSourceSetConfiguration(sourceSet, 'implementation')} 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
-                ${getSourceSetConfiguration(sourceSet, 'runtimeOnly')} 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
-                ${getSourceSetConfiguration(sourceSet, 'runtimeOnly')} 'org.junit.platform:junit-platform-launcher'
+                ${configurationFor(sourceSet, 'implementation')} 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
+                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
+                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.platform:junit-platform-launcher'
             """
         }
 
