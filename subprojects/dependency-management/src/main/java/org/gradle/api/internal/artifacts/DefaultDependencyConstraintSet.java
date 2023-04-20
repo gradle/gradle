@@ -42,7 +42,7 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
 
     @Override
     public boolean add(final DependencyConstraint dependencyConstraint) {
-        assertConfigurationIsDeclarableAgainst();
+        assertConfigurationIsDeclarable();
         clientConfiguration.maybeEmitDeclarationDeprecation();
         return addInternalDependencyConstraint(dependencyConstraint);
     }
@@ -52,7 +52,7 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
         return super.add(dependencyConstraint);
     }
 
-    private void assertConfigurationIsDeclarableAgainst() {
+    private void assertConfigurationIsDeclarable() {
         if (!clientConfiguration.isCanBeDeclaredAgainst()) {
             throw new GradleException("Dependency constraints can not be declared against the `" + clientConfiguration.getName() + "` configuration.");
         }

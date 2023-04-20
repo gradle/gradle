@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,18 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.artifacts.ArtifactView;
 
 import java.util.Set;
 
 /**
- * Represents all variants available for artifact selection.
+ * Metadata used to select the artifacts for a particular variant selected during graph resolution.
  */
-public interface ComponentArtifactResolveVariantState {
-    Set<ResolvedVariant> getAllVariants();
+public interface VariantArtifactSelectionMetadata {
+    /**
+     * The variants available for artifact selection when {@link ArtifactView.ViewConfiguration#withVariantReselection()} is enabled.
+     */
+    Set<? extends VariantResolveMetadata> getAllVariants();
+
+    Set<? extends VariantResolveMetadata> getLegacyVariants();
 }

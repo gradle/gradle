@@ -16,11 +16,9 @@
 
 package org.gradle.internal.component.model
 
-import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import org.gradle.api.artifacts.ArtifactIdentifier
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
@@ -122,21 +120,7 @@ All of them match the consumer attributes:
 
     def "falls back to the default configuration if variant aware resolution is not supported"() {
         given:
-        component(Optional.absent())
-
-        and:
-        defaultConfiguration(variant("default", attributes([:])))
-
-        when:
-        performSelection()
-
-        then:
-        selected.name == "default"
-    }
-
-    def "falls back to the default configuration if there are no variants for graph traversal"() {
-        given:
-        component(Optional.of(ImmutableList.of()))
+        component(Optional.empty())
 
         and:
         defaultConfiguration(variant("default", attributes([:])))
@@ -150,7 +134,7 @@ All of them match the consumer attributes:
 
     def "fails to fall back to the default configuration if the attributes do not match"() {
         given:
-        component(Optional.of(ImmutableList.of()))
+        component(Optional.empty())
 
         and:
         defaultConfiguration(variant("default", attributes('org.gradle.usage': 'java-api')))
@@ -161,8 +145,8 @@ All of them match the consumer attributes:
 
         then:
         NoMatchingConfigurationSelectionException e = thrown()
-        failsWith(e, '''No matching variant of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
-  - None of the variants have attributes.''')
+        failsWith(e, '''No matching configuration of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
+  - None of the consumable configurations have attributes.''')
     }
 
     def "can select a variant thanks to the capabilities"() {
@@ -530,12 +514,16 @@ All of them match the consumer attributes:
             getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> 'org:lib:1.0'
             }
-            getVariantsForGraphTraversal() >> variants
             getAttributesSchema() >> attributesSchema
-            getConfiguration(Dependency.DEFAULT_CONFIGURATION) >> { defaultConfiguration }
+        }
+        def candidates = Stub(GraphSelectionCandidates) {
+            isUseVariants() >> { variants.isPresent() }
+            getVariants() >> { variants.get() }
+            getLegacyConfiguration() >> { defaultConfiguration }
         }
         targetState = Stub(ComponentGraphResolveState) {
             getMetadata() >> targetComponent
+            getCandidatesForGraphVariantSelection() >> candidates
             resolveArtifactsFor(_) >> { VariantGraphResolveMetadata variant -> variant }
         }
     }
@@ -544,7 +532,7 @@ All of them match the consumer attributes:
         Stub(ModuleConfigurationMetadata) {
             getName() >> name
             getAttributes() >> attributes
-            getCapabilities() >> ImmutableCapabilities.of(Lists.newArrayList(capabilities));
+            getCapabilities() >> ImmutableCapabilities.of(Lists.newArrayList(capabilities))
             isCanBeConsumed() >> true
         }
     }

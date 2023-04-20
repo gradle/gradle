@@ -31,7 +31,22 @@ class PmdRelocationIntegrationTest extends AbstractProjectRelocationIntegrationT
         projectDir.file("src/main/java/org/gradle/Class1.java") <<
             "package org.gradle; class Class1 { public boolean is() { return true; } }"
         projectDir.file("src/main/java/org/gradle/Class1Test.java") <<
-            "package org.gradle; class Class1Test { public boolean is() { return true; } }"
+            """
+            package org.gradle;
+
+            import static org.junit.Assert.assertTrue;
+
+            import org.junit.Test;
+
+            public class Class1Test {
+                @Test
+                public void testFoo() {
+                    Class1 c = new Class1();
+                    assertTrue(c.isFoo("foo"));
+                }
+            }
+            """
+
 
         projectDir.file("build.gradle") << """
             apply plugin: "java"
@@ -41,7 +56,6 @@ class PmdRelocationIntegrationTest extends AbstractProjectRelocationIntegrationT
 
             task pmd(type: Pmd) {
                 source "src/main/java"
-                ignoreFailures = true
             }
         """
     }
