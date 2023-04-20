@@ -21,12 +21,13 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import java.util.Collection;
 import java.util.Set;
 
 /**
- * A node in the dependency graph. Represents a configuration.
+ * A node in the dependency graph. Represents a variant.
  */
 public interface DependencyGraphNode {
     /**
@@ -51,6 +52,8 @@ public interface DependencyGraphNode {
     Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges();
 
     VariantGraphResolveMetadata getMetadata();
+
+    VariantGraphResolveState getResolveState();
 
     boolean isSelected();
 

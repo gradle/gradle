@@ -63,17 +63,17 @@ public abstract class AttributeConfigurationSelector {
             return selectDefaultConfiguration(consumerAttributes, consumerSchema, targetComponent, attributeMatcher, candidates);
         }
 
-        List<? extends VariantGraphResolveMetadata> allConsumableVariants = candidates.getVariants();
-        ImmutableList<VariantGraphResolveMetadata> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allConsumableVariants, true);
+        List<? extends VariantGraphResolveState> allConsumableVariants = candidates.getVariants();
+        ImmutableList<VariantGraphResolveState> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allConsumableVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
             throw new NoMatchingCapabilitiesException(targetComponent, explicitRequestedCapabilities, allConsumableVariants);
         }
 
-        List<VariantGraphResolveMetadata> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, consumerAttributes, explanationBuilder);
+        List<VariantGraphResolveState> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, consumerAttributes, explanationBuilder);
         if (matches.size() > 1) {
             // there's an ambiguity, but we may have several variants matching the requested capabilities.
             // Here we're going to check if in the candidates, there's a single one _strictly_ matching the requested capabilities.
-            List<VariantGraphResolveMetadata> strictlyMatchingCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, matches, false);
+            List<VariantGraphResolveState> strictlyMatchingCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, matches, false);
             if (strictlyMatchingCapabilities.size() == 1) {
                 return singleVariant(true, strictlyMatchingCapabilities);
             } else if (strictlyMatchingCapabilities.size() > 1) {
@@ -91,7 +91,7 @@ public abstract class AttributeConfigurationSelector {
                 // we're looking for.
                 String classifier = requestedArtifacts.get(0).getClassifier();
                 if (classifier != null) {
-                    List<VariantGraphResolveMetadata> sameClassifier = findVariantsProvidingExactlySameClassifier(matches, classifier, targetComponentState);
+                    List<VariantGraphResolveState> sameClassifier = findVariantsProvidingExactlySameClassifier(matches, classifier);
                     if (sameClassifier != null && sameClassifier.size() == 1) {
                         return singleVariant(true, sameClassifier);
                     }
@@ -104,7 +104,7 @@ public abstract class AttributeConfigurationSelector {
         } else if (!matches.isEmpty()) {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             if (explanationBuilder instanceof TraceDiscardedConfigurations) {
-                Set<VariantGraphResolveMetadata> discarded = Cast.uncheckedCast(((TraceDiscardedConfigurations) explanationBuilder).discarded);
+                Set<VariantGraphResolveState> discarded = Cast.uncheckedCast(((TraceDiscardedConfigurations) explanationBuilder).discarded);
                 throw new AmbiguousConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
             } else {
                 // Perform a second resolution with tracing
@@ -120,12 +120,12 @@ public abstract class AttributeConfigurationSelector {
         ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema,
         ComponentGraphResolveMetadata targetComponent, AttributeMatcher attributeMatcher, GraphSelectionCandidates candidates
     ) {
-        ConfigurationGraphResolveMetadata fallbackConfiguration = candidates.getLegacyConfiguration();
+        ConfigurationGraphResolveState fallbackConfiguration = candidates.getLegacyConfiguration();
         if (fallbackConfiguration != null &&
-            fallbackConfiguration.isCanBeConsumed() &&
+            fallbackConfiguration.getMetadata().isCanBeConsumed() &&
             attributeMatcher.isMatching(fallbackConfiguration.getAttributes(), consumerAttributes)
         ) {
-            return singleVariant(candidates.isUseVariants(), ImmutableList.of(fallbackConfiguration));
+            return singleVariant(candidates.isUseVariants(), ImmutableList.of(fallbackConfiguration.asVariant()));
         }
 
         AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
@@ -133,11 +133,11 @@ public abstract class AttributeConfigurationSelector {
     }
 
     @Nullable
-    private static List<VariantGraphResolveMetadata> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveMetadata> matches, String classifier, ComponentGraphResolveState targetComponent) {
-        List<VariantGraphResolveMetadata> sameClassifier = null;
+    private static List<VariantGraphResolveState> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveState> matches, String classifier) {
+        List<VariantGraphResolveState> sameClassifier = null;
         // let's see if we can find a single variant which has exactly the requested artifacts
-        for (VariantGraphResolveMetadata match : matches) {
-            List<? extends ComponentArtifactMetadata> artifacts = targetComponent.resolveArtifactsFor(match).getArtifacts();
+        for (VariantGraphResolveState match : matches) {
+            List<? extends ComponentArtifactMetadata> artifacts = match.resolveArtifacts().getArtifacts();
             if (artifacts.size() == 1) {
                 ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
                 if (componentArtifactMetadata instanceof ModuleComponentArtifactMetadata) {
@@ -156,19 +156,19 @@ public abstract class AttributeConfigurationSelector {
         return sameClassifier;
     }
 
-    private static VariantSelectionResult singleVariant(boolean variantAware, List<VariantGraphResolveMetadata> matches) {
+    private static VariantSelectionResult singleVariant(boolean variantAware, List<VariantGraphResolveState> matches) {
         assert matches.size() == 1;
         return new VariantSelectionResult(ImmutableList.of(matches.get(0)), variantAware);
     }
 
-    private static ImmutableList<VariantGraphResolveMetadata> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends VariantGraphResolveMetadata> consumableVariants, boolean lenient) {
+    private static ImmutableList<VariantGraphResolveState> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends VariantGraphResolveState> consumableVariants, boolean lenient) {
         if (consumableVariants.isEmpty()) {
             return ImmutableList.of();
         }
-        ImmutableList.Builder<VariantGraphResolveMetadata> builder = ImmutableList.builderWithExpectedSize(consumableVariants.size());
+        ImmutableList.Builder<VariantGraphResolveState> builder = ImmutableList.builderWithExpectedSize(consumableVariants.size());
         boolean explicitlyRequested = !explicitRequestedCapabilities.isEmpty();
         ModuleIdentifier moduleId = targetComponent.getModuleVersionId().getModule();
-        for (VariantGraphResolveMetadata variant : consumableVariants) {
+        for (VariantGraphResolveState variant : consumableVariants) {
             CapabilitiesMetadata capabilitiesMetadata = variant.getCapabilities();
             List<? extends Capability> capabilities = capabilitiesMetadata.getCapabilities();
             MatchResult result;

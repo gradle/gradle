@@ -52,6 +52,7 @@ import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
@@ -78,6 +79,7 @@ public class NodeState implements DependencyGraphNode {
     private final List<EdgeState> outgoingEdges = Lists.newArrayList();
     private final ResolvedConfigurationIdentifier id;
 
+    private final VariantGraphResolveState variantState;
     private final VariantGraphResolveMetadata metadata;
     private final ResolveState resolveState;
     private final ModuleExclusions moduleExclusions;
@@ -124,16 +126,17 @@ public class NodeState implements DependencyGraphNode {
     private boolean findingExternalVariants;
 
     @VisibleForTesting // just for testing purposes
-    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
-        this(resultId, id, component, null, md, selectedByVariantAwareResolution);
+    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
+        this(resultId, id, component, null, variant, selectedByVariantAwareResolution);
     }
 
-    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
+    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
         this.nodeId = resultId;
         this.id = id;
         this.component = component;
         this.resolveState = resolveState;
-        this.metadata = md;
+        this.variantState = variant;
+        this.metadata = variant.getMetadata();
         this.isTransitive = metadata.isTransitive() || metadata.isExternalVariant();
         this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
         this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
@@ -194,6 +197,11 @@ public class NodeState implements DependencyGraphNode {
     @Override
     public VariantGraphResolveMetadata getMetadata() {
         return metadata;
+    }
+
+    @Override
+    public VariantGraphResolveState getResolveState() {
+        return variantState;
     }
 
     @Override

@@ -34,7 +34,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantSelectionResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -278,7 +278,7 @@ class EdgeState implements DependencyGraphEdge {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
             return;
         }
-        for (VariantGraphResolveMetadata targetVariant : targetVariants.getVariants()) {
+        for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
             this.targetNodes.add(targetNodeState);
         }
