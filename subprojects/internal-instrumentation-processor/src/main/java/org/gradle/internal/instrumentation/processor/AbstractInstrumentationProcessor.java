@@ -79,19 +79,12 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        Collection<? extends Element> annotatedTypes = getSupportedAnnotations().stream()
+        Stream<? extends Element> annotatedTypes = getSupportedAnnotations().stream()
             .flatMap(annotation -> roundEnv.getElementsAnnotatedWith(annotation).stream())
-            .collect(Collectors.toSet());
-        annotatedTypes = findActualTypesToVisit(annotatedTypes);
+            .flatMap(element -> findActualTypesToVisit(element).stream())
+            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName));
         collectAndProcessRequests(annotatedTypes);
         return true;
-    }
-
-    private List<? extends Element> findActualTypesToVisit(Collection<? extends Element> annotatedTypes) {
-        return annotatedTypes.stream()
-            .flatMap(it -> findActualTypesToVisit(it).stream())
-            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName))
-            .collect(Collectors.toList());
     }
 
     private Set<Element> findActualTypesToVisit(Element typeElement) {
@@ -113,7 +106,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         return Cast.uncheckedCast(getExtensions().stream().filter(type::isInstance).collect(Collectors.toList()));
     }
 
-    private void collectAndProcessRequests(Collection<? extends Element> annotatedElements) {
+    private void collectAndProcessRequests(Stream<? extends Element> annotatedElements) {
         Collection<AnnotatedMethodReaderExtension> readers = getExtensionsByType(AnnotatedMethodReaderExtension.class);
 
         List<ExecutableElement> allMethodElementsInAnnotatedClasses = getExecutableElementsFromAnnotatedElements(annotatedElements);
@@ -134,8 +127,8 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     }
 
     @Nonnull
-    private static List<ExecutableElement> getExecutableElementsFromAnnotatedElements(Collection<? extends Element> annotatedClassElements) {
-        return annotatedClassElements.stream()
+    private static List<ExecutableElement> getExecutableElementsFromAnnotatedElements(Stream<? extends Element> annotatedClassElements) {
+        return annotatedClassElements
             .flatMap(element -> element.getKind() == ElementKind.METHOD ? Stream.of(element) : element.getEnclosedElements().stream())
             .filter(it -> it.getKind() == ElementKind.METHOD)
             .map(it -> (ExecutableElement) it)
@@ -143,6 +136,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
             // The order in which the executable elements are listed should be the order in which they appear in the code but
             // we take an extra measure of care here and ensure the ordering between all elements.
             .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName))
+            .distinct()
             .collect(Collectors.toList());
     }
 
