@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-/**
- * @since 8.1
- */
 @file:Incubating
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.provider.HasMultipleValues
@@ -30,18 +25,16 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
-import org.gradle.util.internal.IncubationLogger
 import java.io.File
-
 
 /**
  * Assign value: T to a property with assign operator
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 fun <T> Property<T>.assign(value: T?) {
-    emitIncubatingLogMessage()
+    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(value)
 }
 
@@ -49,11 +42,11 @@ fun <T> Property<T>.assign(value: T?) {
 /**
  * Assign value: Provider<T> to a property with assign operator
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 fun <T> Property<T>.assign(value: Provider<out T?>) {
-    emitIncubatingLogMessage()
+    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(value)
 }
 
@@ -61,11 +54,11 @@ fun <T> Property<T>.assign(value: Provider<out T?>) {
 /**
  * Assign file to a FileSystemLocationProperty with assign operator
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File?) {
-    emitIncubatingLogMessage()
+    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(file)
 }
 
@@ -73,11 +66,11 @@ fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File?) {
 /**
  * Assign file provided by a Provider to a FileSystemLocationProperty with assign operator
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(provider: Provider<File?>) {
-    emitIncubatingLogMessage()
+    KotlinDslAssignment.emitIncubatingLogMessage()
     this.fileProvider(provider)
 }
 
@@ -85,11 +78,11 @@ fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(provider: Prov
 /**
  * Sets the value of the property to the elements of the given iterable, and replaces any existing value
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 fun <T> HasMultipleValues<T>.assign(elements: Iterable<T?>?) {
-    emitIncubatingLogMessage()
+    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(elements)
 }
 
@@ -97,11 +90,11 @@ fun <T> HasMultipleValues<T>.assign(elements: Iterable<T?>?) {
 /**
  * Sets the property to have the same value of the given provider, and replaces any existing value
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 fun <T> HasMultipleValues<T>.assign(provider: Provider<out Iterable<T?>?>) {
-    emitIncubatingLogMessage()
+    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(provider)
 }
 
@@ -109,11 +102,11 @@ fun <T> HasMultipleValues<T>.assign(provider: Provider<out Iterable<T?>?>) {
 /**
  * Sets the value of this property to the entries of the given Map, and replaces any existing value
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
-    emitIncubatingLogMessage()
+    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(entries)
 }
 
@@ -121,32 +114,10 @@ fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
 /**
  * Sets the property to have the same value of the given provider, and replaces any existing value
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 fun <K, V> MapProperty<K, V>.assign(provider: Provider<out Map<out K?, V?>?>) {
-    emitIncubatingLogMessage()
+    KotlinDslAssignment.emitIncubatingLogMessage()
     this.set(provider)
-}
-
-
-/**
- * Sets the ConfigurableFileCollection to contain the source paths of passed collection.
- * This is the same as calling ConfigurableFileCollection.setFrom(fileCollection).
- *
- * @since 8.1
- */
-@Incubating
-fun ConfigurableFileCollection.assign(fileCollection: FileCollection) {
-    emitIncubatingLogMessage()
-    this.setFrom(fileCollection)
-}
-
-
-private
-fun emitIncubatingLogMessage() {
-    if (KotlinDslAssignment.isAssignmentOverloadEnabled()) {
-        // If the assignment overload is disabled for a project but some plugin was compiled using it, we should not do any logging.
-        IncubationLogger.incubatingFeatureUsed("Kotlin DSL property assignment")
-    }
 }
