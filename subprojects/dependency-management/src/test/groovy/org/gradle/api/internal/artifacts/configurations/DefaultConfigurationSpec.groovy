@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -335,7 +336,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         expectResolved(failure)
 
         when:
-        configuration.getResolvedConfiguration()
+        ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
+            view.setLenient(true)
+        })
+        lenientView.getArtifacts().getArtifactFiles()
 
         then:
         configuration.getState() == RESOLVED_WITH_FAILURES

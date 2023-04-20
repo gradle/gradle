@@ -663,7 +663,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @SuppressWarnings("deprecation")
     @Override
-    public ResolvedConfiguration getResolvedConfigurationOld() {
+    public ResolvedConfiguration getResolvedConfiguration() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
 
         DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "getResolvedConfiguration()")

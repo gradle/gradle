@@ -106,7 +106,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
             view.setLenient(true);
         });
-        return !lenientView.getArtifacts().getFailures().isEmpty();
+        return lenientView.getArtifacts().getFailures().isEmpty();
     }
 
     private ModuleDependency getMarkerDependency(PluginRequestInternal pluginRequest) {
