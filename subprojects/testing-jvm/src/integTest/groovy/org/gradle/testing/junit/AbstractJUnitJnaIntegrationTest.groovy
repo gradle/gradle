@@ -45,7 +45,7 @@ abstract class AbstractJUnitJnaIntegrationTest extends AbstractJUnitMultiVersion
                 ${testFrameworkDependencies}
                 testImplementation 'net.java.dev.jna:jna-platform:4.1.0'
             }
-
+            test.${configureTestFramework}
         """
 
         when:
