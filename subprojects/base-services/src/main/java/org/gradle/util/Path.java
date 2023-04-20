@@ -56,7 +56,7 @@ public class Path implements Comparable<Path> {
 
     private final String[] segments;
     private final boolean absolute;
-    private String fullPath;
+    private transient String fullPath;
 
     private Path(String[] segments, boolean absolute) {
         this.segments = segments;
