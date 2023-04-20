@@ -35,6 +35,17 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.3]]
+== Upgrading from 8.2
+
+=== Deprecations
+
+[[resolved_configuration]]
+==== `link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[ResolvedConfiguration]`
+The `ResolvedConfiguration` API is deprecated.
+This type was primarily used internally to represent the result of resolving a configuration.
+Its functionality can be replaced by various methods available on the result of calling `getIncoming()`.
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 

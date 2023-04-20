@@ -304,6 +304,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @return The ResolvedConfiguration object
      */
+    @Deprecated
     ResolvedConfiguration getResolvedConfiguration();
 
     /**

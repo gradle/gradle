@@ -664,6 +664,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
+
+        DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "getResolvedConfiguration()")
+                .replaceWith("getIncoming().getArtifactView()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "resolved_configuration")
+                .nagUser();
         return resolveToStateOrLater(ARTIFACTS_RESOLVED).getResolvedConfiguration();
     }
 
