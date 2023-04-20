@@ -661,8 +661,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public ResolvedConfiguration getResolvedConfiguration() {
+    public ResolvedConfiguration getResolvedConfigurationOld() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
 
         DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "getResolvedConfiguration()")

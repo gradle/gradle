@@ -271,14 +271,6 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(vararg depen
 
 
 /**
- * See [Configuration.getResolvedConfiguration].
- */
-@Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().resolvedConfiguration"), level = DeprecationLevel.HIDDEN)
-val <T : Configuration> NamedDomainObjectProvider<T>.resolvedConfiguration
-    get() = get().resolvedConfiguration
-
-
-/**
  * See [Configuration.getTaskDependencyFromProjectDependency].
  */
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().getTaskDependencyFromProjectDependency(useDependedOn, taskName)"), level = DeprecationLevel.HIDDEN)

@@ -305,7 +305,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return The ResolvedConfiguration object
      */
     @Deprecated
-    ResolvedConfiguration getResolvedConfiguration();
+    ResolvedConfiguration getResolvedConfigurationOld();
 
     /**
      * Returns the name of the task that upload the artifacts of this configuration to repositories
