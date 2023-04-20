@@ -32,12 +32,12 @@ trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
         String getTestFrameworkDependencies(String sourceSet) {
             if (MultiVersionIntegrationSpec.version.startsWith("3")) {
                 return """
-                    ${getSourceSetConfiguration(sourceSet, 'compileOnly')} 'junit:junit:${MultiVersionIntegrationSpec.version}'
-                    ${getSourceSetConfiguration(sourceSet, 'runtimeOnly')} 'junit:junit:${JUnitCoverage.JUNIT_4_LATEST}'
+                    ${configurationFor(sourceSet, 'compileOnly')} 'junit:junit:${MultiVersionIntegrationSpec.version}'
+                    ${configurationFor(sourceSet, 'runtimeOnly')} 'junit:junit:${JUnitCoverage.JUNIT_4_LATEST}'
                 """
             } else {
                 return """
-                    ${getSourceSetConfiguration(sourceSet, 'implementation')} 'junit:junit:${MultiVersionIntegrationSpec.version}'
+                    ${configurationFor(sourceSet, 'implementation')} 'junit:junit:${MultiVersionIntegrationSpec.version}'
                 """
             }
         }
