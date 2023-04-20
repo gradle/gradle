@@ -27,8 +27,6 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.CoreMatchers
-import org.gradle.util.internal.TextUtil
-import org.gradle.util.UnitTestPreconditions
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -36,7 +34,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
 import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 import static org.hamcrest.CoreMatchers.equalTo
-
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */

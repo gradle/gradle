@@ -120,7 +120,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "incremental compilation detects if some exported package for compiled module was deleted #description"() {
         file("impl/build.gradle") << """
             def layout = project.layout
@@ -205,7 +205,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         impl.recompiledFqn("my.module.first.b.B", "my.module.second.c.C", "my.module.first.module-info", "my.module.second.module-info", "my.module.unrelated.module-info")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles when upstream module-info changes"() {
         given:
         settingsFile << "include 'otherApi'"
