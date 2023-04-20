@@ -70,6 +70,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     @SuppressWarnings("deprecation")
     @Override
     public String getBuildName() {
+        // TODO: Deprecate this method and add separate nagging, also disabling nagging for the buildIdentifier.getName()
         return buildIdentifier.getName();
     }
 
