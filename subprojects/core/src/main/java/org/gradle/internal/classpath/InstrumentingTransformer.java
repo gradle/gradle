@@ -339,8 +339,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 //noinspection Convert2MethodRef
                 InstrumentationMetadata metadata = (type, superType) -> type.equals(superType); // TODO implement properly
                 Constructor<?> constructor = Class.forName(className).getConstructor(MethodVisitor.class, InstrumentationMetadata.class);
-                // Generated classes are not public and in the org.gradle.internal.classpath.generated package
-                constructor.setAccessible(true);
                 return Optional.of((JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata));
             } catch (ClassNotFoundException e) {
                 // No interceptor definition for this class
