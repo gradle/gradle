@@ -62,7 +62,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @ToolingApiTest
 @CleanupTestDirectory
-@ToolingApiVersion('>=7.0') // The lowest tested version should be the first release of the previous major.
+// The lowest tested version should be the first release of the previous major.
+@ToolingApiVersion('>=7.0')
 @TargetGradleVersion('>=3.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification implements TestProjectInitiation {
@@ -324,15 +325,15 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
 
     private void assertHasNoDeprecationWarnings() {
         if (shouldCheckForDeprecationWarnings()) {
-            // Older versions have deprecations
             assert !stdout.toString()
-                .replace("[deprecated]", "IGNORE") // deprecated command-line argument
+                .replace("[deprecated]", "IGNORE") // don't check deprecated command-line argument
                 .containsIgnoreCase("deprecated")
         }
     }
 
     def shouldCheckForDeprecationWarnings() {
-        GradleVersion.version("6.9") > targetVersion
+        // Older versions have deprecations
+        GradleVersion.version("6.9") < targetVersion
     }
 
     ExecutionResult getResult() {
