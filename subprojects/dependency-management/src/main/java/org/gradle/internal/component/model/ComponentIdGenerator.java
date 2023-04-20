@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.local.model;
+package org.gradle.internal.component.model;
 
-import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
-public class LocalComponentGraphResolveStateFactory {
-    private final AttributeDesugaring attributeDesugaring;
-    private final ComponentIdGenerator idGenerator;
+import java.util.concurrent.atomic.AtomicLong;
 
-    public LocalComponentGraphResolveStateFactory(AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
-        this.attributeDesugaring = attributeDesugaring;
-        this.idGenerator = idGenerator;
+/**
+ * A generator of ids for various model and result objects.
+ */
+@ServiceScope(Scopes.BuildTree.class)
+public class ComponentIdGenerator {
+    private final AtomicLong nextId = new AtomicLong();
+
+    public long nextComponentId() {
+        return nextId.getAndIncrement();
     }
 
-    public LocalComponentGraphResolveState stateFor(LocalComponentMetadata metadata) {
-        return new DefaultLocalComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring);
+    public long nextGraphNodeId() {
+        return nextId.getAndIncrement();
     }
 }

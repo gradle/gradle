@@ -36,6 +36,14 @@ import java.util.List;
  * <p>This interface says nothing about thread safety, however some subtypes may be required to be thread safe.</p>
  */
 public interface ComponentGraphResolveState {
+    /**
+     * A unique id for this component within the current build tree. Note that this id is not stable across Gradle invocations.
+     */
+    long getInstanceId();
+
+    /**
+     * The component identifier for this component. This identifier is stable but may not be unique.
+     */
     ComponentIdentifier getId();
 
     ModuleSources getSources();

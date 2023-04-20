@@ -62,8 +62,8 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     // The public view of all selectable variants of this component
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
-    public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring) {
-        super(metadata, metadata, attributeDesugaring);
+    public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring) {
+        super(instanceId, metadata, metadata, attributeDesugaring);
         allVariantsForArtifactSelection = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream().
                 map(LocalConfigurationGraphResolveMetadata.class::cast).

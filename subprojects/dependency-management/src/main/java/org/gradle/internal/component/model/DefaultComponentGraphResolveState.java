@@ -47,8 +47,8 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
-    public DefaultComponentGraphResolveState(T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
-        super(graphMetadata, artifactMetadata, attributeDesugaring);
+    public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
+        super(instanceId, graphMetadata, artifactMetadata, attributeDesugaring);
         allVariantsForArtifactSelection = graphMetadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
                 .map(ModuleConfigurationMetadata.class::cast)
