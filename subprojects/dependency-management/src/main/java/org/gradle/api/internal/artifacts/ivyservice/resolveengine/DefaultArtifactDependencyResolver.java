@@ -56,10 +56,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -92,6 +95,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ResolvedVariantCache resolvedVariantCache;
+    private final AttributeDesugaring attributeDesugaring;
+    private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
+    private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
 
     public DefaultArtifactDependencyResolver(
         BuildOperationExecutor buildOperationExecutor,
@@ -108,7 +114,10 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         InstantiatorFactory instantiatorFactory,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ResolvedVariantCache resolvedVariantCache
+        ResolvedVariantCache resolvedVariantCache,
+        AttributeDesugaring attributeDesugaring,
+        LocalComponentGraphResolveStateFactory localResolveStateFactory,
+        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory
     ) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
@@ -125,6 +134,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.resolvedVariantCache = resolvedVariantCache;
+        this.attributeDesugaring = attributeDesugaring;
+        this.localResolveStateFactory = localResolveStateFactory;
+        this.moduleResolveStateFactory = moduleResolveStateFactory;
     }
 
     @Override
@@ -134,7 +146,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         validateResolutionStrategy(resolveContext.getResolutionStrategy());
 
         ComponentResolversChain resolvers = createResolvers(resolveContext, repositories, metadataHandler, projectDependencyResolver, artifactTypeRegistry, consumerSchema);
-        DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, consumerSchema, moduleExclusions, buildOperationExecutor);
+        DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, consumerSchema, moduleExclusions);
 
         DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, resolvers.getArtifactSelector());
 
@@ -162,18 +174,17 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         GlobalDependencyResolutionRules globalRules,
         Spec<? super DependencyMetadata> edgeFilter,
         AttributesSchemaInternal attributesSchema,
-        ModuleExclusions moduleExclusions,
-        BuildOperationExecutor buildOperationExecutor
+        ModuleExclusions moduleExclusions
     ) {
 
         DependencyToComponentIdResolver componentIdResolver = componentSource.getComponentIdResolver();
-        ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyMetadataFactory);
+        ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyMetadataFactory, moduleResolveStateFactory);
 
         ModuleConflictHandler conflictHandler = createModuleConflictHandler(resolutionStrategy, globalRules);
         DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = createCapabilitiesConflictHandler(resolutionStrategy.getCapabilitiesResolutionRules());
 
         DependencySubstitutionApplicator applicator = createDependencySubstitutionApplicator(resolutionStrategy);
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, applicator, componentSelectorConverter, attributesFactory, versionSelectorScheme, versionComparator.asVersionComparator(), versionParser);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, applicator, componentSelectorConverter, attributesFactory, attributeDesugaring, versionSelectorScheme, versionComparator.asVersionComparator(), localResolveStateFactory, versionParser);
     }
 
     private DependencySubstitutionApplicator createDependencySubstitutionApplicator(ResolutionStrategyInternal resolutionStrategy) {

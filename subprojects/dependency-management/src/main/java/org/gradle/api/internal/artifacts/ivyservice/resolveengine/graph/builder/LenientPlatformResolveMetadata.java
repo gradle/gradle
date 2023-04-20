@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -45,6 +44,7 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
@@ -119,7 +119,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
 
     @Override
     public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
-        return Optional.absent();
+        return Optional.empty();
     }
 
     @Override
