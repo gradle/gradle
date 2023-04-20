@@ -149,13 +149,12 @@ class ToolingApi implements TestRule {
     }
 
     def <T> T loadToolingLeanModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
-        def result = withConnection {
+        withConnection {
             def builder = it.model(modelClass)
             builder.tap(configurator)
             collectOutputs(builder)
             builder.get()
         }
-        return result
     }
 
     def <T> T loadValidatedToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {

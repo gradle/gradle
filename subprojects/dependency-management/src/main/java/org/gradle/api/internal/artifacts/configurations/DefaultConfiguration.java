@@ -159,6 +159,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.join;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
@@ -824,9 +825,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 boolean hasModuleNotFound = causes.stream().anyMatch(ModuleVersionNotFoundException.class::isInstance);
                 if (hasModuleNotFound) {
                     return Optional.of(new ResolveExceptionWithHints(getDisplayName(), causes,
-                        String.join("\n", "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
+                        join("\n", "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
                         "You can figure out how project repositories are declared by configuring your build to fail on project repositories.",
-                        "See " + documentationRegistry.getDocumentationFor("declaring_repositories", "sub:fail_build_on_project_repositories") + " for details.")));
+                        documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories"))));
                 }
             }
         } catch (Throwable e) {

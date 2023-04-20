@@ -34,6 +34,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
+import org.gradle.platform.BuildPlatform;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -63,6 +64,7 @@ public class JavaToolchainQueryService {
     private final ConcurrentMap<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
     private final CurrentJvmToolchainSpec fallbackToolchainSpec;
     private final File currentJavaHome;
+    private final BuildPlatform buildPlatform;
 
     @Inject
     public JavaToolchainQueryService(
@@ -70,9 +72,10 @@ public class JavaToolchainQueryService {
         JvmMetadataDetector detector,
         FileFactory fileFactory,
         JavaToolchainProvisioningService provisioningService,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        BuildPlatform buildPlatform
     ) {
-        this(registry, detector, fileFactory, provisioningService, objectFactory, Jvm.current().getJavaHome());
+        this(registry, detector, fileFactory, provisioningService, objectFactory, Jvm.current().getJavaHome(), buildPlatform);
     }
 
     @VisibleForTesting
@@ -82,7 +85,8 @@ public class JavaToolchainQueryService {
         FileFactory fileFactory,
         JavaToolchainProvisioningService provisioningService,
         ObjectFactory objectFactory,
-        File currentJavaHome
+        File currentJavaHome,
+        BuildPlatform buildPlatform
     ) {
         this.registry = registry;
         this.detector = detector;
@@ -91,6 +95,7 @@ public class JavaToolchainQueryService {
         this.matchingToolchains = new ConcurrentHashMap<>();
         this.fallbackToolchainSpec = objectFactory.newInstance(CurrentJvmToolchainSpec.class);
         this.currentJavaHome = currentJavaHome;
+        this.buildPlatform = buildPlatform;
     }
 
     public ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
@@ -172,7 +177,7 @@ public class JavaToolchainQueryService {
         try {
             installation = installService.tryInstall(spec);
         } catch (ToolchainDownloadFailedException e) {
-            throw new NoToolchainAvailableException(spec, e);
+            throw new NoToolchainAvailableException(spec, buildPlatform, e);
         }
 
         InstallationLocation downloadedInstallation = new InstallationLocation(installation, "provisioned toolchain", true);

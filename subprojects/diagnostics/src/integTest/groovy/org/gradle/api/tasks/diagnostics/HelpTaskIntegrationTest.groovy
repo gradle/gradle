@@ -15,12 +15,14 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
@@ -51,13 +53,13 @@ Directory '$testDirectory' does not contain a Gradle build.
 
 To create a new build in this directory, run gradle init
 
-For more detail on the 'init' task, see https://docs.gradle.org/$version/userguide/build_init_plugin.html
+For more detail on the 'init' task, see $BASE_URL/userguide/build_init_plugin.html
 
-For more detail on creating a Gradle build, see https://docs.gradle.org/$version/userguide/tutorial_using_tasks.html
+For more detail on creating a Gradle build, see $BASE_URL/userguide/tutorial_using_tasks.html
 
 To see a list of command-line options, run gradle --help
 
-For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
+For more detail on using Gradle, see $BASE_URL/userguide/command_line_interface.html
 
 For troubleshooting, visit https://help.gradle.org
 
@@ -210,7 +212,7 @@ To see more detail about a task, run gradle help --task <task>
 
 To see a list of command-line options, run gradle --help
 
-For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
+For more detail on using Gradle, see $BASE_URL/userguide/command_line_interface.html
 
 For troubleshooting, visit https://help.gradle.org
 
