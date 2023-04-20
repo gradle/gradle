@@ -2019,7 +2019,7 @@ since users cannot create non-legacy configurations and there is no current publ
             canBeDeclaredAgainst = allowed;
             maybeWarnOnChangingUsage("declarable", allowed);
         } else if (canBeDeclaredAgainst && allowed) {
-            maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclaredAgainst(true)");
+            maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclared(true)");
         }
     }
 
