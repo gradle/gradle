@@ -104,6 +104,78 @@ import java.util.concurrent.ThreadFactory
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "reports in task when injected service of #serviceType accessed at execution time"() {
+        given:
+        buildFile << """
+            abstract class Foo extends DefaultTask {
+
+                @Inject
+                public abstract ${serviceType.name} getInjected()
+
+                @TaskAction
+                void action() {
+                    println(getInjected())
+                }
+            }
+
+            tasks.register('foo', Foo)
+        """
+
+        when:
+        configurationCacheRunLenient "foo"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(1)
+            withUniqueProblems(
+                "Class `Foo`: accessing non-serializable type '${serviceType.name}'"
+            )
+        }
+
+        where:
+        serviceType << [Project, Gradle]
+    }
+
+    def "reports in plugin when service of #serviceType accessed at execution time"() {
+        given:
+        buildFile << """
+            abstract class MyPlugin implements Plugin<Project> {
+
+                @Inject
+                public abstract ${serviceType.name} getInjected()
+
+                void apply(Project target) {
+                    registerTask(this, target)
+                }
+
+                private void registerTask(MyPlugin plugin, Project project) {
+                    project.tasks.register("foo") {
+                        doFirst {
+                            println(plugin.getInjected())
+                        }
+                    }
+                }
+            }
+
+            apply plugin: MyPlugin
+        """
+
+        when:
+        configurationCacheRunLenient "foo"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(1)
+            withUniqueProblems(
+                "Plugin class 'MyPlugin': accessing non-serializable type '${serviceType.name}'"
+            )
+        }
+
+        where:
+        serviceType << [Project, Gradle]
+    }
+
+
     def "reports when task field references an object of type #baseType"() {
         buildFile << """
             plugins { id "java" }

@@ -77,7 +77,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
                 }, EnumSet.of(OperationType.GENERIC)).addProgressListener({ ProgressEvent event ->
                     resultsOfLastListener.add(event)
                 }, EnumSet.of(OperationType.GENERIC))
-                collectOutputs(build)
                 build.run()
         }
 

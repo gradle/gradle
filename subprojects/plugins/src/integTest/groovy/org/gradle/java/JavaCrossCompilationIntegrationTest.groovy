@@ -106,7 +106,7 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             public class ThingTest {
                 @Test
                 public void verify() {
-                    assert System.getProperty("java.version").startsWith("${version}.");
+                    assert System.getProperty("java.version").startsWith("${version}");
                 }
             }
         """

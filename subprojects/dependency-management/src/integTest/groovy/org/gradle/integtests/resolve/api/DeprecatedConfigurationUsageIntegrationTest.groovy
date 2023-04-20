@@ -130,42 +130,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
 
-            ConfigurationRole customRole = new ConfigurationRole() {
-                @Override
-                String getName() {
-                    return "custom"
-                }
-
-                @Override
-                boolean isConsumable() {
-                    return true
-                }
-
-                @Override
-                boolean isResolvable() {
-                    return false
-                }
-
-                @Override
-                boolean isDeclarableAgainst() {
-                    return false
-                }
-
-                @Override
-                boolean isConsumptionDeprecated() {
-                    return true
-                }
-
-                @Override
-                boolean isResolutionDeprecated() {
-                    return false
-                }
-
-                @Override
-                boolean isDeclarationAgainstDeprecated() {
-                    return false
-                }
-            }
+            ConfigurationRole customRole = new org.gradle.api.internal.artifacts.configurations.DefaultConfigurationRole("custom", true, false, false, true, false, false)
             configurations.createWithRole('custom', customRole)
 
             configurations.custom.attributes {

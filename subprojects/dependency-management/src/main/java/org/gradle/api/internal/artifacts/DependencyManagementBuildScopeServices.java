@@ -77,7 +77,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
@@ -222,6 +222,8 @@ class DependencyManagementBuildScopeServices {
         registration.add(DefaultProjectLocalComponentProvider.class);
         registration.add(DefaultProjectPublicationRegistry.class);
         registration.add(FileResourceConnector.class);
+        registration.add(DefaultComponentSelectorConverter.class);
+        registration.add(ProjectDependencyResolver.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
@@ -564,10 +566,6 @@ class DependencyManagementBuildScopeServices {
             instantiatorFactory,
             componentSelectionDescriptorFactory,
             calculatedValueContainerFactory, resolvedVariantCache);
-    }
-
-    ComponentSelectorConverter createModuleVersionSelectorFactory(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
-        return new DefaultComponentSelectorConverter(componentIdentifierFactory, localComponentRegistry);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {

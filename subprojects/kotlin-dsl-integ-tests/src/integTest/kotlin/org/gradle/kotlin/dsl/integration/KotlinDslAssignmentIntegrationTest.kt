@@ -29,8 +29,7 @@ import java.io.File
 class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    fun `can use assignment for properties in init scripts when assignment overload is enabled`() {
-        withAssignmentOverload()
+    fun `can use assignment for properties in init scripts`() {
         val initScript = withInitScriptWithAssignment()
 
         // Expect
@@ -41,8 +40,7 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `can use assignment for properties in settings scripts when assignment overload is enabled`() {
-        withAssignmentOverload()
+    fun `can use assignment for properties in settings scripts`() {
         withSettingsWithAssignment()
 
         // Expect
@@ -53,9 +51,8 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `can use assignment for properties in build scripts when assignment overload is enabled`() {
+    fun `can use assignment for properties in build scripts`() {
         // Given
-        withAssignmentOverload()
         val outputFile = withBuildScriptWithAssignment()
 
         // When
@@ -71,8 +68,9 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `cannot use assignment for properties in init scripts when assignment overload is not enabled`() {
+    fun `cannot use assignment for properties in init scripts when assignment overload is disabled`() {
         // Given
+        withAssignmentOverload(disabled = true)
         val initScript = withInitScriptWithAssignment()
 
         // When
@@ -83,8 +81,9 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `cannot use assignment for properties in settings scripts when assignment overload is not enabled`() {
+    fun `cannot use assignment for properties in settings scripts when assignment overload is disabled`() {
         // Given
+        withAssignmentOverload(disabled = true)
         withSettingsWithAssignment()
 
         // When
@@ -95,8 +94,9 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `cannot use assignment for properties in build scripts when assignment overload is not enabled`() {
+    fun `cannot use assignment for properties in build scripts when assignment overload is disabled`() {
         // Given
+        withAssignmentOverload(disabled = true)
         withBuildScriptWithAssignment()
 
         // When
@@ -111,14 +111,11 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         // Given
         val initScript = withInitScriptWithAssignment()
 
-        // When
-        withAssignmentOverload()
-
         // Then
         build("-I", initScript.absolutePath)
 
         // When
-        withAssignmentOverload(enabled = false)
+        withAssignmentOverload(disabled = true)
         val failure = buildAndFail("-I", initScript.absolutePath)
 
         // Then
@@ -136,14 +133,11 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         // Given
         withSettingsWithAssignment()
 
-        // When
-        withAssignmentOverload()
-
-        // Then
+        // When, Then
         build()
 
         // When
-        withAssignmentOverload(enabled = false)
+        withAssignmentOverload(disabled = true)
         val failure = buildAndFail()
 
         // Then
@@ -161,14 +155,11 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         // Given
         withBuildScriptWithAssignment()
 
-        // When
-        withAssignmentOverload()
-
-        // Then
+        // When, Then
         build("myTask")
 
         // When
-        withAssignmentOverload(enabled = false)
+        withAssignmentOverload(disabled = true)
         val failure = buildAndFail("myTask")
 
         // Then
@@ -184,7 +175,6 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `assign operator compiles with all possible Property types`() {
         // Given
-        withAssignmentOverload()
         withBuildScript("""
             abstract class MyTask : DefaultTask() {
                 @get:Input
@@ -252,6 +242,61 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         build("myTask")
     }
 
+    @Test
+    fun `doesn't report assignment is incubating feature when used by third party plugin`() {
+        // Given
+        val pluginDir = File(projectRoot, "plugin")
+        File(pluginDir, "src/main/kotlin").mkdirs()
+        File(pluginDir, "build.gradle.kts").writeText("""
+            plugins {
+                `kotlin-dsl`
+            }
+            repositories {
+                mavenCentral()
+            }
+            """.trimIndent()
+        )
+        File(pluginDir, "settings.gradle.kts").writeText("rootProject.name = \"plugin\"")
+        File(pluginDir, "src/main/kotlin/plugin-with-assignment.gradle.kts").writeText("""
+            abstract class MyTask : DefaultTask() {
+                @get:Input
+                abstract val input: Property<String>
+                @get:OutputFile
+                abstract val output: RegularFileProperty
+
+                @TaskAction
+                fun taskAction() {
+                    output.asFile.get().writeText(input.get())
+                }
+            }
+            tasks.register<MyTask>("myTask") {
+                input = "Hello world"
+                output = file("build/myTask/hello.txt")
+            }
+            """.trimIndent()
+        )
+        executer.inDirectory(pluginDir).withTasks("assemble").run()
+
+        // When
+        withAssignmentOverload(disabled = true)
+        withBuildScript("""
+            buildscript {
+                dependencies { classpath(fileTree(mapOf("dir" to "plugin/build/libs", "include" to "*.jar"))) }
+            }
+            apply(plugin = "plugin-with-assignment")
+            """.trimIndent()
+        )
+        val result = build("myTask")
+
+        // Then
+        assertEquals(
+            "File 'build/myTask/hello.txt' content",
+            "Hello world",
+            File(projectRoot, "build/myTask/hello.txt").readText()
+        )
+        result.assertNotOutput("Kotlin DSL property assignment is an incubating feature.")
+    }
+
     private
     fun withBuildScriptWithAssignment(): File {
         val outputFilePath = "${projectRoot.absolutePath.replace("\\", "/")}/build/myTask/hello-world.txt"
@@ -308,7 +353,7 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     private
-    fun withAssignmentOverload(enabled: Boolean = true) {
-        withFile("gradle.properties", "systemProp.$ASSIGNMENT_SYSTEM_PROPERTY=$enabled")
+    fun withAssignmentOverload(disabled: Boolean = false) {
+        withFile("gradle.properties", "systemProp.$ASSIGNMENT_SYSTEM_PROPERTY=${!disabled}")
     }
 }

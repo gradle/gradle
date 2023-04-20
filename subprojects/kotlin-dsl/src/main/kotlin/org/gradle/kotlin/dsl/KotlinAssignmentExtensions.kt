@@ -29,6 +29,7 @@ import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import org.gradle.util.internal.IncubationLogger
 import java.io.File
 
@@ -143,4 +144,9 @@ fun ConfigurableFileCollection.assign(fileCollection: FileCollection) {
 
 
 private
-fun emitIncubatingLogMessage() = IncubationLogger.incubatingFeatureUsed("Kotlin DSL property assignment")
+fun emitIncubatingLogMessage() {
+    if (KotlinDslAssignment.isAssignmentOverloadEnabled()) {
+        // If the assignment overload is disabled for a project but some plugin was compiled using it, we should not do any logging.
+        IncubationLogger.incubatingFeatureUsed("Kotlin DSL property assignment")
+    }
+}

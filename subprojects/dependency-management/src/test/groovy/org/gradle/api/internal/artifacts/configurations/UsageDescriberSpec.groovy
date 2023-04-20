@@ -30,7 +30,7 @@ class UsageDescriberSpec extends Specification {
 
     def "can describe usage for role which allows nothing"() {
         given:
-        def role = new TestConfigurationRole("test", false, false, false, false, false, false)
+        def role = new DefaultConfigurationRole("test", false, false, false, false, false, false)
 
         expect:
         UsageDescriber.describeRole(role) == "\tThis configuration does not allow any usage"
