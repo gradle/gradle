@@ -1142,6 +1142,11 @@ Calling link:{javadocPath}/org/gradle/api/Task.html#getConvention--[Task.getConv
 
 See the <<configuration_cache#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
+[[test_task_fail_on_no_test_executed]]
+==== Deprecated running test task successfully when no test executed
+Running the `Test` task successfully when no test was executed is now deprecated and will become an error in Gradle 9.
+This is done to avoid accidental successful test runs due to erroneous configuration.
+
 === Changes in the IDE integration
 
 [[kotlin_dsl_plugins_catalogs_workaround]]

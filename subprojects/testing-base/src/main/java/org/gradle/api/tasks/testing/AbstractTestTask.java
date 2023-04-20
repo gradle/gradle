@@ -66,6 +66,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -481,9 +482,20 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private void handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
-        } else if (testCountLogger.getTotalTests() == 0 && shouldFailOnNoMatchingTests()) {
-            throw new TestExecutionException(createNoMatchingTestErrorMessage());
+        } else if (testCountLogger.getTotalTests() == 0) {
+            if (shouldFailOnNoMatchingTests()) {
+                throw new TestExecutionException(createNoMatchingTestErrorMessage());
+            }
+            emitDeprecationMessage();
         }
+    }
+
+    private void emitDeprecationMessage() {
+        DeprecationLogger.deprecateBehaviour("No test executed.")
+            .withAdvice("There are test sources present but no test was executed. Please check your test configuration.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "test_task_fail_on_no_test_executed")
+            .nagUser();
     }
 
     private boolean shouldFailOnNoMatchingTests() {
