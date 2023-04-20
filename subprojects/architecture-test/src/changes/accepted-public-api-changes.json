@@ -1,3 +1,20 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.assign(org.gradle.api.file.FileSystemLocationProperty,java.io.File)",
+            "acceptation": "Binary compatibility check incorrectly detects Kotlin extension methods",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.assign(org.gradle.api.provider.Property,java.lang.Object)",
+            "acceptation": "Binary compatibility check incorrectly detects Kotlin extension methods",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }
