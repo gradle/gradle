@@ -16,7 +16,7 @@
 [[what_is_gradle]]
 = What is Gradle?
 
-Gradle is a https://en.wikipedia.org/wiki/Build_automation[build automation] tool. It consists of an open-source Build Tool and a subscription based Enterprise tool.
+Gradle is a https://en.wikipedia.org/wiki/Build_automation[build automation] tool. It is available as an open-source Build Tool and an Enterprise tool.
 
 == Gradle Build Tool
 
@@ -24,11 +24,11 @@ Gradle Build Tool is the fast and dependable open source build system that autom
 
 == Gradle Enterprise
 
-Gradle Enterprise is a powerful tool for managing and monitoring complex software builds. It provides teams with centralized visibility into their build process to quickly identify and address issues as they arise.
+https://gradle.com/[Gradle Enterprise] is a powerful tool for managing and monitoring complex software builds. It provides teams with centralized visibility into their build process to quickly identify and address issues as they arise.
 
 == Why Gradle?
 
-Gradle makes building and running apps easy; it is great for both large and small projects.
+Gradle makes building and running apps easy; it is great for both small and large projects.
 
 Gradle is fast, highly configurable, and very concise (no XML needed).
 
@@ -61,29 +61,22 @@ Insight::
 
 The Gradle user manual is broken down into the following sections:
 
-* Quick Start
-** Get up and running installing Gradle
-* Running Gradle Builds
-** Use Gradle Build Tool to build your project
-* Authoring Gradle Builds
-** Develop tasks and plugins to customize your build
-* Authoring JVM Builds
-** Use Gradle Build Tool with your Java project
-* Working with Dependencies
-** Add dependencies to your build
-* Optimizing Build Times
-** Use a cache to optimize your build
-* Gradle on CI
-** Gradle integration with popular continuous integration (CI) servers
+Quick Start :: Get up and running installing Gradle.
+Running Gradle Builds :: Use Gradle Build Tool to build your project.
+Authoring Gradle Builds :: Develop tasks and plugins to customize your build.
+Authoring JVM Builds :: Use Gradle Build Tool with your Java project.
+Working with Dependencies :: Add dependencies to your build.
+Optimizing Build Times :: Use a cache to optimize your build.
+Gradle on CI :: Gradle integration with popular continuous integration (CI) servers.
 
 == Fundamentals
 
-Gradle bases its design on the following fundamentals:
+Gradle is based on the following fundamentals:
 
 .Gradle fundamentals
 image::what-is-gradle.png[]
 
-Users provide instructions to Gradle using either Groovy or Kotlin in a script to build your Project (code). The build script contains default Tasks and optional custom Tasks that can granularly define build steps. If your Project uses Plugins and other Dependencies, they can be managed by Gradle's Dependency Manager.
+Users provide instructions to Gradle using either Groovy or Kotlin in a script to build a Project (your code). The build script contains default Tasks and optional custom Tasks that can further define build steps. If your Project uses Plugins and other Dependencies, they can be managed by Gradle's Dependency Manager.
 
 == Terminology
 
