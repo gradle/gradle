@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
  */
 public class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeState.class);
-    private final Long resultId;
+    private final Long nodeId;
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = Lists.newArrayList();
     private final List<EdgeState> outgoingEdges = Lists.newArrayList();
@@ -124,12 +124,12 @@ public class NodeState implements DependencyGraphNode {
     private boolean findingExternalVariants;
 
     @VisibleForTesting // just for testing purposes
-    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
+    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
         this(resultId, id, component, null, md, selectedByVariantAwareResolution);
     }
 
-    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
-        this.resultId = resultId;
+    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
+        this.nodeId = resultId;
         this.id = id;
         this.component = component;
         this.resolveState = resolveState;
@@ -163,7 +163,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public Long getNodeId() {
-        return resultId;
+        return nodeId;
     }
 
     @Override
@@ -597,7 +597,7 @@ public class NodeState implements DependencyGraphNode {
         }
         if (state == null) {
             // the platform doesn't exist, so we're building a lenient one
-            state = LenientPlatformGraphResolveState.of(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
+            state = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
             potentialEdge.component.setState(state);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);

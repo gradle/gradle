@@ -55,10 +55,9 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -96,6 +95,7 @@ public class DependencyGraphBuilder {
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
     private final LocalComponentGraphResolveStateFactory resolveStateFactory;
+    private final ComponentIdGenerator idGenerator;
     private final VersionParser versionParser;
     private final ResolutionConflictTracker conflictTracker;
 
@@ -117,6 +117,7 @@ public class DependencyGraphBuilder {
                                   VersionSelectorScheme versionSelectorScheme,
                                   Comparator<Version> versionComparator,
                                   LocalComponentGraphResolveStateFactory resolveStateFactory,
+                                  ComponentIdGenerator idGenerator,
                                   VersionParser versionParser) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
@@ -133,13 +134,12 @@ public class DependencyGraphBuilder {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.resolveStateFactory = resolveStateFactory;
+        this.idGenerator = idGenerator;
         this.versionParser = versionParser;
         this.conflictTracker = new ResolutionConflictTracker(moduleConflictHandler, capabilitiesConflictHandler);
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor, boolean includeSyntheticDependencies) {
-
-        IdGenerator<Long> idGenerator = new LongIdGenerator();
         LocalComponentMetadata metadata = resolveContext.toRootComponentMetaData();
         LocalComponentGraphResolveState rootState = resolveStateFactory.stateFor(metadata);
 

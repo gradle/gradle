@@ -33,6 +33,7 @@ import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
@@ -54,6 +55,7 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformationNodeFactory.class);
         registration.add(AttributeDesugaring.class);
+        registration.add(ComponentIdGenerator.class);
         registration.add(LocalComponentGraphResolveStateFactory.class);
         registration.add(ModuleComponentGraphResolveStateFactory.class);
     }
