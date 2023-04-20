@@ -19,7 +19,7 @@ package org.gradle.testing.junit4
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
-trait JUnit4MultiVersionTest {
+trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
     AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
         return new JUnit4BuildScriptConfiguration()
     }
