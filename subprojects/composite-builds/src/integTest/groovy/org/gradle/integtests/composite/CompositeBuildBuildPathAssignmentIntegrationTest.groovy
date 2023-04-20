@@ -49,10 +49,12 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':buildLogic'
         ]
 
-        outputContains("Build name=:")
-        outputContains("Build name=buildLogic")
-        outputContains("Build name=includedBuild")
-        outputContains("Build name=buildLogic:1")
+        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
+            "Build name=:",
+            "Build name=buildLogic",
+            "Build name=buildLogic:1",
+            "Build name=includedBuild",
+        ]
     }
 
     def "build paths are selected based on the directory hierarchy"() {
@@ -89,14 +91,16 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':nested:buildLogic'
         ]
 
-        outputContains("Build name=:")
-        outputContains("Build name=buildLogic")
-        outputContains("Build name=buildLogic:1")
-        outputContains("Build name=buildLogic:2")
-        outputContains("Build name=buildLogic:3")
-        outputContains("Build name=includedBuild")
-        outputContains("Build name=nested")
-        outputContains("Build name=nested:1")
+        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
+            "Build name=:",
+            "Build name=buildLogic",
+            "Build name=buildLogic:1",
+            "Build name=buildLogic:2",
+            "Build name=buildLogic:3",
+            "Build name=includedBuild",
+            "Build name=nested",
+            "Build name=nested:1",
+        ]
     }
 
     def "buildSrc is relative to its including build"() {
@@ -125,15 +129,17 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':includedBuild', ':includedBuild:buildSrc', ':includedBuild:nested', ':includedBuild:nested:buildSrc',
             ':', ':buildSrc', ':nested', ':nested:buildSrc', ':nested:buildSrc:buildSrc']
 
-        outputContains("Build name=:")
-        outputContains("Build name=buildSrc")
-        outputContains("Build name=buildSrc:1")
-        outputContains("Build name=buildSrc:2")
-        outputContains("Build name=buildSrc:3")
-        outputContains("Build name=buildSrc:4")
-        outputContains("Build name=includedBuild")
-        outputContains("Build name=nested")
-        outputContains("Build name=nested:1")
+        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
+            "Build name=:",
+            "Build name=buildSrc",
+            "Build name=buildSrc:1",
+            "Build name=buildSrc:2",
+            "Build name=buildSrc:3",
+            "Build name=buildSrc:4",
+            "Build name=includedBuild",
+            "Build name=nested",
+            "Build name=nested:1",
+        ]
     }
 
     def "uses the directory hierarchy to determine the build path when the builds are not nested"() {
@@ -158,11 +164,13 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         then:
         assignedBuildPaths ==~ [':', ':includedBuildB', ':includedBuildA', ':nested', ':includedBuildB:nested']
 
-        outputContains("Build name=:")
-        outputContains("Build name=includedBuildA")
-        outputContains("Build name=includedBuildB")
-        outputContains("Build name=nested")
-        outputContains("Build name=nested:1")
+        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
+            "Build name=:",
+            "Build name=includedBuildA",
+            "Build name=includedBuildB",
+            "Build name=nested",
+            "Build name=nested:1",
+        ]
     }
 
     def "does not resolve the path conflict when the parent build is included #laterDescription"() {
