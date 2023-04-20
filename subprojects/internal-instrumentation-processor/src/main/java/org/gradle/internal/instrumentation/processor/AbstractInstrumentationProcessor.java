@@ -79,7 +79,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        Set<? extends Element> annotatedTypes = getSupportedAnnotations().stream()
+        Collection<? extends Element> annotatedTypes = getSupportedAnnotations().stream()
             .flatMap(annotation -> roundEnv.getElementsAnnotatedWith(annotation).stream())
             .collect(Collectors.toSet());
         annotatedTypes = findActualTypesToVisit(annotatedTypes);
@@ -87,10 +87,11 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         return true;
     }
 
-    private Set<? extends Element> findActualTypesToVisit(Set<? extends Element> annotatedTypes) {
+    private List<? extends Element> findActualTypesToVisit(Collection<? extends Element> annotatedTypes) {
         return annotatedTypes.stream()
             .flatMap(it -> findActualTypesToVisit(it).stream())
-            .collect(Collectors.toSet());
+            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName))
+            .collect(Collectors.toList());
     }
 
     private Set<Element> findActualTypesToVisit(Element typeElement) {
@@ -180,8 +181,14 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         generatorHost.generateCodeForRequestedInterceptors(requests);
     }
 
-    private static String elementQualifiedName(ExecutableElement element) {
-        String enclosingTypeName = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
-        return enclosingTypeName + "." + element.getSimpleName();
+    private static String elementQualifiedName(Element element) {
+        if (element instanceof ExecutableElement) {
+            String enclosingTypeName = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
+            return enclosingTypeName + "." + element.getSimpleName();
+        } else if (element instanceof TypeElement) {
+            return ((TypeElement) element).getQualifiedName().toString();
+        } else {
+            throw new IllegalArgumentException("Unsupported element type to read qualified name from: " + element.getClass());
+        }
     }
 }

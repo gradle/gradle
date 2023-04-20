@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
+import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
@@ -67,14 +69,6 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.DefaultValue.class);
-
-    /**
-     * The names of the generated classes that contains the bytecode for the property upgrade interceptors.
-     * Must be the same as in the  org.gradle.internal.classpath.declarations.InterceptorDeclaration class.
-     */
-    // TODO: Should be read from an annotation
-    private static final String JVM_BYTECODE_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.generated.InterceptorDeclaration_JvmBytecodeImplPropertyUpgrades";
-    private static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.generated.InterceptorDeclaration_GroovyInterceptorsImplPropertyUpgrades";
 
     @Override
     public Collection<Result> readRequest(ExecutableElement input) {
@@ -124,7 +118,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     private static CallInterceptionRequest createGroovyPropertyInterceptionRequest(ExecutableElement method, Type originalType) {
         String propertyName = getPropertyName(method);
-        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME));
+        // TODO: Class name should be read from an annotation
+        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
         return new CallInterceptionRequestImpl(
             extractCallableInfo(GROOVY_PROPERTY, method, originalType, propertyName, parameters),
@@ -158,7 +153,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     private static List<RequestExtra> getJvmRequestExtras(ExecutableElement method) {
         List<RequestExtra> extras = new ArrayList<>();
         extras.add(new RequestExtra.OriginatingElement(method));
-        extras.add(new RequestExtra.InterceptJvmCalls(JVM_BYTECODE_GENERATED_CLASS_NAME));
+        // TODO: Class name should be read from an annotation
+        extras.add(new RequestExtra.InterceptJvmCalls(JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
         UpgradedPropertyType upgradedPropertyType = UpgradedPropertyType.from(extractType(method.getReturnType()));
         extras.add(new PropertyUpgradeRequestExtra(implementationClass, method.getSimpleName().toString(), upgradedPropertyType));

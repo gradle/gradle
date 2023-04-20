@@ -27,6 +27,7 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerC
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.KotlinDefaultMask;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 import org.gradle.internal.lazy.Lazy;
 
 import java.io.File;

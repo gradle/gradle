@@ -26,6 +26,7 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receive
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.VarargParameter;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import java.io.BufferedReader;
 import java.io.IOException;

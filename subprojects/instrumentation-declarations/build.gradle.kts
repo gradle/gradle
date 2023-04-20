@@ -23,6 +23,6 @@ dependencies {
 }
 
 tasks.named<JavaCompile>("compileJava") {
-    // Without this, javac will complain about unclaimed annotations
+    // Without this, javac will complain about unclaimed org.gradle.api.NonNullApi annotation
     options.compilerArgs.add("-Xlint:-processing")
 }

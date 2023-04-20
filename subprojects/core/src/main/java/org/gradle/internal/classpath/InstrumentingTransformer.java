@@ -21,7 +21,7 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;

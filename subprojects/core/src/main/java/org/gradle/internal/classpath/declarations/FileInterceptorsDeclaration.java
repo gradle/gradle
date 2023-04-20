@@ -23,6 +23,7 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterc
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import java.io.File;
 import java.io.FileFilter;
