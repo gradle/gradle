@@ -35,7 +35,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 doLast {
                     assert configurations.custom.canBeConsumed
                     assert configurations.custom.canBeResolved
-                    assert configurations.custom.canBeDeclaredAgainst
+                    assert configurations.custom.canBeDeclared
                     assert !configurations.custom.deprecatedForConsumption
                     assert !configurations.custom.deprecatedForResolution
                     assert !configurations.custom.deprecatedForDeclarationAgainst
@@ -54,7 +54,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 $configuration {
                     assert canBeConsumed
                     assert canBeResolved
-                    assert canBeDeclaredAgainst
+                    assert canBeDeclared
                     assert !deprecatedForConsumption
                     assert !deprecatedForResolution
                     assert !deprecatedForDeclarationAgainst
@@ -95,7 +95,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 testConf {
                     assert canBeConsumed
                     canBeResolved = false
-                    canBeDeclaredAgainst = false
+                    canBeDeclared = false
                     preventUsageMutation()
                     canBeConsumed = false
                 }
@@ -203,7 +203,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 implementation {
                     canBeConsumed = !canBeConsumed
                     canBeResolved = !canBeResolved
-                    canBeDeclaredAgainst = !canBeDeclaredAgainst
+                    canBeDeclared = !canBeDeclared
                 }
             }
         """
@@ -247,7 +247,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                         implementation {
                             canBeConsumed = !canBeConsumed
                             canBeResolved = !canBeResolved
-                            canBeDeclaredAgainst = !canBeDeclaredAgainst
+                            canBeDeclared = !canBeDeclared
                         }
                     }
                 }
@@ -276,7 +276,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 doLast {
                     assert configurations.custom.canBeConsumed == $consumable
                     assert configurations.custom.canBeResolved == $resolvable
-                    assert configurations.custom.canBeDeclaredAgainst == $declarable
+                    assert configurations.custom.canBeDeclared == $declarable
                     assert configurations.custom.deprecatedForConsumption == $consumptionDeprecated
                     assert configurations.custom.deprecatedForResolution == $resolutionDeprecated
                     assert configurations.custom.deprecatedForDeclarationAgainst == $declarationAgainstDeprecated
@@ -521,7 +521,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             configurations.all {
                 canBeResolved = !canBeResolved
                 canBeConsumed = !canBeConsumed
-                canBeDeclaredAgainst = !canBeDeclaredAgainst
+                canBeDeclared = !canBeDeclared
             }
         """
 
@@ -540,7 +540,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             configurations.all {
                 canBeResolved = !canBeResolved
                 canBeConsumed = !canBeConsumed
-                canBeDeclaredAgainst = !canBeDeclaredAgainst
+                canBeDeclared = !canBeDeclared
             }
         """
 
@@ -750,7 +750,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "using consumable to make a configuration"          | "consumable('test')"                                             | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
         "using resolvable to make a configuration"          | "resolvable('test')"                                             | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
         "using resolvable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.RESOLVABLE_BUCKET)"   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.CONSUMABLE_BUCKET)"   | "declarable" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
+        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.CONSUMABLE_BUCKET)"   | "declarable"         | "isCanBeDeclared()"           | "setCanBeDeclared(true)"
     }
 
     def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {
