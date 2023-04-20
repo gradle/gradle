@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
@@ -135,6 +136,16 @@ class LambdaSerializationTransformer extends ClassVisitor {
 
                 int codeSizeSoFar = sizeEvaluator.getMaxSize();
                 if (codeSizeSoFar + getEstimatedSingleLambdaHandlingCodeLength(argumentTypes) + getEstimatedEpilogueLength() >= MAX_CODE_SIZE) {
+                    // In theory, it is possible to have a lambda so big, its handling won't fit in a single method, and such a lambda will cause an infinite loop here.
+                    // However, the number of captured lambda variables is limited by the max number of method arguments allowed by the JVM.
+                    // This limit is 255 arguments as of Java 20. Deserializing that many is not a problem for the current implementation.
+                    // The check is here as a future-proofing measure, in case the limit is relaxed or the generated code size grows.
+                    if (codeSizeSoFar == 0) {
+                        // This is the first lambda to process in this method, but it doesn't fit already - cannot proceed.
+                        throw new InvalidUserCodeException(
+                            "Cannot generate the deserialization method for class " + className
+                                + " because lambda implementation " + factory.name + " has too many captured arguments (" + argumentTypes.length + ")");
+                    }
                     break;
                 }
 
