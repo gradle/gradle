@@ -16,8 +16,10 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.GradleVersion
+
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
@@ -87,7 +89,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             runner.expectDeprecationWarning("The JavaExecSpec.main property has been deprecated." +
                     " This is scheduled to be removed in Gradle 9.0." +
                     " Please use the mainClass property instead." +
-                    " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main for more details.",
+                    " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}",
                     "")
         }
     }
