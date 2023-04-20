@@ -28,6 +28,8 @@ import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
 import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
@@ -271,8 +273,12 @@ public class SubClassTests extends SuperClassTests {
         testClass("Thing")
 
         when:
-        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
-        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. ' +
+            'Please use the testResults method instead. ' +
+            getTestReportLink("testResults"))
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. ' +
+            'This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. ' +
+            getTestReportLink("destinationDir"))
         succeeds "testReport"
 
         then:
@@ -621,9 +627,20 @@ public class SubClassTests extends SuperClassTests {
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
-        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
+
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. ' +
+            'This is scheduled to be removed in Gradle 9.0. ' +
+            'Please use the testResults method instead. ' +
+            getTestReportLink("testResults"))
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. ' +
+            'This is scheduled to be removed in Gradle 9.0. ' +
+            'Please use the destinationDirectory property instead. ' +
+            getTestReportLink("destinationDir"))
         succeeds "testReport"
+    }
+
+    private getTestReportLink(sectionPart) {
+        String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:${sectionPart}")
     }
 
     private String getJunitSetup() {

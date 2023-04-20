@@ -16,10 +16,14 @@
 
 package org.gradle.smoketests
 
-import org.gradle.util.GradleVersion
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.util.internal.VersionNumber
 
+import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
+
 class KotlinAndroidDeprecations extends BaseDeprecations implements WithKotlinDeprecations, WithAndroidDeprecations {
+    public static final DocumentationRegistry DOC_REGISTRY = new DocumentationRegistry()
+
     KotlinAndroidDeprecations(SmokeTestGradleRunner runner) {
         super(runner)
     }
@@ -28,7 +32,7 @@ class KotlinAndroidDeprecations extends BaseDeprecations implements WithKotlinDe
         "Adding a Configuration as a dependency is a confusing behavior which isn't recommended. " +
             "This behavior is scheduled to be removed in Gradle 8.0. " +
             "If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead. " +
-            "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[]) for more details."
+            String.format(RECOMMENDATION,"information",  DOC_REGISTRY.getDslRefForProperty("org.gradle.api.artifacts.Configuration", "extendsFrom(org.gradle.api.artifacts.Configuration[])"))
 
     void expectKotlinConfigurationAsDependencyDeprecation(String version) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(version)

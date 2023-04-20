@@ -133,14 +133,14 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
 
             String maxHeap = heapStats.isValid() ? NumberUtil.formatBytes(heapStats.getMaxSizeInBytes()) : "unknown";
             String maxMetaspace = nonHeapStats.isValid() ? NumberUtil.formatBytes(nonHeapStats.getMaxSizeInBytes()) : "unknown";
-            String url = new DocumentationRegistry().getDocumentationFor("build_environment", "sec:configuring_jvm_memory");
+            String url = new DocumentationRegistry().getDocumentationRecommendationFor("information on how to set these values", "build_environment", "sec:configuring_jvm_memory");
 
             logger.warn(EXPIRE_DAEMON_MESSAGE + when + " " + reason + ".\n"
                 + "The project memory settings are likely not configured or are configured to an insufficient value.\n"
                 + extraInfo + ".\n"
                 + "These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.\n"
                 + "The currently configured max heap space is '" + maxHeap + "' and the configured max metaspace is '" + maxMetaspace + "'.\n"
-                + "For more information on how to set these values, visit the user guide at " + url + "\n"
+                + url + "\n"
                 + "To disable this warning, set '" + DISABLE_PERFORMANCE_LOGGING + "=true'.");
         }
 

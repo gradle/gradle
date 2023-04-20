@@ -220,7 +220,8 @@ public abstract class InitBuild extends DefaultTask {
             toolChainVersion);
         initDescriptor.generate(settings);
 
-        initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
+        initDescriptor.getFurtherReading(settings)
+            .ifPresent(link -> getLogger().lifecycle(link));
     }
 
     private static void validatePackageName(String packageName) {
