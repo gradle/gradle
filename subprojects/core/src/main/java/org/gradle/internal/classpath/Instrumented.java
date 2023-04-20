@@ -143,8 +143,6 @@ public class Instrumented {
         try {
             Class<?> generatedClass = Class.forName(className);
             Method callInterceptorsGetter = generatedClass.getDeclaredMethod("getCallInterceptors");
-            // Generated classes are not public and in the org.gradle.internal.classpath.generated package
-            callInterceptorsGetter.setAccessible(true);
             return Cast.uncheckedCast(callInterceptorsGetter.invoke(null));
         } catch (ClassNotFoundException e) {
             // No interceptor definition for this class

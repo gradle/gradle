@@ -50,7 +50,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
-            class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
 
                 private final MethodVisitor methodVisitor;
                 private final InstrumentationMetadata metadata;
@@ -71,6 +71,46 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                         }
                     }
                     return false;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(expectedJvmInterceptors))
+            .containsElementsIn(expectedJvmInterceptors)
+    }
+
+    def "should generate interceptor with public modifier and public constructor"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
+            import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
+            import java.io.File;
+
+            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl")
+            public class FileInterceptorsDeclaration {
+                @InterceptCalls
+                @InstanceMethod
+                public static File[] intercept_listFiles(@Receiver File thisFile) {
+                    return new File[0];
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def expectedJvmInterceptors = source """
+            package my;
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+
+                public InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
+                    super(methodVisitor);
+                    this.methodVisitor = methodVisitor;
+                    this.metadata = metadata;
                 }
             }
         """
