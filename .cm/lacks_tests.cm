@@ -20,7 +20,7 @@ automations:
   # If a PR contains non-trivial source changes and no tests, add a comment to the PR
   no_tests:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ includes_src_changes }}
       - {{ not (includes_test_changes) }}
       - {{ not (is_docs_only_change) }}
@@ -41,11 +41,22 @@ is_docs_only_change: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | 
 is_formatting_only_change: {{ source.diff.files | isFormattingChange }}
 
 author:
-  on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
+  using_gitstream: {{ (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.jvm.members)) }}
 
-jvm_team_members:
-  - 'big-guy'
-  - 'tresat'
-  - 'ghale'
-  - 'jvandort'
-  - 'octylFractal'
+teams:
+  - execution:
+    members:
+      - 'lptr'
+      - 'asodja'
+      - 'FrauBoes'
+  - ide:
+    members:
+      - 'donat'
+      - 'reinsch82'
+  - jvm:
+    members:
+      - 'big-guy'
+      - 'tresat'
+      - 'ghale'
+      - 'jvandort'
+      - 'octylFractal'

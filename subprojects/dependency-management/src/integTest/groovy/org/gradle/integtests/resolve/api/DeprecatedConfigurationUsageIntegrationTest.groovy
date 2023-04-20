@@ -75,6 +75,15 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'shouldResolveConsistentlyWith(Configuration)'  | 'bucket'      | 'shouldResolveConsistentlyWith(null)'                                 || [ProperMethodUsage.RESOLVABLE]
         'disableConsistentResolution()'                 | 'consumable'  | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
         'disableConsistentResolution()'                 | 'bucket'      | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
+        'copy()'                                        | 'consumable'  | 'copy()'                                                              || [ProperMethodUsage.RESOLVABLE]
+        'copy()'                                        | 'bucket'      | 'copy()'                                                              || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive()'                               | 'consumable'  | 'copyRecursive()'                                                     || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive()'                               | 'bucket'      | 'copyRecursive()'                                                     || [ProperMethodUsage.RESOLVABLE]
+        'copy(Spec)'                                    | 'consumable'  | 'copy { } as Spec'                                                    || [ProperMethodUsage.RESOLVABLE]
+        'copy(Spec)'                                    | 'bucket'      | 'copy { } as Spec'                                                    || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive(Spec)'                           | 'consumable'  | 'copyRecursive { } as Spec'                                           || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive(Spec)'                           | 'bucket'      | 'copyRecursive { } as Spec'                                           || [ProperMethodUsage.RESOLVABLE]
+
     }
 
     def "calling an invalid internal API method #methodName for role #role produces a deprecation warning"() {
@@ -194,7 +203,7 @@ This method is only meant to be called on configurations which allow the ${allow
     private String buildAllowedUsages(String role) {
         switch (role) {
             case 'bucket':
-                return "\tDeclarable Against - this configuration can have dependencies added to it"
+                return "\tDeclarable - this configuration can have dependencies added to it"
             case 'consumable':
                 return "\tConsumable - this configuration can be selected by another project as a dependency"
             case 'resolvable':

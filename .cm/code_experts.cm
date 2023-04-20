@@ -20,7 +20,7 @@ automations:
   # If someone is a primary author of the files in a change, but NOT the pr author, automatically add them as a reviewer.
   add_primary_author_as_reviewer:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ repo | codeExperts(gt=50) | match(branch.author) | nope }}
     run:
       - action: add-reviewers@v1
@@ -30,7 +30,7 @@ automations:
   # Also post a comment that lists the best experts for the files that were modified.
   comment_experts:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
     run:
       - action: add-comment@v1
         args:
@@ -44,11 +44,22 @@ automations:
 # This section could also appear ahead of the automations section.
 
 author:
-  on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
+  using_gitstream: {{ (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.jvm.members)) }}
 
-jvm_team_members:
-  - 'big-guy'
-  - 'tresat'
-  - 'ghale'
-  - 'jvandort'
-  - 'octylFractal'
+teams:
+  - execution:
+    members:
+      - 'lptr'
+      - 'asodja'
+      - 'FrauBoes'
+  - ide:
+    members:
+      - 'donat'
+      - 'reinsch82'
+  - jvm:
+    members:
+      - 'big-guy'
+      - 'tresat'
+      - 'ghale'
+      - 'jvandort'
+      - 'octylFractal'

@@ -15,7 +15,7 @@ plugins {
 
 description = "Provides a platform dependency to align all distribution versions"
 
-val antVersion = "1.10.11"
+val antVersion = "1.10.13"
 val asmVersion = "9.4"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"

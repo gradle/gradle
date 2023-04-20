@@ -20,7 +20,7 @@ automations:
   # If a PR is very complex, require 2 approvals
   complex_change:
     if:
-      - {{ author.on_jvm_team }}
+      - {{ author.using_gitstream }}
       - {{ branch | estimatedReviewTime >= 45 }}
       - {{ files | length >= 20 }}
       - {{ includes_src_changes }}
@@ -36,11 +36,22 @@ automations:
 includes_src_changes: {{ files | match(regex=r/.*\/src\//) | some }}
 
 author:
-  on_jvm_team: {{ pr.author | match(list=jvm_team_members) }}
+  using_gitstream: {{ (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.jvm.members)) }}
 
-jvm_team_members:
-  - 'big-guy'
-  - 'tresat'
-  - 'ghale'
-  - 'jvandort'
-  - 'octylFractal'
+teams:
+  - execution:
+    members:
+      - 'lptr'
+      - 'asodja'
+      - 'FrauBoes'
+  - ide:
+    members:
+      - 'donat'
+      - 'reinsch82'
+  - jvm:
+    members:
+      - 'big-guy'
+      - 'tresat'
+      - 'ghale'
+      - 'jvandort'
+      - 'octylFractal'

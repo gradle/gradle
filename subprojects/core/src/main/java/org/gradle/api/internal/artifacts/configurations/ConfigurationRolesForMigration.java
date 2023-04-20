@@ -74,13 +74,13 @@ public final class ConfigurationRolesForMigration {
          */
         boolean consumptionDeprecated = initialRole.isConsumable() && !eventualRole.isConsumable();
         boolean resolutionDeprecated = initialRole.isResolvable() && !eventualRole.isResolvable();
-        boolean declarationAgainstDeprecated = initialRole.isDeclarableAgainst() && !eventualRole.isDeclarableAgainst();
+        boolean declarationAgainstDeprecated = initialRole.isDeclarable() && !eventualRole.isDeclarable();
 
         return new DefaultConfigurationRole(
             initialRole.getName(),
             initialRole.isConsumable(),
             initialRole.isResolvable(),
-            initialRole.isDeclarableAgainst(),
+            initialRole.isDeclarable(),
             consumptionDeprecated,
             resolutionDeprecated,
             declarationAgainstDeprecated

@@ -61,7 +61,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.48.0";
+    // When updating DEFAULT_PMD_VERSION, also update links in Pmd and PmdExtension!
+    public static final String DEFAULT_PMD_VERSION = "6.55.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
     private PmdExtension extension;
