@@ -24,6 +24,7 @@ import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
 
 @TargetVersions("5.0+")
@@ -42,6 +43,9 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
 
     def "precompiled Kotlin plugins can be used with current Gradle version when built with Gradle 5.0+"() {
         assumeTrue(previous.version >= GradleVersion.version('5.0'))
+
+        // See https://github.com/gradle/gradle/issues/24754
+        assumeFalse("broken", previous.version == GradleVersion.version("8.1"))
 
         given:
         precompiledKotlinPluginsBuiltWith(previous)
