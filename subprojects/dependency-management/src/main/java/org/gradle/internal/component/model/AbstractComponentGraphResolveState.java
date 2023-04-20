@@ -44,16 +44,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
+    private final long instanceId;
     private final T graphMetadata;
     private final S artifactMetadata;
     private final AttributeDesugaring attributeDesugaring;
     // The public view for each variant of this component
     private final ConcurrentMap<VariantGraphResolveMetadata, ResolvedVariantResult> publicViews = new ConcurrentHashMap<>();
 
-    public AbstractComponentGraphResolveState(T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
+    public AbstractComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
+        this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
         this.artifactMetadata = artifactMetadata;
         this.attributeDesugaring = attributeDesugaring;
+    }
+
+    @Override
+    public long getInstanceId() {
+        return instanceId;
     }
 
     @Override

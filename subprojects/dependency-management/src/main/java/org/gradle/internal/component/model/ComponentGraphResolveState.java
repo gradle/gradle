@@ -41,6 +41,14 @@ import java.util.List;
  * @see ComponentGraphSpecificResolveState for dependency graph specific state for the component.
  */
 public interface ComponentGraphResolveState {
+    /**
+     * A unique id for this component within the current build tree. Note that this id is not stable across Gradle invocations.
+     */
+    long getInstanceId();
+
+    /**
+     * The component identifier for this component. This identifier is stable but may not be unique.
+     */
     ComponentIdentifier getId();
 
     ModuleSources getSources();

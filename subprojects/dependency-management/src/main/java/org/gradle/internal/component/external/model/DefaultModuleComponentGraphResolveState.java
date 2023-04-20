@@ -25,8 +25,8 @@ import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
  * <p>The aim is to create only a single instance of this type per component and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
  */
 public class DefaultModuleComponentGraphResolveState extends DefaultComponentGraphResolveState<ComponentGraphResolveMetadata, ModuleComponentResolveMetadata> implements ModuleComponentGraphResolveState {
-    public DefaultModuleComponentGraphResolveState(ModuleComponentResolveMetadata metadata, AttributeDesugaring attributeDesugaring) {
-        super(metadata, metadata, attributeDesugaring);
+    public DefaultModuleComponentGraphResolveState(long instanceId, ModuleComponentResolveMetadata metadata, AttributeDesugaring attributeDesugaring) {
+        super(instanceId, metadata, metadata, attributeDesugaring);
     }
 
     @Override
