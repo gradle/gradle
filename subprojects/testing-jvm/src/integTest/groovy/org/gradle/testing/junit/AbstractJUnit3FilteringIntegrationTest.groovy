@@ -29,7 +29,7 @@ abstract class AbstractJUnit3FilteringIntegrationTest extends AbstractJUnitMulti
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         file("src/test/java/FooTest.java") << """
             import junit.framework.*;
@@ -38,7 +38,7 @@ abstract class AbstractJUnit3FilteringIntegrationTest extends AbstractJUnitMulti
                 public void testPass() {}
                 public void testOk() {}
             }
-        """
+        """.stripIndent()
 
         when:
         succeeds("test", "--tests", "FooTest.testPass")

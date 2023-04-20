@@ -84,7 +84,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                     System.err.println("after suite class err");
                 }
             }
-        """
+        """.stripIndent()
         file('src/test/java/org/gradle/OkTest.java') << """
             package org.gradle;
 
@@ -103,7 +103,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                     System.err.println("sys err from another test method");
                 }
             }
-        """
+        """.stripIndent()
         file('src/test/java/org/gradle/OtherTest.java') << """
             package org.gradle;
 
@@ -116,7 +116,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                     System.out.println("This is other stdout");
                 }
             }
-        """
+        """.stripIndent()
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -128,7 +128,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                 include '**/ASuite.class'
                 exclude '**/*Test.class'
             }
-        """
+        """.stripIndent()
         when:
         executer.withTasks('test').run()
 
@@ -208,7 +208,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                     }
                 }
             }
-        """
+        """.stripIndent()
         file('src/test/java/org/gradle/ExecutionOrderTest.java') << """
             package org.gradle;
 
@@ -227,7 +227,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                     // run method is triggered.
                 }
             }
-        """
+        """.stripIndent()
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -237,7 +237,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
             test {
                 ${configureTestFramework}
             }
-        """
+        """.stripIndent()
 
         when:
         executer.withTasks('test').run()
@@ -276,7 +276,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                 void beforeTest(TestDescriptor test) { println "START [\$test] [\$test.name]" }
                 void afterTest(TestDescriptor test, TestResult result) { println "FINISH [\$test] [\$test.name] [\$result.exception]" }
             }
-        """
+        """.stripIndent()
 
         when:
         ExecutionResult result = executer.withTasks("test").run()
@@ -324,7 +324,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                     return wrappedSuite;
                 }
             }
-        """
+        """.stripIndent()
         file('src/test/java/org/gradle/SomeTest1.java') << """
             package org.gradle;
 
@@ -334,7 +334,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                 public void testOk1(){
                 }
             }
-        """
+        """.stripIndent()
         file('src/test/java/org/gradle/SomeTest2.java') << """
             package org.gradle;
 
@@ -344,7 +344,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                 public void testOk2(){
                 }
             }
-        """
+        """.stripIndent()
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -356,7 +356,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
                 include '**/*Suite.class'
                 exclude '**/*Test.class'
             }
-        """
+        """.stripIndent()
 
         when:
         executer.withTasks('test').run()

@@ -244,7 +244,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractJUnitMult
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         when:
         executer.withTasks('build').runWithFailure().assertTestsFailed()

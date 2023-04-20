@@ -43,7 +43,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         and:
         file("src/test/java/SomeTest.java") << """
@@ -54,7 +54,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                     Thread.currentThread().interrupt();
                 }
             }
-        """
+        """.stripIndent()
 
         when:
         run "test"
@@ -86,7 +86,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                     throw new BadlyBehavedException();
                 }
             }
-        """
+        """.stripIndent()
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -94,7 +94,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         when:
         runAndFail "test"
@@ -131,7 +131,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                     throw new BadlyBehavedException();
                 }
             }
-        """
+        """.stripIndent()
         file('build.gradle') << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -139,7 +139,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         when:
         // an exception was thrown so we should fail here
@@ -171,7 +171,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
             }
             test.${configureTestFramework}
             test.workingDir = "${testWorkingDir.toURI()}"
-        """
+        """.stripIndent()
 
         and:
         file("src/test/java/SomeTest.java") << """
@@ -182,7 +182,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                     System.out.println(new java.io.File(".").getAbsolutePath());
                 }
             }
-        """
+        """.stripIndent()
 
         expect:
         succeeds "test"
@@ -209,7 +209,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
         executer
             .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
             .withToolchainDetectionEnabled()
-        buildScript """
+        buildFile << """
             plugins {
                 id("java")
             }
@@ -225,7 +225,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         and:
         file("src/test/java/TestCase.java") << """
@@ -236,7 +236,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                     getClass().getClassLoader().loadClass("com.google.common.collect.ImmutableCollection\$EmptyImmutableCollection");
                 }
             }
-        """
+        """.stripIndent()
 
         then:
         fails "test"
@@ -263,7 +263,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                     events "passed", "skipped", "failed"
                 }
             }
-        """
+        """.stripIndent()
 
         and:
         file("src/test/java/FirstTest.java") << """
@@ -271,14 +271,14 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
             public class FirstTest {
                 @Test public void test() {}
             }
-        """
+        """.stripIndent()
 
         file("src/test/java/SecondTest.java") << """
             ${testFrameworkImports}
             public class SecondTest {
                 @Test public void test() {}
             }
-        """
+        """.stripIndent()
 
         when:
         run "test"
@@ -325,7 +325,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-        """
+        """.stripIndent()
 
         and:
         file('src/test/java/SecurityManagerInstallationTest.java') << """
@@ -345,7 +345,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                     });
                 }
             }
-        """
+        """.stripIndent()
 
         when:
         succeeds "test"
@@ -368,7 +368,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                 ${configureTestFramework}
                 jvmArgs("-XX:+ShowCodeDetailsInExceptionMessages")
             }
-        """
+        """.stripIndent()
 
         file('src/test/java/UsefulNPETest.java') << """
             ${testFrameworkImports}
@@ -403,7 +403,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
                 }
 
             }
-        """
+        """.stripIndent()
 
         when:
         fails 'test'
