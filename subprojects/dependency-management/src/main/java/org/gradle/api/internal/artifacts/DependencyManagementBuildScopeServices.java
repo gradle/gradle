@@ -101,6 +101,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.DefaultDependenciesAccessors;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
@@ -134,7 +135,9 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.event.ListenerManager;
@@ -512,6 +515,7 @@ class DependencyManagementBuildScopeServices {
                                               RepositoryDisabler repositoryBlacklister,
                                               VersionParser versionParser,
                                               ListenerManager listenerManager,
+                                              ModuleComponentGraphResolveStateFactory resolveStateFactory,
                                               CalculatedValueContainerFactory calculatedValueContainerFactory) {
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
@@ -523,6 +527,7 @@ class DependencyManagementBuildScopeServices {
             repositoryBlacklister,
             versionParser,
             listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class),
+            resolveStateFactory,
             calculatedValueContainerFactory);
     }
 
@@ -550,7 +555,10 @@ class DependencyManagementBuildScopeServices {
                                                                 InstantiatorFactory instantiatorFactory,
                                                                 ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
                                                                 CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                                                ResolvedVariantCache resolvedVariantCache) {
+                                                                ResolvedVariantCache resolvedVariantCache,
+                                                                AttributeDesugaring attributeDesugaring,
+                                                                LocalComponentGraphResolveStateFactory localResolveStateFactory,
+                                                                ModuleComponentGraphResolveStateFactory moduleResolveStateFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -565,7 +573,11 @@ class DependencyManagementBuildScopeServices {
             componentMetadataSupplierRuleExecutor,
             instantiatorFactory,
             componentSelectionDescriptorFactory,
-            calculatedValueContainerFactory, resolvedVariantCache);
+            calculatedValueContainerFactory,
+            resolvedVariantCache,
+            attributeDesugaring,
+            localResolveStateFactory,
+            moduleResolveStateFactory);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
