@@ -16,9 +16,12 @@
 
 package org.gradle.jvm.toolchain
 
+import net.rubygrapefruit.platform.internal.DefaultSystemInfo
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.platform.internal.DefaultBuildPlatform
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
@@ -58,7 +61,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=ADOPTIUM, implementation=J9}.")
+            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=ADOPTIUM, implementation=J9} ${getFailureMessageBuildPlatform()}.")
             .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
@@ -99,7 +102,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=vendor-specific}.")
+            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=vendor-specific} ${getFailureMessageBuildPlatform()}.")
             .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
@@ -187,6 +190,11 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+    }
+
+    private def getFailureMessageBuildPlatform() {
+        def buildPlatform = new DefaultBuildPlatform(new DefaultSystemInfo(), OperatingSystem.current())
+        return "for ${buildPlatform.operatingSystem} on ${buildPlatform.architecture.toString().toLowerCase()}"
     }
 
 }
