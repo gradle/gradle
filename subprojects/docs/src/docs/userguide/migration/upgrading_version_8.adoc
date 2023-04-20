@@ -967,7 +967,7 @@ These members will be removed in Gradle 9.0.
 * `WrapUtil.toDomainObjectSet(...)`
 * `GUtil.toCamelCase(...)`
 * `GUtil.toLowerCase(...)`
-* `ConfigureUtil.configureByMap(...)`
+* `ConfigureUtil`
 
 [[ibm_semeru_should_not_be_used]]
 ==== Deprecated JVM vendor IBM Semeru

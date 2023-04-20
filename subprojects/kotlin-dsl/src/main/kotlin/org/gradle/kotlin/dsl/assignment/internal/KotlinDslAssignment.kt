@@ -22,5 +22,5 @@ object KotlinDslAssignment {
     const val ASSIGNMENT_SYSTEM_PROPERTY = "org.gradle.unsafe.kotlin.assignment"
 
     fun isAssignmentOverloadEnabled() =
-        System.getProperty(ASSIGNMENT_SYSTEM_PROPERTY, "false").trim() == "true"
+        System.getProperty(ASSIGNMENT_SYSTEM_PROPERTY, "true").trim() != "false"
 }

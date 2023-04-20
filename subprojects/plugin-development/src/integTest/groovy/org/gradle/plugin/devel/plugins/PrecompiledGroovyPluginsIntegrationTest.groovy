@@ -962,31 +962,25 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "should not allow precompiled plugin to conflict with core plugin"() {
-        given:
+        when:
         enablePrecompiledPluginsInBuildSrc()
-
         file("buildSrc/src/main/groovy/plugins/java.gradle") << ""
 
-        when:
-        def failure = fails "help"
-
         then:
-        failure.assertHasCause("The precompiled plugin (${'src/main/groovy/plugins/java.gradle'.replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.\n\n"
-            + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+        fails("help")
+            .assertHasCause("The precompiled plugin (${'src/main/groovy/plugins/java.gradle'.replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.")
+            .assertHasResolution("See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 
     def "should not allow precompiled plugin to have org.gradle prefix"() {
-        given:
+        when:
         enablePrecompiledPluginsInBuildSrc()
-
         file("buildSrc/src/main/groovy/plugins/${pluginName}.gradle") << ""
 
-        when:
-        fails "help"
-
         then:
-        failure.assertHasCause("The precompiled plugin (${"src/main/groovy/plugins/${pluginName}.gradle".replace("/", File.separator)}) cannot start with 'org.gradle'.\n\n"
-            + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+        fails("help")
+            .assertHasCause("The precompiled plugin (${"src/main/groovy/plugins/${pluginName}.gradle".replace("/", File.separator)}) cannot start with 'org.gradle'.")
+            .assertHasResolution("See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
 
         where:
         pluginName << ["org.gradle.my-plugin", "org.gradle"]

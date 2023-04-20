@@ -70,11 +70,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     }
 
     public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        artifactResolver.resolveArtifactsWithType(artifactMetadata, artifactType, result);
+        artifactResolver.resolveArtifactsWithType(getResolveMetadata(), artifactType, result);
     }
 
     @Override
     public ArtifactSet prepareForArtifactResolution(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return artifactSelector.resolveArtifacts(artifactMetadata, artifacts, overriddenAttributes);
+        return artifactSelector.resolveArtifacts(getResolveMetadata(), artifacts, overriddenAttributes);
     }
 }

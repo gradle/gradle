@@ -67,10 +67,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        configuration << ConfigurationRoles.values().collect {
-            def name = it.name.replace(' ', '')
-            return name[0].toLowerCase() + name[1..-1]
-        }
+        configuration << ["legacy", "consumable", "resolvable", "resolvableBucket", "consumableBucket", "bucket"]
     }
 
     def "can prevent usage mutation of roleless configurations"() {
