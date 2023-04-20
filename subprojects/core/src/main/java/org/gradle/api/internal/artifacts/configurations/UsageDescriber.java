@@ -54,7 +54,7 @@ public abstract class UsageDescriber {
      * @return a human-readable description of the role's allowed usage
      */
     public static String describeCurrentUsage(DeprecatableConfiguration configuration) {
-        return describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+        return describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclared(),
             configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
     }
 

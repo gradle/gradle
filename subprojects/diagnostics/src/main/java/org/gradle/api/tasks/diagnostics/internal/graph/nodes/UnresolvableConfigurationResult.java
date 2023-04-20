@@ -44,7 +44,7 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
         final ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
 
         final DependencySet dependencies;
-        if (configurationInternal.isCanBeDeclaredAgainst()) {
+        if (configurationInternal.isCanBeDeclared()) {
             dependencies = configuration.getDependencies();
             if (dependencies.isEmpty()) {
                 return Collections.emptySet();
