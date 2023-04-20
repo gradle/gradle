@@ -69,6 +69,7 @@ subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                         
 subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @eskatos @jbartok
 
 # Documentation
+subprojects/docs/src/docs/userguide/                                              @lkasso
 subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm
