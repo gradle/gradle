@@ -4,7 +4,7 @@ This is the first patch release for Gradle 8.1.
 
 It fixes the following issues:
 * [#24748](https://github.com/gradle/gradle/issues/24748) MethodTooLargeException when instrumenting a class with thousand of lambdas for configuration cache
-* [#24754](https://github.com/gradle/gradle/issues/24754) Kotlin DSL precompiled script plugins built with Gradle 8.1 cannot be used with earlier versions of Gradle
+* [#24754](https://github.com/gradle/gradle/issues/24754) Kotlin DSL precompiled script plugins built with Gradle 8.1 cannot be used with other versions of Gradle
 * [#24788](https://github.com/gradle/gradle/issues/24788) Gradle 8.1 configure freeCompilerArgs for Kotlin in buildSrc breaks build with unhelpful errors
 
 We recommend users upgrade to @version@ instead of 8.1.
