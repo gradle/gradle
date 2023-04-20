@@ -20,7 +20,7 @@ import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
 import static com.google.testing.compile.CompilationSubject.assertThat
-import static org.gradle.internal.classpath.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
+import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
 
 class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 

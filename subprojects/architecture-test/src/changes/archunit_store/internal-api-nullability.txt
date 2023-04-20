@@ -2362,7 +2362,7 @@ Class <org.gradle.internal.classpath.declarations.FileInputStreamInterceptorsDec
 Class <org.gradle.internal.classpath.declarations.FileInterceptorsDeclaration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (FileInterceptorsDeclaration.java:0)
 Class <org.gradle.internal.classpath.declarations.GroovyFileInterceptors> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GroovyFileInterceptors.java:0)
 Class <org.gradle.internal.classpath.declarations.Handles> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (KotlinStdlibFileInterceptors.java:0)
-Class <org.gradle.internal.classpath.declarations.InterceptorDeclaration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InterceptorDeclaration.java:0)
+Class <org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InterceptorDeclaration.java:0)
 Class <org.gradle.internal.classpath.declarations.KotlinFileExtensionsInterceptorsDeclaration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (KotlinFileExtensionsInterceptorsDeclaration.java:0)
 Class <org.gradle.internal.classpath.declarations.KotlinStdlibFileInterceptors> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (KotlinStdlibFileInterceptors.java:0)
 Class <org.gradle.internal.classpath.declarations.NioFileInterceptors> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (NioFileInterceptors.java:0)
