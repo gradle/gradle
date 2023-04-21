@@ -21,6 +21,7 @@ import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.deprecation.DeprecationLogger
@@ -40,7 +41,7 @@ internal
 class DeprecatedFeaturesListener(
     private val featureFlags: FeatureFlags,
     private val buildModelParameters: BuildModelParameters
-) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener {
+) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener, ExecutionAccessListener {
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (shouldNag()) {
@@ -63,6 +64,12 @@ class DeprecatedFeaturesListener(
     override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         if (shouldNagFor(task, runningTask)) {
             nagUserAbout("Invocation of $invocationDescription at execution time", 8, "task_convention")
+        }
+    }
+
+    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
+        if (shouldNag()) {
+            throwUnsupported("Invocation of $injectedServiceType at execution time")
         }
     }
 

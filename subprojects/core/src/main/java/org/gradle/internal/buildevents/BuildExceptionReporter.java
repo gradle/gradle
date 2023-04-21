@@ -316,6 +316,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private void writeGeneralTips(StyledTextOutput resolution) {
         resolution.text("Get more help at ");
         resolution.withStyle(UserInput).text("https://help.gradle.org");
+        resolution.text(".");
     }
 
     private static String getMessage(Throwable throwable) {
@@ -415,7 +416,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void appendDocumentationResolution(String prefix, String userGuideId, String userGuideSection) {
-            appendResolution(output -> output.text(prefix + " " + documentationRegistry.getDocumentationFor(userGuideId, userGuideSection) + "."));
+            appendResolution(output -> output.text(documentationRegistry.getDocumentationRecommendationFor(prefix, userGuideId, userGuideSection)));
         }
     }
 }

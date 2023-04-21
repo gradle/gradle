@@ -192,6 +192,6 @@ public class PluginUseScriptBlockMetadataCompiler {
     }
 
     public String formatErrorMessage(String message) {
-        return String.format("%s%n%nSee %s for information on the plugins {} block%n%n", message, documentationRegistry.getDocumentationFor("plugins", "sec:plugins_block"));
+        return String.format("%s%n%n%s%n%n", message, documentationRegistry.getDocumentationRecommendationFor("information on the plugins {} block", "plugins", "sec:plugins_block"));
     }
 }

@@ -32,40 +32,40 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer {
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#INTENDED_CONSUMABLE}.
+     * using the role of {@link ConfigurationRoles#CONSUMABLE}.
      */
     default Configuration consumable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE, lockRole);
+        return createWithRole(name, ConfigurationRoles.CONSUMABLE, lockRole);
     }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE}.
+     * using the role of {@link ConfigurationRoles#RESOLVABLE}.
      */
     default Configuration resolvable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.INTENDED_RESOLVABLE, lockRole);
+        return createWithRole(name, ConfigurationRoles.RESOLVABLE, lockRole);
     }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE_BUCKET}.
+     * using the role of {@link ConfigurationRoles#RESOLVABLE_BUCKET}.
      */
     @SuppressWarnings("deprecation")
     default Configuration resolvableBucket(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET, lockRole);
+        return createWithRole(name, ConfigurationRoles.RESOLVABLE_BUCKET, lockRole);
     }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#INTENDED_BUCKET}.
+     * using the role of {@link ConfigurationRoles#BUCKET}.
      */
     default Configuration bucket(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.INTENDED_BUCKET, lockRole);
+        return createWithRole(name, ConfigurationRoles.BUCKET, lockRole);
     }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#INTENDED_CONSUMABLE} that is <strong>NOT</strong> locked
+     * using the role of {@link ConfigurationRoles#CONSUMABLE} that is <strong>NOT</strong> locked
      * against further usage mutations.
      */
     default Configuration consumable(String name) {
@@ -74,7 +74,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE} that is <strong>NOT</strong> locked
+     * using the role of {@link ConfigurationRoles#RESOLVABLE} that is <strong>NOT</strong> locked
      * against further usage mutations.
      */
     default Configuration resolvable(String name) {
@@ -83,7 +83,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE_BUCKET} that is <strong>NOT</strong> locked
+     * using the role of {@link ConfigurationRoles#RESOLVABLE_BUCKET} that is <strong>NOT</strong> locked
      * against further usage mutations.
      */
     @SuppressWarnings("deprecation")
@@ -93,7 +93,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#INTENDED_BUCKET} that is <strong>NOT</strong> locked
+     * using the role of {@link ConfigurationRoles#BUCKET} that is <strong>NOT</strong> locked
      * against further usage mutations.
      */
     default Configuration bucket(String name) {
@@ -202,7 +202,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
         public static boolean isUsageConsistentWithRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
             return (role.isConsumable() == configuration.isCanBeConsumed())
                     && (role.isResolvable() == configuration.isCanBeResolved())
-                    && (role.isDeclarableAgainst() == configuration.isCanBeDeclaredAgainst())
+                    && (role.isDeclarable() == configuration.isCanBeDeclared())
                     && (role.isConsumptionDeprecated() == configuration.isDeprecatedForConsumption())
                     && (role.isResolutionDeprecated() == configuration.isDeprecatedForResolution())
                     && (role.isDeclarationAgainstDeprecated() == configuration.isDeprecatedForDeclarationAgainst());
@@ -227,7 +227,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
                         "Expected that it is:\n" +
                         role.describeUsage() + "\n" +
                         "But is actually is:\n" +
-                        ConfigurationRole.RoleDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+                        UsageDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclared(),
                                 configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
             } else {
                 return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";

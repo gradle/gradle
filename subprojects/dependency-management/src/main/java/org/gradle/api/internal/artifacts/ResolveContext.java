@@ -45,10 +45,18 @@ public interface ResolveContext extends DependencyMetaDataProvider {
 
     boolean hasDependencies();
 
+    /**
+     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     LocalComponentMetadata toRootComponentMetaData();
 
     AttributeContainerInternal getAttributes();
 
+    /**
+     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver();
 
     /**
@@ -56,6 +64,9 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      * by Gradle and not provided by the user, and are used for dependency locking and consistent resolution.
      * These constraints are not always used during resolution, based on which phase of execution we are in
      * (task dependencies, execution, ...)
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
      */
     List<? extends DependencyMetadata> getSyntheticDependencies();
 

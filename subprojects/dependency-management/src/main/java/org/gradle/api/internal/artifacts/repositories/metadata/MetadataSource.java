@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -43,7 +44,7 @@ public interface MetadataSource<S extends MutableModuleComponentResolveMetadata>
              ModuleComponentIdentifier moduleComponentIdentifier,
              ComponentOverrideMetadata prescribedMetaData,
              ExternalResourceArtifactResolver artifactResolver, // Required for MavenLocal to verify the presence of the artifact
-             BuildableModuleComponentMetaDataResolveResult result);
+             BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result);
 
     /**
      * Use the supplied patterns and version lister to list available versions for the supplied dependency/module.

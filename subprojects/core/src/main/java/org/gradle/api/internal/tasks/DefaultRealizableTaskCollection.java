@@ -18,14 +18,10 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectCollectionSchema;
-import org.gradle.api.Namer;
-import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.internal.DelegatingNamedDomainObjectSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
@@ -35,26 +31,19 @@ import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultRealizableTaskCollection<T extends Task> implements TaskCollection<T>, TaskDependencyContainer {
+public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingNamedDomainObjectSet<T> implements TaskCollection<T>, TaskDependencyContainer {
 
-    private final TaskCollection<T> delegate;
     private final Class<T> type;
     private final AtomicBoolean realized = new AtomicBoolean();
     private final MutableModelNode modelNode;
     private final Instantiator instantiator;
 
     public DefaultRealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, MutableModelNode modelNode, Instantiator instantiator) {
+        super(delegate);
         assert !(delegate instanceof DefaultRealizableTaskCollection) : "Attempt to wrap already realizable task collection in realizable wrapper: " + delegate;
 
-        this.delegate = delegate;
         this.type = type;
         this.modelNode = modelNode;
         this.instantiator = instantiator;
@@ -75,242 +64,57 @@ public class DefaultRealizableTaskCollection<T extends Task> implements TaskColl
         }
     }
 
+    @Override
+    protected TaskCollection<T> getDelegate() {
+        return (TaskCollection<T>) super.getDelegate();
+    }
+
     private <S extends T> TaskCollection<S> realizable(Class<S> type, TaskCollection<S> collection) {
         return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, collection, modelNode, instantiator));
     }
 
     @Override
     public TaskCollection<T> matching(Spec<? super T> spec) {
-        return realizable(type, delegate.matching(spec));
+        return realizable(type, getDelegate().matching(spec));
     }
 
     @Override
     public TaskCollection<T> matching(Closure closure) {
-        return realizable(type, delegate.matching(closure));
-    }
-
-    @Override
-    public T getByName(String name, Closure configureClosure) throws UnknownTaskException {
-        return delegate.getByName(name, configureClosure);
-    }
-
-    @Override
-    public T getByName(String name, Action<? super T> configureAction) throws UnknownTaskException {
-        return delegate.getByName(name, configureAction);
-    }
-
-    @Override
-    public T getByName(String name) throws UnknownTaskException {
-        return delegate.getByName(name);
+        return realizable(type, getDelegate().matching(closure));
     }
 
     @Override
     public <S extends T> TaskCollection<S> withType(Class<S> type) {
-        return realizable(type, delegate.withType(type));
+        return realizable(type, getDelegate().withType(type));
     }
 
     @Override
     public Action<? super T> whenTaskAdded(Action<? super T> action) {
-        return delegate.whenTaskAdded(action);
+        return getDelegate().whenTaskAdded(action);
     }
 
     @Override
     public void whenTaskAdded(Closure closure) {
-        delegate.whenTaskAdded(closure);
-    }
-
-    @Override
-    public T getAt(String name) throws UnknownTaskException {
-        return delegate.getAt(name);
-    }
-
-    @Override
-    public Set<T> findAll(Closure spec) {
-        return delegate.findAll(spec);
-    }
-
-    @Override
-    public boolean add(T e) {
-        return delegate.add(e);
-    }
-
-    @Override
-    public void addLater(Provider<? extends T> provider) {
-        delegate.addLater(provider);
-    }
-
-    @Override
-    public void addAllLater(Provider<? extends Iterable<T>> provider) {
-        delegate.addAllLater(provider);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends T> c) {
-        return delegate.addAll(c);
-    }
-
-    @Override
-    public Namer<T> getNamer() {
-        return delegate.getNamer();
-    }
-
-    @Override
-    public SortedMap<String, T> getAsMap() {
-        return delegate.getAsMap();
-    }
-
-    @Override
-    public SortedSet<String> getNames() {
-        return delegate.getNames();
-    }
-
-    @Override
-    public T findByName(String name) {
-        return delegate.findByName(name);
-    }
-
-    @Override
-    public Rule addRule(Rule rule) {
-        return delegate.addRule(rule);
-    }
-
-    @Override
-    public Rule addRule(String description, Closure ruleAction) {
-        return delegate.addRule(description, ruleAction);
-    }
-
-    @Override
-    public Rule addRule(String description, Action<String> ruleAction) {
-        return delegate.addRule(description, ruleAction);
-    }
-
-    @Override
-    public List<Rule> getRules() {
-        return delegate.getRules();
-    }
-
-    @Override
-    public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
-        return realizable(type, (DefaultTaskCollection<S>) delegate.withType(type, configureAction));
-    }
-
-    @Override
-    public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        return realizable(type, (DefaultTaskCollection<S>) delegate.withType(type, configureClosure));
-    }
-
-    @Override
-    public Action<? super T> whenObjectAdded(Action<? super T> action) {
-        return delegate.whenObjectAdded(action);
-    }
-
-    @Override
-    public void whenObjectAdded(Closure action) {
-        delegate.whenObjectAdded(action);
-    }
-
-    @Override
-    public Action<? super T> whenObjectRemoved(Action<? super T> action) {
-        return delegate.whenObjectRemoved(action);
-    }
-
-    @Override
-    public void whenObjectRemoved(Closure action) {
-        delegate.whenObjectRemoved(action);
-    }
-
-    @Override
-    public void all(Action<? super T> action) {
-        delegate.all(action);
-    }
-
-    @Override
-    public void all(Closure action) {
-        delegate.all(action);
-    }
-
-    @Override
-    public void configureEach(Action<? super T> action) {
-        delegate.configureEach(action);
-    }
-
-    @Override
-    public int size() {
-        return delegate.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return delegate.isEmpty();
-    }
-
-    @Override
-    public boolean contains(Object o) {
-        return delegate.contains(o);
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return delegate.iterator();
-    }
-
-    @Override
-    public Object[] toArray() {
-        return delegate.toArray();
-    }
-
-    @Override
-    public <R> R[] toArray(R[] a) {
-        return delegate.toArray(a);
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        return delegate.remove(o);
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        return delegate.containsAll(c);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        return delegate.removeAll(c);
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        return delegate.retainAll(c);
-    }
-
-    @Override
-    public void clear() {
-        delegate.clear();
+        getDelegate().whenTaskAdded(closure);
     }
 
     @Override
     public TaskProvider<T> named(String name) throws InvalidUserDataException {
-        return delegate.named(name);
+        return getDelegate().named(name);
     }
 
     @Override
     public TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException {
-        return delegate.named(name, configurationAction);
+        return getDelegate().named(name, configurationAction);
     }
 
     @Override
     public <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException {
-        return delegate.named(name, type);
+        return getDelegate().named(name, type);
     }
 
     @Override
     public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException {
-        return delegate.named(name, type, configurationAction);
-    }
-
-    @Override
-    public NamedDomainObjectCollectionSchema getCollectionSchema() {
-        return delegate.getCollectionSchema();
+        return getDelegate().named(name, type, configurationAction);
     }
 }
