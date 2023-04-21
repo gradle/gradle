@@ -25,7 +25,6 @@ import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecElementInfo
 import org.spockframework.runtime.model.SpecInfo
 
-import java.util.stream.Collectors
 import java.util.stream.Stream
 
 /**
