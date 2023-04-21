@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
@@ -32,7 +33,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metadata;
 
-    private volatile Map<Integer, ModuleComponentResolveMetadata> processedMetadataByRules;
+    private volatile Map<Integer, ModuleComponentGraphResolveState> processedMetadataByRules;
 
     DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
         this(timeProvider.getCurrentTime() - entry.createTimestamp, metadata);
@@ -70,7 +71,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
 
     @Nullable
     @Override
-    public ModuleComponentResolveMetadata getProcessedMetadata(int key) {
+    public ModuleComponentGraphResolveState getProcessedMetadata(int key) {
         if (processedMetadataByRules != null) {
             return processedMetadataByRules.get(key);
         }
@@ -78,7 +79,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     }
 
     @Override
-    public synchronized void putProcessedMetadata(int hash, ModuleComponentResolveMetadata processed) {
+    public synchronized void putProcessedMetadata(int hash, ModuleComponentGraphResolveState processed) {
         if (processedMetadataByRules == null) {
             processedMetadataByRules = Collections.singletonMap(hash, processed);
             return;

@@ -38,7 +38,7 @@ public class ConfigurationDetails {
     }
 
     private static boolean canBeResolved(Configuration configuration) {
-        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
+        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).isDeprecatedForResolution();
         return configuration.isCanBeResolved() && !isDeprecatedForResolving;
     }
 

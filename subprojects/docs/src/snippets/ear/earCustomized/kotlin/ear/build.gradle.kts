@@ -8,7 +8,7 @@ repositories { mavenCentral() }
 dependencies {
     // The following dependencies will be the ear modules and
     // will be placed in the ear root
-    deploy(project(path = ":war", configuration = "archives"))
+    deploy(project(path = ":war", configuration = "war"))
 
     // The following dependencies will become ear libs and will
     // be placed in a dir configured via the libDirName property

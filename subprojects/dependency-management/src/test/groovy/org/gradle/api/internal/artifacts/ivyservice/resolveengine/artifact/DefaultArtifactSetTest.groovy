@@ -26,10 +26,11 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.external.model.DefaultImmutableCapability
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
@@ -37,6 +38,7 @@ class DefaultArtifactSetTest extends Specification {
     def componentId = Stub(ComponentIdentifier)
     def schema = Stub(AttributesSchemaInternal)
     def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
+    def component = Stub(ComponentArtifactResolveMetadata)
 
     def setup() {
         artifactTypeRegistry.mapAttributesFor(_) >> ImmutableAttributes.EMPTY
@@ -50,7 +52,7 @@ class DefaultArtifactSetTest extends Specification {
         given:
         def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
         def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1] as Set), [variant1] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, schema, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
+        def artifacts3 = ArtifactSetFactory.adHocVariant(component, [] as Set, schema, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
 
         ownerId.group >> "group"
         ownerId.name >> "name"
@@ -107,7 +109,7 @@ class DefaultArtifactSetTest extends Specification {
         given:
         def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
         def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1] as Set), [variant1] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, schema, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
+        def artifacts3 = ArtifactSetFactory.adHocVariant(component, [] as Set, schema, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
 
         selector.select(_, _) >> resolvedVariant1
         ownerId.group >> "group"

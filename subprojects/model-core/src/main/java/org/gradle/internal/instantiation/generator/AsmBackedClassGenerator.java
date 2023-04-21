@@ -24,6 +24,8 @@ import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
@@ -32,6 +34,7 @@ import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
@@ -384,6 +387,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
+    @NonNullApi
     private static class ClassBuilderImpl extends ClassVisitorScope implements ClassGenerationVisitor {
         public static final int PV_FINAL_STATIC = ACC_PRIVATE | ACC_STATIC | ACC_FINAL | ACC_SYNTHETIC;
         private static final Set<? extends Class<?>> PRIMITIVE_TYPES = ImmutableSet.of(Byte.TYPE, Boolean.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
@@ -429,6 +433,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
         private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
+        private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
+        private static final Set<Type> DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_TYPES = ImmutableSet.of(getType(Project.class), getType(Gradle.class));
         private static final Type JAVA_LANG_REFLECT_TYPE = getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = getType(Object.class);
         private static final Type CLASS_TYPE = getType(Class.class);
@@ -987,6 +993,19 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final Type fieldType,
             final BytecodeFragment initializer
         ) {
+            addLazyGetter(methodName, returnType, methodDescriptor, signature, fieldName, fieldType, initializer, BytecodeFragment.NO_OP);
+        }
+
+        private void addLazyGetter(
+            String methodName,
+            Type returnType,
+            String methodDescriptor,
+            @Nullable String signature,
+            final String fieldName,
+            final Type fieldType,
+            final BytecodeFragment initializer,
+            final BytecodeFragment epilogue
+        ) {
             addGetter(methodName, returnType, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // var = this.<field>
                 _ALOAD(0);
@@ -1003,6 +1022,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _PUTFIELD(generatedType, fieldName, fieldType);
                 // return var
                 visitLabel(returnValue);
+                emit(epilogue);
                 _ALOAD(1);
             }});
         }
@@ -1113,7 +1133,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String propFieldName = propFieldName(property);
             String signature = getterSignature(getter.getGenericReturnType());
 
-            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+            BytecodeFragment getterInitializer = methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
                 putServiceRegistryOnStack();
 
@@ -1137,7 +1157,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // (<type>)<service>
                 _CHECKCAST(serviceType);
-            }});
+            }};
+
+            BytecodeFragment getterEpilogue = getInjectedServiceGetterEpilogue(serviceType, getterName);
+
+            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, getterInitializer, getterEpilogue);
+        }
+
+        private BytecodeFragment getInjectedServiceGetterEpilogue(Type serviceType, String getterName) {
+            if (DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_TYPES.contains(serviceType)) {
+                return methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                    // InstrumentedExecutionAccess.disallowedAtExecutionInjectedServiceAccessed(<service-type>,<getter-name>,<this-type-name>)
+                    _LDC(serviceType);
+                    _LDC(getterName);
+                    _LDC(type.getName());
+                    _INVOKESTATIC(INSTRUMENTED_EXECUTION_ACCESS_TYPE, "disallowedAtExecutionInjectedServiceAccessed", getMethodDescriptor(VOID_TYPE, CLASS_TYPE, STRING_TYPE, STRING_TYPE));
+                }};
+            } else {
+                return BytecodeFragment.NO_OP;
+            }
         }
 
         @Override

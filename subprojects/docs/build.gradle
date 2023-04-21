@@ -555,9 +555,11 @@ samples {
     }
 }
 
-// Use the version of Gradle being built, not the version of Gradle used to build
-tasks.named("generateWrapperForSamples") {
+// Use the version of Gradle being built, not the version of Gradle used to build,
+// also don't validate distribution url, since it is just a local distribution
+tasks.named("generateWrapperForSamples", Wrapper) {
     gradleVersion = project.version
+    validateDistributionUrl = false
 }
 
 // TODO: The rich console to plain text is flaky

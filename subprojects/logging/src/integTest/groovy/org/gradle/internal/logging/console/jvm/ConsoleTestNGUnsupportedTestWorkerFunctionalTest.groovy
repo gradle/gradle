@@ -22,15 +22,13 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testClass
-import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testableJavaProject
-import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.useTestNG
 
 class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrationSpec {
 
     private static final int MAX_WORKERS = 2
     private static final String SERVER_RESOURCE_1 = 'test-1'
     private static final String SERVER_RESOURCE_2 = 'test-2'
-    private static final String TESTNG_DEPENDENCY = 'org.testng:testng:6.3.1'
+    private static final String TESTNG_VERSION = '6.3.1'
     private static final String TESTNG_ANNOTATION = 'org.testng.annotations.Test'
     private static final String TEST_CLASS_1 = 'Test1'
     private static final String TEST_CLASS_2 = 'Test2'
@@ -46,8 +44,20 @@ class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrati
 
     def "omits parallel test execution if TestNG version does not emit class listener events"() {
         given:
-        buildFile << testableJavaProject(TESTNG_DEPENDENCY, MAX_WORKERS)
-        buildFile << useTestNG()
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                useTestNG('$TESTNG_VERSION')
+                targets.test.testTask.configure {
+                    maxParallelForks = $MAX_WORKERS
+                }
+            }
+        """
         file("src/test/java/${TEST_CLASS_1}.java") << testClass(TESTNG_ANNOTATION, TEST_CLASS_1, SERVER_RESOURCE_1, server)
         file("src/test/java/${TEST_CLASS_2}.java") << testClass(TESTNG_ANNOTATION, TEST_CLASS_2, SERVER_RESOURCE_2, server)
         server.expectConcurrent(SERVER_RESOURCE_1, SERVER_RESOURCE_2)

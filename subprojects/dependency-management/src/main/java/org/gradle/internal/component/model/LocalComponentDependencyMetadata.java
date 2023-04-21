@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -28,7 +27,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.internal.GUtil;
 
@@ -142,9 +141,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
+        GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
-        Optional<List<? extends VariantGraphResolveMetadata>> targetVariants = targetComponent.getVariantsForGraphTraversal();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || targetVariants.isPresent());
+        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || candidates.isUseVariants());
         if (useConfigurationAttributes) {
             return AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
@@ -160,7 +159,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration, targetVariants.isPresent(), DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
+                throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration, candidates.isUseVariants(), DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
             }
         }
         return new VariantSelectionResult(ImmutableList.of(toConfiguration), false);
@@ -170,9 +169,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         if (!toConfiguration.isCanBeConsumed()) {
             throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
         }
-        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation = toConfiguration.getConsumptionDeprecation();
-        if (consumptionDeprecation != null) {
-            consumptionDeprecation.nagUser();
+
+        if (toConfiguration.isDeprecatedForConsumption()) {
+            DeprecationLogger.deprecateConfiguration(toConfiguration.getName())
+                .forConsumption()
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .nagUser();
         }
     }
 

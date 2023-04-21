@@ -76,7 +76,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         if (GradleContextualExecuter.notConfigCache) {
             buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
         } else {
-            buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+            buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(checkoutDir, agpVersion)
         }
 
         def md5After = compiledClassFile.md5Hash
@@ -117,6 +117,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         runner.deprecations(SantaTrackerDeprecations) {
             expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            expectBasePluginConventionDeprecation(agpVersion)
         }
         def result = runner.buildAndFail()
 
@@ -135,6 +136,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             runner.deprecations(SantaTrackerDeprecations) {
                 expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
+                expectBasePluginConventionDeprecation(agpVersion)
             }
         }
         result = runner.buildAndFail()

@@ -37,6 +37,7 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
             $script
         """)
