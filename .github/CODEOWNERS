@@ -95,3 +95,7 @@ gradle/shared-with-buildSrc/ @gradle/bt-developer-productivity
 subprojects/*/build.gradle*  @gradle/bt-developer-productivity
 /build.gradle*                @gradle/bt-developer-productivity
 /settings.gradle*              @gradle/bt-developer-productivity
+
+# gitStream files
+.cm/                                @tresat
+.github/workflows/gitstream.yml     @tresat
