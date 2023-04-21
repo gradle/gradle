@@ -17,26 +17,24 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import spock.lang.Issue
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-
 @Issue("https://github.com/gradle/gradle/issues/18486")
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
-class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrationSpec {
+abstract class AbstractJUnitClassInJarDetectionIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
 
     def setup() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { ${getDependencyBlockContents()} }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
         """.stripIndent()
     }
 
@@ -48,11 +46,6 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
     def 'support detecting classes whose package is not a zip entry'() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies {
-                implementation "junit:junit:4.13.2"
-            }
             jar {
                 manifest {
                     attributes 'Manifest-Version': '1.0'
@@ -78,7 +71,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
             repositories { mavenCentral() }
             dependencies {
                 testImplementation files('build/libs/testFramework.jar')
-                testImplementation "junit:junit:4.13.2"
+                ${testFrameworkDependencies}
             }
         """
         file('src/test/java/SomeTest.java') << """
