@@ -62,6 +62,7 @@ import java.util.concurrent.Callable;
 @CacheableTask
 public abstract class AntlrTask extends SourceTask {
 
+    private boolean sampleCodeChange;
     private boolean trace;
     private boolean traceLexer;
     private boolean traceParser;
