@@ -100,5 +100,10 @@ trait JUnitJupiterMultiVersionTest {
         String maybeParentheses(String methodName) {
             return "${methodName}()"
         }
+
+        @Override
+        String getIgnoreOrDisabledAnnotation() {
+            return "@Disabled"
+        }
     }
 }

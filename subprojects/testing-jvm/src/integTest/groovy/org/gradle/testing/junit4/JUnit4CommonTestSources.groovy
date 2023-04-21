@@ -78,5 +78,10 @@ trait JUnit4CommonTestSources {
         String maybeParentheses(String methodName) {
             return methodName
         }
+
+        @Override
+        String getIgnoreOrDisabledAnnotation() {
+            return "@Ignore"
+        }
     }
 }
