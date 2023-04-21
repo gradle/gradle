@@ -38,21 +38,25 @@ calc:
   etr: {{ branch | estimatedReviewTime }}
 
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.jvm_team.members)) or (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) }}
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members)) or (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.jvm.members)) or (pr.author | match(list=teams.ide.members)) }}
 
 teams:
-  jvm_team:
+  build_scan:
+    members:
+      - 'alllex'
+      - 'wolfs'
+  execution:
+    members:
+      - 'asodja'
+      - 'FrauBoes'
+      - 'lptr'
+  jvm:
     members:
       - 'big-guy'
-      - 'tresat'
       - 'ghale'
       - 'jvandort'
       - 'octylFractal'
-  execution:
-    members:
-      - 'lptr'
-      - 'asodja'
-      - 'FrauBoes'
+      - 'tresat'
   ide:
     members:
       - 'donat'
