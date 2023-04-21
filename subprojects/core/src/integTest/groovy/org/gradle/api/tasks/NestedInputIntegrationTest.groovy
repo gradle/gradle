@@ -1116,6 +1116,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
 
         expect:
+        // TODO: Remove `requireIsolatedDaemons` once the issue is fixed
+        executer.requireIsolatedDaemons()
         succeeds "crashTask"
     }
 
