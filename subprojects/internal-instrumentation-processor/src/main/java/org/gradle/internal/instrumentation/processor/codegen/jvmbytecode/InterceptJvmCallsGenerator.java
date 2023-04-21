@@ -25,9 +25,11 @@ import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
@@ -88,6 +90,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(METHOD_VISITOR_FIELD)
+                .addField(METADATA_FIELD)
                 .superclass(MethodVisitorScope.class)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
@@ -127,8 +130,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC)
         .addParameter(MethodVisitor.class, "methodVisitor")
+        .addParameter(InstrumentationMetadata.class, "metadata")
         .addStatement("super(methodVisitor)")
         .addStatement("this.$N = methodVisitor", METHOD_VISITOR_FIELD)
+        .addStatement("this.$N = metadata", METADATA_FIELD)
         .build();
 
     private static MethodSpec.Builder getVisitMethodInsnBuilder() {
@@ -162,15 +167,22 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     private static final FieldSpec METHOD_VISITOR_FIELD =
         FieldSpec.builder(MethodVisitor.class, "methodVisitor", Modifier.PRIVATE, Modifier.FINAL).build();
 
+    private static final FieldSpec METADATA_FIELD =
+        FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
+
     private static void generateCodeForOwner(
-        Type owner,
+        CallableOwnerInfo owner,
         Map<Type, FieldSpec> implTypeFields,
         List<CallInterceptionRequest> requestsForOwner,
         CodeBlock.Builder code,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super FailureInfo> onFailure
     ) {
-        code.beginControlFlow("if (owner.equals($S))", owner.getInternalName());
+        if (owner.isInterceptSubtypes()) {
+            code.beginControlFlow("if ($N.isInstanceOf(owner, $S))", METADATA_FIELD, owner.getType().getInternalName());
+        } else {
+            code.beginControlFlow("if (owner.equals($S))", owner.getType().getInternalName());
+        }
         for (CallInterceptionRequest request : requestsForOwner) {
             CodeBlock.Builder nested = CodeBlock.builder();
             try {
@@ -367,7 +379,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Type[] parameterTypes = callableInfo.getParameters().stream()
             .filter(it -> it.getKind().isSourceParameter())
             .map(ParameterInfo::getParameterType).toArray(Type[]::new);
-        Type returnType = callableInfo.getReturnType();
+        Type returnType = callableInfo.getReturnType().getType();
         return Type.getMethodDescriptor(returnType, parameterTypes);
     }
 

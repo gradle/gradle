@@ -21,7 +21,7 @@ import org.gradle.api.DomainObjectSet;
 /**
  * A Collection of {@link IvyArtifact}s to be included in an {@link IvyPublication}.
  *
- * Being a {@link DomainObjectSet}, a {@code IvyArtifactSet} provides convenient methods for querying, filtering, and applying actions to the set of {@link IvyArtifact}s.
+ * Being a {@link DomainObjectSet}, an {@code IvyArtifactSet} provides convenient methods for querying, filtering, and applying actions to the set of {@link IvyArtifact}s.
  *
  * <pre class='autoTested'>
  * plugins {

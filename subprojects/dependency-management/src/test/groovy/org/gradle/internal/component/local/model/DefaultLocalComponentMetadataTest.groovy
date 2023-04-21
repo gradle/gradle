@@ -378,7 +378,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     ConfigurationInternal configuration(String name, List<ConfigurationInternal> extendsFrom) {
 
         DependencySet dependencies = new DefaultDependencySet(Describables.of("dependencies"), Mock(ConfigurationInternal) {
-            isCanBeDeclaredAgainst() >> true
+            isCanBeDeclared() >> true
         }, TestUtil.domainObjectCollectionFactory().newDomainObjectSet(Dependency))
 
         DependencyConstraintSet dependencyConstraints = Mock() {
@@ -401,6 +401,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def conf = Mock(ConfigurationInternal) {
             getName() >> name
             getAttributes() >> ImmutableAttributes.EMPTY
+            isCanBeDeclared() >> true
             getDependencies() >> dependencies
             getDependencyConstraints() >> dependencyConstraints
             getExcludeRules() >> new LinkedHashSet<ExcludeRule>()

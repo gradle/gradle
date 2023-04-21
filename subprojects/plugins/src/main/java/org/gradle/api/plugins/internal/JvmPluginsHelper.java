@@ -58,7 +58,7 @@ import static org.gradle.util.internal.TextUtil.camelToKebabCase;
  */
 public class JvmPluginsHelper {
 
-    /***
+    /**
      * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
      */
     @Deprecated
@@ -91,7 +91,7 @@ public class JvmPluginsHelper {
         options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
     }
 
-    /***
+    /**
      * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
      */
     @Deprecated
@@ -135,7 +135,7 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        @SuppressWarnings("deprecation") Configuration variant = project.getConfigurations().maybeCreateWithRole(variantName, ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
+        @SuppressWarnings("deprecation") Configuration variant = project.getConfigurations().maybeCreateWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
         variant.setVisible(false);
         variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 

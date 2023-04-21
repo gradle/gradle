@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Defines how a {@link org.gradle.api.artifacts.Configuration} is intended to be used.
  *
@@ -34,7 +31,7 @@ public interface ConfigurationRole {
 
     boolean isConsumable();
     boolean isResolvable();
-    boolean isDeclarableAgainst();
+    boolean isDeclarable();
     boolean isConsumptionDeprecated();
     boolean isResolutionDeprecated();
     boolean isDeclarationAgainstDeprecated();
@@ -43,63 +40,6 @@ public interface ConfigurationRole {
      * Obtains a human-readable summary of the usage allowed by the given role.
      */
     default String describeUsage() {
-        return RoleDescriber.describeRole(this);
-    }
-
-    /**
-     * This static util class hides methods internal to the {@code default} methods of {@link ConfigurationRole} which
-     * can be used to build a human-readable description of the usage a role allows.
-     */
-    abstract class RoleDescriber {
-        private static final String CONSUMABLE = "Consumable - this configuration can be selected by another project as a dependency";
-        private static final String RESOLVABLE = "Resolvable - this configuration can be resolved by this project to a set of files";
-        private static final String DECLARABLE_AGAINST = "Declarable Against - this configuration can have dependencies added to it";
-        private static final String UNUSABLE = "This configuration does not allow any usage";
-
-        private static final String IS_DEPRECATED = "(but this behavior is marked deprecated)";
-
-        private RoleDescriber() { /* not instantiable */ }
-
-        /**
-         * Builds a human-readable description of the usage allowed by the given role.
-         *
-         * @param role the role to describe
-         * @return a human-readable description of the role's allowed usage
-         */
-        public static String describeRole(ConfigurationRole role) {
-            return describeUsage(role.isConsumable(), role.isResolvable(), role.isDeclarableAgainst(), role.isConsumptionDeprecated(), role.isResolutionDeprecated(), role.isDeclarationAgainstDeprecated());
-        }
-
-        /**
-         * Builds a human-readable description of the given usage.
-         *
-         * @param consumable whether consumption is allowed
-         * @param resolvable whether resolution is allowed
-         * @param declarableAgainst whether declaring dependencies is allowed
-         * @param consumptionDeprecated whether consumption is deprecated
-         * @param resolutionDeprecated whether resolution is deprecated
-         * @param declarationAgainstDeprecated whether declaring dependencies is deprecated
-         * @return a human-readable description of the given usage
-         */
-        public static String describeUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
-            List<String> descriptions = new ArrayList<>();
-            if (consumable) {
-                descriptions.add("\t" + CONSUMABLE + describeDeprecation(consumptionDeprecated));
-            }
-            if (resolvable) {
-                descriptions.add("\t" + RESOLVABLE + describeDeprecation(resolutionDeprecated));
-            }
-            if (declarableAgainst) {
-                descriptions.add("\t" + DECLARABLE_AGAINST + describeDeprecation(declarationAgainstDeprecated));
-            }
-            if (descriptions.isEmpty()) {
-                descriptions.add("\t" + UNUSABLE);
-            }
-            return String.join("\n", descriptions);
-        }
-
-        private static String describeDeprecation(boolean deprecated) {
-            return deprecated ? " " + IS_DEPRECATED : "";
-        }
+        return UsageDescriber.describeRole(this);
     }
 }

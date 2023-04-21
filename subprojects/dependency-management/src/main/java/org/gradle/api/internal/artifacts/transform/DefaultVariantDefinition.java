@@ -26,13 +26,13 @@ import javax.annotation.Nullable;
 public class DefaultVariantDefinition implements VariantDefinition {
     private final DefaultVariantDefinition previous;
     private final ImmutableAttributes attributes;
-    private final Transformation transformation;
+    private final TransformationChain transformationChain;
     private final TransformationStep transformationStep;
 
     public DefaultVariantDefinition(@Nullable DefaultVariantDefinition previous, ImmutableAttributes attributes, TransformationStep transformationStep) {
         this.previous = previous;
         this.attributes = attributes;
-        this.transformation = previous != null ? new TransformationChain(previous.getTransformation(), transformationStep) : transformationStep;
+        this.transformationChain = new TransformationChain(previous == null ? null : previous.getTransformationChain(), transformationStep);
         this.transformationStep = transformationStep;
     }
 
@@ -42,8 +42,8 @@ public class DefaultVariantDefinition implements VariantDefinition {
     }
 
     @Override
-    public Transformation getTransformation() {
-        return transformation;
+    public TransformationChain getTransformationChain() {
+        return transformationChain;
     }
 
     @Override

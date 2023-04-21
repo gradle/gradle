@@ -310,7 +310,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
 
     private Configuration bucket(String kind, String suffix) {
         String configName = getConfigurationName(suffix);
-        Configuration configuration = project.getConfigurations().maybeCreateWithRole(configName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration configuration = project.getConfigurations().maybeCreateWithRole(configName, ConfigurationRoles.BUCKET, false, false);
         configuration.setDescription(kind + " dependencies for the '" + name + "' feature.");
         configuration.setVisible(false);
         return configuration;

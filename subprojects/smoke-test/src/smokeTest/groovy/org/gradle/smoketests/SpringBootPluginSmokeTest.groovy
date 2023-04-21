@@ -41,11 +41,13 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
             dependencies {
                 implementation 'org.springframework.boot:spring-boot-starter'
-                testImplementation 'org.springframework.boot:spring-boot-starter-test'
             }
 
-            tasks.named('test') {
-                useJUnitPlatform()
+            testing.suites.test {
+                useJUnitJupiter()
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter-test'
+                }
             }
         """.stripIndent()
 
@@ -82,6 +84,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
         def buildResult = smokeTestRunner.build()
 
         then:
@@ -92,6 +95,11 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         smokeTestRunner = runner('bootRun')
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+        smokeTestRunner.expectDeprecationWarning(
+            BaseDeprecations.APPLICATION_PLUGIN_CONVENTION_DEPRECATION,
+            "No need to follow up as the 2.7.x branch already removed the convention usage"
+        )
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
         def runResult = smokeTestRunner.build()
 
         then:

@@ -18,11 +18,14 @@ package org.gradle.kotlin.dsl.tooling.builders.r60
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
-import org.gradle.test.fixtures.Flaky
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import java.lang.reflect.Proxy
+
+import static org.gradle.kotlin.dsl.tooling.builders.KotlinScriptModelParameters.setModelParameters
 
 @TargetGradleVersion(">=6.0")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
@@ -37,8 +40,13 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
         and:
         def spec = withMultiProjectBuildWithBuildSrc()
 
+
         when:
-        Map<File, KotlinDslScriptModel> singleRequestModels = kotlinDslScriptsModelFor().scriptModels
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+            setModelParameters(it, false, true, [])
+        }
+
+        Map<File, KotlinDslScriptModel> singleRequestModels = model.scriptModels
 
         and:
         Map<File, KotlinBuildScriptModel> multiRequestsModels = spec.scripts.values().collectEntries {
@@ -60,7 +68,10 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
         buildFileKts << ""
 
         when:
-        def model = kotlinDslScriptsModelFor(buildFileKts)
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+            setModelParameters(it, true, true, [buildFileKts])
+        }
+
 
         then:
         def source = Proxy.getInvocationHandler(model).sourceObject

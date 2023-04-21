@@ -216,7 +216,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
     @Issue("https://issues.gradle.org/browse/GRADLE-2527")
     def "test class detection works for custom test tasks"() {
         given:
-        ignoreWhenJupiter()
+        ignoreWhenJUnitPlatform()
         buildFile << """
                 apply plugin:'java'
                 ${mavenCentralRepository()}
@@ -247,7 +247,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             """
 
         file("src/othertests/java/TestCaseExtendsAbstractClass.java") << """
-                import junit.framework.Assert;
+                import org.junit.Assert;
                 public class TestCaseExtendsAbstractClass extends AbstractTestClass{
                     public void testTrue() {
                         Assert.assertTrue(true);

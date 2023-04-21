@@ -59,14 +59,14 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
 
     private ResolvedArtifactSet locateOrCreate(Factory factory, ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
         ImmutableAttributes target = variantDefinition.getTargetAttributes();
-        Transformation transformation = variantDefinition.getTransformation();
+        TransformationChain transformationChain = variantDefinition.getTransformationChain();
         VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
         if (identifier == null) {
             // An ad hoc variant, do not cache the result
             return factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
         }
         VariantKey variantKey;
-        if (transformation.requiresDependencies()) {
+        if (transformationChain.requiresDependencies()) {
             variantKey = new VariantWithUpstreamDependenciesKey(identifier, target, dependenciesResolverFactory);
         } else {
             variantKey = new VariantKey(identifier, target);
@@ -85,7 +85,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransformation(), dependenciesResolverFactory, calculatedValueContainerFactory);
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransformationChain(), dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
@@ -111,7 +111,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         VariantDefinition variantDefinition,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory
     ) {
-        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(targetComponentVariant.getComponentId(), variantDefinition.getTransformation());
+        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(targetComponentVariant.getComponentId(), variantDefinition.getTransformationChain());
         TransformationStep transformationStep = variantDefinition.getTransformationStep();
 
         ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();

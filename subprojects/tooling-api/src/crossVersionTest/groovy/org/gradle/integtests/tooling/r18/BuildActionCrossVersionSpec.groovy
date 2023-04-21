@@ -68,9 +68,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "client receives the exception thrown by the build action"() {
         when:
         withConnection {
-            def action = it.action(new BrokenAction())
-            collectOutputs(action)
-            action.run()
+            it.action(new BrokenAction()).run()
         }
 
         then:
@@ -101,9 +99,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "client receives the exception thrown when action requests unknown model"() {
         when:
         withConnection {
-            def action = it.action(new FetchUnknownModel())
-            collectOutputs(action)
-            action.run()
+            it.action(new FetchUnknownModel()).run()
         }
 
         then:
@@ -120,8 +116,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "client receives the exception thrown when action requests unknown model for version that does not log failure"() {
         when:
         withConnection {
-            def action = it.action(new FetchUnknownModel())
-            action.run()
+            it.action(new FetchUnknownModel()).run()
         }
 
         then:
@@ -137,9 +132,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection {
-            def action = it.action(new ActionShouldNotBeCalled())
-            collectOutputs(action)
-            action.run()
+            it.action(new ActionShouldNotBeCalled()).run()
         }
 
         then:
@@ -160,10 +153,9 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection {
-            def action = it.action(new ActionQueriesModelThatRequiresOnlySettingsEvaluation())
-            action.withArguments("-I${initScript}")
-            collectOutputs(action)
-            action.run()
+            it.action(new ActionQueriesModelThatRequiresOnlySettingsEvaluation())
+                .withArguments("-I${initScript}")
+                .run()
         }
 
         then:
@@ -186,9 +178,8 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection {
-            def action = it.action(new ActionQueriesModelThatRequiresOnlySettingsEvaluation())
-            collectOutputs(action)
-            action.run()
+            it.action(new ActionQueriesModelThatRequiresOnlySettingsEvaluation())
+                .run()
         }
 
         then:
@@ -208,9 +199,8 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection {
-            def action = it.action(new ActionQueriesModelThatRequiresConfigurationPhase())
-            collectOutputs(action)
-            action.run()
+            it.action(new ActionQueriesModelThatRequiresConfigurationPhase())
+                .run()
         }
 
         then:

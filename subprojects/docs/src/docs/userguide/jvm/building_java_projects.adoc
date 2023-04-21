@@ -66,7 +66,7 @@ The project version is also used in archive names by default.
 
 The Java Library Plugin also integrates the above tasks into the standard <<base_plugin.adoc#sec:base_tasks,Base Plugin lifecycle tasks>>:
 
- * `jar` is attached to `assemble` footnote:[In fact, any artifact added to the `archives` configuration will be built by `assemble`]
+ * `jar` is attached to `assemble`
  * `test` is attached to `check`
 
 The rest of the chapter explains the different avenues for customizing the build to your requirements. You will also see later how to adjust the build for libraries, applications, web apps and enterprise apps.

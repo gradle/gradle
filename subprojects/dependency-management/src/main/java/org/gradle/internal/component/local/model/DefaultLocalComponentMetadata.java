@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
@@ -42,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -169,7 +169,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
             }
 
             ImmutableList<VariantGraphResolveMetadata> variants = builder.build();
-            consumableConfigurations = !variants.isEmpty() ? Optional.of(variants) : Optional.absent();
+            consumableConfigurations = !variants.isEmpty() ? Optional.of(variants) : Optional.empty();
         }
         return consumableConfigurations;
     }

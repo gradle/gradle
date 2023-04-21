@@ -132,6 +132,7 @@ to illustrate:
 As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
 
 When resolving the conflict between competing versions, the following logic applies:
+
 * first the versions with the highest base version are selected, the rest are discarded
 * if there are still multiple competing versions left, then one is picked with a preference for not having a qualifier or having release status.
 
@@ -328,7 +329,7 @@ Instead of <<sub:cache_copy,copying the dependency cache into each container>>, 
 This cache, unlike the classical dependency cache, is accessed without locking, making it possible for multiple builds to read from the cache concurrently. It's important that the read-only cache
 is not written to when other builds may be reading from it.
 
-When using the shared read-only cache, Gradle looks for dependencies (artifacts or metadata) in both the writable cache in the local Gradle user home directory and the shared read-only cache.
+When using the shared read-only cache, Gradle looks for dependencies (artifacts or metadata) in both the writable cache in the local Gradle User Home directory and the shared read-only cache.
 If a dependency is present in the read-only cache, it will not be downloaded.
 If a dependency is missing from the read-only cache, it will be downloaded and added to the writable cache.
 In practice, this means that the writable cache will only contain dependencies that are unavailable in the read-only cache.

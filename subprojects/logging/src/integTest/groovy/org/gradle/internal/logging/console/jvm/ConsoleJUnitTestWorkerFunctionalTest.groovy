@@ -24,12 +24,7 @@ class ConsoleJUnitTestWorkerFunctionalTest extends AbstractConsoleJvmTestWorkerF
     }
 
     @Override
-    String testDependency() {
-        'junit:junit:4.13'
-    }
-
-    @Override
     String testFrameworkConfiguration() {
-        ''
+        'testing.suites.test.useJUnit()'
     }
 }

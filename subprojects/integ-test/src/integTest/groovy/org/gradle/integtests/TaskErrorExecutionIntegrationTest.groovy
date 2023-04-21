@@ -15,21 +15,22 @@
  */
 package org.gradle.integtests
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 
 class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     public static final String LIST_OF_PROJECTS = "Run gradle projects to get a list of available projects."
-    public static final String INFO_DEBUG = "Run with --info or --debug option to get more log output."
-    public static final String SCAN = "Run with --scan to get full insights."
-    public static final String GET_HELP = "Get more help at https://help.gradle.org"
     public static final String GET_TASKS = "Run gradle tasks to get a list of available tasks."
-    public static final String NAME_EXPANSION = "To learn more about name expansion, visit https://docs.gradle.org/${GradleVersion.current().version}/userguide/command_line_interface.html#sec:name_abbreviation."
+    public static final String NAME_EXPANSION = new DocumentationRegistry().getDocumentationRecommendationFor("on name expansion", "command_line_interface", "sec:name_abbreviation")
 
     def setup() {
         expectReindentedValidationMessage()

@@ -102,6 +102,13 @@ public interface UnitOfWork extends Describable {
          */
         @Nullable
         Object getOutput();
+
+        /**
+         * Whether this output should be stored in the build cache.
+         */
+        default boolean canStoreInCache() {
+            return true;
+        }
     }
 
     enum WorkResult {

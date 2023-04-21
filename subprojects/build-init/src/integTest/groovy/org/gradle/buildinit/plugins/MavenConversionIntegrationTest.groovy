@@ -17,7 +17,7 @@
 
 package org.gradle.buildinit.plugins
 
-
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -625,7 +625,8 @@ Root project 'webinar-parent'
     def "insecureProtocolFail"() {
         expect:
         fails 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.FAIL as String
-        result.assertHasErrorOutput("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see")
+        result.assertHasErrorOutput("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. " +
+            insecureProtocolsLinks("options"))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")
@@ -637,7 +638,12 @@ Root project 'webinar-parent'
 
         then:
         dsl.assertGradleFilesGenerated()
-        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See ")
+        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. " +
+            insecureProtocolsLinks())
+    }
+
+    private insecureProtocolsLinks(String topic = "information on how to do this") {
+        new DocumentationRegistry().getDocumentationRecommendationFor(topic, "build_init_plugin", "sec:allow_insecure")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")
@@ -649,7 +655,8 @@ Root project 'webinar-parent'
 
         then:
         dsl.assertGradleFilesGenerated()
-        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See ")
+        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. " +
+            insecureProtocolsLinks())
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")

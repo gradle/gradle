@@ -17,14 +17,12 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import spock.lang.Unroll
 
 @FluidDependenciesResolveTest
 class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
-
-    @Unroll("cannot resolve a configuration with role #role at execution time")
-    def "cannot resolve a configuration which is for publishing only at execution time"() {
+    def "cannot resolve a configuration with role #role at execution time"() {
         given:
         buildFile << """
 
@@ -38,8 +36,9 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         }
 
         task checkState {
+            def files = configurations.internal
             doLast {
-                configurations.internal.resolve()
+                files.files
             }
         }
 
@@ -58,8 +57,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    @Unroll("cannot resolve a configuration with role #role at configuration time")
-    def "cannot resolve a configuration which is for publishing only at configuration time"() {
+    def "cannot resolve a configuration with role #role at configuration time"() {
         given:
         buildFile << """
 
@@ -87,11 +85,10 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         role                      | code
         'consume or publish only' | 'canBeResolved = false'
         'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
-
     }
 
-    @Unroll("cannot resolve a configuration with role #role using #method")
-    def "cannot resolve a configuration which is for publishing only"() {
+    @ToBeFixedForConfigurationCache(because = "Uses Configuration API")
+    def "cannot resolve a configuration with role #role using #method"() {
         given:
         buildFile << """
 
@@ -113,6 +110,18 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        if (method == 'getResolvedConfiguration()') {
+            if (role == 'canBeResolved = false') {
+                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getResolvedConfiguration()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+\tDeclarable - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+            } else {
+                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getResolvedConfiguration()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tDeclarable - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+            }
+        }
         fails 'checkState'
 
         then:
@@ -125,8 +134,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         ].combinations()
     }
 
-    @Unroll("cannot add a dependency on a configuration role #role")
-    def "cannot add a dependency on a configuration not meant to be consumed or published"() {
+    def "cannot add a dependency on a configuration role #role"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
@@ -139,7 +147,8 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task check {
-                doLast { configurations.compile.resolve() }
+                def files = configurations.compile
+                doLast { files.files }
             }
         }
         project(':b') {
@@ -164,8 +173,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         'bucket'                | 'canBeResolved = false; canBeConsumed = false'
     }
 
-    @Unroll("cannot depend on default configuration if it's not consumable (#role)")
-    def "cannot depend on default configuration if it's not consumable"() {
+    def "cannot depend on default configuration if it's not consumable (#role)"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
@@ -178,7 +186,8 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task check {
-                doLast { configurations.compile.resolve() }
+                def files = configurations.compile
+                doLast { files.files }
             }
         }
         project(':b') {
@@ -202,5 +211,4 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         'query or resolve only' | 'canBeConsumed = false'
         'bucket'                | 'canBeResolved = false; canBeConsumed = false'
     }
-
 }

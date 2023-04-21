@@ -11,7 +11,7 @@ class CompileAllBuildCacheNG(model: CIBuildModel, stage: Stage) : BaseGradleBuil
     applyDefaults(
         model,
         this,
-        "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=true -Dorg.gradle.unsafe.cache.ng=true",
+        "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=false -Dorg.gradle.unsafe.cache.ng=true",
         extraParameters = "-Porg.gradle.java.installations.auto-download=false"
     )
 

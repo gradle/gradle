@@ -91,42 +91,19 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
         return apiTextResourcesAdapterFactory.create(rootUri, redirectVerifier);
     }
 
-    private void throwExceptionDueToInsecureProtocol(URI rootUri) {
-        String contextualAdvice =
-            String.format("The provided URI '%s' uses an insecure protocol (HTTP). ", rootUri);
-        String switchToAdvice =
-            String.format(
-                "Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning. ",
-                GUtil.toSecureUrl(rootUri),
-                rootUri
-            );
-        String dslMessage =
-            Documentation
-                .dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
-                .consultDocumentationMessage();
-
-        String message =
-            "Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. " +
-                contextualAdvice +
-                switchToAdvice +
-                dslMessage;
-        throw new InvalidUserCodeException(message);
+    private static void throwExceptionDueToInsecureProtocol(URI rootUri) {
+        throw new InsecureProtocolException(
+            "Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. " + String.format("The provided URI '%s' uses an insecure protocol (HTTP). ", rootUri),
+            String.format("Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning. ", GUtil.toSecureUrl(rootUri), rootUri),
+            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
+        );
     }
 
-    private void throwExceptionDueToInsecureRedirect(Object uri, URI redirect) throws InvalidUserCodeException {
-        String contextualAdvice =
-            String.format("'%s' redirects to insecure '%s'. ", uri, redirect);
-        String switchToAdvice =
-            "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning. ";
-        String dslMessage =
-            Documentation
-                .dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
-                .consultDocumentationMessage();
-        String message =
-            "Loading a TextResource from an insecure redirect, without explicit opt-in, is unsupported. " +
-                contextualAdvice +
-                switchToAdvice +
-                dslMessage;
-        throw new InvalidUserCodeException(message);
+    private static void throwExceptionDueToInsecureRedirect(Object uri, URI redirect) throws InvalidUserCodeException {
+        throw new InsecureProtocolException(
+            "Loading a TextResource from an insecure redirect, without explicit opt-in, is unsupported. " + String.format("'%s' redirects to insecure '%s'.", uri, redirect),
+            "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.",
+            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
+        );
     }
 }

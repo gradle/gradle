@@ -51,7 +51,7 @@ class BuildExceptionReporterTest extends Specification {
     static final String INFO_OR_DEBUG = "{info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output."
     static final String INFO = "{info}> {normal}Run with {userinput}--info{normal} option to get more log output."
     static final String SCAN = "{info}> {normal}Run with {userinput}--scan{normal} to get full insights."
-    static final String GET_HELP = "{info}> {normal}Get more help at {userinput}https://help.gradle.org{normal}"
+    static final String GET_HELP = "{info}> {normal}Get more help at {userinput}https://help.gradle.org{normal}."
 
 
     def setup() {

@@ -108,7 +108,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY) == warningsSummary
         output.contains("You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.") == warningsSummary
-        output.contains(LoggingDeprecatedFeatureHandler.WARNING_LOGGING_DOCS_MESSAGE) == warningsSummary
+        output.contains(documentationRegistry.getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")) == warningsSummary
 
         and: "system stack frames are filtered"
         !output.contains('jdk.internal.')
