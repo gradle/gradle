@@ -29,12 +29,10 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +53,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     private final ImmutableSet<String> hierarchy;
     private final ImmutableAttributes attributes;
     private final boolean canBeConsumed;
-    private final DeprecationMessageBuilder.WithDocumentation consumptionDeprecation;
+    private final boolean deprecatedForConsumption;
     private final boolean canBeResolved;
     private final ImmutableCapabilities capabilities;
     private final List<LocalOriginDependencyMetadata> configurationDependencies;
@@ -80,7 +78,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         boolean canBeConsumed,
-        @Nullable DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
+        boolean deprecatedForConsumption,
         boolean canBeResolved,
         List<LocalOriginDependencyMetadata> configurationDependencies,
         Set<LocalFileDependencyMetadata> configurationFileDependencies,
@@ -92,7 +90,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
         LocalComponentMetadata component
     ) {
         this(
-            name, description, componentId, visible, transitive, hierarchy, attributes, capabilities, canBeConsumed, consumptionDeprecation,
+            name, description, componentId, visible, transitive, hierarchy, attributes, capabilities, canBeConsumed, deprecatedForConsumption,
             canBeResolved, configurationDependencies, configurationFileDependencies, configurationExcludes, variants, factory,
             getLazyArtifacts(definedArtifacts, name, description, hierarchy, model, factory, component)
         );
@@ -111,7 +109,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         boolean canBeConsumed,
-        @Nullable DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
+        boolean deprecatedForConsumption,
         boolean canBeResolved,
         List<LocalOriginDependencyMetadata> configurationDependencies,
         Set<LocalFileDependencyMetadata> configurationFileDependencies,
@@ -121,7 +119,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
         List<LocalComponentArtifactMetadata> artifacts
     ) {
         this(
-            name, description, componentId, visible, transitive, hierarchy, attributes, capabilities, canBeConsumed, consumptionDeprecation,
+            name, description, componentId, visible, transitive, hierarchy, attributes, capabilities, canBeConsumed, deprecatedForConsumption,
             canBeResolved, configurationDependencies, configurationFileDependencies, configurationExcludes, variants, factory,
             factory.create(Describables.of(description, "artifacts"), ImmutableList.copyOf(artifacts))
         );
@@ -137,7 +135,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         boolean canBeConsumed,
-        @Nullable DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
+        boolean deprecatedForConsumption,
         boolean canBeResolved,
         List<LocalOriginDependencyMetadata> configurationDependencies,
         Set<LocalFileDependencyMetadata> configurationFileDependencies,
@@ -155,7 +153,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
         this.attributes = attributes;
         this.capabilities = capabilities;
         this.canBeConsumed = canBeConsumed;
-        this.consumptionDeprecation = consumptionDeprecation;
+        this.deprecatedForConsumption = deprecatedForConsumption;
         this.canBeResolved = canBeResolved;
         this.configurationDependencies = configurationDependencies;
         this.configurationFileDependencies = configurationFileDependencies;
@@ -222,7 +220,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
 
         return new DefaultLocalConfigurationMetadata(
             name, description, componentId, visible, transitive, hierarchy, attributes, capabilities,
-            canBeConsumed, consumptionDeprecation, canBeResolved,
+            canBeConsumed, deprecatedForConsumption, canBeResolved,
             configurationDependencies, configurationFileDependencies, configurationExcludes,
             copiedVariants.build(), factory, copiedArtifacts
         );
@@ -274,8 +272,8 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     }
 
     @Override
-    public DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation() {
-        return consumptionDeprecation;
+    public boolean isDeprecatedForConsumption() {
+        return deprecatedForConsumption;
     }
 
     @Override

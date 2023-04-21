@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -46,6 +47,13 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':includedBuild:buildLogic',
             ':',
             ':buildLogic'
+        ]
+
+        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
+            "Build name=:",
+            "Build name=buildLogic",
+            "Build name=buildLogic:1",
+            "Build name=includedBuild",
         ]
     }
 
@@ -82,6 +90,17 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':nested',
             ':nested:buildLogic'
         ]
+
+        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
+            "Build name=:",
+            "Build name=buildLogic",
+            "Build name=buildLogic:1",
+            "Build name=buildLogic:2",
+            "Build name=buildLogic:3",
+            "Build name=includedBuild",
+            "Build name=nested",
+            "Build name=nested:1",
+        ]
     }
 
     def "buildSrc is relative to its including build"() {
@@ -109,6 +128,18 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         assignedBuildPaths ==~ [
             ':includedBuild', ':includedBuild:buildSrc', ':includedBuild:nested', ':includedBuild:nested:buildSrc',
             ':', ':buildSrc', ':nested', ':nested:buildSrc', ':nested:buildSrc:buildSrc']
+
+        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
+            "Build name=:",
+            "Build name=buildSrc",
+            "Build name=buildSrc:1",
+            "Build name=buildSrc:2",
+            "Build name=buildSrc:3",
+            "Build name=buildSrc:4",
+            "Build name=includedBuild",
+            "Build name=nested",
+            "Build name=nested:1",
+        ]
     }
 
     def "uses the directory hierarchy to determine the build path when the builds are not nested"() {
@@ -126,12 +157,20 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         }
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
         def includedBuildBNested = createDir('includedBuildB/nested')
-        new BuildTestFixture(includedBuildBNested).multiProjectBuild('includedBuildB', ['project1', 'project2'])
+        new BuildTestFixture(includedBuildBNested).multiProjectBuild('includedBuildB-nested', ['project1', 'project2'])
 
         when:
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [':', ':includedBuildB', ':includedBuildA', ':nested', ':includedBuildB:nested']
+
+        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
+            "Build name=:",
+            "Build name=includedBuildA",
+            "Build name=includedBuildB",
+            "Build name=nested",
+            "Build name=nested:1",
+        ]
     }
 
     def "does not resolve the path conflict when the parent build is included #laterDescription"() {
@@ -182,14 +221,26 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         fixture.progress(BuildIdentifiedProgressDetails).findAll { it.details.buildPath }*.details*.buildPath
     }
 
-    private void configureBuildConfigurationOutput(List<BuildTestFile> builds) {
+    private void configureNestedBuild(List<BuildTestFile> builds) {
         builds.each {
-            it.buildFile << """
-                    subprojects {
-                        // The Java plugin forces the configuration of the included builds
-                        apply plugin: 'java'
+            it.settingsFile << """
+                gradle.projectsEvaluated {
+                    // only print from the root build of the build tree to avoid duplication
+                    if (gradle.owner.identityPath.path == ':') {
+                        def registry = gradle.services.get(${BuildStateRegistry.name})
+                        registry.visitBuilds { b ->
+                            def buildId = b.buildIdentifier
+                            println "Build name=" + buildId.name
+                        }
                     }
-                """
+                }
+            """
+            it.buildFile << """
+                subprojects {
+                    // The Java plugin forces the configuration of the included builds
+                    apply plugin: 'java'
+                }
+            """
         }
     }
 
@@ -197,7 +248,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         def rootSpec = new RootNestedBuildSpec(temporaryFolder)
         rootSpec.with(configuration)
         def builds = rootSpec.nestedBuilds
-        configureBuildConfigurationOutput(builds)
+        configureNestedBuild(builds)
         builds
     }
 

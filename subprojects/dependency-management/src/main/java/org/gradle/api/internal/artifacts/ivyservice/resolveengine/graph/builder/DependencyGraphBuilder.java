@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -44,6 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -51,6 +51,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleVariantsSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
@@ -90,8 +92,10 @@ public class DependencyGraphBuilder {
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final ImmutableAttributesFactory attributesFactory;
     private final CapabilitiesConflictHandler capabilitiesConflictHandler;
+    private final AttributeDesugaring attributeDesugaring;
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
+    private final LocalComponentGraphResolveStateFactory resolveStateFactory;
     private final VersionParser versionParser;
     private final ResolutionConflictTracker conflictTracker;
 
@@ -109,8 +113,10 @@ public class DependencyGraphBuilder {
                                   DependencySubstitutionApplicator dependencySubstitutionApplicator,
                                   ComponentSelectorConverter componentSelectorConverter,
                                   ImmutableAttributesFactory attributesFactory,
+                                  AttributeDesugaring attributeDesugaring,
                                   VersionSelectorScheme versionSelectorScheme,
                                   Comparator<Version> versionComparator,
+                                  LocalComponentGraphResolveStateFactory resolveStateFactory,
                                   VersionParser versionParser) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
@@ -123,8 +129,10 @@ public class DependencyGraphBuilder {
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
         this.capabilitiesConflictHandler = capabilitiesConflictHandler;
+        this.attributeDesugaring = attributeDesugaring;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
+        this.resolveStateFactory = resolveStateFactory;
         this.versionParser = versionParser;
         this.conflictTracker = new ResolutionConflictTracker(moduleConflictHandler, capabilitiesConflictHandler);
     }
@@ -133,14 +141,14 @@ public class DependencyGraphBuilder {
 
         IdGenerator<Long> idGenerator = new LongIdGenerator();
         LocalComponentMetadata metadata = resolveContext.toRootComponentMetaData();
+        LocalComponentGraphResolveState rootState = resolveStateFactory.stateFor(metadata);
 
-        int graphSize = estimateSize(resolveContext);
+        int graphSize = resolveContext.getEstimatedGraphSize();
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
 
-        List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ?
-            resolveContext.getSyntheticDependencies() : Collections.emptyList();
+        List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ? resolveContext.getSyntheticDependencies() : Collections.emptyList();
 
-        final ResolveState resolveState = new ResolveState(idGenerator, metadata, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker);
+        ResolveState resolveState = new ResolveState(idGenerator, rootState, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, attributeDesugaring, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker);
 
         Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMapWithExpectedSize(graphSize / 2);
         traverseGraph(resolveState, componentIdentifierCache);
@@ -148,19 +156,6 @@ public class DependencyGraphBuilder {
         validateGraph(resolveState, resolutionStrategy.isFailingOnDynamicVersions(), resolutionStrategy.isFailingOnChangingVersions());
 
         assembleResult(resolveState, modelVisitor);
-    }
-
-    /**
-     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
-     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
-     * the size of the graph to avoid maps resizing.
-     */
-    private static int estimateSize(ResolveContext resolveContext) {
-        int estimate = 0;
-        if (resolveContext instanceof Configuration) {
-            estimate = (int) (512 * Math.log(((Configuration) resolveContext).getAllDependencies().size()));
-        }
-        return Math.max(10, estimate);
     }
 
     /**

@@ -28,9 +28,12 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.Artifa
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.AbstractModuleVersionsCache
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost
+import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
@@ -42,6 +45,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
 
@@ -63,7 +67,8 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def listener = Stub(ChangingValueDependencyResolutionListener)
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
-    def repo = new CachingModuleComponentRepository(realRepo, caches, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
+    def resolveStateFactory = new ModuleComponentGraphResolveStateFactory(new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
+    def repo = new CachingModuleComponentRepository(realRepo, caches, resolveStateFactory, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
 
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
@@ -119,8 +124,8 @@ class CachingModuleComponentRepositoryTest extends Specification {
         repo.localAccess.resolveComponentMetaData(componentId, prescribedMetaData, result)
 
         then:
-        realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, result) >> {
-            result.resolved(Mock(ModuleComponentResolveMetadata))
+        1 * realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, _) >> { id, m, r ->
+            r.resolved(Stub(ModuleComponentResolveMetadata))
         }
         0 * _
     }
@@ -191,8 +196,10 @@ class CachingModuleComponentRepositoryTest extends Specification {
             isMustCheck() >> mustRefreshChangingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata) {
-                isChanging() >> true
+            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState) {
+                getMetadata() >> Stub(ModuleComponentResolveMetadata) {
+                    isChanging() >> true
+                }
             }
             getAge() >> Duration.ofMillis(100)
         }
@@ -221,7 +228,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
             isMustCheck() >> mustRefreshModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata)
+            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState)
             getAge() >> Duration.ofMillis(100)
         }
 

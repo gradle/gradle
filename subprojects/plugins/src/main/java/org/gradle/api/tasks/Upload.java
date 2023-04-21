@@ -50,10 +50,11 @@ public abstract class Upload extends ConventionTask {
 
     @TaskAction
     protected void upload() {
+        DocumentationRegistry docRegistry = getDocumentationRegistry();
         throw new InvalidUserCodeException(
-                "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. See " +
-                        getDocumentationRegistry().getDocumentationFor("publishing_maven", "publishing_maven") + " or " +
-                        getDocumentationRegistry().getDocumentationFor("publishing_ivy", "publishing_ivy") + " for details");
+                "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. " +
+                        docRegistry.getDocumentationRecommendationFor("on publishing on maven repositories", "publishing_maven", "publishing_maven") + "\n" +
+                        docRegistry.getDocumentationRecommendationFor("on publishing on ivy repositories", "publishing_ivy", "publishing_ivy"));
     }
 
     /**

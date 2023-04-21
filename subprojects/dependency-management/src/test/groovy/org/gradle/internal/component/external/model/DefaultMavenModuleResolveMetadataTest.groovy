@@ -128,7 +128,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
 
         when:
         def immutableMetadata = metadata.asImmutable().withDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance())
-        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal().orNull()
+        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal().orElse(null)
         def compileConf = immutableMetadata.getConfiguration("compile")
         def runtimeConf = immutableMetadata.getConfiguration("runtime")
 
@@ -136,6 +136,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         assertHasOnlyStatusAttribute(compileConf.attributes)
         assertHasOnlyStatusAttribute(runtimeConf.attributes)
 
+        variantsForGraphTraversal != null
         variantsForGraphTraversal.size() == 8
         variantsForGraphTraversal[0].name == "compile"
         variantsForGraphTraversal[0].attributes.getAttribute(stringUsageAttribute) == "java-api"

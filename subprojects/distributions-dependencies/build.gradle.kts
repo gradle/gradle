@@ -15,7 +15,7 @@ plugins {
 
 description = "Provides a platform dependency to align all distribution versions"
 
-val antVersion = "1.10.11"
+val antVersion = "1.10.13"
 val asmVersion = "9.4"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
@@ -92,7 +92,7 @@ dependencies {
         api(libs.gson)                  { version { strictly("2.8.9") }}
         api(libs.h2Database)            { version { strictly("2.1.214") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
-        api(libs.hikariCP)              { version { strictly("4.0.2") }}
+        api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
         api(libs.ivy)                   { version { strictly("2.3.0"); because("2.4.0 contains a breaking change in DefaultModuleDescriptor.getExtraInfo(), cf. https://issues.apache.org/jira/browse/IVY-1457") }}
@@ -163,6 +163,7 @@ dependencies {
         api(libs.bytebuddy)             { version { strictly(bytebuddyVersion) }}
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
+        api(libs.compileTesting)        { version { strictly("0.21.0")}}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}

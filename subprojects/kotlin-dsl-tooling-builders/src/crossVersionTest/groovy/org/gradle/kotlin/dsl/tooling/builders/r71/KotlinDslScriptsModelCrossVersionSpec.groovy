@@ -19,7 +19,9 @@ package org.gradle.kotlin.dsl.tooling.builders.r71
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.Flaky
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
+import static org.gradle.kotlin.dsl.tooling.builders.KotlinScriptModelParameters.setModelParameters
 
 @TargetGradleVersion(">=7.1")
 class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -35,7 +37,9 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         file("src/main/kotlin/myplugin.gradle.kts") << ''
 
         when:
-        def model = kotlinDslScriptsModelFor(false, false, [])
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+            setModelParameters(it, false)
+        }
 
         then:
         !model.scriptModels.isEmpty()

@@ -106,4 +106,8 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     boolean isFailingOnChangingVersions();
 
     boolean isDependencyVerificationEnabled();
+
+    void setReturnAllVariants(boolean returnAllVariants);
+
+    boolean getReturnAllVariants();
 }

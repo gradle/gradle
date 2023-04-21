@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.buildevents;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -28,8 +29,10 @@ import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
@@ -40,6 +43,9 @@ import org.gradle.util.internal.GUtil;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.google.common.collect.ImmutableList.builder;
+import static com.google.common.collect.ImmutableList.of;
+import static java.lang.String.join;
 import static org.apache.commons.lang.StringUtils.repeat;
 import static org.gradle.api.logging.LogLevel.DEBUG;
 import static org.gradle.api.logging.LogLevel.INFO;
@@ -58,6 +64,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 public class BuildExceptionReporter implements Action<Throwable> {
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
+    public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
 
     private enum ExceptionStyle {
         NONE, FULL
@@ -226,24 +233,27 @@ public class BuildExceptionReporter implements Action<Throwable> {
         if (details.failure instanceof FailureResolutionAware) {
             ((FailureResolutionAware) details.failure).appendResolutions(context);
         }
+        getResolutions(details.failure).stream()
+            .distinct()
+            .forEach(resolution ->
+                context.appendResolution(output ->
+                    output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n"))))
+            );
         boolean hasNonGradleSpecificCauseInAncestry = hasCauseAncestry(details.failure, NonGradleCause.class);
         if (details.exceptionStyle == ExceptionStyle.NONE && !hasNonGradleSpecificCauseInAncestry) {
-            context.appendResolution(output -> {
-                output.text("Run with ");
-                output.withStyle(UserInput).format("--%s", STACKTRACE_LONG_OPTION);
-                output.text(" option to get the stack trace.");
-            });
+            context.appendResolution(output ->
+                runtWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
+            );
         }
 
-        boolean hasCompileError = hasNonGradleSpecificCauseInAncestry && hasCauseAncestry(details.failure, CompilationFailedIndicator.class);
+        boolean hasCompileError = hasNonGradleSpecificCauseInAncestry &&
+            hasCauseAncestry(details.failure, CompilationFailedIndicator.class);
         LogLevel logLevel = loggingConfiguration.getLogLevel();
         boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
         if (hasCompileError && isLessThanInfo) {
-            context.appendResolution(output -> {
-                output.text("Run with ");
-                output.withStyle(UserInput).format("--%s", INFO_LONG_OPTION);
-                output.text(" option to get more log output.");
-            });
+            context.appendResolution(output ->
+                runtWithOption(output, INFO_LONG_OPTION, " option to get more log output.")
+            );
         } else if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
                 output.text("Run with ");
@@ -261,17 +271,41 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
 
         if (!hasNonGradleSpecificCauseInAncestry) {
-            context.appendResolution(output -> {
-                writeGeneralTips(output);
-            });
+            context.appendResolution(this::writeGeneralTips);
         }
+    }
+
+    private static void runtWithOption(StyledTextOutput output, String optionName, String text) {
+        output.text("Run with ");
+        output.withStyle(UserInput).format("--%s", optionName);
+        output.text(text);
+    }
+
+    private static List<String> getResolutions(Throwable throwable) {
+        ImmutableList.Builder<String> resolutions = builder();
+
+        if (throwable instanceof ResolutionProvider) {
+            resolutions.addAll(((ResolutionProvider) throwable).getResolutions());
+        }
+
+        for (Throwable cause : getCauses(throwable)) {
+            resolutions.addAll(getResolutions(cause));
+        }
+
+        return resolutions.build();
+    }
+
+    private static List<? extends Throwable> getCauses(Throwable cause) {
+        if (cause instanceof MultiCauseException) {
+            return ((MultiCauseException) cause).getCauses();
+        }
+        Throwable nextCause = cause.getCause();
+        return nextCause == null ? of() : of(nextCause);
     }
 
     private void addBuildScanMessage(ContextImpl context) {
         context.appendResolution(output -> {
-            output.text("Run with ");
-            output.withStyle(UserInput).format("--%s", LONG_OPTION);
-            output.text(" to get full insights.");
+            runtWithOption(output, LONG_OPTION, " to get full insights.");
         });
     }
 
@@ -282,6 +316,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private void writeGeneralTips(StyledTextOutput resolution) {
         resolution.text("Get more help at ");
         resolution.withStyle(UserInput).text("https://help.gradle.org");
+        resolution.text(".");
     }
 
     private static String getMessage(Throwable throwable) {
@@ -381,7 +416,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void appendDocumentationResolution(String prefix, String userGuideId, String userGuideSection) {
-            appendResolution(output -> output.text(prefix + " " + documentationRegistry.getDocumentationFor(userGuideId, userGuideSection) + "."));
+            appendResolution(output -> output.text(documentationRegistry.getDocumentationRecommendationFor(prefix, userGuideId, userGuideSection)));
         }
     }
 }

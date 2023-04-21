@@ -92,7 +92,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
         String multi = isSingleProject(settings) ? "" : "_multi_project";
-        return Optional.of(documentationRegistry.getSampleFor("building_" + getLanguage().getName() + "_" + getComponentType().pluralName() + multi));
+        return Optional.of(documentationRegistry.getSampleForMessage("building_" + getLanguage().getName() + "_" + getComponentType().pluralName() + multi));
     }
 
     @Override
@@ -115,8 +115,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.")
-            .fileComment("For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on building Java & JVM projects", "building_java_projects"));
 
         addStandardDependencies(buildScriptBuilder, false);
 
@@ -247,6 +246,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
                     "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
                     "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                buildScriptBuilder.testRuntimeOnlyDependency(null, "org.junit.platform:junit-platform-launcher");
                 buildScriptBuilder.taskMethodInvocation(
                     "Use JUnit Platform for unit tests.",
                     "test", "Test", "useJUnitPlatform");
@@ -264,6 +264,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 buildScriptBuilder.testImplementationDependency(
                     "Use JUnit Jupiter for testing.",
                     "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter"));
+                buildScriptBuilder.testRuntimeOnlyDependency(null, "org.junit.platform:junit-platform-launcher");
 
                 buildScriptBuilder.taskMethodInvocation(
                     "Use JUnit Platform for unit tests.",
@@ -286,6 +287,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit 5 integration.", "org.jetbrains.kotlin:kotlin-test-junit5");
                 // TODO: Make this work with JUnit 5.6.0 again, see https://github.com/gradle/gradle/issues/13955
                 buildScriptBuilder.testImplementationDependency("Use the JUnit 5 integration.", "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter"));
+                buildScriptBuilder.testRuntimeOnlyDependency(null, "org.junit.platform:junit-platform-launcher");
 
                 buildScriptBuilder.taskMethodInvocation(
                     "Use JUnit Platform for unit tests.",

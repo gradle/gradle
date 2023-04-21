@@ -129,7 +129,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
         then:
         compile.name == "compile"
-        compile.path == ":compile"
+        compile.incoming.path == ":compile"
         compile instanceof DefaultConfiguration
 
         and:
@@ -163,7 +163,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         then:
         configurationContainer.getByName("compile") == compile
         compile.description == "I compile!"
-        compile.path == ":compile"
+        compile.incoming.path == ":compile"
     }
 
     def "creates detached"() {
@@ -183,6 +183,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         detached.getHierarchy() == [detached] as Set
         [dependency1, dependency2].each { detached.getDependencies().contains(it) }
         detached.getDependencies().size() == 2
-        detached.path == ":detachedConfiguration1"
+        detached.incoming.path == ":detachedConfiguration1"
     }
 }

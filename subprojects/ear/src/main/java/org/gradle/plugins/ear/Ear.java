@@ -31,9 +31,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -45,9 +43,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import static java.util.Collections.singleton;
@@ -87,6 +83,8 @@ public abstract class Ear extends Jar {
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
+        // the generated descriptor should only be used if one does not already exist
+        descriptorChild.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
         descriptorChild.from(callable(() -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
             if (descriptor != null && generateDeploymentDescriptor.get()) {
@@ -103,19 +101,16 @@ public abstract class Ear extends Jar {
                 //  so any captured manifest attribute providers are re-evaluated
                 //  on each run.
                 //  See https://github.com/gradle/configuration-cache/issues/168
-                Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
                 final OutputChangeListener outputChangeListener = outputChangeListener();
                 return fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
                     action(file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
-                    action(outputStream -> {
-                        try {
-                            outputStream.write(cachedDescriptor.get());
-                        } catch (IOException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                    })
+                    action(outputStream ->
+                        // delay obtaining contents to account for descriptor changes
+                        // (for instance, due to modules discovered)
+                        descriptor.writeTo(new OutputStreamWriter(outputStream))
+                    )
                 );
             }
 
@@ -123,14 +118,6 @@ public abstract class Ear extends Jar {
         }));
 
         appDir = getObjectFactory().directoryProperty();
-    }
-
-    private Cached<byte[]> cachedContentsOf(DeploymentDescriptor descriptor) {
-        return Cached.of(() -> {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            descriptor.writeTo(new OutputStreamWriter(bytes));
-            return bytes.toByteArray();
-        });
     }
 
     private FileCollectionFactory fileCollectionFactory() {

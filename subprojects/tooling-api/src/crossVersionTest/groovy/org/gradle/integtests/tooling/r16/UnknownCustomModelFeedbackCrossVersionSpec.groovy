@@ -27,9 +27,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
     def "fails gracefully when unknown model requested"() {
         when:
         withConnection {
-            def builder = it.model(CustomModel.class)
-            collectOutputs(builder)
-            builder.get()
+            it.model(CustomModel.class).get()
         }
 
         then:
@@ -45,8 +43,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
     def "fails gracefully when unknown model requested for version that does not log failure"() {
         when:
         withConnection {
-            def builder = it.model(CustomModel.class)
-            builder.get()
+            it.model(CustomModel.class).get()
         }
 
         then:

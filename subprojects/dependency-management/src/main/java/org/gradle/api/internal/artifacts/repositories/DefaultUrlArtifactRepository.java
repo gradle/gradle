@@ -86,50 +86,29 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     }
 
     private void throwExceptionDueToInsecureProtocol() throws InvalidUserCodeException {
-        String switchToAdvice =
-            String.format(
-                "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ",
-                repositoryType,
-                displayNameSupplier.get()
-            );
-        String dslMessage =
-            Documentation
-                .dslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
-                .consultDocumentationMessage() + " ";
-        String message =
-            "Using insecure protocols with repositories, without explicit opt-in, is unsupported. " +
-                switchToAdvice +
-                dslMessage;
-        throw new InvalidUserCodeException(message);
+        throw new InsecureProtocolException(
+            "Using insecure protocols with repositories, without explicit opt-in, is unsupported.",
+            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.", repositoryType, displayNameSupplier.get()),
+            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").consultDocumentationMessage()
+        );
     }
 
     private void throwExceptionDueToInsecureRedirect(@Nullable URI redirectFrom, URI redirectLocation) throws InvalidUserCodeException {
         final String contextualAdvice;
         if (redirectFrom != null) {
             contextualAdvice = String.format(
-                "'%s' is redirecting to '%s'. ",
+                " '%s' is redirecting to '%s'. ",
                 redirectFrom,
                 redirectLocation
             );
         } else {
             contextualAdvice = "";
         }
-        String switchToAdvice =
-            String.format(
-                "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ",
-                repositoryType,
-                displayNameSupplier.get()
-            );
-        String dslMessage =
-            Documentation
-                .dslReference(UrlArtifactRepository.class, "allowInsecureProtocol")
-                .consultDocumentationMessage() + " ";
-        String message =
-            "Redirecting from secure protocol to insecure protocol, without explict opt-in, is unsupported. " +
-                contextualAdvice +
-                switchToAdvice +
-                dslMessage;
-        throw new InvalidUserCodeException(message);
+        throw new InsecureProtocolException(
+            "Redirecting from secure protocol to insecure protocol, without explicit opt-in, is unsupported." + contextualAdvice,
+            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ", repositoryType, displayNameSupplier.get()),
+            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").consultDocumentationMessage()
+        );
     }
 
     HttpRedirectVerifier createRedirectVerifier() {

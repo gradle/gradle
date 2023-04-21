@@ -54,7 +54,7 @@ include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build
 <2> A configurable greeting
 <3> Read-only property calculated from the greeting
 <4> Configure the greeting
-<5> Alternative notation to calling Property.set() (experimental opt-in for Kotlin, see <<kotlin_dsl.adoc#kotdsl:assignment,Kotlin DSL Primer>>)
+<5> Alternative notation to calling Property.set() (incubating for Kotlin, see <<kotlin_dsl.adoc#kotdsl:assignment,Kotlin DSL Primer>>)
 
 .Output of **`gradle greeting`**
 ----

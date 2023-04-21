@@ -35,12 +35,9 @@ trait ValidationMessageChecker {
         messageIndent = indent
     }
 
-    String userguideLink(String id, String section) {
-        documentationRegistry.getDocumentationFor(id, section)
-    }
 
     String learnAt(String id, String section) {
-        "Please refer to ${userguideLink(id, section)} for more details about this problem"
+        documentationRegistry.getDocumentationRecommendationFor("information", id, section)
     }
 
     @ValidationTestFor(
@@ -424,6 +421,17 @@ trait ValidationMessageChecker {
         config.render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    String nestedMapUnsupportedKeyType(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NestedMapUnsupportedKeyType, "unsupported_key_type_of_nested_map", spec)
+        config.description("where key of nested map is of type '${config.keyType}'.")
+            .reason("Key of nested map must be one of the following types: 'Enum', 'Integer', 'String'")
+            .solution("Change type of key to one of the following types: 'Enum', 'Integer', 'String'")
+            .render()
+    }
+
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
                                                                    String docId = "incremental_build",
@@ -433,7 +441,7 @@ trait ValidationMessageChecker {
             "This behavior has been deprecated. " +
             "This behavior is scheduled to be removed in Gradle 9.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/${docId}.html#${section} for more details."
+            documentationRegistry.getDocumentationRecommendationFor("information", docId, section)
         executer.expectDocumentedDeprecationWarning(deprecationMessage)
     }
 
@@ -948,6 +956,20 @@ trait ValidationMessageChecker {
 
         UnsupportedValueType unsupportedValueType(String unsupportedValueType) {
             this.unsupportedValueType = unsupportedValueType
+            this
+        }
+    }
+
+    static class NestedMapUnsupportedKeyType extends ValidationMessageDisplayConfiguration<NestedMapUnsupportedKeyType> {
+
+        String keyType
+
+        NestedMapUnsupportedKeyType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NestedMapUnsupportedKeyType keyType(String keyType) {
+            this.keyType = keyType
             this
         }
     }
