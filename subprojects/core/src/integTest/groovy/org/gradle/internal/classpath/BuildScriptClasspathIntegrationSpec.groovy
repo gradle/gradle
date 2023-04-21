@@ -392,6 +392,73 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("JAR = 11")
     }
 
+    def "class with #lambdaCount lambdas can be instrumented"() {
+        given:
+        createDir("buildSrc/src/main/java") {
+            try(def src = file("ManyLambdas.java").newWriter()) {
+                src.append("""
+                    import ${List.name};
+                    import ${ArrayList.name};
+
+                    public class ManyLambdas {
+                        public List<Runnable> createLotsOfLambdas() {
+                            List<Runnable> runnables = new ArrayList<>($lambdaCount);
+                """)
+                for (int i = 1; i <= lambdaCount; ++i) {
+                    src.append("""
+                            runnables.add(() -> System.out.println("lambda #" + $i));
+                    """)
+                }
+                src.append("""
+                            return runnables;
+                        }
+                    }
+                """)
+            }
+        }
+        buildScript("""
+            abstract class LambdaTask extends DefaultTask {
+                @Input
+                abstract ListProperty<Runnable> getMyActions()
+
+                @TaskAction
+                def runMyActions() {
+                    myActions.get().forEach {
+                        it.run()
+                    }
+                }
+            }
+
+            def getDeserializeMethodsCount(Class<?> cls) {
+                return Arrays.stream(cls.getDeclaredMethods()).filter {
+                    it.name.startsWith('\$deserializeLambda')
+                }.count()
+            }
+
+            tasks.register("lambda", LambdaTask) {
+                myActions = new ManyLambdas().createLotsOfLambdas()
+
+                doFirst {
+                    println("generated method count = \${getDeserializeMethodsCount(ManyLambdas)}")
+                }
+            }
+        """)
+
+        when:
+        succeeds("lambda")
+
+        then:
+        outputContains("generated method count = $expectedMethodCount")
+        outputContains("lambda #1")
+        outputContains("lambda #$lambdaCount")
+
+        where:
+        lambdaCount || expectedMethodCount
+        1000        || 1
+        2000        || 2
+        3200        || 3
+    }
+
     void notInJarCache(String filename) {
         inJarCache(filename, false)
     }
