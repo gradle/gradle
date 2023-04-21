@@ -122,7 +122,7 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      *
      * This method is meant to double-check that calling this method would return an empty collection,
      * and thus skipping that call is safe.  It will be unnecessary once configuration usage is locked
-     * upon creation, as the {@link #isCanBeDeclaredAgainst()} check will be sufficient then.
+     * upon creation, as the {@link #isCanBeDeclared()} check will be sufficient then.
      */
     @Deprecated
     void assertHasNoDeclarations();
@@ -136,7 +136,7 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      * @return {@code true} if so; {@code false} otherwise
      */
     static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
-        if (configuration.isCanBeDeclaredAgainst()) {
+        if (configuration.isCanBeDeclared()) {
             return true;
         } else {
             return configuration.getExtendsFrom().stream()

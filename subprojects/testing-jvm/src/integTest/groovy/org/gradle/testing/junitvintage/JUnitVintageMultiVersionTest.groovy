@@ -18,10 +18,11 @@ package org.gradle.testing.junitvintage
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.junit4.JUnit4CommonTestSources
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 
-trait JUnitVintageMultiVersionTest {
+trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
     AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
         return new JUnitVintageBuildScriptConfiguration()
     }

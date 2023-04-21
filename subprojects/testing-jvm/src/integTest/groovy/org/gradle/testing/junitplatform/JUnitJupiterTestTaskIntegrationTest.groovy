@@ -50,14 +50,4 @@ class JUnitJupiterTestTaskIntegrationTest extends AbstractTestTaskIntegrationTes
             }
         """.stripIndent()
     }
-
-    @Override
-    String getImportAll() {
-        return "org.junit.jupiter.api.*"
-    }
-
-    @Override
-    String getAssertOrAssertions() {
-        return "Assertions"
-    }
 }

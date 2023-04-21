@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model
 
-import com.google.common.base.Optional
+
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.VersionConstraint
@@ -110,11 +110,15 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toComponent = Stub(ComponentGraphResolveMetadata) {
-            getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
             getAttributesSchema() >> EmptySchema.INSTANCE
+        }
+        def toCandidates = Stub(GraphSelectionCandidates) {
+            useVariants >> true
+            variants >> ImmutableList.of(toFooConfig, toBarConfig)
         }
         def toState = Stub(ComponentGraphResolveState) {
             getMetadata() >> toComponent
+            getCandidatesForGraphVariantSelection() >> toCandidates
         }
         attributesSchema.attribute(Attribute.of('key', String))
         attributesSchema.attribute(Attribute.of('extra', String))
@@ -223,14 +227,18 @@ Configuration 'bar':
             getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toComponent = Stub(ComponentGraphResolveMetadata) {
-            getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
             getAttributesSchema() >> attributesSchema
             getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "[target]"
             }
         }
+        def toCandidates = Stub(GraphSelectionCandidates) {
+            useVariants >> true
+            variants >> ImmutableList.of(toFooConfig, toBarConfig)
+        }
         def toState = Stub(ComponentGraphResolveState) {
             getMetadata() >> toComponent
+            getCandidatesForGraphVariantSelection() >> toCandidates
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
@@ -296,14 +304,18 @@ Configuration 'bar':
             getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toComponent = Stub(ComponentGraphResolveMetadata) {
-            getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
             getAttributesSchema() >> attributesSchema
             getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> "[target]"
             }
         }
+        def toCandidates = Stub(GraphSelectionCandidates) {
+            useVariants >> true
+            variants >> ImmutableList.of(toFooConfig, toBarConfig)
+        }
         def toState = Stub(ComponentGraphResolveState) {
             getMetadata() >> toComponent
+            getCandidatesForGraphVariantSelection() >> toCandidates
         }
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
@@ -432,11 +444,15 @@ Configuration 'bar':
             getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toComponent = Stub(ComponentGraphResolveMetadata) {
-            getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
             getAttributesSchema() >> EmptySchema.INSTANCE
+        }
+        def toCandidates = Stub(GraphSelectionCandidates) {
+            useVariants >> true
+            variants >> ImmutableList.of(toFooConfig, toBarConfig)
         }
         def toState = Stub(ComponentGraphResolveState) {
             getMetadata() >> toComponent
+            getCandidatesForGraphVariantSelection() >> toCandidates
         }
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {

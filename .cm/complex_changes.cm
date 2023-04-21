@@ -36,22 +36,22 @@ automations:
 includes_src_changes: {{ files | match(regex=r/.*\/src\//) | some }}
 
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.jvm.members)) }}
+  using_gitstream: {{ (pr.author | match(list=teams.jvm_team.members)) or (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) }}
 
 teams:
-  - execution:
-    members:
-      - 'lptr'
-      - 'asodja'
-      - 'FrauBoes'
-  - ide:
-    members:
-      - 'donat'
-      - 'reinsch82'
-  - jvm:
+  jvm_team:
     members:
       - 'big-guy'
       - 'tresat'
       - 'ghale'
       - 'jvandort'
       - 'octylFractal'
+  execution:
+    members:
+      - 'lptr'
+      - 'asodja'
+      - 'FrauBoes'
+  ide:
+    members:
+      - 'donat'
+      - 'reinsch82'

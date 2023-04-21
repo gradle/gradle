@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.assignment.internal
 
+import org.gradle.util.internal.IncubationLogger
+
 
 object KotlinDslAssignment {
 
@@ -23,4 +25,12 @@ object KotlinDslAssignment {
 
     fun isAssignmentOverloadEnabled() =
         System.getProperty(ASSIGNMENT_SYSTEM_PROPERTY, "true").trim() != "false"
+
+    internal
+    fun emitIncubatingLogMessage() {
+        if (isAssignmentOverloadEnabled()) {
+            // If the assignment overload is disabled for a project but some plugin was compiled using it, we should not do any logging.
+            IncubationLogger.incubatingFeatureUsed("Kotlin DSL property assignment")
+        }
+    }
 }

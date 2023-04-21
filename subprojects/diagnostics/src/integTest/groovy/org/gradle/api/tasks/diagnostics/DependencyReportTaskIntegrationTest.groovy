@@ -1061,7 +1061,7 @@ compileClasspath - Compile classpath for source set 'main'.
         buildFile << """
             subprojects {
                 configurations {
-                    compile.canBeDeclaredAgainst = false
+                    compile.canBeDeclared = false
                     'default' { extendsFrom compile }
                 }
                 group = "group"
