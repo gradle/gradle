@@ -19,7 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import spock.lang.IgnoreIf
@@ -101,7 +101,14 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         usePluginVersion version
 
         then:
-        build().output.contains("Build scan written to")
+        scanRunner()
+            .expectDeprecationWarning(
+                "The BuildIdentifier.getName() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use getBuildPath() to get a unique identifier for the build. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
+                "TODO"
+            ).build().output.contains("Build scan written to")
 
         where:
         version << SUPPORTED
@@ -117,7 +124,15 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         usePluginVersion version
 
         then:
-        build().output.contains("Build scan written to")
+        scanRunner()
+            .expectDeprecationWarning(
+                "The BuildIdentifier.getName() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use getBuildPath() to get a unique identifier for the build. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
+                "TODO"
+            )
+            .build().output.contains("Build scan written to")
 
         where:
         version << SUPPORTED
@@ -142,7 +157,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         scanRunner(args).build()
     }
 
-    GradleRunner scanRunner(String... args) {
+    SmokeTestGradleRunner scanRunner(String... args) {
         runner("build", "-Dscan.dump", *args).forwardOutput()
     }
 
