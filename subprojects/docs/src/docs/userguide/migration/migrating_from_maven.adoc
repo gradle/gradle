@@ -15,18 +15,18 @@
 [[migrating_from_maven]]
 = Migrating Builds From Apache Maven
 
-TIP: Suffering from slow Maven builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up Maven builds by up to 90%.
+https://maven.apache.org[Apache Maven] is a build tool for Java and other JVM-based projects. It is typical to migrate an existing Maven build to Gradle.
 
-https://maven.apache.org[Apache Maven] is a build tool for Java and other JVM-based projects that's in widespread use, and so people that want to use Gradle often have to migrate an existing Maven build.
-This guide will help with such a migration by explaining the differences and similarities between the two tools' models and providing steps that you can follow to ease the process.
+This guide will help with such a migration by explaining the differences and similarities between the two tools and providing steps that you can follow to ease the process.
 
 Converting a build can be scary, but you don't have to do it alone.
-You can search docs, forums, and StackOverflow from link:https://gradle.org/help[help.gradle.org] or reach out to the link:https://discuss.gradle.org/c/help-discuss[Gradle community on the forums] if you get stuck.
+You can search our https://docs.gradle.org/[documentation], post on our https://discuss.gradle.org/[community forums], or reach out on our https://gradle.org/slack-invite[Slack channel] if you get stuck.
 
 [[migmvn:making_a_case]]
 == Making a case for migration
 
 The primary differences between Gradle and Maven are flexibility, performance, user experience, and dependency management.
+
 A visual overview of these aspects is available in the link:https://gradle.org/maven-vs-gradle[Maven vs Gradle feature comparison].
 
 Since Gradle 3.0, Gradle has invested heavily in making Gradle builds much faster, with features such as link:https://blog.gradle.org/introducing-gradle-build-cache[build caching], link:https://blog.gradle.org/incremental-compiler-avoidance[compile avoidance], and an improved incremental Java compiler.
@@ -57,10 +57,10 @@ Keep this handy so you can compare it to the Gradle build scans you get while co
 +
 This is a vitally important step to ensure that your deployments and tests don't break.
 Even small changes, such as the contents of a manifest file in a JAR, can cause problems.
-If your Gradle build produces the same output as the Maven build, this will give you and others confidence in switching over and make it easier to implement the big changes that will provide the greatest benefits.
+If your Gradle build produces the same output as the Maven build, this will give you confidence in switching over and make it easier to implement the changes that will provide the greatest benefits.
 +
 This doesn't mean that you need to verify every artifact at every stage, although doing so can help you quickly identify the source of a problem.
-You can just focus on the critical output such as final reports and the artifacts that are published or deployed.
+You should focus on the critical output such as final reports and the artifacts that are published or deployed.
 +
 You will need to factor in some inherent differences in the build output that Gradle produces compared to Maven.
 Generated POMs will contain only the information needed for consumption and they will use `<compile>` and `<runtime>` scopes correctly for that scenario.
