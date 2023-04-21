@@ -16,7 +16,6 @@
 
 package org.gradle.test.precondition
 
-import org.gradle.test.precondition.RequiresExtension
 import org.spockframework.runtime.extension.ExtensionException
 import spock.lang.Specification
 

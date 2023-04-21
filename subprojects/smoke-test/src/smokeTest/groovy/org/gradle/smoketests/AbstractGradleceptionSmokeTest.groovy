@@ -24,7 +24,6 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.BuildResult
 
 import java.text.SimpleDateFormat
