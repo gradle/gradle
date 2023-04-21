@@ -15,6 +15,8 @@
  */
 package org.gradle.test.precondition;
 
+import org.gradle.api.NonNullApi;
+
 /**
  * Usage:
  * <pre>
@@ -26,6 +28,8 @@ package org.gradle.test.precondition;
  *
  * @see Requires
  */
+
+@NonNullApi
 public interface TestPrecondition {
     boolean isSatisfied() throws Exception;
 
