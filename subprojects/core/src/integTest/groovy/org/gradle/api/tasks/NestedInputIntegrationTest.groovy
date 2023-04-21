@@ -22,10 +22,12 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
@@ -1079,6 +1081,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @NotYetImplemented
+    // TODO: Remove IgnoreIf embedded when issue is fixed
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/24405")
     def "nested bean as input with null string is serialized correctly"() {
         buildFile << """
