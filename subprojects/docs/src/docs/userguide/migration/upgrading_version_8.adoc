@@ -603,7 +603,7 @@ dependencies {
 =====
 
 [[build_identifier_name_and_current_deprecation]]
-==== `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html[BuildIdentifier]` method deprecations
+==== `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html[BuildIdentifier]` and `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html[ProjectComponentSelector]` method deprecations
 
 The following methods on `BuildIdentifier` are deprecated:
 
@@ -613,7 +613,10 @@ The following methods on `BuildIdentifier` are deprecated:
 You could use these methods to distinguish between different project components with the same name but from different builds.
 However, for certain composite build setups, these methods do not provide enough information to guarantee uniqueness.
 
-Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath--[String getBuildPath()]`.
+Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath--[BuildIdentifier.getBuildPath()]`.
+
+Similarly, the method `ProjectComponentSelector.getBuildName()` is deprecated.
+Use `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html#getBuildPath--[ProjectComponentSelector.getBuildPath()]` instead.
 
 === Potential breaking changes
 
