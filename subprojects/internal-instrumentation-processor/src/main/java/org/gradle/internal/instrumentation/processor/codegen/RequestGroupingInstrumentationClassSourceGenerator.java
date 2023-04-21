@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public abstract class RequestGroupingInstrumentationClassGenerator implements InstrumentationCodeGenerator {
+public abstract class RequestGroupingInstrumentationClassSourceGenerator implements InstrumentationCodeGenerator {
     protected abstract String classNameForRequest(CallInterceptionRequest request);
 
     protected abstract Consumer<TypeSpec.Builder> classContentForClass(
