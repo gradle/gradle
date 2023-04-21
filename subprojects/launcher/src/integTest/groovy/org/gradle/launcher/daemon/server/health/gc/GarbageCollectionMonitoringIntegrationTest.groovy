@@ -27,8 +27,13 @@ import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy
 
+import static org.gradle.api.JavaVersion.VERSION_14
+import static org.gradle.integtests.fixtures.daemon.JavaGarbageCollector.ORACLE_SERIAL9
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE
+import static org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy.ORACLE_G1
+import static org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
+import static org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy.ORACLE_SERIAL
 
 @TargetCoverage({ garbageCollectors })
 @MultiVersionTest
@@ -36,6 +41,8 @@ import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WI
 class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     static def version
     static final String MEMORY_URL = new DocumentationRegistry().getDocumentationFor("build_environment", "sec:configuring_jvm_memory")
+    public static final GString COMMON_HINT = """${new DocumentationRegistry().getDocumentationRecommendationFor("information on how to set these values", "build_environment", "sec:configuring_jvm_memory")}
+To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'."""
     GarbageCollectorUnderTest garbageCollector
 
     def setup() {
@@ -72,8 +79,7 @@ The project memory settings are likely not configured or are configured to an in
 The daemon will restart for the next build, which may increase subsequent build times.
 These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
 The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
-For more information on how to set these values, visit the user guide at ${MEMORY_URL}
-To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.""")
+${COMMON_HINT}""")
     }
 
     def "expires daemon immediately when garbage collector is thrashing"() {
@@ -103,8 +109,7 @@ The project memory settings are likely not configured or are configured to an in
 The memory settings for this project must be adjusted to avoid this failure.
 These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
 The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
-For more information on how to set these values, visit the user guide at ${MEMORY_URL}
-To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.""")
+${COMMON_HINT}""")
     }
 
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
@@ -139,8 +144,7 @@ The project memory settings are likely not configured or are configured to an in
 The daemon will restart for the next build, which may increase subsequent build times.
 These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
 The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
-For more information on how to set these values, visit the user guide at ${MEMORY_URL}
-To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.""")
+${COMMON_HINT}""")
     }
 
     def "expires daemon when metaspace leaks"() {
@@ -160,8 +164,7 @@ The project memory settings are likely not configured or are configured to an in
 The daemon will restart for the next build, which may increase subsequent build times.
 These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
 The currently configured max heap space is 'unknown' and the configured max metaspace is '512 MiB'.
-For more information on how to set these values, visit the user guide at ${MEMORY_URL}
-To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true'.""")
+${COMMON_HINT}""")
     }
 
     def "does not expire daemon when leak does not consume heap threshold"() {
@@ -308,16 +311,16 @@ To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true
     }
 
     static List<GarbageCollectorUnderTest> getGarbageCollectors() {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+        if (JavaVersion.current().isCompatibleWith(VERSION_14)) {
             return [
-                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_SERIAL9, GarbageCollectorMonitoringStrategy.ORACLE_SERIAL),
-                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, GarbageCollectorMonitoringStrategy.ORACLE_G1)
+                new GarbageCollectorUnderTest(ORACLE_SERIAL9, ORACLE_SERIAL),
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, ORACLE_G1)
             ]
         } else {
             return [
-                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_PARALLEL_CMS, GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS),
-                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_SERIAL9, GarbageCollectorMonitoringStrategy.ORACLE_SERIAL),
-                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, GarbageCollectorMonitoringStrategy.ORACLE_G1)
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_PARALLEL_CMS, ORACLE_PARALLEL_CMS),
+                new GarbageCollectorUnderTest(ORACLE_SERIAL9, ORACLE_SERIAL),
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, ORACLE_G1)
             ]
         }
     }

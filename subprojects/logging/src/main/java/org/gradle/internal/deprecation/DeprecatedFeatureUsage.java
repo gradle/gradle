@@ -22,6 +22,8 @@ import org.gradle.internal.featurelifecycle.FeatureUsage;
 
 import javax.annotation.Nullable;
 
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+
 public class DeprecatedFeatureUsage extends FeatureUsage {
 
     private final String removalDetails;
@@ -145,10 +147,9 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return outputBuilder.toString();
     }
 
-    private void append(StringBuilder outputBuilder, String message) {
-        if (message != null && message.length() > 0) {
+    private static void append(StringBuilder outputBuilder, @Nullable String message) {
+        if (isNotEmpty(message)) {
             outputBuilder.append(" ").append(message);
         }
     }
-
 }
