@@ -53,7 +53,7 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
     }
 
     private void assertConfigurationIsDeclarable() {
-        if (!clientConfiguration.isCanBeDeclaredAgainst()) {
+        if (!clientConfiguration.isCanBeDeclared()) {
             throw new GradleException("Dependency constraints can not be declared against the `" + clientConfiguration.getName() + "` configuration.");
         }
     }

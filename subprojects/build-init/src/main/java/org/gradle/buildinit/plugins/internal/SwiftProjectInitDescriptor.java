@@ -46,8 +46,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample Swift project to get you started.")
-            .fileComment("For more details take a look at the Building Swift applications and libraries chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_swift_projects"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on building Swift applications and libraries", "building_swift_projects"));
         configureBuildScript(settings, buildScriptBuilder);
     }
 
@@ -75,7 +74,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getSampleFor("building_swift_" + getComponentType().pluralName()));
+        return Optional.of(documentationRegistry.getSampleForMessage("building_swift_" + getComponentType().pluralName()));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);

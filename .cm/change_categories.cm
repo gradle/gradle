@@ -84,16 +84,8 @@ platforms:
   - build_infrastructure:
     name: 'build-infrastructure'
     subprojects:
-      - 'subprojects/architecture-test/'
-      - 'subprojects/build-scan-performance/'
-      - 'subprojects/distributions-basics/'
-      - 'subprojects/distributions-core/'
       - 'subprojects/distributions-dependencies/'
       - 'subprojects/distributions-full/'
-      - 'subprojects/distributions-integ-tests/'
-      - 'subprojects/distributions-jvm/'
-      - 'subprojects/distributions-native/'
-      - 'subprojects/distributions-publishing/'
       - 'subprojects/internal-architecture-testing/'
       - 'subprojects/internal-build-reports/'
       - 'subprojects/internal-integ-testing/'
@@ -105,47 +97,34 @@ platforms:
   - cc:
     name: 'configuration-cache'
     subprojects:
+      - 'subprojects/api-metadata/'
+      - 'subprojects/base-annotations/'
+      - 'subprojects/configuration-cache/'
       - 'subprojects/instrumentation-agent'
-      - 'subprojects/api-metadata/' # also core
-      - 'subprojects/base-annotations/' # also core
-      - 'subprojects/configuration-cache/' # also core
-      - 'subprojects/installation-beacon/' # also core
-      - 'subprojects/internal-instrumentation-api/' # also core
-      - 'subprojects/internal-instrumentation-processor/' # also core
-      - 'subprojects/kotlin-dsl/' # also core
-      - 'subprojects/kotlin-dsl-integ-tests/' # also core
-      - 'subprojects/kotlin-dsl-plugins/' # also core
-      - 'subprojects/kotlin-dsl-provider-plugins/' # also core
+      - 'subprojects/internal-instrumentation-api/'
+      - 'subprojects/internal-instrumentation-processor/'
+      - 'subprojects/kotlin-dsl/'
+      - 'subprojects/kotlin-dsl-integ-tests/'
+      - 'subprojects/kotlin-dsl-plugins/'
+      - 'subprojects/kotlin-dsl-provider-plugins/'
   - core:
     name: 'core'
     subprojects:
-      - 'subprojects/api-metadata/' # also cc
-      - 'subprojects/base-annotations/' # also cc
       - 'subprojects/base-services/'
       - 'subprojects/base-services-groovy/'
       - 'subprojects/bootstrap/'
-      - 'subprojects/build-cache/' # also execution
-      - 'subprojects/build-cache-base/' # also execution
-      - 'subprojects/build-cache-http/' # also execution
-      - 'subprojects/build-cache-packaging/' # also execution
-      - 'subprojects/build-option/' # also execution
-      - 'subprojects/build-profile/' # also execution
+      - 'subprojects/build-option/'
       - 'subprojects/cli/'
-      - 'subprojects/configuration-cache/' # also cc
       - 'subprojects/core-platform/'
+      - 'subprojects/distributions-basics/'
+      - 'subprojects/distributions-core/'
       - 'subprojects/file-collections/'
       - 'subprojects/file-temp/'
       - 'subprojects/file-watching/'
       - 'subprojects/files/'
       - 'subprojects/hashing/'
-      - 'subprojects/installation-beacon/' # also cc
+      - 'subprojects/installation-beacon/'
       - 'subprojects/instrumentation-agent/'
-      - 'subprojects/internal-instrumentation-api/' # also cc
-      - 'subprojects/internal-instrumentation-processor/' # also cc
-      - 'subprojects/kotlin-dsl/' # also cc
-      - 'subprojects/kotlin-dsl-integ-tests/' # also cc
-      - 'subprojects/kotlin-dsl-plugins/' # also cc
-      - 'subprojects/kotlin-dsl-provider-plugins/' # also cc
       - 'subprojects/launcher/'
       - 'subprojects/logging/'
       - 'subprojects/logging-api/'
@@ -171,12 +150,11 @@ platforms:
   - execution:
     name: 'execution'
     subprojects:
-      - 'subprojects/build-cache/' # also core
-      - 'subprojects/build-cache-base/' # also core
-      - 'subprojects/build-cache-http/' # also core
-      - 'subprojects/build-cache-packaging/' # also core
-      - 'subprojects/build-option/' # also core
-      - 'subprojects/build-profile/' # also core
+      - 'subprojects/build-cache/'
+      - 'subprojects/build-cache-base/'
+      - 'subprojects/build-cache-http/'
+      - 'subprojects/build-cache-packaging/'
+      - 'subprojects/build-profile/'
       - 'subprojects/execution/'
   - extensibility:
     name: 'extensibility'
@@ -187,6 +165,7 @@ platforms:
   - ge_integration:
     name: 'ge-integration'
     subprojects:
+      - 'subprojects/build-scan-performance/'
       - 'subprojects/enterprise/'
       - 'subprojects/enterprise-logging/'
       - 'subprojects/enterprise-operations/'
@@ -201,6 +180,8 @@ platforms:
     name: 'jvm'
     subprojects:
       - 'subprojects/code-quality/'
+      - 'subprojects/distributions-jvm/'
+      - 'subprojects/distributions-publishing/'
       - 'subprojects/ear/'
       - 'subprojects/jacoco/'
       - 'subprojects/java-compiler-plugin/'
@@ -215,6 +196,14 @@ platforms:
       - 'subprojects/testing-junit-platform/'
       - 'subprojects/testing-jvm/'
       - 'subprojects/testing-jvm-infrastructure/'
+  - release_coordination:
+    name: 'release-coordination'
+    subprojects:
+      - 'subprojects/distributions-dependencies/'
+      - 'subprojects/distributions-full/'
+      - 'subprojects/performance/'
+      - 'subprojects/smoke-test/'
+      - 'subprojects/soak/'
   - software:
     name: 'software'
     subprojects:
@@ -239,22 +228,26 @@ platforms:
       - 'subprojects/version-control/'
 
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.jvm.members)) }}
+  using_gitstream: {{ (pr.author | match(list=teams.jvm.members)) or (pr.author | match(list=teams.execution.members)) or (pr.author | match(list=teams.ide.members)) or (pr.author | match(list=teams.build_scan.members)) }}
 
 teams:
-  - execution:
+  build_scan:
     members:
-      - 'lptr'
+      - 'alllex'
+      - 'wolfs'
+  execution:
+    members:
       - 'asodja'
+      - 'lptr'
       - 'FrauBoes'
-  - ide:
+  ide:
     members:
       - 'donat'
       - 'reinsch82'
-  - jvm:
+  jvm:
     members:
       - 'big-guy'
-      - 'tresat'
       - 'ghale'
       - 'jvandort'
       - 'octylFractal'
+      - 'tresat'

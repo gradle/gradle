@@ -59,8 +59,8 @@ class DeprecatedTLSVersionTest extends Specification {
         and:
         HttpRequestException humanReadableException = exception.cause as HttpRequestException
         humanReadableException.message.startsWith(
-            "The server may not support the client's requested TLS protocol versions: ($SUPPORTED_TLS_VERSION_STRING). You may need to configure the client to allow other protocols to be used. See: "
-        )
+            "The server may not support the client's requested TLS protocol versions: ($SUPPORTED_TLS_VERSION_STRING). You may need to configure the client to allow other protocols to be used. "
+                + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "build_environment", "sec:gradle_system_properties"))
         and:
         humanReadableException.cause instanceof SSLHandshakeException
         cleanup:

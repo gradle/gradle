@@ -40,11 +40,49 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Updates to default tool integration versions
+[[kotlin_1_8.20]]
+==== Upgrade to Kotlin 1.8.20
 
-- The JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to https://github.com/jacoco/jacoco/releases/tag/v0.8.9[0.8.9].
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.20[Kotlin 1.8.20].
+For more information, see https://kotlinlang.org/docs/whatsnew1820.html[What's new in Kotlin 1.8.20].
 
-==== Kotlin DSL scripts emit compilation warnings
+Note that there is a known issue with Kotlin compilation avoidance that can cause `OutOfMemory` exceptions in `compileKotlin` tasks if the compilation classpath contains very large JAR files.
+This applies to builds applying the Kotlin plugin v1.8.20 or the `kotlin-dsl` plugin.
+
+You can work around it by disabling Kotlin compilation avoidance in your `gradle.properties` file:
+
+[source,properties]
+----
+kotlin.incremental.useClasspathSnapshot=false
+----
+
+See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more information.
+
+==== Upgrade to Groovy 3.0.17
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.17.html[Groovy 3.0.17].
+
+Since the previous version was 3.0.15, the https://groovy-lang.org/changelogs/changelog-3.0.16.html[3.0.16] changes are also included.
+
+==== Upgrade to Ant 1.10.13
+
+Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
+
+Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
+
+==== Upgrade to CodeNarc 3.2.0
+
+The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v3.2.0/CHANGELOG.md#version-320----jan-2023[CodeNarc 3.2.0].
+
+==== Upgrade to PMD 6.55.0
+
+PMD has been updated to https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_release_notes.html[PMD 6.55.0].
+
+Since the previous version was 6.48.0, all changes since then are included.
+
+==== Upgrade to JaCoCo 0.8.9
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.9].
 
 === Deprecations
 
@@ -617,52 +655,6 @@ Current usages of these methods should migrate to `link:{javadocPath}/org/gradle
 
 Similarly, the method `ProjectComponentSelector.getBuildName()` is deprecated.
 Use `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html#getBuildPath--[ProjectComponentSelector.getBuildPath()]` instead.
-
-=== Potential breaking changes
-
-[[kotlin_1_8.20]]
-==== Upgrade to Kotlin 1.8.20
-
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.20[Kotlin 1.8.20].
-For more information, see https://kotlinlang.org/docs/whatsnew1820.html[What's new in Kotlin 1.8.20].
-
-Note that there is a known issue with Kotlin compilation avoidance that can cause `OutOfMemory` exceptions in `compileKotlin` tasks if the compilation classpath contains very large JAR files.
-This applies to builds applying the Kotlin plugin v1.8.20 or the `kotlin-dsl` plugin.
-
-You can work around it by disabling Kotlin compilation avoidance in your `gradle.properties` file:
-
-[source,properties]
-----
-kotlin.incremental.useClasspathSnapshot=false
-----
-
-See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more information.
-
-==== Upgrade to Groovy 3.0.17
-
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.17.html[Groovy 3.0.17].
-
-Since the previous version was 3.0.10, the https://groovy-lang.org/changelogs/changelog-3.0.16.html[3.0.16] changes are also included.
-
-==== Upgrade to Ant 1.10.13
-
-Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
-
-Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
-
-==== Upgrade to CodeNarc 3.2.0
-
-The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v3.2.0/CHANGELOG.md#version-320----jan-2023[CodeNarc 3.2.0].
-
-==== Upgrade to PMD 6.55.0
-
-PMD has been updated to https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_release_notes.html[PMD 6.55.0].
-
-Since the previous version was 6.48.0, all changes since then are included.
-
-==== Upgrade to JaCoCo 0.8.9
-
-JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.9].
 
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
