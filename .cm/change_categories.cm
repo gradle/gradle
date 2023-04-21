@@ -84,16 +84,8 @@ platforms:
   - build_infrastructure:
     name: 'build-infrastructure'
     subprojects:
-      - 'subprojects/architecture-test/'
-      - 'subprojects/build-scan-performance/'
-      - 'subprojects/distributions-basics/'
-      - 'subprojects/distributions-core/'
       - 'subprojects/distributions-dependencies/'
       - 'subprojects/distributions-full/'
-      - 'subprojects/distributions-integ-tests/'
-      - 'subprojects/distributions-jvm/'
-      - 'subprojects/distributions-native/'
-      - 'subprojects/distributions-publishing/'
       - 'subprojects/internal-architecture-testing/'
       - 'subprojects/internal-build-reports/'
       - 'subprojects/internal-integ-testing/'
@@ -105,10 +97,10 @@ platforms:
   - cc:
     name: 'configuration-cache'
     subprojects:
-      - 'subprojects/instrumentation-agent'
       - 'subprojects/api-metadata/'
       - 'subprojects/base-annotations/'
       - 'subprojects/configuration-cache/'
+      - 'subprojects/instrumentation-agent'
       - 'subprojects/internal-instrumentation-api/'
       - 'subprojects/internal-instrumentation-processor/'
       - 'subprojects/kotlin-dsl/'
@@ -124,6 +116,8 @@ platforms:
       - 'subprojects/build-option/'
       - 'subprojects/cli/'
       - 'subprojects/core-platform/'
+      - 'subprojects/distributions-basics/'
+      - 'subprojects/distributions-core/'
       - 'subprojects/file-collections/'
       - 'subprojects/file-temp/'
       - 'subprojects/file-watching/'
@@ -171,6 +165,7 @@ platforms:
   - ge_integration:
     name: 'ge-integration'
     subprojects:
+      - 'subprojects/build-scan-performance/'
       - 'subprojects/enterprise/'
       - 'subprojects/enterprise-logging/'
       - 'subprojects/enterprise-operations/'
@@ -185,6 +180,8 @@ platforms:
     name: 'jvm'
     subprojects:
       - 'subprojects/code-quality/'
+      - 'subprojects/distributions-jvm/'
+      - 'subprojects/distributions-publishing/'
       - 'subprojects/ear/'
       - 'subprojects/jacoco/'
       - 'subprojects/java-compiler-plugin/'
@@ -199,6 +196,14 @@ platforms:
       - 'subprojects/testing-junit-platform/'
       - 'subprojects/testing-jvm/'
       - 'subprojects/testing-jvm-infrastructure/'
+  - release_coordination:
+    name: 'release-coordination'
+    subprojects:
+      - 'subprojects/distributions-dependencies/'
+      - 'subprojects/distributions-full/'
+      - 'subprojects/performance/'
+      - 'subprojects/smoke-test/'
+      - 'subprojects/soak/'
   - software:
     name: 'software'
     subprojects:
