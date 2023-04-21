@@ -16,7 +16,7 @@
 [[what_is_gradle]]
 = What is Gradle?
 
-Gradle is a https://en.wikipedia.org/wiki/Build_automation[build automation] tool. It is available as an open-source Build Tool and an Enterprise tool.
+Gradle is a https://en.wikipedia.org/wiki/Build_automation[build automation] tool.
 
 == Gradle Build Tool
 
@@ -24,7 +24,7 @@ Gradle Build Tool is the fast and dependable open source build system that autom
 
 == Gradle Enterprise
 
-https://gradle.com/[Gradle Enterprise] is a powerful tool for managing and monitoring complex software builds. It provides teams with centralized visibility into their build process to quickly identify and address issues as they arise.
+https://gradle.com/[Gradle Enterprise] is a powerful subscription based tool for managing and monitoring complex software builds. It provides teams with centralized visibility into their build process to quickly identify and address issues as they arise.
 
 == Why Gradle?
 
@@ -59,7 +59,7 @@ Insight::
 
 == User Manual
 
-The Gradle user manual is broken down into the following sections:
+The Gradle Build Tool user manual is broken down into the following sections:
 
 Quick Start :: Get up and running installing Gradle.
 Running Gradle Builds :: Use Gradle Build Tool to build your project.
@@ -71,12 +71,16 @@ Gradle on CI :: Gradle integration with popular continuous integration (CI) serv
 
 == Fundamentals
 
-Gradle is based on the following fundamentals:
+Users provide instructions to Gradle using either Groovy or Kotlin in a script to build a Project (your code).
 
-.Gradle fundamentals
-image::what-is-gradle.png[]
+The build script contains default Tasks and optional custom Tasks that define build steps.
 
-Users provide instructions to Gradle using either Groovy or Kotlin in a script to build a Project (your code). The build script contains default Tasks and optional custom Tasks that can further define build steps. If your Project uses Plugins and other Dependencies, they can be managed by Gradle's Dependency Manager.
+If your Project build requires highly custom build steps, https://plugins.gradle.org/[Plugins] can be used to extend the capabilities of Gradle.
+
+If your Project uses dependencies, they are managed by Gradle's Dependency Manager.
+
+.Gradle Fundamentals
+image::what-is-gradle-fundamentals.png[]
 
 == Terminology
 
@@ -139,3 +143,10 @@ With plugins, you can write a task once and use it in multiple builds.
 Or you can store common configuration, like logging, dependencies, and version management, in one place.
 This reduces duplication in build scripts.
 Appropriately modeling build processes with plugins can greatly improve ease of use and efficiency.
+
+=== Dependency Management
+
+Gradle provides a powerful dependency management system that makes it easy to manage project dependencies and ensures that all dependencies are resolved and downloaded automatically (from private or public repositories).
+
+.Gradle Build Tool
+image::what-is-gradle-build-tool.png[]
