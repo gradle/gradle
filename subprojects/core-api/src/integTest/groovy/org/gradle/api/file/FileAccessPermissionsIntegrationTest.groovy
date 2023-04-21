@@ -17,6 +17,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.TextUtil
 
 class FileAccessPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -62,7 +63,7 @@ class FileAccessPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 message.set(
                     fsOps.permissions(producer.flatMap { it.outputFile.asFile }.map { it.readText() }).toUnixNumeric()
                 )
-                outputFile.set(File("${outputFile.absolutePath}"))
+                outputFile.set(File("${TextUtil.normaliseFileSeparators(outputFile.absolutePath)}"))
             }
 
             producer {
