@@ -24,7 +24,8 @@ Gradle Build Tool is the fast and dependable open source build system that autom
 
 == Gradle Enterprise
 
-https://gradle.com/[Gradle Enterprise] is a powerful subscription based tool for managing and monitoring complex software builds. It provides teams with centralized visibility into their build process to quickly identify and address issues as they arise.
+https://gradle.com/[Gradle Enterprise] is a powerful subscription based tool for managing and monitoring complex software builds.
+It provides teams with centralized visibility into their build process to quickly identify and address issues as they arise.
 
 == Why Gradle?
 
@@ -71,7 +72,7 @@ Gradle on CI :: Gradle integration with popular continuous integration (CI) serv
 
 == Fundamentals
 
-Users provide instructions to Gradle using either Groovy or Kotlin in a script to build a Project (your code).
+Users provide instructions to Gradle using either Kotlin or Groovy in a script to build a Project (your code).
 
 The build script contains default Tasks and optional custom Tasks that define build steps.
 
@@ -116,7 +117,8 @@ Runs the tasks selected at the end of the configuration phase.
 
 === Build Cache
 
-Gradle provides a build caching feature that allows it to cache the results of previous builds and reuse them when building the project again. This helps to further reduce build times and improve performance.
+Gradle provides a build caching feature that allows it to cache the results of previous builds and reuse them when building the project again.
+This helps to further reduce build times and improve performance.
 
 Gradle supports both local and remote caching.
 
