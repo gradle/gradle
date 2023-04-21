@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
@@ -43,7 +44,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('asciidoc').deprecations(AsciidocDeprecations) {
-            expectAsciiDocDeprecationWarnings()
+            expectAsciiDocDeprecationWarnings(version)
         }.build()
 
         then:
@@ -85,9 +86,12 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             super(runner)
         }
 
-        void expectAsciiDocDeprecationWarnings() {
-            runner.expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
-            runner.expectDeprecationWarning(getFileTreeForEmptySourcesDeprecationForProperty("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
+        void expectAsciiDocDeprecationWarnings(String asciidoctorVersion) {
+            def versionNumber = VersionNumber.parse(asciidoctorVersion)
+            if (versionNumber.major < 4) {
+                runner.expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
+                runner.expectDeprecationWarning(getFileTreeForEmptySourcesDeprecationForProperty("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
+            }
         }
     }
 }
