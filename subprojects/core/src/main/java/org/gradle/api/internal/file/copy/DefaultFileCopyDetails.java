@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ContentFilterable;
-import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileAccessPermissions;
@@ -35,7 +34,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Chmod;
 
 import javax.inject.Inject;
@@ -203,11 +201,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Override
     @Deprecated
     public void setMode(int mode) {
-        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setMode()")
-            .replaceWith("permissions(Action)")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
-            .nagUser();
         FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, mode);
         getPermissions().set(permissions);
     }

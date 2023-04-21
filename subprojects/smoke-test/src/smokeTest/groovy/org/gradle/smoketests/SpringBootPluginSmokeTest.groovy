@@ -85,8 +85,6 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION)
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
         def buildResult = smokeTestRunner.build()
 
         then:
@@ -102,7 +100,6 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
             "No need to follow up as the 2.7.x branch already removed the convention usage"
         )
         smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION)
         def runResult = smokeTestRunner.build()
 
         then:
