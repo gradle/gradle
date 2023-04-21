@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
@@ -252,6 +253,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectProjectConventionDeprecation(kotlinVersion)
                 expectConventionTypeDeprecation(kotlinVersion)
                 expectJavaPluginConventionDeprecation(kotlinVersion)
+                expectBuildIdentifierNameDeprecation(kotlinVersion)
             }
             .build()
 
@@ -318,6 +320,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectJavaPluginConventionDeprecation(kotlinVersion)
             }
             expectConfigureUtilDeprecation(kotlinVersion)
+            expectBuildIdentifierNameDeprecation(kotlinVersion)
         }
 
         def result = testRunner.build()
@@ -560,6 +563,17 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
                     DOC_REGISTRY.getDocumentationFor("upgrading_version_8", "org_gradle_util_reports_deprecations")
+            )
+        }
+
+        void expectBuildIdentifierNameDeprecation(String kotlinVersion) {
+            VersionNumber versionNumber = VersionNumber.parse(kotlinVersion)
+            runner.expectDeprecationWarningIf(versionNumber >= VersionNumber.parse("1.8.20"),
+                "The BuildIdentifier.getName() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use getBuildPath() to get a unique identifier for the build. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
+                "https://youtrack.jetbrains.com/issue/KT-58157"
             )
         }
     }
