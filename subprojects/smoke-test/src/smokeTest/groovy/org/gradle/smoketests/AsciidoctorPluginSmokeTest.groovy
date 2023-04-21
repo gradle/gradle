@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
@@ -43,7 +44,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('asciidoc').deprecations(AsciidocDeprecations) {
-            expectAsciiDocDeprecationWarnings()
+            expectAsciiDocDeprecationWarnings(version)
         }.build()
 
         then:
@@ -85,12 +86,14 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             super(runner)
         }
 
-        void expectAsciiDocDeprecationWarnings() {
-            runner.expectDeprecationWarning("The JavaExecSpec.main property has been deprecated." +
+        void expectAsciiDocDeprecationWarnings(String asciidoctorVersion) {
+            runner.expectLegacyDeprecationWarningIf(
+                VersionNumber.parse(asciidoctorVersion).major < 4,
+                "The JavaExecSpec.main property has been deprecated." +
                     " This is scheduled to be removed in Gradle 9.0." +
                     " Please use the mainClass property instead." +
-                    " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}",
-                    "")
+                    " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}"
+            )
         }
     }
 }
