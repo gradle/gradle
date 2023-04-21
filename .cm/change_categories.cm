@@ -106,46 +106,30 @@ platforms:
     name: 'configuration-cache'
     subprojects:
       - 'subprojects/instrumentation-agent'
-      - 'subprojects/api-metadata/' # also core
-      - 'subprojects/base-annotations/' # also core
-      - 'subprojects/configuration-cache/' # also core
-      - 'subprojects/installation-beacon/' # also core
-      - 'subprojects/internal-instrumentation-api/' # also core
-      - 'subprojects/internal-instrumentation-processor/' # also core
-      - 'subprojects/kotlin-dsl/' # also core
-      - 'subprojects/kotlin-dsl-integ-tests/' # also core
-      - 'subprojects/kotlin-dsl-plugins/' # also core
-      - 'subprojects/kotlin-dsl-provider-plugins/' # also core
+      - 'subprojects/api-metadata/'
+      - 'subprojects/base-annotations/'
+      - 'subprojects/configuration-cache/'
+      - 'subprojects/installation-beacon/'
+      - 'subprojects/internal-instrumentation-api/'
+      - 'subprojects/internal-instrumentation-processor/'
+      - 'subprojects/kotlin-dsl/'
+      - 'subprojects/kotlin-dsl-integ-tests/'
+      - 'subprojects/kotlin-dsl-plugins/'
+      - 'subprojects/kotlin-dsl-provider-plugins/'
   - core:
     name: 'core'
     subprojects:
-      - 'subprojects/api-metadata/' # also cc
-      - 'subprojects/base-annotations/' # also cc
       - 'subprojects/base-services/'
       - 'subprojects/base-services-groovy/'
       - 'subprojects/bootstrap/'
-      - 'subprojects/build-cache/' # also execution
-      - 'subprojects/build-cache-base/' # also execution
-      - 'subprojects/build-cache-http/' # also execution
-      - 'subprojects/build-cache-packaging/' # also execution
-      - 'subprojects/build-option/' # also execution
-      - 'subprojects/build-profile/' # also execution
       - 'subprojects/cli/'
-      - 'subprojects/configuration-cache/' # also cc
       - 'subprojects/core-platform/'
       - 'subprojects/file-collections/'
       - 'subprojects/file-temp/'
       - 'subprojects/file-watching/'
       - 'subprojects/files/'
       - 'subprojects/hashing/'
-      - 'subprojects/installation-beacon/' # also cc
       - 'subprojects/instrumentation-agent/'
-      - 'subprojects/internal-instrumentation-api/' # also cc
-      - 'subprojects/internal-instrumentation-processor/' # also cc
-      - 'subprojects/kotlin-dsl/' # also cc
-      - 'subprojects/kotlin-dsl-integ-tests/' # also cc
-      - 'subprojects/kotlin-dsl-plugins/' # also cc
-      - 'subprojects/kotlin-dsl-provider-plugins/' # also cc
       - 'subprojects/launcher/'
       - 'subprojects/logging/'
       - 'subprojects/logging-api/'
@@ -171,12 +155,12 @@ platforms:
   - execution:
     name: 'execution'
     subprojects:
-      - 'subprojects/build-cache/' # also core
-      - 'subprojects/build-cache-base/' # also core
-      - 'subprojects/build-cache-http/' # also core
-      - 'subprojects/build-cache-packaging/' # also core
-      - 'subprojects/build-option/' # also core
-      - 'subprojects/build-profile/' # also core
+      - 'subprojects/build-cache/'
+      - 'subprojects/build-cache-base/'
+      - 'subprojects/build-cache-http/'
+      - 'subprojects/build-cache-packaging/'
+      - 'subprojects/build-option/'
+      - 'subprojects/build-profile/'
       - 'subprojects/execution/'
   - extensibility:
     name: 'extensibility'
