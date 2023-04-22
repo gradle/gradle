@@ -21,11 +21,13 @@ import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import static org.gradle.util.internal.VersionNumber.*
 
 trait JUnit4CommonTestSources {
-    AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
-        new JUnit4TestSourceConfiguration()
-    }
-
     static class JUnit4TestSourceConfiguration implements AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration {
+        String version
+
+        JUnit4TestSourceConfiguration(String version) {
+            this.version = version
+        }
+
         @Override
         String getTestFrameworkImports() {
             return """
@@ -37,8 +39,8 @@ trait JUnit4CommonTestSources {
             """.stripIndent()
         }
 
-        private static String getMaybeImportAssumptions() {
-            def thisVersion = parse(AbstractJUnitMultiVersionIntegrationTest.version as String)
+        private String getMaybeImportAssumptions() {
+            def thisVersion = parse(version)
             // The Assume class was only introduced in JUnit 4.4
             if (thisVersion >= parse('4.4')) {
                 return """
