@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.junit4.JUnit4MultiVersionTest
+import org.gradle.testing.junit.AbstractJUnit4ClassLevelFilteringIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.LARGE_COVERAGE
 
