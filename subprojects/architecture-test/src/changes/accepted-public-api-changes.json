@@ -1,6 +1,22 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.component.BuildIdentifier",
+            "member": "Method org.gradle.api.artifacts.component.BuildIdentifier.getBuildPath()",
+            "acceptation": "New API that replaces a deprecated API",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.component.ProjectComponentSelector",
+            "member": "Method org.gradle.api.artifacts.component.ProjectComponentSelector.getBuildPath()",
+            "acceptation": "New API that replaces a deprecated API",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.assign(org.gradle.api.file.FileSystemLocationProperty,java.io.File)",
             "acceptation": "Binary compatibility check incorrectly detects Kotlin extension methods",

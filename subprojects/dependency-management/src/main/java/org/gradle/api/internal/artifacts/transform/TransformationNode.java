@@ -154,9 +154,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             return new org.gradle.operations.dependencies.variants.ProjectComponentIdentifier() {
                 @Override
                 public String getBuildPath() {
-                    // TODO: this should use a proper build path once it is available on BuildIdentifier
-                    String buildName = projectComponentIdentifier.getBuild().getName();
-                    return buildName.startsWith(":") ? buildName : (":" + buildName);
+                    return projectComponentIdentifier.getBuild().getBuildPath();
                 }
 
                 @Override
