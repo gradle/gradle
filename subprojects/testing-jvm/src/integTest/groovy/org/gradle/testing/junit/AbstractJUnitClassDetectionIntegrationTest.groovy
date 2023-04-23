@@ -25,7 +25,7 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 @Issue("https://github.com/gradle/gradle/issues/18486")
-abstract class AbstractJUnitClassInJarDetectionIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
 
     def setup() {
         buildFile << """
@@ -97,6 +97,59 @@ abstract class AbstractJUnitClassInJarDetectionIntegrationTest extends AbstractJ
         then:
         new DefaultTestExecutionResult(testDirectory).testClass('com.example.SomeTest').assertTestCount(1, 0, 0)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted('com.example.SomeTest')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18465")
+    def 'does not try to execute non-test class as test class'() {
+        given:
+        file('src/test/java/com/example/MyTest.java') << """
+            package com.example;
+
+            ${testFrameworkImports}
+
+            public class MyTest {
+                @Test public void someTest() {
+                    assertTrue(true);
+                }
+            }
+        """.stripIndent()
+        file('src/test/java/com/example/CacheSpec.java') << """
+            package com.example;
+
+            import static java.lang.annotation.ElementType.METHOD;
+            import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.Target;
+            import java.util.concurrent.Executor;
+            import java.util.concurrent.ForkJoinPool;
+
+            @SuppressWarnings("ImmutableEnumChecker")
+            @Target(METHOD) @Retention(RUNTIME)
+            public @interface CacheSpec {
+
+              enum CacheExecutor {
+                DEFAULT {
+                  @Override public Executor create() {
+                    return ForkJoinPool.commonPool();
+                  }
+                },
+                DIRECT {
+                  @Override public Executor create() {
+                    return Runnable::run;
+                  }
+                };
+
+                public abstract Executor create();
+              }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory).testClass('com.example.MyTest').assertTestCount(1, 0, 0)
     }
 
     private static void assertJarContainsAllEntries(final File jar, final Set<String> entries) {
