@@ -33,6 +33,7 @@ import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ToolchainDownloadOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ZincScalaCompilerOutputNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
+import org.gradle.integtests.fixtures.samples.KotlinVersionSampleModifier;
 
 @SamplesOutputNormalizers({
     SampleOutputNormalizer.class,
@@ -51,7 +52,8 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
-    MoreMemorySampleModifier.class
+    MoreMemorySampleModifier.class,
+    KotlinVersionSampleModifier.class
 })
 /*
  * To run the samples tests:
