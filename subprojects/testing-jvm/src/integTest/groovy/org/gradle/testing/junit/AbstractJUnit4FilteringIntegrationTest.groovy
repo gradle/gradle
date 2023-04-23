@@ -19,36 +19,16 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
-import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 
 @TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
-class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
-
-    String imports = "org.junit.*"
-
-    @Override
-    String getFramework() {
-        return version.toString().startsWith('Vintage') ? "JUnitPlatform" : "JUnit"
-    }
-
-    @Override
-    String getDependencies() {
-        if (version.toString().startsWith('Vintage')) {
-            """
-                testCompileOnly 'junit:junit:4.13'
-                testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-            """
-        } else {
-            "testImplementation 'junit:junit:${dependencyVersion}'"
-        }
-    }
+abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     void theParameterizedFiles() {
-        file("src/test/java/ParameterizedFoo.java") << """import $imports;
+        file("src/test/java/ParameterizedFoo.java") << """
+            ${testFrameworkImports}
             import org.junit.runners.Parameterized;
             import org.junit.runners.Parameterized.Parameters;
             import org.junit.runner.RunWith;
@@ -80,28 +60,28 @@ class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest
 
     void theSuiteFiles() {
         file("src/test/java/FooTest.java") << """
-            import org.junit.Test;
+            ${testFrameworkImports}
             public class FooTest {
                 @Test
                 public void testFoo() { }
             }
         """
         file("src/test/java/FooServerTest.java") << """
-            import org.junit.Test;
+            ${testFrameworkImports}
             public class FooServerTest {
                 @Test
                 public void testFooServer() { }
             }
         """
         file("src/test/java/BarTest.java") << """
-            import org.junit.Test;
+            ${testFrameworkImports}
             public class BarTest {
                 @Test
                 public void testBar() { }
             }
         """
         file("src/test/java/AllFooTests.java") << """
-            import org.junit.runner.RunWith;
+            ${testFrameworkImports}
             import org.junit.runners.Suite;
             import org.junit.runners.Suite.SuiteClasses;
             @RunWith(Suite.class)
@@ -191,76 +171,5 @@ class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest
         result.testClass("FooTest").assertTestsExecuted("testFoo")
         result.testClass("FooServerTest").assertTestCount(1, 0, 0);
         result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
-    }
-
-    def 'filter as many classes as possible before sending to worker process'() {
-        given:
-        // We can know which class is sent to TestClassProcessor via afterSuite() hook method
-        // because JUnitTestClassProcessor will emit a test suite event for each loaded class.
-        // However, JUnitPlatformTestClassProcessor won't emit such event unless the class is executed.
-        // That's why we run test with JUnit 4 only.
-        Assume.assumeFalse(framework == "JUnitPlatform")
-        file('src/test/java/org/gradle/FooTest.java') << """
-            package org.gradle;
-            import $imports;
-            public class FooTest {
-                @Test public void test() {}
-            }
-        """
-        file('src/test/java/com/gradle/FooTest.java') << """
-            package com.gradle;
-            import $imports;
-            public class FooTest {
-                @Test public void test() {}
-            }
-        """
-        file('src/test/java/org/gradle/BarTest.java') << """
-            package org.gradle;
-            import $imports;
-            public class BarTest {
-                @Test public void test() {}
-            }
-        """
-        buildFile << """
-            test {
-                filter {
-                    includeTestsMatching "$pattern"
-                }
-                afterSuite { descriptor, result ->
-                    println descriptor
-                }
-            }
-        """
-
-        when:
-        if (successful) {
-            succeeds('test')
-        } else {
-            fails('test')
-        }
-
-        then:
-        includedClasses.every { output.contains(it) }
-        excludedClasses.every { !output.contains(it) }
-
-        where:
-        pattern             | includedClasses                                                    | excludedClasses        | successful
-        'FooTest'           | ['org.gradle.FooTest', 'com.gradle.FooTest']                       | ['org.gradle.BarTest'] | true
-        'FooTest.anyMethod' | ['org.gradle.FooTest', 'com.gradle.FooTest']                       | ['org.gradle.BarTest'] | false
-        'org.gradle.*'      | ['org.gradle.FooTest', 'org.gradle.BarTest']                       | ['com.gradle.FooTest'] | true
-        '*FooTest'          | ['org.gradle.FooTest', 'com.gradle.FooTest', 'org.gradle.BarTest'] | []                     | true
-        'org*'              | ['org.gradle.FooTest', 'org.gradle.BarTest']                       | ['com.gradle.FooTest'] | true
-    }
-
-    static String getDependencyVersion() {
-        if (isVintage()) {
-            return version.toString().substring("Vintage:".length())
-        } else {
-            return version
-        }
-    }
-
-    static boolean isVintage() {
-        return version.toString().startsWith("Vintage")
     }
 }

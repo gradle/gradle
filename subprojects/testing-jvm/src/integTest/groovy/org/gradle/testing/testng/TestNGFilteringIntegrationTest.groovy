@@ -26,12 +26,81 @@ import spock.lang.Issue
 @TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
 class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
-    String imports = "org.testng.annotations.*"
-    String framework = "TestNG"
+    @Override
+    BuildScriptConfiguration getBuildScriptConfiguration() {
+        return new BuildScriptConfiguration() {
+            @Override
+            String getTestFrameworkDependencies(String sourceSet) {
+                return """
+                    testImplementation 'org.testng:testng:${version}'
+                """.stripIndent()
+            }
+
+            @Override
+            String getConfigureTestFramework() {
+                return "useTestNG()"
+            }
+
+            @Override
+            String getIncludeCategoryOrTagConfigurationElement() {
+                // TODO implement this if needed
+                throw new UnsupportedOperationException()
+            }
+
+            @Override
+            String getExcludeCategoryOrTagConfigurationElement() {
+                // TODO implement this if needed
+                throw new UnsupportedOperationException()
+            }
+        }
+    }
 
     @Override
-    String getDependencies() {
-        return "testImplementation 'org.testng:testng:${version}'"
+    TestSourceConfiguration getTestSourceConfiguration() {
+        return new TestSourceConfiguration() {
+            @Override
+            String getTestFrameworkImports() {
+                return """
+                    import org.testng.annotations.*;
+               """.stripIndent()
+            }
+
+            @Override
+            String getBeforeClassAnnotation() {
+                return "@BeforeClass"
+            }
+
+            @Override
+            String getAfterClassAnnotation() {
+                return "@AfterClass"
+            }
+
+            @Override
+            String getBeforeTestAnnotation() {
+                return "@BeforeTest"
+            }
+
+            @Override
+            String getAfterTestAnnotation() {
+                return "@AfterTest"
+            }
+
+            @Override
+            String getIgnoreOrDisabledAnnotation() {
+                return "@Ignore"
+            }
+
+            @Override
+            String getRunOrExtendWithAnnotation(String runOrExtendWithClasses) {
+                // TODO implement this if needed
+                throw new UnsupportedOperationException()
+            }
+
+            @Override
+            String maybeParentheses(String methodName) {
+                return methodName
+            }
+        }
     }
 
     void theUsualFiles() {
@@ -39,10 +108,10 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'org.testng:testng:$version'
+                ${testFrameworkDependencies}
             }
             test {
-              useTestNG {
+              ${configureTestFramework} {
                 suiteXmlBuilder().suite(name: 'AwesomeSuite') {
                     test (name: 'AwesomeTest') {
                         classes([:]) {
@@ -55,20 +124,20 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
             }
         """
 
-        file("src/test/java/FooTest.java") << """import $imports;
-
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
             public class FooTest {
                 @Test public void pass() {}
             }
         """
-        file("src/test/java/BarTest.java") << """import $imports;
-
+        file("src/test/java/BarTest.java") << """
+            ${testFrameworkImports}
             public class BarTest {
                 @Test public void pass() {}
             }
         """
-        file("src/test/java/BazTest.java") << """import $imports;
-
+        file("src/test/java/BazTest.java") << """
+            ${testFrameworkImports}
             public class BazTest {
                 @Test public void pass() {}
             }
