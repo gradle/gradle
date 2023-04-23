@@ -22,7 +22,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.DisableCachingByDefault
+import org.gradle.api.tasks.UntrackedTask
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -33,7 +33,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  *
  * Never up-to-date, non-cacheable.
  */
-@DisableCachingByDefault(because = "Not worth caching")
+@UntrackedTask(because = "Modifies source code")
 abstract class UpdateKotlinEmbeddedVersion : DefaultTask() {
 
     companion object {
