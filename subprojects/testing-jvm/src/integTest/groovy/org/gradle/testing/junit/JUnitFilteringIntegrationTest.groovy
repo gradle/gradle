@@ -23,7 +23,6 @@ import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
-import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
 
 @TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
 class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
@@ -251,5 +250,17 @@ class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest
         'org.gradle.*'      | ['org.gradle.FooTest', 'org.gradle.BarTest']                       | ['com.gradle.FooTest'] | true
         '*FooTest'          | ['org.gradle.FooTest', 'com.gradle.FooTest', 'org.gradle.BarTest'] | []                     | true
         'org*'              | ['org.gradle.FooTest', 'org.gradle.BarTest']                       | ['com.gradle.FooTest'] | true
+    }
+
+    static String getDependencyVersion() {
+        if (isVintage()) {
+            return version.toString().substring("Vintage:".length())
+        } else {
+            return version
+        }
+    }
+
+    static boolean isVintage() {
+        return version.toString().startsWith("Vintage")
     }
 }
