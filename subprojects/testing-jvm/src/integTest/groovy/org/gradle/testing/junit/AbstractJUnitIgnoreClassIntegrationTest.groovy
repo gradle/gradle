@@ -17,23 +17,32 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
-import org.junit.Rule
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.IGNORE_ON_CLASS
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
+abstract class AbstractJUnitIgnoreClassIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
 
-@TargetCoverage({ IGNORE_ON_CLASS + JUNIT_VINTAGE })
-class JUnitIgnoreClassMultiVersionIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
-
-    @Rule TestResources resources = new TestResources(temporaryFolder)
-
-    def canHandleClassLevelIgnoredTests() {
+    def "can handle class level ignored tests"() {
+        given:
         executer.noExtraLogging()
+        file('src/test/java/org/gradle/IgnoredTest.java') << """
+            package org.gradle;
+
+            ${testFrameworkImports}
+
+            ${ignoreOrDisabledAnnotation}
+            public class IgnoredTest {
+                @Test
+                public void testIgnored() {
+                }
+            }
+        """
         buildFile << """
-            dependencies { ${getDependencyBlockContents()} }
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
         """
 
         when:
@@ -41,8 +50,7 @@ class JUnitIgnoreClassMultiVersionIntegrationSpec extends JUnitMultiVersionInteg
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
+        result.assertTestClassesExecuted('org.gradle.IgnoredTest')
         result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
-        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
     }
 }
