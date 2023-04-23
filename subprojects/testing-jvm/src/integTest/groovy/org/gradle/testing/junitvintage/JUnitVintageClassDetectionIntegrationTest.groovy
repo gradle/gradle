@@ -17,10 +17,10 @@
 package org.gradle.testing.junitvintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.junit.AbstractJUnitClassInJarDetectionIntegrationTest
+import org.gradle.testing.junit.AbstractJUnitClassDetectionIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({  JUNIT_VINTAGE })
-class JUnitVintageClassInJarDetectionIntegrationTest extends AbstractJUnitClassInJarDetectionIntegrationTest implements JUnitVintageMultiVersionTest {
+class JUnitVintageClassDetectionIntegrationTest extends AbstractJUnitClassDetectionIntegrationTest implements JUnitVintageMultiVersionTest {
 }
