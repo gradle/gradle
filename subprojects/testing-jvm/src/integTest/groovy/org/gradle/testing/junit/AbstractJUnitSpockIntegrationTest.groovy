@@ -17,14 +17,10 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
-
-@TargetCoverage({ [JUPITER] })
-class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
+abstract class AbstractJUnitSpockIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
     def "can run spock tests with mock of class using gradleApi"() {
         file("build.gradle") << """
             plugins {
@@ -36,6 +32,7 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             dependencies {
                 implementation gradleApi()
                 implementation localGroovy()
+                ${testFrameworkDependencies}
             }
 
             testing {
@@ -90,26 +87,6 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         succeeds("test")
     }
 
-    private void writeSpockDependencies() {
-        file("build.gradle") << """
-            apply plugin: 'groovy'
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    // Must explicitly use `named` to avoid being rewritten by JUnitPlatformTestRewriter.rewriteBuildFile
-                    named('test') {
-                        useSpock()
-                        dependencies {
-                            implementation localGroovy()
-                        }
-                    }
-                }
-            }
-        """
-    }
-
     def 'can run spock with @Unroll'() {
         given:
         writeSpockDependencies()
@@ -162,5 +139,28 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .testClass("Sub").assertTestCount(2, 0, 0)
+    }
+
+    private void writeSpockDependencies() {
+        file("build.gradle") << """
+            apply plugin: 'groovy'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                        dependencies {
+                            implementation localGroovy()
+                        }
+                    }
+                }
+            }
+        """
     }
 }
