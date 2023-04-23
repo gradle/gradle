@@ -17,26 +17,37 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
-import org.junit.Rule
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.ASSUMPTIONS
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-
-@TargetCoverage({ ASSUMPTIONS + JUNIT_VINTAGE })
-class JUnitAssumptionsIntegrationTest extends JUnitMultiVersionIntegrationSpec {
-
-    @Rule TestResources resources = new TestResources(temporaryFolder)
-
-    def supportsAssumptions() {
+abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+    def "supports assumptions"() {
+        given:
         executer.noExtraLogging()
+        file('src/test/java/org/gradle/TestWithAssumptions.java').text = """
+            package org.gradle;
+
+            ${testFrameworkImports}
+
+            public class TestWithAssumptions {
+                @Test
+                public void assumptionFailed() {
+                    assumeTrue(false);
+                }
+
+                @Test
+                public void assumptionSucceeded() {
+                    assumeTrue(true);
+                }
+            }
+        """.stripIndent()
         buildFile << """
-dependencies {
-    ${getDependencyBlockContents()}
-}
-"""
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """.stripIndent()
 
         when:
         run('check')
