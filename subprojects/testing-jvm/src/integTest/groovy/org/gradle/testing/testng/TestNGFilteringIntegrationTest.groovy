@@ -23,8 +23,6 @@ import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
-
 @TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
 class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
@@ -33,7 +31,7 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
 
     @Override
     String getDependencies() {
-        return "testImplementation 'org.testng:testng:${dependencyVersion}'"
+        return "testImplementation 'org.testng:testng:${version}'"
     }
 
     void theUsualFiles() {
