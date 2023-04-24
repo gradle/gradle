@@ -109,7 +109,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     @Override
     public ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) throws ResolveException {
         if (!resolveContext.hasDependencies() && graphResults.getVisitedArtifacts() == EmptyResults.INSTANCE) {
-            return DefaultResolverResults.artifactsResolved(graphResults, new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
+            return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
         } else {
             assert graphResults.getArtifactResolveState() != null;
             return delegate.resolveArtifacts(resolveContext, graphResults);

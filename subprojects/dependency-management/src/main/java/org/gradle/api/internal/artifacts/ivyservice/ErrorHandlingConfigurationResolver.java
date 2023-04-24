@@ -84,11 +84,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         try {
             artifactResults = delegate.resolveArtifacts(resolveContext, graphResults);
         } catch (Exception e) {
-            return DefaultResolverResults.failed(graphResults, e, contextualizer.contextualize(e, resolveContext));
+            return DefaultResolverResults.failed(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), e, contextualizer.contextualize(e, resolveContext));
         }
 
         ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(artifactResults.getResolvedConfiguration(), resolveContext, contextualizer);
-        return DefaultResolverResults.artifactsResolved(graphResults, wrappedConfiguration, artifactResults.getVisitedArtifacts());
+        return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), wrappedConfiguration, artifactResults.getVisitedArtifacts());
     }
 
     private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {

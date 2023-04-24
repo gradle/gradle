@@ -198,10 +198,10 @@ public class DefaultResolverResults implements ResolverResults {
     /**
      * Create a new result representing the result of resolving the artifacts.
      */
-    public static ResolverResults artifactsResolved(ResolverResults graphResults, ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts) {
+    public static ResolverResults artifactsResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult localComponentsResult, ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts) {
         return new DefaultResolverResults(
-            graphResults.getResolvedLocalComponents(),
-            graphResults.getResolutionResult(),
+            localComponentsResult,
+            resolutionResult,
             visitedArtifacts,
             resolvedConfiguration,
             null, // Do not need to keep the artifact resolve state around after artifact resolution
@@ -227,9 +227,9 @@ public class DefaultResolverResults implements ResolverResults {
     /**
      * Create a new result representing a failure to resolve the artifacts of a resolved dependency graph.
      */
-    public static ResolverResults failed(ResolverResults graphResults, Exception failure, ResolveException contextualizedFailure) {
+    public static ResolverResults failed(ResolutionResult resolutionResult, ResolvedLocalComponentsResult localComponentsResult, Exception failure, ResolveException contextualizedFailure) {
         BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(failure, contextualizedFailure);
-        return artifactsResolved(graphResults, broken, broken).withFailure(contextualizedFailure);
+        return artifactsResolved(resolutionResult, localComponentsResult, broken, broken).withFailure(contextualizedFailure);
     }
 
     /**

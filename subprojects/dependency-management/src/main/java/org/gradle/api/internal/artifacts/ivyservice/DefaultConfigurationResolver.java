@@ -244,7 +244,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         boolean selectFromAllVariants = false;
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(resolveContext, selectFromAllVariants, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor, dependencyVerificationOverride, workerLeaseService);
 
-        return DefaultResolverResults.artifactsResolved(graphResults, new DefaultResolvedConfiguration(result), result);
+        return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), new DefaultResolvedConfiguration(result), result);
     }
 
 }
