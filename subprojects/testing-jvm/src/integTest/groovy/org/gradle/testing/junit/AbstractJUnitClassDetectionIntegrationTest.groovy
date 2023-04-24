@@ -46,6 +46,11 @@ abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractJUnitM
     def 'support detecting classes whose package is not a zip entry'() {
         given:
         buildFile << """
+            dependencies {
+                ${getTestFrameworkDependencies('main')}
+                testImplementation files('build/libs/testFramework.jar')
+                ${testFrameworkDependencies}
+            }
             jar {
                 manifest {
                     attributes 'Manifest-Version': '1.0'
@@ -66,14 +71,6 @@ abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractJUnitM
         then:
         Set<String> entries = ["org/", "org/gradle/", "org/gradle/BasePlatformTestCase.class"]
         assertJarContainsAllEntries(jar, entries)
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies {
-                testImplementation files('build/libs/testFramework.jar')
-                ${testFrameworkDependencies}
-            }
-        """
         file('src/test/java/SomeTest.java') << """
             package com.example;
             import org.gradle.BasePlatformTestCase;
