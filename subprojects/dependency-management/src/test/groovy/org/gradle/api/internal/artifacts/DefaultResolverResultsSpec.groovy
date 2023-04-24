@@ -79,7 +79,7 @@ class DefaultResolverResultsSpec extends Specification {
         results.artifactResolveState == artifactResolveState
 
         when:
-        results = DefaultResolverResults.artifactsResolved(results, resolvedConfiguration, visitedArtifactsSet)
+        results = DefaultResolverResults.artifactsResolved(resolutionResult, projectConfigurationResult, resolvedConfiguration, visitedArtifactsSet)
 
         then:
         results.resolutionResult == resolutionResult

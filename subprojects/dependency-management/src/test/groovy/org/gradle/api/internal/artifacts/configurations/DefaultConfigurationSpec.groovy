@@ -490,7 +490,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         def graphResults = DefaultResolverResults.graphResolved(resolutionResults, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
         _ * resolver.resolveGraph(_) >> graphResults
-        _ * resolver.resolveArtifacts(_, _) >> DefaultResolverResults.artifactsResolved(graphResults, Stub(ResolvedConfiguration), visitedArtifactSet)
+        _ * resolver.resolveArtifacts(_, _) >> DefaultResolverResults.artifactsResolved(resolutionResults, localComponentsResult, Stub(ResolvedConfiguration), visitedArtifactSet)
     }
 
     private ResolutionResult stubResolutionResults() {
@@ -519,7 +519,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
         def graphResults = DefaultResolverResults.graphResolved(resolutionResults, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
         _ * resolver.resolveGraph(_) >> graphResults
-        _ * resolver.resolveArtifacts(_, _) >> DefaultResolverResults.artifactsResolved(graphResults, resolvedConfiguration, visitedArtifactSet)
+        _ * resolver.resolveArtifacts(_, _) >> DefaultResolverResults.artifactsResolved(resolutionResults, localComponentsResult, resolvedConfiguration, visitedArtifactSet)
     }
 
     def "artifacts have correct build dependencies"() {
@@ -1112,7 +1112,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(resolutionResult, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
         resolver.resolveArtifacts(config, _ as ResolverResults) >> { ResolveContext conf, ResolverResults res ->
-            DefaultResolverResults.artifactsResolved(res, resolvedConfiguration, visitedArtifactSet)
+            DefaultResolverResults.artifactsResolved(res.resolutionResult, res.resolvedLocalComponents, resolvedConfiguration, visitedArtifactSet)
         }
     }
 
@@ -1214,7 +1214,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(graphResults, Stub(ResolvedConfiguration), visitedArtifacts())
+        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         0 * resolver._
     }
 
@@ -1245,7 +1245,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         and:
         1 * resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(graphResults, Stub(ResolvedConfiguration), visitedArtifacts())
+        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         1 * resolver.getRepositories() >> []
         0 * resolver._
     }
@@ -1266,7 +1266,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         and:
         1 * resolver.resolveGraph(config) >> graphResults
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(graphResults, Stub(ResolvedConfiguration), visitedArtifacts())
+        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         1 * resolver.getRepositories() >> []
         0 * resolver._
 

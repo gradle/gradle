@@ -173,7 +173,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         lenientConfiguration.getArtifacts(_) >> { throw failure }
         lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
 
-        delegate.resolveArtifacts(context, _) >> DefaultResolverResults.artifactsResolved(graphResults, resolvedConfiguration, visitedArtifactSet)
+        delegate.resolveArtifacts(context, _) >> DefaultResolverResults.artifactsResolved(resolutionResult, projectConfigResult, resolvedConfiguration, visitedArtifactSet)
 
         when:
         def results = resolver.resolveArtifacts(context, graphResults)
