@@ -57,7 +57,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
     def "snapshot task inputs action has an informative name"() {
         given:
         buildFile << "task custom { doLast {} }"
-        file("gradle.properties") << "org.gradle.caching=true"
+        propertiesFile << "org.gradle.caching=true"
 
         when:
         runCustomTask()
@@ -80,7 +80,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        file("gradle.properties") << "org.gradle.caching=true"
+        propertiesFile << "org.gradle.caching=true"
 
         when:
         runCustomTask()

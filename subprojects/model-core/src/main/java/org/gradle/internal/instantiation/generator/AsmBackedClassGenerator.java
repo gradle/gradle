@@ -24,6 +24,8 @@ import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
@@ -32,13 +34,14 @@ import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
@@ -106,6 +109,7 @@ import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ACC_TRANSIENT;
 import static org.objectweb.asm.Opcodes.H_INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.H_INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.V1_8;
 import static org.objectweb.asm.Type.BOOLEAN_TYPE;
 import static org.objectweb.asm.Type.INT_TYPE;
@@ -383,6 +387,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
+    @NonNullApi
     private static class ClassBuilderImpl extends ClassVisitorScope implements ClassGenerationVisitor {
         public static final int PV_FINAL_STATIC = ACC_PRIVATE | ACC_STATIC | ACC_FINAL | ACC_SYNTHETIC;
         private static final Set<? extends Class<?>> PRIMITIVE_TYPES = ImmutableSet.of(Byte.TYPE, Boolean.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
@@ -414,7 +419,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final static Type DYNAMIC_OBJECT_TYPE = getType(DynamicObject.class);
         private final static Type CONVENTION_MAPPING_TYPE = getType(ConventionMapping.class);
         private final static Type GROOVY_OBJECT_TYPE = getType(GroovyObject.class);
-        private final static Type CONVENTION_TYPE = getType(Convention.class);
+        @SuppressWarnings("deprecation")
+        private final static Type CONVENTION_TYPE = getType(org.gradle.api.plugins.Convention.class);
         private final static Type ASM_BACKED_CLASS_GENERATOR_TYPE = getType(AsmBackedClassGenerator.class);
         private final static Type ABSTRACT_DYNAMIC_OBJECT_TYPE = getType(AbstractDynamicObject.class);
         private final static Type EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = getType(MixInExtensibleDynamicObject.class);
@@ -427,6 +433,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
         private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
+        private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
+        private static final Set<Type> DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_TYPES = ImmutableSet.of(getType(Project.class), getType(Gradle.class));
         private static final Type JAVA_LANG_REFLECT_TYPE = getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = getType(Object.class);
         private static final Type CLASS_TYPE = getType(Class.class);
@@ -445,6 +453,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type DISPLAY_NAME_TYPE = getType(DisplayName.class);
         private static final Type INJECT_TYPE = getType(Inject.class);
         private static final Type RUNNABLE_TYPE = getType(Runnable.class);
+        private static final Type FACTORY_TYPE = getType(Factory.class);
         private static final Type LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class);
         private static final Type METHOD_HANDLES_TYPE = getType(MethodHandles.class);
         private static final Type METHOD_HANDLES_LOOKUP_TYPE = getType(MethodHandles.Lookup.class);
@@ -488,9 +497,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(VOID_TYPE, STRING_TYPE);
         private static final String LAMBDA_METAFACTORY_METHOD = getMethodDescriptor(getType(CallSite.class), METHOD_HANDLES_LOOKUP_TYPE, STRING_TYPE, METHOD_TYPE_TYPE, METHOD_TYPE_TYPE, getType(MethodHandle.class), METHOD_TYPE_TYPE);
-        private static final String DEPRECATION_LOGGER_WHILE_DISABLED_METHOD = getMethodDescriptor(Type.VOID_TYPE, RUNNABLE_TYPE);
+        private static final String DEPRECATION_LOGGER_WHILE_DISABLED_RUNNABLE_METHOD = getMethodDescriptor(Type.VOID_TYPE, RUNNABLE_TYPE);
+        private static final String DEPRECATION_LOGGER_WHILE_DISABLED_FACTORY_METHOD = getMethodDescriptor(OBJECT_TYPE, FACTORY_TYPE);
         private static final Handle LAMBDA_BOOTSTRAP_HANDLE = new Handle(H_INVOKESTATIC, LAMBDA_METAFACTORY_TYPE.getInternalName(), "metafactory", LAMBDA_METAFACTORY_METHOD, false);
         private static final Type RETURN_VOID_METHOD_TYPE = Type.getMethodType(RETURN_VOID);
+        private static final Type RETURN_OBJECT_METHOD_TYPE = Type.getMethodType(RETURN_OBJECT);
+        private static final Type RETURN_CONVENTION_METHOD_TYPE = Type.getMethodType(RETURN_CONVENTION);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -710,7 +722,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     new Handle(H_INVOKESPECIAL, generatedType.getInternalName(), INIT_WORK_METHOD, RETURN_VOID, false),
                     RETURN_VOID_METHOD_TYPE
                 ));
-                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_METHOD);
+                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_RUNNABLE_METHOD);
                 _RETURN();
             }});
 
@@ -774,12 +786,30 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addExtensionsProperty() {
-            // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
-            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // GENERATE getConvention()
+        public void addNoDeprecationConventionPrivateGetter() {
+            // GENERATE private Convention getConventionWhileDisabledDeprecationLogger() {
+            //     return DeprecationLogger.whileDisabled { getConvention() }
+            // }
+            privateSyntheticMethod("getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, "getConvention", RETURN_CONVENTION);
+                _INVOKEDYNAMIC("create", getMethodDescriptor(FACTORY_TYPE, generatedType), LAMBDA_BOOTSTRAP_HANDLE, Arrays.asList(
+                    RETURN_OBJECT_METHOD_TYPE,
+                    new Handle(H_INVOKEVIRTUAL, generatedType.getInternalName(), "getConvention", RETURN_CONVENTION, false),
+                    RETURN_CONVENTION_METHOD_TYPE
+                ));
+                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_FACTORY_METHOD);
+                _CHECKCAST(CONVENTION_TYPE);
+                _ARETURN();
+            }});
+        }
+
+        @Override
+        public void addExtensionsProperty() {
+            // GENERATE public ExtensionContainer getExtensions() { return getConventionWhileDisabledDeprecationLogger(); }
+            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                // GENERATE getConventionWhileDisabledDeprecationLogger()
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, "getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION);
             }});
         }
 
@@ -857,26 +887,27 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public ConventionMapping getConventionMapping() {
             //     if (mapping == null) {
-            //         mapping = new ConventionAwareHelper(this, getConvention());
+            //         mapping = new ConventionAwareHelper(this, getConventionWhileDisabledDeprecationLogger());
+            //         ineligibleProperties.forEach { mapping.ineligible(it.name) }
             //     }
             //     return mapping;
             // }
             addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, null, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // GENERATE new ConventionAwareHelper(this, getConvention())
+                // GENERATE new ConventionAwareHelper(this, getConventionWhileDisabledDeprecationLogger())
                 _NEW(CONVENTION_AWARE_HELPER_TYPE);
                 _DUP();
                 _ALOAD(0);
 
                 // GENERATE getConvention()
                 _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, "getConvention", RETURN_CONVENTION);
+                _INVOKEVIRTUAL(generatedType, "getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION);
                 // END
 
                 _INVOKESPECIAL(CONVENTION_AWARE_HELPER_TYPE, "<init>", RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION);
                 // END
 
                 for (PropertyMetadata property : ineligibleProperties) {
-                    // GENERATE convention.ineligible(__property.getName()__)
+                    // GENERATE mapping.ineligible(__property.getName()__)
                     _DUP();
                     _LDC(property.getName());
                     _INVOKEINTERFACE(CONVENTION_MAPPING_TYPE, "ineligible", RETURN_VOID_FROM_STRING);
@@ -962,6 +993,19 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final Type fieldType,
             final BytecodeFragment initializer
         ) {
+            addLazyGetter(methodName, returnType, methodDescriptor, signature, fieldName, fieldType, initializer, BytecodeFragment.NO_OP);
+        }
+
+        private void addLazyGetter(
+            String methodName,
+            Type returnType,
+            String methodDescriptor,
+            @Nullable String signature,
+            final String fieldName,
+            final Type fieldType,
+            final BytecodeFragment initializer,
+            final BytecodeFragment epilogue
+        ) {
             addGetter(methodName, returnType, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // var = this.<field>
                 _ALOAD(0);
@@ -978,6 +1022,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _PUTFIELD(generatedType, fieldName, fieldType);
                 // return var
                 visitLabel(returnValue);
+                emit(epilogue);
                 _ALOAD(1);
             }});
         }
@@ -1088,7 +1133,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String propFieldName = propFieldName(property);
             String signature = getterSignature(getter.getGenericReturnType());
 
-            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+            BytecodeFragment getterInitializer = methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
                 putServiceRegistryOnStack();
 
@@ -1112,7 +1157,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // (<type>)<service>
                 _CHECKCAST(serviceType);
-            }});
+            }};
+
+            BytecodeFragment getterEpilogue = getInjectedServiceGetterEpilogue(serviceType, getterName);
+
+            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, getterInitializer, getterEpilogue);
+        }
+
+        private BytecodeFragment getInjectedServiceGetterEpilogue(Type serviceType, String getterName) {
+            if (DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_TYPES.contains(serviceType)) {
+                return methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                    // InstrumentedExecutionAccess.disallowedAtExecutionInjectedServiceAccessed(<service-type>,<getter-name>,<this-type-name>)
+                    _LDC(serviceType);
+                    _LDC(getterName);
+                    _LDC(type.getName());
+                    _INVOKESTATIC(INSTRUMENTED_EXECUTION_ACCESS_TYPE, "disallowedAtExecutionInjectedServiceAccessed", getMethodDescriptor(VOID_TYPE, CLASS_TYPE, STRING_TYPE, STRING_TYPE));
+                }};
+            } else {
+                return BytecodeFragment.NO_OP;
+            }
         }
 
         @Override
@@ -1880,6 +1943,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void mixInDynamicAware() {
+        }
+
+        @Override
+        public void addNoDeprecationConventionPrivateGetter() {
         }
 
         @Override

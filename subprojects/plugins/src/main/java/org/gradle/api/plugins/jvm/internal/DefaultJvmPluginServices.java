@@ -18,13 +18,11 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
@@ -40,11 +38,9 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.annotation.Nullable;
@@ -59,28 +55,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DefaultJvmPluginServices implements JvmPluginServices {
-    private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final ProviderFactory providerFactory;
-    private final TaskContainer tasks;
-    private final SoftwareComponentContainer components;
     private final InstanceGenerator instanceGenerator;
     private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // ? is really AbstractCompile & HasCompileOptions
 
     private ProjectInternal project; // would be great to avoid this but for lazy capabilities it's hard to avoid!
 
     @Inject
-    public DefaultJvmPluginServices(ConfigurationContainer configurations,
-                                    ObjectFactory objectFactory,
+    public DefaultJvmPluginServices(ObjectFactory objectFactory,
                                     ProviderFactory providerFactory,
-                                    TaskContainer tasks,
-                                    SoftwareComponentContainer components,
                                     InstanceGenerator instanceGenerator) {
-        this.configurations = configurations;
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
-        this.tasks = tasks;
-        this.components = components;
         this.instanceGenerator = instanceGenerator;
         configurationToCompileTasks = new HashMap<>(5);
     }
@@ -238,21 +225,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                 }
             }
         };
-    }
-
-    @Override
-    public void createJvmVariant(String name, SourceSet sourceSet, Action<? super JvmVariantBuilder> action) {
-        DefaultJvmVariantBuilder builder = instanceGenerator.newInstance(DefaultJvmVariantBuilder.class,
-            name,
-            sourceSet,
-            new ProjectDerivedCapability(project, name),
-            this,
-            configurations,
-            tasks,
-            components,
-            project);
-        action.execute(builder);
-        builder.build();
     }
 
     private static int getReleaseOption(List<String> compilerArgs) {

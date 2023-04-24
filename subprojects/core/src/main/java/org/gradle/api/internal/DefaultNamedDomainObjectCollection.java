@@ -775,7 +775,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Nullable
-    protected NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
+    private NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
         NamedDomainObjectProvider<? extends T> provider = searchForDomainObject(name);
         // Run the rules and try to find something again.
         if (provider == null) {

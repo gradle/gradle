@@ -40,8 +40,10 @@ import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.gradle.wrapper.Download;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
+import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.WrapperExecutor;
 
 import javax.annotation.Nullable;
@@ -51,7 +53,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -72,7 +77,6 @@ import java.util.Properties;
 @DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
 public abstract class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
-
 
     /**
      * Specifies the Gradle distribution type.
@@ -107,12 +111,16 @@ public abstract class Wrapper extends DefaultTask {
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
+    private final boolean isOffline;
+    private boolean distributionUrlConfigured = false;
 
     public Wrapper() {
         scriptFile = "gradlew";
         jarFile = "gradle/wrapper/gradle-wrapper.jar";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
+        isOffline = getProject().getGradle().getStartParameter().isOffline();
+        getValidateDistributionUrl().convention(true);
     }
 
     @Inject
@@ -130,6 +138,7 @@ public abstract class Wrapper extends DefaultTask {
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
         checkProperties(existingProperties);
+        validateDistributionUrl();
         writeProperties(propertiesFile, existingProperties);
         writeWrapperTo(jarFileDestination);
 
@@ -155,6 +164,26 @@ public abstract class Wrapper extends DefaultTask {
             distributionSha256Sum == null &&
             checksumProperty != null) {
             throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option");
+        }
+    }
+
+    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
+
+    private void validateDistributionUrl() {
+        if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
+            String url = getDistributionUrl();
+            URI uri = URI.create(url);
+            if (uri.getScheme().equals("file")) {
+                if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
+                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
+                }
+            } else if (uri.getScheme().startsWith("http") && !isOffline) {
+                try {
+                    new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
+                } catch (Exception e) {
+                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e);
+                }
+            }
         }
     }
 
@@ -184,6 +213,7 @@ public abstract class Wrapper extends DefaultTask {
         if (networkTimeout.isPresent()) {
             wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout.get()));
         }
+        wrapperProperties.put(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, String.valueOf(getValidateDistributionUrl().get()));
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
         } catch (IOException e) {
@@ -323,10 +353,13 @@ public abstract class Wrapper extends DefaultTask {
      * The version of the gradle distribution required by the wrapper.
      * This is usually the same version of Gradle you use for building your project.
      * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code nightly}, and {@code release-nightly}
+     *
+     * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
         "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
     public void setGradleVersion(String gradleVersion) {
+        distributionUrlConfigured = true;
         this.gradleVersionResolver.setGradleVersionString(gradleVersion);
     }
 
@@ -393,9 +426,12 @@ public abstract class Wrapper extends DefaultTask {
      * project, you might submit the distribution to your version control system. That way no download is necessary at
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.
+     *
+     * <p>The distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
     public void setDistributionUrl(String url) {
+        distributionUrlConfigured = true;
         this.distributionUrl = url;
     }
 
@@ -497,4 +533,15 @@ public abstract class Wrapper extends DefaultTask {
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
     }
+
+    /**
+     * Indicates if this task will validate the distribution url that has been configured.
+     *
+     * @since 8.2
+     * @return whether this task will validate the distribution url
+     */
+    @Incubating
+    @Input
+    @Option(option = "validate-url", description = "Sets task to validate the configured distribution url")
+    public abstract Property<Boolean> getValidateDistributionUrl();
 }

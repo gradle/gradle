@@ -32,6 +32,7 @@ import groovy.lang.MetaClass;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -102,6 +103,12 @@ import static java.util.Optional.ofNullable;
  * </ul>
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
+    /**
+     * Types that are allowed to be instantiated directly by Gradle when exposed as a getter on a type.
+     *
+     * @implNote Keep in sync with subprojects/docs/src/docs/userguide/extending-gradle/custom_gradle_types.adoc
+     * @see ManagedObjectFactory#newInstance
+     */
     private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(
         ConfigurableFileCollection.class,
         ConfigurableFileTree.class,
@@ -112,6 +119,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         DirectoryProperty.class,
         Property.class,
         NamedDomainObjectContainer.class,
+        ExtensiblePolymorphicDomainObjectContainer.class,
         DomainObjectSet.class
     );
     private static final Object[] NO_PARAMS = new Object[0];
@@ -993,10 +1001,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
-            if (extensible && !hasExtensionAwareImplementation) {
+            boolean addExtensionProperty = extensible && !hasExtensionAwareImplementation;
+            boolean mixInConventionAware = conventionAware && !IConventionAware.class.isAssignableFrom(type);
+            if (addExtensionProperty || mixInConventionAware) {
+                visitor.addNoDeprecationConventionPrivateGetter();
+            }
+            if (addExtensionProperty) {
                 visitor.addExtensionsProperty();
             }
-            if (conventionAware && !IConventionAware.class.isAssignableFrom(type)) {
+            if (mixInConventionAware) {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetadata property : conventionProperties) {
@@ -1440,6 +1453,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void addNameConstructor();
 
         void mixInDynamicAware();
+
+        void addNoDeprecationConventionPrivateGetter();
 
         void mixInConventionAware();
 

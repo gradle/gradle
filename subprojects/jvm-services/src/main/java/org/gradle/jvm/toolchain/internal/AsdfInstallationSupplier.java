@@ -39,6 +39,11 @@ public class AsdfInstallationSupplier extends AutoDetectingInstallationSupplier 
     }
 
     @Override
+    public String getSourceName() {
+        return "asdf-vm";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         return asdfDataDir.map(findJavaCandidates())
             .orElse(asdfUserHome.map(findJavaCandidates()))
@@ -48,7 +53,7 @@ public class AsdfInstallationSupplier extends AutoDetectingInstallationSupplier 
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
         return candidatesDir -> {
             final File root = new File(candidatesDir, "installs/java");
-            return FileBasedInstallationFactory.fromDirectory(root, "asdf-vm");
+            return FileBasedInstallationFactory.fromDirectory(root, getSourceName());
         };
     }
 

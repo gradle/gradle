@@ -24,7 +24,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -36,15 +35,13 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainSpecInternal;
@@ -64,7 +61,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final JavaToolchainSpecInternal toolchainSpec;
     private final ObjectFactory objectFactory;
     private final ModularitySpec modularity;
-    private final JvmPluginServices jvmPluginServices;
     private final JavaToolchainSpec toolchain;
     private final ProjectInternal project;
 
@@ -76,7 +72,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private boolean autoTargetJvm = true;
 
     @Inject
-    public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec, JvmPluginServices jvmPluginServices) {
+    public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
         this.docsDir = project.getObjects().directoryProperty();
         this.testResultsDir = project.getObjects().directoryProperty();
         this.testReportDir = project.getObjects().directoryProperty(); //TestingBasePlugin.TESTS_DIR_NAME;
@@ -85,7 +81,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.toolchainSpec = toolchainSpec;
         this.objectFactory = project.getObjects();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        this.jvmPluginServices = jvmPluginServices;
         this.toolchain = toolchainSpec;
         configureDefaults();
     }
@@ -198,11 +193,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
-        Capability defaultCapability = new ProjectDerivedCapability(project, name);
-        DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
-            validateFeatureName(name),
-            defaultCapability,
-            jvmPluginServices);
+        DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(validateFeatureName(name), project);
         configureAction.execute(spec);
         spec.create();
     }
@@ -212,7 +203,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         maybeEmitMissingJavaComponentDeprecation("withJavadocJar()");
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            JavaPluginHelper.getJavaComponent(project).enableJavadocJarVariant();
+            JavaPluginHelper.getJavaComponent(project).withJavadocJar();
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             JvmPluginsHelper.createDocumentationVariantWithArtifact(
@@ -232,7 +223,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         maybeEmitMissingJavaComponentDeprecation("withSourcesJar()");
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            JavaPluginHelper.getJavaComponent(project).enableSourcesJarVariant();
+            JavaPluginHelper.getJavaComponent(project).withSourcesJar();
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             JvmPluginsHelper.createDocumentationVariantWithArtifact(
@@ -303,11 +294,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             this.configurations = configurations;
 
             if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-                JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
+                JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
                 JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
 
-                mainCompileClasspath = component.getCompileClasspathConfiguration();
-                mainRuntimeClasspath = component.getRuntimeClasspathConfiguration();
+                mainCompileClasspath = mainFeature.getCompileClasspathConfiguration();
+                mainRuntimeClasspath = mainFeature.getRuntimeClasspathConfiguration();
                 testCompileClasspath = findConfiguration(defaultTestSuite.getSources().getCompileClasspathConfigurationName());
                 testRuntimeClasspath = findConfiguration(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName());
             } else {

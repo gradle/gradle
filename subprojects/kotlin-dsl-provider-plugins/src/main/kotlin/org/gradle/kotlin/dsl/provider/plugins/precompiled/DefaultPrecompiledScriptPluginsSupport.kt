@@ -466,17 +466,14 @@ fun SourceDirectorySet.collectScriptPluginFiles(): Set<File> =
         .files
 
 
-/**
- * Uses the Groovy builder to access the `kotlin` source set because KGP types are not available here.
- */
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = withGroovyBuilder { getProperty("kotlin") } as SourceDirectorySet
+    get() = extensions.getByName("kotlin") as SourceDirectorySet
 
 
 private
-val Project.gradlePlugin
-    get() = the<GradlePluginDevelopmentExtension>()
+val Project.gradlePlugin: GradlePluginDevelopmentExtension
+    get() = extensions.getByType()
 
 
 private
@@ -485,18 +482,23 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw PrecompiledScriptException(
             String.format(
-                "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.\n\n%s", this.relativePath(scriptPlugin.scriptFile),
-                DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
-                PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
-            )
+                "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.", this.relativePath(scriptPlugin.scriptFile),
+                DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE
+            ),
+            null,
+            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
         )
     }
     val existingPlugin = plugins.findPlugin(scriptPlugin.id)
     if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw PrecompiledScriptException(
             String.format(
-                "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.\n\n%s", this.relativePath(scriptPlugin.scriptFile), scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
-            )
+                "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.",
+                this.relativePath(scriptPlugin.scriptFile),
+                scriptPlugin.id
+            ),
+            null,
+            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
         )
     }
 }
@@ -505,7 +507,7 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
 private
 fun Project.declareScriptPlugins(scriptPlugins: List<PrecompiledScriptPlugin>) {
 
-    configure<GradlePluginDevelopmentExtension> {
+    gradlePlugin.apply {
         for (scriptPlugin in scriptPlugins) {
             plugins.create(scriptPlugin.id) {
                 it.id = scriptPlugin.id
@@ -550,15 +552,15 @@ fun Project.buildDir(path: String) = layout.buildDirectory.dir(path)
 
 
 private
-val Project.sourceSets
-    get() = project.the<SourceSetContainer>()
+val Project.sourceSets: SourceSetContainer
+    get() = extensions.getByType()
 
 
 private
-val Project.javaToolchainService
-    get() = serviceOf<JavaToolchainService>()
+val Project.javaToolchainService: JavaToolchainService
+    get() = serviceOf()
 
 
 private
-val Project.java
-    get() = the<JavaPluginExtension>()
+val Project.java: JavaPluginExtension
+    get() = extensions.getByType()

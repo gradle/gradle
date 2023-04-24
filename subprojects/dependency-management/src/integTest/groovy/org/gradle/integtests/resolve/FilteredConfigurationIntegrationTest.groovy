@@ -17,10 +17,12 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
 @FluidDependenciesResolveTest
 class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionTest {
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can query files for filtered first level dependencies"() {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
@@ -93,6 +95,7 @@ task verify {
         outputContains("child1-dependencies artifacts: [child1.jar, test2-1.0.jar]")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can query files for filtered first level dependencies when there is a cycle in the dependency graph"() {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()

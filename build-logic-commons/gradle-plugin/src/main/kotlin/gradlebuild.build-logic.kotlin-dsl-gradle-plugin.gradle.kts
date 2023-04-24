@@ -34,8 +34,7 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        // Can be set to true when assignment plugin becomes stable
-        allWarningsAsErrors = false
+        allWarningsAsErrors = true
     }
 }
 

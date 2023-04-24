@@ -51,7 +51,6 @@ import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -67,6 +66,7 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -586,19 +586,26 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     @Deprecated
-    public Convention getConvention() {
-        return getConventionVia("Task.convention");
+    public org.gradle.api.plugins.Convention getConvention() {
+        DeprecationLogger.deprecateMethod(AbstractTask.class, "getConvention()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+            .nagUser();
+        return getConventionVia("Task.convention", false);
     }
 
     @Internal
     @Override
     public ExtensionContainer getExtensions() {
-        return getConventionVia("Task.extensions");
+        return getConventionVia("Task.extensions", true);
     }
 
-    private Convention getConventionVia(String invocationDescription) {
+    private org.gradle.api.plugins.Convention getConventionVia(String invocationDescription, boolean disableDeprecationForConventionAccess) {
         notifyConventionAccess(invocationDescription);
         assertDynamicObject();
+        if (disableDeprecationForConventionAccess) {
+            return DeprecationLogger.whileDisabled(() -> extensibleDynamicObject.getConvention());
+        }
         return extensibleDynamicObject.getConvention();
     }
 

@@ -31,6 +31,7 @@ public class WrapperExecutor {
     public static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
     public static final String NETWORK_TIMEOUT_PROPERTY = "networkTimeout";
+    public static final String VALIDATE_DISTRIBUTION_URL = "validateDistributionUrl";
     private final Properties properties;
     private final File propertiesFile;
     private final WrapperConfiguration config = new WrapperConfiguration();
@@ -59,6 +60,7 @@ public class WrapperExecutor {
                 config.setZipBase(getProperty(ZIP_STORE_BASE_PROPERTY, config.getZipBase()));
                 config.setZipPath(getProperty(ZIP_STORE_PATH_PROPERTY, config.getZipPath()));
                 config.setNetworkTimeout(getProperty(NETWORK_TIMEOUT_PROPERTY, config.getNetworkTimeout()));
+                config.setValidateDistributionUrl(getProperty(VALIDATE_DISTRIBUTION_URL, config.getValidateDistributionUrl()));
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }
@@ -120,6 +122,10 @@ public class WrapperExecutor {
 
     private int getProperty(String propertyName, int defaultValue) {
         return Integer.parseInt(getProperty(propertyName, String.valueOf(defaultValue)));
+    }
+
+    private boolean getProperty(String propertyName, boolean defaultValue) {
+        return Boolean.parseBoolean(getProperty(propertyName, String.valueOf(defaultValue)));
     }
 
     private String getProperty(String propertyName, String defaultValue, boolean required) {

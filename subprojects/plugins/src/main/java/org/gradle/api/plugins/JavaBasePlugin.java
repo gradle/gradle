@@ -43,6 +43,7 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.NaggingJavaPluginConvention;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
@@ -146,8 +147,9 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private DefaultJavaPluginExtension addExtensions(final Project project) {
         DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
+        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec);
+        DeprecationLogger.whileDisabled(() ->
+            project.getConvention().getPlugins().put("java", new NaggingJavaPluginConvention(objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension))));
         return javaPluginExtension;
     }
 
@@ -258,37 +260,37 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String sourceSetName = sourceSet.toString();
 
         warnIfConfigurationAlreadyExists(configurations, implementationConfigurationName);
-        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.BUCKET, false, false);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
         warnIfConfigurationAlreadyExists(configurations, compileOnlyConfigurationName);
-        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.BUCKET, false, false);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
         warnIfConfigurationAlreadyExists(configurations, compileClasspathConfigurationName);
-        Configuration compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE, false, false);
+        Configuration compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
         warnIfConfigurationAlreadyExists(configurations, annotationProcessorConfigurationName);
-        Configuration annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET, false, false);
+        Configuration annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_BUCKET, false, false);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
         warnIfConfigurationAlreadyExists(configurations, runtimeOnlyConfigurationName);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.BUCKET, false, false);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
         // TODO: The jmh plugin prevents asserting this role upon creation; if it has been applied, then it will pre-create a runtime classpath configuration
-        // for the jmg sourceset, which is both resolvable and declarable against, so this would fail if we assert the role's usage here.
+        // for the jmg sourceset, which is both resolvable and declarable, so this would fail if we assert the role's usage here.
         warnIfConfigurationAlreadyExists(configurations, runtimeClasspathConfigurationName);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE, false, false);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);

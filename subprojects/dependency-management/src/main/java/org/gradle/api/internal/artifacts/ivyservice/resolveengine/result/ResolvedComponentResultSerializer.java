@@ -90,7 +90,7 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
         moduleVersionIdSerializer.write(encoder, component.getModuleVersion());
         componentIdSerializer.write(encoder, component.getId());
         componentSelectionReasonSerializer.write(encoder, component.getSelectionReason());
-        List<ResolvedVariantResult> allVariants = ((ResolvedComponentResultInternal) component).getAllVariants();
+        List<ResolvedVariantResult> allVariants = ((ResolvedComponentResultInternal) component).getAvailableVariants();
         Set<ResolvedVariantResult> resolvedVariants = new HashSet<>(component.getVariants());
         encoder.writeSmallInt(allVariants.size());
         for (ResolvedVariantResult variant : allVariants) {

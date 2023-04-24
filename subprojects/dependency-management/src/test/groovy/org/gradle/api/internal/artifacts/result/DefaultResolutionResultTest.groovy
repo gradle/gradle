@@ -140,7 +140,7 @@ class DefaultResolutionResultTest extends Specification {
             Stub(ComponentSelector), false,
             Stub(ComponentSelectionReason),
             new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, [Stub(ResolvedVariantResult)], [Stub(ResolvedVariantResult)], null),
-            new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken)
+            new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken, [])
         )
         def edge = new UnresolvedDependencyEdge(dep)
 

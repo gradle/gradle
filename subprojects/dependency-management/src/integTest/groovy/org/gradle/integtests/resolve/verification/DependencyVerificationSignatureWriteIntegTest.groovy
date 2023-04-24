@@ -19,8 +19,12 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
+import org.gradle.security.internal.PGPUtils
 import org.gradle.security.internal.SecuritySupport
 import spock.lang.Issue
+
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 
@@ -449,5 +453,107 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
         keyringsAscii.size() == 1
         keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23607")
+    def "verification-keyring.keys contains only necessary data"() {
+        def keyring = newKeyRing()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        then:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 2
+        keyringsAscii.forEach { keyRing ->
+            keyRing.publicKeys.forEachRemaining { publicKey ->
+                assert publicKey.getUserAttributes().size() == 0
+                assert publicKey.signatures.size() == publicKey.keySignatures.size()
+            }
+            assert keyRing.publicKey.userIDs.size() == 1
+        }
+    }
+
+    def "verification-keyring.keys is sorted and deduplicated by keyId"() {
+        def count = 50
+        def duplicatesCount = 10
+        def keyrings = Stream.generate { newKeyRing() }.limit(count - duplicatesCount).collect(Collectors.toList())
+        keyrings.addAll(keyrings.subList(0, duplicatesCount))
+
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        def dependencies = new StringBuilder()
+        keyrings.eachWithIndex { keyring, index ->
+            uncheckedModule("org", "foo-$index", "1.0") {
+                withSignature {
+                    keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+                }
+            }
+            dependencies.append("implementation \"org:foo-$index:1.0\"\n")
+        }
+        buildFile << """
+            dependencies {
+                $dependencies
+            }
+        """
+
+        when:
+        serveValidKey()
+        keyrings.each { keyServerFixture.registerPublicKey(it.publicKey) }
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        then:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == count + 1 - duplicatesCount
+        (1..<keyringsAscii.size()).every {
+            keyringsAscii[it - 1].publicKey.keyID < keyringsAscii[it].publicKey.keyID
+        }
+    }
+
+    def "deduplicated keys are chosen by subkeys amount"() {
+        given:
+        javaLibrary()
+        file("gradle/verification-keyring.keys").copyFrom(
+            this.class.getResource("/org/gradle/integtests/resolve/verification/DependencyVerificationSignatureWriteIntegTest/duplicated.keys")
+        )
+
+        when:
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        then:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 1
+        PGPUtils.getSize(keyringsAscii[0]) == 5
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def module = mavenHttpRepo.module("test", "test", "1.0").publish()
@@ -66,6 +67,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("graph")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Uses Configuration API in task action")
     def "downloads only the metadata when resolved artifacts are queried"() {
         given:
         buildFile << """

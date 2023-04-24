@@ -305,7 +305,6 @@ task resolveReleaseClasses {
     }
 }
 
-
 task resolveTestClasses {
     def artifacts = configurations.compile.incoming.artifactView {
         attributes {
@@ -437,7 +436,7 @@ project(':child') {
         }
         runtimeElements {
             extendsFrom(runtimeOnly)
-            canBeConsumed = true
+            assert canBeConsumed
             canBeResolved = false
             attributes {
                 attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))

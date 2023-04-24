@@ -19,5 +19,8 @@ package org.gradle.model.internal.asm;
 import org.objectweb.asm.MethodVisitor;
 
 public interface BytecodeFragment {
+
+    BytecodeFragment NO_OP = visitor -> {};
+
     void emit(MethodVisitor visitor);
 }

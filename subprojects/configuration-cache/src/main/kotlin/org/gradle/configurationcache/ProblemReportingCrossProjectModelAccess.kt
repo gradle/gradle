@@ -63,7 +63,6 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.Property
@@ -555,7 +554,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-        override fun getConvention(): Convention {
+        override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention {
             onAccess()
             @Suppress("deprecation")
             return delegate.convention

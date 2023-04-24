@@ -25,12 +25,10 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import static org.junit.Assume.assumeTrue
 
 @Requires(TestPrecondition.NOT_MAC_OS_X_M1)
-@Ignore('https://github.com/gradle/gradle-private/issues/3811')
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)

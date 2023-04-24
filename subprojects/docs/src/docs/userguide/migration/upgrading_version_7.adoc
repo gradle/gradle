@@ -1695,7 +1695,7 @@ Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,
 The concept of conventions is outdated and superseded by extensions.
 To reflect this in the Gradle API, the following elements are now deprecated:
 
-- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[Project.html#getConvention()]
+- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[org.gradle.api.Project.getConvention()]
 - `org.gradle.api.internal.HasConvention` (deprecated)
 
 The internal usages of conventions have been also cleaned up (see the deprecated items below).
@@ -1706,39 +1706,10 @@ Here are some examples:
 - Migrate plugin configuration: link:https://github.com/gradle/gradle/pull/16900/files#diff-ac53d4f39698b83e30b93855fe6a725ffd96d5ed9df156d4f9dfd32bdc7946e7[gradle/gradle#16900].
 - Migrate custom source sets: link:https://github.com/gradle/gradle/pull/17149/files#diff-e159587e2f9aec398fa795b1d8b344f1593cb631e15e04893d31cdc9465f9781[gradle/gradle#17149].
 
-[[base_convention_deprecation]]
-==== Deprecated `base` plugin conventions
-
-The convention properties contributed by the `base` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-The conventions are replaced by the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
-
-The old convention object defines the `distsDirName`, `libsDirName` and `archivesBaseName` properties with simple getter and setter methods.
-Those methods are available in the extension only to maintain backwards compatibility.
-Build scripts should solely use the properties of type `Property`:
-```
-base {
-    archivesName = 'customBase'
-    distsDirectory = layout.buildDirectory.dir('custom-dist')
-    libsDirectory = layout.buildDirectory.dir('custom-libs')
-}
-```
-
-[[application_convention_deprecation]]
-==== Deprecated `ApplicationPluginConvention`
-
-link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention] was already listed as deprecated in the <<application_plugin.adoc#sec:application_convention_properties, documentation>>.
-Now, it is officially annotated as deprecated and scheduled for removal in Gradle 8.0.
-
-[[java_convention_deprecation]]
-==== Deprecated `java` plugin conventions
-
-The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-They are replaced by the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can be configured in the `java {}` block.
-
 [[plugin_configuration_consumption]]
 ==== Deprecated consumption of internal plugin configurations
 
-Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
+Some core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
 published or consumed by another subproject directly.
 Gradle did not explicitly prohibit this.
 Gradle 7.1 deprecates consumption of those configurations and this will become an error in Gradle 8.0.
@@ -1798,27 +1769,6 @@ configurations {
     }
 }
 ```
-
-[[project_report_convention_deprecation]]
-==== Deprecated `project-report` plugin conventions
-
-link:{groovyDslPath}/org.gradle.api.plugins.ProjectReportsPluginConvention.html[ProjectReportsPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0.
-Clients should configure the project report tasks directly.
-Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(...).configureEach(...)] can be used to configure each task of the same type (`HtmlDependencyReportTask` for example).
-
-[[war_convention_deprecation]]
-==== Deprecated `war` plugin conventions
-
-link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0.
-Clients should configure the `war` task  directly.
-Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
-
-[[ear_convention_deprecation]]
-==== Deprecated `ear` plugin conventions
-
-link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0.
-Clients should configure the `ear` task directly.
-Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(Ear.class).configureEach(...)] can be used to configure each task of type `Ear`.
 
 [[custom_source_set_deprecation]]
 ==== Deprecated custom source set interfaces

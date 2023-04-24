@@ -19,9 +19,19 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
+/**
+ * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
+ *
+ * https://developer.android.com/studio/releases/build-tools.html
+ * https://developer.android.com/studio/releases/gradle-plugin.html
+ * https://androidstudio.googleblog.com/
+ *
+ * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
+ * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
+ */
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = TestedVersions.androidGradle.latestStartsWith("7.3")
+    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = AGP_VERSIONS.latestStable
 
     private static final String GOOGLE_SERVICES_PLUGIN_ID = 'com.google.gms.google-services'
     private static final String CRASHLYTICS_PLUGIN_ID = 'com.google.firebase.crashlytics'
@@ -149,8 +159,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             case TRIPLET_PLAY_PLUGIN_ID:
                 buildFile << """
                     play {
-                        serviceAccountCredentials.set(file("your-key.json"))
-                        updatePriority.set(2)
+                        serviceAccountCredentials = file("your-key.json")
+                        updatePriority = 2
                     }
                 """
                 break
@@ -162,7 +172,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         if (testedPluginId == DAGGER_HILT_ANDROID_PLUGIN_ID) {
             return [
                 'com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS,
-                'org.jetbrains.kotlin.android': TestedVersions.kotlin.latestStable()
+                'org.jetbrains.kotlin.android': KOTLIN_VERSIONS.latestStable
             ]
         }
         return ['com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS]

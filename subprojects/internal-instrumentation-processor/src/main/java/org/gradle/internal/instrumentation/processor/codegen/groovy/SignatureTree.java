@@ -80,7 +80,7 @@ class SignatureTree {
         return Stream.of(
             // Match the `Class<?>` in `receiver` for static methods and constructors
             callable.getKind() == CallableKindInfo.STATIC_METHOD || callable.getKind() == AFTER_CONSTRUCTOR
-                ? Stream.of(new ParameterMatchEntry(callable.getOwner(), RECEIVER_AS_CLASS))
+                ? Stream.of(new ParameterMatchEntry(callable.getOwner().getType(), RECEIVER_AS_CLASS))
                 : Stream.<ParameterMatchEntry>empty(),
             // Or match the receiver in the first parameter
             callable.getKind() == CallableKindInfo.INSTANCE_METHOD || callable.getKind() == CallableKindInfo.GROOVY_PROPERTY

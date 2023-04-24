@@ -21,7 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
 
-/***
+/**
  * Represents a tuple of the component selector of a module and a candidate version
  * to be evaluated in a component selection rule.
  */

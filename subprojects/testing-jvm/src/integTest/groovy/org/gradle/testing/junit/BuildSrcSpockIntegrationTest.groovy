@@ -44,7 +44,6 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                     named('test') {
                         useSpock()
                         dependencies {
-                            ${dependencyNotation.collect { "implementation '$it'" }.join('\n')}
                             // Required to use Spock mocking
                             runtimeOnly 'net.bytebuddy:byte-buddy:1.12.17'
                         }
@@ -104,7 +103,6 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                         useSpock()
                         dependencies {
                             implementation localGroovy()
-                            ${dependencyNotation.collect { "implementation '$it'" }.join('\n')}
                         }
                     }
                 }

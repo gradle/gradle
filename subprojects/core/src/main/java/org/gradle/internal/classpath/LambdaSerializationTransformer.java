@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
@@ -28,6 +29,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.CodeSizeEvaluator;
 
+import javax.annotation.Nullable;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
@@ -53,6 +55,7 @@ import static org.objectweb.asm.Type.getType;
  * It adds {@link LambdaMetafactory#FLAG_SERIALIZABLE} to all bootstrap methods that create lambdas and generate synthetic deserialization method in the processed class.
  * If deserialization method is already present, it is renamed and the new implementation falls back to it.
  */
+@NonNullApi
 class LambdaSerializationTransformer extends ClassVisitor {
     // The method's bytecode must be less than MAX_CODE_SIZE bytes in length.
     private static final int MAX_CODE_SIZE = 65536;
@@ -86,14 +89,14 @@ class LambdaSerializationTransformer extends ClassVisitor {
     }
 
     @Override
-    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+    public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, @Nullable String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         this.className = name;
         this.isInterface = (access & ACC_INTERFACE) != 0;
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+    public MethodVisitor visitMethod(int access, String name, String descriptor, @Nullable String signature, @Nullable String[] exceptions) {
         if (name.equals(DESERIALIZE_LAMBDA) && descriptor.equals(RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)) {
             hasDeserializeLambda = true;
             return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
@@ -272,9 +275,10 @@ class LambdaSerializationTransformer extends ClassVisitor {
         lambdaFactories.add(lambdaFactoryDetails);
     }
 
+    @NonNullApi
     private class LambdaFactoryCallRewriter extends MethodVisitorScope {
 
-        public LambdaFactoryCallRewriter(MethodVisitor methodVisitor) {
+        public LambdaFactoryCallRewriter(@Nullable MethodVisitor methodVisitor) {
             super(methodVisitor);
         }
 
@@ -299,6 +303,7 @@ class LambdaSerializationTransformer extends ClassVisitor {
         }
     }
 
+    @NonNullApi
     private static class LambdaFactoryDetails {
         final String name;
         final String descriptor;
