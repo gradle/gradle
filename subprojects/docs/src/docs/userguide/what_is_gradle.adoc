@@ -97,7 +97,7 @@ A single build can contain one or more projects and each project can contain the
 
 === Builds
 
-A build is an execution of a collection of tasks in a Gradle project.
+A build invocation is an execution of a collection of tasks in the project(s).
 You run a build via the command line interface (CLI) or an IDE by specifying task selectors.
 Gradle configures the build and selects the tasks to run.
 Gradle runs the smallest complete set of tasks based on the requested tasks and their dependencies.
@@ -149,6 +149,3 @@ Appropriately modeling build processes with plugins can greatly improve ease of 
 === Dependency Management
 
 Gradle provides a powerful dependency management system that makes it easy to manage project dependencies and ensures that all dependencies are resolved and downloaded automatically (from private or public repositories).
-
-.Gradle Build Tool
-image::what-is-gradle-build-tool.png[]
