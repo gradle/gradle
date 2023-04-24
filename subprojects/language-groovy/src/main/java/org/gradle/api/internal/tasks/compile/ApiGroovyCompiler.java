@@ -29,9 +29,12 @@ import org.codehaus.groovy.classgen.GeneratorContext;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import org.codehaus.groovy.control.messages.ExceptionMessage;
+import org.codehaus.groovy.control.messages.Message;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
@@ -283,6 +286,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             unit.compile();
             return result;
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
+            if (isFatalException(e)) {
+                // This indicates a compiler bug and not a user error,
+                // so we cannot recover from such error: we need to force full recompilation.
+                throw new CompilationFatalException(e);
+            }
+
             System.err.println(e.getMessage());
             // Explicit flush, System.err is an auto-flushing PrintWriter unless it is replaced.
             System.err.flush();
@@ -295,6 +304,17 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compileClasspathLoader.shutdown();
             CompositeStoppable.stoppable(classPathLoader, astTransformClassLoader).stop();
         }
+    }
+
+    private static boolean isFatalException(org.codehaus.groovy.control.CompilationFailedException e) {
+        if (e instanceof org.codehaus.groovy.control.MultipleCompilationErrorsException) {
+            for (Message message : ((MultipleCompilationErrorsException) e).getErrorCollector().getErrors()) {
+                if (message instanceof ExceptionMessage && ((ExceptionMessage) message).getCause().getClass().equals(RuntimeException.class)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
