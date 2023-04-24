@@ -187,6 +187,9 @@ dependencies {
 
     annotationProcessor(project(":internal-instrumentation-processor"))
     annotationProcessor(platform(project(":distributions-dependencies")))
+
+    testAnnotationProcessor(project(":internal-instrumentation-processor"))
+    testAnnotationProcessor(platform(project(":distributions-dependencies")))
 }
 
 strictCompile {
@@ -200,6 +203,11 @@ packageCycles {
 
 tasks.test {
     setForkEvery(200)
+}
+
+// Disable annotation processing for Groovy, as it is not compatible with Groovy IC
+tasks.withType<GroovyCompile>().configureEach {
+    options.compilerArgs.add("-proc:none")
 }
 
 tasks.compileTestGroovy {
