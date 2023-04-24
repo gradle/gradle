@@ -79,78 +79,78 @@ abstract class AbstractJUnit4LoggingOutputCaptureIntegrationTest extends Abstrac
         then:
 
             // Behavior change of JUnit 4.13
-            outputContains """
-                Test class OkTest -> class loaded
-                Test class OkTest -> before class out
-                Test class OkTest -> before class err
-                Test anotherOk(OkTest) -> test constructed
-                Test anotherOk(OkTest) -> before out
-                Test anotherOk(OkTest) -> before err
-                Test anotherOk(OkTest) -> ok out
-                Test anotherOk(OkTest) -> ok err
-                Test anotherOk(OkTest) -> after out
-                Test anotherOk(OkTest) -> after err
-                Test ok(OkTest) -> test constructed
-                Test ok(OkTest) -> before out
-                Test ok(OkTest) -> before err
-                Test ok(OkTest) -> test out: \u03b1</html>
-                Test ok(OkTest) -> test err
-                Test ok(OkTest) -> after out
-                Test ok(OkTest) -> after err
-                Test class OkTest -> after class out
-                Test class OkTest -> after class err
-            """.stripIndent().stripLeading()
+            outputContains(
+                "Test class OkTest -> class loaded\n" +
+                "Test class OkTest -> before class out\n" +
+                "Test class OkTest -> before class err\n" +
+                "Test anotherOk(OkTest) -> test constructed\n" +
+                "Test anotherOk(OkTest) -> before out\n" +
+                "Test anotherOk(OkTest) -> before err\n" +
+                "Test anotherOk(OkTest) -> ok out\n" +
+                "Test anotherOk(OkTest) -> ok err\n" +
+                "Test anotherOk(OkTest) -> after out\n" +
+                "Test anotherOk(OkTest) -> after err\n" +
+                "Test ok(OkTest) -> test constructed\n" +
+                "Test ok(OkTest) -> before out\n" +
+                "Test ok(OkTest) -> before err\n" +
+                "Test ok(OkTest) -> test out: \u03b1</html>\n" +
+                "Test ok(OkTest) -> test err\n" +
+                "Test ok(OkTest) -> after out\n" +
+                "Test ok(OkTest) -> after err\n" +
+                "Test class OkTest -> after class out\n" +
+                "Test class OkTest -> after class err\n"
+            )
 
             // This test covers current behaviour, not necessarily desired behaviour
 
             def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
             def classResult = xmlReport.testClass("OkTest")
-            classResult.assertTestCaseStdout("ok", is("""
-                test constructed
-                before out
-                test out: \u03b1</html>
-                after out
-            """.stripIndent().stripLeading()))
-            classResult.assertTestCaseStderr("ok", is("""
-                before err
-                test err
-                after err
-            """.stripIndent().stripLeading()))
-            classResult.assertStdout(is("""
-                class loaded
-                before class out
-                after class out
-            """.stripIndent().stripLeading()))
-            classResult.assertStderr(is("""
-                before class err
-                after class err
-            """.stripIndent().stripLeading()))
+            classResult.assertTestCaseStdout("ok", is(
+                "test constructed\n" +
+                "before out\n" +
+                "test out: \u03b1</html>\n" +
+                "after out\n"
+            ))
+            classResult.assertTestCaseStderr("ok", is(
+                "before err\n" +
+                "test err\n" +
+                "after err\n"
+            ))
+            classResult.assertStdout(is(
+                "class loaded\n" +
+                "before class out\n" +
+                "after class out\n"
+            ))
+            classResult.assertStderr(is(
+                "before class err\n" +
+                "after class err\n"
+            ))
 
 
         def htmlReport = new HtmlTestExecutionResult(testDirectory)
         def classReport = htmlReport.testClass("OkTest")
-        classReport.assertStdout(is("""
-            class loaded
-            before class out
-            test constructed
-            before out
-            ok out
-            after out
-            test constructed
-            before out
-            test out: \u03b1</html>
-            after out
-            after class out
-        """.stripIndent().stripLeading()))
-        classReport.assertStderr(is("""
-            before class err
-            before err
-            ok err
-            after err
-            before err
-            test err
-            after err
-            after class err
-        """.stripIndent().stripLeading()))
+        classReport.assertStdout(is(
+            "class loaded\n" +
+            "before class out\n" +
+            "test constructed\n" +
+            "before out\n" +
+            "ok out\n" +
+            "after out\n" +
+            "test constructed\n" +
+            "before out\n" +
+            "test out: \u03b1</html>\n" +
+            "after out\n" +
+            "after class out\n"
+        ))
+        classReport.assertStderr(is(
+            "before class err\n" +
+            "before err\n" +
+            "ok err\n" +
+            "after err\n" +
+            "before err\n" +
+            "test err\n" +
+            "after err\n" +
+            "after class err\n"
+        ))
     }
 }
