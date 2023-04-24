@@ -82,7 +82,7 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use getBuildPath() to get a unique identifier for the build. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-            "TODO"
+            "https://issuetracker.google.com/issues/279306626"
         )
     }
 
@@ -92,7 +92,7 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use getBuildPath() to get a unique identifier for the build. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-            "TODO"
+            "https://issuetracker.google.com/issues/279306626"
         )
     }
 }
