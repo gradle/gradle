@@ -16,19 +16,29 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
+import org.gradle.internal.taskgraph.NodeIdentity;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 
+import java.util.List;
+
 /**
- * A converter from {@link TransformationNode} to {@link CalculateTaskGraphBuildOperationType.PlannedNode}.
+ * A converter from {@link TransformationNode} to {@link PlannedNode}.
  */
+@NonNullApi
 public class ToPlannedTransformStepConverter implements ToPlannedNodeConverter {
 
     @Override
     public Class<? extends Node> getSupportedNodeType() {
         return TransformationNode.class;
+    }
+
+    @Override
+    public NodeIdentity.NodeType getConvertedNodeType() {
+        return NodeIdentity.NodeType.TRANSFORM_STEP;
     }
 
     @Override
@@ -43,12 +53,9 @@ public class ToPlannedTransformStepConverter implements ToPlannedNodeConverter {
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, DependencyLookup dependencyLookup) {
+    public DefaultPlannedTransformStep convert(Node node, List<? extends NodeIdentity> nodeDependencies) {
         TransformationNode transformationNode = (TransformationNode) node;
-        return new DefaultPlannedTransformStep(
-            transformationNode.getNodeIdentity(),
-            dependencyLookup.findNodeDependencies(transformationNode)
-        );
+        return new DefaultPlannedTransformStep(transformationNode.getNodeIdentity(), nodeDependencies);
     }
 
     @Override

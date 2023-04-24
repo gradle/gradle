@@ -74,10 +74,10 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "10.1.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("8.1.0")
+        static shadow = Versions.of("8.1.1")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
-        static asciidoctor = Versions.of("3.3.2")
+        static asciidoctor = Versions.of("3.3.2", "4.0.0-alpha.1")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "5.0.13"
@@ -94,13 +94,10 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "33.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*AGP_VERSIONS.getLatestsFromMinorPlusNightly("4.0"))
+        static androidGradle = Versions.of(*AGP_VERSIONS.latests)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of(*KOTLIN_VERSIONS.latests.findAll {
-            def lowerCaseVersion = it.toLowerCase(Locale.US)
-            !lowerCaseVersion.contains('-m') && !(lowerCaseVersion.contains('-beta'))
-        })
+        static kotlin = Versions.of(*KOTLIN_VERSIONS.latests)
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
@@ -195,23 +192,6 @@ abstract class AbstractSmokeTest extends Specification {
         }
 
         final List<String> versions
-
-        String latest() {
-            versions.last()
-        }
-
-        String latestStable() {
-            versions.reverse().find { version ->
-                !version.containsIgnoreCase("rc") &&
-                !version.containsIgnoreCase("beta") &&
-                !version.containsIgnoreCase("alpha") &&
-                !version.containsIgnoreCase("milestone")
-            }
-        }
-
-        String latestStartsWith(String prefix) {
-            return versions.reverse().find { it.startsWith(prefix) }
-        }
 
         private Versions(String... given) {
             versions = Arrays.asList(given)
@@ -343,9 +323,6 @@ abstract class AbstractSmokeTest extends Specification {
         if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             extraArgs += ["-I", init.canonicalPath]
-        }
-        if (agpVersion.startsWith("7.2") && JavaVersion.current().java9Compatible) {
-            runner = runner.withJvmArguments('--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED')
         }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
     }

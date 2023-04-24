@@ -39,7 +39,6 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.plugins.Convention
 import org.gradle.api.reflect.TypeOf.parameterizedTypeOf
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
@@ -318,7 +317,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
         val customConvention = mock<CustomConvention>()
-        val convention = mock<Convention> {
+        @Suppress("deprecation")
+        val convention = mock<org.gradle.api.plugins.Convention> {
             on { plugins } doReturn mapOf("customConvention" to customConvention)
         }
         val project = mock<ProjectInternal> {
@@ -444,11 +444,13 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // val i
             @Suppress("deprecation")
             verify(project).convention
+            @Suppress("deprecation")
             verify(convention).plugins
 
             // val j
             @Suppress("deprecation")
             verify(project).convention
+            @Suppress("deprecation")
             verify(convention).plugins
 
             // val k

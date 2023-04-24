@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -349,5 +350,22 @@ public class TextUtil {
      */
     public static String toLowerCaseLocaleSafe(String s) {
         return s.toLowerCase(Locale.ENGLISH);
+    }
+
+    /**
+     * This method returns the plural ending for an english word for trivial cases depending on the number of elements a list has.
+     *
+     * @param collection which size is used to determine the plural ending
+     * @return "s" if the collection has more than one element, an empty string otherwise
+     */
+    public static String getPluralEnding(Collection<?> collection) {
+        return collection.size() > 1 ? "s" : "";
+    }
+
+    public static String endLineWithDot(String txt) {
+        if (txt.endsWith(".") || txt.endsWith("\n")) {
+            return txt;
+        }
+        return txt + ".";
     }
 }

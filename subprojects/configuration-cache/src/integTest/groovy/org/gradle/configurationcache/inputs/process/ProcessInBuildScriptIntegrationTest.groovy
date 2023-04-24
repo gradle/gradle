@@ -25,7 +25,6 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stri
 class ProcessInBuildScriptIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in #location.toLowerCase() #file is a problem"() {
         given:
-        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file(file) << """
             ${snippets.imports}
@@ -81,7 +80,6 @@ class ProcessInBuildScriptIntegrationTest extends AbstractProcessIntegrationTest
         testDirectory.file(file) << """
             ${snippets.imports}
 
-            enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
             ${snippets.body}
         """
 

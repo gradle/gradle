@@ -61,7 +61,6 @@ public interface ComponentResolveMetadata extends HasAttributes {
     /**
      * @return the sources information for this component.
      */
-    @Nullable
     ModuleSources getSources();
 
     /**

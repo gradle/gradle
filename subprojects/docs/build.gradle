@@ -555,9 +555,11 @@ samples {
     }
 }
 
-// Use the version of Gradle being built, not the version of Gradle used to build
-tasks.named("generateWrapperForSamples") {
+// Use the version of Gradle being built, not the version of Gradle used to build,
+// also don't validate distribution url, since it is just a local distribution
+tasks.named("generateWrapperForSamples", Wrapper) {
     gradleVersion = project.version
+    validateDistributionUrl = false
 }
 
 // TODO: The rich console to plain text is flaky
@@ -758,10 +760,6 @@ tasks.named("docsTest") { task ->
                 // TODO(https://github.com/gradle/gradle/issues/14880)
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/13469) Ivy Publish plugin support
-                "snippet-plugins-publishing_groovy_publishToIvy.sample",
-                "snippet-plugins-publishing_kotlin_publishToIvy.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
                 "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",

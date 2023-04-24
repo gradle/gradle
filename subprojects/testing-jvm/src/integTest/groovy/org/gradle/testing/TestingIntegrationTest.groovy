@@ -34,6 +34,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
 import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 import static org.hamcrest.CoreMatchers.equalTo
+
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
@@ -91,10 +92,10 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
                 }
             }
         """
-        file('build.gradle') << """
+        buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
         """
 
         when:
@@ -137,7 +138,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
         """
 
@@ -166,7 +167,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation "junit:junit:4.13" }
+            dependencies { testImplementation "$testJunitCoordinates" }
             test.workingDir = "${testWorkingDir.toURI()}"
         """
 
@@ -208,14 +209,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
 
         where:
         framework   | dependency                | superClass
-        "useJUnit"  | "junit:junit:4.13"        | "org.junit.runner.Result"
+        "useJUnit"  | "$testJunitCoordinates"   | "org.junit.runner.Result"
         "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2527")
     def "test class detection works for custom test tasks"() {
         given:
-        ignoreWhenJupiter()
+        ignoreWhenJUnitPlatform()
         buildFile << """
                 apply plugin:'java'
                 ${mavenCentralRepository()}
@@ -228,7 +229,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
                 }
 
                 dependencies{
-	                othertestsImplementation "junit:junit:4.13"
+	                othertestsImplementation "$testJunitCoordinates"
                 }
 
                 task othertestsTest(type:Test){
@@ -246,7 +247,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             """
 
         file("src/othertests/java/TestCaseExtendsAbstractClass.java") << """
-                import junit.framework.Assert;
+                import org.junit.Assert;
                 public class TestCaseExtendsAbstractClass extends AbstractTestClass{
                     public void testTrue() {
                         Assert.assertTrue(true);
@@ -295,7 +296,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
                 last 'com.google.collections:google-collections:1.0'
                 implementation configurations.first + configurations.last
 
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
         """
 
@@ -328,7 +329,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
             tasks.withType(JavaCompile) {
                 options.with {
@@ -375,7 +376,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
             test {
                 testLogging {
@@ -484,7 +485,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
             }
             ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
         """
 
         and:
@@ -520,7 +521,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         buildFile << """
             apply plugin:'java-library'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
 
             test {
                 jvmArgs("-XX:+ShowCodeDetailsInExceptionMessages")

@@ -22,6 +22,7 @@ import spock.lang.Issue
 import static org.hamcrest.CoreMatchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
+    public static final String CONFLICT_FOUND_HEADER_MESSAGE = 'Conflict found for the following module:'
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
@@ -70,7 +71,7 @@ project(':tool') {
 
         expect:
         runAndFail("tool:dependencies")
-        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
+        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
     }
 
     void "strict conflict resolution should pass when no conflicts"() {
@@ -251,12 +252,15 @@ dependencies {
             root(":", ":test:") {
                 module("org:one:1.0") {
                     edge("org:control:1.0", "org:control:1.2") {
-                        edge("org:dep:2.5", "org:dep:2.5")
+                        byConflictResolution("between versions 1.2 and 1.0")
+                        module("org:dep:2.5")
                     }
                 }
                 module("org:two:1.0") {
                     module("org:dep-2.0-bringer:1.0") {
-                        edge("org:dep:2.0", "org:dep:2.5").byConflictResolution("between versions 2.5 and 2.0")
+                        edge("org:dep:2.0", "org:dep:2.5") {
+                            byConflictResolution("between versions 2.5 and 2.0")
+                        }
                     }
                     module("org:control-1.2-bringer:1.0") {
                         module("org:control:1.2")
@@ -327,8 +331,11 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:child:2")
+                module("org:child:2") {
+                    byConflictResolution("between versions 2 and 1")
+                }
                 edge("org:parent:1", "org:parent:2") {
+                    byConflictResolution("between versions 2 and 1")
                     module("org:child:2")
                 }
                 module("org:dep:2") {
@@ -364,7 +371,9 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:external:1.2", "org:external:1.4")
+                edge("org:external:1.2", "org:external:1.4") {
+                    byConflictResolution("between versions 1.2 and 1.4")
+                }
                 module("org:dep:2.2") {
                     edge("org:external:[1.3,)", "org:external:1.4")
                 }
@@ -425,7 +434,9 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:external:1.2", "org:external:1.4")
+                edge("org:external:1.2", "org:external:1.4") {
+                    byConflictResolution("between versions 1.4 and 1.2")
+                }
                 module("org:dep:2.2") {
                     module("org:external:1.4")
                 }
@@ -488,7 +499,10 @@ project(':tool') {
         resolve.expectGraph {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
-                    edge("org:foo:1.4.4", "org:foo:1.4.9")
+                    edge("org:foo:1.4.4", "org:foo:1.4.9") {
+                        forced()
+                        byReason("didn't match version 1.6.0")
+                    }
                 }
                 project(":impl", "test:impl:") {
                     edge("org:foo:1.4.1", "org:foo:1.4.9")
@@ -591,6 +605,7 @@ configurations.all {
                 edge("org:a:1.0", "org:a:2.0")
                 module("org:a:2.0") {
                     configuration = "default"
+                    byConflictResolution("between versions 2.0 and 1.0")
                     module("org:b:2.0") {
                         edge("org:a:1.0", "org:a:2.0")
                     }
@@ -646,7 +661,9 @@ configurations.all {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:in-conflict:1.0", "org:in-conflict:2.0")
+                    edge("org:in-conflict:1.0", "org:in-conflict:2.0") {
+                        byConflictResolution("between versions 2.0 and 1.0")
+                    }
                 }
                 module("org:b:1.0") {
                     module("org:b-child:1.0") {
@@ -835,10 +852,14 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:a:2")
+                module("org:a:2") {
+                    byConflictResolution("between versions 2 and 1")
+                }
                 edge("org:a:1", "org:a:2") {
                     module("org:b:1") {
-                        edge("org:c:1", "org:c:2")
+                        edge("org:c:1", "org:c:2") {
+                            byConflictResolution("between versions 2 and 1")
+                        }
                     }
                 }
                 module("org:c:2")
@@ -946,7 +967,9 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:leaf:[2,6]", "org:leaf:6")
+                    edge("org:leaf:[2,6]", "org:leaf:6") {
+                        byReason("didn't match versions 10, 9, 8, 7")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:leaf:[4,8]", "org:leaf:6")
@@ -986,7 +1009,9 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:leaf:[2,6]", "org:leaf:5")
+                    edge("org:leaf:[2,6]", "org:leaf:5") {
+                        byReason("didn't match versions 10, 9, 8, 7")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:leaf:[4,8]", "org:leaf:5")
@@ -1027,7 +1052,9 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:leaf:[2,6]", "org:leaf:6")
+                    edge("org:leaf:[2,6]", "org:leaf:6") {
+                        byReason("didn't match versions 10, 9, 8, 7")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:leaf:[4,8]", "org:leaf:6")
@@ -1065,7 +1092,10 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:leaf:[2,6]", "org:leaf:5")
+                    edge("org:leaf:[2,6]", "org:leaf:5") {
+                        byReason("didn't match versions 10, 9, 8, 7")
+                        byReason("didn't match versions 10, 9, 8, 7, 6")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:leaf:[4,8]", "org:leaf:5")
@@ -1115,14 +1145,14 @@ dependencies {
             root(":", ":test:") {
                 module("org:a:1.0") {
                     edge("org:leaf:[2,6]", "org:leaf:5") {
+                        notRequested()
                         byReason("didn't match versions 10, 9, 8, 7")
+                        byReason("didn't match versions 10, 9, 8, 7, 6")
                     }
                 }
                 module("org:b:1.0") {
                     module("org:b2:1.0") {
-                        edge("org:leaf:[3,5]", "org:leaf:5") {
-                            byReason("didn't match versions 10, 9, 8, 7, 6")
-                        }
+                        edge("org:leaf:[3,5]", "org:leaf:5")
                     }
                 }
                 module("org:c:1.0") {
@@ -1165,14 +1195,14 @@ dependencies {
             root(":", ":test:") {
                 module("org:a:1.0") {
                     edge("org:leaf:[2,3]", "org:leaf:8") {
+                        notRequested()
+                        byReason("didn't match versions 10, 9")
                         byReason("didn't match versions 10, 9, 8, 7, 6, 5, 4")
-                        byReason("conflict resolution: between versions 3 and 8")
+                        byConflictResolution("between versions 3 and 8")
                     }
                 }
                 module("org:b:1.0") {
-                    edge("org:leaf:[5,8]", "org:leaf:8") {
-                        byReason("didn't match versions 10, 9")
-                    }
+                    edge("org:leaf:[5,8]", "org:leaf:8")
                 }
             }
         }
@@ -1243,7 +1273,7 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
+        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
     }
 
     def "upgrades version when one of the ranges is disjoint"() {
@@ -1276,19 +1306,18 @@ dependencies {
             root(":", ":test:") {
                 module("org:a:1.0") {
                     edge("org:leaf:[2,6]", "org:leaf:8") {
+                        notRequested()
+                        byReason("didn't match versions 10, 9")
                         byReason("didn't match versions 10, 9, 8, 7")
-                        byReason("conflict resolution: between versions 8 and 4")
+                        byReason("didn't match versions 10, 9, 8, 7, 6, 5")
+                        byConflictResolution("between versions 8 and 4")
                     }
                 }
                 module("org:b:1.0") {
-                    edge("org:leaf:[3,4]", "org:leaf:8") {
-                        byReason("didn't match versions 10, 9, 8, 7, 6, 5")
-                    }
+                    edge("org:leaf:[3,4]", "org:leaf:8")
                 }
                 module("org:c:1.0") {
-                    edge("org:leaf:[7,8]", "org:leaf:8") {
-                        byReason("didn't match versions 10, 9")
-                    }
+                    edge("org:leaf:[7,8]", "org:leaf:8")
                 }
             }
         }
@@ -1329,7 +1358,7 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
+        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
     }
 
     def "chooses highest version of all versions fully included within range"() {
@@ -1363,7 +1392,11 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:leaf:[1,12]", "org:leaf:7")
+                    edge("org:leaf:[1,12]", "org:leaf:7") {
+                        byReason("didn't match versions 12, 11")
+                        byReason("didn't match versions 12, 11, 10, 9")
+                        byReason("didn't match versions 12, 11, 10, 9, 8")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:leaf:[3,8]", "org:leaf:7")
@@ -1409,7 +1442,9 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:leaf:[2,6]", "org:leaf:6")
+                    edge("org:leaf:[2,6]", "org:leaf:6") {
+                        byReason("didn't match versions 10, 9, 8, 7")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:leaf:[5,)", "org:leaf:6")
@@ -1446,7 +1481,10 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:leaf:[1.2,1.6]", "org:leaf:1.10")
+                    edge("org:leaf:[1.2,1.6]", "org:leaf:1.10") {
+                        byConflictResolution("between versions 1.6 and 1.10")
+                        byReason("didn't match versions 1.10, 1.9, 1.8, 1.7")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:leaf:1.+", "org:leaf:1.10")
@@ -1537,13 +1575,17 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1.0") {
-                    edge("org:leaf:[2,6]", "org:leaf:6")
+                    edge("org:leaf:[2,6]", "org:leaf:6") {
+                        byReason("didn't match versions 10, 9, 8, 7")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:leaf:[4,8]", "org:leaf:6")
                 }
                 module("org:c:1.0") {
-                    edge("org:leaf2:[3,4]", "org:leaf2:4")
+                    edge("org:leaf2:[3,4]", "org:leaf2:4") {
+                        byReason("didn't match versions 10, 9, 8, 7, 6, 5")
+                    }
                 }
                 module("org:d:1.0") {
                     edge("org:leaf2:[1,7]", "org:leaf2:4")
@@ -1587,13 +1629,14 @@ dependencies {
             root(":", ":test:") {
                 module("org:a:1.0") {
                     edge("org:leaf:[1,8]", "org:leaf:6") {
+                        notRequested()
                         byReason("didn't match versions 10, 9")
+                        byReason("didn't match versions 10, 9, 8, 7")
+                        module("org:zdep:6")
                     }
                     edge("org:c:1.0", "org:c:1.1") {
-                        edge("org:leaf:[4,6]", "org:leaf:6") {
-                            byReason("didn't match versions 10, 9, 8, 7")
-                            module("org:zdep:6")
-                        }
+                        byConflictResolution("between versions 1.1 and 1.0")
+                        edge("org:leaf:[4,6]", "org:leaf:6")
                     }
                 }
                 module("org:b:1.0") {
@@ -1634,7 +1677,10 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:a:1.0", "org:a:2.0") {
-                    edge("org:e:[4,8]", "org:e:8")
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    edge("org:e:[4,8]", "org:e:8") {
+                        byReason("didn't match versions 10, 9")
+                    }
                 }
                 module("org:b:1.0") {
                     edge("org:e:[1,10]", "org:e:8")
@@ -1677,7 +1723,9 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:a:1.0", "org:a:2.0")
+                edge("org:a:1.0", "org:a:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
                 module("org:b:1.0") {
                     module("org:a:2.0")
                 }
@@ -1721,7 +1769,10 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:a:1.0", "org:a:2.0") {
-                    module("org:c:2.0")
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    module("org:c:2.0") {
+                        byConflictResolution("between versions 2.0 and 1.0")
+                    }
                 }
                 edge("org:c:1.0", "org:c:2.0")
                 module("org:d:1.0") {
@@ -1761,7 +1812,9 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:a:1.0", "org:a:2.0")
+                edge("org:a:1.0", "org:a:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
                 module("org:c:1.0") {
                     edge("org:a:1.0", "org:a:2.0")
                 }
@@ -1801,10 +1854,13 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:a:[1,3]", "org:a:3") {
+                    notRequested()
                     byReason("didn't match version 4")
                     module("org:e:3")
                 }
-                edge("org:b:1", "org:b:2")
+                edge("org:b:1", "org:b:2") {
+                    byConflictResolution("between versions 2 and 1")
+                }
                 module("org:c:1") {
                     module("org:d:1") {
                         module("org:b:2")
@@ -1843,7 +1899,9 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:a:1")
-                edge("org:b:1", "org:b:2")
+                edge("org:b:1", "org:b:2") {
+                    byConflictResolution("between versions 2 and 1")
+                }
                 module("org:c:1") {
                     module("org:d:1") {
                         module("org:b:2")
@@ -1880,7 +1938,9 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:a:1", "org:a:2")
+                edge("org:a:1", "org:a:2") {
+                    byConflictResolution("between versions 2 and 1")
+                }
                 module("org:b:1")
                 module("org:c:1") {
                     module("org:a:2")

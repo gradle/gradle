@@ -30,6 +30,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -44,20 +45,20 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 
-public class FilteredModuleComponentRepository implements ModuleComponentRepository {
-    private final ModuleComponentRepository delegate;
+public class FilteredModuleComponentRepository implements ModuleComponentRepository<ModuleComponentGraphResolveState> {
+    private final ModuleComponentRepository<ModuleComponentGraphResolveState> delegate;
     private final Action<? super ArtifactResolutionDetails> filterAction;
     private final String consumerName;
     private final ImmutableAttributes consumerAttributes;
 
-    public static ModuleComponentRepository of(ModuleComponentRepository delegate, Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
+    public static ModuleComponentRepository<ModuleComponentGraphResolveState> of(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, Action<? super ArtifactResolutionDetails> action, String consumerName, AttributeContainer attributes) {
         if (action == Actions.doNothing()) {
             return delegate;
         }
         return new FilteredModuleComponentRepository(delegate, action, consumerName, attributes);
     }
 
-    private FilteredModuleComponentRepository(ModuleComponentRepository delegate, Action<? super ArtifactResolutionDetails> filterAction, String consumerName, AttributeContainer attributes) {
+    private FilteredModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, Action<? super ArtifactResolutionDetails> filterAction, String consumerName, AttributeContainer attributes) {
         this.delegate = delegate;
         this.filterAction = filterAction;
         this.consumerName = consumerName;
@@ -83,12 +84,12 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getLocalAccess() {
         return new FilteringAccess(delegate.getLocalAccess());
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getRemoteAccess() {
         return new FilteringAccess(delegate.getRemoteAccess());
     }
 
@@ -103,10 +104,10 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         return delegate.getComponentMetadataSupplier();
     }
 
-    private class FilteringAccess implements ModuleComponentRepositoryAccess {
-        private final ModuleComponentRepositoryAccess delegate;
+    private class FilteringAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
+        private final ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate;
 
-        private FilteringAccess(ModuleComponentRepositoryAccess delegate) {
+        private FilteringAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate) {
             this.delegate = delegate;
         }
 
@@ -119,7 +120,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
                     () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
                 result::missing);

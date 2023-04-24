@@ -160,5 +160,10 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         public Object getOutput() {
             return workOutput.getOutput();
         }
+
+        @Override
+        public boolean canStoreOutputsInCache() {
+            return workOutput.canStoreInCache();
+        }
     }
 }

@@ -49,7 +49,10 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         when:
         def stdOut = new ByteArrayOutputStream()
         withConnection {
-            connection -> connection.action(new SimpleAction()).forTasks("hello", "bye").setStandardOutput(stdOut).run()
+            it.action(new SimpleAction())
+                .forTasks("hello", "bye")
+                .setStandardOutput(stdOut)
+                .run()
         }
 
         then:
@@ -80,10 +83,8 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         """
 
         when:
-        withConnection { connection ->
-            def builder = connection.action(new SimpleAction())
-            collectOutputs(builder)
-            builder.run()
+        withConnection {
+            it.action(new SimpleAction()).run()
         }
 
         then:
@@ -97,18 +98,18 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         "build logic injects tasks into start param"       | "gradle.startParameter.taskNames = ['broken']"
     }
 
-    @ToolingApiVersion('>4.7') // older versions do not run any tasks
+    // older versions do not run any tasks
+    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty array of task names means run help task"() {
         file('build.gradle') << """
         """
 
         when:
-        withConnection { connection ->
-            def builder = connection.action(new SimpleAction())
-            builder.forTasks()
-            collectOutputs(builder)
-            builder.run()
+        withConnection {
+            it.action(new SimpleAction())
+                .forTasks()
+                .run()
         }
 
         then:
@@ -116,26 +117,8 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         result.assertTasksExecuted(":help")
     }
 
-    @ToolingApiVersion('>4.7') // older versions do not run any tasks
-    @TargetGradleVersion('>=4.7')
-    def "empty list of task names means run help task"() {
-        file('build.gradle') << """
-        """
-
-        when:
-        withConnection { connection ->
-            def builder = connection.action(new SimpleAction())
-            builder.forTasks([])
-            collectOutputs(builder)
-            builder.run()
-        }
-
-        then:
-        assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":help")
-    }
-
-    @ToolingApiVersion('>4.7') // older versions do not run any tasks
+    // older versions do not run any tasks
+    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty array of task names means run default tasks when they are defined"() {
         file('build.gradle') << """
@@ -145,11 +128,10 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         """
 
         when:
-        withConnection { connection ->
-            def builder = connection.action(new SimpleAction())
-            builder.forTasks()
-            collectOutputs(builder)
-            builder.run()
+        withConnection {
+            it.action(new SimpleAction())
+                .forTasks()
+                .run()
         }
 
         then:
@@ -157,7 +139,27 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         result.assertTasksExecuted(":thing")
     }
 
-    @ToolingApiVersion('>4.7') // older versions do not run any tasks
+    // older versions do not run any tasks
+    @ToolingApiVersion('>4.7')
+    @TargetGradleVersion('>=4.7')
+    def "empty list of task names means run help task"() {
+        file('build.gradle') << """
+        """
+
+        when:
+        withConnection {
+            it.action(new SimpleAction())
+                .forTasks([])
+                .run()
+        }
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        result.assertTasksExecuted(":help")
+    }
+
+    // older versions do not run any tasks
+    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty list of task names means run default tasks when they are defined"() {
         file('build.gradle') << """
@@ -167,11 +169,10 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         """
 
         when:
-        withConnection { connection ->
-            def builder = connection.action(new SimpleAction())
-            builder.forTasks([])
-            collectOutputs(builder)
-            builder.run()
+        withConnection {
+            it.action(new SimpleAction())
+                .forTasks([])
+                .run()
         }
 
         then:
@@ -179,7 +180,8 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         result.assertTasksExecuted(":thing")
     }
 
-    @ToolingApiVersion('>4.7') // older versions do not run any tasks
+    // older versions do not run any tasks
+    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty array of task names means run tasks injected by build logic"() {
         file('build.gradle') << """
@@ -189,11 +191,10 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         """
 
         when:
-        withConnection { connection ->
-            def builder = connection.action(new SimpleAction())
-            builder.forTasks()
-            collectOutputs(builder)
-            builder.run()
+        withConnection {
+            it.action(new SimpleAction())
+                .forTasks()
+                .run()
         }
 
         then:
@@ -201,7 +202,8 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         result.assertTasksExecuted(":thing")
     }
 
-    @ToolingApiVersion('>4.7') // older versions do not run any tasks
+    // older versions do not run any tasks
+    @ToolingApiVersion('>4.7')
     @TargetGradleVersion('>=4.7')
     def "empty list of task names means run tasks injected by build logic"() {
         file('build.gradle') << """
@@ -211,11 +213,10 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         """
 
         when:
-        withConnection { connection ->
-            def builder = connection.action(new SimpleAction())
-            builder.forTasks([])
-            collectOutputs(builder)
-            builder.run()
+        withConnection {
+            it.action(new SimpleAction())
+                .forTasks([])
+                .run()
         }
 
         then:
@@ -227,7 +228,9 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     def "BuildExecuter.forTasks() should fail when it is not supported by target"() {
         when:
         withConnection {
-            connection -> connection.action(new SimpleAction()).forTasks("hello").run()
+            it.action(new SimpleAction())
+                .forTasks("hello")
+                .run()
         }
 
         then:
@@ -242,7 +245,9 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         when:
         withConnection {
-            connection -> connection.action(new SimpleAction()).forTasks("hello").run(handler)
+            it.action(new SimpleAction())
+                .forTasks("hello")
+                .run(handler)
         }
 
         then:

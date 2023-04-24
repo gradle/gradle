@@ -31,8 +31,8 @@ trait ConfigurationUsageChangingFixture {
         expectChangingUsage(configurationPath, "resolvable", current)
     }
 
-    void expectDeclarableAgainstChanging(String configurationPath, boolean current) {
-        expectChangingUsage(configurationPath, "declarable against", current)
+    void expectDeclarableChanging(String configurationPath, boolean current) {
+        expectChangingUsage(configurationPath, "declarable", current)
     }
 
     void expectChangingUsage(String configurationPath, String usage, boolean current) {

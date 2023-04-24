@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactor
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -56,7 +55,6 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()
-    private LocalComponentMetadataBuilder metaDataBuilder = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
     private DependencySubstitutionRules globalSubstitutionRules = Mock()
@@ -79,8 +77,11 @@ class DefaultConfigurationContainerSpec extends Specification {
         decorate(_ as Action) >> { it[0] }
     }
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
+    def metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
+        getValidator() >> Mock(MutationValidator)
+    }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+        create(_) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
@@ -128,7 +129,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
         then:
         compile.name == "compile"
-        compile.path == ":compile"
+        compile.incoming.path == ":compile"
         compile instanceof DefaultConfiguration
 
         and:
@@ -162,7 +163,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         then:
         configurationContainer.getByName("compile") == compile
         compile.description == "I compile!"
-        compile.path == ":compile"
+        compile.incoming.path == ":compile"
     }
 
     def "creates detached"() {
@@ -182,6 +183,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         detached.getHierarchy() == [detached] as Set
         [dependency1, dependency2].each { detached.getDependencies().contains(it) }
         detached.getDependencies().size() == 2
-        detached.path == ":detachedConfiguration1"
+        detached.incoming.path == ":detachedConfiguration1"
     }
 }

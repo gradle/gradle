@@ -16,10 +16,13 @@
 
 package org.gradle.integtests.resolve
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
+
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 @FluidDependenciesResolveTest
 class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
@@ -67,6 +70,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         run "checkDependencies"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "detached configurations may have dependencies on other projects"() {
         given:
         settingsFile << "include 'other'"
@@ -74,10 +78,10 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java-library'
             }
-            
+
             def detached = project.configurations.detachedConfiguration()
             detached.dependencies.add(project.dependencies.create(project(':other')))
-           
+
             task checkDependencies {
                 doLast {
                     assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('other')
@@ -98,6 +102,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     // This behavior will be removed in Gradle 9.0
     @Deprecated
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "detached configurations can contain artifacts and resolve them during a self-dependency scenario"() {
         given:
         settingsFile << """
@@ -108,18 +113,18 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java-library'
             }
-            
+
             def detached = project.configurations.detachedConfiguration()
             detached.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
             detached.dependencies.add(project.dependencies.create(project))
-            
+
             task makeArtifact(type: Zip) {
                 archiveFileName = "artifact.zip"
                 from "artifact.txt"
             }
-            
+
             detached.outgoing.artifact(tasks.makeArtifact)
-           
+
             task checkDependencies {
                 doLast {
                     assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('test')
@@ -132,5 +137,23 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         run "checkDependencies"
+    }
+
+    def "configurations container reserves name #name for detached configurations"() {
+        given:
+        buildFile << """
+            configurations {
+                $name
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Creating a configuration with a name that starts with 'detachedConfiguration' has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. Use a different name for the configuration '$name'. " +
+            "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#reserved_configuration_names")
+        succeeds "help"
+
+        where:
+        name << ["detachedConfiguration", "detachedConfiguration1", "detachedConfiguration22902"]
     }
 }

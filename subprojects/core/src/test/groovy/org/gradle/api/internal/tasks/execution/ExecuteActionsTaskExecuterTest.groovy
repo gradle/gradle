@@ -21,7 +21,7 @@ import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.TaskOutputsEnterpriseInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
@@ -103,7 +103,7 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 class ExecuteActionsTaskExecuterTest extends Specification {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
     def task = Mock(TaskInternal)
-    def taskOutputs = Mock(TaskOutputsInternal)
+    def taskOutputs = Mock(TaskOutputsEnterpriseInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
         getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))
     }

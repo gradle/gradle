@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
 
-class DetachedConfigurationsProvider implements ConfigurationsProvider {
+public class DetachedConfigurationsProvider implements ConfigurationsProvider {
     private ConfigurationInternal theOnlyConfiguration;
 
     @Override
@@ -30,6 +30,14 @@ class DetachedConfigurationsProvider implements ConfigurationsProvider {
     @Override
     public Set<ConfigurationInternal> getAll() {
         return ImmutableSet.of(theOnlyConfiguration);
+    }
+
+    @Override
+    public ConfigurationInternal findByName(String name) {
+        if (name.equals(theOnlyConfiguration.getName())) {
+            return theOnlyConfiguration;
+        }
+        return null;
     }
 
     public void setTheOnlyConfiguration(ConfigurationInternal theOnlyConfiguration) {

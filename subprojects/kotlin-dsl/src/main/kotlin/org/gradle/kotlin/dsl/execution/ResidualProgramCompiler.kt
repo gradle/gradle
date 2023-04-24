@@ -85,6 +85,7 @@ internal
 class ResidualProgramCompiler(
     private val outputDir: File,
     private val jvmTarget: JavaVersion,
+    private val allWarningsAsErrors: Boolean,
     private val classPath: ClassPath = ClassPath.EMPTY,
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
@@ -714,7 +715,7 @@ class ResidualProgramCompiler(
                 scriptFile,
                 scriptDefinition,
                 compileClassPath.asFiles,
-                messageCollectorFor(logger) { path ->
+                messageCollectorFor(logger, allWarningsAsErrors) { path ->
                     if (path == scriptFile.path) originalPath
                     else path
                 }

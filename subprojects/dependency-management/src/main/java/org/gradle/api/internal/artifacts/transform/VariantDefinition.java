@@ -32,7 +32,7 @@ public interface VariantDefinition {
     /**
      * @return The transformation chain which transforms the root variant to this variant.
      */
-    Transformation getTransformation();
+    TransformationChain getTransformationChain();
 
     /**
      * The single transformation step which transforms the previous variant to this variant.

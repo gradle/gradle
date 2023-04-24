@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @Requires(TestPrecondition.NOT_MAC_OS_X_M1) // M1 Macs need modern Xcode to compile aarch64 binaries
@@ -48,7 +47,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     String subprojectName() { 'app' }
 
     @ToBeFixedForConfigurationCache(because = "swift-application plugin")
-    @Ignore('https://github.com/gradle/gradle-private/issues/3811')
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-application', '--dsl', scriptDsl.id)
@@ -74,7 +72,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "swift-application plugin")
-    @Ignore('https://github.com/gradle/gradle-private/issues/3811')
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-application', '--project-name', 'app', '--dsl', scriptDsl.id)
@@ -100,7 +97,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "swift-application plugin")
-    @Ignore('https://github.com/gradle/gradle-private/issues/3811')
     def "source generation is skipped when swift sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/swift/main.swift") << """

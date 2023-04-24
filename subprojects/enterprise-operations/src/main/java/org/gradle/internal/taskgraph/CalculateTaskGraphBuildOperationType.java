@@ -76,6 +76,10 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
         TaskIdentity getTask();
 
+        /**
+         * @deprecated Use {@link #getNodeDependencies()} instead.
+         */
+        @Deprecated
         List<TaskIdentity> getDependencies();
 
         List<TaskIdentity> getMustRunAfter();

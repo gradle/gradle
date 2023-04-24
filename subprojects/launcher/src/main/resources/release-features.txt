@@ -1,3 +1,0 @@
- - Stable configuration cache
- - Experimental Kotlin DSL assignment syntax
- - Building with Java 20

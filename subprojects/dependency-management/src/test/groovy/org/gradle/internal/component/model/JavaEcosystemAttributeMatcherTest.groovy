@@ -320,7 +320,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     def matchConfigurations(List<List<AttributeContainerInternal>> candidates, AttributeContainerInternal requested) {
         // The first element in each configuration array is the implicit variant.
         def implicitVariants = candidates.collect { it.first() }
-        def configurationMatches = schema.matcher().matches(implicitVariants, requested, null, explanationBuilder)
+        def configurationMatches = schema.matcher().matches(implicitVariants, requested, explanationBuilder)
 
         // This test is checking only for successful (single) matches. If we matched multiple configurations
         // in the first round, something is wrong here. Fail before attempting the second round of variant matching.
@@ -328,7 +328,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         // Get all the variants for the configuration which was selected and apply variant matching on them.
         def configurationVariants = candidates.get(implicitVariants.indexOf(configurationMatches.get(0)))
-        def variantMatches = schema.matcher().matches(configurationVariants, requested, null, explanationBuilder)
+        def variantMatches = schema.matcher().matches(configurationVariants, requested, explanationBuilder)
 
         // Once again, the purpose of this test is for successful results. Something is wrong if we have
         // multiple matched variants.

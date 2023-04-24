@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -38,11 +39,21 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
         );
     }
 
+    @SuppressWarnings("deprecation")
     private static Set<? extends RenderableDependency> unresolvableChildren(Configuration configuration) {
-        final DependencySet dependencies = configuration.getDependencies();
-        if (dependencies.isEmpty()) {
+        final ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
+
+        final DependencySet dependencies;
+        if (configurationInternal.isCanBeDeclared()) {
+            dependencies = configuration.getDependencies();
+            if (dependencies.isEmpty()) {
+                return Collections.emptySet();
+            }
+        } else {
+            configurationInternal.assertHasNoDeclarations();
             return Collections.emptySet();
         }
+
         Set<UnresolvableRenderableDependency> children = Sets.newLinkedHashSet();
         for (final Dependency dependency : dependencies) {
             children.add(new UnresolvableRenderableDependency(

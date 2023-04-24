@@ -20,25 +20,25 @@ import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.RedirectStdOutAndErr
+
+import static org.gradle.internal.classloader.ClasspathUtil.getClasspathForClass
 
 class ToolingApiClassLoaderProvider {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
     private static final GradleDistribution CURRENT_GRADLE = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
 
     static ClassLoader getToolingApiClassLoader(ToolingApiDistribution toolingApi, Class<?> target) {
-        List<File> testClassPath = []
-        testClassPath << ClasspathUtil.getClasspathForClass(ToolingApiSpecification)
-        testClassPath << ClasspathUtil.getClasspathForClass(target)
+        def testClassPath = [ToolingApiSpecification, target]
+            .collect { getClasspathForClass(it) }
 
         testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
 
@@ -55,7 +55,7 @@ class ToolingApiClassLoaderProvider {
     }
 
     private static ClassLoader getTestClassLoader(ToolingApiDistribution toolingApi, List<File> testClasspath) {
-        synchronized(ToolingApiClassLoaderProvider) {
+        synchronized (ToolingApiClassLoaderProvider) {
             def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version.version)
             if (!classLoader) {
                 classLoader = createTestClassLoader(toolingApi, testClasspath)
@@ -87,6 +87,7 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowPackage('org.gradle.workers.fixtures')
         sharedSpec.allowPackage('org.gradle.launcher.daemon.testing')
         sharedSpec.allowPackage('org.gradle.tooling')
+        sharedSpec.allowPackage('org.gradle.kotlin.dsl.tooling.builders')
         sharedSpec.allowClass(OperatingSystem)
         sharedSpec.allowClass(Requires)
         sharedSpec.allowClass(TestPrecondition)

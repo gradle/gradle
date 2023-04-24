@@ -21,6 +21,7 @@ import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionE
 import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.accessors.kotlin
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionPartitionSecond
@@ -98,6 +99,11 @@ fun configureSourcesVariant() {
         }
         main.groovy.srcDirs.forEach {
             outgoing.artifact(it)
+        }
+        pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+            main.kotlin.srcDirs.forEach {
+                outgoing.artifact(it)
+            }
         }
     }
 }
@@ -217,6 +223,11 @@ fun Test.configureJvmForTest() {
             jvmArgs(listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")) // Used in tests by native platform library: WrapperProcess.getEnv
             jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils
         }
+    }
+    if (usesEmbeddedExecuter() && OperatingSystem.current().isWindows) {
+        // Disable incremental snapshotting for Windows, since it runs OOM,
+        // root cause: https://youtrack.jetbrains.com/issue/KT-57757
+        jvmArgs("-Dkotlin.incremental.useClasspathSnapshot=false")
     }
 }
 

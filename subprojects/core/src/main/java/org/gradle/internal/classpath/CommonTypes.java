@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.NonNullApi;
 import org.objectweb.asm.Type;
 
 import static org.objectweb.asm.Type.getType;
@@ -23,6 +24,7 @@ import static org.objectweb.asm.Type.getType;
 /**
  * A collection of common types and method descriptors used when instrumenting bytecode.
  */
+@NonNullApi
 final class CommonTypes {
     public static final Type OBJECT_TYPE = getType(Object.class);
     public static final Type STRING_TYPE = getType(String.class);

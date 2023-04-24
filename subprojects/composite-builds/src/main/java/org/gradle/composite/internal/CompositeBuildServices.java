@@ -24,6 +24,8 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -75,8 +77,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext();
         }
 
-        public DefaultLocalComponentInAnotherBuildProvider createLocalComponentProvider() {
-            return new DefaultLocalComponentInAnotherBuildProvider(new IncludedBuildDependencyMetadataBuilder());
+        public DefaultLocalComponentInAnotherBuildProvider createLocalComponentProvider(CalculatedValueContainerFactory calculatedValueContainerFactory, LocalComponentGraphResolveStateFactory resolveStateFactory) {
+            return new DefaultLocalComponentInAnotherBuildProvider(new IncludedBuildDependencyMetadataBuilder(), resolveStateFactory, calculatedValueContainerFactory);
         }
     }
 }

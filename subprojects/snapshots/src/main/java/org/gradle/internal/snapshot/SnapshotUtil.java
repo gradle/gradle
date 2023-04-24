@@ -113,4 +113,26 @@ public class SnapshotUtil {
         });
         return builder.build();
     }
+
+    /**
+     * For a {@link RegularFileSnapshot} returns the file length, otherwise {@code 0}.
+     */
+    public static long getLength(FileSystemLocationSnapshot snapshot) {
+        return snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer<Long>() {
+            @Override
+            public Long visitDirectory(DirectorySnapshot directorySnapshot) {
+                return 0L;
+            }
+
+            @Override
+            public Long visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                return fileSnapshot.getMetadata().getLength();
+            }
+
+            @Override
+            public Long visitMissing(MissingFileSnapshot missingSnapshot) {
+                return 0L;
+            }
+        });
+    }
 }
