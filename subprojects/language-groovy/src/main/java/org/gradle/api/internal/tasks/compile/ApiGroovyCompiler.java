@@ -309,7 +309,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     private static boolean isFatalException(org.codehaus.groovy.control.CompilationFailedException e) {
         if (e instanceof org.codehaus.groovy.control.MultipleCompilationErrorsException) {
             for (Message message : ((MultipleCompilationErrorsException) e).getErrorCollector().getErrors()) {
-                if (message instanceof ExceptionMessage && ((ExceptionMessage) message).getCause().getClass().equals(RuntimeException.class)) {
+                if (message instanceof ExceptionMessage) {
                     return true;
                 }
             }
