@@ -40,6 +40,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -80,8 +81,6 @@ public abstract class CompileOptions extends AbstractOptions {
     private List<String> compilerArgs = Lists.newArrayList();
     private final List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
 
-    private boolean incremental = true;
-
     private FileCollection sourcepath;
 
     private FileCollection annotationProcessorPath;
@@ -105,6 +104,7 @@ public abstract class CompileOptions extends AbstractOptions {
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
+        getIncremental().convention(true);
     }
 
     /**
@@ -375,21 +375,9 @@ public abstract class CompileOptions extends AbstractOptions {
         return this;
     }
 
-    /**
-     * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
-     */
-    public CompileOptions setIncremental(boolean incremental) {
-        this.incremental = incremental;
-        return this;
-    }
-
-    /**
-     * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
-     */
     @Internal
-    public boolean isIncremental() {
-        return incremental;
-    }
+    @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
+    public abstract Property<Boolean> getIncremental();
 
     /**
      * Used to enable or disable incremental compilation after a failure.

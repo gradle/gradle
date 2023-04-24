@@ -13,7 +13,9 @@ dependencies {
     compileOnly(project(":model-core"))
     compileOnly(project(":reporting"))
     compileOnly(libs.groovy)
-    compileOnly(project(":code-quality"))
+    implementation(project(":code-quality"))
+    implementation(project(":language-java"))
+    implementation(project(":language-jvm"))
 
     // Instrumentation dependencies
     compileOnly(project(":internal-instrumentation-api"))
