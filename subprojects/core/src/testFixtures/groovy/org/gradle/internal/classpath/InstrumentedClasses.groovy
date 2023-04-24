@@ -16,10 +16,6 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.api.file.RelativePath
-import org.gradle.internal.classloader.TransformingClassLoader
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
 
 import java.util.function.Predicate
 
@@ -27,7 +23,7 @@ class InstrumentedClasses {
 
     private final Predicate<String> shouldInstrumentClassByName
 
-    private final InstrumentedClassLoader loader
+    private final TestInstrumentedClassLoader loader
 
     InstrumentedClasses(
         ClassLoader source,
@@ -35,7 +31,7 @@ class InstrumentedClasses {
         JvmBytecodeInterceptorSet interceptors
     ) {
         this.shouldInstrumentClassByName = shouldInstrumentClassByName
-        loader = new InstrumentedClassLoader(
+        loader = new TestInstrumentedClassLoader(
             source,
             shouldInstrumentClassByName,
             new InstrumentingTransformer(interceptors)
@@ -60,66 +56,5 @@ class InstrumentedClasses {
             throw new IllegalArgumentException("closures with captured arguments are not supported yet")
         }
         instrumentedClass(originalClosure.class).getDeclaredConstructor(Object, Object).newInstance(originalClosure.thisObject, originalClosure.owner) as Closure<?>
-    }
-
-    private static class InstrumentedClassLoader extends TransformingClassLoader {
-        private final CachedClasspathTransformer.Transform transform
-        private final Predicate<String> shouldLoadTransformedClass
-        private final ClassLoader source
-
-        InstrumentedClassLoader(
-            ClassLoader source,
-            Predicate<String> shouldLoadTransformedClass,
-            CachedClasspathTransformer.Transform transform
-        ) {
-            super("test-transformed-loader", source, [])
-            this.shouldLoadTransformedClass = shouldLoadTransformedClass
-            this.transform = transform
-            this.source = source
-        }
-
-        @Override
-        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-            if (shouldLoadTransformedClass.test(name)) {
-                def result = findLoadedClass(name)
-                if (result == null) {
-                    result = findClass(name)
-                }
-                if (resolve) {
-                    resolveClass(result)
-                }
-                return result
-            }
-            return super.loadClass(name, resolve)
-        }
-
-        @Override
-        URL findResource(String name) {
-            source.findResource(name)
-        }
-
-        @Override
-        protected byte[] transform(String className, byte[] bytes) {
-            def path = name.replace(".", "/") + ".class"
-            ClasspathEntryVisitor.Entry classEntry = new ClasspathEntryVisitor.Entry() {
-                @Override
-                String getName() { name }
-
-                @Override
-                RelativePath getPath() { RelativePath.parse(true, path) }
-
-                @Override
-                ClasspathEntryVisitor.Entry.CompressionMethod getCompressionMethod() { ClasspathEntryVisitor.Entry.CompressionMethod.STORED }
-
-                @Override
-                byte[] getContent() { bytes }
-            }
-            ClassReader originalReader = new ClassReader(bytes)
-            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS)
-            def pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader))
-            originalReader.accept(pathAndVisitor.right(), ClassReader.EXPAND_FRAMES)
-
-            return writer.toByteArray()
-        }
     }
 }
