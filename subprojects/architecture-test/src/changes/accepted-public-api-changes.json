@@ -7,6 +7,31 @@
             "changes": [
                 "org.gradle.api.file.FileSystemLayout"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getIncremental()",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.isIncremental()",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setIncremental(boolean)",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
