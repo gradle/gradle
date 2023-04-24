@@ -105,6 +105,7 @@ public abstract class CompileOptions extends AbstractOptions {
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
+        getIncremental().convention(true);
     }
 
     /**
@@ -375,21 +376,8 @@ public abstract class CompileOptions extends AbstractOptions {
         return this;
     }
 
-    /**
-     * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
-     */
-    public CompileOptions setIncremental(boolean incremental) {
-        this.incremental = incremental;
-        return this;
-    }
-
-    /**
-     * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
-     */
     @Internal
-    public boolean isIncremental() {
-        return incremental;
-    }
+    public abstract Property<Boolean> getIncremental();
 
     /**
      * Used to enable or disable incremental compilation after a failure.
