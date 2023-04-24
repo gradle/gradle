@@ -56,7 +56,7 @@ abstract class AbstractJUnitLoggingOutputCaptureIntegrationTest extends Abstract
                   JUL.warning("jul warning");
                 }
             }
-        """
+        """.stripIndent()
 
         when:
         succeeds("test")

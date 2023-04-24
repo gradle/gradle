@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
+import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 
 abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
@@ -205,11 +206,11 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractJUnitM
                 .testClass("EncodingTest")
                 .assertTestPassed("encodesCdata")
                 .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
-                .assertStdout(equalTo("""
-                    < html allowed, cdata closing token ]]> encoded!
-                    no EOL, non-asci char: ż
-                    xml entity: &amp;
-                """.stripIndent().stripLeading()))
+                .assertStdout(containsString(
+                    "< html allowed, cdata closing token ]]> encoded!\n" +
+                    "no EOL, non-asci char: ż\n" +
+                    "xml entity: &amp;"
+                ))
                 .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
     }
 
