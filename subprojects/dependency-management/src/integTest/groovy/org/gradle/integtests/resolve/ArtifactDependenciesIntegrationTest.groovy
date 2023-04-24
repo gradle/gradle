@@ -328,7 +328,6 @@ project(':b') {
         succeeds("test")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
         expect:
         def module = repo.module('org.gradle.test', 'lib', '1.0')
@@ -350,10 +349,16 @@ dependencies {
     compile "org.gradle.test:lib:1.0@zip"
     compile "org.gradle.test:dist:1.0"
 }
+
+// Resolve outside of TaskAction to work with Configuration Cache
+assert configurations.compile.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
+ArtifactView lenientView = configurations.compile.getIncoming().artifactView(view -> {
+    view.setLenient(true)
+})
+def artifacts = lenientView.artifacts.artifacts.collect { it.id.name }
+        
 task test {
     doLast {
-        assert configurations.compile.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
-        def artifacts = configurations.compile.resolvedConfiguration.resolvedArtifacts as List
         assert artifacts.size() == 4
         assert artifacts[0].name == 'lib'
         assert artifacts[0].type == 'jar'

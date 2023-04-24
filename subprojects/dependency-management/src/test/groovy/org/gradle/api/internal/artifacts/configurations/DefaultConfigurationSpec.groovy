@@ -72,6 +72,10 @@ import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.locking.DefaultDependencyLockingState
+import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
+import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
@@ -81,6 +85,8 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -339,7 +345,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
             view.setLenient(true)
         })
-        lenientView.getArtifacts().getArtifactFiles()
+        lenientView.files.files // Force resolution
 
         then:
         configuration.getState() == RESOLVED_WITH_FAILURES
@@ -878,7 +884,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def copy = config.copy()
 
         when:
-        copy.resolvedConfiguration
+        copy.incoming.files.files
 
         then:
         interaction { resolveConfig(copy) }
@@ -1003,7 +1009,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.beforeResolve(action)
 
         when:
-        config.resolvedConfiguration
+        config.incoming.files.files
 
         then:
         interaction { resolveConfig(config) }
@@ -1022,7 +1028,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         when:
-        config.resolvedConfiguration
+        config.incoming.files.files
 
         then:
         called
@@ -1036,7 +1042,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.afterResolve(action)
 
         when:
-        config.resolvedConfiguration
+        config.incoming.files.files
 
         then:
         interaction { resolveConfig(config) }
@@ -1056,7 +1062,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         when:
-        config.resolvedConfiguration
+        config.incoming.files.files
 
         then:
         called
@@ -1311,6 +1317,17 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def config = conf("conf")
         when:
         expectResolved([new File("result")] as Set)
+
+        final StringBuilder output = new StringBuilder()
+        final OutputEventListener listener = new OutputEventListener() {
+            @Override
+            void onOutput(OutputEvent event) {
+                output.append(event.message)
+            }
+        }
+        final OutputEventListenerBackedLoggerContext context = LoggerFactory.ILoggerFactory as OutputEventListenerBackedLoggerContext
+        final OutputEventListenerBackedLogger logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as OutputEventListenerBackedLogger
+        context.outputEventListener = listener
 
         def previousFiles = config.files
         def previousResolutionResult = config.incoming.resolutionResult

@@ -17,6 +17,22 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getResolvedConfiguration$annotations(org.gradle.api.NamedDomainObjectProvider)",
+            "acceptation": "Deprecating getResolvedConfiguration()",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getResolvedConfiguration(org.gradle.api.NamedDomainObjectProvider)",
+            "acceptation": "Deprecating getResolvedConfiguration()",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.assign(org.gradle.api.file.FileSystemLocationProperty,java.io.File)",
             "acceptation": "Binary compatibility check incorrectly detects Kotlin extension methods",

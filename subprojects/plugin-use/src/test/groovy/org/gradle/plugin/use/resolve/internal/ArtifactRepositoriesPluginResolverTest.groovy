@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
@@ -41,9 +40,6 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
     }
     def repositories = Mock(RepositoryHandler) {
         iterator() >> [repository].iterator()
-    }
-    def resolvedConfiguration = Mock(ResolvedConfiguration) {
-        hasError() >> false
     }
     def artifactCollection = Mock(ArtifactCollection) {
         getFailures() >> []
