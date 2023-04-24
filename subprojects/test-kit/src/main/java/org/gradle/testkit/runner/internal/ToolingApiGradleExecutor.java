@@ -44,8 +44,8 @@ import org.gradle.tooling.events.task.TaskSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.File;
@@ -110,7 +110,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             connection = gradleConnector.connect();
             targetGradleVersion = determineTargetGradleVersion(connection);
             if (targetGradleVersion.compareTo(TestKitFeature.RUN_BUILDS.getSince()) < 0) {
-                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions 2.6 and later.", targetGradleVersion.getVersion()));
+                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions %s and later.",
+                    targetGradleVersion.getVersion(), TestKitFeature.RUN_BUILDS.getSince()));
             }
 
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
