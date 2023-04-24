@@ -190,10 +190,7 @@ dependencies {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-}
-tasks.compileJava {
-    // Without this, javac will complain about unclaimed annotations
-    options.compilerArgs.add("-Xlint:-processing")
+    ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations
 }
 
 packageCycles {
