@@ -95,7 +95,7 @@ tasks.test {
 
 // tag::java-compiler-options[]
 tasks.compileJava {
-    options.isIncremental = true
+    options.getIncremental().set(true)
     options.isFork = true
     options.isFailOnError = false
 }

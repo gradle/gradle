@@ -93,7 +93,7 @@ test.onlyIf("mySkipTests property is not set") {
 
 // tag::java-compiler-options[]
 compileJava {
-    options.incremental = true
+    options.setIncremental(true)
     options.fork = true
     options.failOnError = false
 }
