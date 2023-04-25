@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultGradleConnector extends GradleConnector implements ProjectConnectionCloseListener {
+    public static final GradleVersion MINIMUM_SUPPORTED_GRADLE_VERSION = GradleVersion.version("3.0");
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleConnector.class);
     private final ConnectionFactory connectionFactory;
     private final DistributionFactory distributionFactory;

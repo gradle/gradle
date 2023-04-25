@@ -184,6 +184,9 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://mvnrepository.com/artifact/com.guardsquare/proguard-gradle
         static proguardGradle = "7.3.1"
+
+        // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
+        static palantirConsistentVersions = "2.12.0"
     }
 
     static class Versions implements Iterable<String> {
