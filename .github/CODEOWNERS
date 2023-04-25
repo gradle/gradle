@@ -24,12 +24,15 @@ subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt
 
 # JVM platform
 subprojects/code-quality/                   @gradle/bt-jvm
+subprojects/distributions-jvm/              @gradle/bt-jvm
+subprojects/distributions-publishing/       @gradle/bt-jvm
 subprojects/ear/                            @gradle/bt-jvm
 subprojects/jacoco/                         @gradle/bt-jvm
 subprojects/java-compiler-plugin/           @gradle/bt-jvm
 subprojects/jvm-services/                   @gradle/bt-jvm
 subprojects/language-groovy/                @gradle/bt-jvm
 subprojects/language-java/                  @gradle/bt-jvm
+subprojects/language-jvm/                   @gradle/bt-jvm
 subprojects/normalization-java/             @gradle/bt-jvm
 subprojects/platform-jvm/                   @gradle/bt-jvm
 subprojects/plugins/                        @gradle/bt-jvm
@@ -95,3 +98,7 @@ gradle/shared-with-buildSrc/ @gradle/bt-developer-productivity
 subprojects/*/build.gradle*  @gradle/bt-developer-productivity
 /build.gradle*                @gradle/bt-developer-productivity
 /settings.gradle*              @gradle/bt-developer-productivity
+
+# gitStream files
+.cm/                                @tresat
+.github/workflows/gitstream.yml     @tresat

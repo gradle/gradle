@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.tasks.Internal
+import org.gradle.util.Path
 
 class AbstractGenerateGraphTask extends DefaultTask {
     @Internal
@@ -51,13 +52,7 @@ class AbstractGenerateGraphTask extends DefaultTask {
     String formatComponent(ResolvedComponentResult result) {
         String type
         if (result.id instanceof ProjectComponentIdentifier) {
-            if (result.id.build.name == ':') {
-                type = "project:${result.id.projectPath}"
-            } else if (result.id.projectPath == ':') {
-                type = "project::${result.id.build.name}"
-            } else {
-                type = "project::${result.id.build.name}${result.id.projectPath}"
-            }
+            type = "project:${Path.path(result.id.build.buildPath).append(Path.path(result.id.projectPath))}"
         } else if (result.id instanceof ModuleComponentIdentifier) {
             type = "module:${result.id.group}:${result.id.module}:${result.id.version},${result.id.moduleIdentifier.group}:${result.id.moduleIdentifier.name}"
         } else {
