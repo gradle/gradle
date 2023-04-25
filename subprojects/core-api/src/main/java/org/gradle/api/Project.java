@@ -1801,4 +1801,21 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 4.8
      */
     DependencyLockingHandler getDependencyLocking();
+
+    /**
+     * This service is available in the Project scope.
+     */
+    @Incubating
+    interface Service {
+    }
+
+    /**
+     * This service is available in the Project scope.
+     */
+    <T extends ConfigurationTimeService & Service> T getService(Class<T> serviceClass);
+
+    /**
+     * This service is available in the Project scope.
+     */
+    <T extends ExecutionTimeService & Service> T getExecutionTimeService(Class<T> serviceClass);
 }

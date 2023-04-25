@@ -832,4 +832,24 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @since 6.1
      */
     void usesService(Provider<? extends BuildService<?>> service);
+
+    /**
+     * This service is available in the Task scope.
+     */
+    @Incubating
+    interface Service {
+    }
+
+    /**
+     * Returns a service available in this task scope. The returned service can be used at configuration or execution time. For configuration-time-only services use
+     * {@link Project#getService(Class)} of {@link #getProject()}.
+     */
+    @Incubating
+    <T extends Service & AllTimeService> T getService(Class<T> serviceClass);
+
+    /**
+     * Returns a service that can only be used at execution time.
+     */
+    @Incubating
+    <T extends Service & ExecutionTimeService> T getExecutionTimeService(Class<T> serviceClass);
 }

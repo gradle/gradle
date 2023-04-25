@@ -23,8 +23,10 @@ import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
+import org.gradle.api.AllTimeService;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Describable;
+import org.gradle.api.ExecutionTimeService;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -1075,5 +1077,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private BuildServiceRegistryInternal getBuildServiceRegistry() {
         return getServices().get(BuildServiceRegistryInternal.class);
+    }
+
+    @Override
+    public <T extends Service & AllTimeService> T getService(Class<T> serviceClass) {
+        return getServices().get(serviceClass);
+    }
+
+    @Override
+    public <T extends Service & ExecutionTimeService> T getExecutionTimeService(Class<T> serviceClass) {
+        return getServices().get(serviceClass);
     }
 }

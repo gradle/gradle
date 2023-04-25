@@ -17,6 +17,9 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
+import org.gradle.api.ExecutionTimeService;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -28,7 +31,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 6.0
  */
 @ServiceScope(Scopes.Build.class)
-public interface ExecOperations {
+public interface ExecOperations extends ExecutionTimeService, Project.Service, Task.Service {
 
     /**
      * Executes the specified external process.

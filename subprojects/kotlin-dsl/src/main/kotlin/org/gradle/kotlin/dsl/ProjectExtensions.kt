@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.ConfigurationTimeService
+import org.gradle.api.ExecutionTimeService
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -280,3 +282,7 @@ fun Project.gradleKotlinDsl(): Dependency =
 )
 fun Project.plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit): Nothing =
     invalidPluginsCall()
+
+
+inline fun <reified T> Project.getService(): T where T : ConfigurationTimeService, T : Project.Service = getService(T::class.java)
+inline fun <reified T> Project.getExecutionTimeService(): T where T : ExecutionTimeService, T : Project.Service = getExecutionTimeService(T::class.java)

@@ -17,6 +17,9 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.AllTimeService;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -30,7 +33,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 6.0
  */
 @ServiceScope(Scopes.Build.class)
-public interface FileSystemOperations {
+public interface FileSystemOperations extends AllTimeService, Project.Service, Task.Service {
 
     /**
      * Copies the specified files.

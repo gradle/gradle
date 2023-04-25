@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.precompile
 
+import org.gradle.api.ConfigurationTimeService
+import org.gradle.api.ExecutionTimeService
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
@@ -82,4 +84,8 @@ open class PrecompiledProjectScript(
         override fun apply(apply: Boolean) = this
         override fun version(version: String?) = this
     }
+
+    override fun <T> getService(serviceClass: Class<T>): T where T : ConfigurationTimeService, T : Project.Service = delegate.getService(serviceClass)
+
+    override fun <T> getExecutionTimeService(serviceClass: Class<T>): T where T : ExecutionTimeService, T : Project.Service = delegate.getExecutionTimeService(serviceClass)
 }

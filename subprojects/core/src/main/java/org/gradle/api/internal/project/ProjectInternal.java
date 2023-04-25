@@ -17,6 +17,8 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Action;
+import org.gradle.api.ConfigurationTimeService;
+import org.gradle.api.ExecutionTimeService;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
@@ -254,5 +256,15 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
         DependencyHandler getDependencies();
 
         ConfigurationContainer getConfigurations();
+    }
+
+    @Override
+    default <T extends ConfigurationTimeService & Service> T getService(Class<T> serviceClass) {
+        return getServices().get(serviceClass);
+    }
+
+    @Override
+    default <T extends ExecutionTimeService & Service> T getExecutionTimeService(Class<T> serviceClass) {
+        return getServices().get(serviceClass);
     }
 }

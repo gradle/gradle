@@ -16,7 +16,9 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.AllTimeService;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -31,7 +33,7 @@ import java.io.File;
  * @since 4.1
  */
 @ServiceScope(Scopes.Project.class)
-public interface ProjectLayout {
+public interface ProjectLayout extends AllTimeService, Project.Service, Task.Service {
     /**
      * Returns the project directory.
      */

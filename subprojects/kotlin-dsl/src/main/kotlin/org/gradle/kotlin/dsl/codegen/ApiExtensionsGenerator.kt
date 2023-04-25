@@ -153,8 +153,11 @@ fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction
                 val javaClassToKotlinClass =
                     function.parameters.any { it.type.hasJavaClass() }
 
+                val hasUnsupportedConstructs =
+                    function.typeParameters.any { it.bounds.size > 1 }
+
                 val extension
-                    get() = groovyNamedArgumentsToVarargs || javaClassToKotlinClass
+                    get() = groovyNamedArgumentsToVarargs || javaClassToKotlinClass && !hasUnsupportedConstructs
             }
 
             if (!candidateFor.extension) {

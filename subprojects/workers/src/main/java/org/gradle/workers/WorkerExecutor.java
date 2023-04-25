@@ -17,6 +17,8 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
+import org.gradle.api.AllTimeService;
+import org.gradle.api.Task;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -45,7 +47,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 3.5
  */
 @ServiceScope(Scopes.Project.class)
-public interface WorkerExecutor {
+public interface WorkerExecutor extends AllTimeService, Task.Service {
 
     /**
      * Creates a {@link WorkQueue} to submit work for asynchronous execution with no isolation.
