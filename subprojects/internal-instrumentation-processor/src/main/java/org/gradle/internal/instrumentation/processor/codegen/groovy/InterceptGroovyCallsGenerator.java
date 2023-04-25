@@ -64,6 +64,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         MethodSpec getInterceptors = generateGetInterceptorsMethod(interceptorTypeSpecs);
 
         return builder -> builder
+            .addModifiers(Modifier.PUBLIC)
             .addTypes(interceptorTypeSpecs)
             .addMethod(getInterceptors);
     }

@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.internal.java")
-}
+package org.gradle.internal.instrumentation.property.upgrades;
 
-dependencies {
-    implementation(project(":model-core"))
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
+import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
 
-    implementation(libs.groovy)
-    implementation(libs.asm)
-    implementation(libs.asmTree)
-    implementation(libs.asmCommons)
+/**
+ * Add classes to visit to this registry to enable property upgrade instrumentation.
+ *
+ * Classes that should be visited should be added to the @VisitForInstrumentation annotation, e.g.
+ * @VisitForInstrumentation(value = {Checkstyle.class}).
+ */
+@VisitForInstrumentation(value = {})
+public interface PropertyUpgradeInstrumentationRegistry {
 }
