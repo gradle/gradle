@@ -20,4 +20,5 @@ dependencies {
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.0.14")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
+    implementation("org.gradle:test-retry-gradle-plugin:1.5.2")
 }
