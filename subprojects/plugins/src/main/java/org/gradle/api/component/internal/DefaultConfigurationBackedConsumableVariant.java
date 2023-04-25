@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.component.ConfigurationBackedConsumableVariant;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;

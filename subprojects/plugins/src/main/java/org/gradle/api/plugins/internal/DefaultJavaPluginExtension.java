@@ -35,7 +35,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.JvmFeature;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;

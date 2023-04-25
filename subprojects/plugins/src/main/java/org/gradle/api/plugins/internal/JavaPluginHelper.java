@@ -18,15 +18,15 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
-import org.gradle.api.component.ComponentFeature;
+import org.gradle.api.component.internal.ComponentFeature;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.jvm.component.JvmFeature;
-import org.gradle.jvm.component.JvmSoftwareComponent;
+import org.gradle.jvm.component.internal.JvmFeature;
+import org.gradle.jvm.component.internal.JvmSoftwareComponent;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 

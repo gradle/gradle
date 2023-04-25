@@ -31,7 +31,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.JvmFeature;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.JavaExec;

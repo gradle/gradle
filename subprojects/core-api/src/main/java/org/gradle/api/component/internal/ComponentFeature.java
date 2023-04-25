@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.api.component.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
@@ -32,10 +31,7 @@ import javax.annotation.Nullable;
  * <p>Features are classified by their capabilities. Each variant of a feature provides at least
  * the same set of capabilities as the feature itself. Some variants may expose additional
  * capabilities than those of its owning feature, for example with fat jars.</p>
- *
- * @since 8.2
  */
-@Incubating
 public interface ComponentFeature extends Named {
 
     /**

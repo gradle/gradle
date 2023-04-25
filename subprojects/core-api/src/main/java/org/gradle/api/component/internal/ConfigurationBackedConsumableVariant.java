@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.api.component.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 
 /**
@@ -26,10 +25,7 @@ import org.gradle.api.artifacts.Configuration;
  * <p>Mutable access to the underling {@code Configuration} is not permitted via the {@code ConsumableVariant}
  * methods. Any modification to this variant should be performed on the underlying configuration itself via
  * the {@link #getConfiguration()} and {@link #configuration(Action)} methods.</p>
- *
- * @since 8.2
  */
-@Incubating
 public interface ConfigurationBackedConsumableVariant extends ConsumableVariant {
 
     /**

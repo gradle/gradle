@@ -555,6 +555,11 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
     private static final String importStatements() {
         """
             import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
+
+            // Future public types
+            import org.gradle.jvm.component.internal.JvmSoftwareComponent
+            import org.gradle.jvm.component.internal.JvmFeature
+            import org.gradle.api.component.internal.ConfigurationBackedConsumableVariant
         """
     }
 }

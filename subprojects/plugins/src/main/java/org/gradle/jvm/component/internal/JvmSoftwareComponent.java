@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.component;
+package org.gradle.jvm.component.internal;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.Incubating;
-import org.gradle.api.component.ComponentFeature;
-import org.gradle.api.component.ComponentWithFeatures;
+import org.gradle.api.component.internal.ComponentFeature;
+import org.gradle.api.component.internal.ComponentWithFeatures;
 
 /**
  * The component created by the {@code java} plugin. This component is a configurable {@link ComponentWithFeatures}.
- *
- * @since 8.2
  */
-@Incubating
 public interface JvmSoftwareComponent extends ComponentWithFeatures {
 
     /**

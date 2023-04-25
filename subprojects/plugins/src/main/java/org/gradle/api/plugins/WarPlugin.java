@@ -33,7 +33,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultWarPluginConvention;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.JvmFeature;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.deprecation.DeprecationLogger;

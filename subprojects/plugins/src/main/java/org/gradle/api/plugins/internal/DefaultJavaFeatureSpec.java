@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.jvm.component.internal.DefaultJvmFeature;
-import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.JvmFeature;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;

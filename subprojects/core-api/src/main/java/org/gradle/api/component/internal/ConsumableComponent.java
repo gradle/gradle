@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.api.component.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
 
 import java.util.Set;
 
@@ -27,10 +27,7 @@ import java.util.Set;
  *
  * <p>Within a dependency graph, a selected component may contribute multiple variants as long as
  * those variants have distinct capabilities.</p>
- *
- * @since 8.2
  */
-@Incubating
 public interface ConsumableComponent extends SoftwareComponent {
 
     // TODO: A local component belongs to a module and should define a ComponentIdentifier which

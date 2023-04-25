@@ -19,7 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.JvmFeature;
 
 import javax.inject.Inject;
 

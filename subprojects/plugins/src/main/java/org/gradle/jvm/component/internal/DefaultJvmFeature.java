@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ConfigurationBackedConsumableVariant;
-import org.gradle.api.component.ConsumableVariant;
+import org.gradle.api.component.internal.ConfigurationBackedConsumableVariant;
+import org.gradle.api.component.internal.ConsumableVariant;
 import org.gradle.api.component.internal.DefaultConfigurationBackedConsumableVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
@@ -46,7 +46,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.jvm.component.JvmFeature;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
@@ -144,7 +143,7 @@ public class DefaultJvmFeature implements JvmFeature {
         this.variants.registerFactory(ConfigurationBackedConsumableVariant.class, configName -> {
             // TODO: Should we create the configuration with a different name?
             // If the user creates an apiElements and the feature name is test should we use testApiElements for the configuration name?
-            Configuration config = project.getConfigurations().createWithRole(configName, elementsConfigurationRole);
+            Configuration config = project.getConfigurations().maybeCreateWithRole(configName, elementsConfigurationRole, false, false);
             capabilities.forEach(config.getOutgoing()::capability);
             return objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, config);
         });
@@ -171,9 +170,8 @@ public class DefaultJvmFeature implements JvmFeature {
         this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
 
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
-        this.apiElements = createApiElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
-        this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
-        variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, apiElements));
+        this.apiElements = createApiElements(jarArtifact, compileJava);
+        this.runtimeElements = createRuntimeElements(jarArtifact, compileJava);
         variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, runtimeElements));
 
         if (extendProductionCode) {
@@ -237,14 +235,10 @@ public class DefaultJvmFeature implements JvmFeature {
         publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private Configuration createApiElements(
-        RoleBasedConfigurationContainerInternal configurations,
-        PublishArtifact jarArtifact,
-        TaskProvider<JavaCompile> compileJava,
-        ConfigurationRole elementsRole
-    ) {
+    private Configuration createApiElements(PublishArtifact jarArtifact, TaskProvider<JavaCompile> compileJava) {
         String configName = getConfigurationName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration apiElements = configurations.maybeCreateWithRole(configName, elementsRole, false, false);
+        ConfigurationBackedConsumableVariant variant = variants.create(configName, ConfigurationBackedConsumableVariant.class);
+        Configuration apiElements = variant.getConfiguration();
 
         apiElements.setVisible(false);
         jvmPluginServices.useDefaultTargetPlatformInference(apiElements, compileJava);
@@ -252,20 +246,16 @@ public class DefaultJvmFeature implements JvmFeature {
         capabilities.forEach(apiElements.getOutgoing()::capability);
         apiElements.setDescription("API elements for the '" + name + "' feature.");
 
-        // Configure variants
+        // Configure sub-variants
         addJarArtifactToConfiguration(apiElements, jarArtifact);
 
         return apiElements;
     }
 
-    private Configuration createRuntimeElements(
-        RoleBasedConfigurationContainerInternal configurations,
-        PublishArtifact jarArtifact,
-        TaskProvider<JavaCompile> compileJava,
-        ConfigurationRole elementsRole
-    ) {
+    private Configuration createRuntimeElements(PublishArtifact jarArtifact, TaskProvider<JavaCompile> compileJava) {
         String configName = getConfigurationName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeElements = configurations.maybeCreateWithRole(configName, elementsRole, false, false);
+        ConfigurationBackedConsumableVariant variant = variants.create(configName, ConfigurationBackedConsumableVariant.class);
+        Configuration runtimeElements = variant.getConfiguration();
 
         runtimeElements.setVisible(false);
         jvmPluginServices.useDefaultTargetPlatformInference(runtimeElements, compileJava);
@@ -275,7 +265,7 @@ public class DefaultJvmFeature implements JvmFeature {
 
         runtimeElements.extendsFrom(implementation, runtimeOnly);
 
-        // Configure variants
+        // Configure sub-variants
         addJarArtifactToConfiguration(runtimeElements, jarArtifact);
         jvmPluginServices.configureClassesDirectoryVariant(runtimeElements, sourceSet);
         jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
@@ -321,6 +311,8 @@ public class DefaultJvmFeature implements JvmFeature {
             project
         );
 
+        // TODO: Update createDocumentationVariantWithArtifact to accept a configuration instead of
+        // creating it so that we can create the variant with the `create` method.
         variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, javadocElements));
     }
 
@@ -339,6 +331,8 @@ public class DefaultJvmFeature implements JvmFeature {
             project
         );
 
+        // TODO: Update createDocumentationVariantWithArtifact to accept a configuration instead of
+        // creating it so that we can create the variant with the `create` method.
         variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, sourcesElements));
     }
 

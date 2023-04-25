@@ -54,7 +54,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
-import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.JvmFeature;
 import org.gradle.jvm.component.internal.DefaultJvmFeature;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.testing.base.TestingExtension;

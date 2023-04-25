@@ -20,7 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.JvmFeature;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.api.component.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -32,10 +31,7 @@ import java.util.Set;
  *
  * <p>Variants are identified by their attributes and capabilities. They produce artifacts and may
  * have dependencies on other components.</p>
- *
- * @since 8.2
  */
-@Incubating
 public interface ConsumableVariant extends Named, HasAttributes {
 
     // TODO: Local variants backed by configurations can have multiple attribute sets.

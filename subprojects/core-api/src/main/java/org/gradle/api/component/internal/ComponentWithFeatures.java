@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
-
-import org.gradle.api.Incubating;
+package org.gradle.api.component.internal;
 
 import java.util.Set;
 
@@ -24,10 +22,7 @@ import java.util.Set;
  * A {@link ConsumableComponent} which is composed of multiple {@link ComponentFeature}s.
  *
  * <p>Variants of this component are derived by aggregating all variants of child features.</p>
- *
- * @since 8.2
  */
-@Incubating
 public interface ComponentWithFeatures extends ConsumableComponent {
 
     /**

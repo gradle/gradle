@@ -22,7 +22,7 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.JvmFeature;
 
 /**
  * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.

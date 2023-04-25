@@ -22,9 +22,9 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ComponentFeature;
-import org.gradle.api.component.ConfigurationBackedConsumableVariant;
-import org.gradle.api.component.ConsumableVariant;
+import org.gradle.api.component.internal.ComponentFeature;
+import org.gradle.api.component.internal.ConfigurationBackedConsumableVariant;
+import org.gradle.api.component.internal.ConsumableVariant;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.model.ObjectFactory;
@@ -36,8 +36,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.jvm.component.JvmSoftwareComponent;
-import org.gradle.jvm.component.JvmFeature;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -69,7 +67,8 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
                 Usage usage = variant.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
                 String scope = usage != null && usage.getName().equals(Usage.JAVA_API) ? "compile" : "runtime";
 
-                boolean optional = !variant.getCapabilities().getCapabilities().isEmpty();
+                boolean optional = !variant.getName().equals("apiElements") &&
+                    !variant.getName().equals("runtimeElements");
 
                 Configuration configuration = ((ConfigurationBackedConsumableVariant) variant).getConfiguration();
                 addVariantsFromConfiguration(configuration, new JavaConfigurationVariantMapping(scope, optional));

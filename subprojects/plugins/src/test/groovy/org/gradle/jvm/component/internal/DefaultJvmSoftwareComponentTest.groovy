@@ -24,9 +24,9 @@ import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.attributes.Usage
 import org.gradle.api.capabilities.CapabilitiesMetadata
 import org.gradle.api.capabilities.Capability
-import org.gradle.api.component.ComponentFeature
-import org.gradle.api.component.ConfigurationBackedConsumableVariant
-import org.gradle.api.component.ConsumableVariant
+import org.gradle.api.component.internal.ComponentFeature
+import org.gradle.api.component.internal.ConfigurationBackedConsumableVariant
+import org.gradle.api.component.internal.ConsumableVariant
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.component.MavenPublishingAwareVariant
 import org.gradle.api.internal.java.usagecontext.FeatureConfigurationVariant
@@ -34,7 +34,6 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.jvm.component.JvmFeature
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -189,26 +188,23 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
     }
 
     def "variants are mapped to usage contexts"() {
-        given:
-        def capability = new DefaultImmutableCapability("org", "foo", null)
-
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
         component.features.registerBinding(TestFeature, DefaultTestFeature)
 
         def feature = component.features.create("main", TestFeature)
-        feature.variants.add(configurationVariant("variant1", [], false))
-        feature.variants.add(configurationVariant("variant2", [], true))
-        feature.variants.add(configurationVariant("variant3", [capability], false))
-        feature.variants.add(configurationVariant("variant4", [capability], true))
+        feature.variants.add(configurationVariant("runtimeElements", [], false))
+        feature.variants.add(configurationVariant("apiElements", [], true))
+        feature.variants.add(configurationVariant("anotherRuntimeElements", [], false))
+        feature.variants.add(configurationVariant("anotherApiElements", [], true))
 
         then:
         component.usages.size() == 4
 
-        def usage1 = component.usages.find { it.name == "variant1" } as FeatureConfigurationVariant
-        def usage2 = component.usages.find { it.name == "variant2" } as FeatureConfigurationVariant
-        def usage3 = component.usages.find { it.name == "variant3" } as FeatureConfigurationVariant
-        def usage4 = component.usages.find { it.name == "variant4" } as FeatureConfigurationVariant
+        def usage1 = component.usages.find { it.name == "runtimeElements" } as FeatureConfigurationVariant
+        def usage2 = component.usages.find { it.name == "apiElements" } as FeatureConfigurationVariant
+        def usage3 = component.usages.find { it.name == "anotherRuntimeElements" } as FeatureConfigurationVariant
+        def usage4 = component.usages.find { it.name == "anotherApiElements" } as FeatureConfigurationVariant
 
         [usage1, usage2, usage3, usage4].collect { it.optional } == [false, false, true, true]
         [usage1, usage2, usage3, usage4].collect { it.scopeMapping } == [

@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.component;
+package org.gradle.jvm.component.internal;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.component.ComponentFeature;
-import org.gradle.api.component.ConsumableVariant;
+import org.gradle.api.component.internal.ConsumableVariant;
+import org.gradle.api.component.internal.ComponentFeature;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -38,10 +37,7 @@ import javax.annotation.Nullable;
  * <p>This feature is configurable in that it can optionally expose additional variants for javadoc and sources jars.
  * Furthermore, this feature by default does not expose an API. However, it can be configured to do so in order to
  * model constructs like a standard JVM library.</p>
- *
- * @since 8.2
  */
-@Incubating
 public interface JvmFeature extends ComponentFeature {
 
     // TODO: Perhaps we should call this withDocumentationJar, or move it to a sub-interface which

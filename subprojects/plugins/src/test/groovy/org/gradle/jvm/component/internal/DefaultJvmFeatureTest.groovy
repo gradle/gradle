@@ -20,13 +20,12 @@ import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.Usage
-import org.gradle.api.component.ConfigurationBackedConsumableVariant
+import org.gradle.api.component.internal.ConfigurationBackedConsumableVariant
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSet
-import org.gradle.jvm.component.JvmFeature
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 /**
@@ -156,7 +155,7 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
     JvmFeature newFeature(String featureName) {
         return project.objects.newInstance(DefaultJvmFeature.class,
             featureName, sourceSets.create(featureName), [], "description",
-            project, ConfigurationRoles.INTENDED_CONSUMABLE, false
+            project, ConfigurationRoles.CONSUMABLE, false
         )
     }
 }
