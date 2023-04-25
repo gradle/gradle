@@ -67,6 +67,9 @@ class SmokeTestGradleRunner extends GradleRunner {
      *      to record how it will happen.
      */
     SmokeTestGradleRunner expectDeprecationWarning(String warning, String followup) {
+        if (followup == null || followup.isBlank()) {
+            throw new IllegalArgumentException("Follow up is required! Did you mean to expect a legacy deprecation warning instead?")
+        }
         expectedDeprecationWarnings.add(warning)
         return this
     }
@@ -126,7 +129,7 @@ class SmokeTestGradleRunner extends GradleRunner {
         @DelegatesTo.Target Class<U> deprecationClass,
         @DelegatesTo(
             genericTypeIndex = 0,
-            strategy=Closure.DELEGATE_FIRST)
+            strategy = Closure.DELEGATE_FIRST)
             Closure<T> closure) {
         deprecationClass.newInstance(this).tap(closure)
         return this
@@ -135,7 +138,7 @@ class SmokeTestGradleRunner extends GradleRunner {
     def <T> SmokeTestGradleRunner deprecations(
         @DelegatesTo(
             value = BaseDeprecations.class,
-            strategy=Closure.DELEGATE_FIRST)
+            strategy = Closure.DELEGATE_FIRST)
             Closure<T> closure) {
         return deprecations(BaseDeprecations, closure)
     }

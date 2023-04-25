@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.internal.classpath;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.BuildDefinition;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.api.NonNullApi;
+import org.objectweb.asm.Type;
 
-@ServiceScope(Scopes.BuildTree.class)
-public interface IncludedBuildFactory {
-    IncludedBuildState createBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner);
+import static org.objectweb.asm.Type.getType;
+
+/**
+ * A collection of common types and method descriptors used when instrumenting bytecode.
+ */
+@NonNullApi
+final class CommonTypes {
+    public static final Type OBJECT_TYPE = getType(Object.class);
+    public static final Type STRING_TYPE = getType(String.class);
+    public static final String[] NO_EXCEPTIONS = new String[0];
+
+    private CommonTypes() {
+    }
 }
