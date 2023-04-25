@@ -85,6 +85,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
         return builder ->
             builder.addMethod(constructor)
+                .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
                 .addMethod(BINARY_CLASS_NAME_OF)

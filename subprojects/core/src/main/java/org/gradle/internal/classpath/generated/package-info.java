@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.internal.java")
-}
-
-dependencies {
-    implementation(project(":model-core"))
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
-
-    implementation(libs.groovy)
-    implementation(libs.asm)
-    implementation(libs.asmTree)
-    implementation(libs.asmCommons)
-}
+/**
+ * A package containing instrumentation generated classes. Classes are generated via annotation processor.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.classpath.generated;

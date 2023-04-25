@@ -24,7 +24,7 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
@@ -46,6 +46,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,6 +57,7 @@ import java.util.stream.Stream;
 
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class Instrumented {
     private static final Listener NO_OP = new Listener() {
@@ -132,11 +134,20 @@ public class Instrumented {
     );
 
     private static Collection<CallInterceptor> getGeneratedCallInterceptors() {
+        return InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES.stream()
+            .flatMap(className -> getGeneratedCallInterceptorsFor(className).stream())
+            .collect(toImmutableList());
+    }
+
+    private static List<CallInterceptor> getGeneratedCallInterceptorsFor(String className) {
         try {
-            Class<?> generatedClass = Class.forName(InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME);
+            Class<?> generatedClass = Class.forName(className);
             Method callInterceptorsGetter = generatedClass.getDeclaredMethod("getCallInterceptors");
             return Cast.uncheckedCast(callInterceptorsGetter.invoke(null));
-        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+        } catch (ClassNotFoundException e) {
+            // No interceptor definition for this class
+            return Collections.emptyList();
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }

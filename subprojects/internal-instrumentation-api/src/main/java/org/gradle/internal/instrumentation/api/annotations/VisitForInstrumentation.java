@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.internal.java")
-}
+package org.gradle.internal.instrumentation.api.annotations;
 
-dependencies {
-    implementation(project(":model-core"))
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
 
-    implementation(libs.groovy)
-    implementation(libs.asm)
-    implementation(libs.asmTree)
-    implementation(libs.asmCommons)
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * A method that can be used to visit classes for an instrumentation from other projects.
+ * TODO: We should discover classes to visit automatically.
+ */
+@Retention(RetentionPolicy.CLASS)
+@Target({ElementType.TYPE})
+public @interface VisitForInstrumentation {
+    Class<?>[] value();
 }
