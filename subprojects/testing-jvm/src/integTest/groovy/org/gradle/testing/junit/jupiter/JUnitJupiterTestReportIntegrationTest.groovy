@@ -98,7 +98,7 @@ class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegratio
         buildScript """
             $junitSetup
             dependencies {
-                testImplementation(platform('org.junit:junit-bom:$dependencyVersion'))
+                testImplementation(platform('org.junit:junit-bom:$version'))
                 testImplementation('org.junit.platform:junit-platform-launcher')
             }
         """

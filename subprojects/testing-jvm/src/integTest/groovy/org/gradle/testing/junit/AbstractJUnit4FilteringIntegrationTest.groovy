@@ -17,13 +17,9 @@
 
 package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
-
-@TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
 abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     void theParameterizedFiles() {
