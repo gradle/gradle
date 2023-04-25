@@ -599,7 +599,7 @@ You can also ask Gradle to export all trusted keys without updating the verifica
 
 [NOTE]
 ====
-This command disables signature verification, similar to `--write-verification-metadata`.
+This command will not report verification errors, only export keys.
 ====
 
 [[sec:bootstrapping-signature-verification]]
