@@ -360,7 +360,7 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
 
         private TestFile writeTestClass(AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec.TestClass testClass) {
             String packagePath = testClass.packageName.replace('.', '/')
-            testDirectory.file("src/test/java/${packagePath}/${testClass.name}.java") << """
+            testDirectory.file("src/${testClass.sourceSet}/java/${packagePath}/${testClass.name}.java") << """
                     ${testClass.packageName}
 
                     import org.junit.jupiter.api.Test;

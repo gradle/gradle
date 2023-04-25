@@ -432,7 +432,7 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
 
         private TestFile writeTestClass(AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec.TestClass testClass) {
             String packagePath = testClass.packageName.replace('.', '/')
-            testDirectory.file("src/test/java/${packagePath}/${testClass.name}.java") << """
+            testDirectory.file("src/${testClass.sourceSet}/java/${packagePath}/${testClass.name}.java") << """
                     ${testClass.packageName}
 
                     import org.junit.Test;
@@ -448,7 +448,7 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
 
         private TestFile writeCategoryClass(AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec.Category category) {
             String packagePath = category.packageName.replace('.', '/')
-            testDirectory.file("src/test/java/${packagePath}/${category.name}.java") << """
+            testDirectory.file("src/${category.sourceSet}/java/${packagePath}/${category.name}.java") << """
                     ${category.packageName}
 
                     import org.junit.experimental.categories.Category;

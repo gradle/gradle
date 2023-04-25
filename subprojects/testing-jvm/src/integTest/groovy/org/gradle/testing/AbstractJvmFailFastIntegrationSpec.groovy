@@ -17,7 +17,6 @@
 package org.gradle.testing
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -28,8 +27,6 @@ import org.gradle.testing.fixture.JvmBlockingTestClassGenerator
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.IgnoreIf
-
-import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
 
 abstract class AbstractJvmFailFastIntegrationSpec extends AbstractJUnitMultiVersionIntegrationTest {
     @Rule
