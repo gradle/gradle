@@ -16,15 +16,15 @@
 [[what_is_gradle]]
 = What is Gradle?
 
-Gradle is a https://en.wikipedia.org/wiki/Build_automation[build automation] tool.
+Gradle is an open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool flexible enough to build almost any type of software. Gradle makes few assumptions about what you’re trying to build or how to build it. This makes Gradle particularly flexible.
 
 == Gradle Build Tool
 
-Gradle Build Tool is the fast and dependable open source build system that automates building software of any type, size or complexity.
+Gradle Build Tool (typically referred to as Gradle in this User Manual) is the fast and dependable open source build system that automates building software of any type, size or complexity.
 
 == Gradle Enterprise
 
-https://gradle.com/[Gradle Enterprise] is a powerful subscription based tool for managing and monitoring complex software builds.
+https://gradle.com/[Gradle Enterprise] is the powerful subscription based tool for managing and monitoring complex software builds.
 It provides teams with centralized visibility into their build process to quickly identify and address issues as they arise.
 
 == Why Gradle?
