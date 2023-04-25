@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junitplatform
+package org.gradle.testing.junit.platform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
