@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.JUnitCoverage
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 
 
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
-class JUnitTestFilteringSamplesIntegrationTest extends MultiVersionIntegrationSpec {
+@TargetCoverage({ JUnitCoverage.JUNIT_4_LATEST + JUnitCoverage.JUNIT_VINTAGE_JUPITER })
+class JUnit4TestFilteringSamplesIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'testing/filtering/groovy')
 
