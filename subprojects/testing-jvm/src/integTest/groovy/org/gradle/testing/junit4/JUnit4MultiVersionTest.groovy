@@ -31,6 +31,9 @@ trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
         @Override
         String getTestFrameworkDependencies(String sourceSet) {
             if (MultiVersionIntegrationSpec.version.startsWith("3")) {
+                // We support compiling classes with JUnit 3, but we require JUnit 4 at runtime (which is backwards compatible).
+                // The runtime dependency would not be necessary if using test suites, which would automatically inject the runtime
+                // dependency if not specified.
                 return """
                     ${configurationFor(sourceSet, 'compileOnly')} 'junit:junit:${MultiVersionIntegrationSpec.version}'
                     ${configurationFor(sourceSet, 'runtimeOnly')} 'junit:junit:${JUnitCoverage.JUNIT_4_LATEST}'
