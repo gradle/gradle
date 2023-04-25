@@ -17,6 +17,7 @@
 package org.gradle.internal.credentials;
 
 import org.gradle.api.credentials.AwsCredentials;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 
 public class DefaultAwsCredentials implements AwsCredentials {
@@ -25,7 +26,7 @@ public class DefaultAwsCredentials implements AwsCredentials {
     private String secretKey;
     private String sessionToken;
 
-    @Internal
+    @Input
     @Override
     public String getAccessKey() {
         return accessKey;
