@@ -95,8 +95,12 @@ allprojects {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
         it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
         it.files.from(configurations.${config})
-        it.incoming = configurations.${config}.incoming
-        it.artifacts = configurations.${config}.incoming.artifacts
+        it.incomingArtifacts = configurations.${config}.incoming.artifacts
+        it.incomingFiles = configurations.${config}.incoming.files
+        it.artifactViewFiles = configurations.${config}.incoming.artifactView { }.files
+        it.artifactViewArtifacts = configurations.${config}.incoming.artifactView { }.artifacts
+        it.lenientArtifactViewFiles = configurations.${config}.incoming.artifactView { it.lenient = true }.files
+        it.lenientArtifactViewArtifacts = configurations.${config}.incoming.artifactView { it.lenient = true }.artifacts
         it.buildArtifacts = ${buildArtifacts}
         ${inputs}
     }
