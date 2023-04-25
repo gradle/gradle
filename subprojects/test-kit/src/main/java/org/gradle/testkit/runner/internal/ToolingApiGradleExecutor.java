@@ -130,9 +130,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.setEnvironmentVariables(parameters.getEnvironment());
 
             if (!parameters.getInjectedClassPath().isEmpty()) {
-                if (targetGradleVersion.compareTo(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince()) < 0) {
-                    throw new UnsupportedFeatureException("support plugin classpath injection", targetGradleVersion, TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince());
-                }
                 launcher.withInjectedClassPath(parameters.getInjectedClassPath());
             }
 

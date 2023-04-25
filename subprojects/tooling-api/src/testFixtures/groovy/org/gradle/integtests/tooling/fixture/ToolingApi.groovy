@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit
 
 class ToolingApi implements TestRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
-    public static final String MINIMUM_SUPPORTED_GRADLE_VERSION = "3.0"
 
     private GradleDistribution dist
     private TestDirectoryProvider testWorkDirProvider
