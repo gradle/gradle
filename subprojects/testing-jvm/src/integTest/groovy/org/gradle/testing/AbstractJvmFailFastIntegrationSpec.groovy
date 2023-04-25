@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.fixture
+package org.gradle.testing
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -23,20 +23,22 @@ import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.JvmBlockingTestClassGenerator
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
 import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
 
-abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractJvmFailFastIntegrationSpec extends AbstractJUnitMultiVersionIntegrationTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     JvmBlockingTestClassGenerator generator
 
     def setup() {
         server.start()
-        generator = new JvmBlockingTestClassGenerator(testDirectory, server, testAnnotationClass(), testDependencies(), testFrameworkConfiguration())
+        generator = new JvmBlockingTestClassGenerator(testDirectory, server, testFrameworkImports, testFrameworkDependencies, configureTestFramework)
     }
 
     def "all tests run with #description"() {
@@ -45,15 +47,15 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         buildFile << buildConfig
         generator.withFailingTest()
         generator.withNonfailingTest()
-        def testExecution = server.expectConcurrentAndBlock(DEFAULT_MAX_WORKERS, FAILED_RESOURCE, OTHER_RESOURCE)
+        def testExecution = server.expectConcurrentAndBlock(JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS, JvmBlockingTestClassGenerator.FAILED_RESOURCE, JvmBlockingTestClassGenerator.OTHER_RESOURCE)
 
         when:
         def gradleHandle = executer.withTasks(taskList).start()
         testExecution.waitForAllPendingCalls()
 
         then:
-        testExecution.release(FAILED_RESOURCE)
-        testExecution.release(OTHER_RESOURCE)
+        testExecution.release(JvmBlockingTestClassGenerator.FAILED_RESOURCE)
+        testExecution.release(JvmBlockingTestClassGenerator.OTHER_RESOURCE)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
@@ -71,14 +73,14 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         buildFile << buildConfig
         generator.withFailingTest()
         generator.withNonfailingTest()
-        def testExecution = server.expectOptionalAndBlock(DEFAULT_MAX_WORKERS, FAILED_RESOURCE, OTHER_RESOURCE)
+        def testExecution = server.expectOptionalAndBlock(JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS, JvmBlockingTestClassGenerator.FAILED_RESOURCE, JvmBlockingTestClassGenerator.OTHER_RESOURCE)
 
         when:
         def gradleHandle = executer.withTasks(taskList).start()
         testExecution.waitForAllPendingCalls()
 
         then:
-        testExecution.release(FAILED_RESOURCE)
+        testExecution.release(JvmBlockingTestClassGenerator.FAILED_RESOURCE)
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
@@ -126,14 +128,14 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         buildFile.text = generator.initBuildFile()
         generator.withFailingTest()
         generator.withNonfailingTest()
-        def testExecution = server.expectConcurrentAndBlock(DEFAULT_MAX_WORKERS, FAILED_RESOURCE, OTHER_RESOURCE)
+        def testExecution = server.expectConcurrentAndBlock(JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS, JvmBlockingTestClassGenerator.FAILED_RESOURCE, JvmBlockingTestClassGenerator.OTHER_RESOURCE)
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()
         testExecution.waitForAllPendingCalls()
 
         then:
-        testExecution.release(FAILED_RESOURCE)
+        testExecution.release(JvmBlockingTestClassGenerator.FAILED_RESOURCE)
         gradleHandle.waitForFailure()
         assert gradleHandle.standardOutput.matches(/(?s).*FailedTest.*failTest.*FAILED.*java.lang.RuntimeException at FailedTest.java.*/)
         assert !gradleHandle.standardOutput.contains('pkg.OtherTest')
@@ -142,11 +144,11 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "fail fast console output shows test class in work-in-progress"() {
         given:
-        executer.withConsole(ConsoleOutput.Rich).withArguments('--parallel', "--max-workers=$DEFAULT_MAX_WORKERS")
+        executer.withConsole(ConsoleOutput.Rich).withArguments('--parallel', "--max-workers=$JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS")
         buildFile.text = generator.initBuildFile()
         generator.withFailingTest()
         generator.withNonfailingTest()
-        def testExecution = server.expectConcurrentAndBlock(DEFAULT_MAX_WORKERS, FAILED_RESOURCE, OTHER_RESOURCE)
+        def testExecution = server.expectConcurrentAndBlock(JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS, JvmBlockingTestClassGenerator.FAILED_RESOURCE, JvmBlockingTestClassGenerator.OTHER_RESOURCE)
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()
@@ -158,7 +160,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
             RichConsoleStyling.assertHasWorkInProgress(gradleHandle, '> :test > Executing test pkg.OtherTest')
         }
 
-        testExecution.release(FAILED_RESOURCE)
+        testExecution.release(JvmBlockingTestClassGenerator.FAILED_RESOURCE)
         gradleHandle.waitForFailure()
     }
 
@@ -166,20 +168,16 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         given:
         buildFile.text = generator.initBuildFile()
         def resourceForTest = generator.withFailingTests(5)
-        def testExecution = server.expectOptionalAndBlock(DEFAULT_MAX_WORKERS, resourceForTest.values() as String[])
+        def testExecution = server.expectOptionalAndBlock(JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS, resourceForTest.values() as String[])
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast', '--tests=*OtherTest_*').start()
         testExecution.waitForAllPendingCalls()
 
         then:
-        testExecution.release(DEFAULT_MAX_WORKERS)
+        testExecution.release(JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS)
         gradleHandle.waitForFailure()
 
         assert !gradleHandle.errorOutput.contains('No tests found for given includes:')
     }
-
-    abstract String testAnnotationClass()
-    abstract String testDependencies()
-    abstract String testFrameworkConfiguration()
 }

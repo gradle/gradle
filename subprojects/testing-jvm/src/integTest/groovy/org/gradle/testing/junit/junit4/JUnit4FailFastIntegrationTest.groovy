@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit.junit4
 
-import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
 
-class JUnitFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
-    @Override
-    String testAnnotationClass() {
-        'org.junit.Test'
-    }
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 
-    @Override
-    String testDependencies() {
-        "testImplementation 'junit:junit:4.13'"
-    }
-
-    @Override
-    String testFrameworkConfiguration() {
-        ''
-    }
+@TargetCoverage({ [LATEST_JUNIT4_VERSION] })
+class JUnit4FailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnit4MultiVersionTest{
 }
