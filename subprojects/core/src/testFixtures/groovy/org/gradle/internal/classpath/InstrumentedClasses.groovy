@@ -53,7 +53,7 @@ class InstrumentedClasses {
         def capturedParams = originalClosure.class.declaredConstructors[0].parameters.drop(2)
         if (capturedParams.size() != 0) {
             // TODO support captured args in some way?
-            throw new IllegalArgumentException("closures with captured arguments are not supported yet")
+            throw new IllegalArgumentException("closures with captured arguments are not supported yet; please use the arguments and return value")
         }
         instrumentedClass(originalClosure.class).getDeclaredConstructor(Object, Object).newInstance(originalClosure.thisObject, originalClosure.owner) as Closure<?>
     }

@@ -18,25 +18,26 @@ package org.gradle.internal.classpath
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import spock.lang.Specification
 
-class BasicCallInterceptionTest extends Specification {
-    InstrumentedClasses instrumentedClasses = new InstrumentedClasses(
-        getClass().classLoader,
-        InstrumentedClasses.nestedClassesOf(getClass()) | { it == JavaCallerForBasicCallInterceptorTest.class.name },
-        { [BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
-    )
+import java.util.function.Predicate
 
-    GroovyInterceptorsSubstitution groovyInterceptorsSubstitution = new GroovyInterceptorsSubstitution(
-        GroovyCallInterceptorsProvider.DEFAULT + { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
-    )
+import static java.util.function.Predicate.isEqual
+import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
 
-    def setup() {
-        groovyInterceptorsSubstitution.setupForCurrentThread()
+class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
+    @Override
+    protected Predicate<String> shouldInstrumentAndReloadClassByName() {
+        nestedClassesOf(BasicCallInterceptionTest) | isEqual(JavaCallerForBasicCallInterceptorTest.class.name)
     }
 
-    def cleanup() {
-        groovyInterceptorsSubstitution.cleanupForCurrentThread()
+    @Override
+    protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
+        return { [BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
+    }
+
+    @Override
+    protected GroovyCallInterceptorsProvider groovyCallInterceptors() {
+        return { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
     }
 
     String interceptedWhen(@ClosureParams(value = SimpleType, options = "InterceptorTestReceiver") Closure<?> call) {
