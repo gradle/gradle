@@ -28,7 +28,7 @@ trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
     }
 
     AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
-        new JUnit4TestSourceConfiguration(JUnitVintageBuildScriptConfiguration.dependencyVersion)
+        new JUnit4TestSourceConfiguration(MultiVersionIntegrationSpec.version)
     }
 
     static class JUnitVintageBuildScriptConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
@@ -38,14 +38,9 @@ trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
         String getTestFrameworkDependencies(String sourceSet) {
             return """
                 ${configurationFor(sourceSet, 'compileOnly')} 'junit:junit:${LATEST_JUNIT4_VERSION}'
-                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
+                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.vintage:junit-vintage-engine:${MultiVersionIntegrationSpec.version}'
                 ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.platform:junit-platform-launcher'
             """
-        }
-
-        static String getDependencyVersion() {
-            assert MultiVersionIntegrationSpec.version.startsWith("Vintage:")
-            return MultiVersionIntegrationSpec.version.toString().substring("Vintage:".length())
         }
 
         @Override

@@ -28,7 +28,7 @@ import static org.hamcrest.CoreMatchers.containsString
 class JUnitJupiterJUnitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
     String getJUnitVersionAssertion() {
-        return "assertEquals(\"${dependencyVersion}\", org.junit.jupiter.api.Test.class.getPackage().getImplementationVersion());"
+        return "assertEquals(\"${version}\", org.junit.jupiter.api.Test.class.getPackage().getImplementationVersion());"
     }
 
     @Override

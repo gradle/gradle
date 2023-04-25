@@ -28,25 +28,16 @@ trait JUnitJupiterMultiVersionTest {
         return new JUnitJupiterTestSourceConfiguration()
     }
 
-    String getDependencyVersion() {
-        return JUnitJupiterBuildScriptConfiguration.getDependencyVersion()
-    }
-
     static class JUnitJupiterBuildScriptConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
         String configureTestFramework = "useJUnitPlatform()"
 
         @Override
         String getTestFrameworkDependencies(String sourceSet) {
             return """
-                ${configurationFor(sourceSet, 'implementation')} 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
-                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
+                ${configurationFor(sourceSet, 'implementation')} 'org.junit.jupiter:junit-jupiter-api:${MultiVersionIntegrationSpec.version}'
+                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.jupiter:junit-jupiter-engine:${MultiVersionIntegrationSpec.version}'
                 ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.platform:junit-platform-launcher'
             """
-        }
-
-        static String getDependencyVersion() {
-            assert MultiVersionIntegrationSpec.version.startsWith("Jupiter:")
-            return MultiVersionIntegrationSpec.version.toString().substring("Jupiter:".length())
         }
 
         @Override

@@ -18,8 +18,9 @@ package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
-import org.gradle.testing.fixture.JUnitCoverage
 
-@TargetCoverage({ [JUnitCoverage.VINTAGE] })
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_VINTAGE_VERSION
+
+@TargetCoverage({ [LATEST_VINTAGE_VERSION] })
 class JUnitVintageFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnitVintageMultiVersionTest {
 }
