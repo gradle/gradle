@@ -156,60 +156,10 @@ $END_MARKER
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
-
-        if (buildArtifacts) {
-            def actualFiles = findLines(configDetails, 'file')
-            compare("files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-artifact-incoming')
-            compare("incoming.artifacts", actualFiles, expectedFiles)
-        }
-
         def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files
 
         def actualArtifacts = findLines(configDetails, 'artifact-incoming')
         compare("artifacts", actualArtifacts, expectedArtifacts)
-
-        //if (configurationCacheEnabled) {
-//            return
-        //}
-
-        def expectedFirstLevel = root.deps.findAll { !it.constraint }.collect { d ->
-            def configs = d.selected.firstLevelConfigurations.collect {
-                "[${d.selected.moduleVersionId}:${it}]"
-            }
-            if (configs.empty) {
-                configs = ["[${d.selected.moduleVersionId}:$defaultConfig"]
-            }
-            configs
-        }.flatten() as Set
-
-//        def actualFirstLevel = findLines(configDetails, 'first-level')
-//        compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
-//
-//        actualFirstLevel = findLines(configDetails, 'first-level-filtered')
-//        compare("filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
-//
-//        actualFirstLevel = findLines(configDetails, 'lenient-first-level')
-//        compare("lenient first level dependencies", actualFirstLevel, expectedFirstLevel)
-//
-//        actualFirstLevel = findLines(configDetails, 'lenient-first-level-filtered')
-//        compare("lenient filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-//        def actualConfigurations = findLines(configDetails, 'configuration') as Set
-//        def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } - graph.virtualConfigurations.collect { "[${it}]".toString() } as Set
-//        compare("configurations in graph", actualConfigurations, expectedConfigurations)
-
-        def expectedLegacyArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.legacyArtifactName}]" }
-
-        actualArtifacts = findLines(configDetails, 'artifact')
-        compare("artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        actualArtifacts = findLines(configDetails, 'lenient-artifact')
-        compare("lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        actualArtifacts = findLines(configDetails, 'filtered-lenient-artifact')
-        compare("filtered lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
 
         if (buildArtifacts) {
             def actualFiles = findLines(configDetails, 'file-files')
@@ -221,32 +171,11 @@ $END_MARKER
             actualFiles = findLines(configDetails, 'file-filtered')
             compare("filtered files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-collection-filtered')
-            compare("filtered FileCollection", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'file-artifact-incoming')
+            compare("incoming artifact files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-resolved-config')
-            compare("resolved configuration files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-resolved-config-filtered')
-            compare("resolved configuration filtered files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-lenient-config')
-            compare("lenient configuration files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-lenient-config-filtered')
-            compare("lenient configuration filtered files", actualFiles, expectedFiles)
-
-            // The following do not include file dependencies
-            expectedFiles = graph.artifactNodes.collect { it.fileName }
-
-            actualFiles = findLines(configDetails, 'file-artifact-resolved-config')
-            compare("resolved configuration artifact files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-artifact-lenient-config')
-            compare("lenient configuration artifact files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-artifact-lenient-config-filtered')
-            compare("filtered lenient configuration artifact files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'artifact-incoming')
+            compare("incoming artifacts", actualFiles, expectedFiles)
         }
     }
 

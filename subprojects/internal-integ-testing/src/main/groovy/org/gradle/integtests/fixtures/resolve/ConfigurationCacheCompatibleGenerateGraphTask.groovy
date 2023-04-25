@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.resolve
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.result.DependencyResult
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.file.ConfigurableFileCollection
@@ -53,45 +54,56 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
 
             if (buildArtifacts) {
                 files.each {
-                    writer.println("file:${it.name}")
+                    writer.println("file-files:${it.name}")
                 }
+                incoming.files.each {
+                    writer.println("file-incoming:${it.name}")
+                }
+                files.filter { true }.each {
+                    writer.println("file-filtered:${it.name}")
+                }
+
                 artifacts.artifacts.each {
                     writer.println("file-artifact-incoming:${it.file.name}")
                 }
-            }
+                artifacts.artifacts.each {
+                    writeArtifact("artifact-incoming", writer, it)
+                }
 
-            artifacts.artifacts.each {
-                writer.println("artifact-incoming:${it.id}")
-            }
-
-
-            incoming.artifactView { true }.files.each {
-                writer.println("artifact-view-files:${it.name}")
-            }
-            incoming.artifactView { true }.artifacts.each {
-                writer.println("artifact-view-artifacts:${it.file.name}")
-            }
-            incoming.artifactView { true }.files.files.each {
-                writer.println("artifact-view-files-set:${it.name}")
-            }
-            incoming.artifactView { true }.artifacts.artifacts.each {
-                writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
-            }
-            incoming.artifactView { it.lenient = true }.files.each {
-                writer.println("artifact-view-lenient-files:${it.name}")
-            }
-            incoming.artifactView { it.lenient = true }.artifacts.each {
-                writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
-            }
-            incoming.artifactView { it.lenient = true }.files.files.each {
-                writer.println("artifact-view-lenient-files-set:${it.name}")
-            }
-            incoming.artifactView { true }.artifacts.artifacts.each {
-                writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
+                incoming.artifactView { true }.files.each {
+                    writer.println("artifact-view-files:${it.name}")
+                }
+                incoming.artifactView { true }.artifacts.each {
+                    writeArtifact("artifact-view-artifacts", writer, it)
+                }
+                incoming.artifactView { true }.files.files.each {
+                    writer.println("artifact-view-files-set:${it.name}")
+                }
+                incoming.artifactView { true }.artifacts.artifacts.each {
+                    writeArtifact("artifact-view-artifacts-set", writer, it)
+                }
+                incoming.artifactView { it.lenient = true }.files.each {
+                    writer.println("artifact-view-lenient-files:${it.name}")
+                }
+                incoming.artifactView { it.lenient = true }.artifacts.each {
+                    writeArtifact("artifact-view-lenient-artifacts", writer, it)
+                }
+                incoming.artifactView { it.lenient = true }.files.files.each {
+                    writer.println("artifact-view-lenient-files-set:${it.name}")
+                }
+                incoming.artifactView { true }.artifacts.artifacts.each {
+                    writeArtifact("artifact-view-lenient-artifacts-set", writer, it)
+                }
             }
         }
     }
 
+    // TODO: why must this be static?
+    static void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
+        writer.println("$linePrefix:${artifact.id}")
+    }
+
+    // TODO: why must this be static?
     static void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
         def queue = [root]
         def seen = new HashSet()

@@ -214,7 +214,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions(REPO_TYPES, chain, testVariant)
 
         then:
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':test:') {
@@ -257,7 +256,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions(modules, modules)
 
         then:
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':test:') {
@@ -290,7 +288,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions(modules, modules)
 
         then:
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':test:') {
@@ -326,7 +323,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions(modules, modules, 'api', conf)
 
         then:
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':test:') {
@@ -371,7 +367,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions([target, 'ivy'], ['ivy', target], 'runtime')
 
         then:
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':test:') {
@@ -412,7 +407,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions([targetRepoName, 'ivy'], ['ivy', targetRepoName], 'api')
 
         then:
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':test:') {
