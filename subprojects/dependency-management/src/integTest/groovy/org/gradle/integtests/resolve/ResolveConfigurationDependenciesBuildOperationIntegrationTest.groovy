@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.junit.Test
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def failedResolve = new ResolveFailureTestFixture(buildFile, "compile")
@@ -630,6 +631,74 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def resolvedComponents2 = op2.result.components
         resolvedComponents2.size() == 2
         resolvedComponents2.'org.foo:good:1.0'.repoName == 'withoutCreds'
+    }
+
+    def "resolved components contain their source repository id, even when the repository definitions are modified"() {
+        mavenRepo.module('org.foo', 'good').publish()
+
+        setup:
+        buildFile << """
+            apply plugin: "java"
+            repositories {
+                maven {
+                    name 'one'
+                    url '${mavenRepo.uri}'
+                }
+            }
+            configurations {
+                compileClasspath {
+                    incoming.afterResolve {
+                        project.repositories.clear()
+                        project.repositories {
+                            maven {
+                                name 'two'
+                                url '${mavenRepo.uri}'
+                            }
+                            mavenCentral()
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                implementation 'org.foo:good:1.0'
+                testImplementation 'junit:junit:4.11'
+            }
+
+            task resolve1(type: Sync) {
+                from configurations.compileClasspath
+                into 'out1'
+            }
+            task resolve2(type: Sync) {
+                from configurations.testCompileClasspath
+                into 'out2'
+                mustRunAfter(tasks.resolve1)
+            }
+        """
+        file("src/main/java/Thing.java") << "public class Thing { }"
+        file("src/test/java/ThingTest.java") << """
+            import ${Test.name};
+            public class ThingTest {
+                @Test
+                public void ok() { }
+            }
+        """
+
+        when:
+        succeeds 'resolve1', 'resolve2'
+
+        then:
+        def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
+        def op = ops[0]
+        op.details.configurationName == 'compileClasspath'
+        def resolvedComponents = op.result.components
+        resolvedComponents.size() == 2
+        resolvedComponents.'org.foo:good:1.0'.repoName == 'one'
+        def op2 = ops[1]
+        op2.details.configurationName == 'testCompileClasspath'
+        def resolvedComponents2 = op2.result.components
+        resolvedComponents2.size() == 4
+        resolvedComponents2.'org.foo:good:1.0'.repoName == 'two'
     }
 
     def "resolved component op includes configuration requested attributes"() {
