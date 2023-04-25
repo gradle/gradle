@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
-import static org.gradle.integtests.tooling.fixture.ToolingApi.MINIMUM_SUPPORTED_GRADLE_VERSION
+import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
 
 abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
 
