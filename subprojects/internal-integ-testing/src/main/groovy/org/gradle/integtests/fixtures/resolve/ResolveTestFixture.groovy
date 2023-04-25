@@ -174,8 +174,29 @@ $END_MARKER
             actualFiles = findLines(configDetails, 'file-artifact-incoming')
             compare("incoming artifact files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'artifact-incoming')
-            compare("incoming artifacts", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'artifact-view-files')
+            compare("artifactView files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'artifact-view-artifacts')
+            compare("artifactView artifacts", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'artifact-view-files-set')
+            compare("artifactView files set", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'artifact-view-artifacts-set')
+            compare("artifactView artifacts set", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'artifact-view-lenient-files')
+            compare("artifactView lenient files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'artifact-view-lenient-artifacts')
+            compare("artifactView lenient artifacts", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'artifact-view-lenient-files-set')
+            compare("artifactView lenient files set", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'artifact-view-lenient-artifacts-set')
+            compare("artifactView lenient artifacts set", actualArtifacts, expectedArtifacts)
         }
     }
 

@@ -50,7 +50,13 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
             def dependencies = new LinkedHashSet()
             collectAllComponentsAndEdges(root, components, dependencies)
 
+            // These are always checked
             writeRootAndComponentsAndDependencies(writer, root, components, dependencies)
+
+            // As are these
+            artifacts.artifacts.each {
+                writeArtifact("artifact-incoming", writer, it)
+            }
 
             if (buildArtifacts) {
                 files.each {
@@ -65,9 +71,6 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
 
                 artifacts.artifacts.each {
                     writer.println("file-artifact-incoming:${it.file.name}")
-                }
-                artifacts.artifacts.each {
-                    writeArtifact("artifact-incoming", writer, it)
                 }
 
                 incoming.artifactView { true }.files.each {
