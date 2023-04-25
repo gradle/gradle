@@ -24,7 +24,7 @@ import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRe
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfo;
-import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
-public class PropertyUpgradeClassGenerator extends RequestGroupingInstrumentationClassGenerator {
+public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
 
     private static final String SELF_PARAMETER_NAME = "self";
 
