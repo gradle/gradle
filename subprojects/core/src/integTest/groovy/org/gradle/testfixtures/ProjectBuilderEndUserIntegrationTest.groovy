@@ -54,6 +54,10 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
             public AddOpensArgProvider(Test test) {
                 this.test = test;
             }
+            @Input
+            public JavaVersion getJavaVersion() {
+                return test.getJavaVersion();
+            }
             @Override
             Iterable<String> asArguments() {
                 return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)

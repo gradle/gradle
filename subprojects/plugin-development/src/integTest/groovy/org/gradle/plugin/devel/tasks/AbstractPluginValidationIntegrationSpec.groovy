@@ -518,13 +518,16 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     public String notANestedGetter() {
                         return "not-a-nested-getter";
                     }
+                    @Input
+                    public String getOther() {
+                        return "valid-nested-getter";
+                    }
                 }
 
                 @TaskAction
                 public void doStuff() { }
             }
         """
-
         expect:
         assertValidationFailsWith([
             error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),

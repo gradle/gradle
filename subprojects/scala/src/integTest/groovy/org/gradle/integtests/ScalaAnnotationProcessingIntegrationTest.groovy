@@ -109,7 +109,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             compileScala.options.compilerArgumentProviders.add(new FileNameProvider("foo"))
 
             class FileNameProvider implements CommandLineArgumentProvider {
-                @Internal
+                @Input
                 String fileName
 
                 FileNameProvider(String fileName) {

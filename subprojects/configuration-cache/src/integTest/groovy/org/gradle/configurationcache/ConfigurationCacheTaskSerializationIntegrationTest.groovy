@@ -155,10 +155,12 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
     def "restores task abstract properties"() {
         buildFile << """
             interface Bean {
-                @Internal
+                @Input
+                @Optional
                 Property<String> getValue()
 
-                @Internal
+                @Input
+                @Optional
                 Property<String> getUnused()
             }
 
@@ -210,7 +212,8 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
                 abstract static class SomeTaskInputs {
 
-                    @Internal
+                    @Input
+                    @Optional
                     abstract $type getProperty()
 
                     void run() {
