@@ -45,9 +45,9 @@ class GenerateGraphTask extends AbstractGenerateGraphTask {
             visitNodes(configuration.resolvedConfiguration.firstLevelModuleDependencies, writer, new HashSet<>())
 
             def resolutionResult = configuration.incoming.resolutionResult
-            writeResolutionResult(writer, resolutionResult.root, resolutionResult.allComponents, resolutionResult.allDependencies)
+            writeRootAndComponentsAndDependencies(writer, resolutionResult.root, resolutionResult.allComponents, resolutionResult.allDependencies)
 
-            if (buildArtifacts) {
+ //           if (buildArtifacts) {
                 configuration.each {
                     writer.println("file:${it.name}")
                 }
@@ -66,6 +66,35 @@ class GenerateGraphTask extends AbstractGenerateGraphTask {
                 configuration.fileCollection { true }.each {
                     writer.println("file-collection-filtered:${it.name}")
                 }
+
+                configuration.incoming.artifactView { true }.files.each {
+                    writer.println("artifact-view-files:${it.name}")
+                }
+                configuration.incoming.artifactView { true }.artifacts.each {
+                    writer.println("artifact-view-artifacts:${it.file.name}")
+                }
+                configuration.incoming.artifactView { true }.files.files.each {
+                    writer.println("artifact-view-files-set:${it.name}")
+                }
+                configuration.incoming.artifactView { true }.artifacts.artifacts.each {
+                    writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
+                }
+                configuration.incoming.artifactView { it.lenient = true }.files.each {
+                    writer.println("artifact-view-lenient-files:${it.name}")
+                }
+                configuration.incoming.artifactView { it.lenient = true }.artifacts.each {
+                    writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
+                }
+                configuration.incoming.artifactView { it.lenient = true }.files.files.each {
+                    writer.println("artifact-view-lenient-files-set:${it.name}")
+                }
+                configuration.incoming.artifactView { true }.artifacts.artifacts.each {
+                    writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
+                }
+
+
+
+
                 configuration.resolvedConfiguration.files.each {
                     writer.println("file-resolved-config:${it.name}")
                 }
@@ -87,7 +116,7 @@ class GenerateGraphTask extends AbstractGenerateGraphTask {
                 configuration.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.each {
                     writer.println("file-artifact-lenient-config-filtered:${it.file.name}")
                 }
-            }
+  //          }
 
             configuration.incoming.artifacts.artifacts.each {
                 writer.println("artifact-incoming:${it.id}")

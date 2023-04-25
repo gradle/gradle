@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.resolve
 
 import org.gradle.api.artifacts.ArtifactCollection
+import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -35,6 +36,9 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
     @Internal
     ArtifactCollection artifacts
 
+    @Internal
+    ResolvableDependencies incoming
+
     @TaskAction
     def generateOutput() {
         outputFile.parentFile.mkdirs()
@@ -45,7 +49,7 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
             def dependencies = new LinkedHashSet()
             collectAllComponentsAndEdges(root, components, dependencies)
 
-            writeResolutionResult(writer, root, components, dependencies)
+            writeRootAndComponentsAndDependencies(writer, root, components, dependencies)
 
             if (buildArtifacts) {
                 files.each {
@@ -58,6 +62,32 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
 
             artifacts.artifacts.each {
                 writer.println("artifact-incoming:${it.id}")
+            }
+
+
+            incoming.artifactView { true }.files.each {
+                writer.println("artifact-view-files:${it.name}")
+            }
+            incoming.artifactView { true }.artifacts.each {
+                writer.println("artifact-view-artifacts:${it.file.name}")
+            }
+            incoming.artifactView { true }.files.files.each {
+                writer.println("artifact-view-files-set:${it.name}")
+            }
+            incoming.artifactView { true }.artifacts.artifacts.each {
+                writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
+            }
+            incoming.artifactView { it.lenient = true }.files.each {
+                writer.println("artifact-view-lenient-files:${it.name}")
+            }
+            incoming.artifactView { it.lenient = true }.artifacts.each {
+                writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
+            }
+            incoming.artifactView { it.lenient = true }.files.files.each {
+                writer.println("artifact-view-lenient-files-set:${it.name}")
+            }
+            incoming.artifactView { true }.artifacts.artifacts.each {
+                writer.println("artifact:[${it.id.name.name}][${it.id.name.module}:${it.id.name.classifier}:${it.id.name.extension}:${it.id.name.type}]")
             }
         }
     }

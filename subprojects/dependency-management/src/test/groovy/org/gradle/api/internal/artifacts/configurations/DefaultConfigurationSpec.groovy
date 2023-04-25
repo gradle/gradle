@@ -62,31 +62,35 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.Factories
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.locking.DefaultDependencyLockingState
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
-import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.junit.Rule
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -98,6 +102,18 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultConfigurationSpec extends Specification implements InspectableConfigurationFixture {
+    final OutputEventListener outputEventListener = new OutputEventListener() {
+        final StringBuilder output = new StringBuilder()
+
+        @Override
+        void onOutput(OutputEvent event) {
+            LogEvent logEvent = event as LogEvent
+            output.append(logEvent.message)
+        }
+    }
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     def configurationsProvider = Mock(ConfigurationsProvider)
@@ -115,10 +131,15 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
 
     def setup() {
+        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(BuildOperationProgressEventEmitter))
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
         _ * resolver.getRepositories() >> []
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
+    }
+
+    def cleanup() {
+        DeprecationLogger.reset()
     }
 
     void defaultValues() {
@@ -474,6 +495,8 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         then:
         configuration.getResolvedConfiguration() == r
         configuration.state == RESOLVED
+
+        outputEventListener.output.toString() == "The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#resolved_configuration"
     }
 
     private prepareForFilesBySpec(Set<File> fileSet) {
@@ -1318,17 +1341,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         when:
         expectResolved([new File("result")] as Set)
 
-        final StringBuilder output = new StringBuilder()
-        final OutputEventListener listener = new OutputEventListener() {
-            @Override
-            void onOutput(OutputEvent event) {
-                output.append(event.message)
-            }
-        }
-        final OutputEventListenerBackedLoggerContext context = LoggerFactory.ILoggerFactory as OutputEventListenerBackedLoggerContext
-        final OutputEventListenerBackedLogger logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as OutputEventListenerBackedLogger
-        context.outputEventListener = listener
-
         def previousFiles = config.files
         def previousResolutionResult = config.incoming.resolutionResult
         def previousResolvedConfiguration = config.resolvedConfiguration
@@ -1356,6 +1368,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         // And the same files
         previousFiles == nextFiles
+
+        // And we get a deprecation warning
+        outputEventListener.output.toString() == "The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#resolved_configuration"
     }
 
     def "copied configuration is not resolved"() {
@@ -1727,6 +1742,7 @@ All Artifacts:
         then:
         seenOriginal == [original.incoming] as Set
         seenCopied.empty
+        outputEventListener.output.toString() == "The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#resolved_configuration"
 
         when:
         copied.getResolvedConfiguration()
@@ -1753,6 +1769,7 @@ All Artifacts:
         then:
         seenOriginal == [original.dependencies] as Set
         seenCopied.empty
+        outputEventListener.output.toString() == "The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#resolved_configuration"
 
         when:
         copied.getResolvedConfiguration()
