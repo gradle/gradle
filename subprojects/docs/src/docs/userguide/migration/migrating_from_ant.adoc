@@ -15,65 +15,94 @@
 [[migrating_from_ant]]
 = Migrating Builds From Apache Ant
 
-https://ant.apache.org/[Apache Ant] is a build tool with a long history in the Java world that is still widely used, albeit by a decreasing number of teams. While flexible, it lacks conventions and many of the powerful features that Gradle can provide. Migrating to Gradle is worthwhile so that your builds can become slimmer, simpler and faster, while still retaining the flexibility you enjoy with Ant. You'll also benefit from robust support for multi-project builds and easy-to-use, flexible dependency management.
+https://ant.apache.org/[Apache Ant] is a build tool with a long history in the Java world that is still widely used, albeit by a decreasing number of teams.
+While flexible, it lacks conventions and many of the powerful features that Gradle provides.
+Migrating to Gradle is worthwhile so that your builds can become slimmer, simpler, and faster, while still retaining the flexibility you enjoy with Ant.
+You will also benefit from robust support for multi-project builds and easy-to-use, flexible dependency management.
 
-The biggest challenge in migrating from Ant to Gradle is that there is no such thing as a standard Ant build. That makes it difficult to provide specific instructions. Fortunately, Gradle has some great integration features with Ant that can make the process relatively smooth. And even migrating from https://ant.apache.org/ivy/[Ivy]-based dependency management isn't particularly hard because Gradle has a similar model based on <<dependency_management_terminology#sub:terminology_configuration,dependency configurations>> that works with Ivy-compatible repositories.
+The biggest challenge in migrating from Ant to Gradle is that there is no such thing as a standard Ant build.
+That makes it difficult to provide specific instructions.
+Fortunately, Gradle has some great integration features with Ant that can make the process relatively smooth.
+Migrating from https://ant.apache.org/ivy/[Ivy]-based dependency management isn't difficult because Gradle has a similar model based on <<dependency_management_terminology#sub:terminology_configuration,dependency configurations>> that works with Ivy-compatible repositories.
 
-We will start by outlining the things you should consider at the outset of migrating a build from Ant to Gradle and offer some general guidelines on how to proceed.
+We will start by outlining the things you should consider when migrating a build from Ant to Gradle and offer some general guidelines on how to proceed.
 
 [[migant:general_guidelines]]
 == General guidelines
 
-When you undertake to migrate a build from Ant to Gradle, you should keep in mind the nature of both what you already have and where you would like to end up. Do you want a Gradle build that mirrors the structure of the existing Ant build? Or do you want to move to something that is more idiomatic to Gradle? What are the main benefits you are looking for?
+When you migrate a build from Ant to Gradle, you should keep in mind the nature of what you already have and where you would like to end up. Do you want a Gradle build that mirrors the structure of the existing Ant build? Or do you want to move to something that is more idiomatic to Gradle? What are the main benefits you are looking for?
 
-To understand the implications, consider the two extreme endpoints that you could aim for:
+To better understand, consider the following opposing scenarios:
 
  * An imported build via <<ant#sec:import_ant_build,`ant.importBuild()`>>
 +
-This approach is quick, simple and works for many Ant-based builds. You end up with a build that's effectively identical to the original Ant build, except your Ant targets become Gradle tasks. Even the dependencies between targets are retained.
+This approach is quick, simple, and works for many Ant-based builds.
+You end up with a build that is effectively identical to the original Ant build, except your Ant targets become Gradle tasks.
+Even the dependencies between targets are retained.
 +
-The downside is that you're still using the Ant build, which you must continue to maintain. You also lose the advantages of Gradle's conventions, many of its plugins, its dependency management, and so on. You can still enhance the build with <<incremental_build.adoc#incremental_build,incremental build information>>, but it's more effort than would be the case for a normal Gradle build.
+The downside is that you're still using the Ant build, which you must continue to maintain.
+You also lose the advantages of Gradle's conventions, many of its plugins, its dependency management, and so on.
+You can still enhance the build with <<incremental_build.adoc#incremental_build,incremental build information>>, but it's more effort than would be the case for a normal Gradle build.
+
  * An idiomatic Gradle build
 +
-If you want to future proof your build, this is where you want to end up. Making use of Gradle's conventions and plugins will result in a smaller, easier-to-maintain build, with a structure that is familiar to many Java developers. You will also find it easier to take advantage of Gradle's power features to improve build performance.
+If you want to future proof your build, this is where you want to end up.
+Making use of Gradle's conventions and plugins will result in a smaller, easier-to-maintain build, with a structure that is familiar to many Java developers.
+You will also find it easier to take advantage of Gradle's power features to improve build performance.
 +
-The main downside is the extra work required to perform the migration, particularly if the existing build is complex and has many inter-project dependencies. But such builds often benefit the most from a switch to idomatic Gradle. In addition, Gradle provides many features that can ease the migration, such as the ability to <<ant#sec:using_ant_tasks,use core and custom Ant tasks>> directly from a Gradle build.
+The main downside is the extra work required to perform the migration, particularly if the existing build is complex and has many inter-project dependencies.
+However, these builds often benefit the most from a switch to idiomatic Gradle.
+In addition, Gradle provides many features that can ease the migration, such as the ability to <<ant#sec:using_ant_tasks,use core and custom Ant tasks>> directly from a Gradle build.
 
 You ideally want to end up somewhere close to the second option in the long term, but you don't have to get there in one fell swoop.
 
 What follows is a series of steps to help you decide the approach you want to take and how to go about it:
 
- 1. Keep the old Ant build and new Gradle build side by side
+ 1. Keep the old Ant build and new Gradle build side by side.
 +
-You know the Ant build works, so you should keep it until you are confident that the Gradle build produces all the same artifacts and otherwise does what you need. This also means that users can try the Gradle build without getting a new copy of the source tree.
+You know the Ant build works, so you should keep it until you are confident that the Gradle build produces all the same artifacts and otherwise does what you need.
+This also means that users can try the Gradle build without creating a new copy of the source tree.
 +
 Don't try to change the directory and file structure of the build until after you're ready to make the switch.
- 2. Develop a mechanism to verify that the two builds produce the same artifacts
+ 2. Develop a mechanism to verify that the two builds produce the same artifacts.
 +
-This is a vitally important step to ensure that your deployments and tests don't break. Even small changes, such as the contents of a manifest file in a JAR, can cause problems. If your Gradle build produces the same output as the Ant build, this will give you and others confidence in switching over and make it easier to implement the big changes that will provide the greatest benefits.
- 3. Decide whether you have a multi-project build or not
+This is a vitally important step to ensure that your deployments and tests don't break.
+Even small changes, such as the contents of a manifest file in a JAR, can cause problems.
+If your Gradle build produces the same output as the Ant build, this will give you and others confidence in switching over and make it easier to implement the big changes that will provide the greatest benefits.
+ 3. Decide whether you have a multi-project build or not.
 +
 Multi-project builds are generally harder to migrate and require more work than single-project ones. We have provided some dedicated advice to help with the process in the <<migant:multi_project_builds,Migrating multi-project builds>> section.
- 4. Work out what plugins to use for each project
+ 4. Work out what plugins to use for each project.
 +
-We expect that the vast majority of Ant builds are for <<building_java_projects#building_java_projects,JVM-based projects>>, for which there are a wealth of plugins that provide a lot of the functionality you need. Not only are there the <<plugin_reference#plugin_reference,core plugins>> that come packaged with Gradle, but you can also find many useful plugins on the https://plugins.gradle.org/[Plugin Portal].
+We expect that the vast majority of Ant builds are for <<building_java_projects#building_java_projects,JVM-based projects>>, for which there are a wealth of plugins that provide a lot of the functionality you need.
+Gradle plugins include <<plugin_reference#plugin_reference,core plugins>> that come packaged with Gradle and useful community plugins on the https://plugins.gradle.org/[Plugin Portal].
 +
 Even if the <<java_plugin#java_plugin,Java Plugin>> or one of its derivatives (such as the <<java_library_plugin#java_library_plugin,Java Library Plugin>>) aren't a good match for your build, you should at least consider the <<base_plugin#base_plugin,Base Plugin>> for its lifecycle tasks.
- 5. Import the Ant build or create a Gradle build from scratch
+ 5. Import the Ant build or create a Gradle build from scratch.
 +
-This step very much depends on the requirements of your build. If a selection of Gradle plugins can do the vast majority of the work your Ant build does, then it probably makes sense to create a fresh Gradle build script that doesn't depend on the Ant build and either implements the missing pieces itself or <<ant#sec:using_ant_tasks,utilizes existing Ant tasks>>.
+This step very much depends on the requirements of your build.
+If a selection of Gradle plugins can do the vast majority of the work your Ant build does, then it probably makes sense to create a fresh Gradle build script that doesn't depend on the Ant build.
+You can either implement the missing pieces yourself or <<ant#sec:using_ant_tasks,use existing Ant tasks>>.
 +
-The alternative approach is to <<ant#sec:import_ant_build,import the Ant build>> into the Gradle build script and gradually replace the Ant build functionality. This allows you to have a working Gradle build at each stage, but it requires a bit of work to get the Gradle tasks working properly with the Ant ones. You can learn more about this approach in <<migant:imported_builds,Working with an imported build>>.
+The alternative approach is to <<ant#sec:import_ant_build,import the Ant build>> into the Gradle build script and gradually replace the Ant build functionality.
+This allows you to have a working Gradle build at each stage, but it requires a bit of work to get the Gradle tasks working properly with the Ant ones.
+You can learn more about this in <<migant:imported_builds,Working with an imported build>>.
  6. Configure your build for the existing directory and file structure
 +
-Gradle makes use of conventions to eliminate much of the boilerplate associated with older builds and to make it easier for users to work with new builds once they are familiar with those conventions. But that doesn't mean you have to follow them.
+Gradle makes use of conventions to eliminate much of the boilerplate associated with older builds and to make it easier for users to work with new builds once they are familiar with those conventions.
+But that doesn't mean you have to follow them.
 +
-Gradle provides many configuration options that allow for a good degree of customization. Those options are typically made available through the plugins that provide the conventions. For example, the standard source directory structure for production Java code — `src/main/java` — is provided by the Java Plugin, which allows you to <<building_java_projects#sec:custom_java_source_set_paths,configure a different source path>>. Many paths can be modified via properties on the link:{groovyDslPath}/org.gradle.api.Project.html[Project] object.
+Gradle provides many configuration options that allow for a good degree of customization.
+Those options are typically made available through the plugins that provide the conventions.
+For example, the standard source directory structure for production Java code — `src/main/java` — is provided by the Java Plugin, which allows you to <<building_java_projects#sec:custom_java_source_set_paths,configure a different source path>>.
+Many paths can be modified via properties on the link:{groovyDslPath}/org.gradle.api.Project.html[Project] object.
  7. Migrate to standard Gradle conventions if you wish
 +
-Once you're confident that the Gradle build is producing the same artifacts and other resources as the Ant build, you can consider migrating to the standard conventions, such as for source directory paths. Doing so will allow you to remove the extra configuration that was required to override those conventions. New team members will also find it easier to work with the build after the change.
+Once you're confident that the Gradle build is producing the same artifacts and other resources as the Ant build, you can consider migrating to the standard conventions, such as for source directory paths.
+Doing so will allow you to remove the extra configuration that was required to override those conventions.
+New team members will also find it easier to work with the build after the change.
 +
-It's up to you to decide whether this step is worth the time, energy and potential disruption that it might incur, which in turn depends on your specific build and team.
+It's up to you to decide whether this step is worth the effort and potential disruption, which in turn depends on your specific build and team.
 
 The rest of the chapter covers some common scenarios you will likely deal with during the migration, such as dependency management and working with Ant tasks.
 
@@ -83,13 +112,17 @@ The rest of the chapter covers some common scenarios you will likely deal with d
 WARNING: Importing an Ant build is not supported with the <<configuration_cache.adoc#config_cache,configuration cache>>.
 You need to complete the conversion to Gradle to get the benefits of caching.
 
-The first step of many migrations will involve <<ant#sec:import_ant_build,importing an Ant build>> using `ant.importBuild()`. If you do that, how do you then move towards a standard Gradle build without replacing everything at once?
+The first step of many migrations will involve <<ant#sec:import_ant_build,importing an Ant build>> using `ant.importBuild()`.
+Then how do you then move towards a standard Gradle build without replacing everything at once?
 
-The important thing to remember is that the Ant targets become real Gradle tasks, meaning you can do things like modify their task dependencies, attach extra task actions, and so on. This allows you to substitute native Gradle tasks for the equivalent Ant ones, maintaining any links to other existing tasks.
+The important thing to remember is that the Ant targets become real Gradle tasks, meaning you can do things like modify their task dependencies, attach extra task actions, and so on.
+This allows you to substitute native Gradle tasks for the equivalent Ant ones, maintaining any links to other existing tasks.
 
-As an example, imagine that you have a Java library project that you want to migrate from Ant to Gradle. The Gradle build script has the line that imports the Ant build and now want to use the standard Gradle mechanism for compiling the Java source files. However, you want to keep using the existing `package` task that creates the library's JAR file.
+As an example, imagine that you have a Java library project that you want to migrate from Ant to Gradle.
+The Gradle build script has the line that imports the Ant build and now want to use the standard Gradle mechanism for compiling the Java source files.
+However, you want to keep using the existing `package` task that creates the library's JAR file.
 
-In diagrammatic form, the scenario looks like the following, where each box represents a target/task:
+In diagram form, the scenario looks like the following, where each box represents a target/task:
 
 image::ant-task-migration.png[]
 
