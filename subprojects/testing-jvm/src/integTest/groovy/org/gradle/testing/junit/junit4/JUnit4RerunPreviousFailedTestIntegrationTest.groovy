@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.CoreMatchers
 
-class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
+class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
     private static final String INDEX_OF_TEST_TO_FAIL = "index.of.test.to.fail"
     private static final List<Integer> TESTS = [1, 2, 3]
     private static final List<String> TEST_CLASSES = TESTS.collect { "ConditionalFailingTest_${it}".toString() }

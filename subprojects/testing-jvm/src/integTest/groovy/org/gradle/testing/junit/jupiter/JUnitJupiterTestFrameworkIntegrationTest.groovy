@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit.jupiter
 
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
+import org.gradle.testing.fixture.JUnitCoverage
 
-class JUnitTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+
+class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
 
     def setup() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+            }
+            test {
+                useJUnitPlatform()
+            }
         """
     }
 
@@ -36,19 +45,19 @@ class JUnitTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegration
 
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
-                @org.junit.Test
-                public void ${failingTestCaseName}() {
+                @org.junit.jupiter.api.Test
+                public void ${failingTestCaseName} {
                     System.err.println("some error output");
-                    org.junit.Assert.fail(\"test failure message\");
+                    org.junit.jupiter.api.Assertions.fail(\"test failure message\");
                 }
-                @org.junit.Test
-                public void ${passingTestCaseName}() { }
+                @org.junit.jupiter.api.Test
+                public void ${passingTestCaseName} { }
             }
         """
         file('src/test/java/SomeOtherTest.java') << """
             public class SomeOtherTest {
-                @org.junit.Test
-                public void ${passingTestCaseName}() { }
+                @org.junit.jupiter.api.Test
+                public void ${passingTestCaseName} { }
             }
         """
     }
@@ -74,11 +83,11 @@ class JUnitTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegration
 
     @Override
     String getPassingTestCaseName() {
-        return "pass"
+        return "pass()"
     }
 
     @Override
     String getFailingTestCaseName() {
-        return "fail"
+        return "fail()"
     }
 }

@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.platform
+package org.gradle.testing.junit.junit4
 
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-
-class JUnitPlatformTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
+class JUnit4TestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
 
     def setup() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-            }
-            test {
-                useJUnitPlatform()
-            }
+            dependencies { testImplementation 'junit:junit:4.13' }
         """
     }
 
@@ -44,19 +36,19 @@ class JUnitPlatformTestFrameworkIntegrationTest extends AbstractTestFrameworkInt
 
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
-                @org.junit.jupiter.api.Test
-                public void ${failingTestCaseName} {
+                @org.junit.Test
+                public void ${failingTestCaseName}() {
                     System.err.println("some error output");
-                    org.junit.jupiter.api.Assertions.fail(\"test failure message\");
+                    org.junit.Assert.fail(\"test failure message\");
                 }
-                @org.junit.jupiter.api.Test
-                public void ${passingTestCaseName} { }
+                @org.junit.Test
+                public void ${passingTestCaseName}() { }
             }
         """
         file('src/test/java/SomeOtherTest.java') << """
             public class SomeOtherTest {
-                @org.junit.jupiter.api.Test
-                public void ${passingTestCaseName} { }
+                @org.junit.Test
+                public void ${passingTestCaseName}() { }
             }
         """
     }
@@ -82,11 +74,11 @@ class JUnitPlatformTestFrameworkIntegrationTest extends AbstractTestFrameworkInt
 
     @Override
     String getPassingTestCaseName() {
-        return "pass()"
+        return "pass"
     }
 
     @Override
     String getFailingTestCaseName() {
-        return "fail()"
+        return "fail"
     }
 }

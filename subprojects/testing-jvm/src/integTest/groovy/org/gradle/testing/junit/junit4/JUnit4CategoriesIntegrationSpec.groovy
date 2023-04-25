@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -26,7 +26,7 @@ import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
-class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
+class JUnit4CategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
