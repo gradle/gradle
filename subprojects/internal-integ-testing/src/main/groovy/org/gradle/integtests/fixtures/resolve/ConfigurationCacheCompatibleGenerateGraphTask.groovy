@@ -101,13 +101,13 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
         }
     }
 
-    // TODO: why must this be static?
-    static void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
+    @SuppressWarnings('GrMethodMayBeStatic')
+    protected void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
         writer.println("$linePrefix:${artifact.id}")
     }
 
-    // TODO: why must this be static?
-    static void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+    @SuppressWarnings('GrMethodMayBeStatic')
+    protected void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
         def queue = [root]
         def seen = new HashSet()
 

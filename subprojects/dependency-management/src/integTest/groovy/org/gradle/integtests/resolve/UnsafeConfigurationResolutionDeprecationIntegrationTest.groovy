@@ -99,6 +99,9 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         """
 
         when:
+        if (expression.contains("resolvedConfiguration")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
         fails(":resolve")
 
         then:
@@ -169,6 +172,9 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         """
 
         expect:
+        if (expression.contains("resolvedConfiguration")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
         succeeds(":resolve")
 
         where:
