@@ -756,6 +756,34 @@ Root project 'webinar-parent'
         dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23963")
+    def "emptySource"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        succeeds 'clean', 'build'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23963")
+    def "emptyTarget"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        succeeds 'clean', 'build'
+    }
+
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()
