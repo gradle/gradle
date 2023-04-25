@@ -17,7 +17,7 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
+import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.JUnitCoverage
 
 @TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
