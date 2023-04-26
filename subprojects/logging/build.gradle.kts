@@ -47,7 +47,19 @@ packageCycles {
     excludePatterns.add("org/gradle/util/**")
 }
 
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+tasks {
+    // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+    configCacheIntegTest {
+        systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+    }
+
+    // Write Kotlin DSL versions manifest, so Kotlin version is available similarly as GradleVersion
+    val writeVersionsManifest by registering(WriteProperties::class) {
+        destinationFile = layout.buildDirectory.file("versionsManifest/gradle-kotlin-dsl-versions.properties")
+        property("kotlin", libs.kotlinVersion)
+    }
+
+    processResources {
+        from(writeVersionsManifest)
+    }
 }

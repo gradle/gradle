@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.cli;
+package org.gradle.util.internal.kotlin;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import org.gradle.util.internal.GUtil;
 
 import java.net.URL;
@@ -22,15 +24,18 @@ import java.util.Properties;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-final class KotlinDslVersion {
+public final class KotlinDslVersion {
 
-    static KotlinDslVersion current() {
-        ClassLoader loader = KotlinDslVersion.class.getClassLoader();
-        URL resource = loader.getResource("gradle-kotlin-dsl-versions.properties");
-        checkNotNull(resource, "Gradle Kotlin DSL versions manifest was not found");
-        Properties versions = GUtil.loadProperties(resource);
-        return new KotlinDslVersion(versions.getProperty("kotlin"));
-    }
+    private static final Supplier<KotlinDslVersion> INSTANCE = Suppliers.memoize(new Supplier<KotlinDslVersion>() {
+        @Override
+        public KotlinDslVersion get() {
+            ClassLoader loader = KotlinDslVersion.class.getClassLoader();
+            URL resource = loader.getResource("gradle-kotlin-dsl-versions.properties");
+            checkNotNull(resource, "Gradle Kotlin DSL versions manifest was not found");
+            Properties versions = GUtil.loadProperties(resource);
+            return new KotlinDslVersion(versions.getProperty("kotlin"));
+        }
+    });
 
     private final String kotlin;
 
@@ -39,7 +44,11 @@ final class KotlinDslVersion {
         this.kotlin = kotlin;
     }
 
-    String getKotlinVersion() {
+    public String getKotlinVersion() {
         return kotlin;
+    }
+
+    public static KotlinDslVersion current() {
+        return INSTANCE.get();
     }
 }
