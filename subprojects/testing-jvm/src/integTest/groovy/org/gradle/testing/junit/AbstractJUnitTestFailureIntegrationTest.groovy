@@ -19,7 +19,10 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import org.hamcrest.Matcher
+import spock.lang.Issue
 
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -280,6 +283,59 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractJUnitMult
         result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
         result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
         result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23602")
+    def "handles unserializable exception thrown from test"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """
+
+        file('src/test/java/PoisonTest.java') << """
+            ${testFrameworkImports}
+
+            public class PoisonTest {
+                @Test public void passingTest() { }
+
+                @Test public void testWithUnserializableException() {
+                    if (true) {
+                        throw new UnserializableException();
+                    }
+                }
+
+                @Test public void normalFailingTest() {
+                    assert false;
+                }
+
+                private static class WriteReplacer implements java.io.Serializable {
+                    private Object readResolve() {
+                        return new RuntimeException();
+                    }
+                }
+
+                private static class UnserializableException extends RuntimeException {
+                    private Object writeReplace() {
+                        return new WriteReplacer();
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
+            assertTestPassed("passingTest")
+            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+            assertTestFailed("normalFailingTest", containsString("AssertionError"))
+        }
     }
 
     String failureAssertionError(String message) {

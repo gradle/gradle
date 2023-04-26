@@ -32,6 +32,62 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractJUnitMultiVe
         """
     }
 
+    def "can run single tests"() {
+        given:
+        file('src/test/java/NotATest.java') << """
+            public class NotATest {
+            }
+        """.stripIndent()
+        file('src/test/java/Ok.java') << """
+            ${testFrameworkImports}
+            public class Ok {
+                @Test
+                public void ok() {
+                }
+            }
+        """.stripIndent()
+        file('src/test/java/Ok2.java') << """
+            ${testFrameworkImports}
+            public class Ok2 {
+                @Test
+                public void ok() {
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """.stripIndent()
+
+        when:
+        succeeds("test", "--tests=Ok2*")
+
+        then:
+        def testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.assertTestClassesExecuted('Ok2')
+
+        when:
+        succeeds("cleanTest", "test", "--tests=Ok*")
+
+        then:
+        testResult.assertTestClassesExecuted('Ok', 'Ok2')
+
+        when:
+        fails("test", "--tests=DoesNotMatchAClass*")
+
+        then:
+        result.assertHasCause('No tests found for given includes: [DoesNotMatchAClass*](--tests filter)')
+
+        when:
+        fails("test", "--tests=NotATest*")
+        then:
+        result.assertHasCause('No tests found for given includes: [NotATest*](--tests filter)')
+    }
+
     def "executes single method from a test class"() {
         buildFile << """
             test {

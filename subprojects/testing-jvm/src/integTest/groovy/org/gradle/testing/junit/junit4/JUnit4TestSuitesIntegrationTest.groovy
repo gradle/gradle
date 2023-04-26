@@ -14,12 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.jupiter
+package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
-import org.gradle.testing.junit.AbstractJUnitIntegrationTest
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
-class JUnitJupiterJUnitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT3_VERSION
+
+@TargetCoverage({ JUNIT_4_LATEST })
+class JUnit4TestSuitesIntegrationTest extends AbstractJUnit4TestSuitesIntegrationTest implements JUnit4MultiVersionTest {
+    @Override
+    boolean supportsSuiteOutput() {
+        return true
+    }
+
+    @Override
+    String getTestFrameworkJUnit3Dependencies() {
+        return """
+            testCompileOnly 'junit:junit:${LATEST_JUNIT3_VERSION}'
+            testRuntimeOnly 'junit:junit:${version}'
+        """
+    }
 }
