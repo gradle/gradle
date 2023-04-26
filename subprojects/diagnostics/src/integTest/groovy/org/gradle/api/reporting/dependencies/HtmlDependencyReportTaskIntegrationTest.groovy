@@ -596,7 +596,7 @@ rootProject.name = 'root'
             }
             configurations {
                 undeclarable {
-                    canBeDeclaredAgainst = false
+                    canBeDeclared = false
                 }
             }
         """
@@ -621,10 +621,10 @@ rootProject.name = 'root'
             }
             configurations {
                 declarable {
-                    canBeDeclaredAgainst = true
+                    canBeDeclared = true
                 }
                 undeclarable {
-                    canBeDeclaredAgainst = false
+                    canBeDeclared = false
                     extendsFrom(declarable)
                 }
             }

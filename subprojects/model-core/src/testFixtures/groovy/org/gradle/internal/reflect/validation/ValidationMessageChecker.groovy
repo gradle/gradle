@@ -35,12 +35,9 @@ trait ValidationMessageChecker {
         messageIndent = indent
     }
 
-    String userguideLink(String id, String section) {
-        documentationRegistry.getDocumentationFor(id, section)
-    }
 
     String learnAt(String id, String section) {
-        "Please refer to ${userguideLink(id, section)} for more details about this problem"
+        documentationRegistry.getDocumentationRecommendationFor("information", id, section)
     }
 
     @ValidationTestFor(
@@ -444,7 +441,7 @@ trait ValidationMessageChecker {
             "This behavior has been deprecated. " +
             "This behavior is scheduled to be removed in Gradle 9.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
-            "See https://docs.gradle.org/current/userguide/${docId}.html#${section} for more details."
+            documentationRegistry.getDocumentationRecommendationFor("information", docId, section)
         executer.expectDocumentedDeprecationWarning(deprecationMessage)
     }
 

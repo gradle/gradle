@@ -4,6 +4,7 @@ import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -12,7 +13,6 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.containsString
@@ -757,7 +757,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         buildAndFail("help")
             .assertHasCause("The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.")
-            .assertHasResolution("See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+            .assertHasResolution(getPrecompiledPluginsLink())
     }
 
     @Test
@@ -773,7 +773,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         buildAndFail("help")
             .assertHasCause("The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
-            .assertHasResolution("See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+            .assertHasResolution(getPrecompiledPluginsLink())
     }
 
     @Test
@@ -791,8 +791,11 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         buildAndFail("help")
             .assertHasCause("The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.")
-            .assertHasResolution("See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+            .assertHasResolution(getPrecompiledPluginsLink())
     }
+
+    private
+    fun getPrecompiledPluginsLink(): String = DocumentationRegistry().getDocumentationRecommendationFor("information", "custom_plugins", "sec:precompiled_plugins")
 
     @Test
     fun `should compile correctly with Kotlin explicit api mode`() {

@@ -45,6 +45,7 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.jsoup)
 

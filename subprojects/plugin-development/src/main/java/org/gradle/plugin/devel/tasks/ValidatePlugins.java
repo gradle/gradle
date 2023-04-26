@@ -106,20 +106,23 @@ public abstract class ValidatePlugins extends DefaultTask {
         } else {
             if (getFailOnWarning().get() || problemMessages.stream().anyMatch(line -> line.startsWith("Error:"))) {
                 if (getIgnoreFailures().get()) {
-                    getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}",
-                        getDocumentationRegistry().getDocumentationFor("incremental_build", "sec:task_input_output_annotations"),
+                    getLogger().warn("Plugin validation finished with errors. {} {}",
+                        annotateTaskPropertiesDoc(),
                         toMessageList(problemMessages));
                 } else {
                     throw WorkValidationException.forProblems(problemMessages)
                         .withSummaryForPlugin()
-                        .getWithExplanation(String.format("See %s for more information on how to annotate task properties.",
-                            getDocumentationRegistry().getDocumentationFor("incremental_build", "sec:task_input_output_annotations")));
+                        .getWithExplanation(annotateTaskPropertiesDoc());
                 }
             } else {
                 getLogger().warn("Plugin validation finished with warnings:{}",
                     toMessageList(problemMessages));
             }
         }
+    }
+
+    private String annotateTaskPropertiesDoc() {
+        return getDocumentationRegistry().getDocumentationRecommendationFor("on how to annotate task properties", "incremental_build", "sec:task_input_output_annotations");
     }
 
     private static List<String> parseMessageList(List<String> lines) {

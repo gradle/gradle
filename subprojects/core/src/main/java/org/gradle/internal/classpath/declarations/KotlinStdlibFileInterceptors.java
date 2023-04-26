@@ -27,6 +27,7 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerC
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.KotlinDefaultMask;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 import org.gradle.internal.lazy.Lazy;
 
 import java.io.File;
@@ -41,8 +42,8 @@ import static org.gradle.internal.classpath.declarations.Handles.READ_LINES_DEFA
 import static org.gradle.internal.classpath.declarations.Handles.USE_LINES_DEFAULT;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
+@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
+@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class KotlinStdlibFileInterceptors {
     @InterceptCalls
     @StaticMethod(ofClass = FilesKt.class)

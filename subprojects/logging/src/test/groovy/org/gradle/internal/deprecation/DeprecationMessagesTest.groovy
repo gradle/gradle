@@ -27,6 +27,8 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
+
 class DeprecationMessagesTest extends Specification {
 
     private static final String NEXT_GRADLE_VERSION = "9.0"
@@ -324,8 +326,8 @@ class DeprecationMessagesTest extends Specification {
             .nagUser()
 
         then:
-        def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-        expectMessage "Some behavior. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. See ${expectedDocumentationUrl} for more details."
+        def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information","viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
+        expectMessage "Some behavior. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. ${expectedDocumentationUrl}"
     }
 
     def "logs DSL property documentation reference"() {
@@ -337,7 +339,10 @@ class DeprecationMessagesTest extends Specification {
 
         then:
         def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "bar")
-        expectMessage "The DeprecationLogger.archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+        expectMessage "The DeprecationLogger.archiveName property has been deprecated. " +
+            "This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. " +
+            "Please use the archiveFileName property instead. " +
+            String.format(RECOMMENDATION, "information", dslReference)
     }
 
     def "logs DSL documentation reference for deprecated property implicitly"() {
@@ -349,7 +354,10 @@ class DeprecationMessagesTest extends Specification {
 
         then:
         def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "archiveName")
-        expectMessage "The AbstractArchiveTask.archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+        expectMessage "The AbstractArchiveTask.archiveName property has been deprecated. " +
+            "This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. " +
+            "Please use the archiveFileName property instead. " +
+            String.format(RECOMMENDATION, "information", dslReference)
     }
 
     private void expectMessage(String expectedMessage) {

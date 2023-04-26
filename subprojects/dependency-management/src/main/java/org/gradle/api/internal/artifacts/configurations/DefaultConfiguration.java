@@ -159,6 +159,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.join;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
@@ -824,9 +825,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 boolean hasModuleNotFound = causes.stream().anyMatch(ModuleVersionNotFoundException.class::isInstance);
                 if (hasModuleNotFound) {
                     return Optional.of(new ResolveExceptionWithHints(getDisplayName(), causes,
-                        String.join("\n", "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
+                        join("\n", "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
                         "You can figure out how project repositories are declared by configuring your build to fail on project repositories.",
-                        "See " + documentationRegistry.getDocumentationFor("declaring_repositories", "sub:fail_build_on_project_repositories") + " for details.")));
+                        documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories"))));
                 }
             }
         } catch (Throwable e) {
@@ -1335,7 +1336,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         );
 
 
-        DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
+        DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
@@ -1377,7 +1378,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return copiedConfiguration;
     }
 
-    private DefaultConfiguration newConfiguration(ConfigurationRole role, boolean usageCanBeMutated) {
+    private DefaultConfiguration newConfiguration(ConfigurationRole role) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
 
@@ -1390,7 +1391,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             childResolutionStrategy,
             rootComponentMetadataBuilder,
             role,
-            usageCanBeMutated
+            false
         );
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
@@ -2007,18 +2008,18 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     @Override
-    public boolean isCanBeDeclaredAgainst() {
+    public boolean isCanBeDeclared() {
         return canBeDeclaredAgainst;
     }
 
     @Override
-    public void setCanBeDeclaredAgainst(boolean allowed) {
+    public void setCanBeDeclared(boolean allowed) {
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
             maybeWarnOnChangingUsage("declarable", allowed);
         } else if (canBeDeclaredAgainst && allowed) {
-            maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclaredAgainst(true)");
+            maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclared(true)");
         }
     }
 
@@ -2154,14 +2155,6 @@ since users cannot create non-legacy configurations and there is no current publ
     @Override
     public ConfigurationRole getRoleAtCreation() {
         return roleAtCreation;
-    }
-
-    @Deprecated
-    @Override
-    public void assertHasNoDeclarations() {
-        if (!dependencies.isEmpty()) {
-            throw new GradleException("Dependency declarations are present on a configuration that does not allow them: " + getName() + ".");
-        }
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
@@ -2530,7 +2523,7 @@ since users cannot create non-legacy configurations and there is no current publ
         DECLARABLE_AGAINST {
             @Override
             boolean isAllowed(ConfigurationInternal configuration) {
-                return configuration.isCanBeDeclaredAgainst();
+                return configuration.isCanBeDeclared();
             }
 
             @Override

@@ -33,7 +33,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertFailureContainsForbiddenCharacterMessage('project name', 'this::is::a::namespace',
-            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
+            " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
     def "subproject names must not contain forbidden characters"() {
@@ -45,7 +45,11 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertFailureContainsForbiddenCharacterMessage('project name', 'name|with|pipes',
-            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
+            " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
+    }
+
+    private getSettingsDslUrl() {
+        documentationRegistry.getDslRefForProperty("org.gradle.api.initialization.Settings", "include(java.lang.String[])")
     }
 
     def "task names must not contain forbidden characters"() {
@@ -80,7 +84,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertFailureContainsForbiddenStartOrEndCharacterMessage('project name', '.problematic-name',
-            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
+            " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
     def "project names must not end with ."() {
@@ -93,7 +97,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertFailureContainsForbiddenStartOrEndCharacterMessage('project name', 'problematic-name.',
-            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
+            " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
     @Requires(UnitTestPreconditions.UnixDerivative) // all forbidden characters are illegal on Windows

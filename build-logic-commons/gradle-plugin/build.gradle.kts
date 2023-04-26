@@ -14,10 +14,10 @@ java {
 }
 
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.12.6")
+    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.13")
 
     implementation(project(":commons"))
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.0.13")
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.0.14")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
 }

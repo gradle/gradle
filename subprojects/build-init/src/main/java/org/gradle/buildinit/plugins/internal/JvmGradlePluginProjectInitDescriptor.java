@@ -51,8 +51,8 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample Gradle plugin project to get you started.")
-            .fileComment("For more details take a look at the Writing Custom Plugins chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("custom_plugins"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on writing Custom Plugins", "custom_plugins"));
+
         buildScriptBuilder.plugin("Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins", "java-gradle-plugin");
 
         buildScriptBuilder.block(null, "gradlePlugin", b -> b.containerElement("Define the plugin", "plugins", "greeting", null, g -> {
@@ -107,7 +107,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getDocumentationFor("custom_plugins"));
+        return Optional.of(documentationRegistry.getDocumentationRecommendationFor("information", "custom_plugins"));
     }
 
     protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName);

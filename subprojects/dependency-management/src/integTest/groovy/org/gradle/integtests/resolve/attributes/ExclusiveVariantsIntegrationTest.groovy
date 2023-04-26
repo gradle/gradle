@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.attributes
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
@@ -75,7 +76,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("resolveSample")
-        failure.assertHasDocumentedCause("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details. See https://docs.gradle.org/current/userguide/upgrading_version_7.html#unique_attribute_sets for more details.")
+        failure.assertHasDocumentedCause("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. " +
+            "Consider adding an additional attribute to one of the configurations to disambiguate them.  " +
+            "Run the 'outgoingVariants' task for more details. ${documentationRegistry.getDocumentationRecommendationFor("information", "upgrading_version_7", "unique_attribute_sets")}")
 
         where:
         capability << ['default', 'org.test:sample:1.0']

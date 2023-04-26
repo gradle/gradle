@@ -142,7 +142,7 @@ class DefaultBuildControllers implements BuildControllers {
             if (id2.equals(DefaultBuildIdentifier.ROOT)) {
                 return -1;
             }
-            return id1.getName().compareTo(id2.getName());
+            return id1.getBuildPath().compareTo(id2.getBuildPath());
         };
     }
 }
