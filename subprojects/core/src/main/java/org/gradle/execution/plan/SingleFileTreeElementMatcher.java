@@ -125,6 +125,7 @@ public class SingleFileTreeElementMatcher {
         }
 
         @Override
+        @Deprecated
         public int getMode() {
             return getPermissions().toUnixNumeric();
         }

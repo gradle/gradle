@@ -91,9 +91,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @return The file permissions, or {@code null} if existing permissions should be preserved.
      *
-     * @apiNote Consider using {@link #getFilePermissions()} instead.
+     * @deprecated Use {@link #getFilePermissions()} instead. This method is scheduled for removal in Gradle 9.0.
      */
     @Nullable
+    @Deprecated
     Integer getFileMode();
 
     /**
@@ -104,8 +105,9 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param mode The file permissions.
      * @return this
      *
-     * @apiNote Consider using {@link #filePermissions(Action)} instead.
+     * @deprecated Use {@link #filePermissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
      */
+    @Deprecated
     CopyProcessingSpec setFileMode(@Nullable Integer mode);
 
     /**
@@ -115,9 +117,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @return The directory permissions, or {@code null} if existing permissions should be preserved.
      *
-     * @apiNote Consider using {@link #getDirPermissions()} instead.
+     * @deprecated Use {@link #getDirPermissions()} instead. This method is scheduled for removal in Gradle 9.0.
      */
     @Nullable
+    @Deprecated
     Integer getDirMode();
 
     /**
@@ -128,8 +131,9 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param mode The directory permissions.
      * @return this
      *
-     * @apiNote Consider using {@link #dirPermissions(Action)} instead.
+     * @deprecated Use {@link #dirPermissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
      */
+    @Deprecated
     CopyProcessingSpec setDirMode(@Nullable Integer mode);
 
     /**

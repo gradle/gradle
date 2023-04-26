@@ -66,8 +66,9 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      *
      * @param mode the Unix permissions, e.g. {@code 0644}.
      *
-     * @apiNote Consider using {@link #permissions(Action)} instead.
+     * @deprecated Use {@link #permissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
      */
+    @Deprecated
     void setMode(int mode);
 
     /**

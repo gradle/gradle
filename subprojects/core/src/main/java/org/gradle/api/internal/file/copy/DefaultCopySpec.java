@@ -475,11 +475,13 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public Integer getDirMode() {
         return getMode(buildRootResolver().getDirPermissions());
     }
 
     @Override
+    @Deprecated
     public Integer getFileMode() {
         return getMode(buildRootResolver().getFilePermissions());
     }
@@ -490,12 +492,14 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
         dirPermissions.set(mode == null ? null : objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, mode));
         return this;
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
         filePermissions.set(mode == null ? null : objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, mode));
         return this;
@@ -772,11 +776,13 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
+        @Deprecated
         public Integer getFileMode() {
             return getMode(getImmutableFilePermissions());
         }
 
         @Override
+        @Deprecated
         public Integer getDirMode() {
             return getMode(getImmutableDirPermissions());
         }

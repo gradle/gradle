@@ -106,6 +106,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     }
 
     @Override
+    @Deprecated
     public int getMode() {
         return getPermissions().toUnixNumeric();
     }

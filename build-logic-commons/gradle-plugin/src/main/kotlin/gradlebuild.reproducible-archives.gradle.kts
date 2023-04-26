@@ -18,6 +18,8 @@
 tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
+    @Suppress("DEPRECATION")
     dirMode = Integer.parseInt("0755", 8)
+    @Suppress("DEPRECATION")
     fileMode = Integer.parseInt("0644", 8)
 }

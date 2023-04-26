@@ -144,6 +144,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        @Deprecated
         public int getMode() {
             return getPermissions().toUnixNumeric();
         }
@@ -225,6 +226,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         }
 
         @Override
+        @Deprecated
         public int getMode() {
             return getPermissions().toUnixNumeric();
         }

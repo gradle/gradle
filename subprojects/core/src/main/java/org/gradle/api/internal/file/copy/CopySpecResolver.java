@@ -35,8 +35,10 @@ public interface CopySpecResolver {
 
     boolean isCaseSensitive();
     @Nullable
+    @Deprecated
     Integer getFileMode();
     @Nullable
+    @Deprecated
     Integer getDirMode();
     Provider<ConfigurableFilePermissions> getFilePermissions();
     Provider<FilePermissions> getImmutableFilePermissions();

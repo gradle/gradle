@@ -195,6 +195,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
+    @Deprecated
     public void setMode(int mode) {
         getPermissionsHolder().unix(mode);
     }

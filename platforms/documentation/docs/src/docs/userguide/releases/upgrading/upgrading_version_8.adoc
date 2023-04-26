@@ -75,6 +75,19 @@ This should not impact catalogs that use the <<platforms.adoc#sub::toml-dependen
 
 === Deprecations
 
+[[unix_file_permissions_deprecated]]
+==== Unix mode based file permissions deprecated ====
+
+A new API for defining file permissions has been added, see link:{javadocPath}/org/gradle/api/file/FileAccessPermissions.html[FileAccessPermissions].
+Unix mode based old methods have been deprecated:
+
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getFileMode--[CopyProcessingSpec.getFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setFileMode-java.lang.Integer-[CopyProcessingSpec.setFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getDirMode--[CopyProcessingSpec.getDirMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setDirMode-java.lang.Integer-[CopyProcessingSpec.setDirMode]
+- link:{javadocPath}/org/gradle/api/file/FileTreeElement.html#getMode--[FileTreeElement.getMode]
+- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#setMode-int-[FileCopyDetails.setMode]
+
 ==== Deprecated registration of plugin conventions
 
 Using plugin conventions has been emitting warnings since Gradle 8.2.
