@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.file.Chmod;
 import org.gradle.util.internal.GFileUtils;
@@ -108,6 +109,11 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     @Override
     @Deprecated
     public int getMode() {
+        DeprecationLogger.deprecateMethod(FileTreeElement.class, "getMode()")
+            .replaceWith("getImmutablePermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return getPermissions().toUnixNumeric();
     }
 

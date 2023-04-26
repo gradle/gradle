@@ -85,6 +85,8 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         when:
         def smokeTestRunner = runner('assembleBootDist', 'check')
         // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION)
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
         def buildResult = smokeTestRunner.build()
 
         then:
@@ -93,6 +95,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         smokeTestRunner = runner('bootRun')
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION)
         def runResult = smokeTestRunner.build()
 
         then:

@@ -49,6 +49,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -477,12 +478,22 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     @Deprecated
     public Integer getDirMode() {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getDirMode()")
+            .replaceWith("getDirPermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return getMode(buildRootResolver().getDirPermissions());
     }
 
     @Override
     @Deprecated
     public Integer getFileMode() {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getFileMode()")
+            .replaceWith("getFilePermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return getMode(buildRootResolver().getFilePermissions());
     }
 
@@ -494,6 +505,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     @Deprecated
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setDirMode(Integer)")
+            .replaceWith("dirPermissions(Action)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         dirPermissions.set(mode == null ? null : objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, mode));
         return this;
     }
@@ -501,6 +517,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     @Deprecated
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setFileMode(Integer)")
+            .replaceWith("filePermissions(Action)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         filePermissions.set(mode == null ? null : objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, mode));
         return this;
     }
@@ -778,12 +799,22 @@ public class DefaultCopySpec implements CopySpecInternal {
         @Override
         @Deprecated
         public Integer getFileMode() {
+            DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getFileMode()")
+                .replaceWith("getImmutableFilePermissions()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+                .nagUser();
             return getMode(getImmutableFilePermissions());
         }
 
         @Override
         @Deprecated
         public Integer getDirMode() {
+            DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getDirMode()")
+                .replaceWith("getImmutableDirPermissions()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+                .nagUser();
             return getMode(getImmutableDirPermissions());
         }
 

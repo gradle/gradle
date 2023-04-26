@@ -57,6 +57,18 @@ class BaseDeprecations {
         "Consult the upgrading guide for further information: " +
         DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","java_convention_deprecation")
 
+    public static final String COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION = "The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
+        "This is scheduled to be removed in Gradle 9.0. " +
+        "Please use the filePermissions(Action) method instead. " +
+        "Consult the upgrading guide for further information: " +
+        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","unix_file_permissions_deprecated")
+
+    public static final String FILE_TREE_ELEMENT_GET_MODE_DEPRECATION = "The FileTreeElement.getMode() method has been deprecated. " +
+        "This is scheduled to be removed in Gradle 9.0. " +
+        "Please use the getImmutablePermissions() method instead. " +
+        "Consult the upgrading guide for further information: " +
+        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","unix_file_permissions_deprecated")
+
     public static final String FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION = "The Provider.forUseAtConfigurationTime method has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Simply remove the call. " +

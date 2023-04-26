@@ -50,7 +50,9 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        def result = runner('shadowJar').build()
+        def result = runner('shadowJar')
+            .expectLegacyDeprecationWarning(BaseDeprecations.FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
+            .build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -62,7 +64,9 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('clean').build()
-        result = runner('shadowJar').build()
+        result = runner('shadowJar')
+            .expectLegacyDeprecationWarning(BaseDeprecations.FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
+            .build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS

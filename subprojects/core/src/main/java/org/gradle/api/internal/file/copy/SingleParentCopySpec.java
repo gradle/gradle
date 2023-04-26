@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
 public class SingleParentCopySpec extends DefaultCopySpec {
