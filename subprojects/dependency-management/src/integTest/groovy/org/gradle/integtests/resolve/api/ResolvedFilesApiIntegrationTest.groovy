@@ -93,6 +93,15 @@ task show {
         println "files 8: " + configurations.compile.files { true }.collect { it.name }
         println "files 9: " + configurations.compile.fileCollection { true }.collect { it.name }
         println "files 10: " + configurations.compile.fileCollection { true }.files.collect { it.name }
+    }
+}
+
+/*
+ * Calling the getResolvedConfiguration() method will cause deprecation warnings, which we'll want to expect in this case,
+ * but not in the case of the non-deprecated methods, so this will be done in a separate task.
+ */
+task showViaResolvedConfiguration {
+    doLast {
         println "files 11: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
         println "files 12: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
     }
@@ -114,6 +123,12 @@ task show {
         outputContains("files 8: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
         outputContains("files 9: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
         outputContains("files 10: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
+
+        when:
+        2.times { executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration") }
+        run 'showViaResolvedConfiguration'
+
+        then:
         outputContains("files 11: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
         outputContains("files 12: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
     }
