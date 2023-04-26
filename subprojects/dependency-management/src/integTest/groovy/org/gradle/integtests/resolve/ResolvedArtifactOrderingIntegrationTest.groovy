@@ -67,14 +67,29 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
                 doLast {
                     if (${!GradleContextualExecuter.configCache}) {
                         // Don't check eager methods when CC is enabled
-                        assert configurations.${name}.resolvedConfiguration.getFiles { true }.collect { it.name } == [${fileNames}]
                         assert configurations.${name}.files { true }.collect { it.name } == [${fileNames}]
+                    }
+                }
+            }
+            
+            task checkResolveConfigurationLegacy${name} {
+                doLast {
+                    if (${!GradleContextualExecuter.configCache}) {
+                        // Don't check eager methods when CC is enabled
+                        assert configurations.${name}.getResolvedConfiguration().getFiles { true }.collect { it.name } == [${fileNames}]
                     }
                 }
             }
 """
 
         assert succeeds("checkLegacy${name}")
+
+        /*
+         * Calling the getResolvedConfiguration() method may cause deprecation warnings, which we'll want to expect in this case,
+         * but not in the case of the non-deprecated methods, so this will be done in a separate build.
+         */
+        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        assert succeeds("checkResolveConfigurationLegacy${name}")
     }
 
     private void checkArtifacts(String name, List<?> modules) {
@@ -94,6 +109,18 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
                         // Don't check eager methods when CC is enabled
                         assert configurations.${name}.resolve().collect { it.name } == [${fileNames}]
                         assert configurations.${name}.files.collect { it.name } == [${fileNames}]
+
+                        // TODO: Make these work, see https://github.com/gradle/gradle/issues/24916
+//                        assert configurations.${name}.incoming.files.collect { it.name } == [${fileNames}]
+//                        assert configurations.${name}.incoming.artifactView {}.files.collect { it.name } == [${fileNames}]
+                    }
+                }
+            }
+            
+            task checkResolveConfiguration${name} {
+                doLast {
+                    if (${!GradleContextualExecuter.configCache}) {
+                        // Don't check eager methods when CC is enabled
                         assert configurations.${name}.resolvedConfiguration.files.collect { it.name } == [${fileNames}]
                     }
                 }
@@ -101,6 +128,13 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 """
 
         assert succeeds("check${name}")
+
+        /*
+         * Calling the getResolvedConfiguration() method may cause deprecation warnings, which we'll want to expect in this case,
+         * but not in the case of the non-deprecated methods, so this will be done in a separate build.
+         */
+        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        assert succeeds("checkResolveConfiguration${name}")
     }
 
     private List<String> toFileNames(List<?> modules) {
