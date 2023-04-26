@@ -95,12 +95,16 @@ allprojects {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
         it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
         it.files.from(configurations.${config})
-        it.incomingArtifacts = configurations.${config}.incoming.artifacts
+
         it.incomingFiles = configurations.${config}.incoming.files
+        it.incomingArtifacts = configurations.${config}.incoming.artifacts
+
         it.artifactViewFiles = configurations.${config}.incoming.artifactView { }.files
         it.artifactViewArtifacts = configurations.${config}.incoming.artifactView { }.artifacts
+
         it.lenientArtifactViewFiles = configurations.${config}.incoming.artifactView { it.lenient = true }.files
         it.lenientArtifactViewArtifacts = configurations.${config}.incoming.artifactView { it.lenient = true }.artifacts
+
         it.buildArtifacts = ${buildArtifacts}
         ${inputs}
     }
@@ -161,46 +165,50 @@ $END_MARKER
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
         def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files
+        def expectedLegacyArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.legacyArtifactName}]" }
 
-        def actualArtifacts = findLines(configDetails, 'artifact-incoming')
-        compare("artifacts", actualArtifacts, expectedArtifacts)
+        def actualArtifacts = findLines(configDetails, 'incoming-artifact-artifact')
+        compare("incoming.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
         if (buildArtifacts) {
-            def actualFiles = findLines(configDetails, 'file-files')
-            compare("this.files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-incoming')
-            compare("incoming.files", actualFiles, expectedFiles)
+            def actualFiles = findLines(configDetails, 'file-file')
+            compare("files", actualFiles, expectedFiles)
 
             actualFiles = findLines(configDetails, 'file-filtered')
-            compare("filtered files", actualFiles, expectedFiles)
+            compare("files (filtered)", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-artifact-incoming')
-            compare("incoming artifact files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'incoming-file')
+            compare("incoming.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'artifact-view-files')
-            compare("artifactView files", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'incoming-artifact')
+            compare("incoming.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'artifact-view-artifacts')
-            compare("artifactView artifacts", actualArtifacts, expectedArtifacts)
+            actualFiles = findLines(configDetails, 'incoming-artifact-file')
+            compare("incoming.artifacts.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'artifact-view-files-set')
-            compare("artifactView files set", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'artifact-view-file')
+            compare("artifactView.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'artifact-view-artifacts-set')
-            compare("artifactView artifacts set", actualArtifacts, expectedArtifacts)
+            actualArtifacts = findLines(configDetails, 'artifact-view-artifact')
+            compare("artifactView.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'artifact-view-lenient-files')
-            compare("artifactView lenient files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'artifact-view-file-file')
+            compare("artifactView.files.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'artifact-view-lenient-artifacts')
-            compare("artifactView lenient artifacts", actualArtifacts, expectedArtifacts)
+            actualArtifacts = findLines(configDetails, 'artifact-view-artifact-artifact')
+            compare("artifactView.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'artifact-view-lenient-files-set')
-            compare("artifactView lenient files set", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'lenient-artifact-view-file')
+            compare("artifactView.files (lenient)", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'artifact-view-lenient-artifacts-set')
-            compare("artifactView lenient artifacts set", actualArtifacts, expectedArtifacts)
+            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact')
+            compare("artifactView.artifacts (lenient)", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'lenient-artifact-view-file-file')
+            compare("artifactView.files.files (lenient)", actualFiles, expectedFiles)
+
+            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact-artifact')
+            compare("artifactView.artifacts.artifacts (lenient)", actualArtifacts, expectedArtifacts)
         }
     }
 

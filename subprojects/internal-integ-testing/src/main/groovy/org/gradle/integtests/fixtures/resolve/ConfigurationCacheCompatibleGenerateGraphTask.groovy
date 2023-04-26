@@ -35,10 +35,10 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
     abstract ConfigurableFileCollection getFiles()
 
     @Internal
-    ArtifactCollection incomingArtifacts
+    FileCollection incomingFiles
 
     @Internal
-    FileCollection incomingFiles
+    ArtifactCollection incomingArtifacts
     
     @Internal
     FileCollection artifactViewFiles
@@ -67,50 +67,58 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
 
             // As are these
             incomingArtifacts.artifacts.each {
-                writeArtifact("artifact-incoming", writer, it)
+                writeArtifact("incoming-artifact-artifact", writer, it)
             }
 
             if (buildArtifacts) {
                 files.each {
-                    writer.println("file-files:${it.name}")
-                }
-                incomingFiles.each {
-                    writer.println("file-incoming:${it.name}")
+                    writer.println("file-file:${it.name}")
                 }
                 files.filter { true }.each {
                     writer.println("file-filtered:${it.name}")
                 }
 
-                incomingArtifacts.artifacts.each {
-                    writer.println("file-artifact-incoming:${it.file.name}")
+                incomingFiles.each {
+                    writer.println("incoming-file:${it.name}")
+                }
+                incomingArtifacts.each {
+                    writeArtifact("incoming-artifact", writer, it)
+                }
+                incomingArtifacts.each {
+                    writer.println("incoming-artifact-file:${it.file.name}")
                 }
 
                 artifactViewFiles.each {
-                    writer.println("artifact-view-files:${it.name}")
+                    writer.println("artifact-view-file:${it.name}")
                 }
                 artifactViewArtifacts.each {
-                    writeArtifact("artifact-view-artifacts", writer, it)
+                    writeArtifact("artifact-view-artifact", writer, it)
                 }
                 artifactViewFiles.files.each {
-                    writer.println("artifact-view-files-set:${it.name}")
+                    writer.println("artifact-view-file-file:${it.name}")
                 }
                 artifactViewArtifacts.artifacts.each {
-                    writeArtifact("artifact-view-artifacts-set", writer, it)
+                    writeArtifact("artifact-view-artifact-artifact", writer, it)
                 }
                 lenientArtifactViewFiles.each {
-                    writer.println("artifact-view-lenient-files:${it.name}")
+                    writer.println("lenient-artifact-view-file:${it.name}")
                 }
                 lenientArtifactViewArtifacts.each {
-                    writeArtifact("artifact-view-lenient-artifacts", writer, it)
+                    writeArtifact("lenient-artifact-view-artifact", writer, it)
                 }
                 lenientArtifactViewFiles.files.each {
-                    writer.println("artifact-view-lenient-files-set:${it.name}")
+                    writer.println("lenient-artifact-view-file-file:${it.name}")
                 }
                 lenientArtifactViewArtifacts.artifacts.each {
-                    writeArtifact("artifact-view-lenient-artifacts-set", writer, it)
+                    writeArtifact("lenient-artifact-view-artifact-artifact", writer, it)
                 }
             }
         }
+    }
+
+    @SuppressWarnings('GrMethodMayBeStatic')
+    protected void writeFile(String linePrefix, PrintWriter writer, File file) {
+        writer.println("$linePrefix:${file.name}")
     }
 
     @SuppressWarnings('GrMethodMayBeStatic')
