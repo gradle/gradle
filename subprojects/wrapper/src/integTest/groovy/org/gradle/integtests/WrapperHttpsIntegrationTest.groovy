@@ -16,10 +16,10 @@
 
 package org.gradle.integtests
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 // wrapperExecuter requires a real distribution
 @IgnoreIf({ GradleContextualExecuter.embedded })
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/3799")
+@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3799")
 class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     private static final String DEFAULT_USER = "jdoe"
     private static final String DEFAULT_PASSWORD = "changeit"
