@@ -39,7 +39,6 @@ object GradleDistributionSpecs {
 
         into("bin") {
             from(gradleScriptPath)
-            @Suppress("DEPRECATION")
             fileMode = Integer.parseInt("0755", 8)
         }
 
@@ -95,7 +94,6 @@ object GradleDistributionSpecs {
      */
     fun Project.srcDistributionSpec() = copySpec {
         from(repoRoot().file("gradlew")) {
-            @Suppress("DEPRECATION")
             fileMode = Integer.parseInt("0755", 8)
         }
         from(repoRoot()) {

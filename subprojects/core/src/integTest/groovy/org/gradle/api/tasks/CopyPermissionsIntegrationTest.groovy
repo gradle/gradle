@@ -87,14 +87,12 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
              }
             """
         when:
-        executer.noDeprecationChecks()
         run "copy"
 
         then:
         file("build/tmp/reference.txt").mode == mode
 
         when:
-        executer.noDeprecationChecks()
         run "copy"
 
         then:
@@ -103,7 +101,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         file("reference.txt").text = "new"
-        executer.noDeprecationChecks()
         run "copy"
 
         then:
@@ -130,7 +127,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             }
             """
         when:
-        executer.noDeprecationChecks()
         run "copy"
         then:
         file("build/tmp/reference.txt").mode == 0755
@@ -143,7 +139,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         testSourceFile.text = "new"
-        executer.noDeprecationChecks()
         run "copy"
         then:
         executedAndNotSkipped(":copy")
@@ -169,7 +164,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             """
 
         when:
-        executer.noDeprecationChecks()
         run "copy"
 
         then:
@@ -196,13 +190,11 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             }
             """
         when:
-        executer.noDeprecationChecks()
         run "copy"
         then:
         file("build/tmp/testchild").mode == mode
 
         when:
-        executer.noDeprecationChecks()
         run "copy"
         then:
         skipped(":copy")
@@ -210,7 +202,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         parent.file("other/file.txt") << "test file"
-        executer.noDeprecationChecks()
         run "copy"
         then:
         executedAndNotSkipped(":copy")
@@ -353,7 +344,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         '''.stripIndent()
 
         when:
-        executer.noDeprecationChecks()
         run 'copy'
 
         then:
@@ -467,7 +457,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         """.stripIndent()
 
         when:
-        executer.noDeprecationChecks()
         run 'copy'
 
         then:

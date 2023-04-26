@@ -64,13 +64,11 @@ public class SingleParentCopySpec extends DefaultCopySpec {
     }
 
     @Override
-    @Deprecated
     public Integer getDirMode() {
         return buildResolverRelativeToParent(parentResolver).getDirMode();
     }
 
     @Override
-    @Deprecated
     public Integer getFileMode() {
         return buildResolverRelativeToParent(parentResolver).getFileMode();
     }

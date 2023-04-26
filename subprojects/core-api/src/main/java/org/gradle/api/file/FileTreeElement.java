@@ -100,7 +100,6 @@ public interface FileTreeElement {
      */
     RelativePath getRelativePath();
 
-    @Deprecated
     int getMode();
 
     /**

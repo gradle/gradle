@@ -176,7 +176,6 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         @Override
-        @Deprecated
         public void setMode(int mode) {
             throw new UnsupportedOperationException();
         }
