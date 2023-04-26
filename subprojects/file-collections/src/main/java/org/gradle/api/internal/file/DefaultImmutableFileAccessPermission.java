@@ -32,6 +32,11 @@ public class DefaultImmutableFileAccessPermission extends AbstractImmutableFileA
     }
 
     @Override
+    protected boolean hasTaskDependencies() {
+        return false; //fixed values, no task dependency information to worry about
+    }
+
+    @Override
     public Provider<Boolean> getRead() {
         return read;
     }

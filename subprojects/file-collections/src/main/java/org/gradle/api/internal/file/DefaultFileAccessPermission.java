@@ -17,6 +17,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
@@ -30,6 +33,12 @@ public abstract class DefaultFileAccessPermission extends AbstractImmutableFileA
         getRead().value(isRead(unixNumeric)).finalizeValueOnRead();
         getWrite().value(isWrite(unixNumeric)).finalizeValueOnRead();
         getExecute().value(isExecute(unixNumeric)).finalizeValueOnRead();
+    }
+
+    @Override
+    protected boolean hasTaskDependencies() {
+        TaskDependencyDetector detector = new TaskDependencyDetector();
+        return detector.hasTaskDependency(getRead()) || detector.hasTaskDependency(getWrite()) || detector.hasTaskDependency(getExecute());
     }
 
     @Override
@@ -72,6 +81,31 @@ public abstract class DefaultFileAccessPermission extends AbstractImmutableFileA
             return Integer.parseInt(permissions, 8);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Can't be parsed as octal number.");
+        }
+    }
+
+    private static class TaskDependencyDetector implements TaskDependencyResolveContext {
+
+        private boolean empty = true;
+
+        public boolean hasTaskDependency(Property<Boolean> property) {
+            empty = true;
+            ((ProviderInternal) property).visitDependencies(this);
+            return !empty;
+        }
+
+        @Override
+        public void add(Object dependency) {
+            empty = false;
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+        }
+
+        @Override
+        public Task getTask() {
+            return null;
         }
     }
 }

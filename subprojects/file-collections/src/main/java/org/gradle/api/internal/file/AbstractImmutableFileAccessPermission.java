@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.ImmutableFileAccessPermission;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
 public abstract class AbstractImmutableFileAccessPermission implements ImmutableFileAccessPermission {
@@ -28,10 +29,17 @@ public abstract class AbstractImmutableFileAccessPermission implements Immutable
      * returned value is equivalent to one of the three octal digits.
      */
     protected Provider<Integer> toUnixNumeric() {
-        return getRead().map(r -> r ? 4 : 0)
-            .zip(getWrite().map(w -> w ? 2 : 0), Integer::sum)
-            .zip(getExecute().map(x -> x ? 1 : 0), Integer::sum);
+        if (hasTaskDependencies()) {
+            return getRead().map(r -> r ? 4 : 0)
+                .zip(getWrite().map(w -> w ? 2 : 0), Integer::sum)
+                .zip(getExecute().map(x -> x ? 1 : 0), Integer::sum);
+        } else {
+            int unixNumeric = (getRead().get() ? 4 : 0) + (getWrite().get() ? 2 : 0) + (getExecute().get() ? 1 : 0);
+            return Providers.of(unixNumeric);
+        }
     }
+
+    protected abstract boolean hasTaskDependencies();
 
     protected static boolean isRead(int unixNumeric) {
         return (unixNumeric & 4) >> 2 == 1;

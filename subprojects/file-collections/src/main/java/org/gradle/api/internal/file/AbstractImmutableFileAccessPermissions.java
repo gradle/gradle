@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
 public abstract class AbstractImmutableFileAccessPermissions implements ImmutableFileAccessPermissions {
@@ -26,9 +27,14 @@ public abstract class AbstractImmutableFileAccessPermissions implements Immutabl
         AbstractImmutableFileAccessPermission user = (AbstractImmutableFileAccessPermission) getUser();
         AbstractImmutableFileAccessPermission group = (AbstractImmutableFileAccessPermission) getGroup();
         AbstractImmutableFileAccessPermission other = (AbstractImmutableFileAccessPermission) getOther();
-        return user.toUnixNumeric().map(u -> 64 * u)
-            .zip(group.toUnixNumeric().map(g -> 8 * g), Integer::sum)
-            .zip(other.toUnixNumeric(), Integer::sum);
+        boolean hasTaskDependencies = user.hasTaskDependencies() || group.hasTaskDependencies() || other.hasTaskDependencies();
+        if (hasTaskDependencies) {
+            return user.toUnixNumeric().map(u -> 64 * u)
+                .zip(group.toUnixNumeric().map(g -> 8 * g), Integer::sum)
+                .zip(other.toUnixNumeric(), Integer::sum);
+        } else {
+            return Providers.of(64 * user.toUnixNumeric().get() + 8 * group.toUnixNumeric().get() + other.toUnixNumeric().get());
+        }
     }
 
     @SuppressWarnings("OctalInteger")
