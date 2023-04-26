@@ -35,7 +35,7 @@ Gradle makes building and running apps easy; it is great for both small and larg
 
 Gradle is fast, highly configurable, and very concise.
 
-The unique advantage of Gradle Build Tool is its elegant and extensible declarative build language.
+The unique advantage of Gradle is its elegant and extensible declarative build language.
 
 High performance::
 * Gradle avoids unnecessary work by only running tasks that need to do work because inputs or outputs have changed.
