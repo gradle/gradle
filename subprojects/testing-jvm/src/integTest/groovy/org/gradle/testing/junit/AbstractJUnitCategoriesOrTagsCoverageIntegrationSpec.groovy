@@ -17,9 +17,9 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends AbstractTestingMultiVersionIntegrationTest {
     TestSourceFixture testSources = new TestSourceFixture()
 
     abstract TestSourceGenerator getTestSourceGenerator()

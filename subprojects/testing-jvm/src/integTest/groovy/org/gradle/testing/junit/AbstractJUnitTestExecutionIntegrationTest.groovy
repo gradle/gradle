@@ -21,14 +21,14 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 
-abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getJUnitVersionAssertion()
     abstract TestClassExecutionResult assertFailedToExecute(TestExecutionResult testResult, String testClassName)
 

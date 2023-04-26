@@ -22,13 +22,13 @@ import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.JvmBlockingTestClassGenerator
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
-abstract class AbstractJvmFailFastIntegrationSpec extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVersionIntegrationTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     JvmBlockingTestClassGenerator generator

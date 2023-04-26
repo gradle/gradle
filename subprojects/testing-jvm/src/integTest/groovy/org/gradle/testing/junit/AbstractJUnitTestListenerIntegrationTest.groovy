@@ -16,12 +16,12 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
 
-abstract class AbstractJUnitTestListenerIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitTestListenerIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getAssertionError()
 
     def "can listen for test results"() {

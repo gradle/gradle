@@ -43,7 +43,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
  *  └──────────────────────────────────────────────┘      └──────────────────────────────────────────────┘
  *
  */
-abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
+abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
     abstract BuildScriptConfiguration getBuildScriptConfiguration()
     abstract TestSourceConfiguration getTestSourceConfiguration()
 

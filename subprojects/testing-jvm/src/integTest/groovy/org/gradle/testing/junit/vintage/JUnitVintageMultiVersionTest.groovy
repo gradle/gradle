@@ -17,21 +17,21 @@
 package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.junit.junit4.JUnit4CommonTestSources
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 
 trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
-    AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
+    AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
         return new JUnitVintageBuildScriptConfiguration()
     }
 
-    AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
+    AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
         new JUnit4TestSourceConfiguration(MultiVersionIntegrationSpec.version)
     }
 
-    static class JUnitVintageBuildScriptConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
+    static class JUnitVintageBuildScriptConfiguration implements AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration {
         String configureTestFramework = "useJUnitPlatform()"
 
         @Override

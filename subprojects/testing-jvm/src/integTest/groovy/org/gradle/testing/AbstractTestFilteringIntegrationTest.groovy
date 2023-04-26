@@ -16,10 +16,10 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
-abstract class AbstractTestFilteringIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
     def setup() {
         buildFile << """

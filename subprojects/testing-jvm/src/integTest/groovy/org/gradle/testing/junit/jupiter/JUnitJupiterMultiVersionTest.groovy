@@ -17,18 +17,18 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 trait JUnitJupiterMultiVersionTest {
-    AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
+    AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
         return new JUnitJupiterBuildScriptConfiguration()
     }
 
-    AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
+    AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
         return new JUnitJupiterTestSourceConfiguration()
     }
 
-    static class JUnitJupiterBuildScriptConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
+    static class JUnitJupiterBuildScriptConfiguration implements AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration {
         String configureTestFramework = "useJUnitPlatform()"
 
         @Override
@@ -51,7 +51,7 @@ trait JUnitJupiterMultiVersionTest {
         }
     }
 
-    static class JUnitJupiterTestSourceConfiguration implements AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration {
+    static class JUnitJupiterTestSourceConfiguration implements AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration {
         @Override
         String getTestFrameworkImports() {
             return """

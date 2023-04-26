@@ -17,9 +17,9 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-abstract class AbstractJUnitTestSuitesIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitTestSuitesIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getTestFrameworkSuiteDependencies()
     abstract String getTestFrameworkSuiteImports()
     abstract String getTestFrameworkSuiteAnnotations(String classes)
