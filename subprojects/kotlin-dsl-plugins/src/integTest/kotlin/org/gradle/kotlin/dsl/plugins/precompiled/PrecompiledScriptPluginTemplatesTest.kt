@@ -9,7 +9,6 @@ import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
 import com.nhaarman.mockito_kotlin.verify
-
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -20,31 +19,22 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.withFolders
-
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.jetbrains.kotlin.name.NameUtils
-
 import org.junit.Test
-
 import org.mockito.invocation.InvocationOnMock
-
 import java.io.File
 
 
