@@ -40,6 +40,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -377,6 +378,7 @@ public abstract class CompileOptions extends AbstractOptions {
     }
 
     @Internal
+    @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
     public abstract Property<Boolean> getIncremental();
 
     /**
