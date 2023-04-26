@@ -17,13 +17,13 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitTestFailureIntegrationTest
 import org.hamcrest.Matcher
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 import static org.hamcrest.CoreMatchers.equalTo
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterJUnitTestFailureIntegrationTest extends AbstractJUnitTestFailureIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
     void writeBrokenRunnerOrExtension(String className) {

@@ -19,9 +19,11 @@ package org.gradle.testing.junit.jupiter
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.testing.AbstractTestListenerBuildOperationAdapterIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
+
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterTestListenerBuildOperationAdapterIntegrationTest extends AbstractTestListenerBuildOperationAdapterIntegrationTest implements JUnitJupiterMultiVersionTest {
     boolean emitsTestClassOperations = true
 
@@ -38,8 +40,8 @@ class JUnitJupiterTestListenerBuildOperationAdapterIntegrationTest extends Abstr
     void writeTestSources() {
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-suite-api:${JUnitCoverage.LATEST_PLATFORM_VERSION}'
-                testRuntimeOnly 'org.junit.platform:junit-platform-suite-engine:${JUnitCoverage.LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.platform:junit-platform-suite-api:${LATEST_PLATFORM_VERSION}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-suite-engine:${LATEST_PLATFORM_VERSION}'
             }
         """
         file('src/test/java/org/gradle/ASuite.java') << """

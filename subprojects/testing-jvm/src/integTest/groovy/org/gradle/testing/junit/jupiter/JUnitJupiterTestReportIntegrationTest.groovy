@@ -20,12 +20,12 @@ import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestReportIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.is
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegrationTest implements JUnitJupiterMultiVersionTest {
     def "outputs over lifecycle"() {
         when:

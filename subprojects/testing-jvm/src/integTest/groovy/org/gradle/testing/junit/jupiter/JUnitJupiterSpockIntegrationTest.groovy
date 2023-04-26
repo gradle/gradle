@@ -17,9 +17,10 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitSpockIntegrationTest
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterSpockIntegrationTest extends AbstractJUnitSpockIntegrationTest implements JUnitJupiterMultiVersionTest {
 }
