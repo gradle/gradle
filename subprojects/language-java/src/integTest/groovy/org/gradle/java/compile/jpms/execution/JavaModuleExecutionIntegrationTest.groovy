@@ -173,9 +173,11 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
             task run {
                 dependsOn jar
                 def execOperations = project.objects.newInstance(Services).exec
+                def jarFiles = files(jar)
+                def runtimeClasspathConfiguration = configurations.runtimeClasspath
                 doLast {
                     execOperations.javaexec { action ->
-                        action.classpath = files(jar) + configurations.runtimeClasspath
+                        action.classpath = jarFiles + runtimeClasspathConfiguration
                         action.mainModule.set('consumer')
                     }
                 }
@@ -206,9 +208,11 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
             task run {
                 dependsOn jar
                 def execOperations = project.objects.newInstance(Services).exec
+                def jarFiles = files(jar)
+                def runtimeClasspathConfiguration = configurations.runtimeClasspath
                 doLast {
                     execOperations.javaexec { action ->
-                        action.classpath = files(jar) + configurations.runtimeClasspath
+                        action.classpath = jarFiles + runtimeClasspathConfiguration
                         action.mainModule.set('consumer')
                         action.mainClass.set('consumer.MainModule')
                     }

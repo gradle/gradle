@@ -68,6 +68,8 @@ class JavaCompileTaskOperationResultIntegTest extends AbstractIntegrationSpec {
 
                 void apply(Project project) {
                     def listener = project.gradle.sharedServices.registerIfAbsent("listener", JavaCompileListener) { }
+                    // capture plugin field to make it available to task action
+                    def registry = this.registry
                     project.tasks.withType(JavaCompile) { task ->
                         task.doFirst {
                             registry.onTaskCompletion(listener)

@@ -429,7 +429,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
         def isKotlin1dot6 = kotlinVersionNumber.baseVersion < VersionNumber.parse("1.7.0")
         def isKotlin1dot8 = kotlinVersionNumber.baseVersion >= VersionNumber.parse("1.8.0")
-
+        println("kotlinVersionNumber.baseVersion = ${kotlinVersionNumber.baseVersion}")
+        println("kotlinVersionNumber = ${kotlinVersionNumber}")
+        println("isKotlin1dot6 = $isKotlin1dot6")
+        println("isKotlin1dot8 = $isKotlin1dot8")
         when:
         if (isKotlin1dot6) {
             def wrapUtilWarning = "The org.gradle.util.WrapUtil type has been deprecated. " +
