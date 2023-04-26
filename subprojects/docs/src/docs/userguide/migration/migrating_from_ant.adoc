@@ -126,22 +126,24 @@ In diagram form, the scenario looks like the following, where each box represent
 
 image::ant-task-migration.png[]
 
-The idea is to substitute the standard Gradle `compileJava` task for the Ant `build` task. There are several steps involved in this substitution:
+The idea is to substitute the standard Gradle `compileJava` task for the Ant `build` task.
+There are several steps involved in this substitution:
 
- 1. Applying the <<java_library_plugin#java_library_plugin,Java Library Plugin>>
+ 1. Applying the <<java_library_plugin#java_library_plugin,Java Library Plugin>>.
 +
 This provides the `compileJava` task shown in the diagram.
- 2. Renaming the old `build` task
+ 2. Renaming the old `build` task.
 +
 The name `build` conflicts with the standard `build` task provided by the <<base_plugin#base_plugin,Base Plugin>> (via the Java Library Plugin).
- 3. Configuring the compilation to use the existing directory structure
+ 3. Configuring the compilation to use the existing directory structure.
 +
 There's a good chance the Ant build does not conform to the standard Gradle directory structure, so you need to tell Gradle where to find the source files and where to place the compiled classes so `package` can find them.
- 4. Updating task dependencies
+ 4. Updating task dependencies.
 +
 `compileJava` must depend on `prepare`, `package` must depend on `compileJava` rather than `ant_build`, and `assemble` must depend on `package` rather than the standard Gradle `jar` task.
 
-Applying the plugin is as simple as inserting a  `plugins {}` block at the beginning of the Gradle build script, i.e. before `ant.importBuild()`. Here's how to apply the Java Library Plugin:
+Applying the plugin is as simple as inserting a  `plugins {}` block at the beginning of the Gradle build script, i.e. before `ant.importBuild()`.
+Here's how to apply the Java Library Plugin:
 
 .Applying the Java Library Plugin
 ====
@@ -158,9 +160,11 @@ include::sample[dir="snippets/antMigration/importBuild/groovy",files="build.grad
 ====
 <1> Renames the `build` target to `ant_build` and leaves all other targets unchanged
 
-Configuring a different path for the sources is described in the <<building_java_projects#sec:custom_java_source_set_paths,Building Java & JVM projects>> chapter, while you can change the output directory for the compiled classes in a similar way.
+Configuring a different path for the sources is described in <<building_java_projects#sec:custom_java_source_set_paths,Building Java & JVM projects>>.
+You can change the output directory for the compiled classes in a similar way.
 
-Let's say the original Ant build stores these paths in Ant properties, `src.dir` for the Java source files and `classes.dir` for the output. Here's how you would configure Gradle to use those paths:
+If, for example, the original Ant build stores these paths in Ant properties; `src.dir` for the Java source files and `classes.dir` for the output.
+Here's how you would configure Gradle to use those paths:
 
 .Configuring the source sets
 ====
@@ -168,11 +172,12 @@ include::sample[dir="snippets/antMigration/importBuild/kotlin",files="build.grad
 include::sample[dir="snippets/antMigration/importBuild/groovy",files="build.gradle[tags=source-sets]"]
 ====
 
-You should eventually aim to switch the standard directory structure for your type of project if possible and then you'll be able to remove this customization.
+You should eventually switch to the standard directory structure for your type of project so that you will be able to remove this customization.
 
-The last step is also straightforward and involves using the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn[Task.dependsOn] property and link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn()] method to detach and link tasks. The property is appropriate for _replacing_ dependencies, while the method is the preferred way to add to the existing dependencies.
+The last step is straightforward and involves using the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn[Task.dependsOn] property and link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn()] method to detach and link tasks.
+The property is appropriate for _replacing_ dependencies, while the method is the preferred way to add to the existing dependencies.
 
-Here is the required task dependency configuration required by the example scenario, which should come after the Ant build import:
+Here is the required task dependency configuration for the example scenario, which should come after the Ant build import:
 
 .Configuring the task dependencies
 ====
@@ -183,7 +188,8 @@ include::sample[dir="snippets/antMigration/importBuild/groovy",files="build.grad
 <2> Detaches `package` from the `ant_build` task and makes it depend on `compileJava`
 <3> Detaches `assemble` from the standard Gradle `jar` task and makes it depend on `package` instead
 
-That's it! These four steps will successfully replace the old Ant compilation with the Gradle implementation. Even this small migration will be a big help because you'll be able to take advantage of Gradle's <<java_plugin#sec:incremental_compile,incremental Java compilation>> for faster builds.
+These four steps will successfully replace the old Ant compilation with the Gradle implementation.
+Even this small migration will give you the advantage of Gradle's <<java_plugin#sec:incremental_compile,incremental Java compilation>> for faster builds.
 
 [TIP]
 ====
