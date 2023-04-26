@@ -118,24 +118,37 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
 
     private static TypeSpec.Builder generateInterceptorClass(String className, CodeBlock scopes, List<CallInterceptionRequest> requests) {
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
-            .superclass(CALL_INTERCEPTOR_CLASS)
+            .superclass(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
             .addJavadoc(interceptorClassJavadoc(requests))
             .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
 
         MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addStatement("super($L)", scopes).build();
         generatedClass.addMethod(constructor);
 
+        SignatureTree signatureTree = signatureTreeFromRequests(requests);
+
         MethodSpec doIntercept = MethodSpec.methodBuilder("doIntercept")
-            .addModifiers(Modifier.PROTECTED)
-            .returns(Object.class)
             .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(Object.class)
             .addParameter(INVOCATION_CLASS, "invocation")
             .addParameter(String.class, "consumer")
             .addException(Throwable.class)
-            .addCode(generateCodeFromInterceptorSignatureTree(signatureTreeFromRequests(requests)))
+            .addCode(generateCodeFromInterceptorSignatureTree(signatureTree))
+            .build();
+
+        MethodSpec matchesSignature = MethodSpec.methodBuilder("matchesMethodSignature")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH)
+            .addParameter(Class.class, "receiverClass")
+            .addParameter(Class[].class, "argumentClasses")
+            .addParameter(boolean.class, "isStatic")
+            .addCode(generateMatchesSignatureCodeFromInterceptorSignatureTree(signatureTree))
             .build();
 
         generatedClass.addMethod(doIntercept);
+        generatedClass.addMethod(matchesSignature);
         return generatedClass;
     }
 
@@ -181,7 +194,16 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return result.build();
     }
 
-    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
+    private static CodeBlock generateMatchesSignatureCodeFromInterceptorSignatureTree(SignatureTree tree) {
+        CodeBlock.Builder result = CodeBlock.builder();
+        new MatchesSignatureGeneratingSignatureTreeVisitor(result).visit(tree, -1);
+        result.addStatement("return null");
+        return result.build();
+    }
+
+    private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor");
+    private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
+        ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor.SignatureMatch");
     private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.InterceptScope");
     private static final ClassName INVOCATION_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.Invocation");
 
@@ -194,6 +216,5 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         method.addCode("return $T.asList($>\n$L$<\n", Arrays.class, constructorCallsArgs);
         method.addCode(");");
         return method.build();
-
     }
 }
