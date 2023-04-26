@@ -17,12 +17,19 @@
 package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.junit.junit4.AbstractJUnit4JUnitIntegrationTest
-import org.gradle.util.internal.VersionNumber
+import org.gradle.testing.junit.junit4.AbstractJUnit4TestListenerIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT3_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUNIT3_VERSION
 
 @TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageJUnitIntegrationTest extends AbstractJUnit4JUnitIntegrationTest implements JUnitVintageMultiVersionTest {
+class JUnitVintageTestListenerIntegrationTest extends AbstractJUnit4TestListenerIntegrationTest implements JUnitVintageMultiVersionTest {
+    @Override
+    String getTestFrameworkJUnit3Dependencies() {
+        return """
+            testCompileOnly 'junit:junit:${LATEST_JUNIT3_VERSION}'
+            testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${version}'
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        """
+    }
 }

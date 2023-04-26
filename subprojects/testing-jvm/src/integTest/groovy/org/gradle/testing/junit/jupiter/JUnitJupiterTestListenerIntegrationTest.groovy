@@ -17,9 +17,14 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
-import org.gradle.testing.junit.AbstractJUnitIntegrationTest
+import org.gradle.testing.junit.AbstractJUnitTestListenerIntegrationTest
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
-class JUnitJupiterJUnitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+
+@TargetCoverage({ JUNIT_JUPITER })
+class JUnitJupiterTestListenerIntegrationTest extends AbstractJUnitTestListenerIntegrationTest implements JUnitJupiterMultiVersionTest {
+    @Override
+    String getAssertionError() {
+        return "org.opentest4j.AssertionFailedError"
+    }
 }
