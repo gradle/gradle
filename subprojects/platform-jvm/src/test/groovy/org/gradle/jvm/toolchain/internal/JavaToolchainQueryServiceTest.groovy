@@ -32,6 +32,8 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
+import org.gradle.platform.Architecture
+import org.gradle.platform.BuildPlatform
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -174,7 +176,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "No matching toolchains found for requested specification: {languageVersion=12, vendor=any, implementation=vendor-specific}."
+        e.message == "No matching toolchains found for requested specification: {languageVersion=12, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
         e.cause.message == "Configured toolchain download repositories can't match requested specification"
     }
 
@@ -507,6 +509,17 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaToolchainProvisioningService provisioningService,
         File currentJavaHome = Jvm.current().getJavaHome()
     ) {
-        new JavaToolchainQueryService(registry, detector, TestFiles.fileFactory(), provisioningService, TestUtil.objectFactory(), currentJavaHome)
+        def buildPlatform = new BuildPlatform() {
+            @Override
+            org.gradle.platform.OperatingSystem getOperatingSystem() {
+                return org.gradle.platform.OperatingSystem.LINUX
+            }
+
+            @Override
+            Architecture getArchitecture() {
+                return Architecture.X86_64
+            }
+        }
+        new JavaToolchainQueryService(registry, detector, TestFiles.fileFactory(), provisioningService, TestUtil.objectFactory(), currentJavaHome, buildPlatform)
     }
 }

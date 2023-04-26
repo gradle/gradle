@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
@@ -68,7 +69,7 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     private String orgGradleUtilTypeDeprecation(String type, int major) {
         return "The org.gradle.util.$type type has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_${major}.html#org_gradle_util_reports_deprecations"
+            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}","org_gradle_util_reports_deprecations")}"
     }
 
 

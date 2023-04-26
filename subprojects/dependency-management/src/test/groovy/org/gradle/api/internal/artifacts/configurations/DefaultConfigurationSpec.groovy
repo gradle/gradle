@@ -777,7 +777,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         // This is not desired behavior. Roles should be copied without modification.
-        copy.canBeDeclaredAgainst
+        copy.canBeDeclared
         copy.canBeResolved
         copy.canBeConsumed
         copy.declarationAlternatives == ["declaration"]
@@ -800,14 +800,14 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         when:
         configuration.canBeConsumed = false
         configuration.canBeResolved = false
-        configuration.canBeDeclaredAgainst = false
+        configuration.canBeDeclared = false
 
 
         def copy = configuration.copy()
 
         then:
         // This is not desired behavior. Roles and deprecations should be copied without modification.
-        copy.canBeDeclaredAgainst
+        copy.canBeDeclared
         copy.canBeResolved
         copy.canBeConsumed
         copy.declarationAlternatives == []
@@ -1787,7 +1787,7 @@ All Artifacts:
         usageName               | changeUsage
         'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
         'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
-        'declarable'            | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
+        'declarable'            | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
     }
 
     def "locking all changes prevents #usageName usage changes"() {
@@ -1806,7 +1806,7 @@ All Artifacts:
         usageName               | changeUsage
         'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
         'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
-        'declarable'            | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
+        'declarable'            | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
     }
 
     def 'locking constraints are attached to a configuration and not its children'() {

@@ -25,6 +25,7 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
+import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assume.assumeNotNull
 
@@ -60,12 +61,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         report.verify(messages.collectEntries {
             def fullMessage = it.message
             if (!it.defaultDocLink) {
-                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}."
+                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}"
             }
             [(fullMessage): it.severity]
         })
 
-        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size() > 1 ? 's' : ''}"
+        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"
         messages.forEach { problem ->
             String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
             failure.assertThatCause(containsString("$problem.severity: $indentedMessage"))

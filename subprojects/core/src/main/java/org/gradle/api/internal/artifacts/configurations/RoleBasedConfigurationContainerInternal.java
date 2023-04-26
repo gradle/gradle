@@ -202,7 +202,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
         public static boolean isUsageConsistentWithRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
             return (role.isConsumable() == configuration.isCanBeConsumed())
                     && (role.isResolvable() == configuration.isCanBeResolved())
-                    && (role.isDeclarable() == configuration.isCanBeDeclaredAgainst())
+                    && (role.isDeclarable() == configuration.isCanBeDeclared())
                     && (role.isConsumptionDeprecated() == configuration.isDeprecatedForConsumption())
                     && (role.isResolutionDeprecated() == configuration.isDeprecatedForResolution())
                     && (role.isDeclarationAgainstDeprecated() == configuration.isDeprecatedForDeclarationAgainst());
@@ -227,7 +227,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
                         "Expected that it is:\n" +
                         role.describeUsage() + "\n" +
                         "But is actually is:\n" +
-                        UsageDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+                        UsageDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclared(),
                                 configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
             } else {
                 return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";

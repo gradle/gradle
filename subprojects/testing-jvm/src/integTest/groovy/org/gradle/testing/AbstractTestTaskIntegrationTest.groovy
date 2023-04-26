@@ -23,11 +23,12 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import spock.lang.Issue
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
+
 abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
     abstract String getStandaloneTestClass()
     abstract String testClass(String className)
-    abstract String getImportAll()
-    abstract String getAssertOrAssertions()
 
     def setup() {
         buildFile << """
@@ -161,12 +162,12 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
             include 'dependency'
         """
         file("src/test/java/MyTest.java") << """
-            import ${importAll};
+            ${testFrameworkImports}
 
             public class MyTest {
                @Test
                public void test() {
-                  ${assertOrAssertions}.assertNotNull(getClass().getResource("dependency/foo.properties"));
+                  assertNotNull(getClass().getResource("dependency/foo.properties"));
                }
             }
         """.stripIndent()
@@ -191,12 +192,12 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
     def "re-runs tests when resources are renamed"() {
         given:
         file("src/test/java/MyTest.java") << """
-            import ${importAll};
+            ${testFrameworkImports}
 
             public class MyTest {
                @Test
                public void test() {
-                  ${assertOrAssertions}.assertNotNull(getClass().getResource("dependency/foo.properties"));
+                  assertNotNull(getClass().getResource("dependency/foo.properties"));
                }
             }
         """.stripIndent()
@@ -329,7 +330,9 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Setting Test.forkEvery to null. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Set Test.forkEvery to 0 instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery for more details.")
+        executer.expectDocumentedDeprecationWarning("Setting Test.forkEvery to null. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. Set Test.forkEvery to 0 instead. " +
+            String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery"))
 
         then:
         succeeds "test", "--dry-run"
@@ -344,7 +347,9 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Test.setForkEvery(Long) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the Test.setForkEvery(long) method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery for more details.")
+        executer.expectDocumentedDeprecationWarning("The Test.setForkEvery(Long) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. Please use the Test.setForkEvery(long) method instead. " +
+            String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery"))
 
         then:
         succeeds "test", "--dry-run"

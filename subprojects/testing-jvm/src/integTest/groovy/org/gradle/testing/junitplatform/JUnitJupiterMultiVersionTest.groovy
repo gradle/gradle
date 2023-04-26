@@ -24,6 +24,10 @@ trait JUnitJupiterMultiVersionTest {
         return new JUnitJupiterBuildScriptConfiguration()
     }
 
+    AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
+        return new JUnitJupiterTestSourceConfiguration()
+    }
+
     String getDependencyVersion() {
         return JUnitJupiterBuildScriptConfiguration.getDependencyVersion()
     }
@@ -53,6 +57,37 @@ trait JUnitJupiterMultiVersionTest {
         @Override
         String getExcludeCategoryOrTagConfigurationElement() {
             return "excludeTags"
+        }
+    }
+
+    static class JUnitJupiterTestSourceConfiguration implements AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration {
+        @Override
+        String getTestFrameworkImports() {
+            return """
+                import org.junit.jupiter.api.*;
+                import static org.junit.jupiter.api.Assertions.*;
+                import static org.junit.jupiter.api.Assumptions.*;
+            """.stripIndent()
+        }
+
+        @Override
+        String getBeforeClassAnnotation() {
+            return "@BeforeAll"
+        }
+
+        @Override
+        String getAfterClassAnnotation() {
+            return "@AfterAll"
+        }
+
+        @Override
+        String getBeforeTestAnnotation() {
+            return "@BeforeEach"
+        }
+
+        @Override
+        String getAfterTestAnnotation() {
+            return "@AfterEach"
         }
     }
 }

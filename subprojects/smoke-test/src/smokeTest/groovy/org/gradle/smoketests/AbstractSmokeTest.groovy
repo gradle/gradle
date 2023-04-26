@@ -77,7 +77,7 @@ abstract class AbstractSmokeTest extends Specification {
         static shadow = Versions.of("8.1.1")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
-        static asciidoctor = Versions.of("3.3.2")
+        static asciidoctor = Versions.of("3.3.2", "4.0.0-alpha.1")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "5.0.13"
@@ -184,6 +184,9 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://mvnrepository.com/artifact/com.guardsquare/proguard-gradle
         static proguardGradle = "7.3.1"
+
+        // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
+        static palantirConsistentVersions = "2.12.0"
     }
 
     static class Versions implements Iterable<String> {

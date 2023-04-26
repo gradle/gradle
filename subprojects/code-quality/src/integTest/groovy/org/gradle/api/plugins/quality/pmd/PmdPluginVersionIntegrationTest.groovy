@@ -41,6 +41,8 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
             pmd {
                 toolVersion = '$version'
+                // Set target JDK for PMD <5.x tests, so the test code is accepted
+                targetJdk = TargetJdk.VERSION_1_7
                 ${supportIncrementalAnalysis() ? "" : "incrementalAnalysis = false"}
             }
 

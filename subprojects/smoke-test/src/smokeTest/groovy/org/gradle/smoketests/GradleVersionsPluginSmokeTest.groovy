@@ -62,7 +62,7 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         declarationConfiguration.each {
             runner.expectDeprecationWarning(
                 "The $it configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations",
-                "https://github.com/ben-manes/gradle-versions-plugin/issues/718"
+                "https://github.com/gradle/gradle/issues/24895"
             )
         }
 
