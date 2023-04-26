@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.GradleVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 

@@ -19,7 +19,6 @@ package org.gradle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.GradleVersion
 
 class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
