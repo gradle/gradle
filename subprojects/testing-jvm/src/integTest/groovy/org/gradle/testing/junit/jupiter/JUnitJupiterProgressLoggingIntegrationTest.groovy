@@ -18,8 +18,9 @@ package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestProgressLoggingIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterProgressLoggingIntegrationTest extends AbstractTestProgressLoggingIntegrationTest implements JUnitJupiterMultiVersionTest {
 }

@@ -19,10 +19,11 @@ package org.gradle.testing.junit.jupiter
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec implements JUnitJupiterMultiVersionTest {
     String singularCategoryOrTagName = "tag"
     String pluralCategoryOrTagName = "tags"

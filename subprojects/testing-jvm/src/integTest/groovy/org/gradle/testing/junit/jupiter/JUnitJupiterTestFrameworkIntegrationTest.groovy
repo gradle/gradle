@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
@@ -28,7 +27,7 @@ class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkInte
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+                testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
                 testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
             test {
