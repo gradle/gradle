@@ -17,10 +17,30 @@
 package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractTestOutputListenerIntegrationTest
+import org.hamcrest.Matcher
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.hamcrest.CoreMatchers.equalTo
 
 @TargetCoverage({ JUNIT_4_LATEST })
-class JUnit4TestOutputListenerTest extends AbstractTestOutputListenerIntegrationTest implements JUnit4MultiVersionTest{
+class JUnit4JunitTestFailureIntegrationTest extends AbstractJUnit4TestFailureIntegrationTest implements JUnit4MultiVersionTest {
+    @Override
+    String getInitializationErrorTestName() {
+        return 'initializationError'
+    }
+
+    @Override
+    String getBeforeClassErrorTestName() {
+        return 'classMethod'
+    }
+
+    @Override
+    String getAfterClassErrorTestName() {
+        return 'classMethod'
+    }
+
+    @Override
+    Matcher<? super String>[] getBrokenBeforeAndAfterMatchers() {
+        return [equalTo(failureAssertionError('before failed')), equalTo(failureAssertionError('after failed'))]
+    }
 }

@@ -17,10 +17,15 @@
 package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractTestOutputListenerIntegrationTest
+import org.gradle.integtests.fixtures.TestClassExecutionResult
+import org.gradle.testing.junit.AbstractJUnitSmokeMultiVersionIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.LARGE_COVERAGE
 
-@TargetCoverage({ JUNIT_4_LATEST })
-class JUnit4TestOutputListenerTest extends AbstractTestOutputListenerIntegrationTest implements JUnit4MultiVersionTest{
+@TargetCoverage({ LARGE_COVERAGE })
+class JUnit4SmokeMultiVersionIntegrationTest extends AbstractJUnitSmokeMultiVersionIntegrationTest implements JUnit4MultiVersionTest {
+    @Override
+    void assertTestSkippedOrPassed(TestClassExecutionResult testClassResult, String testName) {
+        testClassResult.assertTestPassed(testName)
+    }
 }

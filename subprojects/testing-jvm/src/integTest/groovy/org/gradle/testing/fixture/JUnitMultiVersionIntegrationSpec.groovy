@@ -134,7 +134,7 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
     }
 
     static boolean isJUnit4() {
-        return version.toString() == JUnitCoverage.NEWEST
+        return version.toString() == JUnitCoverage.LATEST_JUNIT4_VERSION
     }
 
     static boolean isVintage() {
