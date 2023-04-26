@@ -17,10 +17,9 @@
 package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractTestOutputListenerIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 
 @TargetCoverage({ JUNIT_4_LATEST })
-class JUnit4TestOutputListenerTest extends AbstractTestOutputListenerIntegrationTest implements JUnit4MultiVersionTest{
+class JUnit4TestClassDetectionIntegrationTest extends AbstractJUnit4TestClassDetectionIntegrationTest implements JUnit4MultiVersionTest {
 }
