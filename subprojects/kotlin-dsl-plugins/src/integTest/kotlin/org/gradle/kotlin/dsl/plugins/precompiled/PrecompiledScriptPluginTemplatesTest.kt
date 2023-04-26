@@ -19,6 +19,8 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
@@ -709,10 +711,11 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             }
         }
 
-        build(
-            existing("plugins"),
-            "publish"
-        )
+        val executor = gradleExecuterFor(arrayOf("publish"), existing("plugins"))
+        if (GradleContextualExecuter.isConfigCache()) {
+            executor.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
+        executor.run()
     }
 
     private
