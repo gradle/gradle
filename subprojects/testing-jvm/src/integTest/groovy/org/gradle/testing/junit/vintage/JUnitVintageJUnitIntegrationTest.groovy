@@ -18,10 +18,8 @@ package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.junit.junit4.AbstractJUnit4JUnitIntegrationTest
-import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT3_VERSION
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageJUnitIntegrationTest extends AbstractJUnit4JUnitIntegrationTest implements JUnitVintageMultiVersionTest {
