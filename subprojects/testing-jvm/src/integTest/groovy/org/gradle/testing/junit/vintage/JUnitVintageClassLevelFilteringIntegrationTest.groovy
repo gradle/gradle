@@ -17,7 +17,7 @@
 package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.junit.AbstractJUnit4ClassLevelFilteringIntegrationTest
+import org.gradle.testing.junit.junit4.AbstractJUnit4ClassLevelFilteringIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 

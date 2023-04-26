@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.testing.junit.AbstractJUnitClassLevelFilteringIntegrationTest
 
 abstract class AbstractJUnit4ClassLevelFilteringIntegrationTest extends AbstractJUnitClassLevelFilteringIntegrationTest {
     def "runs all tests for class instead of method when runner is not filterable"() {
