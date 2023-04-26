@@ -137,7 +137,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String capitalize = propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
         String callableName = originalType.equals(Type.BOOLEAN_TYPE) ? "is" + capitalize : "get" + capitalize;
         return new CallInterceptionRequestImpl(
-            extractCallableInfo(INSTANCE_METHOD, method, originalType, method.getSimpleName().toString(), Collections.emptyList()),
+            extractCallableInfo(INSTANCE_METHOD, method, originalType, callableName, Collections.emptyList()),
             extractImplementationInfo(method, originalType, "get", Collections.emptyList()),
             extras
         );
