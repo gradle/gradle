@@ -78,7 +78,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty(originalType = boolean.class)
+                @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
                 public abstract Property<Boolean> getIncremental();
             }
         """
@@ -100,8 +100,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                          }
                      }
                      if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
-                         if (name.equals("setIncremental") && descriptor.equals("(Z)V") && opcode == Opcodes.INVOKEVIRTUAL) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_incremental", "(Lorg/gradle/test/Task;Z)V");
+                      if (name.equals("setIncremental") && descriptor.equals("(Z)Lorg/gradle/test/Task;") && opcode == Opcodes.INVOKEVIRTUAL) {
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_incremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
                              return true;
                          }
                      }
@@ -109,10 +109,28 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                 }
             }
         """
+        def adapterClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            import org.gradle.test.Task;
+
+            public class Task_Adapter {
+                public static boolean access_get_incremental(Task self) {
+                    return self.getIncremental().get();
+                }
+
+                public static Task access_set_incremental(Task self, boolean arg0) {
+                    self.getIncremental().set(arg0);
+                    return self;
+                }
+            }
+        """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
             .containsElementsIn(generatedClass)
+        assertThat(compilation)
+            .generatedSourceFile(fqName(adapterClass))
+            .hasSourceEquivalentTo(adapterClass)
     }
 
     def "should auto generate adapter for upgraded property with type #upgradedType"() {
