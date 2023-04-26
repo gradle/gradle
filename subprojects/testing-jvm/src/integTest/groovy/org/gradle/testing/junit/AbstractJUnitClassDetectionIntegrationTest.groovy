@@ -17,7 +17,7 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
 import java.util.zip.ZipEntry
@@ -25,7 +25,7 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 @Issue("https://github.com/gradle/gradle/issues/18486")
-abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
     def setup() {
         buildFile << """

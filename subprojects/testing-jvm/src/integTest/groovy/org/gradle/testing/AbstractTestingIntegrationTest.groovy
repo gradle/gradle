@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers
@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
-abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest implements JavaToolchainFixture {
+abstract class AbstractTestingIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements JavaToolchainFixture {
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
         given:

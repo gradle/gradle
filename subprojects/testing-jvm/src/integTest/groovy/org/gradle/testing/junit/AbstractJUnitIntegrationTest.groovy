@@ -18,13 +18,13 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.IgnoreIf
 
 /**
  * This class contains tests that don't fit well into other function-specific test classes.
  */
-abstract class AbstractJUnitIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def setup() {
         executer.noExtraLogging()
     }

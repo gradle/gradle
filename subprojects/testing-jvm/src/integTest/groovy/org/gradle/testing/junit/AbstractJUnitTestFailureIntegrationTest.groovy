@@ -17,16 +17,15 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.startsWith
 
-abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract void writeBrokenRunnerOrExtension(String className)
     abstract void writeClassUsingBrokenRunnerOrExtension(String className, String runnerOrExtensionName)
     abstract String getInitializationErrorTestName()
