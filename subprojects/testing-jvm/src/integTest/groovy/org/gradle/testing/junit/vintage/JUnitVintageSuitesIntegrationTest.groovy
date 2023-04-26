@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.junit4
+package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.junit.junit4.AbstractJUnit4SuitesIntegrationTest
+import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT3_VERSION
 
-@TargetCoverage({ JUNIT_4_LATEST })
-class JUnit4TestSuitesIntegrationTest extends AbstractJUnit4TestSuitesIntegrationTest implements JUnit4MultiVersionTest {
+@TargetCoverage({ JUNIT_VINTAGE })
+class JUnitVintageSuitesIntegrationTest extends AbstractJUnit4SuitesIntegrationTest implements JUnitVintageMultiVersionTest {
     @Override
     boolean supportsSuiteOutput() {
-        return true
+        // Suite output events are not correctly reported until version 5.9.0.  See https://github.com/junit-team/junit5/pull/2985.
+        return VersionNumber.parse(version) >= VersionNumber.parse("5.9.0")
     }
 
     @Override
     String getTestFrameworkJUnit3Dependencies() {
         return """
             testCompileOnly 'junit:junit:${LATEST_JUNIT3_VERSION}'
-            testRuntimeOnly 'junit:junit:${version}'
+            testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${version}'
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         """
     }
 }

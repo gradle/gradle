@@ -17,12 +17,12 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.junit.AbstractJUnitTestSuitesIntegrationTest
+import org.gradle.testing.junit.AbstractJUnitSuitesIntegrationTest
 import org.junit.Assume
 
 import static org.hamcrest.CoreMatchers.containsString
 
-abstract class AbstractJUnit4TestSuitesIntegrationTest extends AbstractJUnitTestSuitesIntegrationTest {
+abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIntegrationTest {
     abstract boolean supportsSuiteOutput()
     abstract String getTestFrameworkJUnit3Dependencies()
 
