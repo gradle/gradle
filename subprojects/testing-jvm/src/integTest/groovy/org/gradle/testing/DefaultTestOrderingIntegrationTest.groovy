@@ -20,10 +20,11 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_VINTAGE_VERSION
 
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+@TargetCoverage({ JUNIT_4 + LATEST_VINTAGE_VERSION + LATEST_JUPITER_VERSION })
 class DefaultTestOrderingIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
