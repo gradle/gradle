@@ -17,9 +17,32 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 
 @TargetCoverage({ JUNIT_4_LATEST })
 class JUnit4JUnitIntegrationTest extends AbstractJUnit4JUnitIntegrationTest implements JUnit4MultiVersionTest {
+    @Issue("https://issues.gradle.org/browse/GRADLE-2313")
+    def "can clean test after extracting class file with junit"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """.stripIndent()
+        and:
+        file("src/test/java/SomeTest.java") << """
+            public class SomeTest extends org.junit.runner.Result {
+            }
+        """.stripIndent()
+        then:
+        succeeds "clean", "test"
+
+        and:
+        file("build/tmp/test").exists() // ensure we extracted classes
+    }
 }

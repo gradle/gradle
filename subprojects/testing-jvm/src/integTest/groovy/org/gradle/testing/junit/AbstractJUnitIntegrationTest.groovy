@@ -15,10 +15,13 @@
  */
 package org.gradle.testing.junit
 
+import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 /**
@@ -161,5 +164,39 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         def test2Result = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/test2')
         test2Result.assertTestClassesExecuted('org.gradle.Test2')
         test2Result.testClass('org.gradle.Test2').assertTestPassed('ok')
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "can use long paths for working directory"() {
+        given:
+        // windows can handle a path up to 260 characters
+        // we create a path that is 260 +1 (offset + "/" + randompath)
+        def pathoffset = 260 - testDirectory.getAbsolutePath().length()
+        def alphanumeric = RandomStringUtils.randomAlphanumeric(pathoffset)
+        def testWorkingDir = testDirectory.createDir("$alphanumeric")
+
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+            test.workingDir = "${testWorkingDir.toURI()}"
+        """.stripIndent()
+
+        and:
+        file("src/test/java/SomeTest.java") << """
+            ${testFrameworkImports}
+
+            public class SomeTest {
+                @Test public void foo() {
+                    System.out.println(new java.io.File(".").getAbsolutePath());
+                }
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds "test"
     }
 }

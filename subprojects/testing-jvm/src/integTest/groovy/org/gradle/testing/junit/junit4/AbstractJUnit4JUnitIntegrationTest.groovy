@@ -17,13 +17,8 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.testing.junit.AbstractJUnitIntegrationTest
-import org.junit.Assume
 import spock.lang.Issue
-
-import static org.gradle.util.Matchers.containsLine
-import static org.hamcrest.CoreMatchers.containsString
 
 abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnit4CommonTestSources {
     @Issue("https://issues.gradle.org//browse/GRADLE-3114")

@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
@@ -35,5 +36,43 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
     TestClassExecutionResult assertFailedToExecute(TestExecutionResult testResult, String testClassName) {
         return testResult.testClass(testClassName)
             .assertTestFailed("initializationError", containsString('ClassFormatError'))
+    }
+
+    def "test thread name is reset after test execution"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """.stripIndent()
+
+        and:
+        file("src/test/java/SomeTest.java") << threadNameCheckTest("SomeTest")
+        file("src/test/java/AnotherTest.java") << threadNameCheckTest("AnotherTest")
+
+        then:
+        succeeds "clean", "test"
+
+        and:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("SomeTest").assertTestPassed("checkThreadName")
+        result.testClass("AnotherTest").assertTestPassed("checkThreadName")
+    }
+
+    private String threadNameCheckTest(String className) {
+        return """
+            ${testFrameworkImports}
+
+            public class ${className} {
+                @Test
+                public void checkThreadName() {
+                    assertEquals("Test worker", Thread.currentThread().getName());
+                    Thread.currentThread().setName(getClass().getSimpleName());
+                }
+            }
+        """.stripIndent()
     }
 }
