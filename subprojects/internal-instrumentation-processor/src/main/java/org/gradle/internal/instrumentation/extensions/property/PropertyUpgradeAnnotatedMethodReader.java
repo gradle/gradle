@@ -71,17 +71,18 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.DefaultValue.class);
 
     @Override
-    public Collection<Result> readRequest(ExecutableElement input) {
-        Optional<? extends AnnotationMirror> annotation = AnnotationUtils.findAnnotationMirror(input, UpgradedProperty.class);
+    public Collection<Result> readRequest(ExecutableElement method) {
+        Optional<? extends AnnotationMirror> annotation = AnnotationUtils.findAnnotationMirror(method, UpgradedProperty.class);
         if (!annotation.isPresent()) {
             return Collections.emptySet();
         }
 
         try {
-            Type originalType = extractOriginalType(input, annotation.get());
-            CallInterceptionRequest groovyPropertyRequest = createGroovyPropertyInterceptionRequest(input, originalType);
-            CallInterceptionRequest jvmGetterRequest = createJvmGetterInterceptionRequest(input, originalType);
-            CallInterceptionRequest jvmSetterRequest = createJvmSetterInterceptionRequest(input, originalType);
+            String propertyName = getPropertyName(method);
+            Type originalType = extractOriginalType(method, annotation.get());
+            CallInterceptionRequest groovyPropertyRequest = createGroovyPropertyInterceptionRequest(propertyName, method, originalType);
+            CallInterceptionRequest jvmGetterRequest = createJvmGetterInterceptionRequest(propertyName, method, originalType);
+            CallInterceptionRequest jvmSetterRequest = createJvmSetterInterceptionRequest(method, originalType);
             return Arrays.asList(new Success(groovyPropertyRequest), new Success(jvmGetterRequest), new Success(jvmSetterRequest));
         } catch (AnnotationReadFailure failure) {
             return Collections.singletonList(new InvalidRequest(failure.reason));
@@ -116,8 +117,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         }
     }
 
-    private static CallInterceptionRequest createGroovyPropertyInterceptionRequest(ExecutableElement method, Type originalType) {
-        String propertyName = getPropertyName(method);
+    private static CallInterceptionRequest createGroovyPropertyInterceptionRequest(String propertyName, ExecutableElement method, Type originalType) {
         // TODO: Class name should be read from an annotation
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
@@ -128,10 +128,12 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    private static CallInterceptionRequest createJvmGetterInterceptionRequest(ExecutableElement method, Type originalType) {
+    private static CallInterceptionRequest createJvmGetterInterceptionRequest(String propertyName, ExecutableElement method, Type originalType) {
         List<RequestExtra> extras = getJvmRequestExtras(method);
+        String capitalize = propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
+        String callableName = originalType.equals(Type.BOOLEAN_TYPE) ? "is" + capitalize : "get" + capitalize;
         return new CallInterceptionRequestImpl(
-            extractCallableInfo(INSTANCE_METHOD, method, originalType, method.getSimpleName().toString(), Collections.emptyList()),
+            extractCallableInfo(INSTANCE_METHOD, method, originalType, callableName, Collections.emptyList()),
             extractImplementationInfo(method, originalType, "get", Collections.emptyList()),
             extras
         );

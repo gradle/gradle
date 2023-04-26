@@ -67,6 +67,54 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .hasSourceEquivalentTo(generatedClass)
     }
 
+    def "should auto generate adapter for upgraded property with boolean"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+
+            @VisitForInstrumentation(value = {Task.class})
+            public abstract class Task {
+                @UpgradedProperty(originalType = boolean.class)
+                public abstract Property<Boolean> getIncremental();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+                @Override
+                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                                               String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                         if (name.equals("isIncremental") && descriptor.equals("()Z") && opcode == Opcodes.INVOKEVIRTUAL) {
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_incremental", "(Lorg/gradle/test/Task;)Z");
+                             return true;
+                         }
+                     }
+                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                         if (name.equals("setIncremental") && descriptor.equals("(Z)V") && opcode == Opcodes.INVOKEVIRTUAL) {
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_incremental", "(Lorg/gradle/test/Task;Z)V");
+                             return true;
+                         }
+                     }
+                    return false;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+    }
+
     def "should auto generate adapter for upgraded property with type #upgradedType"() {
         given:
         def givenSource = source"""

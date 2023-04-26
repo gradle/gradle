@@ -95,7 +95,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         and:
         def runner = useAgpVersion(agpVersion, runner(
-            'assembleDebug'
+            'assembleDebug', "--stacktrace"
         ))
 
         when:
