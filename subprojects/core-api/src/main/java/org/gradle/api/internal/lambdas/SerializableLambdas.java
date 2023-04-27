@@ -23,6 +23,7 @@ import org.gradle.internal.Factory;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 
 /**
  * Provides a mechanism for creating Java lambdas that can be stored to the configuration cache.
@@ -45,6 +46,10 @@ public class SerializableLambdas {
 
     public static <OUT, IN> Transformer<OUT, IN> transformer(SerializableTransformer<OUT, IN> transformer) {
         return transformer;
+    }
+
+    public static <R, T, U> SerializableCombiner<R, T, U> combiner(SerializableCombiner<R, T, U> combiner) {
+        return combiner;
     }
 
     public static <T> Callable<T> callable(SerializableCallable<T> callable) {
@@ -73,6 +78,12 @@ public class SerializableLambdas {
      * A {@link Serializable} version of {@link org.gradle.api.Transformer}.
      */
     public interface SerializableTransformer<OUT, IN> extends Transformer<OUT, IN>, Serializable {
+    }
+
+    /**
+     * A {@link Serializable} version of {@link BiFunction}.
+     */
+    public interface SerializableCombiner<R, T, U> extends BiFunction<T, U, R>, Serializable {
     }
 
     /**

@@ -18,13 +18,13 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
 import javax.inject.Inject;
-import java.util.function.Function;
 
 public abstract class DefaultFileAccessPermission extends AbstractImmutableFileAccessPermission implements FileAccessPermissionInternal {
 
@@ -60,20 +60,20 @@ public abstract class DefaultFileAccessPermission extends AbstractImmutableFileA
     private static Provider<Boolean> decode(
         Provider<String> permission,
         int index,
-        Function<Integer, Boolean> numericDecoder,
-        Function<String, Boolean> symbolicDecoder
+        SerializableLambdas.SerializableTransformer<Boolean, Integer> numericDecoder,
+        SerializableLambdas.SerializableTransformer<Boolean, String> symbolicDecoder
     ) {
-        return permission.map(p -> {
+        return permission.map(SerializableLambdas.transformer(p -> {
             try {
                 if (p.length() == 3) {
-                    return numericDecoder.apply(toUnixNumericPermissions(p.substring(index, index + 1)));
+                    return numericDecoder.transform(toUnixNumericPermissions(p.substring(index, index + 1)));
                 } else {
-                    return symbolicDecoder.apply(p.substring(3 * index, 3 * (index + 1)));
+                    return symbolicDecoder.transform(p.substring(3 * index, 3 * (index + 1)));
                 }
             } catch (IllegalArgumentException cause) {
                 throw new InvalidUserDataException("'" + p + "' isn't a proper Unix permission. " + cause.getMessage());
             }
-        });
+        }));
     }
 
     private static int toUnixNumericPermissions(String permissions) {

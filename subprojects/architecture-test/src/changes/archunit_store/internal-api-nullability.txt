@@ -500,6 +500,7 @@ Class <org.gradle.api.internal.lambdas.SerializableLambdas$SerializableCallable>
 Class <org.gradle.api.internal.lambdas.SerializableLambdas$SerializableFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SerializableLambdas.java:0)
 Class <org.gradle.api.internal.lambdas.SerializableLambdas$SerializableSpec> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SerializableLambdas.java:0)
 Class <org.gradle.api.internal.lambdas.SerializableLambdas$SerializableTransformer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SerializableLambdas.java:0)
+Class <org.gradle.api.internal.lambdas.SerializableLambdas$SerializableCombiner> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SerializableLambdas.java:0)
 Class <org.gradle.api.internal.lambdas.SerializableLambdas> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SerializableLambdas.java:0)
 Class <org.gradle.api.internal.notations.ClientModuleNotationParserFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClientModuleNotationParserFactory.java:0)
 Class <org.gradle.api.internal.notations.ComponentIdentifierParserFactory$ComponentIdentifierMapNotationConverter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ComponentIdentifierParserFactory.java:0)

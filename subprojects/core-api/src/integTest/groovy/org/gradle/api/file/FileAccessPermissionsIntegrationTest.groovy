@@ -61,7 +61,8 @@ class FileAccessPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
             consumer {
                 message.set(
-                    fsOps.permissions(producer.flatMap { it.outputFile.asFile }.map { it.readText() }).toUnixNumeric()
+                    //fsOps.permissions(producer.flatMap { it.outputFile.asFile }.map { it.readText() }).toUnixNumeric() //TODO: https://github.com/gradle/gradle/issues/19252
+                    fsOps.permissions(producer.flatMap { it.outputFile }.map { it.asFile.readText() }).toUnixNumeric()
                 )
                 outputFile.set(File("${TextUtil.normaliseFileSeparators(outputFile.absolutePath)}"))
             }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
@@ -29,9 +30,9 @@ public abstract class AbstractImmutableFileAccessPermissions implements Immutabl
         AbstractImmutableFileAccessPermission other = (AbstractImmutableFileAccessPermission) getOther();
         boolean hasTaskDependencies = user.hasTaskDependencies() || group.hasTaskDependencies() || other.hasTaskDependencies();
         if (hasTaskDependencies) {
-            return user.toUnixNumeric().map(u -> 64 * u)
-                .zip(group.toUnixNumeric().map(g -> 8 * g), Integer::sum)
-                .zip(other.toUnixNumeric(), Integer::sum);
+            return user.toUnixNumeric().map(SerializableLambdas.transformer(u -> 64 * u))
+                .zip(group.toUnixNumeric().map(SerializableLambdas.transformer(g -> 8 * g)), SerializableLambdas.combiner(Integer::sum))
+                .zip(other.toUnixNumeric(), SerializableLambdas.combiner(Integer::sum));
         } else {
             return Providers.of(64 * user.toUnixNumeric().get() + 8 * group.toUnixNumeric().get() + other.toUnixNumeric().get());
         }

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
 import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -92,7 +93,7 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
     }
 
     private static Provider<String> normalizeUnixPermissions(Provider<String> permissions) {
-        return permissions.map(p -> {
+        return permissions.map(SerializableLambdas.transformer(p -> {
             String trimmed = p.trim();
             if (trimmed.length() == 4 && trimmed.startsWith("0")) {
                 return trimmed.substring(1);
@@ -101,6 +102,6 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
                 throw new InvalidUserDataException("'" + p + "' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
             }
             return trimmed;
-        });
+        }));
     }
 }
