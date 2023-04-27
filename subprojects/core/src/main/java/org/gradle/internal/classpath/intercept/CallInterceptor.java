@@ -62,7 +62,7 @@ public abstract class CallInterceptor {
      * @return the value to return to the caller
      * @throws Throwable if necessary to propagate it to the caller
      */
-    protected abstract Object doIntercept(Invocation invocation, String consumer) throws Throwable;
+    public abstract Object doIntercept(Invocation invocation, String consumer) throws Throwable;
 
     MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags) {
         MethodHandle spreader = original.asSpreader(Object[].class, original.type().parameterCount());

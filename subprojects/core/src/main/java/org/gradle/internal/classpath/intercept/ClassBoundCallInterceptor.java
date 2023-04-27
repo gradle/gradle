@@ -33,7 +33,7 @@ public abstract class ClassBoundCallInterceptor extends CallInterceptor {
     }
 
     @Override
-    protected final Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+    public final Object doIntercept(Invocation invocation, String consumer) throws Throwable {
         if (!expectedReceiver.equals(invocation.getReceiver())) {
             return invocation.callOriginal();
         }
