@@ -434,6 +434,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
         private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
         private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
+
+        // This set is unlikely will be changing oftenly, so instead of introducing additional level of indirection
+        // we are storing it here despite it's CC-related logic
         private static final Set<Class<?>> DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_CLASSES = ImmutableSet.of(Project.class, Gradle.class);
         private static final Type JAVA_LANG_REFLECT_TYPE = getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = getType(Object.class);
