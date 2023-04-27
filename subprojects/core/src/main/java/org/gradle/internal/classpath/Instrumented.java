@@ -22,11 +22,11 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.internal.Cast;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
+import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
@@ -41,23 +41,19 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class Instrumented {
     private static final Listener NO_OP = new Listener() {
@@ -112,52 +108,53 @@ public class Instrumented {
         setListener(NO_OP);
     }
 
-    private static final CallInterceptorsSet CALL_INTERCEPTORS = new CallInterceptorsSet(
-        Stream.concat(
-            Stream.of(
-                new SystemGetPropertyInterceptor(),
-                new SystemSetPropertyInterceptor(),
-                new SystemGetPropertiesInterceptor(),
-                new SystemSetPropertiesInterceptor(),
-                new SystemClearPropertyInterceptor(),
-                new IntegerGetIntegerInterceptor(),
-                new LongGetLongInterceptor(),
-                new BooleanGetBooleanInterceptor(),
-                new SystemGetenvInterceptor(),
-                new RuntimeExecInterceptor(),
-                new ProcessGroovyMethodsExecuteInterceptor(),
-                new ProcessBuilderStartInterceptor(),
-                new ProcessBuilderStartPipelineInterceptor()
-            ),
-            getGeneratedCallInterceptors().stream()
-        )
+    /**
+     * This API follows the requirements in {@link GroovyCallInterceptorsProvisionTools}.
+     * @deprecated This should not be called from the sources.
+     */
+    @SuppressWarnings("unused")
+    @Deprecated
+    public static List<CallInterceptor> getCallInterceptors() {
+        return Arrays.asList(
+            new SystemGetPropertyInterceptor(),
+            new SystemSetPropertyInterceptor(),
+            new SystemGetPropertiesInterceptor(),
+            new SystemSetPropertiesInterceptor(),
+            new SystemClearPropertyInterceptor(),
+            new IntegerGetIntegerInterceptor(),
+            new LongGetLongInterceptor(),
+            new BooleanGetBooleanInterceptor(),
+            new SystemGetenvInterceptor(),
+            new RuntimeExecInterceptor(),
+            new ProcessGroovyMethodsExecuteInterceptor(),
+            new ProcessBuilderStartInterceptor(),
+            new ProcessBuilderStartPipelineInterceptor()
+        );
+    }
+
+    private static volatile CallSiteDecorator currentCallDecorator = new CallInterceptorsSet(
+        GroovyCallInterceptorsProvisionTools.getInterceptorsFromProvider(GroovyCallInterceptorsProvider.DEFAULT).stream()
     );
 
-    private static Collection<CallInterceptor> getGeneratedCallInterceptors() {
-        return InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES.stream()
-            .flatMap(className -> getGeneratedCallInterceptorsFor(className).stream())
-            .collect(toImmutableList());
-    }
+    // TODO: We can support getting the interceptors in the instrumented code from different locations, not just `Instrumented.currentCallDecorator`,
+    //       so that replacing the call interceptors for tests would instead work by embedding a different location
+    //       than this one in the instrumented code. Doing that adds much more complexity in the instrumentation.
+    @NonNullApi
+    public static class GroovyCallInterceptorInternalTesting {
+        static CallSiteDecorator getCurrentGroovyCallSiteDecorator() {
+            return currentCallDecorator;
+        }
 
-    private static List<CallInterceptor> getGeneratedCallInterceptorsFor(String className) {
-        try {
-            Class<?> generatedClass = Class.forName(className);
-            Method callInterceptorsGetter = generatedClass.getDeclaredMethod("getCallInterceptors");
-            return Cast.uncheckedCast(callInterceptorsGetter.invoke(null));
-        } catch (ClassNotFoundException e) {
-            // No interceptor definition for this class
-            return Collections.emptyList();
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        static void setCurrentGroovyCallSiteDecorator(CallSiteDecorator interceptorsSet) {
+            currentCallDecorator = interceptorsSet;
         }
     }
-
 
     // Called by generated code
     @SuppressWarnings("unused")
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
-            array.array[callSite.getIndex()] = CALL_INTERCEPTORS.maybeDecorateGroovyCallSite(callSite);
+            array.array[callSite.getIndex()] = currentCallDecorator.maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -175,7 +172,7 @@ public class Instrumented {
      * @see IndyInterface
      */
     public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return CALL_INTERCEPTORS.maybeDecorateIndyCallSite(
+        return currentCallDecorator.maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
