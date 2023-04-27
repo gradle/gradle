@@ -61,11 +61,11 @@ The version of the JaCoCo code coverage tool used by the `jacoco` plugin has bee
 The wrapper task now validates the configured distribution url before writing it to the `gradle-wrapper.properties` file.
 This surfaces invalid urls early and can prevent IO exceptions at execution time.
 
-More details can be found in the dedicated section of the [Gradle Wrapper](gradle_wrapper.html#[adding_the_gradle_wrapper](sec:adding_wrapper)) user manual chapter.
+More details can be found in the dedicated section of the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) user manual chapter.
 
 ### Java toolchains discovery progress display
 
-Progress is now displayed during [Java toolchains discovery](userguide/jvm/toochains.html#auto_detection).
+Progress is now displayed during [Java toolchains discovery](userguide/toolchains.html#sec:auto_detection).
 This can be useful during a cold-start of Gradle for users who have environments with a lot of JVM installations in them.
 
 ### Kotlin DSL improvements
@@ -77,7 +77,7 @@ Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax 
 A versioned reference documentation for the Gradle Kotlin DSL is now published alongside the user manual.
 This reference covers both the Kotlin DSL and the Gradle Java API.
 
-You can use the [Kotlin DSL reference](kotlin-dsl/) search functionality to drill through the available members.
+You can use the [Kotlin DSL reference](kotlin-dsl/index.html) search functionality to drill through the available members.
 
 #### Gradle `init` defaults to the Kotlin DSL
 
@@ -92,7 +92,7 @@ Select build script DSL:
 Enter selection (default: Kotlin) [1..2]
 ```
 
-See the [build init](userguide/build_init.html#sec:what_to_set_up) user manual chapter for more information.
+See the [build init](userguide/build_init_plugin.html#sec:what_to_set_up) user manual chapter for more information.
 
 #### Fail on script compilation warnings
 
@@ -108,10 +108,16 @@ org.gradle.kotlin.dsl.allWarningsAsErrors=true
 
 More details can be found in the dedicated section of the [Kotlin DSL](userguide/kotlin_dsl.html#sec:compilation_warnings) user manual chapter.
 
-### Dependency verification keys stripping
+### Dependency verification improvements
 
-PGP keys for dependency verification downloaded from key servers are now stripped to contain only necessary data.
-This feature can significantly reduce keyrings size.
+To mitigate the security risks and avoid integrating compromised dependencies in your project, Gradle supports [dependency verification](userguide/dependency_verification.html).
+
+[Exported PGP keys](userguide/dependency_verification.html#sec:local-keyring) are now stripped to contain only necessary data.
+This feature can significantly reduce keyring sizes.
+
+In addition, the exported keyring is sorted by key id and de-duplicated to ensure a consistent ordering of keys, which reduces changes and conflicts when updating the keyring.
+
+In order to benefit from these changes, users will have to [generate again their keyring](userguide/dependency_verification.html#sec:local-keyring).
 
 ### Boolean task options generate opposite option
 

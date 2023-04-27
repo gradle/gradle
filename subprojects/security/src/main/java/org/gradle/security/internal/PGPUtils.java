@@ -17,13 +17,16 @@
 package org.gradle.security.internal;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class PGPUtils {
 
+    private static final Field KEYS_FIELD = getKeysField();
     private PGPUtils() {
     }
 
@@ -39,6 +42,30 @@ public final class PGPUtils {
             userIds.add(new String(id, StandardCharsets.UTF_8));
         });
         return userIds;
+    }
+
+    /**
+     * Returns the number of keys in the given keyring.
+     * There is no public API to do this, so we use reflection to access the private field.
+     * Public keys iterator is not used because it would require O(n) time to count the keys.
+     */
+    @SuppressWarnings("unchecked")
+    public static int getSize(PGPPublicKeyRing keyring) {
+        try {
+            return ((List<PGPPublicKey>) KEYS_FIELD.get(keyring)).size();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Field getKeysField() {
+        try {
+            Field keysField = PGPPublicKeyRing.class.getDeclaredField("keys");
+            keysField.setAccessible(true);
+            return keysField;
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

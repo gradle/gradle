@@ -185,7 +185,7 @@ data class CIBuildModel(
         ),
         Stage(
             StageName.EXPERIMENTAL_BUILD_CACHE_NG,
-            trigger = Trigger.never,
+            trigger = Trigger.eachCommit,
             runsIndependent = true,
             specificBuilds = listOf(SpecificBuild.CompileAllBuildCacheNG),
         )

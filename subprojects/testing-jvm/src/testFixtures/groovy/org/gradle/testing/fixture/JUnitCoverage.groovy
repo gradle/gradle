@@ -36,5 +36,6 @@ class JUnitCoverage {
     final static List<String> FILTER_JUNIT3_TESTS = ['3.8.1', '4.6', NEWEST]
     final static List<String> JUNIT_4_LATEST = [NEWEST]
     final static List<String> JUNIT_VINTAGE = [VINTAGE]
+    final static List<String> JUNIT_JUPITER = [JUPITER]
     final static List<String> JUNIT_VINTAGE_JUPITER = [VINTAGE, JUPITER]
 }

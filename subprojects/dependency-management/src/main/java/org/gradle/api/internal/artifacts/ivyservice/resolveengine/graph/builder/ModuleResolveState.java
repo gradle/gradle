@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -67,7 +66,6 @@ class ModuleResolveState implements CandidateModule {
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
-    private final AttributeDesugaring attributeDesugaring;
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
@@ -96,8 +94,7 @@ class ModuleResolveState implements CandidateModule {
         SelectorStateResolver<ComponentState> selectorStateResolver,
         ResolveOptimizations resolveOptimizations,
         boolean rootModule,
-        ConflictResolution conflictResolution,
-        AttributeDesugaring attributeDesugaring
+        ConflictResolution conflictResolution
     ) {
         this.idGenerator = idGenerator;
         this.id = id;
@@ -111,7 +108,6 @@ class ModuleResolveState implements CandidateModule {
         this.selectorStateResolver = selectorStateResolver;
         this.selectors = new ModuleSelectors<>(versionComparator, versionParser);
         this.conflictResolution = conflictResolution;
-        this.attributeDesugaring = attributeDesugaring;
     }
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
@@ -305,7 +301,7 @@ class ModuleResolveState implements CandidateModule {
         assert id.getModule().equals(this.id);
         ComponentState moduleRevision = versions.get(id);
         if (moduleRevision == null) {
-            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver, attributeDesugaring);
+            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver);
             versions.put(id, moduleRevision);
         }
         return moduleRevision;

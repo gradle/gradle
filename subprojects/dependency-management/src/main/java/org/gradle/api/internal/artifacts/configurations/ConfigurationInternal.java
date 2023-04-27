@@ -107,25 +107,14 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      *
      * @return {@code true} if so; {@code false} otherwise
      */
-    default boolean isDeclarableAgainstByExtension() {
-        return isDeclarableAgainstByExtension(this);
+    default boolean isDeclarableByExtension() {
+        return isDeclarableByExtension(this);
     }
 
     /**
      * Returns the role used to create this configuration and set its initial allowed usage.
      */
     ConfigurationRole getRoleAtCreation();
-
-    /**
-     * Check if a configuration has any dependencies declared against it, without triggering
-     * the improper usage checks on {@link #getDependencies()}.
-     *
-     * This method is meant to double-check that calling this method would return an empty collection,
-     * and thus skipping that call is safe.  It will be unnecessary once configuration usage is locked
-     * upon creation, as the {@link #isCanBeDeclaredAgainst()} check will be sufficient then.
-     */
-    @Deprecated
-    void assertHasNoDeclarations();
 
     /**
      * Test if the given configuration can either be declared against or extends another
@@ -135,13 +124,13 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      * @param configuration the configuration to test
      * @return {@code true} if so; {@code false} otherwise
      */
-    static boolean isDeclarableAgainstByExtension(ConfigurationInternal configuration) {
-        if (configuration.isCanBeDeclaredAgainst()) {
+    static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
+        if (configuration.isCanBeDeclared()) {
             return true;
         } else {
             return configuration.getExtendsFrom().stream()
                     .map(ConfigurationInternal.class::cast)
-                    .anyMatch(ci -> ci.isDeclarableAgainstByExtension());
+                    .anyMatch(ci -> ci.isDeclarableByExtension());
         }
     }
 

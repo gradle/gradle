@@ -42,7 +42,7 @@ class ModuleDependencyBuilderTest extends Specification {
 
     def "builds dependency for nonIdea root project"() {
         when:
-        def dependency = builder.create(newProjectId("build-1",":a"), 'compile')
+        def dependency = builder.create(newProjectId(":build-1",":a"), 'compile')
 
         then:
         dependency.scope == 'compile'

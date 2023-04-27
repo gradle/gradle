@@ -38,11 +38,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
@@ -92,7 +91,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public ResolveState(
         IdGenerator<Long> idGenerator,
-        LocalComponentMetadata rootComponentMetadata,
+        LocalComponentGraphResolveState rootComponentState,
         String rootConfigurationName,
         DependencyToComponentIdResolver idResolver,
         ComponentMetaDataResolver metaDataResolver,
@@ -101,6 +100,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         ModuleExclusions moduleExclusions,
         ComponentSelectorConverter componentSelectorConverter,
         ImmutableAttributesFactory attributesFactory,
+        AttributeDesugaring attributeDesugaring,
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
         VersionSelectorScheme versionSelectorScheme,
         Comparator<Version> versionComparator,
@@ -130,15 +130,16 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.conflictResolution = conflictResolution;
         this.conflictTracker = conflictTracker;
         this.resolveOptimizations = new ResolveOptimizations();
-        this.attributeDesugaring = new AttributeDesugaring(attributesFactory);
+        this.attributeDesugaring = attributeDesugaring;
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
 
+        ComponentGraphResolveMetadata rootComponentMetadata = rootComponentState.getMetadata();
         ModuleVersionIdentifier moduleVersionId = rootComponentMetadata.getModuleVersionId();
 
         // Create root component and module
         ModuleResolveState rootModule = getModule(moduleVersionId.getModule(), true);
         ComponentState rootComponent = rootModule.getVersion(moduleVersionId, rootComponentMetadata.getId());
-        rootComponent.setState(new DefaultLocalComponentGraphResolveState(rootComponentMetadata));
+        rootComponent.setState(rootComponentState);
         rootModule.select(rootComponent);
 
         this.selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootComponent, resolveOptimizations, versionComparator, versionParser);
@@ -172,7 +173,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     private ModuleResolveState getModule(ModuleIdentifier id, boolean rootModule) {
-        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution, attributeDesugaring));
+        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution));
     }
 
     @Override
@@ -280,10 +281,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     ResolvedVersionConstraint resolveVersionConstraint(VersionConstraint vc) {
         return resolvedVersionConstraints.computeIfAbsent(vc, key -> new DefaultResolvedVersionConstraint(key, versionSelectorScheme));
-    }
-
-    ImmutableAttributes desugar(ImmutableAttributes attributes) {
-        return attributeDesugaring.desugar(attributes);
     }
 
     ComponentSelector desugarSelector(ComponentSelector requested) {

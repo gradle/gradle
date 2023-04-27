@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import groovy.transform.SelfType
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 @SelfType(AbstractIntegrationSpec)
@@ -24,7 +25,7 @@ trait UnreadableCopyDestinationFixture {
     private static final String COPY_UNREADABLE_DESTINATION_FAILURE = "Cannot access a file in the destination directory. " +
         "Copying to a directory which contains unreadable content is not supported. " +
         "Declare the task as untracked by using Task.doNotTrackState(). " +
-        "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details."
+        new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "disable-state-tracking")
 
     void expectUnreadableCopyDestinationFailure() {
         failure.assertHasDocumentedCause(COPY_UNREADABLE_DESTINATION_FAILURE)

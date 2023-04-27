@@ -40,6 +40,7 @@ class WrapperExecutorTest extends Specification {
         properties.zipStorePath = 'testZipPath'
         properties.distributionSha256Sum = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         properties.networkTimeout = '11000'
+        properties.validateDistributionUrl = 'true'
         propertiesFile.parentFile.mkdirs()
         propertiesFile.withOutputStream { properties.store(it, 'header') }
     }
@@ -56,6 +57,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipPath == 'testZipPath'
         wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         wrapper.configuration.networkTimeout == 11000
+        wrapper.configuration.validateDistributionUrl
     }
 
     def "loads wrapper meta data from specified project directory"() {
@@ -70,6 +72,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipPath == 'testZipPath'
         wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         wrapper.configuration.networkTimeout == 11000
+        wrapper.configuration.validateDistributionUrl
     }
 
     def "uses default meta data when properties file does not exist in project directory"() {
@@ -84,6 +87,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
         wrapper.configuration.distributionSha256Sum == null
         wrapper.configuration.networkTimeout == Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS
+        wrapper.configuration.validateDistributionUrl
     }
 
     def "properties file need contain only the distribution URL"() {
@@ -102,6 +106,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipBase == PathAssembler.GRADLE_USER_HOME_STRING
         wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
         wrapper.configuration.networkTimeout == Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS
+        wrapper.configuration.validateDistributionUrl
     }
 
     def "execute installs distribution and launches application"() {

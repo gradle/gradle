@@ -112,7 +112,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public List<ResolvedVariantResult> getAllVariants() {
+    public List<ResolvedVariantResult> getAvailableVariants() {
         return allVariants;
     }
 

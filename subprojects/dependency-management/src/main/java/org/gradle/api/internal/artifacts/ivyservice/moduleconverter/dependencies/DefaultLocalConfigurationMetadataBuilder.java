@@ -124,7 +124,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             attributes,
             ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet())),
             configuration.isCanBeConsumed(),
-            configuration.getConsumptionDeprecation(),
+            configuration.isDeprecatedForConsumption(),
             configuration.isCanBeResolved(),
             maybeForceDependencies(dependencies.dependencies, attributes),
             dependencies.files,
@@ -212,7 +212,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         // to the testRuntimeClasspath configuration, which is not declarable.
         // To demonstrate this, add a check for configuration.isCanBeDeclared() && configuration.assertHasNoDeclarations() if not
         // and run tests such as KotlinDslPluginTest, or the building-kotlin-applications samples and you'll configurations which
-        // aren't declarable against but have declared dependencies present.
+        // aren't declarable but have declared dependencies present.
         for (Dependency dependency : configuration.getDependencies()) {
             if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;
