@@ -18,11 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedVariantResult
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
@@ -33,6 +31,8 @@ import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -46,12 +46,9 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 
 class StreamingResolutionResultBuilderTest extends Specification {
-
-    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(
+    def builder = new StreamingResolutionResultBuilder(
         new DummyBinaryStore(),
         new DummyStore(),
-        moduleIdentifierFactory,
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
@@ -245,11 +242,18 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     private DependencyGraphNode node(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = requested()) {
+        def componentMetadata = Stub(ComponentGraphResolveMetadata)
+        _ * componentMetadata.moduleVersionId >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+
+        def componentState = Stub(ComponentGraphResolveState)
+        _ * componentState.instanceId >> resultId
+        _ * componentState.id >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * componentState.metadata >> componentMetadata
+
         def component = Stub(DependencyGraphComponent)
         _ * component.resultId >> resultId
-        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
-        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
         _ * component.selectionReason >> reason
+        _ * component.resolveState >> componentState
 
         def node = Stub(DependencyGraphNode)
         _ * node.owner >> component
@@ -257,15 +261,21 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     private RootGraphNode rootNode(Long resultId, String org, String name, String ver) {
+        def componentMetadata = Stub(ComponentGraphResolveMetadata)
+        _ * componentMetadata.moduleVersionId >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+
+        def componentState = Stub(ComponentGraphResolveState)
+        _ * componentState.id >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * componentState.metadata >> componentMetadata
+
         def component = Stub(DependencyGraphComponent)
         _ * component.resultId >> resultId
-        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
-        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
         _ * component.selectionReason >> root()
+        _ * component.resolveState >> componentState
 
         def node = Stub(RootGraphNode)
         _ * node.owner >> component
-        _ * node.getMetadata() >> Mock(LocalConfigurationGraphResolveMetadata) {
+        _ * node.metadata >> Mock(LocalConfigurationGraphResolveMetadata) {
             getAttributes() >> AttributeTestUtil.attributes(["org.foo": "v1", "org.bar": 2, "org.baz": true])
         }
         return node

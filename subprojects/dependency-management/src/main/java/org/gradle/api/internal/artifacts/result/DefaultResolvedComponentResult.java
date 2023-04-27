@@ -49,7 +49,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
-        List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, String repositoryId
+        List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, @Nullable String repositoryId
     ) {
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;

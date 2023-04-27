@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -37,12 +38,15 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     @Override
     public void start(RootGraphNode root) {
-        resolutionResultBuilder.setRequestedAttributes(root.getMetadata().getAttributes());
+        resolutionResultBuilder.setRequestedAttributes(root.getResolveState().getAttributes());
     }
 
     @Override
     public void visitNode(DependencyGraphNode node) {
-        resolutionResultBuilder.visitComponent(node.getOwner());
+        DependencyGraphComponent component = node.getOwner();
+        resolutionResultBuilder.startVisitComponent(component.getResultId(), component.getSelectionReason());
+        resolutionResultBuilder.visitComponentDetails(component.getComponentId(), component.getModuleVersion(), component.getResolveState().getRepositoryName());
+        resolutionResultBuilder.visitComponentVariants(component.getSelectedVariants(), component.getAvailableVariants());
     }
 
     @Override

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
@@ -105,13 +104,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ModuleVersionIdentifier getId() {
         return id;
-    }
-
-    @Override
-    public String getRepositoryId() {
-        return resolveState.getSources().withSource(RepositoryChainModuleSource.class, source -> source
-            .map(RepositoryChainModuleSource::getRepositoryId)
-            .orElse(null));
     }
 
     @Override
