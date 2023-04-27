@@ -139,7 +139,7 @@ Required by:
                 assert components[1].build.name == '${buildName}'
                 assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'
-                assert components[1].projectName == '${buildName}'
+                assert components[1].projectName == '${dependencyName}'
                 assert components[2].build.buildPath == ':${buildName}'
                 assert components[2].build.name == '${buildName}'
                 assert !components[2].build.currentBuild

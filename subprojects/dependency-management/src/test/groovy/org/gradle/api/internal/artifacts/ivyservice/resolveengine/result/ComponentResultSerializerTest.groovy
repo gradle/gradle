@@ -16,32 +16,35 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
+import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
-class ComponentResultSerializerTest extends SerializerSpec {
+class ComponentResultSerializerTest extends Specification {
 
     private ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer()
     def serializer = new ComponentResultSerializer(
-        new DefaultImmutableModuleIdentifierFactory(),
+        new ThisBuildOnlyComponentDetailsSerializer(),
         new ResolvedVariantResultSerializer(
             componentIdentifierSerializer,
             new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
         ),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
-        componentIdentifierSerializer,
         false
     )
 
@@ -72,20 +75,28 @@ class ComponentResultSerializerTest extends SerializerSpec {
             getCapabilities() >> [capability('bar'), capability('baz')]
             getExternalVariant() >> Optional.of(v3)
         }
-        def selection = new DetachedComponentResult(12L,
-            newId('org', 'foo', '2.0'),
-            ComponentSelectionReasons.requested(),
-            componentIdentifier, [v1, v2], [v1, v2],
-            'repoName')
+        def componentMetadata = Stub(ComponentGraphResolveMetadata) {
+            moduleVersionId >> newId('org', 'foo', '2.0')
+        }
+        def componentState = Stub(ComponentGraphResolveState) {
+            id >> componentIdentifier
+            metadata >> componentMetadata
+            repositoryName >> 'repoName'
+        }
+        def component = Stub(ResolvedGraphComponent) {
+            resolveState >> componentState
+            selectionReason >> ComponentSelectionReasons.requested()
+            selectedVariants >> [v1, v2]
+        }
 
         when:
-        def result = serialize(selection, serializer)
+        def serialized = serialize(component)
+        def result = deserialize(serialized)
 
         then:
-        result.resultId == 12L
+        result.id == componentIdentifier
         result.selectionReason == ComponentSelectionReasons.requested()
         result.moduleVersion == newId('org', 'foo', '2.0')
-        result.componentId == componentIdentifier
         for (def variants : [result.selectedVariants, result.availableVariants]) {
             variants.size() == 2
             variants[0].displayName == 'v1'
@@ -119,6 +130,20 @@ class ComponentResultSerializerTest extends SerializerSpec {
             external.owner == extId
         }
         result.repositoryId == 'repoName'
+    }
+
+    private byte[] serialize(ResolvedGraphComponent component) {
+        def outstr = new ByteArrayOutputStream()
+        def encoder = new KryoBackedEncoder(outstr)
+        serializer.write(encoder, component)
+        encoder.flush()
+        return outstr.toByteArray()
+    }
+
+    private ResolvedComponentResult deserialize(byte[] serialized) {
+        def builder = new DefaultResolutionResultBuilder()
+        serializer.readInto(new KryoBackedDecoder(new ByteArrayInputStream(serialized)), builder)
+        return builder.complete(0).root
     }
 
     private Capability capability(String name) {

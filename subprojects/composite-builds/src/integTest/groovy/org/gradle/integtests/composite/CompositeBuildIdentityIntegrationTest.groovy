@@ -154,7 +154,7 @@ Required by:
                 assert componentId.build.name == '${buildName}'
                 assert !componentId.build.currentBuild
                 assert componentId.projectPath == ':'
-                assert componentId.projectName == '${buildName}'
+                assert componentId.projectName == '${dependencyName}'
 
                 components = buildRootProject.dependencies.selected
                 assert components.size() == 1

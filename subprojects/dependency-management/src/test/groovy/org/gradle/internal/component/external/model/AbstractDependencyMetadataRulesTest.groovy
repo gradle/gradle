@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSupport
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
-import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser

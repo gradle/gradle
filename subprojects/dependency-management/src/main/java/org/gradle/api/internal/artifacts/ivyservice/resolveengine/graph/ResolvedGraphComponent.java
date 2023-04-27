@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -34,6 +34,8 @@ public interface ResolvedGraphComponent {
      * This id cannot be used across graphs.
      */
     Long getResultId();
+
+    ComponentGraphResolveState getResolveState();
 
     /**
      * Returns a unique id for this component.
@@ -49,12 +51,6 @@ public interface ResolvedGraphComponent {
      * The reason this component was selected in the graph.
      */
     ComponentSelectionReason getSelectionReason();
-
-    /**
-     * Returns the id of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
-     */
-    @Nullable
-    String getRepositoryId();
 
     /**
      * Returns the resolved/selected variant(s) for this component.

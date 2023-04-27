@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -240,7 +241,9 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     private void node(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
         DummyModuleVersionSelection moduleVersion = comp(module, reason)
-        builder.visitComponent(moduleVersion)
+        builder.startVisitComponent(moduleVersion.resultId, moduleVersion.selectionReason)
+        builder.visitComponentDetails(moduleVersion.componentId, moduleVersion.moduleVersion, "repo")
+        builder.visitComponentVariants([], [])
     }
 
     private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
@@ -268,9 +271,13 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
-        String repositoryId
         List<ResolvedVariantResult> selectedVariants = []
         List<ResolvedVariantResult> availableVariants = []
+
+        @Override
+        ComponentGraphResolveState getResolveState() {
+            throw new UnsupportedOperationException()
+        }
     }
 
     class DummyInternalDependencyResult implements ResolvedGraphDependency {
