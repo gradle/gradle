@@ -23,8 +23,4 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 
 @TargetCoverage({ JUNIT_4_LATEST })
 class JUnit4TestOutputListenerTest extends AbstractTestOutputListenerIntegrationTest implements JUnit4MultiVersionTest{
-    @Override
-    String testMethod(String testMethodName) {
-        return testMethodName
-    }
 }

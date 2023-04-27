@@ -25,8 +25,6 @@ abstract class AbstractTestOutputListenerIntegrationTest extends AbstractJUnitMu
         executer.noExtraLogging()
     }
 
-    abstract String testMethod(String testMethodName)
-
     def "can use standard output listener for tests"() {
         given:
         file("src/test/java/SomeTest.java") << """
@@ -80,10 +78,10 @@ abstract class AbstractTestOutputListenerIntegrationTest extends AbstractJUnitMu
         def failure = executer.withTasks('test').runWithFailure()
 
         then:
-        failure.output.contains("Test ${testMethod('showsOutputWhenPassing')}(SomeTest) StdOut out passing")
-        failure.output.contains("Test ${testMethod('showsOutputWhenFailing')}(SomeTest) StdOut out failing")
-        failure.output.contains("Test ${testMethod('showsOutputWhenPassing')}(SomeTest) StdErr err passing")
-        failure.output.contains("Test ${testMethod('showsOutputWhenFailing')}(SomeTest) StdErr err failing")
+        failure.output.contains("Test ${maybeParentheses('showsOutputWhenPassing')}(SomeTest) StdOut out passing")
+        failure.output.contains("Test ${maybeParentheses('showsOutputWhenFailing')}(SomeTest) StdOut out failing")
+        failure.output.contains("Test ${maybeParentheses('showsOutputWhenPassing')}(SomeTest) StdErr err passing")
+        failure.output.contains("Test ${maybeParentheses('showsOutputWhenFailing')}(SomeTest) StdErr err failing")
 
         !failure.output.contains("remove me!")
     }

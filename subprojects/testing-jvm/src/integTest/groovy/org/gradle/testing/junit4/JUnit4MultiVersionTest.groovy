@@ -18,6 +18,7 @@ package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.JUnitCoverage
 
 trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
     AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
@@ -28,10 +29,20 @@ trait JUnit4MultiVersionTest extends JUnit4CommonTestSources {
         String configureTestFramework = "useJUnit()"
 
         @Override
-        String getTestFrameworkDependencies() {
-            return """
-                testImplementation 'junit:junit:${MultiVersionIntegrationSpec.version}'
-            """
+        String getTestFrameworkDependencies(String sourceSet) {
+            if (MultiVersionIntegrationSpec.version.startsWith("3")) {
+                // We support compiling classes with JUnit 3, but we require JUnit 4 at runtime (which is backwards compatible).
+                // The runtime dependency would not be necessary if using test suites, which would automatically inject the runtime
+                // dependency if not specified.
+                return """
+                    ${configurationFor(sourceSet, 'compileOnly')} 'junit:junit:${MultiVersionIntegrationSpec.version}'
+                    ${configurationFor(sourceSet, 'runtimeOnly')} 'junit:junit:${JUnitCoverage.JUNIT_4_LATEST}'
+                """
+            } else {
+                return """
+                    ${configurationFor(sourceSet, 'implementation')} 'junit:junit:${MultiVersionIntegrationSpec.version}'
+                """
+            }
         }
 
         @Override
