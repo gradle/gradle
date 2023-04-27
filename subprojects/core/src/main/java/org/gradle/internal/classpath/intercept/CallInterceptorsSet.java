@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * Holds a collection of interceptors and can decorate a Groovy CallSite if it is within a scope of a registered interceptor.
  */
 @NonNullApi
-public class CallInterceptorsSet implements CallSiteDecorator {
+public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorResolver {
     private final Map<InterceptScope, CallInterceptor> interceptors = new HashMap<>();
     private final Set<String> interceptedCallSiteNames = new HashSet<>();
 
@@ -45,7 +45,7 @@ public class CallInterceptorsSet implements CallSiteDecorator {
     // dedicated MethodHandle decorator method just for constructors.
     private final CallInterceptor dispatchingConstructorInterceptor = new CallInterceptor() {
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
             if (receiver instanceof Class) {
                 CallInterceptor realConstructorInterceptor = interceptors.get(InterceptScope.constructorsOf((Class<?>) receiver));
@@ -127,6 +127,12 @@ public class CallInterceptorsSet implements CallSiteDecorator {
 
     private boolean shouldDecorate(CallSite callSite) {
         return interceptedCallSiteNames.contains(callSite.getName());
+    }
+
+    @Override
+    @Nullable
+    public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
+        return interceptors.get(scope);
     }
 
     private class DecoratingCallSite extends AbstractCallSite {
