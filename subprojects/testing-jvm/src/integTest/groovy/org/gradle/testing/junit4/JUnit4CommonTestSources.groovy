@@ -30,6 +30,7 @@ trait JUnit4CommonTestSources {
                 import org.junit.*;
                 import static org.junit.Assert.*;
                 import static org.junit.Assume.*;
+                import org.junit.runner.*;
             """.stripIndent()
         }
 
@@ -51,6 +52,16 @@ trait JUnit4CommonTestSources {
         @Override
         String getAfterTestAnnotation() {
             return "@After"
+        }
+
+        @Override
+        String getRunOrExtendWithAnnotation(String runOrExtendWithClasses) {
+            return "@RunWith(${runOrExtendWithClasses})"
+        }
+
+        @Override
+        String maybeParentheses(String methodName) {
+            return methodName
         }
     }
 }
