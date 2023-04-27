@@ -36,11 +36,11 @@ trait JUnitJupiterMultiVersionTest {
         String configureTestFramework = "useJUnitPlatform()"
 
         @Override
-        String getTestFrameworkDependencies() {
+        String getTestFrameworkDependencies(String sourceSet) {
             return """
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
-                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+                ${configurationFor(sourceSet, 'implementation')} 'org.junit.jupiter:junit-jupiter-api:${dependencyVersion}'
+                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}'
+                ${configurationFor(sourceSet, 'runtimeOnly')} 'org.junit.platform:junit-platform-launcher'
             """
         }
 
@@ -65,6 +65,7 @@ trait JUnitJupiterMultiVersionTest {
         String getTestFrameworkImports() {
             return """
                 import org.junit.jupiter.api.*;
+                import org.junit.jupiter.api.extension.*;
                 import static org.junit.jupiter.api.Assertions.*;
                 import static org.junit.jupiter.api.Assumptions.*;
             """.stripIndent()
@@ -88,6 +89,16 @@ trait JUnitJupiterMultiVersionTest {
         @Override
         String getAfterTestAnnotation() {
             return "@AfterEach"
+        }
+
+        @Override
+        String getRunOrExtendWithAnnotation(String runOrExtendWithClasses) {
+            return "@ExtendWith({ ${runOrExtendWithClasses} })"
+        }
+
+        @Override
+        String maybeParentheses(String methodName) {
+            return "${methodName}()"
         }
     }
 }

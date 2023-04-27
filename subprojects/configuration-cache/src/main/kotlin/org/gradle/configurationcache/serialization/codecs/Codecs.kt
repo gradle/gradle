@@ -367,6 +367,8 @@ class Codecs(
         bind(treeMapCodec)
         bind(concurrentHashMapCodec)
         bind(ImmutableMapCodec)
+        bind(propertiesCodec)
+        bind(hashtableCodec)
 
         // Arrays
         bind(BYTE_ARRAY_SERIALIZER)

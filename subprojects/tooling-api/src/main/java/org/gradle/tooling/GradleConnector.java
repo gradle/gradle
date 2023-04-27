@@ -61,7 +61,7 @@ import java.net.URI;
  *
  * <p>The Tooling API is both forwards and backwards compatible with other versions of Gradle. It supports execution of Gradle builds that use older or newer versions of Gradle.  Each release of Gradle contains a new release of the Tooling API as well.</p>
  *
- * <p>The Tooling API supports running builds using Gradle version 2.6 and up.</p>
+ * <p>The Tooling API supports running builds using Gradle version 3.0 and up.</p>
  *
  * <p>You should note that not all features of the Tooling API are available for all versions of Gradle. Refer to the documentation for each class and method for more details.</p>
  *

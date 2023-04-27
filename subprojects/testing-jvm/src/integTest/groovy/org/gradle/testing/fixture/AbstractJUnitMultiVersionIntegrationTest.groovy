@@ -48,7 +48,11 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
     abstract TestSourceConfiguration getTestSourceConfiguration()
 
     String getTestFrameworkDependencies() {
-        return buildScriptConfiguration.testFrameworkDependencies
+        return buildScriptConfiguration.getTestFrameworkDependencies('test')
+    }
+
+    String getTestFrameworkDependencies(String sourceSet) {
+        return buildScriptConfiguration.getTestFrameworkDependencies(sourceSet)
     }
 
     String getConfigureTestFramework() {
@@ -83,6 +87,14 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
         return testSourceConfiguration.afterTestAnnotation
     }
 
+    String getRunOrExtendWithAnnotation(String runOrExtendWithClasses) {
+        return testSourceConfiguration.getRunOrExtendWithAnnotation(runOrExtendWithClasses)
+    }
+
+    String maybeParentheses(String methodName) {
+        return testSourceConfiguration.maybeParentheses(methodName)
+    }
+
     def setup() {
         executer.withRepositoryMirrors()
     }
@@ -95,10 +107,18 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
      * an implementation of this interface specific to the test framework.
      */
     interface BuildScriptConfiguration {
-        String getTestFrameworkDependencies()
+        String getTestFrameworkDependencies(String sourceSet)
         String getConfigureTestFramework()
         String getIncludeCategoryOrTagConfigurationElement()
         String getExcludeCategoryOrTagConfigurationElement()
+
+        default configurationFor(String sourceSet, String configurationName) {
+            if (sourceSet == 'main') {
+                return configurationName
+            } else {
+                return sourceSet + configurationName.capitalize()
+            }
+        }
     }
 
     /**
@@ -114,5 +134,7 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
         String getAfterClassAnnotation()
         String getBeforeTestAnnotation()
         String getAfterTestAnnotation()
+        String getRunOrExtendWithAnnotation(String runOrExtendWithClasses)
+        String maybeParentheses(String methodName)
     }
 }

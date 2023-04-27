@@ -258,11 +258,6 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public Path getCurrentPrefixForProjectsInChildBuilds() {
-            return Path.ROOT;
-        }
-
-        @Override
         public Path calculateIdentityPathForProject(Path projectPath) {
             return projectPath;
         }
