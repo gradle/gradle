@@ -52,6 +52,16 @@ tasks {
         // A more general solution is probably required: https://github.com/gradle/gradle/issues/21114
         from(apiExtensionsFileCollection)
     }
+
+// -- Version manifest properties --------------------------------------
+    val writeVersionsManifest by registering(WriteProperties::class) {
+        destinationFile = layout.buildDirectory.file("versionsManifest/gradle-kotlin-dsl-versions.properties")
+        property("kotlin", libs.kotlinVersion)
+    }
+
+    processResources {
+        from(writeVersionsManifest)
+    }
 }
 
 // -- Embedded Kotlin dependencies -------------------------------------
