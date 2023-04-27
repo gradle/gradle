@@ -44,14 +44,14 @@ class EclipseJavaProjectModulesIntegrationTest extends AbstractEclipseIntegratio
             }
         """
 
-        file("settings.gradle") << """
+        settingsFile << """
             rootProject.name = 'root'
             include 'api'
             include 'util'
 
         """
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'
