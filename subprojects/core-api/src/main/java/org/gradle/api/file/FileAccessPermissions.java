@@ -45,7 +45,7 @@ import org.gradle.api.provider.Provider;
  *     <li>DIRECTORY: read, write &amp; execute for OWNER, read &amp; execute for GROUP, read &amp; execute for OTHER (0755, rwxr-xr-x)</li>
  * </ul>
  *
- * @since 8.2
+ * @since 8.3
  */
 @Incubating
 public interface FileAccessPermissions extends ImmutableFileAccessPermissions {

@@ -24,7 +24,7 @@ import org.gradle.api.provider.Provider;
  * Describes file and directory access permissions. Immutable version of
  * {@link FileAccessPermissions}.
  *
- * @since 8.2
+ * @since 8.3
  */
 @Incubating
 public interface ImmutableFileAccessPermissions {

@@ -68,7 +68,7 @@ public interface FileSystemOperations {
      *
      * @param configureAction The configuration that gets applied to the newly created {@code FileAccessPermissions}.
      *
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     FileAccessPermissions filePermissions(Action<? super FileAccessPermissions> configureAction);
@@ -80,7 +80,7 @@ public interface FileSystemOperations {
      *
      * @param configureAction The configuration that gets applied to the newly created {@code FileAccessPermissions}.
      *
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     FileAccessPermissions directoryPermissions(Action<? super FileAccessPermissions> configureAction);
@@ -93,7 +93,7 @@ public interface FileSystemOperations {
      * because the Unix style permission input completely overwrites the default values, so
      * the distinction doesn't matter.
      *
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     FileAccessPermissions permissions(String permissions);
@@ -101,7 +101,7 @@ public interface FileSystemOperations {
     /**
      * {@link Provider} based version of {@link #permissions(String)},  to facilitate wiring into property chains.
      *
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     FileAccessPermissions permissions(Provider<String> permissions);
