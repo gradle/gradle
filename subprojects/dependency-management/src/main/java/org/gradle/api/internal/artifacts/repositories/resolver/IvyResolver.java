@@ -25,6 +25,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.hash.ChecksumService;
@@ -124,12 +125,12 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getLocalAccess() {
         return localRepositoryAccess;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getRemoteAccess() {
         return remoteRepositoryAccess;
     }
 

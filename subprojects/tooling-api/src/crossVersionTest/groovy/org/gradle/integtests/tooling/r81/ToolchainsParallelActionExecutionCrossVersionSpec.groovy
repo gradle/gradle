@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 
 @ToolingApiVersion(">=8.1")
+@org.gradle.test.fixtures.Flaky(because='https://github.com/gradle/gradle-private/issues/3829')
 class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

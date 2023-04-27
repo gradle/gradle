@@ -80,7 +80,7 @@ org.gradle.parallel=true
 Parallel builds can significantly improve build times; how much depends on your project structure and
 how many dependencies you have between subprojects.
 A build whose execution time is dominated by a single subproject won't benefit much at all.
-Niether will a project with lots of inter-subproject dependencies.
+Neither will a project with lots of inter-subproject dependencies.
 But most multi-subproject builds see a reduction in build times.
 
 For more information about parallel builds, check out the

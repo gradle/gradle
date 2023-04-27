@@ -43,16 +43,14 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         assert action2 != Action2
 
         expect:
-        def l1 = withConnection { c ->
-            def builder = c.action(action1.getConstructor().newInstance())
-            collectOutputs(builder)
-            return builder.run()
+        def l1 = withConnection {
+            it.action(action1.getConstructor().newInstance())
+                .run()
         }
         l1 == ["not broken 1"]
-        def l2 = withConnection { c ->
-            def builder = c.action(action2.getConstructor().newInstance())
-            collectOutputs(builder)
-            return builder.run()
+        def l2 = withConnection {
+            it.action(action2.getConstructor().newInstance())
+                .run()
         }
         l2 == ["not broken 2"]
     }

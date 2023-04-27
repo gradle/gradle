@@ -76,7 +76,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         if (GradleContextualExecuter.notConfigCache) {
             buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
         } else {
-            buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+            buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(checkoutDir, agpVersion)
         }
 
         def md5After = compiledClassFile.md5Hash
@@ -118,6 +118,9 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
+            expectBuildIdentifierNameDeprecation()
+            expectBuildScanProjectComponentSelectorBuildNameDeprecation()
+            expectBuildIdentifierIsCurrentBuildDeprecation()
         }
         def result = runner.buildAndFail()
 
@@ -132,11 +135,14 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
-        if (GradleContextualExecuter.notConfigCache) {
-            runner.deprecations(SantaTrackerDeprecations) {
+        runner.deprecations(SantaTrackerDeprecations) {
+            if (GradleContextualExecuter.notConfigCache) {
                 expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
+                expectBuildScanProjectComponentSelectorBuildNameDeprecation()
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectBuildIdentifierNameDeprecation()
             }
         }
         result = runner.buildAndFail()

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 
@@ -25,11 +26,11 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 
 public interface ModuleMetadataCache {
-    CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
+    CachedMetadata cacheMissing(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
 
-    CachedMetadata cacheMetaData(ModuleComponentRepository repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metaData);
+    CachedMetadata cacheMetaData(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metaData);
 
-    CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier id);
+    CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
 
     interface CachedMetadata {
         ResolvedModuleVersion getModuleVersion();
@@ -49,12 +50,12 @@ public interface ModuleMetadataCache {
          * @param key the hash of the rules
          */
         @Nullable
-        ModuleComponentResolveMetadata getProcessedMetadata(int key);
+        ModuleComponentGraphResolveState getProcessedMetadata(int key);
 
         /**
          * Set the processed metadata to be cached in-memory only.
          */
-        void putProcessedMetadata(int key, ModuleComponentResolveMetadata processedMetadata);
+        void putProcessedMetadata(int key, ModuleComponentGraphResolveState state);
 
         /**
          * Returns a copy of this cached metadata where the module metadata is safe to store

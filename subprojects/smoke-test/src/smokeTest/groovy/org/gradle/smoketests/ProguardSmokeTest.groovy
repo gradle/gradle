@@ -52,7 +52,7 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
                     // Only test this one task, since analyzing all the classes seems to cause some problems
                     configurations.runtimeClasspath.files.collect { project.zipTree(it).matching { include "**/ProGuardTask.*" } }
                 })
-                classpath.setFrom(configurations.runtimeClasspath)
+                classpath = configurations.runtimeClasspath
             }
 
             tasks.named("validateExternalPlugins") {

@@ -563,10 +563,7 @@ rootProject.name = 'root'
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                compileOnly.deprecateForResolution('compileClasspath')
-                compileOnly.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle9().withUpgradeGuideSection(8, "foo")
-                }
+                createWithRole('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_BUCKET)
             }
             dependencies {
                 compileOnly 'foo:foo:1.0'
@@ -599,7 +596,7 @@ rootProject.name = 'root'
             }
             configurations {
                 undeclarable {
-                    canBeDeclaredAgainst = false
+                    canBeDeclared = false
                 }
             }
         """
@@ -624,10 +621,10 @@ rootProject.name = 'root'
             }
             configurations {
                 declarable {
-                    canBeDeclaredAgainst = true
+                    canBeDeclared = true
                 }
                 undeclarable {
-                    canBeDeclaredAgainst = false
+                    canBeDeclared = false
                     extendsFrom(declarable)
                 }
             }

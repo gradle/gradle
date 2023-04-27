@@ -55,7 +55,7 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getLocalAccess() {
         throw new UnsupportedOperationException();
     }
 
@@ -65,7 +65,7 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> getRemoteAccess() {
         return new RemoteRepositoryAccess() {
 
             @Override

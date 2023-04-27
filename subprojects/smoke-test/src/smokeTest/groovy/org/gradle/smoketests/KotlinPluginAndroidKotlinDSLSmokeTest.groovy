@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -48,6 +49,9 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
                 expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
                 expectReportDestinationPropertyDeprecation(androidPluginVersion)
                 expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersion)
+                if (GradleContextualExecuter.isConfigCache() || VersionNumber.parse(kotlinPluginVersion) >= VersionNumber.parse("1.8.0")) {
+                    expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
+                }
             }.build()
 
         then:

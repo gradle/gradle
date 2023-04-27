@@ -27,7 +27,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
@@ -208,8 +207,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
-        toolingApi.withConnector { GradleConnector connector ->
-            connector.useGradleVersion(otherVersion.version.version)
+        toolingApi.withConnector { it.useGradleVersion(otherVersion.version.version)
         }
         GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 

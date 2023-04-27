@@ -626,11 +626,11 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                 [apiElements, runtimeElements].each {
                     assert it.canBeConsumed == true
                     assert it.canBeResolved == false
-                    assert it.canBeDeclaredAgainst == true
+                    assert it.canBeDeclared == true
 
-                    assert it.declarationAlternatives == []
-                    assert it.resolutionAlternatives == null
-                    assert it.consumptionDeprecation == null
+                    assert it.deprecatedForDeclarationAgainst == true
+                    assert it.deprecatedForResolution == false
+                    assert it.deprecatedForConsumption == false
                 }
             }
         """

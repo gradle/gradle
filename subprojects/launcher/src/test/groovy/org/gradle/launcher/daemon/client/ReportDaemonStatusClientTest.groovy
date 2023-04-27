@@ -42,7 +42,7 @@ class ReportDaemonStatusClientTest extends Specification {
         then:
         1 * registry.getAll() >> []
         1 * registry.getStopEvents() >> []
-        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
+        1 * documentationRegistry.getDocumentationRecommendationFor('on this', 'gradle_daemon', 'sec:status') >> { "DOCUMENTATION_URL" }
         0 * _
     }
 
@@ -66,7 +66,7 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * registry.getStopEvents() >> []
 
         and:
-        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
+        1 * documentationRegistry.getDocumentationRecommendationFor('on this', 'gradle_daemon', 'sec:status') >> { "DOCUMENTATION_URL" }
         0 * _
     }
 
@@ -99,7 +99,7 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * registry.getStopEvents() >> []
 
         and:
-        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
+        1 * documentationRegistry.getDocumentationRecommendationFor('on this', 'gradle_daemon', 'sec:status') >> { "DOCUMENTATION_URL" }
         0 * _
     }
 
@@ -115,7 +115,7 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * registry.getStopEvents() >> [stopEvent1]
 
         and:
-        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
+        1 * documentationRegistry.getDocumentationRecommendationFor('on this', 'gradle_daemon', 'sec:status') >> { "DOCUMENTATION_URL" }
         0 * _
     }
 
@@ -130,7 +130,7 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * registry.getAll() >> { [daemon1] as List<DaemonInfo> }
         1 * connector.maybeConnect(daemon1) >> { null }
         1 * registry.getStopEvents() >> []
-        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
+        1 * documentationRegistry.getDocumentationRecommendationFor('on this', 'gradle_daemon', 'sec:status') >> { "DOCUMENTATION_URL" }
         0 * _
     }
 }

@@ -40,11 +40,49 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Updates to default tool integration versions
+[[kotlin_1_8.20]]
+==== Upgrade to Kotlin 1.8.20
 
-- The JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to https://github.com/jacoco/jacoco/releases/tag/v0.8.9[0.8.9].
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.20[Kotlin 1.8.20].
+For more information, see https://kotlinlang.org/docs/whatsnew1820.html[What's new in Kotlin 1.8.20].
 
-==== Kotlin DSL scripts emit compilation warnings
+Note that there is a known issue with Kotlin compilation avoidance that can cause `OutOfMemory` exceptions in `compileKotlin` tasks if the compilation classpath contains very large JAR files.
+This applies to builds applying the Kotlin plugin v1.8.20 or the `kotlin-dsl` plugin.
+
+You can work around it by disabling Kotlin compilation avoidance in your `gradle.properties` file:
+
+[source,properties]
+----
+kotlin.incremental.useClasspathSnapshot=false
+----
+
+See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more information.
+
+==== Upgrade to Groovy 3.0.17
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.17.html[Groovy 3.0.17].
+
+Since the previous version was 3.0.15, the https://groovy-lang.org/changelogs/changelog-3.0.16.html[3.0.16] changes are also included.
+
+==== Upgrade to Ant 1.10.13
+
+Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
+
+Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
+
+==== Upgrade to CodeNarc 3.2.0
+
+The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v3.2.0/CHANGELOG.md#version-320----jan-2023[CodeNarc 3.2.0].
+
+==== Upgrade to PMD 6.55.0
+
+PMD has been updated to https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_release_notes.html[PMD 6.55.0].
+
+Since the previous version was 6.48.0, all changes since then are included.
+
+==== Upgrade to JaCoCo 0.8.9
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.9].
 
 === Deprecations
 
@@ -75,6 +113,7 @@ Currently, the following methods should only be called with these listed allowed
 - `shouldResolveConsistentlyWith(Configuration)` - RESOLVABLE configurations only
 - `disableConsistentResolution()` - RESOLVABLE configurations only
 - `getDependencyConstraints()` - DECLARABLE configurations only
+- `copy()`, `copy(Spec)`, `copy(Closure)`, `copyRecursive()`, `copyRecursive(Spec)`, `copyRecursive(Closure)` - RESOLVABLE configurations only
 
 Intended usage is noted in the `Configuration` interface's Javadoc.
 This list is likely to grow in future releases.
@@ -103,6 +142,11 @@ This will become an error in Gradle 9.0.
 You should prefer accessing the extensions and their properties instead.
 
 For specific examples see the next sections.
+
+Prominent community plugins already migrated to using extensions to provide custom DSLs.
+Some of them still registers conventions for backwards compatibility.
+Registering conventions does not emit a deprecation warning yet to provide a migration window.
+Future Gradle versions will do.
 
 [[base_convention_deprecation]]
 ==== Deprecated `base` plugin conventions
@@ -288,10 +332,219 @@ java {
 =====
 ====
 
-Prominent community plugins already migrated to using extensions to provide custom DSLs.
-Some of them still registers conventions for backwards compatibility.
-Registering conventions does not emit a deprecation warning yet to provide a migration window.
-Future Gradle versions will do.
+[[war_convention_deprecation]]
+==== Deprecated `war` plugin conventions
+
+The convention properties contributed by the `war` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("war")
+}
+
+configure<WarPluginConvention> { // Accessing a convention
+    webAppDirName = "src/main/webapp"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'war'
+}
+
+webAppDirName = 'src/main/webapp' // Accessing a convention
+----
+=====
+====
+
+Clients should configure the `war` task  directly.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("war")
+}
+
+tasks.war {
+    webAppDirectory.set(file("src/main/webapp"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'war'
+}
+
+war {
+    webAppDirectory = file('src/main/webapp')
+}
+----
+=====
+====
+
+[[ear_convention_deprecation]]
+==== Deprecated `ear` plugin conventions
+
+The convention properties contributed by the `ear` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("ear")
+}
+
+configure<EarPluginConvention> { // Accessing a convention
+    appDirName = "src/main/app"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'ear'
+}
+
+appDirName = 'src/main/app' // Accessing a convention
+----
+=====
+====
+
+Clients should configure the `ear` task directly.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(Ear.class).configureEach(...)] can be used to configure each task of type `Ear`.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("ear")
+}
+
+tasks.ear {
+    appDirectory.set(file("src/main/app"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'ear'
+}
+
+ear {
+    appDirectory = file('src/main/app')  // use application metadata found in this folder
+}
+----
+=====
+====
+
+[[project_report_convention_deprecation]]
+==== Deprecated `project-report` plugin conventions
+
+The convention properties contributed by the `project-reports` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `project-report`
+}
+
+configure<ProjectReportsPluginConvention> {
+    projectReportDirName = "custom" // Accessing a convention
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'project-report'
+}
+
+projectReportDirName = "custom" // Accessing a convention
+----
+=====
+====
+
+Configure your report task instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `project-report`
+}
+
+tasks.withType<HtmlDependencyReportTask>() {
+    projectReportDirectory.set(project.layout.buildDirectory.dir("reports/custom"))
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'project-report'
+}
+
+tasks.withType(HtmlDependencyReportTask) {
+    projectReportDirectory = project.layout.buildDirectory.dir("reports/custom")
+}
+----
+=====
+====
 
 [[redundant_configuration_usage_activation]]
 ==== Redundant configuration usage activation
@@ -347,6 +600,11 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // If using JUnit Vintage
+    testCompileOnly("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     // If using JUnit 4
     testImplementation("junit:junit:4.13.2")
 
@@ -366,6 +624,11 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // If using JUnit Vintage
+    testCompileOnly("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     // If using JUnit 4
     testImplementation("junit:junit:4.13.2")
 
@@ -377,25 +640,21 @@ dependencies {
 ======
 =====
 
-=== Potential breaking changes
+[[build_identifier_name_and_current_deprecation]]
+==== `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html[BuildIdentifier]` and `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html[ProjectComponentSelector]` method deprecations
 
-[[kotlin_1_8.20]]
-==== Upgrade to Kotlin 1.8.20
+The following methods on `BuildIdentifier` are deprecated:
 
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.20[Kotlin 1.8.20].
-For more information, see https://kotlinlang.org/docs/whatsnew1820.html[What's new in Kotlin 1.8.20].
+- `getName()`
+- `isCurrentBuild()`
 
-Note that there is a known issue with Kotlin compilation avoidance that can cause `OutOfMemory` exceptions in `compileKotlin` tasks if the compilation classpath contains very large JAR files.
-This applies to builds applying the Kotlin plugin v1.8.20 or the `kotlin-dsl` plugin.
+You could use these methods to distinguish between different project components with the same name but from different builds.
+However, for certain composite build setups, these methods do not provide enough information to guarantee uniqueness.
 
-You can work around it by disabling Kotlin compilation avoidance in your `gradle.properties` file:
+Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath--[BuildIdentifier.getBuildPath()]`.
 
-[source,properties]
-----
-kotlin.incremental.useClasspathSnapshot=false
-----
-
-See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more information.
+Similarly, the method `ProjectComponentSelector.getBuildName()` is deprecated.
+Use `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html#getBuildPath--[ProjectComponentSelector.getBuildPath()]` instead.
 
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
@@ -469,6 +728,65 @@ Compilation warnings from Kotlin DSL scripts are printed to the console output.
 For example, the use of deprecated APIs in Kotlin DSL will emit warnings each time the script is compiled.
 
 This is a potentially breaking change if you are consuming the console output of Gradle builds.
+
+==== Configuring Kotlin compiler options with the `kotlin-dsl` plugin applied
+
+If you are configuring custom Kotlin compiler options on a project with the <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin, kotlin-dsl>> plugin applied you might encounter a breaking change.
+
+In previous Gradle versions, the `kotlin-dsl` plugin was adding required compiler arguments on link:{javadocPath}/org/gradle/api/Project.html#afterEvaluate-org.gradle.api.Action-[afterEvaluate {}].
+Now that the Kotlin Gradle Plugin provides <<lazy_configuration.adoc#lazy_configuration, lazy configuration>> properties, our `kotlin-dsl` plugin switched to adding required compiler arguments to the lazy properties directly.
+As a consequence, if you were setting `freeCompilerArgs` the `kotlin-dsl` plugin is now failing the build because its required compiler arguments are overridden by your configuration.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `kotlin-dsl`
+}
+
+tasks.withType(KotlinCompile::class).configureEach {
+    kotlinOptions { // Deprecated non-lazy configuration options
+        freeCompilerArgs = listOf("-Xcontext-receivers")
+    }
+}
+----
+=====
+====
+
+With the configuration above you would get the following build failure:
+
+[source,text]
+----
+* What went wrong
+Execution failed for task ':compileKotlin'.
+> Kotlin compiler arguments of task ':compileKotlin' do not work for the `kotlin-dsl` plugin. The 'freeCompilerArgs' property has been reassigned. It must instead be appended to. Please use 'freeCompilerArgs.addAll(\"your\", \"args\")' to fix this.
+----
+
+You must change this to adding your custom compiler arguments to the lazy configuration properties of the Kotlin Gradle Plugin in order for them to be appended to the ones required by the `kotlin-dsl` plugin:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `kotlin-dsl`
+}
+
+tasks.withType(KotlinCompile::class).configureEach {
+    compilerOptions { // New lazy configuration options
+        freeCompilerArgs.addAll("-Xcontext-receivers")
+    }
+}
+----
+=====
+====
+
+If you were already adding to `freeCompilerArgs` instead of setting its value, then you should not experience a build failure.
 
 ==== New API introduced may clash with existing Gradle DSL code
 
@@ -730,7 +1048,7 @@ These members will be removed in Gradle 9.0.
 * `WrapUtil.toDomainObjectSet(...)`
 * `GUtil.toCamelCase(...)`
 * `GUtil.toLowerCase(...)`
-* `ConfigureUtil.configureByMap(...)`
+* `ConfigureUtil`
 
 [[ibm_semeru_should_not_be_used]]
 ==== Deprecated JVM vendor IBM Semeru

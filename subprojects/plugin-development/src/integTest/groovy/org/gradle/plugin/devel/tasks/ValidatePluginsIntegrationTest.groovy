@@ -25,6 +25,7 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
+import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assume.assumeNotNull
 
@@ -60,12 +61,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         report.verify(messages.collectEntries {
             def fullMessage = it.message
             if (!it.defaultDocLink) {
-                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}."
+                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}"
             }
             [(fullMessage): it.severity]
         })
 
-        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size() > 1 ? 's' : ''}"
+        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"
         messages.forEach { problem ->
             String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
             failure.assertThatCause(containsString("$problem.severity: $indentedMessage"))
@@ -803,8 +804,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @ValidationTestFor(
         ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
     )
-    def "key of nested map must be of type String"() {
-        def key = "key1"
+    def "nested map with #supportedType key is validated without deprecation warning"() {
+        def gStringValue = "foo"
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
@@ -820,22 +821,64 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
                 @Nested
                 public Map<String, Options> getMapWithGStringKey() {
-                    return Collections.singletonMap("$key", new Options());
+                    return Collections.singletonMap("$gStringValue", new Options());
                 }
 
                 @Nested
-                public Map<String, Options> getMapWithStringKey() {
-                    return Collections.singletonMap("key2", new Options());
+                public Map<$supportedType, Options> getMapWithSupportedKey() {
+                    return Collections.singletonMap($value, new Options());
                 }
 
                 @Nested
-                public Map<String, Options> getMapEmpty() {
+                public Map<$supportedType, Options> getMapEmpty() {
                     return Collections.emptyMap();
                 }
 
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+
+            enum Letter { A, B, C }
+        """
+
+        expect:
+        assertValidationSucceeds()
+
+        where:
+        supportedType | value
+        'Integer'     | 'Integer.valueOf(0)'
+        'String'      | '"foo"'
+        'Enum'        | 'Letter.A'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23045")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    def "nested map with unsupported key type is validated with deprecation warning"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
                 @Nested
-                public Map<Integer, Options> getMapWithNonStringKey() {
-                    return Collections.singletonMap(Integer.valueOf(0), new Options());
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public Map<Boolean, Options> getMapWithUnsupportedKey() {
+                    return Collections.singletonMap(true, new Options());
                 }
 
                 public static class Options {
@@ -851,8 +894,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=1")
         assertValidationFailsWith([
-            warning(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithNonStringKey").keyType("java.lang.Integer") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
+            warning(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
         ])
     }
 

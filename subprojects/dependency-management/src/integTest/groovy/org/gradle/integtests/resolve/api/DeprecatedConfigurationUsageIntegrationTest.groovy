@@ -25,7 +25,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-            
+
             configurations.$role('custom')
             configurations.custom.$methodCall
         """
@@ -57,7 +57,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-            
+
             configurations.$role('custom')
             configurations.custom.$methodCall
         """
@@ -75,13 +75,22 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'shouldResolveConsistentlyWith(Configuration)'  | 'bucket'      | 'shouldResolveConsistentlyWith(null)'                                 || [ProperMethodUsage.RESOLVABLE]
         'disableConsistentResolution()'                 | 'consumable'  | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
         'disableConsistentResolution()'                 | 'bucket'      | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
+        'copy()'                                        | 'consumable'  | 'copy()'                                                              || [ProperMethodUsage.RESOLVABLE]
+        'copy()'                                        | 'bucket'      | 'copy()'                                                              || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive()'                               | 'consumable'  | 'copyRecursive()'                                                     || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive()'                               | 'bucket'      | 'copyRecursive()'                                                     || [ProperMethodUsage.RESOLVABLE]
+        'copy(Spec)'                                    | 'consumable'  | 'copy { } as Spec'                                                    || [ProperMethodUsage.RESOLVABLE]
+        'copy(Spec)'                                    | 'bucket'      | 'copy { } as Spec'                                                    || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive(Spec)'                           | 'consumable'  | 'copyRecursive { } as Spec'                                           || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive(Spec)'                           | 'bucket'      | 'copyRecursive { } as Spec'                                           || [ProperMethodUsage.RESOLVABLE]
+
     }
 
     def "calling an invalid internal API method #methodName for role #role produces a deprecation warning"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-            
+
             configurations.$role('custom')
             configurations.custom.$methodCall
         """
@@ -111,7 +120,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-            
+
             configurations.$role('custom')
             configurations.custom.$methodCall
         """
@@ -129,45 +138,10 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-            
-            ConfigurationRole customRole = new ConfigurationRole() {
-                @Override
-                String getName() {
-                    return "custom"
-                }
-    
-                @Override
-                boolean isConsumable() {
-                    return true
-                }
-    
-                @Override
-                boolean isResolvable() {
-                    return false
-                }
-    
-                @Override
-                boolean isDeclarableAgainst() {
-                    return false
-                }
-    
-                @Override
-                boolean isConsumptionDeprecated() {
-                    return true
-                }
-    
-                @Override
-                boolean isResolutionDeprecated() {
-                    return false
-                }
-    
-                @Override
-                boolean isDeclarationAgainstDeprecated() {
-                    return false
-                }
-            }
+
+            ConfigurationRole customRole = new org.gradle.api.internal.artifacts.configurations.DefaultConfigurationRole("custom", true, false, false, true, false, false)
             configurations.createWithRole('custom', customRole)
-            
+
             configurations.custom.attributes {
                 attribute(Attribute.of('foo', String), 'bar')
             }
@@ -176,7 +150,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         expect:
         executer.expectDocumentedDeprecationWarning("""Calling configuration method 'attributes(Action)' is deprecated for configuration 'custom', which has permitted usage(s):
 \tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: ${documentationRegistry.getDocumentationFor("upgrading_version_8", "deprecated_configuration_usage")}""")
         succeeds('help')
     }
 
@@ -184,9 +158,7 @@ This method is only meant to be called on configurations which allow the (non-de
         given:
         buildFile << """
             configurations {
-                custom {
-                    deprecateForConsumption()
-                    
+                createWithRole('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET) {
                     attributes {
                         attribute(Attribute.of('foo', String), 'bar')
                     }
@@ -201,9 +173,7 @@ This method is only meant to be called on configurations which allow the (non-de
     def "configuration explicitly deprecated for resolution will warn if resolved, but not fail"() {
         buildFile << """
             configurations {
-                foo {
-                    deprecateForResolution()
-                }
+                createWithRole('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_BUCKET)
             }
 
             ${mavenCentralRepository()}
@@ -233,7 +203,7 @@ This method is only meant to be called on configurations which allow the ${allow
     private String buildAllowedUsages(String role) {
         switch (role) {
             case 'bucket':
-                return "\tDeclarable Against - this configuration can have dependencies added to it"
+                return "\tDeclarable - this configuration can have dependencies added to it"
             case 'consumable':
                 return "\tConsumable - this configuration can be selected by another project as a dependency"
             case 'resolvable':
