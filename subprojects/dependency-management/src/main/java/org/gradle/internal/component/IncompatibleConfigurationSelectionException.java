@@ -45,7 +45,7 @@ public class IncompatibleConfigurationSelectionException extends StyledException
                                           boolean variantAware,
                                           AttributeDescriber describer) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node( "Configuration '" + targetConfiguration.getName() + "' in " + style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()) + " does not match the consumer attributes");
+        formatter.node("Configuration '" + targetConfiguration.getName() + "' in " + style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()) + " does not match the consumer attributes");
         formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, targetConfiguration.asVariant().getMetadata(), variantAware, false, describer);
         return formatter.toString();
     }

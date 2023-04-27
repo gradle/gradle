@@ -48,6 +48,9 @@ public interface ComponentGraphResolveState {
 
     ModuleSources getSources();
 
+    @Nullable
+    String getRepositoryName();
+
     ComponentGraphResolveMetadata getMetadata();
 
     /**
