@@ -32,8 +32,9 @@ It provides teams with centralized visibility into their build process to quickl
 == Why Gradle Build Tool?
 
 Gradle makes building and running apps easy; it is great for both small and large projects.
+It's fast, highly configurable, and very concise.
 
-Gradle is fast, highly configurable, and very concise.
+Gradle supports conventions that reduce configuration yet become flexible when your use case differs from those conventions.
 
 The unique advantage of Gradle is its elegant and extensible declarative build language.
 
