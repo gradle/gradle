@@ -48,15 +48,11 @@ class DefaultProjectComponentIdentifierTest extends Specification {
     }
 
     private static newProjectId(String path) {
-        newProjectId(buildId(":"), path)
+        newProjectId(DefaultBuildIdentifier.ROOT, path)
     }
 
     private static newProjectId(BuildIdentifier build, String path) {
         new DefaultProjectComponentIdentifier(build, Path.path(path), Path.path(path), "name")
-    }
-
-    private static buildId(String name) {
-        return new DefaultBuildIdentifier(name)
     }
 
 }

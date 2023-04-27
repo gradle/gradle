@@ -200,7 +200,7 @@ The role of each configuration is described in the following tables:
 | For compiling against this library
 | yes
 | no
-| This configuration is meant to be used by consumers, to retrieve all the elements necessary to compile against this library. Unlike the `default` configuration, this doesn't leak implementation or runtime dependencies.
+| This configuration is meant to be used by consumers, to retrieve all the elements necessary to compile against this library.
 
 | `runtimeElements`
 | For executing this library

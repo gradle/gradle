@@ -43,10 +43,15 @@ public class LinuxInstallationSupplier extends AutoDetectingInstallationSupplier
     }
 
     @Override
+    public String getSourceName() {
+        return "Common Linux Locations";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         if (os.isLinux()) {
             return Arrays.stream(roots)
-                .map(root -> FileBasedInstallationFactory.fromDirectory(new File(root), "Common Linux Locations"))
+                .map(root -> FileBasedInstallationFactory.fromDirectory(new File(root), getSourceName()))
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
         }

@@ -32,12 +32,17 @@ public class CurrentInstallationSupplier extends AutoDetectingInstallationSuppli
     }
 
     @Override
+    public String getSourceName() {
+        return "Current JVM";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         return Collections.singleton(asInstallation(Jvm.current().getJavaHome()));
     }
 
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, "Current JVM");
+        return new InstallationLocation(javaHome, getSourceName());
     }
 
 }

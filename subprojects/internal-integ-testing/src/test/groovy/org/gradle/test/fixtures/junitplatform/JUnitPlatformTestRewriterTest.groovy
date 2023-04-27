@@ -30,14 +30,14 @@ class JUnitPlatformTestRewriterTest extends Specification {
     def 'build.gradle should be rewritten'() {
         given:
         temporaryFolder.testDirectory.file('build.gradle') << '''
-dependencies { testCompile 'junit:junit:4.13' }
+dependencies { testImplementation 'junit:junit:4.13' }
 '''
         when:
         JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory,'5.7.1')
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text.contains(
-            "testCompile 'org.junit.jupiter:junit-jupiter:5.7.1'")
+            "testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'")
     }
 
     def 'modular build.gradle should be rewritten'() {
@@ -61,7 +61,6 @@ test {
         then:
         temporaryFolder.testDirectory.file('build.gradle').text == '''
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
 }
 compileTestJava {
     def args = ["--add-modules", "org.junit.jupiter.api",
@@ -73,6 +72,11 @@ tasks.named("test") {
 
     def args = ["--add-modules", "ALL-MODULE-PATH",
                 "--add-reads", "org.gradle.example=org.junit.jupiter.api"]
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 '''
     }
@@ -92,6 +96,17 @@ tasks.named("test") {
         OLD1    | NEW1
         OLD2    | NEW2
         OLD3    | NEW3
+    }
+
+    def 'java source file with categories is rewritten to tags'() {
+        given:
+        temporaryFolder.testDirectory.file('src/test/java/Test.java') << TEST_WITH_CATEGORIES
+
+        when:
+        JUnitPlatformTestRewriter.rewriteJavaFilesWithJupiterAnno(temporaryFolder.testDirectory)
+
+        then:
+        temporaryFolder.testDirectory.file('src/test/java/Test.java').text == TEST_WITH_TAGS
     }
 
     static final String OLD1 = '''
@@ -195,6 +210,44 @@ public class Junit4Test {
 
     @Test
     @Disabled
+    public void broken() {
+        throw new RuntimeException();
+    }
+}
+'''
+
+    static final String TEST_WITH_CATEGORIES = '''
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+@Category({org.gradle.Category1.class, org.gradle.Category2.class})
+public class Junit4Test {
+    @Test
+    public void ok() {
+    }
+
+    @Test
+    @Category(org.gradle.Category3.class)
+    public void broken() {
+        throw new RuntimeException();
+    }
+}
+'''
+    static final String TEST_WITH_TAGS = '''
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
+
+@Tag("org.gradle.Category1")
+@Tag("org.gradle.Category2")
+public class Junit4Test {
+    @Test
+    public void ok() {
+    }
+
+    @Test
+    @Tag("org.gradle.Category3")
     public void broken() {
         throw new RuntimeException();
     }

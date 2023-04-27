@@ -20,12 +20,20 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
+import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
@@ -44,12 +52,8 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
  */
 public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
-    private final JvmModelingServices jvmEcosystemUtilities;
-
     @Inject
-    public JavaTestFixturesPlugin(JvmModelingServices jvmModelingServices) {
-        this.jvmEcosystemUtilities = jvmModelingServices;
-    }
+    public JavaTestFixturesPlugin() { }
 
     @Override
     public void apply(Project project) {
@@ -57,9 +61,24 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
             JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
             SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
 
-            jvmEcosystemUtilities.createJvmVariant(TEST_FIXTURES_FEATURE_NAME, testFixturesSourceSet, builder ->
-                builder.published()
+            @SuppressWarnings("deprecation")
+            ConfigurationRole role = ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE;
+
+            JvmFeatureInternal feature = new DefaultJvmFeature(
+                TEST_FIXTURES_FEATURE_NAME,
+                testFixturesSourceSet,
+                Collections.singletonList(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
+                (ProjectInternal) project,
+                role,
+                false
             );
+
+            feature.withApi();
+
+            DefaultJvmSoftwareComponent component = (DefaultJvmSoftwareComponent) JavaPluginHelper.getJavaComponent(project);
+            component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
+            component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+
             createImplicitTestFixturesDependencies(project);
         });
     }

@@ -53,6 +53,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 /**
  * Executes a Java application in a child process.
  * <p>
@@ -128,8 +130,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory()
-            .provider(() -> getConventionMapping().getConventionValue(null, "jvmArgs", false));
+
+        Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
+
         jvmArguments = objectFactory.listProperty(String.class).convention(jvmArgumentsConvention);
 
         javaExecSpec.getMainClass().convention(mainClass);
@@ -151,7 +154,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
 
         List<String> jvmArgs = jvmArguments.getOrNull();
         if (jvmArgs != null) {
-            javaExecSpec.setJvmArgs(jvmArgs);
+            javaExecSpec.setExtraJvmArgs(jvmArgs);
         }
 
         JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();
@@ -207,7 +210,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(List<String> arguments) {
-        jvmArguments.set(arguments);
+        jvmArguments.empty();
+        jvmArgs(arguments);
     }
 
     /**
@@ -224,10 +228,15 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Iterable<?> arguments) {
+        addJvmArguments(arguments);
+        javaExecSpec.checkDebugConfiguration(arguments);
+        return this;
+    }
+
+    private void addJvmArguments(Iterable<?> arguments) {
         for (Object arg : arguments) {
             jvmArguments.add(arg.toString());
         }
-        return this;
     }
 
     /**
@@ -235,9 +244,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Object... arguments) {
-        for (Object arg : arguments) {
-            jvmArguments.add(arg.toString());
-        }
+        jvmArgs(Arrays.asList(arguments));
         return this;
     }
 
@@ -790,5 +797,10 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Inject
     protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    private Iterable<String> jvmArgsConventionValue() {
+        Iterable<String> jvmArgs = getConventionMapping().getConventionValue(null, "jvmArgs", false);
+        return jvmArgs != null ? jvmArgs : emptyList();
     }
 }

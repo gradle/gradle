@@ -149,6 +149,10 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     private static SmokeTestGradleRunner expectingDeprecations(SmokeTestGradleRunner runner, String kotlinVersion, String agpVersion) {
         return runner.deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
             expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+            expectProjectConventionDeprecation(kotlinVersion, agpVersion)
+            expectConventionTypeDeprecation(kotlinVersion, agpVersion)
+            expectJavaPluginConventionDeprecation(kotlinVersion)
+            expectBasePluginConventionDeprecation(kotlinVersion, agpVersion)
         }
     }
 

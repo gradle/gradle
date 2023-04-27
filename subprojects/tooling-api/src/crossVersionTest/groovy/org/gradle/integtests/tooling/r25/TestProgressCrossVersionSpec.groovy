@@ -99,7 +99,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
                         resultsOfLastListener << (event as TestProgressEvent)
                     }
                 }, EnumSet.of(OperationType.TEST))
-                collectOutputs(build)
                 build.run()
         }
 
@@ -503,7 +502,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         if (targetVersion >= GradleVersion.version("5.0")) {
             return "java.sourceCompatibility = JavaVersion.${javaVersion.name()}"
         } else {
-            return "sourceCompatibility = ${javaVersion.toString()}"
+            return "sourceCompatibility = '${javaVersion.toString()}'"
         }
     }
 }

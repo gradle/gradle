@@ -21,7 +21,8 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.Destroys
@@ -72,7 +73,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, options.shouldRunAfter ?: [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
         _ * task.sharedResources >> (options.resources ?: [])
-        _ * task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
+        _ * task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project as ProjectInternal)
         TaskStateInternal state = Mock()
         _ * task.state >> state
         if (options.failure != null) {

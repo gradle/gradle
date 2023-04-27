@@ -109,7 +109,7 @@ Artifacts
             // A resolvable configuration to collect source data
             def sourceElementsConfig = configurations.create("sourceElements") {
                 visible = true
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION))
@@ -199,7 +199,7 @@ Artifacts
             // A resolvable configuration to collect JaCoCo coverage data
             def sourceElementsConfig = configurations.create("sourceElements") {
                 visible = true
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {

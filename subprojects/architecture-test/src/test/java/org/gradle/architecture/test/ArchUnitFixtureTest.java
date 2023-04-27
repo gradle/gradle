@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import org.gradle.api.NonNullApi;
 import org.gradlebuild.AbstractClass;
 import org.gradlebuild.AllowedMethodTypesClass;
 import org.gradlebuild.ConcreteClass;
@@ -133,6 +134,16 @@ public class ArchUnitFixtureTest {
                 "org.gradlebuild.WrongNullable.returnsNull() is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable",
                 "parameter 0 for org.gradlebuild.WrongNullable.acceptsNull(java.lang.String) is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable"
         );
+    }
+
+    @Test
+    public void checks_for_annotation_presence() {
+        ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class);
+        assertNoViolation(checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.OwnNonNullApi.class));
+        ConditionEvent event = checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi.class);
+        assertTrue(event.isViolation());
+        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi");
+        // Cannot test on-package (not on the class) annotation, due to `ClasFileImporter` limitations
     }
 
     private static String eventDescription(ConditionEvent event) {

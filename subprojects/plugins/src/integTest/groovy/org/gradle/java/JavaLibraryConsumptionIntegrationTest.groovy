@@ -60,7 +60,7 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 consumer {
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
                     attributes {
                         // intentionally not complete

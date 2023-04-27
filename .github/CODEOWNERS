@@ -24,12 +24,15 @@ subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt
 
 # JVM platform
 subprojects/code-quality/                   @gradle/bt-jvm
+subprojects/distributions-jvm/              @gradle/bt-jvm
+subprojects/distributions-publishing/       @gradle/bt-jvm
 subprojects/ear/                            @gradle/bt-jvm
 subprojects/jacoco/                         @gradle/bt-jvm
 subprojects/java-compiler-plugin/           @gradle/bt-jvm
 subprojects/jvm-services/                   @gradle/bt-jvm
 subprojects/language-groovy/                @gradle/bt-jvm
 subprojects/language-java/                  @gradle/bt-jvm
+subprojects/language-jvm/                   @gradle/bt-jvm
 subprojects/normalization-java/             @gradle/bt-jvm
 subprojects/platform-jvm/                   @gradle/bt-jvm
 subprojects/plugins/                        @gradle/bt-jvm
@@ -56,10 +59,19 @@ subprojects/signing/                        @gradle/bt-jvm
 subprojects/testing-base/                   @gradle/bt-jvm
 subprojects/version-control/                @gradle/bt-jvm
 
-# Documentation
-subprojects/docs/src/docs/release/notes.md  @hythloda
-subprojects/docs/                           @hythloda
+# Kotlin DSL
+build-logic/kotlin-dsl/                                                                 @eskatos @jbartok
+subprojects/kotlin-dsl/                                                                 @eskatos @jbartok
+subprojects/kotlin-dsl-integ-tests/                                                     @eskatos @jbartok
+subprojects/kotlin-dsl-plugins/                                                         @eskatos @jbartok
+subprojects/kotlin-dsl-provider-plugins/                                                @eskatos @jbartok
+subprojects/kotlin-dsl-tooling-builders/                                                @eskatos @jbartok
+subprojects/kotlin-dsl-tooling-models/                                                  @eskatos @jbartok
+subprojects/docs/src/snippets/kotlinDsl/                                                @eskatos @jbartok
+subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @eskatos @jbartok
+subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @eskatos @jbartok
 
+# Documentation
 subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm
@@ -80,9 +92,18 @@ subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.ado
 .teamcity/                   @gradle/bt-developer-productivity
 .github/                     @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/ @gradle/bt-developer-productivity
-build-logic/                 @gradle/bt-developer-productivity
-build-logic-commons/         @gradle/bt-developer-productivity
-build-logic-settings/        @gradle/bt-developer-productivity
+/build-logic/                 @gradle/bt-developer-productivity
+/build-logic-commons/         @gradle/bt-developer-productivity
+/build-logic-settings/        @gradle/bt-developer-productivity
 subprojects/*/build.gradle*  @gradle/bt-developer-productivity
-build.gradle*                @gradle/bt-developer-productivity
-settings.gradle*              @gradle/bt-developer-productivity
+/build.gradle*                @gradle/bt-developer-productivity
+/settings.gradle*              @gradle/bt-developer-productivity
+
+# gitStream files
+.cm/                                @tresat
+.github/workflows/gitstream.yml     @tresat
+
+# IDE Experience team
+subprojects/ide/                  @gradle/bt-ide-experience
+subprojects/tooling-api/          @gradle/bt-ide-experience
+subprojects/tooling-api-builders/ @gradle/bt-ide-experience

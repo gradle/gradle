@@ -33,10 +33,10 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultWarPluginConvention;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -64,7 +64,7 @@ public abstract class WarPlugin implements Plugin<Project> {
     private final ImmutableAttributesFactory attributesFactory;
 
     private Project project;
-    private JvmSoftwareComponentInternal component;
+    private JvmFeatureInternal mainFeature;
 
     @Inject
     public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
@@ -76,18 +76,18 @@ public abstract class WarPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         this.project = project;
-        this.component = JavaPluginHelper.getJavaComponent(project);
+        this.mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
         final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
-        project.getConvention().getPlugins().put("war", pluginConvention);
+        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
 
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> pluginConvention.getWebAppDir())));
+            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() -> pluginConvention.getWebAppDir()))));
             task.from(task.getWebAppDirectory());
-            task.dependsOn((Callable) () -> component.getSourceSet().getRuntimeClasspath());
+            task.dependsOn((Callable) () -> mainFeature.getSourceSet().getRuntimeClasspath());
             task.classpath((Callable) () -> {
                 Configuration providedRuntime = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
-                return component.getSourceSet().getRuntimeClasspath().minus(providedRuntime);
+                return mainFeature.getSourceSet().getRuntimeClasspath().minus(providedRuntime);
             });
         });
 
@@ -98,7 +98,7 @@ public abstract class WarPlugin implements Plugin<Project> {
 
         PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
-        configureConfigurations(((ProjectInternal) project).getConfigurations(), component);
+        configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
     }
 
@@ -114,10 +114,10 @@ public abstract class WarPlugin implements Plugin<Project> {
             .withUpgradeGuideSection(8, "war_plugin_configure_configurations")
             .nagUser();
 
-        configureConfigurations((RoleBasedConfigurationContainerInternal) configurationContainer, component);
+        configureConfigurations((RoleBasedConfigurationContainerInternal) configurationContainer, mainFeature);
     }
 
-    private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmSoftwareComponentInternal component) {
+    private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
         Configuration providedCompileConfiguration = configurationContainer.resolvableBucket(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
             setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
 
@@ -125,9 +125,9 @@ public abstract class WarPlugin implements Plugin<Project> {
             extendsFrom(providedCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
 
-        component.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
-        component.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
-        component.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration);
+        mainFeature.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
+        mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
+        mainFeature.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration);
 
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
         configurationContainer.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()).extendsFrom(providedRuntimeConfiguration);

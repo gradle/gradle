@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
+import org.gradle.internal.file.BufferProvider
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.hash.DefaultStreamHasher
@@ -43,7 +44,9 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     def fileSystemSupport = new DefaultTarPackerFileSystemSupport(deleter)
     def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
-    def packer = new TarBuildCacheEntryPacker(fileSystemSupport, filePermissionAccess, streamHasher, stringInterner)
+    def packer = new TarBuildCacheEntryPacker(fileSystemSupport, filePermissionAccess, streamHasher, stringInterner, Stub(BufferProvider) {
+        getBuffer() >> new byte[4096]
+    })
     def fileSystemAccess = TestFiles.fileSystemAccess()
 
     abstract protected FilePermissionAccess createFilePermissionAccess()

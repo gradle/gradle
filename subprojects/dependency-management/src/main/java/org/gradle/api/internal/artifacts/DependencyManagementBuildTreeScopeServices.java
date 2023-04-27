@@ -24,11 +24,15 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
+import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
@@ -48,6 +52,10 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(ProjectArtifactResolver.class);
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
+        registration.add(TransformationNodeFactory.class);
+        registration.add(AttributeDesugaring.class);
+        registration.add(LocalComponentGraphResolveStateFactory.class);
+        registration.add(ModuleComponentGraphResolveStateFactory.class);
     }
 
     BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {

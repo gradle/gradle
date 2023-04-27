@@ -66,9 +66,11 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
     def "can generate starts script generation with custom user configuration"() {
         given:
         buildFile << """
-applicationName = 'myApp'
-applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name - ':'}"]
-"""
+        application {
+            applicationName = 'myApp'
+            applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name - ':'}"]
+        }
+        """
 
         when:
         succeeds('startScripts')
@@ -82,7 +84,6 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         given:
         file('customUnixStartScript.txt') << '${applicationName} start up script for UN*X'
         file('customWindowsStartScript.txt') << '${applicationName} start up script for Windows'
-
         buildFile << """
 startScripts {
     applicationName = 'myApp'
@@ -90,6 +91,7 @@ startScripts {
     windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
 }
 """
+
         when:
         succeeds('startScripts')
 
@@ -121,6 +123,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     }
 }
 '''
+
         when:
         succeeds('startScripts')
 
@@ -256,6 +259,7 @@ dependencies {
     compileOnly 'org.gradle.test:compileOnly:1.0'
 }
 """
+
         when:
         run "installDist"
 
@@ -266,7 +270,7 @@ dependencies {
     def "executables can be placed at the root of the distribution"() {
         given:
         buildFile << """
-executableDir = ''
+application.executableDir = ''
 """
         when:
         run "installDist"
@@ -277,6 +281,7 @@ executableDir = ''
 
         when:
         runViaStartScript(file('build/install/sample'))
+
         then:
         outputContains("Hello World")
     }
@@ -284,7 +289,7 @@ executableDir = ''
     def "executables can be placed in a custom directory"() {
         given:
         buildFile << """
-executableDir = 'foo/bar'
+application.executableDir = 'foo/bar'
 """
         when:
         run "installDist"
@@ -295,14 +300,14 @@ executableDir = 'foo/bar'
 
         when:
         runViaStartScript(file('build/install/sample/foo/bar'))
+
         then:
         outputContains("Hello World")
     }
 
     def "includes transitive implementation dependencies in distribution"() {
-        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-
         given:
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
         buildFile << """
             allprojects {
                 repositories {
@@ -310,7 +315,6 @@ executableDir = 'foo/bar'
                 }
             }
         """
-
         file('settings.gradle') << "include 'utils', 'core'"
         buildFile << '''
             apply plugin: 'java'
@@ -347,9 +351,8 @@ executableDir = 'foo/bar'
     }
 
     def "includes transitive runtime dependencies in runtime classpath"() {
-        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-
         given:
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
         buildFile << """
         allprojects {
             repositories {
@@ -401,9 +404,8 @@ dependencies {
     }
 
     def "includes transitive implementation dependencies in test runtime classpath"() {
-        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-
         given:
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
         buildFile << """
         allprojects {
             repositories {
@@ -412,7 +414,6 @@ dependencies {
             apply plugin: 'java'
         }
         """
-
         file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
         buildFile << '''
             apply plugin: 'java'
@@ -468,7 +469,7 @@ dependencies {
     def "run task honors applicationDefaultJvmArgs"() {
         given:
         buildFile """
-            applicationDefaultJvmArgs = ['-DFOO=42']
+            application.applicationDefaultJvmArgs = ['-DFOO=42']
         """
         when:
         succeeds 'run'
@@ -480,7 +481,7 @@ dependencies {
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
-applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
+application.applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
 
 startScripts {
     doLast {
@@ -489,8 +490,10 @@ startScripts {
     }
 }
 """
+
         when:
         succeeds('installDist')
+
         and:
         runViaStartScript()
 
@@ -535,8 +538,10 @@ task execStartScript(type: Exec) {
 """
         when:
         succeeds('installDist')
+
         then:
         succeeds("execStartScript")
+
         and:
         // confirm that the arguments were converted back to Windows-like paths (using forward slashes instead of backslashes)
         outputContains("Args: [${buildFile.absolutePath.replace('\\', '/')}, ${file("src").absolutePath.replace('\\', '/')}]")
@@ -625,6 +630,7 @@ rootProject.name = 'sample'
             // This should cause us to regenerated the script
             version = "3.0"
         """
+
         and:
         succeeds("startScripts")
 

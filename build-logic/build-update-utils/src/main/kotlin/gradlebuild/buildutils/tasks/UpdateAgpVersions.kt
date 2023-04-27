@@ -21,8 +21,9 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.gradle.internal.util.PropertiesUtils
-import org.gradle.work.DisableCachingByDefault
+import org.gradle.util.internal.VersionNumber
 import org.w3c.dom.Element
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
@@ -32,7 +33,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  * Fetch the latest AGP versions and write a properties file.
  * Never up-to-date, non-cacheable.
  */
-@DisableCachingByDefault(because = "Not worth caching")
+@UntrackedTask(because = "Not worth tracking")
 abstract class UpdateAgpVersions : DefaultTask() {
 
     @get:Internal
@@ -47,28 +48,75 @@ abstract class UpdateAgpVersions : DefaultTask() {
     @get:Internal
     abstract val propertiesFile: RegularFileProperty
 
+    @get:Internal
+    abstract val compatibilityDocFile: RegularFileProperty
+
     @TaskAction
-    fun fetch() {
+    fun fetch() =
+        fetchLatestAgpVersions().let { (latests, nightly) ->
+            updateProperties(latests, nightly)
+            updateCompatibilityDoc(latests)
+        }
 
+    private
+    fun fetchLatestAgpVersions(): Pair<List<String>, String?> {
         val dbf = DocumentBuilderFactory.newInstance()
-        val properties = Properties().apply {
+        val latests = dbf.fetchLatests(
+            minimumSupportedMinor.get(),
+            "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml"
+        )
+        val nightly =
+            if (fetchNightly.get()) dbf.fetchNightly()
+            else null
+        return latests to nightly
+    }
 
-            val latests = dbf.fetchLatests(
-                minimumSupportedMinor.get(),
-                "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml"
-            )
+    private
+    fun updateProperties(latests: List<String>, nightly: String?) =
+        Properties().run {
             setProperty("latests", latests.joinToString(","))
-
-            if (fetchNightly.get()) {
-                val nightly = dbf.fetchNightly()
+            if (nightly != null) {
                 setProperty("nightly", nightly)
             }
+            store(
+                propertiesFile.get().asFile,
+                comment.get()
+            )
         }
-        properties.store(
-            propertiesFile.get().asFile,
-            comment.get()
+
+    private
+    fun updateCompatibilityDoc(latestAgpVersions: List<String>) {
+        val docFile = compatibilityDocFile.get().asFile
+        val linePrefix = "Gradle is tested with Android Gradle Plugin"
+        var lineFound = false
+        docFile.writeText(
+            docFile.readLines().joinToString(separator = "\n", postfix = "\n") { line ->
+                if (line.startsWith(linePrefix)) {
+                    lineFound = true
+                    "$linePrefix ${latestAgpVersions.firstBaseVersion} through ${latestAgpVersions.lastBaseVersion}."
+                } else {
+                    line
+                }
+            }
         )
+        require(lineFound) {
+            "File '$docFile' does not contain the expected Kotlin compatibility line"
+        }
     }
+
+    private
+    val List<String>.firstBaseVersion: String
+        get() = VersionNumber.parse(first()).minorBaseVersion
+
+    private
+    val List<String>.lastBaseVersion: String
+        get() = map { VersionNumber.parse(it) }
+            .last { it.qualifier == null || it.qualifier?.startsWith("rc") == true }
+            .minorBaseVersion
+
+    private
+    val VersionNumber.minorBaseVersion: String
+        get() = "$major.$minor"
 
     private
     fun DocumentBuilderFactory.fetchLatests(minimumSupported: String, mavenMetadataUrl: String): List<String> {

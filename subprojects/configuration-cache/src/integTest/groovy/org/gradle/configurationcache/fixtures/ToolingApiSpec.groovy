@@ -29,6 +29,7 @@ import org.gradle.internal.Pair
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
@@ -225,23 +226,22 @@ trait ToolingApiSpec {
     def <T, S> Pair<T, S> runPhasedBuildAction(BuildAction<T> projectsLoadedAction, BuildAction<S> modelAction, @DelegatesTo(BuildActionExecuter) Closure config = {}) {
         T projectsLoadedModel = null
         S buildModel = null
-        result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
+        result = toolingApiExecutor.runBuildWithToolingConnection { ProjectConnection connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
             def args = executer.allArgs
             args.remove("--no-daemon")
 
-            def builder = connection.action()
+
+            def actionExecuter = connection.action()
                 .projectsLoaded(projectsLoadedAction, { Object model ->
                     projectsLoadedModel = model
-                })
-                .buildFinished(modelAction, { Object model ->
+                }).buildFinished(modelAction, { Object model ->
                     buildModel = model
-                })
-                .build()
-            config.delegate = builder
+                }).build()
+            config.delegate = actionExecuter
             config.call()
-            builder
+            actionExecuter
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))

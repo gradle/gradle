@@ -21,7 +21,7 @@ public class RepositoryChainModuleSource implements ModuleSource {
     private final String repositoryId;
     private final String repositoryName;
 
-    public RepositoryChainModuleSource(ModuleComponentRepository repository) {
+    public RepositoryChainModuleSource(ModuleComponentRepository<?> repository) {
         this.repositoryId = repository.getId();
         this.repositoryName = repository.getName();
     }

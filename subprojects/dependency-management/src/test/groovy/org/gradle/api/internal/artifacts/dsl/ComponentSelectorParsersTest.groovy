@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -113,8 +113,7 @@ class ComponentSelectorParsersTest extends Specification {
 
     def "understands project input"() {
         when:
-        def buildId = Stub(BuildIdentifier)
-        buildId.name >> "build"
+        def buildId = new DefaultBuildIdentifier(Path.path(":build"))
         def projectState = Mock(ProjectState) {
             getComponentIdentifier() >> new DefaultProjectComponentIdentifier(buildId, Path.path(":id:bar"), Path.path(":bar"), "name")
         }

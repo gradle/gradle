@@ -41,6 +41,7 @@ class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest
             """
                 testCompileOnly 'junit:junit:4.13'
                 testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             """
         } else {
             "testImplementation 'junit:junit:${dependencyVersion}'"

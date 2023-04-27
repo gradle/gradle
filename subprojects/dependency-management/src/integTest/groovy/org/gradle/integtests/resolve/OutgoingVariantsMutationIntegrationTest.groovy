@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -34,6 +35,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "cannot mutate outgoing variants after configuration is resolved"() {
         given:
         buildFile << """
@@ -88,6 +90,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Cannot change attributes of dependency configuration ':compile' after it has been resolved"
     }
 
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "cannot add outgoing variants after configuration is resolved"() {
         given:
         buildFile << """

@@ -19,6 +19,7 @@ plugins {
     id("groovy-gradle-plugin")
     id("gradlebuild.code-quality")
     id("gradlebuild.ci-reporting")
+    id("gradlebuild.test-retry")
 }
 
 java.configureJavaToolChain()

@@ -24,10 +24,10 @@ Java 20 and later versions are not yet supported.
 Java 6 and 7 can still be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>>, but are deprecated
 for use with testing. Testing with Java 6 and 7 will not be supported in Gradle 9.0.
 
-Any supported version of Java can be used for compile or test.
+Any fully supported version of Java can be used for compile or test.
+The latest Java version may however only be supported for compile or test but not yet for running Gradle.
 
 For older Gradle versions, please see the table below which Java version is supported by which Gradle release.
-
 
 .Java Compatibility
 |===
@@ -44,11 +44,14 @@ For older Gradle versions, please see the table below which Java version is supp
 |17|7.3
 |18|7.5
 |19|7.6
+|20|8.1 [.yellow]#⚠#
 |===
+
+[.yellow]#⚠#: Indicates that the Java version can be used for compilation and tests, but not yet running Gradle itself.
 
 [[kotlin]]
 == Kotlin
-Gradle is tested with Kotlin 1.6.10 through 1.8.10.
+Gradle is tested with Kotlin 1.6.10 through 1.8.21.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -72,6 +75,7 @@ Beta and RC versions may or may not work.
 | 7.5 | 1.6.21 | 1.4
 | 7.6 | 1.7.10 | 1.4
 | 8.0 | 1.8.10 | 1.8
+| 8.2 | 1.8.20 | 1.8
 |===
 
 == Groovy
@@ -80,5 +84,5 @@ Gradle is tested with Groovy 1.5.8 through 4.0.0.
 Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Gradle and Groovy DSL build scripts.
 
 == Android
-Gradle is tested with Android Gradle Plugin 7.3, 7.4 and 8.0.
+Gradle is tested with Android Gradle Plugin 7.3 through 8.0.
 Alpha and beta versions may or may not work.

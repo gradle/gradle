@@ -436,21 +436,36 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
-            def destinationDirWarning = "The AbstractCompile.destinationDir property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Please use the destinationDirectory property instead. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring"
-            executer.beforeExecute {
-                executer.expectDocumentedDeprecationWarning(wrapUtilWarning)
-            }
             if (GradleContextualExecuter.isConfigCache()) {
-                executer.beforeExecute {
-                    executer.expectDocumentedDeprecationWarning(destinationDirWarning)
-                }
+                executer.expectDocumentedDeprecationWarning(wrapUtilWarning)
             } else {
-                executer.expectDocumentedDeprecationWarning(destinationDirWarning)
+                executer.beforeExecute {
+                    executer.expectDocumentedDeprecationWarning(wrapUtilWarning)
+                }
             }
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.BasePluginConvention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#base_convention_deprecation")
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
+            executer.expectDocumentedDeprecationWarning(
+                "The AbstractCompile.destinationDir property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Please use the destinationDirectory property instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
+            executer.expectDocumentedDeprecationWarning(
+                "The Project.getConvention() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
@@ -471,12 +486,33 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         when:
+        if (isKotlin1dot6 && GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
+            executer.expectDocumentedDeprecationWarning(
+                "The Project.getConvention() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+        }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         eventsOnCompile = toolchainEvents(":compileKotlin")
         eventsOnTest = toolchainEvents(":test")
 
         then:
-        skipped(":compileKotlin", ":test")
+        if (isKotlin1dot6 && Jvm.current().javaVersion.java8 && GradleContextualExecuter.configCache) {
+            // For Kotlin 1.6 the compilation is not up-to-date with configuration caching when running on Java 8
+            executedAndNotSkipped(":compileKotlin")
+        } else {
+            skipped(":compileKotlin", ":test")
+        }
         assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher")
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 

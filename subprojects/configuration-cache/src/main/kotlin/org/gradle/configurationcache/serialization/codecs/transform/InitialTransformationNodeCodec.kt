@@ -20,6 +20,7 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
 import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
@@ -29,11 +30,13 @@ import org.gradle.internal.operations.BuildOperationExecutor
 
 internal
 class InitialTransformationNodeCodec(
+    private val transformationNodeFactory: TransformationNodeFactory,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.InitialTransformationNode) {
+        writeLong(value.transformationNodeId)
         write(value.targetComponentVariant)
         write(value.sourceAttributes)
         write(unpackTransformationStep(value))
@@ -41,10 +44,11 @@ class InitialTransformationNodeCodec(
     }
 
     override suspend fun ReadContext.doDecode(): TransformationNode.InitialTransformationNode {
+        val transformationNodeId = readLong()
         val targetComponentVariant = readNonNull<ComponentVariantIdentifier>()
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformationStep = readNonNull<TransformStepSpec>()
         val artifacts = readNonNull<ResolvableArtifact>()
-        return TransformationNode.initial(targetComponentVariant, sourceAttributes, transformationStep.transformation, artifacts, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
+        return transformationNodeFactory.recreateInitial(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, artifacts, transformationStep.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }

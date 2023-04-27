@@ -66,6 +66,11 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
     }
 
     @Override
+    public String getSourceName() {
+        return "Maven Toolchains";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         File toolchainFile = fileResolver.resolve(toolchainLocation.get());
         if (toolchainFile.exists()) {
@@ -84,7 +89,7 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                     }
                 }
                 return locations.stream()
-                    .map(jdkHome -> new InstallationLocation(new File(jdkHome), "Maven Toolchains"))
+                    .map(jdkHome -> new InstallationLocation(new File(jdkHome), getSourceName()))
                     .collect(Collectors.toSet());
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
                 if (LOGGER.isDebugEnabled()) {

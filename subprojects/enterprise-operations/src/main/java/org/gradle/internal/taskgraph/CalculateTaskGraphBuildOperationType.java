@@ -76,6 +76,10 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
         TaskIdentity getTask();
 
+        /**
+         * @deprecated Use {@link #getNodeDependencies()} instead.
+         */
+        @Deprecated
         List<TaskIdentity> getDependencies();
 
         List<TaskIdentity> getMustRunAfter();
@@ -121,10 +125,12 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         List<PlannedTask> getTaskPlan();
 
         /**
-         * Returns all identifiable nodes of requested types in the execution graph in no particular order.
+         * Returns an execution plan consisting of nodes of the given types.
          * <p>
-         * Identities of dependencies could be of any type.
+         * The graph is represented as a list of nodes (in no particular order) and their {@link PlannedNode#getNodeDependencies() dependencies}.
+         * The dependencies of each node are the closest nodes in the plan whose type is in the given set.
          *
+         * @param types an inclusive range-subset of node types starting with the {@link NodeIdentity.NodeType#TASK TASK}, such as {@code [TASK, TRANSFORM_STEP]}
          * @since 8.1
          */
         List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types);

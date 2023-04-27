@@ -16,15 +16,18 @@
 
 package org.gradle.api.tasks
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
@@ -782,6 +785,90 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains("Input property 'nested.key1' has been removed for task ':myTask'")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24594")
+    @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
+    def "nested map with #type key is validated without deprecation warning"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                abstract MapProperty<$type, Object> getLazyMap()
+
+                @Nested
+                Map<$type, Object> eagerMap = [:]
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute() {
+                    outputFile.getAsFile().get() << lazyMap.get()
+                    outputFile.getAsFile().get() << eagerMap
+                }
+            }
+
+            tasks.register("customTask", CustomTask) {
+                lazyMap.put($value, "example")
+                eagerMap.put($value, "example")
+                outputFile = file("output.txt")
+            }
+
+            enum Letter { A, B, C }
+        """
+
+        when:
+        run("customTask")
+
+        then:
+        executedAndNotSkipped(":customTask")
+        file("output.txt").text == "[$expectedValue:example][$expectedValue:example]"
+
+        where:
+        type      | value      | expectedValue
+        'Integer' | 100        | 100
+        'String'  | '"foo"'    | 'foo'
+        'Enum'    | 'Letter.A' | 'A'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24594")
+    @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
+    def "nested map with unsupported key type is validated with deprecation warning"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                abstract MapProperty<Boolean, Object> getUnsupportedLazyMap()
+
+                @Nested
+                Map<Boolean, Object> unsupportedEagerMap = [:]
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute() {
+                    outputFile.getAsFile().get() << unsupportedLazyMap.get()
+                    outputFile.getAsFile().get() << unsupportedEagerMap
+                }
+            }
+
+            tasks.register("customTask", CustomTask) {
+                unsupportedLazyMap.put(true, "example")
+                unsupportedEagerMap.put(false, "example")
+                outputFile = file("output.txt")
+            }
+        """
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'CustomTask' property 'unsupportedEagerMap' where key of nested map is of type 'java.lang.Boolean'. " +
+                "Reason: Key of nested map must be one of the following types: 'Enum', 'Integer', 'String'.",
+            'validation_problems',
+            'unsupported_key_type_of_nested_map')
+        run("customTask")
+
+        then:
+        executedAndNotSkipped(":customTask")
+        file("output.txt").text == "[true:example][false:example]"
+    }
 
     private static String namedBeanClass() {
         """
@@ -991,6 +1078,47 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         then:
         skipped(':myTask')
         project2.file('build/tmp/myTask/output.txt').text == "hello"
+    }
+
+    @NotYetImplemented
+    // TODO: Remove IgnoreIf embedded when issue is fixed
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Issue("https://github.com/gradle/gradle/issues/24405")
+    def "nested bean as input with null string is serialized correctly"() {
+        buildFile << """
+            interface SiteExtension {
+                @Nested
+                CustomData getCustomData();
+            }
+            interface CustomData {
+                Property<String> getWebsiteUrl();
+                Property<String> getVcsUrl();
+            }
+
+            def extension = project.getExtensions().create("site", SiteExtension.class);
+            abstract class CrashTask extends DefaultTask {
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir();
+
+                @Input
+                abstract Property<CustomData> getCustomData();
+
+                @TaskAction
+                void run() {
+                }
+            }
+
+            extension.customData.vcsUrl = "goose"
+            tasks.register("crashTask", CrashTask) {
+                customData = extension.customData
+                outputDir = file("build/crashTask")
+            }
+        """
+
+        expect:
+        // TODO: Remove `requireIsolatedDaemons` once the issue is fixed
+        executer.requireIsolatedDaemons()
+        succeeds "crashTask"
     }
 
     private TestFile nestedBeanWithAction(TestFile projectDir = temporaryFolder.testDirectory) {

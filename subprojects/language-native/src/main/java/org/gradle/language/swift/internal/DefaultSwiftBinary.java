@@ -105,7 +105,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         nativeLink.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
         nativeLink.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
 
-        @SuppressWarnings("deprecation") Configuration nativeRuntime = rbConfigurations.createWithRole(names.withPrefix("nativeRuntime"), ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
+        @SuppressWarnings("deprecation") Configuration nativeRuntime = rbConfigurations.createWithRole(names.withPrefix("nativeRuntime"), ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
         nativeRuntime.extendsFrom(getImplementationDependencies());
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
