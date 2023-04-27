@@ -20,6 +20,7 @@ import org.gradle.language.AbstractNativeUnitTestComponentDependenciesIntegratio
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.SwiftXCTestWithDepAndCustomXCTestSuite
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUnitTestComponentDependenciesIntegrationTest implements SwiftTaskNames {
@@ -39,18 +40,9 @@ class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUni
                 var util = Util()
             }
 """
-        file("src/test/swift/Test.swift") << """
-            @testable import Root
-            import XCTest
+        def testSource = new SwiftXCTestWithDepAndCustomXCTestSuite("app", "App", "XCTAssertNotNil(App().util)", [] as String[], ["Root"] as String[])
+        testSource.writeToProject(testDirectory)
 
-            class Test : XCTestCase {
-                var app = App()
-
-                func test() {
-                    XCTAssertNotNil(app.util)
-                }
-            }
-"""
         file("lib/src/main/swift/Util.swift") << """
             public class Util {
                 public init() { }
