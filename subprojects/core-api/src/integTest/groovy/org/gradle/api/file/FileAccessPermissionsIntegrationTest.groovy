@@ -17,12 +17,10 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.internal.TextUtil
 
 class FileAccessPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "can be used as task input"() {
         given:
         def outputFile = testDirectory.file("output.txt")
