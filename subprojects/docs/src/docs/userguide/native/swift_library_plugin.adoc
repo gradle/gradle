@@ -122,7 +122,7 @@ This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 `check` - Task (lifecycle)::
 Aggregate task that performs verification tasks, such as running the tests.
 Some plugins add their own verification task to `check`.
- For example, the <<xctest_plugin.adoc#xctest_plugin,XCTest Plugin>> attach his test task to this lifecycle task.
+ For example, the <<xctest_plugin.adoc#xctest_plugin,XCTest Plugin>> attach its test task to this lifecycle task.
 This task is added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 `build` - Task (lifecycle)::
