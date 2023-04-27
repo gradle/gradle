@@ -21,7 +21,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.DisableCachingByDefault
+import org.gradle.api.tasks.UntrackedTask
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -30,7 +30,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  * Fetch the latest Kotlin versions and write a properties file.
  * Never up-to-date, non-cacheable.
  */
-@DisableCachingByDefault(because = "Not worth caching")
+@UntrackedTask(because = "Not worth tracking")
 abstract class UpdateKotlinVersions : DefaultTask() {
 
     @get:Internal
@@ -42,22 +42,51 @@ abstract class UpdateKotlinVersions : DefaultTask() {
     @get:Internal
     abstract val propertiesFile: RegularFileProperty
 
+    @get:Internal
+    abstract val compatibilityDocFile: RegularFileProperty
+
     @TaskAction
-    fun action() {
-
-        val dbf = DocumentBuilderFactory.newInstance()
-        val properties = Properties().apply {
-
-            val latests = dbf.fetchFirstAndLatestsOfEachMinor(
-                minimumSupported.get(),
-                "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/maven-metadata.xml"
-            )
-            setProperty("latests", latests.joinToString(","))
+    fun action() =
+        fetchLatestKotlinVersions().let { latestKotlinVersions ->
+            updateProperties(latestKotlinVersions)
+            updateCompatibilityDoc(latestKotlinVersions)
         }
-        properties.store(
-            propertiesFile.get().asFile,
-            comment.get()
+
+    private
+    fun fetchLatestKotlinVersions() =
+        DocumentBuilderFactory.newInstance().fetchFirstAndLatestsOfEachMinor(
+            minimumSupported.get(),
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/maven-metadata.xml"
         )
+
+    private
+    fun updateProperties(latestKotlinVersions: List<String>) =
+        Properties().run {
+            setProperty("latests", latestKotlinVersions.joinToString(","))
+            store(
+                propertiesFile.get().asFile,
+                comment.get()
+            )
+        }
+
+    private
+    fun updateCompatibilityDoc(latestKotlinVersions: List<String>) {
+        val docFile = compatibilityDocFile.get().asFile
+        val linePrefix = "Gradle is tested with Kotlin"
+        var lineFound = false
+        docFile.writeText(
+            docFile.readLines().joinToString(separator = "\n", postfix = "\n") { line ->
+                if (line.startsWith(linePrefix)) {
+                    lineFound = true
+                    "$linePrefix ${latestKotlinVersions.first()} through ${latestKotlinVersions.last()}."
+                } else {
+                    line
+                }
+            }
+        )
+        require(lineFound) {
+            "File '$docFile' does not contain the expected Kotlin compatibility line"
+        }
     }
 
     private
