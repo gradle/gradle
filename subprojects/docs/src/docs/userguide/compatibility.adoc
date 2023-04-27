@@ -15,7 +15,9 @@
 
 [[compatibility]]
 = Compatibility Matrix
-The sections below describe Gradle's compatibility with several integrations. Other versions not listed here may or may not work.
+
+The sections below describe Gradle's compatibility with several integrations.
+Versions not listed here may or may not work.
 
 == Java
 A Java version between 8 and 19 is required to execute Gradle.
