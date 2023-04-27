@@ -20,12 +20,10 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
 trait TestNGMultiVersionTest {
-    @Override
     AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
         return new TestNGBuildSourceConfiguration()
     }
 
-    @Override
     AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
         return new TestNGTestSourceConfiguration()
     }
@@ -34,8 +32,8 @@ trait TestNGMultiVersionTest {
         @Override
         String getTestFrameworkDependencies(String sourceSet) {
             return """
-                    testImplementation 'org.testng:testng:${MultiVersionIntegrationSpec.version}'
-                """.stripIndent()
+                ${configurationFor(sourceSet, 'implementation')} 'org.testng:testng:${MultiVersionIntegrationSpec.version}'
+            """.stripIndent()
         }
 
         @Override
