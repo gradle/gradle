@@ -220,13 +220,16 @@ public abstract class AstUtils {
 
     @Nullable
     public static ConstantExpression hasSingleConstantArgOfType(MethodCallExpression call, Class<?> type) {
-        ArgumentListExpression argumentList = (ArgumentListExpression) call.getArguments();
-        if (argumentList.getExpressions().size() == 1) {
-            Expression argumentExpression = argumentList.getExpressions().get(0);
-            if (argumentExpression instanceof ConstantExpression) {
-                ConstantExpression constantArgumentExpression = (ConstantExpression) argumentExpression;
-                if (isOfType(constantArgumentExpression, type)) {
-                    return constantArgumentExpression;
+        Expression arguments = call.getArguments();
+        if (arguments instanceof ArgumentListExpression) {
+            ArgumentListExpression argumentList = (ArgumentListExpression) arguments;
+            if (argumentList.getExpressions().size() == 1) {
+                Expression argumentExpression = argumentList.getExpressions().get(0);
+                if (argumentExpression instanceof ConstantExpression) {
+                    ConstantExpression constantArgumentExpression = (ConstantExpression) argumentExpression;
+                    if (isOfType(constantArgumentExpression, type)) {
+                        return constantArgumentExpression;
+                    }
                 }
             }
         }
