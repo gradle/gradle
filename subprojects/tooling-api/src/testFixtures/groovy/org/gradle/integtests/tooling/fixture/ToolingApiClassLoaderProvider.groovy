@@ -20,6 +20,7 @@ import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
@@ -36,7 +37,7 @@ class ToolingApiClassLoaderProvider {
 
     static ClassLoader getToolingApiClassLoader(ToolingApiDistribution toolingApi, Class<?> target) {
         def testClassPath = [ToolingApiSpecification, target]
-            .collect { getClasspathForClass(it) }
+            .collect { ClasspathUtil.getClasspathForClass(it) }
 
         testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
 
