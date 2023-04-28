@@ -25,6 +25,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNKNOWN;
 
@@ -37,9 +38,12 @@ public class FileLockPacketPayload {
     private final long lockId;
     private final FileLockPacketType type;
 
-    private FileLockPacketPayload(long lockId, FileLockPacketType type) {
+    private final InetSocketAddress sourceAddress;
+
+    private FileLockPacketPayload(long lockId, FileLockPacketType type, InetSocketAddress sourceAddress) {
         this.lockId = lockId;
         this.type = type;
+        this.sourceAddress = sourceAddress;
     }
 
     public long getLockId() {
@@ -48,6 +52,10 @@ public class FileLockPacketPayload {
 
     public FileLockPacketType getType() {
         return type;
+    }
+
+    public InetSocketAddress getSourceAddress() {
+        return sourceAddress;
     }
 
     public static byte[] encode(long lockId, FileLockPacketType type) {
@@ -64,15 +72,15 @@ public class FileLockPacketPayload {
         return out.toByteArray();
     }
 
-    public static FileLockPacketPayload decode(byte[] bytes, int length) throws IOException {
+    public static FileLockPacketPayload decode(byte[] bytes, InetSocketAddress sourceAddress) throws IOException {
         DataInputStream dataInput = new DataInputStream(new ByteArrayInputStream(bytes));
         byte version = dataInput.readByte();
         if (version != PROTOCOL_VERSION) {
             throw new IllegalArgumentException(String.format("Unexpected protocol version %s received in lock contention notification message", version));
         }
         long lockId = dataInput.readLong();
-        FileLockPacketType type = readType(dataInput, length);
-        return new FileLockPacketPayload(lockId, type);
+        FileLockPacketType type = readType(dataInput, bytes.length);
+        return new FileLockPacketPayload(lockId, type, sourceAddress);
     }
 
     private static FileLockPacketType readType(DataInputStream dataInput, int length) throws IOException {

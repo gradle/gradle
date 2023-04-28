@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal.locklistener;
+package org.gradle.cache.internal.locklistener
 
-import java.net.SocketAddress;
-import java.util.Set;
+class FileLockTCPCommunicatorTest extends AbstractFileLockCommunicatorTest {
 
-public interface FileLockCommunicator {
-    boolean pingOwner(int ownerPort, long lockId, String displayName);
+    def setup() {
+        communicator =  new FileLockTCPCommunicator(addressFactory)
+    }
 
-    FileLockPacketPayload receive() throws GracefullyStoppedException;
+    @Override
+    protected void sendBytes(SocketAddress address, byte[] bytes) {
+        Socket socket = new Socket(((InetSocketAddress) address).getAddress(), ((InetSocketAddress) address).getPort())
 
-    void confirmUnlockRequest(SocketAddress address, long lockId);
+        OutputStream stream = socket.getOutputStream()
+        stream.write(bytes);
+        stream.flush();
 
-    void confirmLockRelease(Set<SocketAddress> addresses, long lockId);
-
-    void stop();
-
-    int getPort();
+        socket.close();
+    }
 }

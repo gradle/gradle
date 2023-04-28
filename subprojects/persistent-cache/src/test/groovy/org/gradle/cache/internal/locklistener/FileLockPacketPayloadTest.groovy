@@ -23,6 +23,8 @@ import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNKNOWN
 
 class FileLockPacketPayloadTest extends Specification {
 
+    private static final InetSocketAddress SOURCE_SOCKET_ADDRESS = new InetSocketAddress(0)
+
     def "encodes lock id and type"() {
         when:
         def bytes = FileLockPacketPayload.encode(42, LOCK_RELEASE_CONFIRMATION)
@@ -34,7 +36,7 @@ class FileLockPacketPayloadTest extends Specification {
 
     def "decodes payloads without type"() {
         when:
-        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, 1] as byte[], 9)
+        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42] as byte[], SOURCE_SOCKET_ADDRESS)
 
         then:
         payload.lockId == 42
@@ -43,7 +45,7 @@ class FileLockPacketPayloadTest extends Specification {
 
     def "decodes payloads with type #type"() {
         when:
-        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, type.ordinal()] as byte[], 10)
+        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, type.ordinal()] as byte[], SOURCE_SOCKET_ADDRESS)
 
         then:
         payload.lockId == 42
@@ -55,7 +57,7 @@ class FileLockPacketPayloadTest extends Specification {
 
     def "decodes payloads with unknown types that might be added in the future"() {
         when:
-        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, FileLockPacketType.values().length] as byte[], 10)
+        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, FileLockPacketType.values().length] as byte[], SOURCE_SOCKET_ADDRESS)
 
         then:
         payload.lockId == 42

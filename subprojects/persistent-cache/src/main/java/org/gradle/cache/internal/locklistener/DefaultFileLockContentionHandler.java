@@ -25,7 +25,6 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.DatagramPacket;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -78,10 +77,10 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private static final int PING_DELAY = 1000;
     private final Lock lock = new ReentrantLock();
 
-    private final Map<Long, ContendedAction> contendedActions = new HashMap<Long, ContendedAction>();
-    private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<Long, FileLockReleasedSignal>();
-    private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<Long, Integer>();
-    private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<Long, Integer>();
+    private final Map<Long, ContendedAction> contendedActions = new HashMap<>();
+    private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<>();
+    private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<>();
+    private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<>();
 
     private final ExecutorFactory executorFactory;
     private final InetAddressFactory addressFactory;
@@ -113,11 +112,9 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
             private void doRun() {
                 while (true) {
-                    DatagramPacket packet;
                     FileLockPacketPayload payload;
                     try {
-                        packet = communicator.receive();
-                        payload = communicator.decode(packet);
+                        payload = communicator.receive();
                     } catch (GracefullyStoppedException e) {
                         return;
                     }
@@ -126,13 +123,13 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                     try {
                         ContendedAction contendedAction = contendedActions.get(payload.getLockId());
                         if (contendedAction == null) {
-                            acceptConfirmationAsLockRequester(payload, packet.getPort());
+                            acceptConfirmationAsLockRequester(payload, payload.getSourceAddress().getPort());
                         } else {
-                            contendedAction.addRequester(packet.getSocketAddress());
+                            contendedAction.addRequester(payload.getSourceAddress());
                             if (!contendedAction.running) {
                                 startLockReleaseAsLockHolder(contendedAction);
                             }
-                            communicator.confirmUnlockRequest(packet.getSocketAddress(), payload.getLockId());
+                            communicator.confirmUnlockRequest(payload.getSourceAddress(), payload.getLockId());
                         }
                     } finally {
                         lock.unlock();
@@ -192,11 +189,11 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     @Override
     public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
         if (Integer.valueOf(port).equals(unlocksConfirmedFrom.get(lockId))) {
-            //the unlock was confirmed we are waiting
+            //unlock was confirmed, we are waiting
             return false;
         }
         if (Integer.valueOf(port).equals(unlocksRequestedFrom.get(lockId)) && timeElapsed < PING_DELAY) {
-            //the unlock was just requested but not yet confirmed, give it some more time
+            //unlock was just requested, but not yet confirmed, give it some more time
             return false;
         }
 
@@ -260,7 +257,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         try {
             assertNotStopped();
             if (communicator == null) {
-                communicator = new FileLockCommunicator(addressFactory);
+                communicator = new FileLockUDPCommunicator(addressFactory);
             }
             return communicator;
         } finally {
@@ -272,7 +269,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         private final Lock lock = new ReentrantLock();
         private final long lockId;
         private final Action<FileLockReleasedSignal> action;
-        private Set<SocketAddress> requesters = new LinkedHashSet<SocketAddress>();
+        private Set<SocketAddress> requesters = new LinkedHashSet<>();
         private boolean running;
 
         private ContendedAction(long lockId, Action<FileLockReleasedSignal> action) {
@@ -282,15 +279,12 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
         @Override
         public void run() {
-            action.execute(new FileLockReleasedSignal() {
-                @Override
-                public void trigger() {
-                    Set<SocketAddress> requesters = consumeRequesters();
-                    if (requesters == null) {
-                        throw new IllegalStateException("trigger() has already been called and must at most be called once");
-                    }
-                    communicator.confirmLockRelease(requesters, lockId);
+            action.execute(() -> {
+                Set<SocketAddress> requesters = consumeRequesters();
+                if (requesters == null) {
+                    throw new IllegalStateException("trigger() has already been called and must at most be called once");
                 }
+                communicator.confirmLockRelease(requesters, lockId);
             });
         }
 
