@@ -21,20 +21,15 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.JvmConstants;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseClassPathUtil;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
@@ -362,21 +357,10 @@ public abstract class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), isInferModulePath(this.project));
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), EclipseClassPathUtil.isInferModulePath(this.project));
         return classpathFactory.createEntries();
     }
 
-    public boolean isInferModulePath(org.gradle.api.Project project) {
-        Task javaCompileTask = project.getTasks().findByName(JvmConstants.COMPILE_JAVA_TASK_NAME);
-        if (javaCompileTask instanceof JavaCompile) {
-            JavaCompile javaCompile = (JavaCompile) javaCompileTask;
-            if (javaCompile.getModularity().getInferModulePath().get()) {
-                List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) javaCompile.getSource());
-                return JavaModuleDetector.isModuleSource(true, sourceRoots);
-            }
-        }
-        return false;
-    }
 
     @SuppressWarnings("unchecked")
     public void mergeXmlClasspath(Classpath xmlClasspath) {
