@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
@@ -75,6 +76,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             initializer.execute(classpathConfiguration);
         }
         ArtifactView view = classpathConfiguration.getIncoming().artifactView(config -> {
+            config.attributes(attributes -> {
+                attributes.attribute(Attribute.of("org.gradle.plugin.runtime", String.class), GradleVersion.current().getVersion());
+            });
             config.componentFilter(componentId -> {
                 if (componentId instanceof OpaqueComponentIdentifier) {
                     DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
