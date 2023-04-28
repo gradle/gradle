@@ -95,6 +95,10 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
         return testSourceConfiguration.maybeParentheses(methodName)
     }
 
+    String getIgnoreOrDisabledAnnotation() {
+        return testSourceConfiguration.getIgnoreOrDisabledAnnotation()
+    }
+
     def setup() {
         executer.withRepositoryMirrors()
     }
@@ -134,6 +138,7 @@ abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionInte
         String getAfterClassAnnotation()
         String getBeforeTestAnnotation()
         String getAfterTestAnnotation()
+        String getIgnoreOrDisabledAnnotation()
         String getRunOrExtendWithAnnotation(String runOrExtendWithClasses)
         String maybeParentheses(String methodName)
     }
