@@ -38,7 +38,6 @@ import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
@@ -114,8 +113,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         super(parent);
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
+
         register(registration -> {
             registration.add(ProjectInternal.class, project);
+            registration.add(DefaultScriptHandlerFactory.class);
+
             parent.get(DependencyManagementServices.class).addDslServices(registration, project);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerProjectServices(registration);
@@ -223,13 +225,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
 
-    protected ScriptHandlerInternal createScriptHandler(ObjectFactory objectFactory, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver) {
-        ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(objectFactory,
-            dependencyManagementServices,
-            fileResolver,
-            fileCollectionFactory,
-            dependencyMetaDataProvider,
-            scriptClassPathResolver);
+    protected ScriptHandlerInternal createScriptHandler(ScriptHandlerFactory factory) {
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
     }
 
