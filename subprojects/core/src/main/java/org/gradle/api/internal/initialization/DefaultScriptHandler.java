@@ -54,7 +54,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private final ClassLoaderScope classLoaderScope;
     private final ScriptClassPathResolver scriptClassPathResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
-    private final DependencyLockingHandler dependencyLockingHandler;
+
     // The following values are relatively expensive to create, so defer creation until required
     private ClassPath resolvedClasspath;
     private RepositoryHandler repositoryHandler;
@@ -68,7 +68,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
         this.scriptClassPathResolver = scriptClassPathResolver;
-        this.dependencyLockingHandler = dependencyResolutionServices.getDependencyLockingHandler();
         JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
     }
 
@@ -90,6 +89,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     @Override
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
+            // There's a side effect of creating a dependency locking handler that's needed for writing verification metadata
+            getDependencyLocking();
+
             resolvedClasspath = scriptClassPathResolver.resolveClassPath(classpathConfiguration);
             if (!System.getProperty(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY, "false").equals("true") && classpathConfiguration != null) {
                 ((ResettableConfiguration) classpathConfiguration).resetResolutionState();
@@ -145,7 +147,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public DependencyLockingHandler getDependencyLocking() {
-        return dependencyLockingHandler;
+        return dependencyResolutionServices.getDependencyLockingHandler();
     }
 
     @Override
