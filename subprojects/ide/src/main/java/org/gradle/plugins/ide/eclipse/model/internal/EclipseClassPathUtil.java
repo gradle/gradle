@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -27,6 +28,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import java.io.File;
 import java.util.List;
 
+@NonNullApi
 public class EclipseClassPathUtil {
 
     public static boolean isInferModulePath(Project project) {
