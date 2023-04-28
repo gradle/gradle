@@ -172,4 +172,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         return dynamicObject;
     }
+
+    @Override
+    public String toString() {
+        return (resolvedClasspath == null ? "unresolved" : "resolved") + " script handler for " + getSourceFile();
+    }
 }
