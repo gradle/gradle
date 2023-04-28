@@ -208,7 +208,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
-    commandLine '${locate(shCommand).absolutePath}'
+    commandLine '${PluginTestPreconditions.locate(shCommand).absolutePath}'
     args "./sample"
 }
 """
