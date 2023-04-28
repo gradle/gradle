@@ -18,10 +18,10 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import org.gradle.util.Matchers
-import org.gradle.test.precondition.Requires
 
 abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
     abstract String getModuleName()
@@ -174,8 +174,8 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMulti
     }
 
     @Requires(
-        value = UnitTestPreconditions.Jdk9OrLater,
-        reason = "Hangs on Java9"
+        value = UnitTestPreconditions.Jdk8OrEarlier,
+        reason = "Hangs on Java 9"
     )
     def "can run tests with custom system classloader and java agent"() {
         given:
