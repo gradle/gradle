@@ -24,9 +24,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
+    private final ObjectFactory objectFactory;
     private final DependencyManagementServices dependencyManagementServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
@@ -34,11 +36,14 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new UnknownProjectFinder("Cannot use project dependencies in a script classpath definition.");
 
-    public DefaultScriptHandlerFactory(DependencyManagementServices dependencyManagementServices,
-                                       FileResolver fileResolver,
-                                       FileCollectionFactory fileCollectionFactory,
-                                       DependencyMetaDataProvider dependencyMetaDataProvider,
-                                       ScriptClassPathResolver scriptClassPathResolver) {
+    public DefaultScriptHandlerFactory(
+        ObjectFactory objectFactory,
+        DependencyManagementServices dependencyManagementServices,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        DependencyMetaDataProvider dependencyMetaDataProvider,
+        ScriptClassPathResolver scriptClassPathResolver) {
+        this.objectFactory = objectFactory;
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -54,6 +59,6 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     @Override
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, projectFinder, context);
-        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, scriptClassPathResolver);
+        return objectFactory.newInstance(DefaultScriptHandler.class, scriptSource, services, classLoaderScope, scriptClassPathResolver);
     }
 }

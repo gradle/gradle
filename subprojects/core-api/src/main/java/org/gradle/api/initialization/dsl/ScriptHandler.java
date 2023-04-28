@@ -15,6 +15,8 @@
  */
 package org.gradle.api.initialization.dsl;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -103,6 +105,20 @@ public interface ScriptHandler {
      * @return The configuration of this handler.
      */
     ConfigurationContainer getConfigurations();
+
+    /**
+     * <p>Configures the dependency configurations for this script.
+     *
+     * <p>This method executes the given action against the {@link ConfigurationContainer}
+     * for this script handler.
+     *
+     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
+     *
+     * @param action the action to use to configure the dependency configurations.
+     * @since 8.2
+     */
+    @Incubating
+    void configurations(Action<? super ConfigurationContainer> action);
 
     /**
      * Configures dependency locking

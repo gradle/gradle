@@ -223,8 +223,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
 
-    protected ScriptHandlerInternal createScriptHandler(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver) {
-        ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
+    protected ScriptHandlerInternal createScriptHandler(ObjectFactory objectFactory, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver) {
+        ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(objectFactory,
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,

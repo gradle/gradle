@@ -31,6 +31,14 @@
             "changes": [
                 "Method added to public class"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.configurations(org.gradle.api.Action)",
+            "acceptation": "since tag does exist, but Kotlin delegation is confusing our checks",
+            "changes": [
+                "Method added to public class"
+            ]
         }
     ]
 }
