@@ -112,7 +112,8 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
         PluginDependencyResolutionServices createPluginDependencyResolutionServices(
             FileResolver fileResolver, FileCollectionFactory fileCollectionFactory,
-            DependencyManagementServices dependencyManagementServices, DependencyMetaDataProvider dependencyMetaDataProvider
+            DependencyManagementServices dependencyManagementServices,
+            DependencyMetaDataProvider dependencyMetaDataProvider
         ) {
             return new PluginDependencyResolutionServices(
                 makeDependencyResolutionServicesFactory(fileResolver, fileCollectionFactory, dependencyManagementServices, dependencyMetaDataProvider));

@@ -506,6 +506,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader resourceLoader) {
+
         return new InitScriptHandler(
             new DefaultInitScriptProcessor(
                 scriptPluginFactory,

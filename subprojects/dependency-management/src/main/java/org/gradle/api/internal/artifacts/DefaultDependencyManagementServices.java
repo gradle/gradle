@@ -555,7 +555,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultArtifactPublicationServices(services);
         }
 
-        DependencyResolutionServices createDependencyResolutionServices(ServiceRegistry services) {
+        /**
+         * Trickiness ahead.
+         *
+         * The creation of a DependencyVerificationOverride also registers a buildFinished hook. This hook is necessary for dependency verification to work.
+         *
+         */
+        DependencyResolutionServices createDependencyResolutionServices(ServiceRegistry services,
+                                                                        @SuppressWarnings("unused") DependencyVerificationOverride override) {
             return new DefaultDependencyResolutionServices(services);
         }
 
