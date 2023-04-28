@@ -27,6 +27,10 @@ trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
         return new JUnitVintageBuildScriptConfiguration()
     }
 
+    AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
+        new JUnit4TestSourceConfiguration(JUnitVintageBuildScriptConfiguration.dependencyVersion)
+    }
+
     static class JUnitVintageBuildScriptConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
         String configureTestFramework = "useJUnitPlatform()"
 
