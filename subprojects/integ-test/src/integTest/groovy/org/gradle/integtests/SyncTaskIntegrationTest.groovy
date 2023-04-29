@@ -670,6 +670,32 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/dir1/extra2.txt').exists()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/5748")
+    def "works correctly when . is a path segment"() {
+        given:
+        defaultSourceFileTree()
+        file('dest').create {
+            file 'extra.txt'
+        }
+
+        buildScript '''
+            task sync(type: Sync) {
+                into 'dest'
+                into ('.') {
+                    from 'source/dir1'
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'sync'
+
+        then:
+        file('dest').assertHasDescendants(
+            'file1.txt'
+        )
+    }
+
     def defaultSourceFileTree() {
         file('source').create {
             dir1 { file 'file1.txt' }

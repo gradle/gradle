@@ -1650,6 +1650,32 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file('dest/path/file.txt').assertContents(Matchers.containsText("file1"))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/5748")
+    def "duplicate detection works when . is a path segment"() {
+        // FAIL
+        given:
+        file('dir1/path/file.txt').createFile() << 'f1'
+        file('dir2/path/file.txt').createFile() << 'f2'
+        buildScript '''
+            task copy(type: Copy) {
+                into 'dest'
+                into ('subdir') {
+                    from 'dir1'
+                }
+                into ('./subdir') {
+                    from 'dir2'
+                }
+                duplicatesStrategy = 'fail'
+            }
+        '''.stripIndent()
+
+        when:
+        fails 'copy'
+
+        then:
+        failure.assertHasCause "Encountered duplicate path \"subdir/path/file.txt\" during copy operation configured with DuplicatesStrategy.FAIL"
+    }
+
     def "each chained matching rule always matches against initial source path"() {
         given:
         file('path/abc.txt').createFile() << 'test file with $attr'
