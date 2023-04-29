@@ -15,6 +15,7 @@
  */
 package org.gradle.api.file;
 
+import com.google.common.collect.Iterables;
 import org.gradle.internal.file.FilePathUtil;
 
 import javax.annotation.Nullable;
@@ -47,17 +48,39 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
 
     private RelativePath(boolean endsWithFile, @Nullable RelativePath parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
-        int targetOffsetForChildSegments;
+        final int expectedLength;
+        final Iterable<String> sourceSegments;
         if (parentPath != null) {
-            String[] sourceSegments = parentPath.getSegments();
-            segments = new String[sourceSegments.length + childSegments.length];
-            copySegments(segments, sourceSegments, sourceSegments.length);
-            targetOffsetForChildSegments = sourceSegments.length;
+            expectedLength = parentPath.segments.length + childSegments.length;
+            sourceSegments = Iterables.concat(Arrays.asList(parentPath.segments),
+                Arrays.asList(childSegments));
         } else {
-            segments = new String[childSegments.length];
-            targetOffsetForChildSegments = 0;
+            expectedLength = childSegments.length;
+            sourceSegments = Arrays.asList(childSegments);
         }
-        copyAndInternSegments(segments, targetOffsetForChildSegments, childSegments);
+        String[] newSegments = new String[expectedLength];
+        int nextIndex = 0;
+        for (String segment : sourceSegments) {
+            if (segment.equals(".")) {
+                continue;
+            }
+            if (segment.equals("..")) {
+                if (nextIndex == 0 || newSegments[nextIndex - 1].equals("..")) {
+                    newSegments[nextIndex] = "..";
+                    nextIndex++;
+                } else {
+                    nextIndex--;
+                }
+                continue;
+            }
+            newSegments[nextIndex] = segment;
+            nextIndex++;
+        }
+        if (nextIndex < newSegments.length) {
+            // Truncate the array to the filled portion
+            newSegments = Arrays.copyOf(newSegments, nextIndex);
+        }
+        this.segments = newSegments;
     }
 
     private static void copySegments(String[] target, String[] source) {
@@ -66,10 +89,6 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
 
     private static void copySegments(String[] target, String[] source, int length) {
         System.arraycopy(source, 0, target, 0, length);
-    }
-
-    private static void copyAndInternSegments(String[] target, int targetOffset, String[] source) {
-        System.arraycopy(source, 0, target, targetOffset, source.length);
     }
 
     public String[] getSegments() {
