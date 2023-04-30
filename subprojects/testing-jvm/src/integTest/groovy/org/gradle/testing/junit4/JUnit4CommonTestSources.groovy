@@ -18,19 +18,37 @@ package org.gradle.testing.junit4
 
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 
-trait JUnit4CommonTestSources {
-    AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
-        new JUnit4TestSourceConfiguration()
-    }
+import static org.gradle.util.internal.VersionNumber.*
 
+trait JUnit4CommonTestSources {
     static class JUnit4TestSourceConfiguration implements AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration {
+        String version
+
+        JUnit4TestSourceConfiguration(String version) {
+            this.version = version
+        }
+
         @Override
         String getTestFrameworkImports() {
             return """
                 import org.junit.*;
+                import org.junit.runner.*;
+
                 import static org.junit.Assert.*;
-                import static org.junit.Assume.*;
+                ${maybeImportAssumptions}
             """.stripIndent()
+        }
+
+        private String getMaybeImportAssumptions() {
+            def thisVersion = parse(version)
+            // The Assume class was only introduced in JUnit 4.4
+            if (thisVersion >= parse('4.4')) {
+                return """
+                    import static org.junit.Assume.*;
+                """.stripIndent()
+            } else {
+                return ""
+            }
         }
 
         @Override
@@ -51,6 +69,21 @@ trait JUnit4CommonTestSources {
         @Override
         String getAfterTestAnnotation() {
             return "@After"
+        }
+
+        @Override
+        String getRunOrExtendWithAnnotation(String runOrExtendWithClasses) {
+            return "@RunWith(${runOrExtendWithClasses})"
+        }
+
+        @Override
+        String maybeParentheses(String methodName) {
+            return methodName
+        }
+
+        @Override
+        String getIgnoreOrDisabledAnnotation() {
+            return "@Ignore"
         }
     }
 }

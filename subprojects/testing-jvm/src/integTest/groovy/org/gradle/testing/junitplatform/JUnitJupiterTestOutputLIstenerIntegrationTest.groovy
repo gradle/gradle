@@ -23,8 +23,4 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterTestOutputLIstenerIntegrationTest extends AbstractTestOutputListenerIntegrationTest implements JUnitJupiterMultiVersionTest {
-    @Override
-    String testMethod(String testMethodName) {
-        return "${testMethodName}()"
-    }
 }

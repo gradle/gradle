@@ -1336,7 +1336,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         );
 
 
-        DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
+        DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
@@ -1378,7 +1378,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return copiedConfiguration;
     }
 
-    private DefaultConfiguration newConfiguration(ConfigurationRole role, boolean usageCanBeMutated) {
+    private DefaultConfiguration newConfiguration(ConfigurationRole role) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
 
@@ -1391,7 +1391,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             childResolutionStrategy,
             rootComponentMetadataBuilder,
             role,
-            usageCanBeMutated
+            false
         );
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
@@ -2155,14 +2155,6 @@ since users cannot create non-legacy configurations and there is no current publ
     @Override
     public ConfigurationRole getRoleAtCreation() {
         return roleAtCreation;
-    }
-
-    @Deprecated
-    @Override
-    public void assertHasNoDeclarations() {
-        if (!dependencies.isEmpty()) {
-            throw new GradleException("Dependency declarations are present on a configuration that does not allow them: " + getName() + ".");
-        }
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {

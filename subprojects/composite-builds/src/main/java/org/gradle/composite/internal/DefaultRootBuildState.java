@@ -134,11 +134,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public Path getCurrentPrefixForProjectsInChildBuilds() {
-        return Path.ROOT;
-    }
-
-    @Override
     public Path calculateIdentityPathForProject(Path path) {
         return path;
     }

@@ -16,21 +16,18 @@
 package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import spock.lang.Issue
 
-abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrationSpec {
-
-    abstract String getImports()
-    abstract String getFramework()
-    abstract String getDependencies()
+abstract class AbstractTestFilteringIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
 
     def setup() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { ${dependencies} }
-            test { use${framework}() }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
         """
     }
 
@@ -44,7 +41,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         """
         file("src/test/java/org/gradle/FooTest.java") << """
             package org.gradle;
-            import $imports;
+            ${testFrameworkImports}
             public class FooTest {
                 @Test public void pass() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
@@ -52,7 +49,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         """
         file("src/test/java/org/gradle/OtherTest.java") << """
             package org.gradle;
-            import $imports;
+            ${testFrameworkImports}
             public class OtherTest {
                 @Test public void pass() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
@@ -82,14 +79,16 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
               }
             }
         """
-        file("src/test/java/FooTest.java") << """import $imports;
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
             public class FooTest {
                 @Test public void passOne() {}
                 @Test public void passTwo() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
-        file("src/test/java/OtherTest.java") << """import $imports;
+        file("src/test/java/OtherTest.java") << """
+            ${testFrameworkImports}
             public class OtherTest {
                 @Test public void passOne() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
@@ -111,24 +110,28 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
               filter.setIncludePatterns 'Foo*.pass*'
             }
         """
-        file("src/test/java/Foo1Test.java") << """import $imports;
+        file("src/test/java/Foo1Test.java") << """
+            ${testFrameworkImports}
             public class Foo1Test {
                 @Test public void pass1() {}
                 @Test public void boo() {}
             }
         """
-        file("src/test/java/Foo2Test.java") << """import $imports;
+        file("src/test/java/Foo2Test.java") << """
+            ${testFrameworkImports}
             public class Foo2Test {
                 @Test public void pass2() {}
                 @Test public void boo() {}
             }
         """
-        file("src/test/java/Foo3Test.java") << """import $imports;
+        file("src/test/java/Foo3Test.java") << """
+            ${testFrameworkImports}
             public class Foo3Test {
                 @Test public void boo() {}
             }
         """
-        file("src/test/java/OtherTest.java") << """import $imports;
+        file("src/test/java/OtherTest.java") << """
+            ${testFrameworkImports}
             public class OtherTest {
                 @Test public void pass3() {}
                 @Test public void boo() {}
@@ -148,7 +151,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     def "reports when no matching methods found"() {
         file("src/test/java/org/gradle/FooTest.java") << """
             package org.gradle;
-            import $imports;
+            ${testFrameworkImports}
             public class FooTest {
                 @Test public void pass() {}
             }
@@ -169,7 +172,8 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     }
 
     def "adds import/export rules to report about no matching methods found"() {
-        file("src/test/java/FooTest.java") << """import $imports;
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
             public class FooTest {
                 @Test public void pass() {}
             }
@@ -187,7 +191,8 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     }
 
     def "does not report when matching method has been filtered before via include/exclude"() { //current behavior, not necessarily desired
-        file("src/test/java/FooTest.java") << """import $imports;
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
             public class FooTest {
                 @Test public void pass() {}
             }
@@ -200,7 +205,8 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     }
 
     def "task is out of date when --tests argument changes"() {
-        file("src/test/java/FooTest.java") << """import $imports;
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
             public class FooTest {
                 @Test public void pass() {}
                 @Test public void pass2() {}
@@ -223,24 +229,28 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
 
     def "can select multiple tests from commandline #scenario"() {
         given:
-        file("src/test/java/Foo1Test.java") << """import $imports;
+        file("src/test/java/Foo1Test.java") << """
+            ${testFrameworkImports}
             public class Foo1Test {
                 @Test public void pass1() {}
                 @Test public void bar() {}
             }
         """
-        file("src/test/java/Foo2Test.java") << """import $imports;
+        file("src/test/java/Foo2Test.java") << """
+            ${testFrameworkImports}
             public class Foo2Test {
                 @Test public void pass2() {}
                 @Test public void bar() {}
             }
         """
-        file("src/test/java/BarTest.java") << """import $imports;
+        file("src/test/java/BarTest.java") << """
+            ${testFrameworkImports}
             public class BarTest {
                 @Test public void bar() {}
             }
         """
-        file("src/test/java/OtherTest.java") << """import $imports;
+        file("src/test/java/OtherTest.java") << """
+            ${testFrameworkImports}
             public class OtherTest {
                 @Test public void pass3() {}
                 @Test public void bar() {}
@@ -369,17 +379,20 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     }
 
     private createTestABC(){
-        file('src/test/java/ATest.java') << """import $imports;
+        file('src/test/java/ATest.java') << """
+            ${testFrameworkImports}
             public class ATest {
                 @Test public void test() { System.out.println("ATest!"); }
             }
         """
-        file('src/test/java/BTest.java') << """import $imports;
+        file('src/test/java/BTest.java') << """
+            ${testFrameworkImports}
             public class BTest {
                 @Test public void test() { System.out.println("BTest!"); }
             }
         """
-        file('src/test/java/CTest.java') << """import $imports;
+        file('src/test/java/CTest.java') << """
+            ${testFrameworkImports}
             public class CTest {
                 @Test public void test() { System.out.println("CTest!"); }
             }

@@ -37,11 +37,6 @@ class JUnitJupiterTestListenerBuildOperationAdapterIntegrationTest extends Abstr
     }
 
     @Override
-    String testMethodName(String testMethod) {
-        return "${testMethod}()"
-    }
-
-    @Override
     void writeTestSources() {
         buildFile << """
             dependencies {

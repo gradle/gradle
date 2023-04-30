@@ -35,7 +35,7 @@ import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
-import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -61,7 +61,7 @@ import static org.gradle.internal.instrumentation.processor.codegen.SignatureUti
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
-public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassGenerator {
+public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
@@ -85,6 +85,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
         return builder ->
             builder.addMethod(constructor)
+                .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
                 .addMethod(BINARY_CLASS_NAME_OF)
