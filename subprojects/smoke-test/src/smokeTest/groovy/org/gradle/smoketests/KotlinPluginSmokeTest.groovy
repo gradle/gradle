@@ -374,6 +374,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             if (isAndroidKotlinPlugin(testedPluginId)) {
                 buildFile << """
                     android {
+                        namespace = "org.gradle.smoke.test"
                         compileSdkVersion 24
                         buildToolsVersion '${TestedVersions.androidTools}'
                     }

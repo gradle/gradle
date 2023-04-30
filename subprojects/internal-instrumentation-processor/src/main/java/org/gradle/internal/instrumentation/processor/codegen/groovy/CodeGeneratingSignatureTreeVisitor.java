@@ -125,7 +125,11 @@ class CodeGeneratingSignatureTreeVisitor {
         CodeBlock nextArg = CodeBlock.of("nextArg");
         result.addStatement("Object $L = invocation.getArgument(argIndex)", nextArg);
         result.beginControlFlow("if ($L instanceof $T)", nextArg, entryParamType);
-        result.addStatement("$1L[argIndex - $2L] = ($3T) $4L", varargVariable, paramIndex, entryParamType, nextArg);
+        if (entryParamType.equals(TypeName.OBJECT)) {
+            result.addStatement("$1L[argIndex - $2L] = $3L", varargVariable, paramIndex, nextArg);
+        } else {
+            result.addStatement("$1L[argIndex - $2L] = ($3T) $4L", varargVariable, paramIndex, entryParamType, nextArg);
+        }
         result.nextControlFlow("else");
         result.addStatement("$L = false", varargMatched);
         result.addStatement("break");

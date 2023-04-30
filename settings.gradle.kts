@@ -144,6 +144,7 @@ include("enterprise-workers")
 include("build-operations")
 include("problems")
 include("instrumentation-agent")
+include("instrumentation-declarations")
 
 // Plugin portal projects
 include("kotlin-dsl-plugins")
