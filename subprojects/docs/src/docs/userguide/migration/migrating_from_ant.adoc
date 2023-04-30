@@ -30,7 +30,10 @@ We will start by outlining the things you should consider when migrating a build
 [[migant:general_guidelines]]
 == General guidelines
 
-When you migrate a build from Ant to Gradle, you should keep in mind the nature of what you already have and where you would like to end up. Do you want a Gradle build that mirrors the structure of the existing Ant build? Or do you want to move to something that is more idiomatic to Gradle? What are the main benefits you are looking for?
+When you migrate a build from Ant to Gradle, you should keep in mind the nature of what you already have and where you would like to end up.
+Do you want a Gradle build that mirrors the structure of the existing Ant build?
+Or do you want to move to something that is more idiomatic to Gradle?
+What are the main benefits you are looking for?
 
 To better understand, consider the following opposing scenarios:
 
@@ -255,7 +258,8 @@ The above sample will add `our-custom.jar`, `awesome-framework-2.0.jar` and `uti
 
 [NOTE]
 ====
-You can also specify a group in these module dependencies, even though they don't actually have a group. That's because the flat-directory repository simply ignores this information.
+You can also specify a group in these module dependencies, even though they don't actually have a group.
+That's because the flat-directory repository simply ignores this information.
 
 Then, if you add a normal Maven or Ivy-compatible repository at a later date, Gradle will download the module dependencies that are declared with a group from that repository rather than the flat-directory one.
 ====
@@ -528,7 +532,8 @@ At the end of the process you should have a Gradle build that you are confident 
 
 == Further reading
 
-This chapter has covered the major topics that are specific to migrating Ant builds to Gradle. All that remain are a few other areas that may be useful following a migration:
+This chapter has covered the major topics that are specific to migrating Ant builds to Gradle.
+All that remain are a few other areas that may be useful following a migration:
 
  * Learn how to configure Gradle's <<build_environment#build_environment,build environment>>, including the JVM settings used to run it
  * Learn how to <<organizing_gradle_projects#organizing_gradle_projects,structure your builds effectively>>
