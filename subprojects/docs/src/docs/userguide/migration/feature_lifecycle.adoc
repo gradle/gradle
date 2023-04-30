@@ -17,7 +17,8 @@
 
 Gradle is under constant development. New versions are delivered on a regular and frequent basis (approximately every 6 weeks) as described in <<#eol_support,the section on end-of-life support>>.
 
-Continuous improvement combined with frequent delivery allows new features to be made available to users early. Early users provide invaluable feedback which is incorporated into the development process.
+Continuous improvement combined with frequent delivery allows new features to be made available to users early.
+Early users provide invaluable feedback which is incorporated into the development process.
 
 Getting new functionality into the hands of users regularly is a core value of the Gradle platform.
 
@@ -87,10 +88,12 @@ All public features are subject to the backward compatibility policy.
 [[sec:deprecated]]
 === Deprecated
 
-Some features may be replaced or become irrelevant due to the natural evolution of Gradle. Such features will eventually be removed from Gradle after being _deprecated_.
+Some features may be replaced or become irrelevant due to the natural evolution of Gradle.
+Such features will eventually be removed from Gradle after being _deprecated_.
 A _deprecated_ feature may become stale until it is finally removed according to the backward compatibility policy.
 
-_Deprecated_ features are indicated to be so. In the source code, all methods/properties/classes that are _deprecated_ are annotated with “`@java.lang.Deprecated`” which is reflected in the DSL and API References.
+_Deprecated_ features are indicated to be so.
+In the source code, all methods/properties/classes that are _deprecated_ are annotated with “`@java.lang.Deprecated`” which is reflected in the DSL and API References.
 In most cases, there is a replacement for the deprecated element, and this will be described in the documentation.
 Using a _deprecated_ feature will result in a runtime warning in Gradle's output.
 
