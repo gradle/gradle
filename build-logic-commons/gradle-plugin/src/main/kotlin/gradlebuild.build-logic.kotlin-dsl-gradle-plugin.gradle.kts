@@ -21,6 +21,7 @@ plugins {
     id("gradlebuild.code-quality")
     id("gradlebuild.ktlint")
     id("gradlebuild.ci-reporting")
+    id("gradlebuild.test-retry")
 }
 
 java.configureJavaToolChain()

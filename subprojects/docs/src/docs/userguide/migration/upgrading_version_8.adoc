@@ -40,11 +40,49 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Updates to default tool integration versions
+[[kotlin_1_8.20]]
+==== Upgrade to Kotlin 1.8.20
 
-- The JaCoCo code coverage tool used by the `jacoco` plugin has been upgraded to https://github.com/jacoco/jacoco/releases/tag/v0.8.9[0.8.9].
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.20[Kotlin 1.8.20].
+For more information, see https://kotlinlang.org/docs/whatsnew1820.html[What's new in Kotlin 1.8.20].
 
-==== Kotlin DSL scripts emit compilation warnings
+Note that there is a known issue with Kotlin compilation avoidance that can cause `OutOfMemory` exceptions in `compileKotlin` tasks if the compilation classpath contains very large JAR files.
+This applies to builds applying the Kotlin plugin v1.8.20 or the `kotlin-dsl` plugin.
+
+You can work around it by disabling Kotlin compilation avoidance in your `gradle.properties` file:
+
+[source,properties]
+----
+kotlin.incremental.useClasspathSnapshot=false
+----
+
+See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more information.
+
+==== Upgrade to Groovy 3.0.17
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.17.html[Groovy 3.0.17].
+
+Since the previous version was 3.0.15, the https://groovy-lang.org/changelogs/changelog-3.0.16.html[3.0.16] changes are also included.
+
+==== Upgrade to Ant 1.10.13
+
+Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
+
+Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
+
+==== Upgrade to CodeNarc 3.2.0
+
+The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v3.2.0/CHANGELOG.md#version-320----jan-2023[CodeNarc 3.2.0].
+
+==== Upgrade to PMD 6.55.0
+
+PMD has been updated to https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_release_notes.html[PMD 6.55.0].
+
+Since the previous version was 6.48.0, all changes since then are included.
+
+==== Upgrade to JaCoCo 0.8.9
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.9].
 
 === Deprecations
 
@@ -602,51 +640,21 @@ dependencies {
 ======
 =====
 
-=== Potential breaking changes
+[[build_identifier_name_and_current_deprecation]]
+==== `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html[BuildIdentifier]` and `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html[ProjectComponentSelector]` method deprecations
 
-[[kotlin_1_8.20]]
-==== Upgrade to Kotlin 1.8.20
+The following methods on `BuildIdentifier` are deprecated:
 
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.20[Kotlin 1.8.20].
-For more information, see https://kotlinlang.org/docs/whatsnew1820.html[What's new in Kotlin 1.8.20].
+- `getName()`
+- `isCurrentBuild()`
 
-Note that there is a known issue with Kotlin compilation avoidance that can cause `OutOfMemory` exceptions in `compileKotlin` tasks if the compilation classpath contains very large JAR files.
-This applies to builds applying the Kotlin plugin v1.8.20 or the `kotlin-dsl` plugin.
+You could use these methods to distinguish between different project components with the same name but from different builds.
+However, for certain composite build setups, these methods do not provide enough information to guarantee uniqueness.
 
-You can work around it by disabling Kotlin compilation avoidance in your `gradle.properties` file:
+Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath--[BuildIdentifier.getBuildPath()]`.
 
-[source,properties]
-----
-kotlin.incremental.useClasspathSnapshot=false
-----
-
-See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more information.
-
-==== Upgrade to Groovy 3.0.17
-
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.17.html[Groovy 3.0.17].
-
-Since the previous version was 3.0.10, the https://groovy-lang.org/changelogs/changelog-3.0.16.html[3.0.16] changes are also included.
-
-==== Upgrade to Ant 1.10.13
-
-Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.13/WHATSNEW[Ant 1.10.13].
-
-Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
-
-==== Upgrade to CodeNarc 3.2.0
-
-The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v3.2.0/CHANGELOG.md#version-320----jan-2023[CodeNarc 3.2.0].
-
-==== Upgrade to PMD 6.55.0
-
-PMD has been updated to https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_release_notes.html[PMD 6.55.0].
-
-Since the previous version was 6.48.0, all changes since then are included.
-
-==== Upgrade to JaCoCo 0.8.9
-
-JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.9].
+Similarly, the method `ProjectComponentSelector.getBuildName()` is deprecated.
+Use `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html#getBuildPath--[ProjectComponentSelector.getBuildPath()]` instead.
 
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
@@ -720,6 +728,65 @@ Compilation warnings from Kotlin DSL scripts are printed to the console output.
 For example, the use of deprecated APIs in Kotlin DSL will emit warnings each time the script is compiled.
 
 This is a potentially breaking change if you are consuming the console output of Gradle builds.
+
+==== Configuring Kotlin compiler options with the `kotlin-dsl` plugin applied
+
+If you are configuring custom Kotlin compiler options on a project with the <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin, kotlin-dsl>> plugin applied you might encounter a breaking change.
+
+In previous Gradle versions, the `kotlin-dsl` plugin was adding required compiler arguments on link:{javadocPath}/org/gradle/api/Project.html#afterEvaluate-org.gradle.api.Action-[afterEvaluate {}].
+Now that the Kotlin Gradle Plugin provides <<lazy_configuration.adoc#lazy_configuration, lazy configuration>> properties, our `kotlin-dsl` plugin switched to adding required compiler arguments to the lazy properties directly.
+As a consequence, if you were setting `freeCompilerArgs` the `kotlin-dsl` plugin is now failing the build because its required compiler arguments are overridden by your configuration.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `kotlin-dsl`
+}
+
+tasks.withType(KotlinCompile::class).configureEach {
+    kotlinOptions { // Deprecated non-lazy configuration options
+        freeCompilerArgs = listOf("-Xcontext-receivers")
+    }
+}
+----
+=====
+====
+
+With the configuration above you would get the following build failure:
+
+[source,text]
+----
+* What went wrong
+Execution failed for task ':compileKotlin'.
+> Kotlin compiler arguments of task ':compileKotlin' do not work for the `kotlin-dsl` plugin. The 'freeCompilerArgs' property has been reassigned. It must instead be appended to. Please use 'freeCompilerArgs.addAll(\"your\", \"args\")' to fix this.
+----
+
+You must change this to adding your custom compiler arguments to the lazy configuration properties of the Kotlin Gradle Plugin in order for them to be appended to the ones required by the `kotlin-dsl` plugin:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `kotlin-dsl`
+}
+
+tasks.withType(KotlinCompile::class).configureEach {
+    compilerOptions { // New lazy configuration options
+        freeCompilerArgs.addAll("-Xcontext-receivers")
+    }
+}
+----
+=====
+====
+
+If you were already adding to `freeCompilerArgs` instead of setting its value, then you should not experience a build failure.
 
 ==== New API introduced may clash with existing Gradle DSL code
 

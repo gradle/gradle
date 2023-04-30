@@ -54,7 +54,6 @@ class DefaultNestedBuildTest extends Specification {
 
     DefaultNestedBuild build() {
         _ * factory.servicesForBuild(buildDefinition, _, owner) >> Mock(BuildModelControllerServices.Supplier)
-        _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * factory.newInstance(buildDefinition, _, owner, _) >> controller
         _ * buildDefinition.name >> "nested"
         services.add(Stub(BuildOperationExecutor))

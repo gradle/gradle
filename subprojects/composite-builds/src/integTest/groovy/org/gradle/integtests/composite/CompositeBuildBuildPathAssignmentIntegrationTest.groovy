@@ -40,6 +40,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
 
         when:
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, "help")
         then:
         assignedBuildPaths ==~ [
@@ -49,11 +50,11 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':buildLogic'
         ]
 
-        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
-            "Build name=:",
-            "Build name=buildLogic",
-            "Build name=buildLogic:1",
-            "Build name=includedBuild",
+        extractBuildIdentifierOutput(output) ==~ [
+            [path: ':', name: ':'],
+            [path: ':includedBuild', name: 'includedBuild'],
+            [path: ':includedBuild:buildLogic', name: 'buildLogic'],
+            [path: ':buildLogic', name: 'buildLogic']
         ]
     }
 
@@ -78,6 +79,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
 
         when:
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [
@@ -91,15 +93,15 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':nested:buildLogic'
         ]
 
-        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
-            "Build name=:",
-            "Build name=buildLogic",
-            "Build name=buildLogic:1",
-            "Build name=buildLogic:2",
-            "Build name=buildLogic:3",
-            "Build name=includedBuild",
-            "Build name=nested",
-            "Build name=nested:1",
+        extractBuildIdentifierOutput(output) ==~ [
+            [path: ':', name: ':'],
+            [path: ':buildLogic', name: 'buildLogic'],
+            [path: ':includedBuild', name: 'includedBuild'],
+            [path: ':includedBuild:buildLogic', name: 'buildLogic'],
+            [path: ':includedBuild:nested', name: 'nested'],
+            [path: ':includedBuild:nested:buildLogic', name: 'buildLogic'],
+            [path: ':nested', name: 'nested'],
+            [path: ':nested:buildLogic', name: 'buildLogic']
         ]
     }
 
@@ -123,22 +125,23 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         }
 
         when:
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [
             ':includedBuild', ':includedBuild:buildSrc', ':includedBuild:nested', ':includedBuild:nested:buildSrc',
             ':', ':buildSrc', ':nested', ':nested:buildSrc', ':nested:buildSrc:buildSrc']
 
-        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
-            "Build name=:",
-            "Build name=buildSrc",
-            "Build name=buildSrc:1",
-            "Build name=buildSrc:2",
-            "Build name=buildSrc:3",
-            "Build name=buildSrc:4",
-            "Build name=includedBuild",
-            "Build name=nested",
-            "Build name=nested:1",
+        extractBuildIdentifierOutput(output) ==~ [
+            [path: ':', name: ':'],
+            [path: ':buildSrc', name: 'buildSrc'],
+            [path: ':includedBuild', name: 'includedBuild'],
+            [path: ':includedBuild:buildSrc', name: 'buildSrc'],
+            [path: ':includedBuild:nested', name: 'nested'],
+            [path: ':includedBuild:nested:buildSrc', name: 'buildSrc'],
+            [path: ':nested', name: 'nested'],
+            [path: ':nested:buildSrc', name: 'buildSrc'],
+            [path: ':nested:buildSrc:buildSrc', name: 'buildSrc']
         ]
     }
 
@@ -160,16 +163,17 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         new BuildTestFixture(includedBuildBNested).multiProjectBuild('includedBuildB-nested', ['project1', 'project2'])
 
         when:
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [':', ':includedBuildB', ':includedBuildA', ':nested', ':includedBuildB:nested']
 
-        output.readLines().findAll { it.startsWith("Build name=") } ==~ [
-            "Build name=:",
-            "Build name=includedBuildA",
-            "Build name=includedBuildB",
-            "Build name=nested",
-            "Build name=nested:1",
+        extractBuildIdentifierOutput(output) ==~ [
+            [path: ':', name: ':'],
+            [path: ':includedBuildA', name: 'includedBuildA'],
+            [path: ':includedBuildB', name: 'includedBuildB'],
+            [path: ':includedBuildB:nested', name: 'nested'],
+            [path: ':nested', name: 'nested']
         ]
     }
 
@@ -230,7 +234,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
                         def registry = gradle.services.get(${BuildStateRegistry.name})
                         registry.visitBuilds { b ->
                             def buildId = b.buildIdentifier
-                            println "Build name=" + buildId.name
+                            println "Build path=" + buildId.buildPath + " name=" + buildId.name
                         }
                     }
                 }
@@ -241,6 +245,14 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
                     apply plugin: 'java'
                 }
             """
+        }
+    }
+
+    private extractBuildIdentifierOutput(String output) {
+        output.readLines().findAll { it.startsWith("Build path=") }.collect { line ->
+            def matcher = line =~ /Build path=(.+) name=(.+)/
+            assert matcher.matches()
+            [path: matcher.group(1), name: matcher.group(2)]
         }
     }
 

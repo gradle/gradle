@@ -25,7 +25,6 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     abstract boolean isEmitsTestClassOperations()
-    abstract String testMethodName(String testMethod)
     abstract void writeTestSources()
 
     def "emits build operations for junit tests"() {
@@ -93,7 +92,7 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
 
     void checkForTestOperations(Iterator<BuildOperationRecord> iterator, String className, String methodName) {
         with(iterator.next()) {
-            details.testDescriptor.name == testMethodName(methodName)
+            details.testDescriptor.name == maybeParentheses(methodName)
             details.testDescriptor.className == className
             details.testDescriptor.composite == false
         }
