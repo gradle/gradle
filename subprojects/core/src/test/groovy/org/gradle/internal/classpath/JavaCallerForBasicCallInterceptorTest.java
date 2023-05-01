@@ -17,15 +17,15 @@
 package org.gradle.internal.classpath;
 
 public class JavaCallerForBasicCallInterceptorTest {
-    public static void doCallNoArg(InterceptorTestReceiver receiver) {
-        receiver.call();
+    public static void doTestNoArg(InterceptorTestReceiver receiver) {
+        receiver.test();
     }
 
-    public static void doCallSingleArg(InterceptorTestReceiver receiver) {
-        receiver.call(receiver);
+    public static void doTestSingleArg(InterceptorTestReceiver receiver) {
+        receiver.test(receiver);
     }
 
-    public static void doCallVararg(InterceptorTestReceiver receiver) {
-        receiver.callVararg(receiver, receiver, receiver);
+    public static void doTestVararg(InterceptorTestReceiver receiver) {
+        receiver.testVararg(receiver, receiver, receiver);
     }
 }

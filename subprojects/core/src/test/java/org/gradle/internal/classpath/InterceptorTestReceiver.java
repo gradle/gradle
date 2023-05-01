@@ -17,9 +17,9 @@
 package org.gradle.internal.classpath;
 
 public class InterceptorTestReceiver {
-    public void call() {}
-    public void call(InterceptorTestReceiver arg) {}
-    public void callVararg(Object... arg) {}
+    public void test() {}
+    public void test(InterceptorTestReceiver arg) {}
+    public void testVararg(Object... arg) {}
 
     public void callNonIntercepted() {
         intercepted = "callNotIntercepted()-not-intercepted";
