@@ -21,5 +21,14 @@ public class InterceptorTestReceiver {
     public void call(InterceptorTestReceiver arg) {}
     public void callVararg(Object... arg) {}
 
+    public void callNonIntercepted() {
+        intercepted = "callNotIntercepted()-not-intercepted";
+    }
+
     public String intercepted = null;
+
+    @Override
+    public String toString() {
+        return "InterceptorTestReceiver";
+    }
 }

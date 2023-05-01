@@ -60,4 +60,14 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
         self.intercepted = "callVararg(Object...)";
         self.callVararg(arg);
     }
+
+    @InterceptCalls
+    @CallableKind.InstanceMethod
+    public static void intercept_nonExistent(
+        @ParameterKind.Receiver InterceptorTestReceiver self,
+        String parameter,
+        @ParameterKind.CallerClassName String consumer
+    ) {
+        self.intercepted = "nonExistent(String)-non-existent";
+    }
 }
