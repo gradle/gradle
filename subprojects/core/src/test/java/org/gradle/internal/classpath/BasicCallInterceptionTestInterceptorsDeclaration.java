@@ -31,34 +31,34 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
 
     @InterceptCalls
     @CallableKind.InstanceMethod
-    public static void intercept_call(
+    public static void intercept_test(
         @ParameterKind.Receiver InterceptorTestReceiver self,
         @ParameterKind.CallerClassName String consumer
     ) {
-        self.intercepted = "call()";
-        self.call();
+        self.intercepted = "test()";
+        self.test();
     }
 
     @InterceptCalls
     @CallableKind.InstanceMethod
-    public static void intercept_call(
+    public static void intercept_test(
         @ParameterKind.Receiver InterceptorTestReceiver self,
         InterceptorTestReceiver arg0,
         @ParameterKind.CallerClassName String consumer
     ) {
-        self.intercepted = "call(InterceptorTestReceiver)";
-        self.call(arg0);
+        self.intercepted = "test(InterceptorTestReceiver)";
+        self.test(arg0);
     }
 
     @InterceptCalls
     @CallableKind.InstanceMethod
-    public static void intercept_callVararg(
+    public static void intercept_testVararg(
         @ParameterKind.Receiver InterceptorTestReceiver self,
         @ParameterKind.VarargParameter Object[] arg,
         @ParameterKind.CallerClassName String consumer
     ) {
-        self.intercepted = "callVararg(Object...)";
-        self.callVararg(arg);
+        self.intercepted = "testVararg(Object...)";
+        self.testVararg(arg);
     }
 
     @InterceptCalls

@@ -56,12 +56,12 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         where:
         // TODO: the set of the test cases should be extended; the ones listed currently are an example
         name                       | invocation                                                    | expected
-        "no argument from Java"    | { JavaCallerForBasicCallInterceptorTest.doCallNoArg(it) }     | "call()"
-        "one argument from Java"   | { JavaCallerForBasicCallInterceptorTest.doCallSingleArg(it) } | "call(InterceptorTestReceiver)"
-        "vararg from Java"         | { JavaCallerForBasicCallInterceptorTest.doCallVararg(it) }    | "callVararg(Object...)"
+        "no argument from Java"    | { JavaCallerForBasicCallInterceptorTest.doTestNoArg(it) }     | "test()"
+        "one argument from Java"   | { JavaCallerForBasicCallInterceptorTest.doTestSingleArg(it) } | "test(InterceptorTestReceiver)"
+        "vararg from Java"         | { JavaCallerForBasicCallInterceptorTest.doTestVararg(it) }    | "testVararg(Object...)"
 
-        "no argument from Groovy"  | { it.call() }                                                 | "call()"
-        "one argument from Groovy" | { it.call(it) }                                               | "call(InterceptorTestReceiver)"
-        "vararg from Groovy"       | { it.callVararg(it, it, it) }                                 | "callVararg(Object...)"
+        "no argument from Groovy"  | { it.test() }                                                 | "test()"
+        "one argument from Groovy" | { it.test(it) }                                               | "test(InterceptorTestReceiver)"
+        "vararg from Groovy"       | { it.testVararg(it, it, it) }                                 | "testVararg(Object...)"
     }
 }
