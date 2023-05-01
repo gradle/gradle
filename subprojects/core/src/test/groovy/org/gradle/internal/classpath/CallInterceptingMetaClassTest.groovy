@@ -42,22 +42,22 @@ class CallInterceptingMetaClassTest extends Specification {
 
     def 'intercepts a dynamic call with no argument'() {
         when:
-        withEntryPoint(INVOKE_METHOD, "call") {
-            instance.invokeMethod("call", [].toArray())
+        withEntryPoint(INVOKE_METHOD, "test") {
+            instance.invokeMethod("test", [].toArray())
         }
 
         then:
-        instance.intercepted == "call()"
+        instance.intercepted == "test()"
     }
 
     def 'intercepts a dynamic call with argument'() {
         when:
-        withEntryPoint(INVOKE_METHOD, "call") {
-            instance.call(instance)
+        withEntryPoint(INVOKE_METHOD, "test") {
+            instance.test(instance)
         }
 
         then:
-        instance.intercepted == "call(InterceptorTestReceiver)"
+        instance.intercepted == "test(InterceptorTestReceiver)"
     }
 
     def 'intercepts a dynamic call to a non-existent method'() {
@@ -78,12 +78,12 @@ class CallInterceptingMetaClassTest extends Specification {
 
     def 'intercepts only one call in a succession with a single entry point'() {
         when:
-        withEntryPoint(INVOKE_METHOD, "call") {
-            instance.call()
-            assert instance.intercepted == "call()"
+        withEntryPoint(INVOKE_METHOD, "test") {
+            instance.test()
+            assert instance.intercepted == "test()"
             instance.intercepted = null
-            instance.call()
-            instance.call(instance) // also call a different signature
+            instance.test()
+            instance.test(instance) // also call a different signature
         }
 
         then:
@@ -104,12 +104,12 @@ class CallInterceptingMetaClassTest extends Specification {
         when:
         def method1 = null
         def method2 = null
-        withEntryPoint(INVOKE_METHOD, "call") {
-            method1 = instance.metaClass.pickMethod("call", new Class[]{})
-            method2 = instance.metaClass.pickMethod("call", new Class[]{InterceptorTestReceiver})
+        withEntryPoint(INVOKE_METHOD, "test") {
+            method1 = instance.metaClass.pickMethod("test", new Class[]{})
+            method2 = instance.metaClass.pickMethod("test", new Class[]{InterceptorTestReceiver})
         }
         // not in the scope of an entry point, so should not be an intercepted method
-        def method3 = instance.metaClass.pickMethod("call", new Class[]{String})
+        def method3 = instance.metaClass.pickMethod("test", new Class[]{String})
 
         then:
         method1 instanceof CallInterceptingMetaClass.InterceptedMetaMethod
@@ -120,26 +120,24 @@ class CallInterceptingMetaClassTest extends Specification {
     def 'intercepts invokeMethod in a closure'() {
         given:
         def closure = {
-            // Use callVararg as call is ambiguous with the closure's method
-            callVararg()
+            testVararg()
         }
         closure.delegate = instance
 
         when:
-        withEntryPoint(INVOKE_METHOD, "callVararg") {
+        withEntryPoint(INVOKE_METHOD, "testVararg") {
             closure()
         }
 
         then:
-        instance.intercepted == "callVararg(Object...)"
+        instance.intercepted == "testVararg(Object...)"
     }
 
     def 'intercepts invokeMethod in a nested closure'() {
         given:
         def closure = {
-            withEntryPoint(INVOKE_METHOD, "callVararg") {
-                // Use callVararg as call is ambiguous with the closure's method
-                callVararg()
+            withEntryPoint(INVOKE_METHOD, "testVararg") {
+                testVararg()
             }
         }
         closure.delegate = instance
@@ -148,7 +146,7 @@ class CallInterceptingMetaClassTest extends Specification {
         closure()
 
         then:
-        instance.intercepted == "callVararg(Object...)"
+        instance.intercepted == "testVararg(Object...)"
     }
 
     def 'intercepts getMetaMethod and pickMethod for matching signatures only'() {
@@ -168,12 +166,12 @@ class CallInterceptingMetaClassTest extends Specification {
         where:
         name             | args                                                           | intercepted
 
-        "call"           | []                                                             | true
-        "call"           | [new InterceptorTestReceiver()]                                | true
-        "call"           | [null]                                                         | true
-        "callVararg"     | [new InterceptorTestReceiver(), new InterceptorTestReceiver()] | true
-        "callVararg"     | [new InterceptorTestReceiver(), null]                          | true
-        "callVararg"     | [new InterceptorTestReceiver[]{new InterceptorTestReceiver()}] | true
+        "test"           | []                                                             | true
+        "test"           | [new InterceptorTestReceiver()]                                | true
+        "test"           | [null]                                                         | true
+        "testVararg"     | [new InterceptorTestReceiver(), new InterceptorTestReceiver()] | true
+        "testVararg"     | [new InterceptorTestReceiver(), null]                          | true
+        "testVararg"     | [new InterceptorTestReceiver[]{new InterceptorTestReceiver()}] | true
         // can intercept non-existent methods:
         "nonExistent"    | ["test"]                                                       | true
 
