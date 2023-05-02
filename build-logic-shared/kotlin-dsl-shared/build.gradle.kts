@@ -26,3 +26,8 @@ tasks.withType(KotlinCompile::class).configureEach {
         jvmTarget = JvmTarget.JVM_1_8
     }
 }
+
+dependencies {
+    compileOnly(gradleApi())
+    compileOnly("org.ow2.asm:asm-tree:9.4")
+}

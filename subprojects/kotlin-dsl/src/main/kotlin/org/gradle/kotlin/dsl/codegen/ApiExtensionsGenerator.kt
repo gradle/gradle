@@ -20,7 +20,18 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.pattern.PatternMatcher
+import org.gradle.kotlin.dsl.shared.codegen.ApiFunction
+import org.gradle.kotlin.dsl.shared.codegen.ApiFunctionParameter
+import org.gradle.kotlin.dsl.shared.codegen.ApiType
+import org.gradle.kotlin.dsl.shared.codegen.ApiTypeProvider
+import org.gradle.kotlin.dsl.shared.codegen.ApiTypeUsage
+import org.gradle.kotlin.dsl.shared.codegen.ParameterNamesSupplier
+import org.gradle.kotlin.dsl.shared.codegen.Variance
+import org.gradle.kotlin.dsl.shared.codegen.apiTypeProviderFor
 import org.gradle.kotlin.dsl.shared.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.shared.codegen.isStarProjectionTypeUsage
+import org.gradle.kotlin.dsl.shared.codegen.singletonListOfStarProjectionTypeUsage
+import org.gradle.kotlin.dsl.shared.codegen.starProjectionTypeUsage
 import org.gradle.kotlin.dsl.shared.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
 import java.io.File
@@ -250,14 +261,17 @@ fun List<MappedApiFunctionParameter>.javaClassToKotlinClass() =
                     type = toKotlinClass(),
                     asArgument = "${p.asArgument}.java"
                 )
+
                 isKotlinArray && typeArguments.single().isJavaClass -> p.copy(
                     type = toArrayOfKotlinClasses(),
                     asArgument = "${p.asArgument}.map { it.java }.toTypedArray()"
                 )
+
                 isKotlinCollection && typeArguments.single().isJavaClass -> p.copy(
                     type = toCollectionOfKotlinClasses(),
                     asArgument = "${p.asArgument}.map { it.java }"
                 )
+
                 else -> p
             }
         }
@@ -370,7 +384,7 @@ fun Boolean.toKotlinNullabilityString(): String =
 private
 fun ApiTypeUsage.toTypeParameterString(): String =
     "$sourceName${
-    bounds.takeIf { it.isNotEmpty() }?.let { " : ${it.single().toTypeParameterString()}" } ?: ""
+        bounds.takeIf { it.isNotEmpty() }?.let { " : ${it.single().toTypeParameterString()}" } ?: ""
     }${typeArguments.toTypeParametersString(type)}${isNullable.toKotlinNullabilityString()}"
 
 
