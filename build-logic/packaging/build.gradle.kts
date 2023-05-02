@@ -14,6 +14,8 @@ dependencies {
     implementation(project(":jvm"))
     implementation(project(":kotlin-dsl"))
 
+    implementation(kotlin("gradle-plugin"))
+
     implementation("com.google.code.gson:gson")
 
     testImplementation("org.junit.jupiter:junit-jupiter")

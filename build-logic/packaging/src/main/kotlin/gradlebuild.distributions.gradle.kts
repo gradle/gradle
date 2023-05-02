@@ -29,6 +29,9 @@ import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.PluginsManifest
 import gradlebuild.basics.tasks.PackageListGenerator
 import gradlebuild.kotlindsl.codegen.GenerateKotlinExtensionsForGradleApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.jar.Attributes
 
 /**
@@ -157,7 +160,36 @@ val runtimeApiInfoJar by tasks.registering(Jar::class) {
 
 val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGradleApi::class) {
     classpath.from(runtimeClasspath)
-    destinationDirectory = layout.buildDirectory.dir("generated-resources/kotlin-dsl-extensions")
+    destinationDirectory = layout.buildDirectory.dir("generated-sources/kotlin-dsl-extensions")
+}
+
+apply<org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin>()
+plugins.withType(org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin::class) {
+    registerKotlinJvmCompileTask("compileGradleApiKotlinExtensions")
+}
+
+val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {
+    // TODO factor this out of here
+    compilerOptions {
+        allWarningsAsErrors = true
+        apiVersion = KotlinVersion.KOTLIN_1_8
+        languageVersion = KotlinVersion.KOTLIN_1_8
+        jvmTarget = JvmTarget.JVM_1_8
+        freeCompilerArgs.addAll(
+            "-Xjsr305=strict",
+            "-java-parameters",
+            "-Xsam-conversions=class",
+            "-Xskip-metadata-version-check",
+        )
+    }
+    multiPlatformEnabled = false
+    moduleName = "gradle-kotlin-dsl-extensions"
+    source(gradleApiKotlinExtensions)
+    libraries.from(runtimeClasspath)
+    destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
+
+    @Suppress("DEPRECATION")
+    ownModuleName = "gradle-kotlin-dsl-extensions"
 }
 
 val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathManifest::class) {
@@ -174,6 +206,7 @@ val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
     )
     archiveBaseName = "gradle-kotlin-dsl-extensions"
     from(gradleApiKotlinExtensions)
+    from(compileGradleApiKotlinExtensions.flatMap { it.destinationDirectory })
     from(gradleApiKotlinExtensionsClasspathManifest)
 }
 
