@@ -18,12 +18,13 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.net.URI;
 import java.util.List;
 
-abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
+public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
 
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     public enum Property {
@@ -51,6 +52,10 @@ abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
         this.authenticated = authenticated;
         this.authenticationSchemes = authenticationSchemes;
     }
+
+    public abstract ImmutableList<ResourcePattern> getMetadataResources();
+
+    public abstract ImmutableList<ResourcePattern> getArtifactResources();
 
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {

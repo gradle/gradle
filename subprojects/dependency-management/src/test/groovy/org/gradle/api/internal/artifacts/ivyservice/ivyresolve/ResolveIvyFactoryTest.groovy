@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.Module
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.AbstractModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
+import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
@@ -156,7 +157,7 @@ class ResolveIvyFactoryTest extends Specification {
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
-                "Spy Resolver",
+                Stub(UrlRepositoryDescriptor),
                 false,
                 externalResourceRepository,
                 cacheAwareExternalResourceAccessor,
