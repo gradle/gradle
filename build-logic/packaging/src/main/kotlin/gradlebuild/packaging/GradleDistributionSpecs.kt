@@ -100,6 +100,7 @@ object GradleDistributionSpecs {
         }
         from(repoRoot()) {
             listOf(
+                "build-logic-shared", "build-logic-shared/*",
                 "build-logic-commons", "build-logic-commons/*",
                 "build-logic", "build-logic/*",
                 "build-logic-settings", "build-logic-settings/*",

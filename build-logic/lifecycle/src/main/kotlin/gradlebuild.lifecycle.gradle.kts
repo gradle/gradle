@@ -91,6 +91,7 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
+            gradle.includedBuild("build-logic-shared").task(":check"),
             gradle.includedBuild("build-logic-commons").task(":check"),
             gradle.includedBuild("build-logic").task(":check"),
             ":docs:checkstyleApi",
