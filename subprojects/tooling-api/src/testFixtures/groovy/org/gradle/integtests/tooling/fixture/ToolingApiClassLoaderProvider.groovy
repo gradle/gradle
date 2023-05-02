@@ -81,6 +81,7 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowPackage('org.gradle.play.integtest.fixtures')
         sharedSpec.allowPackage('org.gradle.plugins.ide.fixtures')
         sharedSpec.allowPackage('org.gradle.test.fixtures')
+        sharedSpec.allowPackage('org.gradle.test.preconditions')
         sharedSpec.allowPackage('org.gradle.nativeplatform.fixtures')
         sharedSpec.allowPackage('org.gradle.language.fixtures')
         sharedSpec.allowPackage('org.gradle.workers.fixtures')
