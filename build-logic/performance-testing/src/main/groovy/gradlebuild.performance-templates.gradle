@@ -406,6 +406,12 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
     ref = "a67ceb08a7b4e4a71e3c151a3abd72a9abe5d703"
 }
 
+performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
+    remoteUri = 'https://github.com/android/nowinandroid.git'
+    // Pinned from main branch
+    ref = "d9057010282c48d257cd742701350108c27daa5d"
+}
+
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch

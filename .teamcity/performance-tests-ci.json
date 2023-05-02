@@ -159,6 +159,14 @@
       }
     } ]
   }, {
+      "testId" : "org.gradle.performance.regression.android.NowInAndroidBuildPerformanceTest.run help",
+      "groups" : [ {
+          "testProject" : "nowInAndroidBuild",
+          "coverage" : {
+              "per_commit" : [ "macOs", "linux", "windows" ]
+          }
+      } ]
+  }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean assembleDebug with clean transforms cache",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
