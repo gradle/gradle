@@ -26,7 +26,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
 @RequiresInstalledToolChain(GCC_COMPATIBLE)
-@Requires(value = UnitTestPreconditions.Windows)
+@Requires(UnitTestPreconditions.NotWindows)
 class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends ObjectiveCLanguageIncrementalBuildIntegrationTest{
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
