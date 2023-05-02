@@ -878,8 +878,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
     def "nested #type#parameterType is validated with deprecation warning"() {
         buildFile << """
-            enum SomeEnum { A, B, C }
-
             abstract class CustomTask extends DefaultTask {
                 @Nested
                 $type$parameterType getMy$type() {
@@ -906,7 +904,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         type       | parameterType      | producer                                               | className
         'File'     | ''                 | 'new File("some/path")'                                | 'java.io.File'
         'Integer'  | ''                 | 'Integer.valueOf(1)'                                   | 'java.lang.Integer'
-        'SomeEnum' | ''                 | 'SomeEnum.A'                                           | 'SomeEnum'
         'String'   | ''                 | 'new String()'                                         | 'java.lang.String'
         'Iterable' | '<Integer>'        | '[[Integer.valueOf(1)], [Integer.valueOf(2)]]'         | 'java.lang.Integer'
         'List'     | '<String>'         | '["value1", "value2"]'                                 | 'java.lang.String'
@@ -919,6 +916,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     def "nested #type#parameterType is validated without deprecation warning"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
+            enum SomeEnum { A, B, C }
+
             abstract class CustomTask extends DefaultTask {
                 @Nested
                 $type$parameterType getMy$type() {
@@ -938,6 +937,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         where:
         type         | parameterType         | producer
         'NestedBean' | ''                    | 'new NestedBean("input")'
+        'SomeEnum'   | ''                    | 'SomeEnum.A'
         'Iterable'   | '<NestedBean>'        | 'Arrays.asList(new NestedBean("input"), new NestedBean("input"))'
         'Map'        | '<String,NestedBean>' | 'Collections.singletonMap("a", new NestedBean("input"))'
         'Provider'   | '<NestedBean>'        | 'getProject().getProviders().provider(() -> new NestedBean("input"))'
