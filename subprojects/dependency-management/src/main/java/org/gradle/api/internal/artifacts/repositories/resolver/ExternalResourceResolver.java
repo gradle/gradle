@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
@@ -74,7 +76,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,8 +86,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private static final StringInterner REPOSITORY_ID_INTERNER = new StringInterner();
 
     private final String name;
-    private final List<ResourcePattern> ivyPatterns = new ArrayList<>();
-    private final List<ResourcePattern> artifactPatterns = new ArrayList<>();
+    private final ImmutableList<ResourcePattern> ivyPatterns;
+    private final ImmutableList<ResourcePattern> artifactPatterns;
     private ComponentResolvers componentResolvers;
 
     private final ExternalResourceRepository repository;
@@ -106,19 +107,23 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
 
-    protected ExternalResourceResolver(String name,
-                                       boolean local,
-                                       ExternalResourceRepository repository,
-                                       CacheAwareExternalResourceAccessor cachingResourceAccessor,
-                                       LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                       FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                       ImmutableMetadataSources metadataSources,
-                                       MetadataArtifactProvider metadataArtifactProvider,
-                                       @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                                       @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister,
-                                       Instantiator injector,
-                                       ChecksumService checksumService) {
-        this.name = name;
+    protected ExternalResourceResolver(
+        UrlRepositoryDescriptor descriptor,
+        boolean local,
+        ExternalResourceRepository repository,
+        CacheAwareExternalResourceAccessor cachingResourceAccessor,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        ImmutableMetadataSources metadataSources,
+        MetadataArtifactProvider metadataArtifactProvider,
+        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
+        @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister,
+        Instantiator injector,
+        ChecksumService checksumService
+    ) {
+        this.name = descriptor.getName();
+        this.ivyPatterns = descriptor.getMetadataResources();
+        this.artifactPatterns = descriptor.getArtifactResources();
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
         this.repository = repository;
@@ -344,39 +349,12 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
     }
 
-    protected void addIvyPattern(ResourcePattern pattern) {
-        invalidateCaches();
-        ivyPatterns.add(pattern);
-    }
-
-    private void invalidateCaches() {
-        id = null;
-        cachedArtifactResolver = null;
-    }
-
-    protected void addArtifactPattern(ResourcePattern pattern) {
-        invalidateCaches();
-        artifactPatterns.add(pattern);
-    }
-
     public List<String> getIvyPatterns() {
         return CollectionUtils.collect(ivyPatterns, ResourcePattern::getPattern);
     }
 
     public List<String> getArtifactPatterns() {
         return CollectionUtils.collect(artifactPatterns, ResourcePattern::getPattern);
-    }
-
-    protected void setIvyPatterns(Iterable<? extends ResourcePattern> patterns) {
-        invalidateCaches();
-        ivyPatterns.clear();
-        CollectionUtils.addAll(ivyPatterns, patterns);
-    }
-
-    protected void setArtifactPatterns(List<ResourcePattern> patterns) {
-        invalidateCaches();
-        artifactPatterns.clear();
-        CollectionUtils.addAll(artifactPatterns, patterns);
     }
 
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> {

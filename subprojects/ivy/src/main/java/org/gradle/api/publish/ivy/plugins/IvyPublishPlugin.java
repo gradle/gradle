@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
-import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
@@ -195,17 +194,13 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
 
     private static boolean hasStandardPattern(ArtifactRepository ivyArtifactRepository) {
         DefaultIvyArtifactRepository repo = (DefaultIvyArtifactRepository) ivyArtifactRepository;
-        RepositoryDescriptor descriptor = repo.getDescriptor();
-        if (descriptor instanceof IvyRepositoryDescriptor) {
-            IvyRepositoryDescriptor desc = (IvyRepositoryDescriptor) descriptor;
-            List<String> artifactPatterns = desc.getArtifactPatterns();
-            if (artifactPatterns.size() == 1) {
-                return artifactPatterns.get(0).equals(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN);
-            } else {
-                return false;
-            }
+        IvyRepositoryDescriptor descriptor = repo.getDescriptor();
+        List<String> artifactPatterns = descriptor.getArtifactPatterns();
+        if (artifactPatterns.size() == 1) {
+            return artifactPatterns.get(0).equals(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN);
+        } else {
+            return false;
         }
-        return true;
     }
 
     private static class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {

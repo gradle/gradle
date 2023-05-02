@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultIvyDescriptorMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider
@@ -65,14 +66,8 @@ class IvyResolverTest extends Specification {
 
     def "resolvers are differentiated by m2compatible flag"() {
         given:
-        def resolver1 = resolver()
-        def resolver2 = resolver()
-
-        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.m2compatible = true
+        def resolver1 = resolver("ivy1")
+        def resolver2 = resolver("ivy1", true)
 
         expect:
         resolver1.id != resolver2.id
@@ -137,13 +132,8 @@ class IvyResolverTest extends Specification {
 
     def "resolvers are differentiated by useGradleMetadata flag"() {
         given:
-        def resolver1 = resolver()
-        def resolver2 = resolver(null, true)
-
-        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
+        def resolver1 = resolver(null, false)
+        def resolver2 = resolver(null, false, true)
 
         expect:
         resolver1.id != resolver2.id
@@ -151,13 +141,8 @@ class IvyResolverTest extends Specification {
 
     def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
         given:
-        def resolver1 = resolver(null, false, false)
-        def resolver2 = resolver(null, false, true)
-
-        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
-        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
-        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
+        def resolver1 = resolver(null, false, false, false)
+        def resolver2 = resolver(null, false, false, true)
 
         expect:
         resolver1.id != resolver2.id
@@ -168,7 +153,7 @@ class IvyResolverTest extends Specification {
         transport.isLocal() >> isLocal
         ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "foo"), "1.0")
         ImmutableMetadataSources metadataSources = mockMetadataSourcesForComponentMetadataRulesCachingTest()
-        def resolver = resolver(null, false, false, metadataSources)
+        def resolver = resolver(null, false, false, false, metadataSources)
 
         when:
         BuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult()
@@ -203,7 +188,7 @@ class IvyResolverTest extends Specification {
         return metadataSources
     }
 
-    private IvyResolver resolver(String ivyPattern = null, boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false , ImmutableMetadataSources metadataSources = null) {
+    private IvyResolver resolver(String ivyPattern = null, boolean m2Compatible = false, boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false , ImmutableMetadataSources metadataSources = null) {
         transport.resourceAccessor >> externalResourceAccessor
 
         MetadataArtifactProvider metadataArtifactProvider = new IvyMetadataArtifactProvider()
@@ -228,8 +213,19 @@ class IvyResolverTest extends Specification {
         def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
+        def builder = new IvyRepositoryDescriptor.Builder("repo", new URI("http://localhost"))
+        builder.m2Compatible = m2Compatible
+        builder.metadataSources = []
+        builder.authenticated = false
+        builder.authenticationSchemes = []
+        builder.layoutType = "test"
+        if (ivyPattern != null) {
+            builder.addIvyResource(new URI("http://localhost"), ivyPattern)
+        }
+        def descriptor = builder.create()
+
         new IvyResolver(
-                "repo",
+                descriptor,
                 transport,
                 Stub(LocallyAvailableResourceFinder),
                 false,
@@ -238,11 +234,6 @@ class IvyResolverTest extends Specification {
                 lister,
                 metadataSources,
                 metadataArtifactProvider, Mock(Instantiator),
-                TestUtil.checksumService).with {
-            if (ivyPattern) {
-                it.addDescriptorLocation(URI.create(""), ivyPattern)
-            }
-            it
-        }
+                TestUtil.checksumService)
     }
 }

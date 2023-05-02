@@ -42,6 +42,10 @@ public abstract class RepositoryDescriptor {
         this.name = name;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public abstract Type getType();
 
     public final Map<String, ?> getProperties() {
@@ -55,6 +59,5 @@ public abstract class RepositoryDescriptor {
     }
 
     protected abstract void addProperties(ImmutableSortedMap.Builder<String, Object> builder);
-
 
 }

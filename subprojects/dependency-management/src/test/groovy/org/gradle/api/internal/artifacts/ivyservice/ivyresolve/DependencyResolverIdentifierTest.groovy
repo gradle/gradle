@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-
+import com.google.common.collect.ImmutableList
+import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
@@ -60,11 +61,13 @@ class DependencyResolverIdentifierTest extends Specification {
 
     def patterns(ExternalResourceResolver resolver, Field field, List<String> patterns) {
         field.accessible = true
-        field.set(resolver, patterns.collect { p ->
+
+        def mapped = patterns.collect { p ->
             Mock(ResourcePattern) {
                 getPattern() >> p
             }
-        })
+        }
+        field.set(resolver, ImmutableList.copyOf(mapped))
     }
 
     def id(ExternalResourceResolver resolver) {
@@ -72,13 +75,13 @@ class DependencyResolverIdentifierTest extends Specification {
     }
 
     def resolver() {
-        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableMetadataSources), Stub(MetadataArtifactProvider))
+        return new TestResolver(Stub(UrlRepositoryDescriptor), false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableMetadataSources), Stub(MetadataArtifactProvider))
     }
 
     static class TestResolver extends ExternalResourceResolver {
 
-        protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder locallyAvailableResourceFinder, FileStore artifactFileStore, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
-            super(name, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null, TestUtil.checksumService)
+        protected TestResolver(UrlRepositoryDescriptor descriptor, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder locallyAvailableResourceFinder, FileStore artifactFileStore, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
+            super(descriptor, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null, TestUtil.checksumService)
         }
 
         @Override

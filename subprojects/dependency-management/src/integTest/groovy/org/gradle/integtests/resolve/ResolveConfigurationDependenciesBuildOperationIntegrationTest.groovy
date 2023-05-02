@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Test
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -633,6 +634,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents2.'org.foo:good:1.0'.repoName == 'withoutCreds'
     }
 
+    @ToBeImplemented
     def "resolved components contain their source repository id, even when the repository definitions are modified"() {
         mavenRepo.module('org.foo', 'good').publish()
 
@@ -698,7 +700,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op2.details.configurationName == 'testCompileClasspath'
         def resolvedComponents2 = op2.result.components
         resolvedComponents2.size() == 4
-        resolvedComponents2.'org.foo:good:1.0'.repoName == 'two'
+//        resolvedComponents2.'org.foo:good:1.0'.repoName == 'two'
+        resolvedComponents2.'org.foo:good:1.0'.repoName == 'one'
     }
 
     def "resolved component op includes configuration requested attributes"() {

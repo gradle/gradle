@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -36,17 +37,16 @@ import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import javax.annotation.Nullable;
-import java.net.URI;
 
-public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata> implements PatternBasedResolver {
+public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata> {
 
     private final boolean dynamicResolve;
-    private boolean m2Compatible;
+    private final boolean m2Compatible;
     private final IvyLocalRepositoryAccess localRepositoryAccess;
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
 
     public IvyResolver(
-        String name,
+        IvyRepositoryDescriptor descriptor,
         RepositoryTransport transport,
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
         boolean dynamicResolve,
@@ -58,7 +58,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         Instantiator injector, ChecksumService checksumService
     ) {
         super(
-            name,
+            descriptor,
             transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -71,6 +71,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
             injector,
             checksumService);
         this.dynamicResolve = dynamicResolve;
+        this.m2Compatible = descriptor.isM2Compatible();
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
         this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
     }
@@ -103,25 +104,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     public boolean isM2compatible() {
         return m2Compatible;
-    }
-
-    @Override
-    public void setM2compatible(boolean m2compatible) {
-        this.m2Compatible = m2compatible;
-    }
-
-    @Override
-    public void addArtifactLocation(URI baseUri, String pattern) {
-        addArtifactPattern(toResourcePattern(baseUri, pattern));
-    }
-
-    @Override
-    public void addDescriptorLocation(URI baseUri, String pattern) {
-        addIvyPattern(toResourcePattern(baseUri, pattern));
-    }
-
-    private ResourcePattern toResourcePattern(URI baseUri, String pattern) {
-        return isM2compatible() ? new M2ResourcePattern(baseUri, pattern) : new IvyResourcePattern(baseUri, pattern);
     }
 
     @Override
