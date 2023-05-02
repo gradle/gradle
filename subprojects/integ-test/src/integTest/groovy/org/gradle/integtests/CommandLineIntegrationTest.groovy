@@ -22,7 +22,9 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.GFileUtils
@@ -37,6 +39,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
+    @Rule
+    public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
     @Before
     void setup() {
@@ -170,9 +174,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires([UnitTestPreconditions.UnixDerivative, IntegTestPreconditions.NotEmbeddedExecutor])
     void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariableWithLinebreaks() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": """
             -DcustomProp1=custom-value
@@ -181,8 +184,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void canSpecifySystemPropertiesUsingJavaOptsEnvironmentVariable() {
-        Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("JAVA_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }

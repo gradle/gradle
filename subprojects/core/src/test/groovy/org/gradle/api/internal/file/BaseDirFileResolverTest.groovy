@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.PreconditionVerifier
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -25,8 +26,8 @@ import org.junit.Test
 import java.util.concurrent.Callable
 
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.junit.Assert.assertEquals
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.junit.Assert.assertEquals
 import static org.junit.Assert.fail
 
 class BaseDirFileResolverTest {
@@ -38,6 +39,7 @@ class BaseDirFileResolverTest {
 
     BaseDirFileResolver baseDirConverter
     @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule public PreconditionVerifier preconditions = new PreconditionVerifier()
 
     @Before public void setUp() {
         baseDir = rootDir.testDirectory
