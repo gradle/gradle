@@ -81,7 +81,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
     }
 
     /**
-     * The execution mode for incremental tasks
+     * The execution mode for incremental tasks.
      */
     public static TaskExecutionMode incremental() {
         return new DefaultTaskExecutionMode(null, true, true);
@@ -89,7 +89,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
 
     /**
      * The execution mode when task did not declare any outputs.
-     * The message will be `Task has not declared any outputs despite executing actions.`
+     * The message will be `Task has not declared any outputs despite executing actions.`.
      */
     public static TaskExecutionMode noOutputs() {
         return new DefaultTaskExecutionMode("Task has not declared any outputs despite executing actions.", false, false);
@@ -97,7 +97,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
 
     /**
      * The execution mode when the command was run with --rerun-tasks.
-     * The message will be `Executed with '--rerun-tasks'.`
+     * The message will be `Executed with '--rerun-tasks'.`.
      */
     public static TaskExecutionMode rerunTasksEnabled() {
         return new DefaultTaskExecutionMode("Executed with '--rerun-tasks'.", true, false);
@@ -105,7 +105,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
 
     /**
      * The execution mode when the Task.upToDateWhen is set to false.
-     * The message will be `Task.upToDateWhen is false.`
+     * The message will be `Task.upToDateWhen is false.`.
      */
     public static TaskExecutionMode upToDateWhenFalse() {
         return new DefaultTaskExecutionMode("Task.upToDateWhen is false.", true, false);
@@ -113,7 +113,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
 
     /**
      * The execution mode when the task is marked explicitly untracked.
-     * The message will be `Task state is not tracked.`
+     * The message will be `Task state is not tracked.`.
      */
     public static TaskExecutionMode untracked() {
         return new DefaultTaskExecutionMode("Task state is not tracked.", false, false);
@@ -121,9 +121,9 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
 
     /**
      * The execution mode when the task is marked explicitly untracked.
-     * The message will be `"Task state is not tracked: " + reason`
+     * The message will be `"Task is untracked because: " + reason`.
      */
     public static TaskExecutionMode untracked(String reason) {
-        return new DefaultTaskExecutionMode("Task state is not tracked: " + reason, false, false);
+        return new DefaultTaskExecutionMode("Task is untracked because: " + reason, false, false);
     }
 }
