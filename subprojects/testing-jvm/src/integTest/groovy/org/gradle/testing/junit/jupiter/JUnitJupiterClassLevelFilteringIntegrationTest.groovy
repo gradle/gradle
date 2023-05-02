@@ -22,5 +22,5 @@ import org.gradle.testing.junit.AbstractJUnitClassLevelFilteringIntegrationTest
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 @TargetCoverage({ JUNIT_JUPITER })
-class JUnitJupIterClassLevelFilteringIntegrationTest extends AbstractJUnitClassLevelFilteringIntegrationTest implements JUnitJupiterMultiVersionTest {
+class JUnitJupiterClassLevelFilteringIntegrationTest extends AbstractJUnitClassLevelFilteringIntegrationTest implements JUnitJupiterMultiVersionTest {
 }
