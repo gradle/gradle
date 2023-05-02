@@ -43,7 +43,7 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.shared.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.shared.codegen.kotlinDslPackageName
-import org.gradle.kotlin.dsl.support.ClassBytesRepository
+import org.gradle.kotlin.dsl.shared.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
 import org.jetbrains.kotlin.metadata.ProtoBuf

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
+package org.gradle.kotlin.dsl.shared.support
 
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.Closeable
 import java.io.File
 import java.util.jar.JarFile
@@ -35,7 +36,6 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  * Follows the one directory per package name segment convention.
  * Keeps JAR files open for fast lookup, must be closed.
  */
-internal
 class ClassBytesRepository(
     private val classPathFiles: List<File>,
     classPathDependencies: List<File> = emptyList()
@@ -154,7 +154,7 @@ private
 val slashOrDollar = Regex("[/$]")
 
 
-internal
+@VisibleForTesting
 fun kotlinSourceNameOf(classFilePath: String): String =
     classFilePath
         .removeSuffix(classFileExtension)
@@ -162,7 +162,7 @@ fun kotlinSourceNameOf(classFilePath: String): String =
         .replace(slashOrDollar, ".")
 
 
-internal
+@VisibleForTesting
 fun classFilePathCandidatesFor(sourceName: String): Sequence<String> =
     sourceName.replace(".", "/").let { path ->
         candidateClassFiles(path) + nestedClassFilePathCandidatesFor(path)

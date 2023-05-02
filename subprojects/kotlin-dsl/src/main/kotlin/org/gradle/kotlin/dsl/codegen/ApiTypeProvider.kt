@@ -23,7 +23,7 @@ import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.kotlin.dsl.accessors.contains
 import org.gradle.kotlin.dsl.accessors.primitiveTypeStrings
 
-import org.gradle.kotlin.dsl.support.ClassBytesRepository
+import org.gradle.kotlin.dsl.shared.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.jetbrains.org.objectweb.asm.AnnotationVisitor
