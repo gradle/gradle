@@ -23,6 +23,7 @@ import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.test.precondition.Requires
+import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
@@ -129,7 +130,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.expectDownloadMissing()
         expectPublish(module.rootMetaData)
 
-        if (TestPrecondition.MAC_OS_X_M1.fulfilled) {
+        if (TestPrecondition.doSatisfies(UnitTestPreconditions.MacOsM1)) {
             // FIXME KM M1 support might require aws-sdk-java-v2:2.17.198 and higher; see https://github.com/aws/aws-sdk-java-v2/issues/2942
             //   ...or this is just a harmless ST, see https://github.com/aws/aws-sdk-java/issues/2365
             executer.withStackTraceChecksDisabled()
