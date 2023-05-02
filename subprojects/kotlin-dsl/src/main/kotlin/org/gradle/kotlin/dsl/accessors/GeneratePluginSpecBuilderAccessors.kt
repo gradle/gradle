@@ -25,9 +25,6 @@ import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-import org.gradle.kotlin.dsl.codegen.fileHeader
-import org.gradle.kotlin.dsl.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.codegen.sourceNameOfBinaryName
 import org.gradle.kotlin.dsl.concurrent.IO
@@ -35,6 +32,9 @@ import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
+import org.gradle.kotlin.dsl.shared.codegen.fileHeader
+import org.gradle.kotlin.dsl.shared.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.shared.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
