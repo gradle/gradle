@@ -114,7 +114,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        boolean isClosureImplementation = superName.equals(CLOSURE_INTERNAL_NAME);
+        boolean isClosureImplementation = CLOSURE_INTERNAL_NAME.equals(superName);
         enterClass(isClosureImplementation);
         super.visit(version, access, name, signature, superName, interfaces);
     }
