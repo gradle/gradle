@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import org.gradle.kotlin.dsl.shared.codegen.generateKotlinDslApiExtensionsSourceTo
 import org.gradle.kotlin.dsl.shared.support.gradleApiMetadataFrom
 
 import java.io.File
