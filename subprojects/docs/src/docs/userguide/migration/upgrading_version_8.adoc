@@ -1145,7 +1145,8 @@ See the <<configuration_cache#config_cache:requirements:disallowed_types,configu
 [[test_task_fail_on_no_test_executed]]
 ==== Deprecated running test task successfully when no test executed
 Running the `Test` task successfully when no test was executed is now deprecated and will become an error in Gradle 9.
-This is done to avoid accidental successful test runs due to erroneous configuration.
+Note that it is not an error when no test sources are present, in this case the `test` task is simply skipped. It is only an error when test sources are present, but no test was selected for execution.
+This is changed to avoid accidental successful test runs due to erroneous configuration.
 
 === Changes in the IDE integration
 

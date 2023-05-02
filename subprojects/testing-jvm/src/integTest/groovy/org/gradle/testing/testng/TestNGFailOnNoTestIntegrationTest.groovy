@@ -16,7 +16,7 @@
 
 package org.gradle.testing.testng
 
-import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_PLATFORM_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
 
 class TestNGFailOnNoTestIntegrationTest extends TestNGTestFrameworkIntegrationTest {
@@ -55,7 +55,8 @@ class TestNGFailOnNoTestIntegrationTest extends TestNGTestFrameworkIntegrationTe
             apply plugin:'java-library'
             ${mavenCentralRepository()}
             dependencies {
-                testRuntimeOnly 'org.junit.platform:junit-platform-suite-engine:${LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
             test {
                 useJUnitPlatform()
