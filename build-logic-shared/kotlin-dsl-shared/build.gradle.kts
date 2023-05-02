@@ -9,20 +9,20 @@ group = "org.gradle"
 version = file("../../version.txt").readText().trim()
 
 base {
-    archivesName.set("gradle-${project.name}")
+    archivesName = "gradle-${project.name}"
 }
 
 
 java {
-    targetCompatibility = JavaVersion.VERSION_1_8
     toolchain {
         languageVersion = JavaLanguageVersion.of(11)
         vendor = JvmVendorSpec.ADOPTIUM
     }
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 tasks.withType(KotlinCompile::class).configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_1_8)
+        jvmTarget = JvmTarget.JVM_1_8
     }
 }

@@ -110,7 +110,7 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
         val cpDir = newDir("cp-dir")
         unzipTo(cpDir, jar2)
 
-        classPathBytesRepositoryFor(listOf(jar1, cpDir)).use { repository ->
+        ClassBytesRepository(listOf(jar1, cpDir)).use { repository ->
             assertThat(
                 repository.classBytesFor(canonicalNameOf<Groovydoc.Link>()),
                 notNullValue()
@@ -121,7 +121,7 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
             )
         }
 
-        classPathBytesRepositoryFor(listOf(jar1, cpDir)).use { repository ->
+        ClassBytesRepository(listOf(jar1, cpDir)).use { repository ->
             assertThat(
                 repository.allSourceNames,
                 hasItems(
@@ -141,7 +141,7 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
     fun `ignores package-info and compiler generated classes`() {
         val jars = EffectiveClassPath(javaClass.classLoader).asFiles.filter { it.name.startsWith("gradle-core-api-") }
 
-        classPathBytesRepositoryFor(jars).use { repository ->
+        ClassBytesRepository(jars).use { repository ->
             repository.allSourceNames.apply {
                 assertTrue(none { it == "package-info" })
                 assertTrue(none { it.matches(Regex("\\$[0-9]\\.class")) })
@@ -159,7 +159,7 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
             withFile("some.xml")
         )
 
-        classPathBytesRepositoryFor(entries).use { repository ->
+        ClassBytesRepository(entries).use { repository ->
             assertThat(
                 repository.allSourceNames,
                 equalTo(listOf(canonicalNameOf<DeepThought>(), canonicalNameOf<LightThought>()))

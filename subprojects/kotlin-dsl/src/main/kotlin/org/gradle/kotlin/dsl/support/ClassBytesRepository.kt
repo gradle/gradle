@@ -16,18 +16,9 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.util.internal.TextUtil.normaliseFileSeparators
-
 import java.io.Closeable
 import java.io.File
 import java.util.jar.JarFile
-
-
-internal
-fun classPathBytesRepositoryFor(classPath: List<File>, classPathDependencies: List<File> = emptyList()) =
-    ClassBytesRepository(DefaultClassPath.of(classPath), DefaultClassPath.of(classPathDependencies))
 
 
 private
@@ -45,16 +36,16 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  * Keeps JAR files open for fast lookup, must be closed.
  */
 internal
-class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPath = ClassPath.EMPTY) : Closeable {
+class ClassBytesRepository(
+    private val classPathFiles: List<File>,
+    classPathDependencies: List<File> = emptyList()
+) : Closeable {
 
     private
     val openJars = mutableMapOf<File, JarFile>()
 
     private
-    val classPathFiles: List<File> = classPath.asFiles
-
-    private
-    val classBytesIndex = (classPathFiles + classPathDependencies.asFiles).map { classBytesIndexFor(it) }
+    val classBytesIndex = (classPathFiles + classPathDependencies).map { classBytesIndexFor(it) }
 
     /**
      * Class file bytes for Kotlin source name, if found.
@@ -195,3 +186,8 @@ fun nestedClassNameFor(path: String) = path.run {
         substring(0, index) + '$' + substring(index + 1)
     }
 }
+
+
+private
+fun normaliseFileSeparators(path: String): String =
+    path.replace(File.separatorChar, '/')

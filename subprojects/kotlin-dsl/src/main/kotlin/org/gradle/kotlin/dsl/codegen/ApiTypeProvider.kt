@@ -24,7 +24,6 @@ import org.gradle.kotlin.dsl.accessors.contains
 import org.gradle.kotlin.dsl.accessors.primitiveTypeStrings
 
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.support.classPathBytesRepositoryFor
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.jetbrains.org.objectweb.asm.AnnotationVisitor
@@ -61,7 +60,7 @@ fun apiTypeProviderFor(
     parameterNamesSupplier: ParameterNamesSupplier = { null }
 ): ApiTypeProvider =
 
-    ApiTypeProvider(classPathBytesRepositoryFor(classPath, classPathDependencies), parameterNamesSupplier)
+    ApiTypeProvider(ClassBytesRepository(classPath, classPathDependencies), parameterNamesSupplier)
 
 
 private

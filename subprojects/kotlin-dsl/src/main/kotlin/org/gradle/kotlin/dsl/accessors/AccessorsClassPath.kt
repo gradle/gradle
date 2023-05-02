@@ -299,7 +299,7 @@ internal
 class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
-    val classBytesRepository = ClassBytesRepository(classPath)
+    val classBytesRepository = ClassBytesRepository(classPath.asFiles)
 
     private
     val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
