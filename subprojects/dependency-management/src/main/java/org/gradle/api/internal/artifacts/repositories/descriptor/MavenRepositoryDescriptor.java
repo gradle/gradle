@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenPattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -39,23 +40,20 @@ public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
     private final ImmutableList<ResourcePattern> artifactResources;
 
     private MavenRepositoryDescriptor(
+        String id,
         String name,
         URI url,
+        ImmutableList<ResourcePattern> metadataResources,
+        ImmutableList<ResourcePattern> artifactResources,
         ImmutableList<String> metadataSources,
         boolean authenticated,
         ImmutableList<String> authenticationSchemes,
         ImmutableList<URI> artifactUrls
     ) {
-        super(name, url, metadataSources, authenticated, authenticationSchemes);
+        super(id, name, url, metadataSources, authenticated, authenticationSchemes);
         this.artifactUrls = artifactUrls;
-        this.metadataResources = ImmutableList.of(new M2ResourcePattern(url, MavenPattern.M2_PATTERN));
-
-        ImmutableList.Builder<ResourcePattern> artifactResourcesBuilder = ImmutableList.builderWithExpectedSize(1 + artifactUrls.size());
-        artifactResourcesBuilder.add(new M2ResourcePattern(url, MavenPattern.M2_PATTERN));
-        for (URI rootUri : artifactUrls) {
-            artifactResourcesBuilder.add(new M2ResourcePattern(rootUri, MavenPattern.M2_PATTERN));
-        }
-        this.artifactResources = artifactResourcesBuilder.build();
+        this.metadataResources = metadataResources;
+        this.artifactResources = artifactResources;
     }
 
     @Override
@@ -93,13 +91,29 @@ public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
         }
 
         public MavenRepositoryDescriptor create() {
+            checkNotNull(artifactUrls);
+            checkNotNull(metadataSources);
+
+            ImmutableList<ResourcePattern> metadataResources = ImmutableList.of(new M2ResourcePattern(url, MavenPattern.M2_PATTERN));
+            ImmutableList.Builder<ResourcePattern> artifactResourcesBuilder = ImmutableList.builderWithExpectedSize(1 + artifactUrls.size());
+            artifactResourcesBuilder.add(new M2ResourcePattern(url, MavenPattern.M2_PATTERN));
+            for (URI rootUri : artifactUrls) {
+                artifactResourcesBuilder.add(new M2ResourcePattern(rootUri, MavenPattern.M2_PATTERN));
+            }
+            ImmutableList<ResourcePattern> artifactResources = artifactResourcesBuilder.build();
+
+            String id = calculateId(MavenResolver.class, metadataResources, artifactResources, metadataSources, hasher -> {});
+
             return new MavenRepositoryDescriptor(
+                id,
                 checkNotNull(name),
                 url,
-                checkNotNull(metadataSources),
+                metadataResources,
+                artifactResources,
+                metadataSources,
                 checkNotNull(authenticated),
                 checkNotNull(authenticationSchemes),
-                checkNotNull(artifactUrls)
+                artifactUrls
             );
         }
     }

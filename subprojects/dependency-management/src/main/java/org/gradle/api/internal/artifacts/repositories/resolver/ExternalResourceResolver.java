@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDe
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
@@ -50,8 +49,6 @@ import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
@@ -83,7 +80,6 @@ import java.util.Set;
 
 public abstract class ExternalResourceResolver<T extends ModuleComponentResolveMetadata> implements ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
-    private static final StringInterner REPOSITORY_ID_INTERNER = new StringInterner();
 
     private final String name;
     private final ImmutableList<ResourcePattern> ivyPatterns;
@@ -104,7 +100,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final Instantiator injector;
     private final ChecksumService checksumService;
 
-    private String id;
+    private final String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
 
     protected ExternalResourceResolver(
@@ -121,6 +117,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         Instantiator injector,
         ChecksumService checksumService
     ) {
+        this.id = descriptor.getId();
         this.name = descriptor.getName();
         this.ivyPatterns = descriptor.getMetadataResources();
         this.artifactPatterns = descriptor.getArtifactResources();
@@ -139,15 +136,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     @Override
     public String getId() {
-        if (id != null) {
-            return id;
-        }
-        id = generateId(this);
         return id;
-    }
-
-    public ImmutableMetadataSources getMetadataSources() {
-        return metadataSources;
     }
 
     @Override
@@ -494,25 +483,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             }
             return MetadataFetchingCost.EXPENSIVE;
         }
-    }
-
-    private String generateId(ExternalResourceResolver<?> resolver) {
-        Hasher cacheHasher = Hashing.newHasher();
-        cacheHasher.putString(getClass().getName());
-        cacheHasher.putInt(resolver.ivyPatterns.size());
-        for (ResourcePattern ivyPattern : ivyPatterns) {
-            cacheHasher.putString(ivyPattern.getPattern());
-        }
-        cacheHasher.putInt(artifactPatterns.size());
-        for (ResourcePattern artifactPattern : artifactPatterns) {
-            cacheHasher.putString(artifactPattern.getPattern());
-        }
-        appendId(cacheHasher);
-        return REPOSITORY_ID_INTERNER.intern(cacheHasher.hash().toString());
-    }
-
-    protected void appendId(Hasher hasher) {
-        getMetadataSources().appendId(hasher);
     }
 
     private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {

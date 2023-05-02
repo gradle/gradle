@@ -49,29 +49,12 @@ import spock.lang.Specification
 class MavenResolverTest extends Specification {
     def module = Mock(MavenModuleResolveMetadata)
     def transport = Stub(RepositoryTransport)
-    def resolver = resolver()
 
     def "has useful string representation"() {
+        def resolver = resolver()
+
         expect:
         resolver.toString() == "Maven repository 'repo'"
-    }
-
-    def "resolvers are differentiated by useGradleMetadata flag"() {
-        given:
-        def resolver1 = resolver("ivy1")
-        def resolver2 = resolver("ivy1", true)
-
-        expect:
-        resolver1.id != resolver2.id
-    }
-
-    def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
-        given:
-        def resolver1 = resolver("ivy1", false, false)
-        def resolver2 = resolver("ivy1", false, true)
-
-        expect:
-        resolver1.id != resolver2.id
     }
 
     def "correctly sets caching of component metadata rules depending on maven repository transport"() {
@@ -79,7 +62,7 @@ class MavenResolverTest extends Specification {
         transport.isLocal() >> isLocal
         ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "foo"), "1.0")
         ImmutableMetadataSources metadataSources = mockMetadataSourcesForComponentMetadataRulesCachingTest()
-        def resolver = resolver(null, false, false, metadataSources)
+        def resolver = resolver(metadataSources)
 
         when:
         BuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult()
@@ -114,7 +97,7 @@ class MavenResolverTest extends Specification {
         return metadataSources
     }
 
-    private MavenResolver resolver(String artifactUrl = null, boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false, ImmutableMetadataSources metadataSources = null) {
+    private MavenResolver resolver(ImmutableMetadataSources metadataSources = null) {
         MetadataArtifactProvider metadataArtifactProvider = new MavenMetadataArtifactProvider()
         def fileResourceRepository = Stub(FileResourceRepository)
         def moduleIdentifierFactory = Stub(ImmutableModuleIdentifierFactory)
@@ -128,10 +111,6 @@ class MavenResolverTest extends Specification {
                         moduleIdentifierFactory, validator
                     ))
                 }
-                appendId(_) >> { args ->
-                    args[0].putBoolean(useGradleMetadata)
-                    args[0].putBoolean(alwaysProvidesMetadataForModules)
-                }
             }
         }
 
@@ -142,11 +121,7 @@ class MavenResolverTest extends Specification {
         builder.metadataSources = []
         builder.authenticated = false
         builder.authenticationSchemes = []
-        if (artifactUrl != null) {
-            builder.artifactUrls = [new URI(artifactUrl)]
-        } else {
-            builder.artifactUrls = []
-        }
+        builder.artifactUrls = []
         def descriptor = builder.create()
         new MavenResolver(descriptor, new URI("http://localhost"), transport, Stub(LocallyAvailableResourceFinder), Stub(FileStore), metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister, Mock(Instantiator), TestUtil.checksumService)
     }

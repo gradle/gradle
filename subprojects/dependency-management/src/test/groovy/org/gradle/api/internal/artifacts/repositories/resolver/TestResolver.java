@@ -25,7 +25,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
@@ -47,11 +46,6 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
 
     @Override
     protected boolean isMetaDataArtifact(ArtifactType artifactType) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected void appendId(Hasher hasher) {
         throw new UnsupportedOperationException();
     }
 

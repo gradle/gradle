@@ -62,7 +62,6 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -365,7 +364,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
     }
 
-    private static class MavenMetadataSources implements MetadataSources {
+    private class MavenMetadataSources implements MetadataSources {
         boolean gradleMetadata;
         boolean mavenPom;
         boolean artifact;
@@ -384,8 +383,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
 
         /**
-         * This is used for reporting purposes on build scans.
-         * Changing this means a change of repository for build scans.
+         * This is used to generate the repository id and for reporting purposes on build scans.
+         * Changing this means a change of repository.
          *
          * @return a list of implemented metadata sources, as strings.
          */
@@ -408,21 +407,25 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
         @Override
         public void gradleMetadata() {
+            invalidateDescriptor();
             gradleMetadata = true;
         }
 
         @Override
         public void mavenPom() {
+            invalidateDescriptor();
             mavenPom = true;
         }
 
         @Override
         public void artifact() {
+            invalidateDescriptor();
             artifact = true;
         }
 
         @Override
         public void ignoreGradleMetadataRedirection() {
+            invalidateDescriptor();
             ignoreGradleMetadataRedirection = true;
         }
 
@@ -448,8 +451,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     private static class MavenSnapshotDecoratingSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
-        private static final int HASH_ID = 30155977;
-
         private final MetadataSource<MutableModuleComponentResolveMetadata> delegate;
 
         private MavenSnapshotDecoratingSource(MetadataSource<MutableModuleComponentResolveMetadata> delegate) {
@@ -468,12 +469,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         @Override
         public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
             delegate.listModuleVersions(dependency, module, ivyPatterns, artifactPatterns, versionLister, result);
-        }
-
-        @Override
-        public void appendId(Hasher hasher) {
-            hasher.putInt(HASH_ID);
-            delegate.appendId(hasher);
         }
     }
 }
