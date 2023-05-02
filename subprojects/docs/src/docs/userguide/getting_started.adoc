@@ -12,24 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[getting_started]]
-= Getting Started
+[[introduction]]
+= Introduction
 
 Everyone has to start somewhere and if you're new to Gradle, this is where to begin.
 
-== Before you start
-
-In order to use Gradle effectively, you need to know what it is and understand some of its fundamental concepts. So before you start using Gradle in earnest, we highly recommend you read <<what_is_gradle#what_is_gradle,What is Gradle?>>.
-
+//== Before you start
+//
+//In order to use Gradle effectively, you need to know what it is and understand some of its fundamental concepts. So before you start using Gradle in earnest, we highly recommend you read <<what_is_gradle#what_is_gradle,What is Gradle?>>.
+//
 
 [[gs:installation]]
-== Installation
+== Setup and installation
 
 If all you want to do is run an existing Gradle build, then you don't need to install Gradle if the build has a <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>, identifiable via the _gradlew_ and/or _gradlew.bat_ files in the root of the build. You just need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
 
 Android Studio comes with a working installation of Gradle, so you don't need to install Gradle separately in that case.
 
 In order to create a new build or add a Wrapper to an existing build, you will need to install Gradle <<installation#installation,according to these instructions>>. Note that there may be other ways to install Gradle in addition to those described on that page, since it's nearly impossible to keep track of all the package managers out there.
+
+
+== Reference docs
+
+|===
+| | |
+
+|link:https://docs.gradle.org/current/javadoc/index.html[API reference] +
+View all Gradle API objects, methods, and attributes. |Cell in column 2, row 2 |Cell in column 3, row 2
+|link:https://docs.gradle.org/current/javadoc/index.html[API reference] +
+View all Gradle API objects, methods, and attributes. |Cell in column 2, row 2 |Cell in column 3, row 2
+|link:https://docs.gradle.org/current/javadoc/index.html[API reference] +
+View all Gradle API objects, methods, and attributes. |Cell in column 2, row 2 |Cell in column 3, row 2
+|===
+
+== Developer community
 
 [[try_gradle]]
 == Try Gradle
