@@ -174,7 +174,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         when:
         withBuildCache().run "untrackedTrackWithReason"
         then:
-        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task state is not tracked: Untracked for testing from API"
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: Untracked for testing from API"
     }
 
 
@@ -185,7 +185,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         when:
         withBuildCache().run "untrackedTrackWithReason"
         then:
-        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task state is not tracked: untracked-task reason"
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: untracked-task reason"
     }
 
     def "cacheability for a untracked task is NOT_ENABLED_FOR_TASK with message when marked cacheable"() {
