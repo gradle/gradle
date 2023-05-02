@@ -20,8 +20,8 @@ import org.gradle.api.Project
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.support.useToRun
 
 import java.io.File
 

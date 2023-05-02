@@ -31,9 +31,9 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.support.unsafeLazy
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec

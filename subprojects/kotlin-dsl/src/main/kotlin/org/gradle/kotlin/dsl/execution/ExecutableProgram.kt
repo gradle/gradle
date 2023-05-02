@@ -20,9 +20,9 @@ import org.gradle.api.Project
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.useToRun
 
 import org.gradle.plugin.management.internal.PluginRequests
 

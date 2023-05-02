@@ -21,7 +21,7 @@ import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
 
-import org.gradle.kotlin.dsl.support.useToRun
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf

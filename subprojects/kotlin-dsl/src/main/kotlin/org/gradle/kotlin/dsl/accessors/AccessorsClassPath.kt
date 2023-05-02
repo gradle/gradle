@@ -45,7 +45,7 @@ import org.gradle.kotlin.dsl.internal.shared.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.shared.codegen.kotlinDslPackageName
 import org.gradle.kotlin.dsl.internal.shared.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
-import org.gradle.kotlin.dsl.support.useToRun
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
 import org.jetbrains.kotlin.metadata.deserialization.Flags

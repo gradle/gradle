@@ -7,6 +7,8 @@ description = "Kotlin DSL Provider Plugins"
 dependencies {
     implementation(project(":kotlin-dsl"))
 
+    implementation("org.gradle:kotlin-dsl-shared")
+
     implementation(project(":base-services"))
     implementation(project(":core"))
     implementation(project(":core-api"))

@@ -17,6 +17,10 @@
 package org.gradle.kotlin.dsl.internal.shared.support
 
 
+inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
+    use { run(action) }
+
+
 /**
  * Appends value to the given Appendable and simple `\n` line separator after it.
  *

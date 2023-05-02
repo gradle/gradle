@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Action
-import org.gradle.internal.scripts.GradleScript
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -35,11 +34,12 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.scripts.GradleScript
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-
 import java.io.File
 import java.net.URI
 

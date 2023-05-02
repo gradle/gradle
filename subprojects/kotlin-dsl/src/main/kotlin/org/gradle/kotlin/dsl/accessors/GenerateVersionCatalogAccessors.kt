@@ -36,6 +36,7 @@ import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 import org.gradle.kotlin.dsl.internal.shared.codegen.fileHeader
 import org.gradle.kotlin.dsl.internal.shared.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 import org.gradle.kotlin.dsl.support.PluginDependenciesSpecScopeInternal
 import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
@@ -52,7 +53,6 @@ import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
-import org.gradle.kotlin.dsl.support.useToRun
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.BufferedWriter
 import java.io.File

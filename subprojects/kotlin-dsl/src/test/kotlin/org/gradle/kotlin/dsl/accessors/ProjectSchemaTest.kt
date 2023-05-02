@@ -6,7 +6,7 @@ import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-import org.gradle.kotlin.dsl.support.useToRun
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 
 import org.hamcrest.CoreMatchers.equalTo
 

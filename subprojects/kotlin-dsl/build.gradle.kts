@@ -13,6 +13,7 @@ dependencies {
     api(libs.futureKotlin("reflect"))
 
     implementation("org.gradle:kotlin-dsl-shared")
+
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))

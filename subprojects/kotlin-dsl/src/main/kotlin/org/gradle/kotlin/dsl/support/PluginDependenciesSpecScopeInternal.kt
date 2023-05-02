@@ -20,6 +20,7 @@ import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.DependenciesAccessors
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
 import org.gradle.plugin.use.PluginDependenciesSpec
 import javax.inject.Inject
 

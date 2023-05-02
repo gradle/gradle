@@ -27,7 +27,7 @@ import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.internal.shared.codegen.pluginEntriesFrom
-import org.gradle.kotlin.dsl.support.useToRun
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec

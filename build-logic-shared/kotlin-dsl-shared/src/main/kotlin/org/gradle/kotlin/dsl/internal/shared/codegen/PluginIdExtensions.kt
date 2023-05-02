@@ -17,17 +17,18 @@
 package org.gradle.kotlin.dsl.internal.shared.codegen
 
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import java.io.File
 
 
 fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
-    file.bufferedWriter().use { buf ->
-        buf.appendReproducibleNewLine(fileHeader)
+    file.bufferedWriter().useToRun {
+        appendReproducibleNewLine(fileHeader)
         pluginIdExtensionDeclarationsFor(gradleJars).forEach { extension ->
-            buf.write("\n")
-            buf.appendReproducibleNewLine(extension)
+            write("\n")
+            appendReproducibleNewLine(extension)
         }
     }
 }

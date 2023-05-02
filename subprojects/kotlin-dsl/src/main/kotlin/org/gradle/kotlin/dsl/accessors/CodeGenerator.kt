@@ -17,9 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.plugins.ExtensionAware
-
-import org.gradle.kotlin.dsl.support.unsafeLazy
-
+import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 

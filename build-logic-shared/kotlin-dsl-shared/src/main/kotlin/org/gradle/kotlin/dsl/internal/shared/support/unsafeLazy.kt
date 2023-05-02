@@ -22,5 +22,4 @@ package org.gradle.kotlin.dsl.internal.shared.support
  *
  * @see LazyThreadSafetyMode.NONE
  */
-internal
 fun <T> unsafeLazy(initializer: () -> T): Lazy<T> = lazy(LazyThreadSafetyMode.NONE, initializer)

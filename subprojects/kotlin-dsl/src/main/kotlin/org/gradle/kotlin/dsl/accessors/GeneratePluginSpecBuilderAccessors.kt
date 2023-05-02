@@ -36,6 +36,7 @@ import org.gradle.kotlin.dsl.internal.shared.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.internal.shared.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.internal.shared.codegen.sourceNameOfBinaryName
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.DUP
@@ -59,7 +60,6 @@ import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
-import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import org.jetbrains.org.objectweb.asm.ClassWriter

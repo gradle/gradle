@@ -30,7 +30,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
-import org.gradle.kotlin.dsl.support.unsafeLazy
+import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
 
 
 /**

@@ -21,8 +21,8 @@ import groovy.lang.GroovyObject
 import groovy.lang.MetaClass
 import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
 import org.gradle.api.Incubating
+import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
 import org.gradle.kotlin.dsl.support.uncheckedCast
-import org.gradle.kotlin.dsl.support.unsafeLazy
 
 
 /**
