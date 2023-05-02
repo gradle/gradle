@@ -74,9 +74,7 @@ class RequiresExtensionTest extends Specification {
 
         when:
         prodExtension.checkValidCombinations(
-            List.of(
-                "org.gradle.test.preconditions.UnitTestPreconditions\$Online"
-            )
+            ["org.gradle.test.preconditions.UnitTestPreconditions\$Online"]
         )
 
         then:
