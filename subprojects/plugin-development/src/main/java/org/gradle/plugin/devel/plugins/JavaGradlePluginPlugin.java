@@ -44,7 +44,6 @@ import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -424,11 +423,6 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
         private AddOpensCommandLineArgumentProvider(Test test) {
             this.test = test;
-        }
-
-        @Input
-        public JavaVersion getJavaVersion() {
-            return test.getJavaVersion();
         }
 
         @Override

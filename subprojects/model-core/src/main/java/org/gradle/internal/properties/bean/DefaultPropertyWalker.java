@@ -17,7 +17,6 @@
 package org.gradle.internal.properties.bean;
 
 import com.google.common.base.Suppliers;
-import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
@@ -73,9 +72,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
             public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
                 if (value != null) {
-                    if (!Action.class.isAssignableFrom(propertyMetadata.getDeclaredType().getRawType())) {
-                        NestedValidationUtil.validateBeanType(validationContext, propertyMetadata.getPropertyName(), typeMetadata);
-                    }
+                    NestedValidationUtil.validateBeanType(validationContext, propertyMetadata.getPropertyName(), typeMetadata.getType());
                     ImplementationValue implementation = implementationResolver.resolveImplementation(value);
                     visitor.visitInputProperty(qualifiedName, new ImplementationPropertyValue(implementation), false);
                 } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {

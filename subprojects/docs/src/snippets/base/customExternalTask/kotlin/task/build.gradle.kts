@@ -39,10 +39,6 @@ publishing {
 
 // Needed when using ProjectBuilder
 class AddOpensArgProvider(private val test: Test) : CommandLineArgumentProvider {
-    @Input
-    fun getJavaVersion(): JavaVersion? {
-        return test.getJavaVersion()
-    }
     override fun asArguments() : Iterable<String> {
         return if (test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             listOf("--add-opens=java.base/java.lang=ALL-UNNAMED")

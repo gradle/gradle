@@ -34,28 +34,39 @@ public class NestedValidationUtil  {
      * Validates that the {@link org.gradle.api.tasks.Nested} annotation
      * supports the given bean type.
      * <p>
-     * Only types with annotated properties are supported.
+     * Only types with annotated properties are supported. Not supported are
+     * types from the Java SE API, except for types from
+     * the {@code java.util.function} package.
      *
      * @param validationContext the validation context
      * @param propertyName the name of the property
-     * @param typeMetadata the type metadata
+     * @param beanType the type of the bean
      */
     public static void validateBeanType(
         TypeValidationContext validationContext,
         String propertyName,
-        TypeMetadata typeMetadata
+        Class<?> beanType
     ) {
-        if (!typeMetadata.hasAnnotatedProperties()) {
+        if (!isSupportedType(beanType)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
                     .reportAs(WARNING)
                     .forProperty(propertyName)
-                    .withDescription(() -> "where nested type '" + typeMetadata.getType().getName() + "' is not supported")
+                    .withDescription(() -> "where nested type '" + beanType.getName() + "' is not supported")
                     .happensBecause("Nested types must declare annotated properties")
                     .addPossibleSolution("Declare annotated properties on the nested type, e.g. 'Provider<T>', 'Iterable<T>', or '<MapProperty<K, V>>', where 'T' and 'V' must have one or more annotated properties")
                     .documentedAt("validation_problems", "unsupported_nested_type")
             );
         }
+    }
+
+    private static final String SUPPORTED_PACKAGE_NAME = "java.util.function";
+
+    private static boolean isJavaSE(Class<?> type) {
+        return type.getName().startsWith("java.") || type.getName().startsWith("javax.");
+    }
+    private static boolean isSupportedType(Class<?> type) {
+        return !isJavaSE(type) || type.getName().startsWith(SUPPORTED_PACKAGE_NAME);
     }
 
     /**

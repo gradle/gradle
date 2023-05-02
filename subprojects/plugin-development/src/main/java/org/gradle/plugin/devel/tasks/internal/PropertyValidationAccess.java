@@ -104,7 +104,7 @@ public class PropertyValidationAccess {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
                 // Inspecting annotations of static types is only conclusive if type is final
                 if (Modifier.isFinal(value.getRawType().getModifiers())) {
-                    NestedValidationUtil.validateBeanType(validationContext, propertyMetadata.getPropertyName(), typeMetadata);
+                    NestedValidationUtil.validateBeanType(validationContext, propertyMetadata.getPropertyName(), typeMetadata.getType());
                 }
             }
         });

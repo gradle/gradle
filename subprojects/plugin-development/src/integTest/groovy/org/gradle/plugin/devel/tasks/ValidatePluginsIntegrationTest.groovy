@@ -904,16 +904,13 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @ValidationTestFor(
         ValidationProblemId.NESTED_TYPE_UNSUPPORTED
     )
-    def "nested #type#parameterType is validated with deprecation warning"() {
+    def "nested #typeName#parameterType is validated with deprecation warning"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.provider.*;
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
-            import java.io.*;
             import java.util.*;
-
-            enum SomeEnum { A, B, C }
 
             @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
@@ -935,9 +932,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         where:
         typeName   | parameterType      | producer                                                            | className
-        'File'     | ''                 | 'new File("some/path")'                                             | 'java.io.File'
         'Integer'  | ''                 | 'Integer.valueOf(1)'                                                | 'java.lang.Integer'
-        'SomeEnum' | ''                 | 'SomeEnum.A'                                                        | 'SomeEnum'
         'String'   | ''                 | 'new String()'                                                      | 'java.lang.String'
         'Iterable' | '<Integer>'        | 'Arrays.asList(Integer.valueOf(1), Integer.valueOf(2))'             | 'java.lang.Integer'
         'List'     | '<String>'         | 'Arrays.asList("value1", "value2")'                                 | 'java.lang.String'
@@ -955,7 +950,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.provider.*;
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
+            import java.io.*;
             import java.util.*;
+
+            enum SomeEnum { A, B, C }
 
             @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
@@ -987,6 +985,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         where:
         typeName   | parameterType      | producer
         'Options'  | ''                 | 'new Options()'
+        'SomeEnum' | ''                 | 'SomeEnum.A'
+        'File'     | ''                 | 'new File("some/path")'
         'Iterable' | '<Options>'        | 'Arrays.asList(new Options(), new Options())'
         'Map'      | '<String,Options>' | 'Collections.singletonMap("a", new Options())'
         'Provider' | '<Options>'        | 'getProject().getProviders().provider(() -> new Options())'
