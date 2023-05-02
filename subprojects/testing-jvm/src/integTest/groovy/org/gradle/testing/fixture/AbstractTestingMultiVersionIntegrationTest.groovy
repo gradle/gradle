@@ -20,16 +20,16 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 
 /**
  * Base class for multi-version integration tests that use various versions of JUnit.  This class provides the common
- * configuration for the build script and test framework.  Subclasses must provide test framework specific configuration
- * for the build script.
+ * configuration for the build script and test framework.  Subclasses must provide test framework/engine specific
+ * configuration for the build script.
  *
  * The following depicts the general pattern of implementation where function-specific tests extend from this class,
- * while framework-specific classes extend from the function-specific classes.  The framework-specific classes should
- * provide the {@link BuildScriptConfiguration} and {@link TestSourceConfiguration} required by this class via a
- * reusable trait.
+ * while framework/engine-specific classes extend from the function-specific classes.  The framework/engine-specific
+ * classes should provide the {@link BuildScriptConfiguration} and {@link TestSourceConfiguration} required by this
+ * class via a reusable trait.
  *
  *  ┌──────────────────────────────────────────────┐
- *  │   AbstractJUnitMultiVersionIntegrationTest   │
+ *  │  AbstractTestingMultiVersionIntegrationTest  │
  *  └──────────────────────────────────────────────┘
  *                        ▲
  *                        │
@@ -39,7 +39,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
  *                        ▲
  *                        │
  *  ┌─────────────────────┴────────────────────────┐      ┌──────────────────────────────────────────────┐
- *  │     JUnitJupiterTestTaskIntegrationTest      ├─────►│          JUnitJupiterMultiversionTest        │
+ *  │     JUnitJupiterTestTaskIntegrationTest      ├─────►│          JUnitJupiterMultiVersionTest        │
  *  └──────────────────────────────────────────────┘      └──────────────────────────────────────────────┘
  *
  */
