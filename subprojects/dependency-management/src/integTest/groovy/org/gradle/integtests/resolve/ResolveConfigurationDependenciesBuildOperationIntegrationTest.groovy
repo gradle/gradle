@@ -27,7 +27,6 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Test
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -503,17 +502,19 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
             assert ops.size() == 1
             def op = ops[0]
+            def maven1Id = repoId('maven1', op.details)
+            def maven2Id = repoId('maven2', op.details)
             assert op.result.resolvedDependenciesCount == 3
             def resolvedComponents = op.result.components
             assert resolvedComponents.size() == 8
-            assert resolvedComponents.'project :'.repoName == null
-            assert resolvedComponents.'org.foo:direct1:1.0'.repoName == 'maven1'
-            assert resolvedComponents.'org.foo:direct2:1.0'.repoName == 'maven2'
-            assert resolvedComponents.'org.foo:transitive1:1.0'.repoName == 'maven1'
-            assert resolvedComponents.'org.foo:transitive2:1.0'.repoName == 'maven2'
-            assert resolvedComponents.'project :child'.repoName == null
-            assert resolvedComponents.'org.foo:child-transitive1:1.0'.repoName == 'maven1'
-            assert resolvedComponents.'org.foo:child-transitive2:1.0'.repoName == 'maven2'
+            assert resolvedComponents.'project :'.repoId == null
+            assert resolvedComponents.'org.foo:direct1:1.0'.repoId == maven1Id
+            assert resolvedComponents.'org.foo:direct2:1.0'.repoId == maven2Id
+            assert resolvedComponents.'org.foo:transitive1:1.0'.repoId == maven1Id
+            assert resolvedComponents.'org.foo:transitive2:1.0'.repoId == maven2Id
+            assert resolvedComponents.'project :child'.repoId == null
+            assert resolvedComponents.'org.foo:child-transitive1:1.0'.repoId == maven1Id
+            assert resolvedComponents.'org.foo:child-transitive2:1.0'.repoId == maven2Id
             return true
         }
 
@@ -572,12 +573,13 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         then:
         failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def repoId = repoId('maven1', op.details)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 4
-        resolvedComponents.'project :'.repoName == null
-        resolvedComponents.'project :child'.repoName == null
-        resolvedComponents.'org.foo:direct1:1.0'.repoName == 'maven1'
-        resolvedComponents.'org.foo:transitive1:1.0'.repoName == 'maven1'
+        resolvedComponents.'project :'.repoId == null
+        resolvedComponents.'project :child'.repoId == null
+        resolvedComponents.'org.foo:direct1:1.0'.repoId == repoId
+        resolvedComponents.'org.foo:transitive1:1.0'.repoId == repoId
     }
 
     @ToBeFixedForConfigurationCache(because = "Dependency resolution does not run for a from-cache build")
@@ -618,9 +620,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def repo1Id = repoId('withCreds', op.details)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 2
-        resolvedComponents.'org.foo:good:1.0'.repoName == 'withCreds'
+        resolvedComponents.'org.foo:good:1.0'.repoId == repo1Id
 
         when:
         server.resetExpectations()
@@ -629,12 +632,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         then:
         // This demonstrates a bug in Gradle, where we ignore the requirement for credentials when retrieving from the cache
         def op2 = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def repo2Id = repoId('withoutCreds', op.details)
         def resolvedComponents2 = op2.result.components
         resolvedComponents2.size() == 2
-        resolvedComponents2.'org.foo:good:1.0'.repoName == 'withoutCreds'
+        resolvedComponents2.'org.foo:good:1.0'.repoId == repo2Id
     }
 
-    @ToBeImplemented
     def "resolved components contain their source repository id, even when the repository definitions are modified"() {
         mavenRepo.module('org.foo', 'good').publish()
 
@@ -693,15 +696,16 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         def op = ops[0]
         op.details.configurationName == 'compileClasspath'
+        def repo1Id = repoId('one', op.details)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 2
-        resolvedComponents.'org.foo:good:1.0'.repoName == 'one'
+        resolvedComponents.'org.foo:good:1.0'.repoId == repo1Id
         def op2 = ops[1]
         op2.details.configurationName == 'testCompileClasspath'
+        def repo2Id = repoId('two', op2.details)
         def resolvedComponents2 = op2.result.components
         resolvedComponents2.size() == 4
-//        resolvedComponents2.'org.foo:good:1.0'.repoName == 'two'
-        resolvedComponents2.'org.foo:good:1.0'.repoName == 'one'
+        resolvedComponents2.'org.foo:good:1.0'.repoId == repo2Id
     }
 
     def "resolved component op includes configuration requested attributes"() {
@@ -751,5 +755,9 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             it.requestedAttributes.find { it.name == 'org.gradle.usage' }.value == 'java-runtime'
             it.requestedAttributes.find { it.name == 'org.gradle.libraryelements' }.value == 'jar'
         }
+    }
+
+    private String repoId(String repoName, Map<String, ?> details) {
+        return details.repositories.find { it.name == repoName }.id
     }
 }

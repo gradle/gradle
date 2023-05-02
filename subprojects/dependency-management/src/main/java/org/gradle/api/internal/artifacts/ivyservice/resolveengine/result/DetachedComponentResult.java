@@ -69,7 +69,7 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
     }
 
     @Override
-    public String getRepositoryName() {
+    public String getRepositoryId() {
         return repositoryName;
     }
 

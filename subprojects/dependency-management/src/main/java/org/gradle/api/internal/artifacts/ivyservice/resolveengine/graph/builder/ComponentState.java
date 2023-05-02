@@ -108,9 +108,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public String getRepositoryName() {
+    public String getRepositoryId() {
         return resolveState.getSources().withSource(RepositoryChainModuleSource.class, source -> source
-            .map(RepositoryChainModuleSource::getRepositoryName)
+            .map(RepositoryChainModuleSource::getRepositoryId)
             .orElse(null));
     }
 
