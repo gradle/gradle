@@ -41,6 +41,20 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         return { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
     }
 
+    // We don't want to interfere with other tests that modify the meta class
+    def interceptorTestReceiverClassLock = new ClassBasedLock(InterceptorTestReceiver)
+    def originalMetaClass = null
+
+    def setup() {
+        interceptorTestReceiverClassLock.lock()
+        originalMetaClass = InterceptorTestReceiver.metaClass
+    }
+
+    def cleanup() {
+        InterceptorTestReceiver.metaClass = originalMetaClass
+        interceptorTestReceiverClassLock.unlock()
+    }
+
     String interceptedWhen(
         boolean shouldDelegate,
         @ClosureParams(value = SimpleType, options = "InterceptorTestReceiver") Closure<?> call
