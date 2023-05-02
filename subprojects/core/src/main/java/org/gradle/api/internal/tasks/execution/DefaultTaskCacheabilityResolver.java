@@ -60,7 +60,10 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
                 }
             }
 
-            return Optional.of(CACHING_NOT_ENABLED);
+            Optional<Optional<CachingDisabledReason>> maybeCachingDisabledReason = task.getReasonNotToTrackState()
+                .map(s -> Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Task state is not tracked: " + s)));
+            return maybeCachingDisabledReason.orElseGet(() -> Optional.of(CACHING_NOT_ENABLED));
+
         }
 
         if (!taskProperties.hasDeclaredOutputs()) {
