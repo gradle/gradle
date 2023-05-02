@@ -29,7 +29,11 @@ class CallInterceptingMetaClassTest extends Specification {
     private MetaClass originalMetaClass = null
     private static InterceptorTestReceiver instance = null
 
+    // We don't want to interfere with other tests that modify the meta class
+    def interceptorTestReceiverClassLock = new ClassBasedLock(InterceptorTestReceiver)
+
     def setup() {
+        interceptorTestReceiverClassLock.lock()
         originalMetaClass = InterceptorTestReceiver.metaClass
         GroovySystem.metaClassRegistry.setMetaClass(InterceptorTestReceiver, new CallInterceptingMetaClass(GroovySystem.metaClassRegistry, InterceptorTestReceiver, InterceptorTestReceiver.metaClass, callInterceptors))
         instance = new InterceptorTestReceiver()
@@ -38,6 +42,7 @@ class CallInterceptingMetaClassTest extends Specification {
     def cleanup() {
         GroovySystem.metaClassRegistry.setMetaClass(InterceptorTestReceiver, originalMetaClass)
         instance = null
+        interceptorTestReceiverClassLock.unlock()
     }
 
     def 'intercepts a dynamic call with no argument'() {
