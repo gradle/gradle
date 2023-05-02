@@ -98,6 +98,13 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class NotWindowsJavaBefore11 implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfies(Windows) || doSatisfies(Jdk11OrLater)
+        }
+    }
+
     static final class MacOs implements TestPrecondition {
         @Override
         boolean isSatisfied() {

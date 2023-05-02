@@ -18,15 +18,14 @@ package org.gradle.integtests.wrapper
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import org.junit.Assume
-import spock.lang.IgnoreIf
 
 @SuppressWarnings("IntegrationTestFixtures")
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -45,10 +44,10 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         cleanupDaemons(executer, current)
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
-    @IgnoreIf(
-        value = { TestPrecondition.WINDOWS.fulfilled && !TestPrecondition.JDK11_OR_LATER.fulfilled },
-        reason = 'https://github.com/gradle/gradle-private/issues/3758')
+    @Requires(value = [
+        IntegTestPreconditions.NotEmbeddedExecutor,
+        UnitTestPreconditions.NotWindowsJavaBefore11
+    ], reason = "wrapperExecuter requires a real distribution, https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)
