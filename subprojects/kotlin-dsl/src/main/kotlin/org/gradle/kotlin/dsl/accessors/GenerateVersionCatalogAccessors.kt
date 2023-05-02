@@ -33,9 +33,9 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
-import org.gradle.kotlin.dsl.shared.codegen.fileHeader
-import org.gradle.kotlin.dsl.shared.codegen.kotlinDslPackagePath
-import org.gradle.kotlin.dsl.shared.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.shared.codegen.fileHeader
+import org.gradle.kotlin.dsl.internal.shared.codegen.kotlinDslPackagePath
+import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.PluginDependenciesSpecScopeInternal
 import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD

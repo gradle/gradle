@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.shared.codegen
+package org.gradle.kotlin.dsl.internal.shared.codegen
 
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.pattern.PatternMatcher
-import org.gradle.kotlin.dsl.shared.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
 import java.io.File
 
 

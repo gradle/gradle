@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.shared.support
+package org.gradle.kotlin.dsl.internal.shared.support
 
 
 val primitiveTypeStrings =

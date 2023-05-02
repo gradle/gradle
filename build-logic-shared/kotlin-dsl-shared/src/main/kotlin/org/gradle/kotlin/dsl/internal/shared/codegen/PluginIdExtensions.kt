@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.shared.codegen
+package org.gradle.kotlin.dsl.internal.shared.codegen
 
-import org.gradle.kotlin.dsl.shared.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import java.io.File

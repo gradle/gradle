@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.shared.support
+package org.gradle.kotlin.dsl.internal.shared.support
 
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory
-import org.gradle.kotlin.dsl.shared.codegen.ParameterNamesSupplier
+import org.gradle.kotlin.dsl.internal.shared.codegen.ParameterNamesSupplier
 import java.io.File
 import java.util.Properties
 import java.util.jar.JarFile

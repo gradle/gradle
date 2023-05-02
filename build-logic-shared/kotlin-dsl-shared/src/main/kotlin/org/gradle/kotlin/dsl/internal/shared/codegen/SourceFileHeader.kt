@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.shared.codegen
+package org.gradle.kotlin.dsl.internal.shared.codegen
 
 
 val fileHeader: String

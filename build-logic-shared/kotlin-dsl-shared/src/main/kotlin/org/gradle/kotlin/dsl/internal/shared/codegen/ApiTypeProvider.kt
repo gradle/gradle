@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.shared.codegen
+package org.gradle.kotlin.dsl.internal.shared.codegen
 
 import org.gradle.api.Incubating
 import org.gradle.internal.classanalysis.AsmConstants
-import org.gradle.kotlin.dsl.shared.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.shared.support.primitiveTypeStrings
-import org.gradle.kotlin.dsl.shared.support.unsafeLazy
+import org.gradle.kotlin.dsl.internal.shared.support.ClassBytesRepository
+import org.gradle.kotlin.dsl.internal.shared.support.primitiveTypeStrings
+import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
 import java.io.Closeable
 import java.io.File
 import java.util.ArrayDeque
@@ -79,8 +79,8 @@ fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: Str
  * - does not support generics with multiple bounds
  */
 class ApiTypeProvider internal constructor(
-    private val repository: ClassBytesRepository,
-    parameterNamesSupplier: ParameterNamesSupplier
+        private val repository: ClassBytesRepository,
+        parameterNamesSupplier: ParameterNamesSupplier
 ) : Closeable {
 
     private
@@ -132,8 +132,8 @@ class ApiTypeProvider internal constructor(
 
     internal
     class Context(
-        private val typeProvider: ApiTypeProvider,
-        private val parameterNamesSupplier: ParameterNamesSupplier
+            private val typeProvider: ApiTypeProvider,
+            private val parameterNamesSupplier: ParameterNamesSupplier
     ) {
         fun type(sourceName: String): ApiType? =
             typeProvider.type(sourceName)
@@ -241,9 +241,9 @@ class ApiType internal constructor(
 
 
 class ApiFunction internal constructor(
-    val owner: ApiType,
-    private val delegate: MethodNode,
-    private val context: ApiTypeProvider.Context
+        val owner: ApiType,
+        private val delegate: MethodNode,
+        private val context: ApiTypeProvider.Context
 ) {
     val name: String =
         delegate.name
@@ -282,12 +282,12 @@ class ApiFunction internal constructor(
 
 
 data class ApiTypeUsage(
-    val sourceName: String,
-    val isNullable: Boolean = false,
-    val type: ApiType? = null,
-    val variance: Variance = Variance.INVARIANT,
-    val typeArguments: List<ApiTypeUsage> = emptyList(),
-    val bounds: List<ApiTypeUsage> = emptyList()
+        val sourceName: String,
+        val isNullable: Boolean = false,
+        val type: ApiType? = null,
+        val variance: Variance = Variance.INVARIANT,
+        val typeArguments: List<ApiTypeUsage> = emptyList(),
+        val bounds: List<ApiTypeUsage> = emptyList()
 ) {
     val isRaw: Boolean
         get() = typeArguments.isEmpty() && type?.typeParameters?.isEmpty() != false
@@ -333,11 +333,11 @@ data class ApiFunctionParameter internal constructor(
 
 private
 fun ApiTypeProvider.Context.apiTypeUsageFor(
-    binaryName: String,
-    isNullable: Boolean = false,
-    variance: Variance = Variance.INVARIANT,
-    typeArguments: List<TypeSignatureVisitor> = emptyList(),
-    bounds: List<TypeSignatureVisitor> = emptyList()
+        binaryName: String,
+        isNullable: Boolean = false,
+        variance: Variance = Variance.INVARIANT,
+        typeArguments: List<TypeSignatureVisitor> = emptyList(),
+        bounds: List<TypeSignatureVisitor> = emptyList()
 ): ApiTypeUsage =
 
     if (binaryName == "?") starProjectionTypeUsage

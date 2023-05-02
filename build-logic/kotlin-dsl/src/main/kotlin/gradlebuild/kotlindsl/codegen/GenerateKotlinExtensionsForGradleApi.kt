@@ -23,7 +23,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.shared.codegen.generateGradleApiExtensionsSources
+import org.gradle.kotlin.dsl.internal.shared.codegen.generateGradleApiExtensionsSources
 
 
 @CacheableTask

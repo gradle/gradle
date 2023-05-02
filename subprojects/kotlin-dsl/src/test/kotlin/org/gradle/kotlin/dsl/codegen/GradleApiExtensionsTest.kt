@@ -27,7 +27,7 @@ import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
 import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
-import org.gradle.kotlin.dsl.shared.codegen.generateKotlinDslApiExtensionsSourceTo
+import org.gradle.kotlin.dsl.internal.shared.codegen.generateKotlinDslApiExtensionsSourceTo
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinCompilerWarning
 import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 import org.gradle.kotlin.dsl.support.compileToDirectory

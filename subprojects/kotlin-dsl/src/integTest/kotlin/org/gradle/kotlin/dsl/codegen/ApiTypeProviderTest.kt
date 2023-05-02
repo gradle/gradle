@@ -28,10 +28,10 @@ import org.gradle.api.tasks.AbstractCopyTask
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.codegen.GenericsVariance
-import org.gradle.kotlin.dsl.shared.codegen.ApiFunctionParameter
-import org.gradle.kotlin.dsl.shared.codegen.ApiTypeProvider
-import org.gradle.kotlin.dsl.shared.codegen.Variance
-import org.gradle.kotlin.dsl.shared.codegen.apiTypeProviderFor
+import org.gradle.kotlin.dsl.internal.shared.codegen.ApiFunctionParameter
+import org.gradle.kotlin.dsl.internal.shared.codegen.ApiTypeProvider
+import org.gradle.kotlin.dsl.internal.shared.codegen.Variance
+import org.gradle.kotlin.dsl.internal.shared.codegen.apiTypeProviderFor
 import org.gradle.kotlin.dsl.support.canonicalNameOf
 
 import org.hamcrest.CoreMatchers.equalTo

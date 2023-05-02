@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.reflect.TypeOf
-import org.gradle.kotlin.dsl.shared.support.primitiveTypeStrings
+import org.gradle.kotlin.dsl.internal.shared.support.primitiveTypeStrings
 
 
 internal

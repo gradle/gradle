@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.shared.codegen
+package org.gradle.kotlin.dsl.internal.shared.codegen
 
-import org.gradle.kotlin.dsl.shared.support.gradleApiMetadataFrom
+import org.gradle.kotlin.dsl.internal.shared.support.gradleApiMetadataFrom
 import java.io.File
 
 

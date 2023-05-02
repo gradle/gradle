@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.shared.support
+package org.gradle.kotlin.dsl.internal.shared.support
 
 
 /**
- * Appends value to the given Appendable and simple `\n` line separator after it.
+ * Thread unsafe version of [lazy].
  *
- * Always using the same line separator on all systems to allow for reproducible outputs.
+ * @see LazyThreadSafetyMode.NONE
  */
-fun Appendable.appendReproducibleNewLine(value: CharSequence = ""): Appendable {
-    assert('\r' !in value) {
-        "Unexpected line ending in string."
-    }
-    return append(value).append("\n")
-}
+internal
+fun <T> unsafeLazy(initializer: () -> T): Lazy<T> = lazy(LazyThreadSafetyMode.NONE, initializer)

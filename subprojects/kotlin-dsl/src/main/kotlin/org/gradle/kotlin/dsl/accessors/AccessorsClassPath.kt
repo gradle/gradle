@@ -41,10 +41,10 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
-import org.gradle.kotlin.dsl.shared.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.shared.codegen.kotlinDslPackageName
-import org.gradle.kotlin.dsl.shared.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.shared.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.shared.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.internal.shared.codegen.kotlinDslPackageName
+import org.gradle.kotlin.dsl.internal.shared.support.ClassBytesRepository
+import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
