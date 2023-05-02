@@ -25,12 +25,13 @@ import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
-import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Retry
 import spock.lang.Timeout
@@ -42,6 +43,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Timeout(180)
 @Retry(condition = { onContinuousBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
+// Can't use the FS watching, embedded executor and TAPI together
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
     public static final String BUILD_CANCELLED = "Build cancelled."
@@ -81,7 +84,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
 
     def setup() {
-        Assume.assumeTrue("Unsupported for the embedded runner", canUseContinuousBuildViaToolingApi())
         buildFile.text = "apply plugin: 'java'\n"
         sourceDir = file("src/main/java").createDir()
     }
