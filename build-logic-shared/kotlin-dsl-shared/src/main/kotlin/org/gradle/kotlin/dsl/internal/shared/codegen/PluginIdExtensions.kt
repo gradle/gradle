@@ -23,13 +23,11 @@ import java.io.File
 
 
 fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
-    file.bufferedWriter().use {
-        it.apply {
-            appendReproducibleNewLine(fileHeader)
-            pluginIdExtensionDeclarationsFor(gradleJars).forEach { extension ->
-                write("\n")
-                appendReproducibleNewLine(extension)
-            }
+    file.bufferedWriter().use { buf ->
+        buf.appendReproducibleNewLine(fileHeader)
+        pluginIdExtensionDeclarationsFor(gradleJars).forEach { extension ->
+            buf.write("\n")
+            buf.appendReproducibleNewLine(extension)
         }
     }
 }
@@ -64,10 +62,7 @@ data class PluginExtension(
 
 private
 fun pluginExtensionsFrom(jars: Iterable<File>): Sequence<PluginExtension> =
-    jars
-        .asSequence()
-        .filter { it.name.startsWith("gradle-") }
-        .flatMap(::pluginExtensionsFrom)
+    jars.asSequence().flatMap(::pluginExtensionsFrom)
 
 
 private
@@ -79,4 +74,3 @@ fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
             // One plugin extension for the simple id, e.g., "application"
             PluginExtension(simpleId, id, implementationClass)
         }
-
