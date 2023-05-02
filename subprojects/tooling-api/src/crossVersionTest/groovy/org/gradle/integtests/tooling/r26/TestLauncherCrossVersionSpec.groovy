@@ -151,7 +151,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     }
 
     @Requires(
-        value = IntegTestPreconditions.IsEmbeddedExecutor,
+        value = IntegTestPreconditions.NotEmbeddedExecutor,
         reason = """
             We have problems loading the file system watching library when starting a Gradle build via the tooling API in debug (= embedded) mode.
             The problem there is that Gradle then tries to load the native library in two different classloaders in the same JDK, which isn't allowed.
