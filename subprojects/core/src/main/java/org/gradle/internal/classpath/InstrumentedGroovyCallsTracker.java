@@ -112,7 +112,7 @@ public class InstrumentedGroovyCallsTracker {
     }
 
     @NonNullApi
-    private static class EntryPointCallSite {
+    public static class EntryPointCallSite {
         private final String callableName;
         private final String callerClassName;
         private final CallKind kind;

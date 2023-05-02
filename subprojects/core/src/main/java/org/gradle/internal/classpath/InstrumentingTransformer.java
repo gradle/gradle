@@ -67,7 +67,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 31;
+    private static final int DECORATION_FORMAT = 32;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
@@ -188,7 +188,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)), classData, externalInterceptors.interceptorClassNames()));
+        return Pair.of(entry.getPath(),
+            new InstrumentingVisitor(
+                new CallInterceptionClosureInstrumentingClassVisitor(
+                    new LambdaSerializationTransformer(
+                        new InstrumentingBackwardsCompatibilityVisitor(visitor)
+                    )
+                ),
+                classData, externalInterceptors.interceptorClassNames()
+            )
+        );
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
