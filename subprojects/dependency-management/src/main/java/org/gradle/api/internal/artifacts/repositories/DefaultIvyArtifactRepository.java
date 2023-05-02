@@ -165,8 +165,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         validate(schemes);
 
         URI url = urlArtifactRepository.getUrl();
-        IvyRepositoryDescriptor.Builder builder = new IvyRepositoryDescriptor.Builder(getName(), url);
-        builder
+        IvyRepositoryDescriptor.Builder builder = new IvyRepositoryDescriptor.Builder(getName(), url)
             .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList());
@@ -342,6 +341,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public void patternLayout(Action<? super IvyPatternRepositoryLayout> config) {
+        invalidateDescriptor();
         DefaultIvyPatternRepositoryLayout layout = instantiator.newInstance(DefaultIvyPatternRepositoryLayout.class);
         this.layout = layout;
         config.execute(layout);
@@ -359,6 +359,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     public void setRepositoryLayout(AbstractRepositoryLayout layout) {
         invalidateDescriptor();
         this.layout = layout;
+    }
+
+    @Override
+    protected void invalidateDescriptor() {
+        super.invalidateDescriptor();
+        schemes = null;
     }
 
     /**
@@ -416,7 +422,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
     }
 
-    private static class IvyMetadataSources implements MetadataSources {
+    private class IvyMetadataSources implements MetadataSources {
         boolean gradleMetadata;
         boolean ivyDescriptor;
         boolean artifact;
@@ -435,8 +441,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
 
         /**
-         * This is used for reporting purposes on build scans.
-         * Changing this means a change of repository for build scans.
+         * This is used to generate the repository id and for reporting purposes on build scans.
+         * Changing this means a change of repository.
          *
          * @return a list of implemented metadata sources, as strings.
          */
@@ -459,21 +465,25 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
         @Override
         public void gradleMetadata() {
+            invalidateDescriptor();
             gradleMetadata = true;
         }
 
         @Override
         public void ivyDescriptor() {
+            invalidateDescriptor();
             ivyDescriptor = true;
         }
 
         @Override
         public void artifact() {
+            invalidateDescriptor();
             artifact = true;
         }
 
         @Override
         public void ignoreGradleMetadataRedirection() {
+            invalidateDescriptor();
             ignoreGradleMetadataRedirection = true;
         }
 

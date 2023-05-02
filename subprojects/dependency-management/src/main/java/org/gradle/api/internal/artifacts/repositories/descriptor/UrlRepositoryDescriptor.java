@@ -18,11 +18,16 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.net.URI;
 import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
 
@@ -40,13 +45,14 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
     public final ImmutableList<String> authenticationSchemes;
 
     protected UrlRepositoryDescriptor(
+        String id,
         String name,
         URI url,
         ImmutableList<String> metadataSources,
         boolean authenticated,
         ImmutableList<String> authenticationSchemes
     ) {
-        super(name);
+        super(id, name);
         this.url = url;
         this.metadataSources = metadataSources;
         this.authenticated = authenticated;
@@ -68,6 +74,7 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
     }
 
     static abstract class Builder<T extends Builder<T>> {
+        private static final StringInterner REPOSITORY_ID_INTERNER = new StringInterner();
 
         final String name;
         final URI url;
@@ -101,5 +108,29 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
             return self();
         }
 
+        protected String calculateId(
+            Class<? extends ExternalResourceResolver<?>> implementation,
+            List<ResourcePattern> metadataResources,
+            List<ResourcePattern> artifactResources,
+            List<String> metadataSources,
+            Consumer<Hasher> additionalInputs
+        ) {
+            Hasher cacheHasher = Hashing.newHasher();
+            cacheHasher.putString(implementation.getName());
+            cacheHasher.putInt(metadataResources.size());
+            for (ResourcePattern ivyPattern : metadataResources) {
+                cacheHasher.putString(ivyPattern.getPattern());
+            }
+            cacheHasher.putInt(artifactResources.size());
+            for (ResourcePattern artifactPattern : artifactResources) {
+                cacheHasher.putString(artifactPattern.getPattern());
+            }
+            cacheHasher.putInt(metadataResources.size());
+            for (String source : metadataSources) {
+                cacheHasher.putString(source);
+            }
+            additionalInputs.accept(cacheHasher);
+            return REPOSITORY_ID_INTERNER.intern(cacheHasher.hash().toString());
+        }
     }
 }

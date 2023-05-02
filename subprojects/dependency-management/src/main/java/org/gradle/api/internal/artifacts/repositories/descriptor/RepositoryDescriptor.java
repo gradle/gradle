@@ -35,11 +35,17 @@ public abstract class RepositoryDescriptor {
         FLAT_DIR
     }
 
-    public final String name;
+    private final String id;
+    private final String name;
     private Map<String, ?> properties;
 
-    RepositoryDescriptor(String name) {
+    RepositoryDescriptor(String id, String name) {
+        this.id = id;
         this.name = name;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getName() {

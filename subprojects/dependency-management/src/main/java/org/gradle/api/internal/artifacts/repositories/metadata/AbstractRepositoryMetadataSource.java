@@ -49,7 +49,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponentResolveMetadata> extends AbstractMetadataSource<S> {
+abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSource<S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     final MetadataArtifactProvider metadataArtifactProvider;

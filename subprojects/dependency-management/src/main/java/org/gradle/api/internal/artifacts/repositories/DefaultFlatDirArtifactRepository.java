@@ -132,12 +132,19 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
 
     @Override
     protected FlatDirRepositoryDescriptor createDescriptor() {
-        return new FlatDirRepositoryDescriptor(
-            getName(),
-            getDirs()
-        );
+        IvyRepositoryDescriptor.Builder builder = new IvyRepositoryDescriptor.Builder(getName(), null);
+        builder.setM2Compatible(false);
+        builder.setLayoutType("Unknown");
+        builder.setMetadataSources(ImmutableList.of());
+        builder.setAuthenticated(false);
+        builder.setAuthenticationSchemes(ImmutableList.of());
+        for (File root : getDirs()) {
+            builder.addArtifactResource(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
+            builder.addArtifactResource(root.toURI(), "/[artifact](-[classifier]).[ext]");
+        }
+        IvyRepositoryDescriptor ivyDescriptor = builder.create();
+        return new FlatDirRepositoryDescriptor(getName(), getDirs(), ivyDescriptor);
     }
-
 
     @Override
     protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
@@ -146,25 +153,14 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
 
     private IvyResolver createRealResolver() {
         FlatDirRepositoryDescriptor descriptor = getDescriptor();
-        List<File> dirs = descriptor.dirs;
+        List<File> dirs = descriptor.getDirs();
         if (dirs.isEmpty()) {
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
-        IvyRepositoryDescriptor.Builder builder = new IvyRepositoryDescriptor.Builder(descriptor.name, null);
-        builder.setM2Compatible(false);
-        builder.setLayoutType("Unknown");
-        builder.setMetadataSources(ImmutableList.of());
-        builder.setAuthenticated(false);
-        builder.setAuthenticationSchemes(ImmutableList.of());
-        for (File root : dirs) {
-            builder.addArtifactResource(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
-            builder.addArtifactResource(root.toURI(), "/[artifact](-[classifier]).[ext]");
-        }
-        IvyRepositoryDescriptor ivyDescriptor = builder.create();
 
         RepositoryTransport transport = transportFactory.createFileTransport(getName());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
-        return new IvyResolver(ivyDescriptor, transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
+        return new IvyResolver(descriptor.getBackingDescriptor(), transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
     }
 
     private ImmutableMetadataSources createMetadataSources() {

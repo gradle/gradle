@@ -30,7 +30,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resource.local.FileStore;
@@ -53,7 +52,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> componentMetadataVersionListerFactory,
-        ImmutableMetadataSources repositoryContentFilter,
+        ImmutableMetadataSources metadataSources,
         MetadataArtifactProvider metadataArtifactProvider,
         Instantiator injector, ChecksumService checksumService
     ) {
@@ -64,7 +63,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
             transport.getResourceAccessor(),
             locallyAvailableResourceFinder,
             artifactFileStore,
-            repositoryContentFilter,
+            metadataSources,
             metadataArtifactProvider,
             componentMetadataSupplierFactory,
             componentMetadataVersionListerFactory,
@@ -79,12 +78,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     @Override
     public String toString() {
         return "Ivy repository '" + getName() + "'";
-    }
-
-    @Override
-    protected void appendId(Hasher hasher) {
-        super.appendId(hasher);
-        hasher.putBoolean(isM2compatible());
     }
 
     @Override
