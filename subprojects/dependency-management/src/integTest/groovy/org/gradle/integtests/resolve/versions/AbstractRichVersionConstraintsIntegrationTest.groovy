@@ -17,19 +17,11 @@ package org.gradle.integtests.resolve.versions
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.ivy.IvyModule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({
-    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
-    // infrastructure to simulate everything done here, so we're only going to execute this test in
-    // embedded mode
-    !GradleContextualExecuter.embedded
-})
-class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
+abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     void "can declare a strict dependency onto an external component"() {
         given:
