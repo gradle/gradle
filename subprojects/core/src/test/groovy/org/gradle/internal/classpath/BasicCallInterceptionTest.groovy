@@ -23,6 +23,7 @@ import java.util.function.Predicate
 
 import static java.util.function.Predicate.isEqual
 import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.*
 
 class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
     @Override
@@ -32,7 +33,7 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
 
     @Override
     protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        return { [BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
+        return JvmBytecodeInterceptorSet.DEFAULT + { [BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
     }
 
     @Override
@@ -40,28 +41,49 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         return { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
     }
 
-    String interceptedWhen(@ClosureParams(value = SimpleType, options = "InterceptorTestReceiver") Closure<?> call) {
+    String interceptedWhen(
+        boolean shouldDelegate,
+        @ClosureParams(value = SimpleType, options = "InterceptorTestReceiver") Closure<?> call
+    ) {
         def receiver = new InterceptorTestReceiver()
-        instrumentedClasses.instrumentedClosure(call).call(receiver)
+        def closure = instrumentedClasses.instrumentedClosure(call)
+        if (shouldDelegate) {
+            closure.delegate = receiver
+            closure.call()
+        } else {
+            closure.call(receiver)
+        }
         receiver.intercepted
     }
 
-    def 'intercepts a basic instance call with $name'() {
+    def 'intercepts a basic instance call with #method from #caller'() {
         when:
-        def intercepted = interceptedWhen(invocation)
+        def intercepted = interceptedWhen(shouldDelegate, invocation)
 
         then:
         intercepted == expected
 
         where:
-        // TODO: the set of the test cases should be extended; the ones listed currently are an example
-        name                       | invocation                                                    | expected
-        "no argument from Java"    | { JavaCallerForBasicCallInterceptorTest.doTestNoArg(it) }     | "test()"
-        "one argument from Java"   | { JavaCallerForBasicCallInterceptorTest.doTestSingleArg(it) } | "test(InterceptorTestReceiver)"
-        "vararg from Java"         | { JavaCallerForBasicCallInterceptorTest.doTestVararg(it) }    | "testVararg(Object...)"
+        method                  | caller                    | invocation                                | shouldDelegate | expected
+        "no argument"           | "Java"                    | { doTestNoArg(it) }                       | false          | "test()"
+        "one argument"          | "Java"                    | { doTestSingleArg(it) }                   | false          | "test(InterceptorTestReceiver)"
+        "one null argument"     | "Java"                    | { doTestSingleArgNull(it) }               | false          | "test(InterceptorTestReceiver)"
+        "vararg"                | "Java"                    | { doTestVararg(it) }                      | false          | "testVararg(Object...)"
+        "vararg with array"     | "Java"                    | { doTestVarargWithArray(it) }             | false          | "testVararg(Object...)"
+        "vararg with null item" | "Java"                    | { doTestVarargWithNullItem(it) }          | false          | "testVararg(Object...)"
 
-        "no argument from Groovy"  | { it.test() }                                                 | "test()"
-        "one argument from Groovy" | { it.test(it) }                                               | "test(InterceptorTestReceiver)"
-        "vararg from Groovy"       | { it.testVararg(it, it, it) }                                 | "testVararg(Object...)"
+        "no argument"           | "Groovy callsite"         | { it.test() }                             | false          | "test()"
+        "one argument"          | "Groovy callsite"         | { it.test(it) }                           | false          | "test(InterceptorTestReceiver)"
+        "one null argument"     | "Groovy callsite"         | { it.test(null) }                         | false          | "test(InterceptorTestReceiver)"
+        "vararg"                | "Groovy callsite"         | { it.testVararg(it, it, it) }             | false          | "testVararg(Object...)"
+        "vararg with array"     | "Groovy callsite"         | { it.testVararg([it, it, it].toArray()) } | false          | "testVararg(Object...)"
+        "vararg with null item" | "Groovy callsite"         | { it.testVararg(null) }                   | false          | "testVararg(Object...)"
+
+        "no argument"           | "Groovy dynamic dispatch" | { test() }                                | true           | "test()"
+        "one argument"          | "Groovy dynamic dispatch" | { test(it) }                              | true           | "test(InterceptorTestReceiver)"
+        "one null argument"     | "Groovy dynamic dispatch" | { test(null) }                            | true           | "test(InterceptorTestReceiver)"
+        "vararg"                | "Groovy dynamic dispatch" | { testVararg(it, it, it) }                | true           | "testVararg(Object...)"
+        "vararg with array"     | "Groovy dynamic dispatch" | { testVararg([it, it, it].toArray()) }    | true           | "testVararg(Object...)"
+        "vararg with null item" | "Groovy dynamic dispatch" | { testVararg(null) }                      | true           | "testVararg(Object...)"
     }
 }
