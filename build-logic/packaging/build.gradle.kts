@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":basics"))
     implementation(project(":module-identity"))
     implementation(project(":jvm"))
+    implementation(project(":kotlin-dsl"))
 
     implementation("com.google.code.gson:gson")
 

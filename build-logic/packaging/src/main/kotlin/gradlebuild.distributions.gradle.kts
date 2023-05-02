@@ -28,7 +28,7 @@ import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.PluginsManifest
 import gradlebuild.basics.tasks.PackageListGenerator
-import gradlebuild.packaging.kotlindsl.GenerateKotlinExtensionsForGradleApi
+import gradlebuild.kotlindsl.codegen.GenerateKotlinExtensionsForGradleApi
 import java.util.jar.Attributes
 
 /**

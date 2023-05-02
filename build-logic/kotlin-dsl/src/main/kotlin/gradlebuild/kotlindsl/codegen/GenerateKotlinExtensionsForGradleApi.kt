@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gradlebuild.packaging.kotlindsl
+package gradlebuild.kotlindsl.codegen
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ArchiveOperations
