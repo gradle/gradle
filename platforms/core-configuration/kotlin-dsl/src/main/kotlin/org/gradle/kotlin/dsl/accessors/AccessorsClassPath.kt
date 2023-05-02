@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
@@ -299,7 +300,10 @@ internal
 class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
-    val classBytesRepository = ClassBytesRepository(classPath)
+    val classBytesRepository = ClassBytesRepository(
+        classPathFiles = classPath.asFiles,
+        platformClassLoader = ClassLoaderUtils.getPlatformClassLoader()
+    )
 
     private
     val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()

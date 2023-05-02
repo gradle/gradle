@@ -19,12 +19,12 @@ package org.gradle.kotlin.dsl.codegen
 import org.gradle.api.Incubating
 
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.internal.classloader.ClassLoaderUtils
 
 import org.gradle.kotlin.dsl.accessors.contains
 import org.gradle.kotlin.dsl.accessors.primitiveTypeStrings
 
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.support.classPathBytesRepositoryFor
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.jetbrains.org.objectweb.asm.AnnotationVisitor
@@ -61,7 +61,14 @@ fun apiTypeProviderFor(
     parameterNamesSupplier: ParameterNamesSupplier = { null }
 ): ApiTypeProvider =
 
-    ApiTypeProvider(classPathBytesRepositoryFor(classPath, classPathDependencies), parameterNamesSupplier)
+    ApiTypeProvider(
+        ClassBytesRepository(
+            classPath,
+            classPathDependencies,
+            ClassLoaderUtils.getPlatformClassLoader()
+        ),
+        parameterNamesSupplier
+    )
 
 
 private

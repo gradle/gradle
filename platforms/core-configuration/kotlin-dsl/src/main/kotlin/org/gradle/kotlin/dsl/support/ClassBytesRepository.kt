@@ -16,19 +16,9 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.internal.classloader.ClassLoaderUtils
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.util.internal.TextUtil.normaliseFileSeparators
-
 import java.io.Closeable
 import java.io.File
 import java.util.jar.JarFile
-
-
-internal
-fun classPathBytesRepositoryFor(classPath: List<File>, classPathDependencies: List<File> = emptyList()) =
-    ClassBytesRepository(DefaultClassPath.of(classPath), DefaultClassPath.of(classPathDependencies))
 
 
 private
@@ -47,19 +37,17 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  *
  * Always include the current JVM platform loader for which no JAR file can be held open.
  */
-internal
-class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPath = ClassPath.EMPTY) : Closeable {
+class ClassBytesRepository(
+    private val classPathFiles: List<File>,
+    classPathDependencies: List<File> = emptyList(),
+    platformClassLoader: ClassLoader
+) : Closeable {
 
     private
     val openJars = mutableMapOf<File, JarFile>()
 
     private
-    val classPathFiles: List<File> = classPath.asFiles
-
-    private
-    val classBytesIndex = (classPathFiles + classPathDependencies.asFiles + ClassLoaderUtils.getPlatformClassLoader()).map {
-        classBytesIndexFor(it)
-    }
+    val classBytesIndex = (classPathFiles + classPathDependencies + platformClassLoader).map { classBytesIndexFor(it) }
 
     /**
      * Class file bytes for Kotlin source name, if found.
@@ -181,7 +169,7 @@ private
 val slashOrDollar = Regex("[/$]")
 
 
-internal
+// visible for testing
 fun kotlinSourceNameOf(classFilePath: String): String =
     classFilePath
         .removeSuffix(classFileExtension)
@@ -189,7 +177,7 @@ fun kotlinSourceNameOf(classFilePath: String): String =
         .replace(slashOrDollar, ".")
 
 
-internal
+// visible for testing
 fun classFilePathCandidatesFor(sourceName: String): Sequence<String> =
     sourceName.replace(".", "/").let { path ->
         candidateClassFiles(path) + nestedClassFilePathCandidatesFor(path)
@@ -213,3 +201,8 @@ fun nestedClassNameFor(path: String) = path.run {
         substring(0, index) + '$' + substring(index + 1)
     }
 }
+
+
+private
+fun normaliseFileSeparators(path: String): String =
+    path.replace(File.separatorChar, '/')
