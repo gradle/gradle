@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":jvm"))
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
+    implementation("org.gradle:kotlin-dsl-shared")
     implementation(kotlin("gradle-plugin"))
     implementation(kotlin("sam-with-receiver"))
     implementation("org.ow2.asm:asm")

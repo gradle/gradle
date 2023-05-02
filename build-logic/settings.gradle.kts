@@ -21,6 +21,8 @@ pluginManagement {
     }
 }
 
+includeBuild("../build-logic-shared")
+
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
