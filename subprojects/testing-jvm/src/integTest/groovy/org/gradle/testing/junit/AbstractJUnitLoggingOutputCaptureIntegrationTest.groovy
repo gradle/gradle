@@ -17,12 +17,12 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.is
 
-abstract class AbstractJUnitLoggingOutputCaptureIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitLoggingOutputCaptureIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def setup() {
         buildFile << """
             apply plugin: "java"

@@ -28,15 +28,13 @@ class JUnitCoverage {
     final static String LATEST_VINTAGE_VERSION = LATEST_JUNIT5_VERSION
     final static String LATEST_PLATFORM_VERSION = '1.8.2'
     final static String LATEST_ARCHUNIT_VERSION = '0.22.0'
-    final static String JUPITER = 'Jupiter:' + LATEST_JUPITER_VERSION
-    final static String VINTAGE = 'Vintage:' + LATEST_VINTAGE_VERSION
     final static List<String> LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', LATEST_JUNIT4_VERSION]
     final static List<String> IGNORE_ON_CLASS = ['4.4', '4.8.2', LATEST_JUNIT4_VERSION]
     final static List<String> ASSUMPTIONS = ['4.5', LATEST_JUNIT4_VERSION]
     final static List<String> CATEGORIES = ['4.8', LATEST_JUNIT4_VERSION]
     final static List<String> FILTER_JUNIT3_TESTS = [LATEST_JUNIT3_VERSION, '4.6', LATEST_JUNIT4_VERSION]
     final static List<String> JUNIT_4_LATEST = [LATEST_JUNIT4_VERSION]
-    final static List<String> JUNIT_VINTAGE = [VINTAGE]
-    final static List<String> JUNIT_JUPITER = [JUPITER]
-    final static List<String> JUNIT_VINTAGE_JUPITER = [VINTAGE, JUPITER]
+    final static List<String> JUNIT_VINTAGE = [LATEST_VINTAGE_VERSION]
+    final static List<String> JUNIT_JUPITER = [LATEST_JUPITER_VERSION]
+    final static List<String> JUNIT_VINTAGE_JUPITER = [LATEST_VINTAGE_VERSION, LATEST_JUPITER_VERSION]
 }

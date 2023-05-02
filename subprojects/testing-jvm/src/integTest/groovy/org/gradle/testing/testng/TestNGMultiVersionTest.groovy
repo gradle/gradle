@@ -17,18 +17,18 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 trait TestNGMultiVersionTest {
-    AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
+    AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
         return new TestNGBuildSourceConfiguration()
     }
 
-    AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
+    AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration getTestSourceConfiguration() {
         return new TestNGTestSourceConfiguration()
     }
 
-    static class TestNGBuildSourceConfiguration implements AbstractJUnitMultiVersionIntegrationTest.BuildScriptConfiguration {
+    static class TestNGBuildSourceConfiguration implements AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration {
         @Override
         String getTestFrameworkDependencies(String sourceSet) {
             return """
@@ -54,7 +54,7 @@ trait TestNGMultiVersionTest {
         }
     }
 
-    static class TestNGTestSourceConfiguration implements AbstractJUnitMultiVersionIntegrationTest.TestSourceConfiguration {
+    static class TestNGTestSourceConfiguration implements AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration {
         @Override
         String getTestFrameworkImports() {
             return """

@@ -18,12 +18,12 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 
-abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     TestFile testFile = file('src/test/java/org/gradle/SomeTest.java')
     abstract String getMaybePackagePrefix()
 

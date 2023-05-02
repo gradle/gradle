@@ -17,9 +17,9 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-abstract class AbstractJUnitIgnoreClassIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitIgnoreClassIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
     def "can handle class level ignored tests"() {
         given:

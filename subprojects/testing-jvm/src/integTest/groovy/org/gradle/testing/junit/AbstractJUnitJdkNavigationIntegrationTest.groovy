@@ -16,11 +16,11 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
 @Issue("GRADLE-1682")
-abstract class AbstractJUnitJdkNavigationIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitJdkNavigationIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def shouldNotNavigateToJdkClasses() {
         given:
         file('src/test/java/org/gradle/AbstractTest.java') << """
