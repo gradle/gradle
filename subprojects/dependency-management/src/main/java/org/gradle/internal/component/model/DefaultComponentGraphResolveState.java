@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
  * Holds the resolution state for an external component.
  */
 public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
+    private final ComponentIdGenerator idGenerator;
+
     // The resolve state for each configuration of this component
     private final ConcurrentMap<ModuleConfigurationMetadata, DefaultConfigurationGraphResolveState> variants = new ConcurrentHashMap<>();
 
@@ -55,7 +57,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
-    public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
+    public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata, artifactMetadata, attributeDesugaring);
         allVariantsForGraphResolution = Lazy.locking().of(() -> graphMetadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
@@ -67,6 +69,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
                 .map(ModuleConfigurationMetadata.class::cast)
                 .flatMap(variant -> variant.getVariants().stream())
                 .collect(Collectors.toSet()));
+        this.idGenerator = idGenerator;
         selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream().
             flatMap(variant -> variant.getVariants().stream()).
             map(variant -> new DefaultResolvedVariantResult(
@@ -106,20 +109,31 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     private DefaultConfigurationGraphResolveState resolveStateFor(ModuleConfigurationMetadata configuration) {
-        return variants.computeIfAbsent(configuration, c -> new DefaultConfigurationGraphResolveState(getArtifactMetadata(), configuration, allVariantsForArtifactSelection));
+        return variants.computeIfAbsent(configuration, c -> newVariantState(configuration));
     }
 
     protected VariantGraphResolveState newResolveStateFor(ModuleConfigurationMetadata configuration) {
-        return new DefaultConfigurationGraphResolveState(getArtifactMetadata(), configuration, allVariantsForArtifactSelection);
+        return newVariantState(configuration);
+    }
+
+    private DefaultConfigurationGraphResolveState newVariantState(ModuleConfigurationMetadata configuration) {
+        return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), getArtifactMetadata(), configuration, allVariantsForArtifactSelection);
     }
 
     private static class DefaultConfigurationGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+        private final long instanceId;
         private final ModuleConfigurationMetadata configuration;
         private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultConfigurationGraphResolveState(ComponentResolveMetadata component, ModuleConfigurationMetadata configuration, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
+        public DefaultConfigurationGraphResolveState(long instanceId, ComponentResolveMetadata component, ModuleConfigurationMetadata configuration, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
+            this.instanceId = instanceId;
             this.configuration = configuration;
             this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(component, configuration, allVariantsForArtifactSelection));
+        }
+
+        @Override
+        public long getInstanceId() {
+            return instanceId;
         }
 
         @Override

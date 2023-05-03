@@ -57,7 +57,7 @@ public class LenientPlatformGraphResolveState extends DefaultComponentGraphResol
     }
 
     private LenientPlatformGraphResolveState(long instanceId, LenientPlatformResolveMetadata metadata, ComponentIdGenerator componentIdGenerator, ResolveState resolveState) {
-        super(instanceId, metadata, metadata, resolveState.getAttributeDesugaring());
+        super(instanceId, metadata, metadata, resolveState.getAttributeDesugaring(), componentIdGenerator);
         this.componentIdGenerator = componentIdGenerator;
         this.resolveState = resolveState;
     }

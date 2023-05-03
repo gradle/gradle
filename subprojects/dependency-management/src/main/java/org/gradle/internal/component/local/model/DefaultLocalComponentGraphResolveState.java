@@ -31,6 +31,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
@@ -59,6 +60,8 @@ import java.util.stream.Collectors;
  * <p>The aim is to create only a single instance of this type per project and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
  */
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata, LocalComponentMetadata> implements LocalComponentGraphResolveState {
+    private final ComponentIdGenerator idGenerator;
+
     // The graph resolve state for each configuration of this component
     private final ConcurrentMap<String, DefaultLocalConfigurationGraphResolveState> configurations = new ConcurrentHashMap<>();
 
@@ -71,7 +74,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     // The public view of all selectable variants of this component
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
-    public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring) {
+    public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, metadata, metadata, attributeDesugaring);
         allVariantsForGraphResolution = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
@@ -83,6 +86,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
                 map(LocalConfigurationGraphResolveMetadata::prepareToResolveArtifacts).
                 flatMap(variant -> variant.getVariants().stream()).
                 collect(Collectors.toSet())));
+        this.idGenerator = idGenerator;
         selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream().
             map(LocalConfigurationGraphResolveMetadata.class::cast).
             flatMap(variant -> variant.getVariants().stream()).
@@ -129,18 +133,25 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             if (configuration == null) {
                 return null;
             } else {
-                return new DefaultLocalConfigurationGraphResolveState(getMetadata(), configuration, allVariantsForArtifactSelection);
+                return new DefaultLocalConfigurationGraphResolveState(idGenerator.nextVariantId(), getMetadata(), configuration, allVariantsForArtifactSelection);
             }
         });
     }
 
     private static class DefaultLocalConfigurationGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+        private final long instanceId;
         private final LocalConfigurationMetadata configuration;
         private final Lazy<DefaultLocalConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultLocalConfigurationGraphResolveState(LocalComponentMetadata component, LocalConfigurationMetadata configuration, Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection) {
+        public DefaultLocalConfigurationGraphResolveState(long instanceId, LocalComponentMetadata component, LocalConfigurationMetadata configuration, Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection) {
+            this.instanceId = instanceId;
             this.configuration = configuration;
             this.artifactResolveState = Lazy.locking().of(() -> new DefaultLocalConfigurationArtifactResolveState(component, configuration, allVariantsForArtifactSelection));
+        }
+
+        @Override
+        public long getInstanceId() {
+            return instanceId;
         }
 
         @Override

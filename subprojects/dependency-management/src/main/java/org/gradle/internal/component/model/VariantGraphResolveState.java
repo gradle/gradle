@@ -26,6 +26,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
  * <p>This does not include any information about the artifacts of the variant, which are generally not required during graph resolution.</p>
  */
 public interface VariantGraphResolveState extends HasAttributes {
+    /**
+     * A unique id for this variant within the current build tree. Note that this id is not stable across Gradle invocations.
+     */
+    long getInstanceId();
+
     String getName();
 
     ImmutableAttributes getAttributes();
