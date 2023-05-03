@@ -15,6 +15,14 @@
     "macOs" : 1114000
   } ]
 }, {
+  "scenario" : "org.gradle.performance.regression.android.NowInAndroidBuildPerformanceTest.run help",
+  "durations" : [ {
+    "testProject" : "nowInAndroidBuild",
+    "linux" : 699000,
+    "windows" : 667000,
+    "macOs" : 1114000
+  } ]
+}, {
   "scenario" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change",
   "durations" : [ {
     "testProject" : "santaTrackerAndroidBuild",
