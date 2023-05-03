@@ -23,8 +23,6 @@ import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecElementInfo
 import org.spockframework.runtime.model.SpecInfo
 
-import java.util.stream.Stream
-
 /**
  * Test extension enforcing the {@link Requires} annotation in Spock (note, that this is a separate class from Spock's own {@link spock.lang.Requires}).
  * <p>
@@ -45,16 +43,14 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
      * This will automatically load {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv}.
      */
     RequiresExtension() {
-        this(PredicatesFile.streamCombinationsFile("/valid-precondition-combinations.csv"))
+        this(PredicatesFile.readAllowedCombinations("/valid-precondition-combinations.csv"))
     }
 
     /**
      * Protected constructor (for testing).
      */
-    protected RequiresExtension(Stream<List<String>> values) {
-        acceptedCombinations = (values.collect {
-            it as Set<String>
-        } as Set)
+    protected RequiresExtension(Set<Set<String>> acceptedCombinations) {
+        this.acceptedCombinations = acceptedCombinations
     }
 
     /**
