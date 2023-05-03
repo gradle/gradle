@@ -17,10 +17,10 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
-abstract class AbstractJUnitSpockIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def "can run spock tests with mock of class using gradleApi"() {
         file("build.gradle") << """
             plugins {
