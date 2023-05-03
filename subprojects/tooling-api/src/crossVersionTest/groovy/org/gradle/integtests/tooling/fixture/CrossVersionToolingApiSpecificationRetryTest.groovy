@@ -90,11 +90,8 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         true
     }
 
-    @Requires([
-        UnitTestPreconditions.Windows,
-        UnitTestPreconditions.Jdk7OrLater,
-        UnitTestPreconditions.Jdk8OrEarlier
-    ])    def "does not retry on non-windows and non-java7 environments"() {
+    @Requires(UnitTestPreconditions.NotWindowsJavaBefore9)
+    def "does not retry on non-windows and non-java7 environments"() {
         given:
         iteration++
 
