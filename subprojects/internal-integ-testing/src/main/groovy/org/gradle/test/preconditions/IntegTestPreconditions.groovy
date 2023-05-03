@@ -80,30 +80,25 @@ class IntegTestPreconditions {
         }
     }
 
-    static class Java5HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(5)
-            )
-        }
-    }
-
-    static class Java6HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(6)
-            )
-        }
-    }
-
     static class Java7HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.getJdk(
                 JavaVersion.toVersion(7)
             )
+        }
+    }
+
+    /**
+     * A JVM that doesn't support running the current Gradle version is available.
+     */
+    static class UnsupportedJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AvailableJavaHomes.getJdks(
+                JavaVersion.toVersion(6),
+                JavaVersion.toVersion(7)
+            ).empty
         }
     }
 

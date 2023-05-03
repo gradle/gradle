@@ -69,7 +69,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test requires to start Gradle from scratch with the wrong Java version
-    @Requires([IntegTestPreconditions.Java6HomeAvailable, IntegTestPreconditions.Java7HomeAvailable ])
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         executer.withJavaHome(jdk.javaHome)
@@ -82,7 +82,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Requires([IntegTestPreconditions.Java6HomeAvailable, IntegTestPreconditions.Java7HomeAvailable ])
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "fails when build is configured to use Java #jdk.javaVersion"() {
         given:
         file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)

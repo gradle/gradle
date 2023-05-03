@@ -30,11 +30,7 @@ import spock.lang.Issue
 @NonCrossVersion
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @NoDebug
-    @Requires([
-        IntegTestPreconditions.Java5HomeAvailable,
-        IntegTestPreconditions.Java6HomeAvailable,
-        IntegTestPreconditions.Java7HomeAvailable
-    ])
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def "fails when build is configured to use Java 7 or earlier"() {
         given:
         testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)

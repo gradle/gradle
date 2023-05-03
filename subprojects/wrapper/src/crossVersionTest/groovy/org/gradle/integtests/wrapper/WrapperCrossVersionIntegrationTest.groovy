@@ -59,9 +59,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         cleanupDaemons(executer, previous)
     }
 
-    @Requires([
-        IntegTestPreconditions.Java6HomeAvailable, IntegTestPreconditions.Java7HomeAvailable
-    ])
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current).withJavaHome(jdk.javaHome)
@@ -74,9 +72,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Requires([
-        IntegTestPreconditions.Java6HomeAvailable, IntegTestPreconditions.Java7HomeAvailable
-    ])
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current)
