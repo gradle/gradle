@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -39,6 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -117,7 +117,6 @@ public class NodeState implements DependencyGraphNode {
     private long previousIncomingHash;
     private long incomingHash;
     private ExcludeSpec cachedModuleResolutionFilter;
-    private ResolvedVariantResult cachedVariantResult;
 
     private StrictVersionConstraints ancestorsStrictVersionConstraints;
     private StrictVersionConstraints ownStrictVersionConstraints;
@@ -1252,17 +1251,9 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    public ResolvedVariantResult getResolvedVariant() {
-        if (cachedVariantResult != null) {
-            return cachedVariantResult;
-        }
-        ResolvedVariantResult externalVariant = findExternalVariant();
-        cachedVariantResult = component.getResolveState().getVariantResult(metadata, externalVariant);
-        return cachedVariantResult;
-    }
-
     @Nullable
-    private ResolvedVariantResult findExternalVariant() {
+    @Override
+    public ResolvedGraphVariant getExternalVariant() {
         if (canIgnoreExternalVariant()) {
             return null;
         }
@@ -1281,7 +1272,7 @@ public class NodeState implements DependencyGraphNode {
         try {
             for (EdgeState outgoingEdge : outgoingEdges) {
                 //noinspection ConstantConditions
-                return outgoingEdge.getSelectedVariant();
+                return outgoingEdge.getSelectedNode();
             }
             return null;
         } finally {

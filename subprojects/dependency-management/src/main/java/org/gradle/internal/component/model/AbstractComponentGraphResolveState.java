@@ -32,6 +32,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -41,16 +42,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final long instanceId;
     private final T graphMetadata;
     private final S artifactMetadata;
     private final AttributeDesugaring attributeDesugaring;
-    // The public view for each variant of this component
-    private final ConcurrentMap<VariantGraphResolveMetadata, ResolvedVariantResult> publicViews = new ConcurrentHashMap<>();
 
     public AbstractComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
         this.instanceId = instanceId;
@@ -76,9 +73,9 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     @Nullable
     @Override
-    public String getRepositoryName() {
+    public String getRepositoryId() {
         return getSources().withSource(RepositoryChainModuleSource.class, source -> source
-            .map(RepositoryChainModuleSource::getRepositoryName)
+            .map(RepositoryChainModuleSource::getRepositoryId)
             .orElse(null));
     }
 
@@ -98,26 +95,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     }
 
     protected abstract Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal();
-
-    @Override
-    public ResolvedVariantResult getVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant) {
-        if (externalVariant != null) {
-            // Don't cache the result
-            // Note that the external variant is a function of the metadata of the component, so should be constructed by this state object and cached rather than passed in
-            return createVariantResult(metadata, externalVariant);
-        } else {
-            return publicViews.computeIfAbsent(metadata, m -> createVariantResult(metadata, null));
-        }
-    }
-
-    private DefaultResolvedVariantResult createVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant) {
-        return new DefaultResolvedVariantResult(
-            getId(),
-            Describables.of(metadata.getName()),
-            attributeDesugaring.desugar(metadata.getAttributes()),
-            capabilitiesFor(metadata.getCapabilities()),
-            externalVariant);
-    }
 
     @Nullable
     @Override
@@ -147,6 +124,35 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
             capabilities = ImmutableList.copyOf(capabilities);
         }
         return capabilities;
+    }
+
+    protected abstract class AbstractVariantGraphResolveState implements VariantGraphResolveState {
+        private final Lazy<ResolvedVariantResult> publicView;
+
+        public AbstractVariantGraphResolveState() {
+            this.publicView = Lazy.locking().of(() -> createVariantResult(null));
+        }
+
+        @Override
+        public ResolvedVariantResult getVariantResult(@Nullable ResolvedVariantResult externalVariant) {
+            if (externalVariant != null) {
+                // Don't cache the result
+                // Note that the external variant is a function of the metadata of the component, so should be constructed by this state object and cached rather than passed in
+                return createVariantResult(externalVariant);
+            } else {
+                return publicView.get();
+            }
+        }
+
+        private DefaultResolvedVariantResult createVariantResult(@Nullable ResolvedVariantResult externalVariant) {
+            VariantGraphResolveMetadata metadata = getMetadata();
+            return new DefaultResolvedVariantResult(
+                getId(),
+                Describables.of(metadata.getName()),
+                attributeDesugaring.desugar(metadata.getAttributes()),
+                capabilitiesFor(metadata.getCapabilities()),
+                externalVariant);
+        }
     }
 
     private class DefaultGraphSelectionCandidates implements GraphSelectionCandidates {

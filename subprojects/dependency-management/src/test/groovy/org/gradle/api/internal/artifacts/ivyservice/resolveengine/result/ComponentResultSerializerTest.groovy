@@ -23,10 +23,11 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
-import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.AttributeTestUtil
@@ -40,6 +41,7 @@ class ComponentResultSerializerTest extends Specification {
     private ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer()
     def serializer = new ComponentResultSerializer(
         new ThisBuildOnlyComponentDetailsSerializer(),
+        new ThisBuildOnlySelectedVariantSerializer(),
         new ResolvedVariantResultSerializer(
             componentIdentifierSerializer,
             new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
@@ -54,26 +56,38 @@ class ComponentResultSerializerTest extends Specification {
         def attributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
-        def v1 = Mock(ResolvedVariantResult) {
-            getOwner() >> componentIdentifier
-            getDisplayName() >> "v1"
-            getAttributes() >> ImmutableAttributes.EMPTY
-            getCapabilities() >> [capability('foo')]
-            getExternalVariant() >> Optional.empty()
+        def v1Result = Mock(ResolvedVariantResult)
+        def v1State = Mock(VariantGraphResolveState) {
+            getInstanceId() >> 1
+            getVariantResult(null) >> v1Result
         }
-        def v3 = Mock(ResolvedVariantResult) {
+        def v1 = Mock(ResolvedGraphVariant) {
+            getNodeId() >> 1
+            getOwner() >> componentIdentifier
+            getResolveState() >> v1State
+            getExternalVariant() >> null
+        }
+        def v3Result = Mock(ResolvedVariantResult)
+        def v3State = Mock(VariantGraphResolveState) {
+            getInstanceId() >> 3
+            getVariantResult(null) >> v3Result
+        }
+        def v3 = Mock(ResolvedGraphVariant) {
+            getNodeId() >> 3
             getOwner() >> extId
-            getDisplayName() >> "v3"
-            getAttributes() >> attributes
-            getCapabilities() >> [capability('bar'), capability('baz')]
-            getExternalVariant() >> Optional.empty()
+            getResolveState() >> v3State
+            getExternalVariant() >> null
         }
-        def v2 = Mock(ResolvedVariantResult) {
+        def v2Result = Mock(ResolvedVariantResult)
+        def v2State = Mock(VariantGraphResolveState) {
+            getInstanceId() >> 2
+            getVariantResult(v3Result) >> v2Result
+        }
+        def v2 = Mock(ResolvedGraphVariant) {
+            getNodeId() >> 2
             getOwner() >> componentIdentifier
-            getDisplayName() >> "v2"
-            getAttributes() >> attributes
-            getCapabilities() >> [capability('bar'), capability('baz')]
-            getExternalVariant() >> Optional.of(v3)
+            getResolveState() >> v2State
+            getExternalVariant() >> v3
         }
         def componentMetadata = Stub(ComponentGraphResolveMetadata) {
             moduleVersionId >> newId('org', 'foo', '2.0')
@@ -81,7 +95,7 @@ class ComponentResultSerializerTest extends Specification {
         def componentState = Stub(ComponentGraphResolveState) {
             id >> componentIdentifier
             metadata >> componentMetadata
-            repositoryName >> 'repoName'
+            repositoryId >> 'repoName'
         }
         def component = Stub(ResolvedGraphComponent) {
             resolveState >> componentState
@@ -99,35 +113,8 @@ class ComponentResultSerializerTest extends Specification {
         result.moduleVersion == newId('org', 'foo', '2.0')
         for (def variants : [result.selectedVariants, result.availableVariants]) {
             variants.size() == 2
-            variants[0].displayName == 'v1'
-            variants[0].attributes == ImmutableAttributes.EMPTY
-            variants[0].capabilities.size() == 1
-            variants[0].capabilities[0].group == 'org'
-            variants[0].capabilities[0].name == 'foo'
-            variants[0].capabilities[0].version == '1.0'
-            variants[0].owner == componentIdentifier
-            variants[1].displayName == 'v2'
-            variants[1].attributes == attributes.asImmutable()
-            variants[1].capabilities.size() == 2
-            variants[1].capabilities[0].group == 'org'
-            variants[1].capabilities[0].name == 'bar'
-            variants[1].capabilities[0].version == '1.0'
-            variants[1].capabilities[1].group == 'org'
-            variants[1].capabilities[1].name == 'baz'
-            variants[1].capabilities[1].version == '1.0'
-            variants[1].owner == componentIdentifier
-            variants[1].externalVariant.present
-            def external = variants[1].externalVariant.get()
-            external.displayName == 'v3'
-            external.attributes == attributes.asImmutable()
-            external.capabilities.size() == 2
-            external.capabilities[0].group == 'org'
-            external.capabilities[0].name == 'bar'
-            external.capabilities[0].version == '1.0'
-            external.capabilities[1].group == 'org'
-            external.capabilities[1].name == 'baz'
-            external.capabilities[1].version == '1.0'
-            external.owner == extId
+            variants[0] == v1Result
+            variants[1] == v2Result
         }
         result.repositoryId == 'repoName'
     }

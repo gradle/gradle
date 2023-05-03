@@ -57,7 +57,7 @@ public interface ResolvedGraphComponent {
      *
      * @return the resolved/selected variant(s) for this component
      */
-    List<ResolvedVariantResult> getSelectedVariants();
+    List<ResolvedGraphVariant> getSelectedVariants();
 
     /**
      * Returns all the variants of this component available for selection. Does not include variants that cannot be consumed, which means this
