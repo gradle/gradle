@@ -19,32 +19,22 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
+import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
-
 @TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
-
-    String imports = "org.testng.annotations.*"
-    String framework = "TestNG"
-
-    @Override
-    String getDependencies() {
-        return "testImplementation 'org.testng:testng:${dependencyVersion}'"
-    }
+class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
 
     void theUsualFiles() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'org.testng:testng:$version'
+                ${testFrameworkDependencies}
             }
             test {
-              useTestNG {
+              ${configureTestFramework} {
                 suiteXmlBuilder().suite(name: 'AwesomeSuite') {
                     test (name: 'AwesomeTest') {
                         classes([:]) {
@@ -57,20 +47,20 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
             }
         """
 
-        file("src/test/java/FooTest.java") << """import $imports;
-
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
             public class FooTest {
                 @Test public void pass() {}
             }
         """
-        file("src/test/java/BarTest.java") << """import $imports;
-
+        file("src/test/java/BarTest.java") << """
+            ${testFrameworkImports}
             public class BarTest {
                 @Test public void pass() {}
             }
         """
-        file("src/test/java/BazTest.java") << """import $imports;
-
+        file("src/test/java/BazTest.java") << """
+            ${testFrameworkImports}
             public class BazTest {
                 @Test public void pass() {}
             }

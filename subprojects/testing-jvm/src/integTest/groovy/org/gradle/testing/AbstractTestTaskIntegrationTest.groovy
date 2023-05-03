@@ -20,13 +20,13 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 
-abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getStandaloneTestClass()
     abstract String testClass(String className)
 

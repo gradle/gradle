@@ -20,10 +20,10 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
 
-abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getModuleName()
 
     def setup() {
