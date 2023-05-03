@@ -153,14 +153,10 @@ Required by:
                 def components = configurations.compileClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 2
                 assert components[0].build.buildPath == ':buildB:buildSrc'
-                assert components[0].build.name == 'buildSrc'
-                assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 assert components[0].projectName == '$rootProjectName'
                 assert components[0].buildTreePath == ':buildB:buildSrc'
                 assert components[1].build.buildPath == ':buildB:buildSrc'
-                assert components[1].build.name == 'buildSrc'
-                assert components[1].build.currentBuild
                 assert components[1].projectPath == ':a'
                 assert components[1].projectName == 'a'
                 assert components[1].buildTreePath == ':buildB:buildSrc:a'
@@ -172,11 +168,6 @@ Required by:
                 assert selectors[0].projectPath == ':a'
             }
         """
-
-        2.times {
-            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
-            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
-        }
 
         expect:
         execute(buildA, ":assemble")
