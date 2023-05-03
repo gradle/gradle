@@ -33,31 +33,27 @@ The `build.gradle` file might look as follows:
 include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/kotlin",files="build.gradle.kts"]
 include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/groovy",files="build.gradle"]
 ====
-<1> Define artifact sources for project
-<2> Remote and local repositories for artifact locations (link:https://mvnrepository.com/repos/central[Maven] and link:https://maven.google.com/[Google] repositories)
-<3> Define artifacts used by project
-<4> Specific artifact name and version within a specific scope (Guava 31.1-jre for implementation and JUnit 4.13.2 for testImplementation)
+<1> *Define artifact sources for project.*
 
-As we can see, this theoretical project uses Guava and JUnit as _dependencies_.
+<2> *Remote and local repositories for artifact locations.*
++
+You can <<declaring_repositories.adoc#declaring-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
+In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven] and link:https://maven.google.com/[Google] _repositories_. +
+During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
+Gradle then <<dependency_resolution.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
+Subsequent builds use the cache to avoid unnecessary network calls and speed up the build process.
 
-Gradle fetches dependencies from the specified _repositories_, in this case, link:https://mvnrepository.com/repos/central[Maven] and link:https://maven.google.com/[Google].
-You can <<declaring_repositories.adoc#declaring-repositories,declare repositories>> to tell Gradle where to fetch dependencies locally or remotely.
+<3> *Define artifacts used by project.*
+
+<4> *Specific artifact name and version within a specific scope.*
++
+You can add code to your Java project from an external library such as `com.google.common.base` (a Guava package) which becomes a _dependency_. +
+In this example, the theoretical project uses Guava version 31.1-jre and JUnit 4.13.2 as _dependencies_. +
+A build engineer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
+Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 
 Repositories offer dependencies in multiple formats.
 For information about the formats supported by Gradle, see <<declaring_dependencies.adoc#sec:dependency-types,dependency types>>.
-
-A build engineer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes.
-In the example project, the JUnit was declared only for the `testImplementation` scope which is used only when testing and not at runtime.
-As such, one scope is used to compile source code and another to execute tests.
-Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
-
-During a build, Gradle locates the dependencies needed for the requested tasks.
-The dependencies might need to be downloaded from a remote repository, retrieved from a local directory, or (in a multi-project setting) built from another project.
-This process is called _dependency resolution_.
-For more information, see <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,How Gradle downloads dependencies>>.
-
-Gradle then <<dependency_resolution.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
-Subsequent builds use the cache to avoid unnecessary network calls and speed up the build process.
 
 Metadata describes dependencies.
 Some examples of metadata include:
