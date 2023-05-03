@@ -62,7 +62,7 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
-
+    @Requires(UnitTestPreconditions.NotWindowsJavaBefore9)
     def "does not retry on non-windows and non-java environments"() {
         given:
         iteration++
