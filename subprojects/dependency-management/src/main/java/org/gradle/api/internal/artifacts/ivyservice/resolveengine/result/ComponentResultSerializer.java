@@ -118,7 +118,7 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
             encoder.writeBoolean(false);
             writeVariantList(encoder, value.getSelectedVariants());
         }
-        encoder.writeNullableString(value.getRepositoryName());
+        encoder.writeNullableString(value.getRepositoryId());
     }
 
     private void writeSelectedAndAvailableVariants(Encoder encoder, List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> variants) throws IOException {
