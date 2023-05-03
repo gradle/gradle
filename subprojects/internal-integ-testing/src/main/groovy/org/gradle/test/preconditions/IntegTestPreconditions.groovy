@@ -66,6 +66,13 @@ class IntegTestPreconditions {
         }
     }
 
+    static final class NotParallelExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !GradleContextualExecuter.isParallel()
+        }
+    }
+
     static final class IsConfigCached implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {

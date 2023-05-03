@@ -25,11 +25,10 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 // no point, always runs in parallel
 class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
