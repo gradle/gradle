@@ -46,6 +46,6 @@ public class ThisBuildOnlyComponentDetailsSerializer implements ComponentDetails
         if (component == null) {
             throw new IllegalStateException("No component with id " + instanceId + " found.");
         }
-        visitor.visitComponentDetails(component.getId(), component.getMetadata().getModuleVersionId(), component.getRepositoryName());
+        visitor.visitComponentDetails(component.getId(), component.getMetadata().getModuleVersionId(), component.getRepositoryId());
     }
 }

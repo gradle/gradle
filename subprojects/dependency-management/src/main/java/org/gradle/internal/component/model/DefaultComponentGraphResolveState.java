@@ -120,7 +120,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), getArtifactMetadata(), configuration, allVariantsForArtifactSelection);
     }
 
-    private static class DefaultConfigurationGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+    private class DefaultConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
         private final long instanceId;
         private final ModuleConfigurationMetadata configuration;
         private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;

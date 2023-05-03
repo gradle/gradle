@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 
@@ -45,8 +46,11 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     public void visitNode(DependencyGraphNode node) {
         DependencyGraphComponent component = node.getOwner();
         resolutionResultBuilder.startVisitComponent(component.getResultId(), component.getSelectionReason());
-        resolutionResultBuilder.visitComponentDetails(component.getComponentId(), component.getModuleVersion(), component.getResolveState().getRepositoryName());
-        resolutionResultBuilder.visitComponentVariants(component.getSelectedVariants(), component.getAvailableVariants());
+        resolutionResultBuilder.visitComponentDetails(component.getComponentId(), component.getModuleVersion(), component.getResolveState().getRepositoryId());
+        for (ResolvedGraphVariant variant : component.getSelectedVariants()) {
+            resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), variant.getResolveState().getVariantResult(null));
+        }
+        resolutionResultBuilder.visitComponentVariants(component.getAvailableVariants());
     }
 
     @Override

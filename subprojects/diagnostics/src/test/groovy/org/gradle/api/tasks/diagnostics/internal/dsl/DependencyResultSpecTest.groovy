@@ -29,7 +29,7 @@ class DependencyResultSpecTest extends Specification {
         new DependencyResultSpec(notation).isSatisfiedBy(newDependency("org.foo", "foo-core", "1.0"))
 
         where:
-        notation   << ['org', 'org.foo', 'foo-core', '1.0', 'org.foo:foo-core', 'org.foo:foo-core:1.0']
+        notation << ['org', 'org.foo', 'foo-core', '1.0', 'org.foo:foo-core', 'org.foo:foo-core:1.0']
     }
 
     def "knows mismatching dependencies"() {

@@ -138,7 +138,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         });
     }
 
-    private static class DefaultLocalConfigurationGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+    private class DefaultLocalConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
         private final long instanceId;
         private final LocalConfigurationMetadata configuration;
         private final Lazy<DefaultLocalConfigurationArtifactResolveState> artifactResolveState;

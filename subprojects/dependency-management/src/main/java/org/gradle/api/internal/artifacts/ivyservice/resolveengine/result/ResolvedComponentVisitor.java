@@ -36,7 +36,12 @@ public interface ResolvedComponentVisitor {
     void visitComponentDetails(ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion, @Nullable String repoName);
 
     /**
-     * Visit the graph dependent variant details of the component.
+     * Visit a selected variant of the component.
      */
-    void visitComponentVariants(List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants);
+    void visitSelectedVariant(Long id, ResolvedVariantResult variant);
+
+    /**
+     * Visit the graph dependent details of the component.
+     */
+    void visitComponentVariants(List<ResolvedVariantResult> allVariants);
 }

@@ -24,10 +24,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
@@ -45,9 +45,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
@@ -106,11 +104,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ModuleVersionIdentifier getId() {
         return id;
-    }
-
-    @Override
-    public String getRepositoryId() {
-        return graphResolveState.getRepositoryName();
     }
 
     @Override
@@ -298,38 +291,21 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public List<ResolvedVariantResult> getSelectedVariants() {
-        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builder();
-        addResolvedVariants(builder::add);
+    public List<ResolvedGraphVariant> getSelectedVariants() {
+        ImmutableList.Builder<ResolvedGraphVariant> builder = ImmutableList.builder();
+        addSelectedVariants(builder::add);
         return builder.build();
     }
 
     @Override
     public List<ResolvedVariantResult> getAvailableVariants() {
-        // The resolved variants need to replace the same variant in the selectable variants, as the resolved variants
-        // may have the "externalVariant" property populated but the selectable variants will not.
-        // This is because the external variant is currently populated using the graph resolution output. However, the external variant
-        // is a function of the component's metadata, rather than the graph it appears in, and should be populated much earlier
-        Map<AttributeContainer, ResolvedVariantResult> selected = new HashMap<>();
-        addResolvedVariants(variant -> {
-            selected.put(variant.getAttributes(), variant);
-        });
-        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builder();
-        for (ResolvedVariantResult variant : resolveState.getAllSelectableVariantResults()) {
-            ResolvedVariantResult candidate = selected.get(variant.getAttributes());
-            if (candidate != null) {
-                builder.add(candidate);
-            } else {
-                builder.add(variant);
-            }
-        }
-        return builder.build();
+        return resolveState.getAllSelectableVariantResults();
     }
 
-    private void addResolvedVariants(Consumer<ResolvedVariantResult> consumer) {
+    private void addSelectedVariants(Consumer<ResolvedGraphVariant> consumer) {
         for (NodeState node : nodes) {
             if (node.isSelected()) {
-                consumer.accept(node.getResolvedVariant());
+                consumer.accept(node);
             }
         }
     }

@@ -79,9 +79,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                                             boolean returnAllVariants) {
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
         ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
-        this.dependencyResultSerializer = new DependencyResultSerializer(resolvedVariantResultSerializer, componentSelectionDescriptorFactory);
+        this.dependencyResultSerializer = new DependencyResultSerializer(componentSelectionDescriptorFactory);
         ComponentDetailsSerializer componentDetailsSerializer = new ThisBuildOnlyComponentDetailsSerializer();
-        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, resolvedVariantResultSerializer, componentSelectionDescriptorFactory, returnAllVariants);
+        SelectedVariantSerializer selectedVariantSerializer = new ThisBuildOnlySelectedVariantSerializer();
+        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, selectedVariantSerializer, resolvedVariantResultSerializer, componentSelectionDescriptorFactory, returnAllVariants);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
