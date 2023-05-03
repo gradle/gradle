@@ -271,4 +271,12 @@ class IntegTestPreconditions {
             return doSatisfies(UnitTestPreconditions.Windows) && notSatisfies(IsEmbeddedExecutor)
         }
     }
+
+    static final class CanPublishToS3 implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            // The S3 publish tests require the following
+            return doSatisfies(UnitTestPreconditions.Jdk9OrLater) || notSatisfies(IsEmbeddedExecutor)
+        }
+    }
 }
