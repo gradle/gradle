@@ -18,14 +18,12 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
@@ -68,8 +66,10 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test requires to start Gradle from scratch with the wrong Java version
-    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
+    @Requires(
+        value = [IntegTestPreconditions.UnsupportedJavaHomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor],
+        reason = "This test requires to start Gradle from scratch with the wrong Java version"
+    )
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         executer.withJavaHome(jdk.javaHome)
