@@ -23,7 +23,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
-@Requires([IntegTestPreconditions.Java6HomeAvailable, IntegTestPreconditions.Java7HomeAvailable ])
+@Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
 @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {

@@ -27,11 +27,7 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
-@Requires([
-    IntegTestPreconditions.Java5HomeAvailable,
-    IntegTestPreconditions.Java6HomeAvailable,
-    IntegTestPreconditions.Java7HomeAvailable
-])
+@Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
 @TargetGradleVersion("current")
 class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
