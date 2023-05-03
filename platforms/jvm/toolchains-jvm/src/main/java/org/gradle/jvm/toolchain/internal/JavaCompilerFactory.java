@@ -28,5 +28,5 @@ import java.util.Collection;
  */
 @ServiceScope(Scopes.Project.class)
 public interface JavaCompilerFactory {
-    <T extends CompileSpec> Compiler<T> create(Class<T> type, Collection<File> additions);
+    <T extends CompileSpec> Compiler<T> create(Class<T> type, Collection<File> customCompilerClasspath);
 }

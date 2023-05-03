@@ -34,7 +34,6 @@ class EclipseCompilerIntegrationTest extends AbstractIntegrationSpec {
                 ecj('org.eclipse.jdt:ecj:3.33.0')
             }
             tasks.withType(JavaCompile).configureEach {
-                // customCompilerClasspath.from(configurations.ecj)
                 options.headerOutputDirectory.convention(null) // https://github.com/gradle/gradle/issues/12904
             }
         """
