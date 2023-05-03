@@ -44,10 +44,13 @@ class RequiresExtensionTest extends Specification {
 
     def "accept multiple values"() {
         when:
-        extension.checkValidCombinations(["value2", "value3"])
+        extension.checkValidCombinations(combination)
 
         then:
         noExceptionThrown()
+
+        where:
+        combination << [["value2", "value3"], ["value3", "value2"]]
     }
 
     def "throws exception when single value not found"() {

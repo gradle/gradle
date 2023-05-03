@@ -17,8 +17,6 @@ package org.gradle.test.precondition
 
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.condition.PredicatesFile
-import org.hamcrest.Matcher
-import org.hamcrest.Matchers
 import org.spockframework.runtime.extension.ExtensionException
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
@@ -39,7 +37,7 @@ import java.util.stream.Stream
 @CompileStatic
 class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
 
-    private final List<Matcher> acceptedCombinations
+    private final Set<Set<String>> acceptedCombinations
 
     /**
      * Default constructor.
@@ -54,11 +52,9 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
      * Protected constructor (for testing).
      */
     protected RequiresExtension(Stream<List<String>> values) {
-        acceptedCombinations = values.collect {
-            Matchers.contains(
-                it.collect { Matchers.equalTo(it) }
-            )
-        }
+        acceptedCombinations = (values.collect {
+            it as Set<String>
+        } as Set)
     }
 
     /**
@@ -97,7 +93,7 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
      * @param testPreconditions
      */
     protected void checkValidCombinations(List<String> predicateClassNames) {
-        def found = Matchers.anyOf(acceptedCombinations).matches(predicateClassNames)
+        def found = acceptedCombinations.contains(predicateClassNames as Set)
 
         if (!found) {
             def message = String.format(
