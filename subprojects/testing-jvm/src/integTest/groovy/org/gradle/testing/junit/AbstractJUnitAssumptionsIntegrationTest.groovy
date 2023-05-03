@@ -17,9 +17,9 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def "supports assumptions"() {
         given:
         executer.noExtraLogging()
