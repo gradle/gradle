@@ -14,7 +14,7 @@ java {
 }
 
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.13")
+    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.13.1")
 
     implementation(project(":commons"))
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.0.14")
