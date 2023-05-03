@@ -21,15 +21,15 @@ import spock.lang.Specification
 
 class RequiresExtensionTest extends Specification {
 
-    List<List<String>> values = [
+    Set<Set<String>> values = [
         // Value NOT shared between single and multi cases
-        ["value1"],
+        ["value1"] as Set,
         // Value shared between single and multi cases
-        ["value2"],
-        ["value2", "value3"],
-    ]
+        ["value2"] as Set,
+        ["value2", "value3"] as Set,
+    ] as Set
 
-    RequiresExtension extension = new RequiresExtension(values.stream())
+    RequiresExtension extension = new RequiresExtension(values)
 
     def "accept single values"() {
         when:

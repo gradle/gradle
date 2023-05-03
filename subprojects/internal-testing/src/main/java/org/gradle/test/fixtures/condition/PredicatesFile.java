@@ -17,13 +17,13 @@
 package org.gradle.test.fixtures.condition;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class PredicatesFile {
 
@@ -38,10 +38,10 @@ public class PredicatesFile {
      * The csv is sudo in the sense, that you can comment by using "#"
      *
      * @param resource the resource file being used
-     * @return a list of string arrays representing the values in the file
+     * @return a set of sets of strings representing the values in the file
      */
-    public static Stream<List<String>> streamCombinationsFile(String resource) {
-        Stream<String> lineStream = new BufferedReader(
+    public static Set<Set<String>> readAllowedCombinations(String resource) {
+        try (BufferedReader reader = new BufferedReader(
             new InputStreamReader(
                 Objects.requireNonNull(
                     PredicatesFile.class.getResourceAsStream(resource),
@@ -49,27 +49,28 @@ public class PredicatesFile {
                 ),
                 StandardCharsets.UTF_8
             )
-        ).lines();
-
-        return lineStream
-            // If a line starts with #, it's a comment
-            .filter(line -> !line.startsWith("#"))
-            // We are not interested in whitespaces on the line level
-            .map(String::trim)
-            // If the line was empty, or only contained space (which was cut by the trim before), we skip the line
-            .filter(line -> !line.isEmpty())
-            // We separate the values
-            .map(line -> line.split(","))
-            // For each array of entries...
-            .map(entries -> Arrays
-                // We stream the entries
-                .stream(entries)
-                // Trim all unnecessary whitespaces off
+        )) {
+            return reader.lines()
+                // If a line starts with #, it's a comment
+                .filter(line -> !line.startsWith("#"))
+                // We are not interested in whitespaces on the line level
                 .map(String::trim)
-                // Prefix the package with the implicit name of the predicates
-                .map(name -> PREDICATE_PACKAGE_PREFIX + name)
-                .collect(Collectors.toList())
-            );
+                // If the line was empty, or only contained space (which was cut by the trim before), we skip the line
+                .filter(line -> !line.isEmpty())
+                // We separate the values
+                .map(line -> line.split(","))
+                // For each array of entries...
+                .map(entries -> Arrays
+                    // We stream the entries
+                    .stream(entries)
+                    // Trim all unnecessary whitespaces off
+                    .map(String::trim)
+                    // Prefix the package with the implicit name of the predicates
+                    .map(name -> PREDICATE_PACKAGE_PREFIX + name)
+                    .collect(Collectors.toSet())
+                ).collect(Collectors.toSet());
+        } catch (IOException e) {
+            throw new RuntimeException("Error parsing resource " + resource, e);
+        }
     }
-
 }
