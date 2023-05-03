@@ -19,7 +19,7 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
+import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 

@@ -18,12 +18,12 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getModuleName()
 
     def setup() {
