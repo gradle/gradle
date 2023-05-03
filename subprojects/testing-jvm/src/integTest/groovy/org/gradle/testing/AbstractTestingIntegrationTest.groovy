@@ -18,13 +18,12 @@ package org.gradle.testing
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import org.hamcrest.CoreMatchers
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.equalTo
@@ -354,8 +353,7 @@ abstract class AbstractTestingIntegrationTest extends AbstractJUnitMultiVersionI
         outputContains "Unable to reset SecurityManager"
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Requires([IntegTestPreconditions.NotEmbeddedExecutor, UnitTestPreconditions.Jdk14OrLater])
     def "useful NPE messages are transported to the daemon"() {
         buildFile << """
             apply plugin:'java-library'

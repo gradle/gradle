@@ -17,17 +17,16 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+
 /**
  * For forking a daemon process in embedded mode:
  * The command line length is already close to the limit of what Windows can handle.
  * The few extra arguments that the priority change requires seem to push it over the edge.
  * Therefore, we do not run these tests embedded on Windows.
  **/
-@IgnoreIf({ TestPrecondition.doSatisfies(UnitTestPreconditions.Windows) && GradleContextualExecuter.embedded})
+@Requires(IntegTestPreconditions.NotEmbeddedExecutorOrNotWindows)
 class DaemonPriorityIntegrationTest extends DaemonIntegrationSpec {
 
     def "forks new daemon when priority is set to a different value via command line"() {

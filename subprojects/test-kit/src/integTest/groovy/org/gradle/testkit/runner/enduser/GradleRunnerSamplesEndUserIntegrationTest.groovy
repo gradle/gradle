@@ -19,19 +19,19 @@ package org.gradle.testkit.runner.enduser
 
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 @NonCrossVersion
 @NoDebug
-@IgnoreIf({ GradleContextualExecuter.embedded })
-// These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
+@Requires(
+    value = IntegTestPreconditions.NotEmbeddedExecutor,
+    reason = "These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution")
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule

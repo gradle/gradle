@@ -17,14 +17,12 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
@@ -506,7 +504,7 @@ startScripts {
         OperatingSystem.current().isWindows() ? runViaWindowsStartScript(startScriptDir) : runViaUnixStartScript(startScriptDir)
     }
 
-    @IgnoreIf({ TestPrecondition.doSatisfies(UnitTestPreconditions.Windows) })
+    @Requires(UnitTestPreconditions.NotWindows)
     // This test already fails silently on Windows, but adding an explicit check for the existence of xargs made it fail explicitly.
     def "can run under posix sh environment"() {
         buildFile << """
@@ -522,8 +520,7 @@ task execStartScript(type: Exec) {
     }
 
     // Paths to cygpath are only available when running under the embedded executor
-    @Requires(UnitTestPreconditions.Windows)
-    @IgnoreIf({ !GradleContextualExecuter.embedded })
+    @Requires([UnitTestPreconditions.Windows, IntegTestPreconditions.IsEmbeddedExecutor])
     def "can pass absolute Unix-like paths to script on Windows"() {
         file("run.sh") << '''#!/bin/sh
 # convert paths into absolute Unix-like paths

@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.GroovyCoverage
 import org.junit.Rule
@@ -418,8 +419,10 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
-    @IgnoreIf({ GradleContextualExecuter.embedded })
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(
+        value = [UnitTestPreconditions.StableGroovy, IntegTestPreconditions.NotEmbeddedExecutor],
+        reason = "localGroovy() version cannot be swapped-out when a snapshot Groovy build is used"
+    )
     def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()

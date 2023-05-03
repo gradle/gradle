@@ -44,6 +44,13 @@ class IntegTestPreconditions {
         }
     }
 
+    static final class NotEmbeddedExecutorOrNotWindows implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return notSatisfies(IsEmbeddedExecutor) || notSatisfies(UnitTestPreconditions.Windows)
+        }
+    }
+
 
     static final class IsDaemonExecutor implements TestPrecondition {
         @Override
