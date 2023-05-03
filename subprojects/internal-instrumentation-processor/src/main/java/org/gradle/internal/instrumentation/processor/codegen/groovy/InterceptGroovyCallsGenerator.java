@@ -29,6 +29,7 @@ import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
+import org.gradle.internal.instrumentation.util.NameUtil;
 import org.gradle.util.internal.TextUtil;
 import org.objectweb.asm.Type;
 
@@ -78,12 +79,11 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         interceptionRequests.forEach(request -> {
             if (request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent()) {
                 CallableInfo callable = request.getInterceptedCallable();
-                if (callable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
+                CallableKindInfo kind = callable.getKind();
+                if (kind == CallableKindInfo.AFTER_CONSTRUCTOR) {
                     constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner().getType(), key -> new ArrayList<>()).add(request);
                 } else {
-                    String nameKey = callable.getKind() == CallableKindInfo.GROOVY_PROPERTY
-                        ? "get" + TextUtil.capitalize(callable.getCallableName())
-                        : callable.getCallableName();
+                    String nameKey = NameUtil.interceptedJvmMethodName(callable);
                     namedRequests.computeIfAbsent(nameKey, key -> new ArrayList<>()).add(request);
                 }
             }
@@ -169,12 +169,17 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     private static CodeBlock namedCallableScopesArgs(String name, List<CallInterceptionRequest> requests) {
         List<CodeBlock> scopeExpressions = new ArrayList<>();
 
-        List<CallInterceptionRequest> propertyRequests = requests.stream().filter(it -> it.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY).collect(Collectors.toList());
-        propertyRequests.forEach(request -> {
+        requests.stream().filter(it -> it.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER).forEach(request -> {
             String propertyName = request.getInterceptedCallable().getCallableName();
-            String getterName = "get" + TextUtil.capitalize(propertyName);
+            String getterName = NameUtil.getterName(request.getInterceptedCallable().getCallableName(), request.getInterceptedCallable().getReturnType().getType());
             scopeExpressions.add(CodeBlock.of("$1T.readsOfPropertiesNamed($2S)", INTERCEPTED_SCOPE_CLASS, propertyName));
             scopeExpressions.add(CodeBlock.of("$1T.methodsNamed($2S)", INTERCEPTED_SCOPE_CLASS, getterName));
+        });
+        requests.stream().filter(it -> it.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER).forEach(request -> {
+            String propertyName = request.getInterceptedCallable().getCallableName();
+            String setterName = "set" + TextUtil.capitalize(propertyName);
+            scopeExpressions.add(CodeBlock.of("$1T.writesOfPropertiesNamed($2S)", INTERCEPTED_SCOPE_CLASS, propertyName));
+            scopeExpressions.add(CodeBlock.of("$1T.methodsNamed($2S)", INTERCEPTED_SCOPE_CLASS, setterName));
         });
 
         List<CallableKindInfo> callableKinds = requests.stream().map(it -> it.getInterceptedCallable().getKind()).distinct().collect(Collectors.toList());
