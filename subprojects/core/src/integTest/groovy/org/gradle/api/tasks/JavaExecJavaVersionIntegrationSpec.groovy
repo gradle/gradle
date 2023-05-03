@@ -25,7 +25,7 @@ import spock.lang.Issue
 import static org.gradle.api.JavaVersion.VERSION_1_8
 import static org.gradle.api.JavaVersion.VERSION_1_9
 
-@Requires([IntegTestPreconditions.Java8HomeAvailable, IntegTestPreconditions.Java9HomeAvailable ])
+@Requires([IntegTestPreconditions.MoreThanOneJava8HomeAvailable, IntegTestPreconditions.Java9HomeAvailable ])
 class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
