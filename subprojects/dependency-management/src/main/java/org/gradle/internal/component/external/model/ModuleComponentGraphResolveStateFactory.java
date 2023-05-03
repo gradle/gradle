@@ -36,11 +36,11 @@ public class ModuleComponentGraphResolveStateFactory {
     }
 
     public ModuleComponentGraphResolveState stateFor(ModuleComponentResolveMetadata metadata) {
-        return new DefaultModuleComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring);
+        return new DefaultModuleComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator);
     }
 
     public ComponentGraphResolveState stateFor(ComponentGraphResolveMetadata graphMetadata, ComponentResolveMetadata artifactMetadata) {
-        return new DefaultComponentGraphResolveState<>(idGenerator.nextComponentId(), graphMetadata, artifactMetadata, attributeDesugaring);
+        return new DefaultComponentGraphResolveState<>(idGenerator.nextComponentId(), graphMetadata, artifactMetadata, attributeDesugaring, idGenerator);
     }
 }
 
