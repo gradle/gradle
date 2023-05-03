@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -27,7 +26,6 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.GroovyCoverage
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName
 
@@ -309,7 +307,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
-    @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsDaemonExecutor)
     def "does not download gradleApi() sources when sources download is disabled"() {
         given:
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
@@ -335,7 +333,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
-    @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsDaemonExecutor)
     def "does not download gradleApi() sources when offline"() {
         given:
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
