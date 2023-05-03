@@ -487,13 +487,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class SupportsTargetingJava6 implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return notSatisfies(Jdk12OrLater)
-        }
-    }
-
     // Currently mac agents are not that strong so we avoid running high-concurrency tests on them
     static final class HighPerformance implements TestPrecondition {
         @Override
