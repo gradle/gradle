@@ -58,6 +58,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin',
                 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin',
                 'org.jetbrains.kotlin.jvm',
+                'org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin$Inject',
                 'org.jlleitschuh.gradle.ktlint',
                 'org.jlleitschuh.gradle.ktlint.KtlintBasePlugin',
                 'org.jlleitschuh.gradle.ktlint.KtlintIdeaPlugin',
