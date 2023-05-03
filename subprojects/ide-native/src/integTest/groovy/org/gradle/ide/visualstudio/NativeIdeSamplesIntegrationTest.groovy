@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
@@ -55,7 +56,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         libProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloLib"
     }
 
-    @Requires(UnitTestPreconditions.HasMsBuild)
+    @Requires(IntegTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "build generated visual studio solution"() {
         useMsbuildTool()

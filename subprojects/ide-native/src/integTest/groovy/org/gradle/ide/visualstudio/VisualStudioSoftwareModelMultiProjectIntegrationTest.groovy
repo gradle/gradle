@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.IgnoreIf
 
 class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
@@ -292,7 +292,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
-    @Requires(UnitTestPreconditions.HasMsBuild)
+    @Requires(IntegTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can build executable that depends on static library in another project from visual studio"() {
         useMsbuildTool()
@@ -337,7 +337,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
-    @Requires(UnitTestPreconditions.HasMsBuild)
+    @Requires(IntegTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can clean from visual studio with dependencies"() {
         useMsbuildTool()

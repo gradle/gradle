@@ -12,7 +12,6 @@ UnitTestPreconditions$CaseSensitiveFs
 UnitTestPreconditions$FilePermissions
 UnitTestPreconditions$HasDocker
 UnitTestPreconditions$HasDocker,IntegTestPreconditions$NotEmbeddedExecutor
-UnitTestPreconditions$HasMsBuild
 UnitTestPreconditions$HasXCode
 UnitTestPreconditions$HasXCode,UnitTestPreconditions$NotMacOsM1
 UnitTestPreconditions$HighPerformance
@@ -69,6 +68,7 @@ UnitTestPreconditions$Windows,UnitTestPreconditions$Jdk7OrLater,UnitTestPrecondi
 UnitTestPreconditions$Windows,IntegTestPreconditions$IsEmbeddedExecutor
 UnitTestPreconditions$WorkingDir
 
+IntegTestPreconditions$HasMsBuild
 IntegTestPreconditions$IsConfigCached
 IntegTestPreconditions$IsDaemonExecutor
 IntegTestPreconditions$IsEmbeddedExecutor

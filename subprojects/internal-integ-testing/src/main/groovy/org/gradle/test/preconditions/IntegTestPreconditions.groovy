@@ -264,4 +264,11 @@ class IntegTestPreconditions {
         }
     }
 
+    static final class HasMsBuild implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
+            return doSatisfies(UnitTestPreconditions.Windows) && notSatisfies(IsEmbeddedExecutor)
+        }
+    }
 }
