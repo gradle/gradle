@@ -17,12 +17,11 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.hamcrest.Matcher
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -432,8 +431,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
-    @Requires(TestPrecondition.JDK14_OR_LATER)
+    @Requires([UnitTestPreconditions.Jdk14OrLater, IntegTestPreconditions.NotEmbeddedExecutor])
     def "useful NPE messages are transported to the daemon"() {
         buildFile << """
             apply plugin:'java-library'
