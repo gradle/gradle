@@ -23,8 +23,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 
-@LeaksFileHandles
 //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
+@LeaksFileHandles
 class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecification {
 
     def setup() {
