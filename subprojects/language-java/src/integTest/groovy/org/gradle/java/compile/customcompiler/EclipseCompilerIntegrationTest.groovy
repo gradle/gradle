@@ -26,8 +26,6 @@ class EclipseCompilerIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java-library'
             }
-            group = 'org'
-            version = '1.0-beta2'
 
             ${mavenCentralRepository()}
 
@@ -84,6 +82,37 @@ class EclipseCompilerIntegrationTest extends AbstractIntegrationSpec {
                 customCompilerClasspath.from(configurations.ecj) // Use the ECJ Compiler, that compiles the example code without error
             }
         '''
+        run ':compileJava'
+
+        then:
+        result.assertTaskExecuted(':compileJava')
+    }
+
+    def "custom file manager does not cause issue with eclipse compiler"() {
+        given:
+        settingsFile << "include('other-project')"
+        file('other-project/build.gradle') << "plugins { id 'java-library' }"
+        file("other-project/src/main/java/foo/Bar.java") << """
+            package foo;
+            public class Bar {}
+        """
+
+        // Same package name (bar) as class on the classpath, potential issue on Windows file system
+        // See: https://github.com/eclipse-jdt/eclipse.jdt.core/issues/985
+        file("src/main/java/foo/bar/Main.java") << """
+            package foo;
+            public class Main {}
+        """
+        buildFile << '''
+            dependencies {
+                implementation project(':other-project')
+            }
+            tasks.withType(JavaCompile).configureEach {
+                customCompilerClasspath.from(configurations.ecj)
+            }
+        '''
+
+        when:
         run ':compileJava'
 
         then:
