@@ -24,11 +24,9 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.GUtil
 import org.junit.Assume
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
@@ -105,7 +103,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         allSkipped()
     }
 
-    @IgnoreIf({ TestPrecondition.notSatisfies(UnitTestPreconditions.CanInstallExecutable) })
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "rebuilds executable with source file change"() {
         given:
