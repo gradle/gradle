@@ -31,3 +31,16 @@ dependencies {
     compileOnly(gradleApi())
     compileOnly("org.ow2.asm:asm-tree:9.4")
 }
+
+// TODO this is a workaround for making the configuration cache work
+val minified = Attribute.of("minified", Boolean::class.javaObjectType)
+configurations.all {
+    if (isCanBeConsumed && !isCanBeResolved) {
+        if (
+            attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY
+            && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL
+        ) {
+            attributes.attribute(minified, true)
+        }
+    }
+}
