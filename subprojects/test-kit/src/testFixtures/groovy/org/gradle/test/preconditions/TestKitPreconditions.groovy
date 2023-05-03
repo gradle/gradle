@@ -16,21 +16,15 @@
 
 package org.gradle.test.preconditions
 
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.TestPrecondition
+import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 
-public class TestKitPreconditions {
+class TestKitPreconditions {
 
-    public static class LowestMajorGradleIsAvailable implements TestPrecondition {
+    static class LowestMajorGradleIsAvailable implements TestPrecondition {
         @Override
-        public boolean isSatisfied() throws Exception {
-            def releasedGradleVersions = new ReleasedVersionDistributions();
-            def probeVersions = ["4.10.3", "5.6.4", "6.9.2", "7.5.1", "7.6"]
-            String compatibleVersion = probeVersions.find {version ->
-                releasedGradleVersions.getDistribution(version)?.worksWith(Jvm.current())
-            }
-            return
+        boolean isSatisfied() throws Exception {
+            return BaseGradleRunnerIntegrationTest.findLowestMajorGradleVersion() != null
         }
     }
 
