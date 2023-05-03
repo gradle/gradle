@@ -68,6 +68,7 @@ UnitTestPreconditions$Windows,UnitTestPreconditions$Jdk7OrLater,UnitTestPrecondi
 UnitTestPreconditions$Windows,IntegTestPreconditions$IsEmbeddedExecutor
 UnitTestPreconditions$WorkingDir
 
+IntegTestPreconditions$CanPublishToS3
 IntegTestPreconditions$HasMsBuild
 IntegTestPreconditions$IsConfigCached
 IntegTestPreconditions$IsDaemonExecutor

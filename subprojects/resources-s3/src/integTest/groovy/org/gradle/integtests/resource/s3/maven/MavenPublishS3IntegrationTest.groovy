@@ -28,10 +28,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
-@Requires([
-    UnitTestPreconditions.Jdk9OrLater,
-    IntegTestPreconditions.NotEmbeddedExecutor
-])
+@Requires(IntegTestPreconditions.CanPublishToS3)
 class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)
