@@ -26,7 +26,10 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 
-@Requires(UnitTestPreconditions.Jdk8OrEarlier) // tests against old Gradle version that can only work with Java versions up tp 8
+@Requires(
+    value = UnitTestPreconditions.Jdk8OrEarlier,
+    reason = "tests against old Gradle version that can only work with Java versions up to 8"
+)
 @ToolingApiVersion("current")
 class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def buildPluginWith(String gradleVersion) {

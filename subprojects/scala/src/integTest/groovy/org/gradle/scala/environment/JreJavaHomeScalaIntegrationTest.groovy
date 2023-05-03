@@ -16,7 +16,6 @@
 
 package org.gradle.scala.environment
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScalaCoverage

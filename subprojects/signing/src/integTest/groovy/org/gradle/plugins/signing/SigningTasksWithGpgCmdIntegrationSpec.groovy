@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.signing
 
-
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.SigningTestPreconditions
 

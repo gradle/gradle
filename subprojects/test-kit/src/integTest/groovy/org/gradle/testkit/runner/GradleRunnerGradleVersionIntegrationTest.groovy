@@ -31,7 +31,6 @@ import spock.lang.Shared
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 
 @NonCrossVersion
-// FIXME:
 @Requires([
     UnitTestPreconditions.Online,
     TestKitPreconditions.LowestMajorGradleIsAvailable
