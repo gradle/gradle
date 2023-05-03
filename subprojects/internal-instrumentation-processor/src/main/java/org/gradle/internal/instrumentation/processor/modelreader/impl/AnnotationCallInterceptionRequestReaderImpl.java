@@ -248,7 +248,8 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         CallableKind.InstanceMethod.class,
         CallableKind.StaticMethod.class,
         CallableKind.AfterConstructor.class,
-        CallableKind.GroovyProperty.class
+        CallableKind.GroovyPropertyGetter.class,
+        CallableKind.GroovyPropertySetter.class
     });
 
     private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{

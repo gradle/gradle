@@ -18,13 +18,12 @@ package org.gradle.internal.instrumentation.processor.features.withstaticreferen
 
 import org.gradle.internal.instrumentation.api.annotations.features.withstaticreference.WithExtensionReferences;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
-import org.gradle.util.internal.TextUtil;
+import org.gradle.internal.instrumentation.util.NameUtil;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -55,18 +54,11 @@ public class WithExtensionReferencesReader implements RequestPostProcessorExtens
         return AnnotationUtils.findAnnotationValue(annotation, "methodName")
             .map(it -> (String) it.getValue())
             .filter(it -> !it.isEmpty())
-            .orElse(guessMethodName(originalRequest.getInterceptedCallable()));
-    }
-
-    private static String guessMethodName(CallableInfo callable) {
-        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY) {
-            return "get" + TextUtil.capitalize(callable.getCallableName());
-        }
-        return callable.getCallableName();
+            .orElse(NameUtil.interceptedJvmMethodName(originalRequest.getInterceptedCallable()));
     }
 
     private static boolean shouldPostProcess(CallInterceptionRequest request) {
         CallableKindInfo kind = request.getInterceptedCallable().getKind();
-        return kind == CallableKindInfo.INSTANCE_METHOD || kind == CallableKindInfo.GROOVY_PROPERTY;
+        return kind == CallableKindInfo.INSTANCE_METHOD || kind == CallableKindInfo.GROOVY_PROPERTY_GETTER || kind == CallableKindInfo.GROOVY_PROPERTY_SETTER;
     }
 }

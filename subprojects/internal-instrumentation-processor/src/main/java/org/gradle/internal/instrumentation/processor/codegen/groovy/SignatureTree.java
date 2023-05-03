@@ -34,6 +34,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.AFTER_CONSTRUCTOR;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_GETTER;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_SETTER;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.STATIC_METHOD;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.PARAMETER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
@@ -77,13 +81,14 @@ class SignatureTree {
     @Nonnull
     private static List<ParameterMatchEntry> parameterMatchEntries(CallableInfo callable) {
         Optional<ParameterInfo> varargParameter = callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.VARARG_METHOD_PARAMETER).findAny();
+        CallableKindInfo kind = callable.getKind();
         return Stream.of(
             // Match the `Class<?>` in `receiver` for static methods and constructors
-            callable.getKind() == CallableKindInfo.STATIC_METHOD || callable.getKind() == AFTER_CONSTRUCTOR
+            kind == STATIC_METHOD || kind == AFTER_CONSTRUCTOR
                 ? Stream.of(new ParameterMatchEntry(callable.getOwner().getType(), RECEIVER_AS_CLASS))
                 : Stream.<ParameterMatchEntry>empty(),
             // Or match the receiver in the first parameter
-            callable.getKind() == CallableKindInfo.INSTANCE_METHOD || callable.getKind() == CallableKindInfo.GROOVY_PROPERTY
+            kind == INSTANCE_METHOD || kind == GROOVY_PROPERTY_GETTER || kind == GROOVY_PROPERTY_SETTER
                 ? Stream.of(new ParameterMatchEntry(callable.getParameters().get(0).getParameterType(), RECEIVER))
                 : Stream.<ParameterMatchEntry>empty(),
             // Then match the "normal" method parameters
