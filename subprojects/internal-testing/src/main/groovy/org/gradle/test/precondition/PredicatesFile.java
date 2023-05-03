@@ -16,8 +16,6 @@
 
 package org.gradle.test.precondition;
 
-import org.spockframework.runtime.extension.ExtensionException;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -101,7 +99,7 @@ public class PredicatesFile {
                     "See the documentation of this class to learn more about this feature.",
                 String.join(", ", predicateClassNames)
             );
-            throw new ExtensionException(message);
+            throw new IllegalArgumentException(message);
         }
     }
 }
