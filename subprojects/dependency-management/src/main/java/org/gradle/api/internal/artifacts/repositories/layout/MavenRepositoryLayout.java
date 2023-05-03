@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 
+import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.Set;
 
 /**
  * A Repository Layout that applies the following patterns:
@@ -33,26 +32,13 @@ import java.util.Set;
  * Note that the resolver will follow the layout only, but will <em>not</em> use .pom files for meta data. Ivy metadata files are required/published.
  */
 public class MavenRepositoryLayout extends AbstractRepositoryLayout {
-
     @Override
-    public void apply(URI baseUri, PatternBasedResolver resolver) {
-        if (baseUri == null) {
-            return;
-        }
-
-        resolver.setM2compatible(true); // Replace '.' with '/' in organisation
-
-        resolver.addArtifactLocation(baseUri, IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
-        resolver.addDescriptorLocation(baseUri, IvyArtifactRepository.MAVEN_IVY_PATTERN);
-    }
-
-    @Override
-    public Set<String> getIvyPatterns() {
-        return ImmutableSet.of(IvyArtifactRepository.MAVEN_IVY_PATTERN);
-    }
-
-    @Override
-    public Set<String> getArtifactPatterns() {
-        return ImmutableSet.of(IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
+    public void apply(@Nullable URI baseUri, IvyRepositoryDescriptor.Builder builder) {
+        builder.setLayoutType("Maven");
+        builder.setM2Compatible(true); // Replace '.' with '/' in organisation
+        builder.addIvyPattern(IvyArtifactRepository.MAVEN_IVY_PATTERN);
+        builder.addIvyResource(baseUri, IvyArtifactRepository.MAVEN_IVY_PATTERN);
+        builder.addArtifactPattern(IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
+        builder.addArtifactResource(baseUri, IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
     }
 }

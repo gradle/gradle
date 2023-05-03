@@ -51,10 +51,10 @@ public interface ResolvedGraphComponent {
     ComponentSelectionReason getSelectionReason();
 
     /**
-     * Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
+     * Returns the id of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
      */
     @Nullable
-    String getRepositoryName();
+    String getRepositoryId();
 
     /**
      * Returns the resolved/selected variant(s) for this component.
