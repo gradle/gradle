@@ -268,7 +268,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
-        String repositoryName
+        String repositoryId
         List<ResolvedVariantResult> selectedVariants = []
         List<ResolvedVariantResult> availableVariants = []
     }
