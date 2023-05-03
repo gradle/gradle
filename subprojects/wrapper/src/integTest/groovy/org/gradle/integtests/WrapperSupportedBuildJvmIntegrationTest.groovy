@@ -17,11 +17,9 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
 
 @Requires(
     value = [IntegTestPreconditions.UnsupportedJavaHomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor],
