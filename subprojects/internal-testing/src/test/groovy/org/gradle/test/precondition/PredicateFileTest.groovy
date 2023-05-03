@@ -16,7 +16,6 @@
 
 package org.gradle.test.precondition
 
-import org.spockframework.runtime.extension.ExtensionException
 import spock.lang.Specification
 
 class PredicateFileTest extends Specification {
@@ -56,7 +55,7 @@ class PredicateFileTest extends Specification {
         checkValidCombinations(["nonexistent"])
 
         then:
-        final ex = thrown(ExtensionException)
+        final ex = thrown(IllegalArgumentException)
         ex.message.startsWith("Requested requirements [nonexistent] were not in the list of accepted combinations")
     }
 
@@ -65,7 +64,7 @@ class PredicateFileTest extends Specification {
         checkValidCombinations(["nonexistent1", "nonexistent2"])
 
         then:
-        final ex = thrown(ExtensionException)
+        final ex = thrown(IllegalArgumentException)
         ex.message.startsWith("Requested requirements [nonexistent1, nonexistent2] were not in the list of accepted combinations.")
     }
 
