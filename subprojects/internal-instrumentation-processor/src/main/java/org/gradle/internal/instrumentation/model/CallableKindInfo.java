@@ -21,7 +21,7 @@ import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import java.lang.annotation.Annotation;
 
 public enum CallableKindInfo {
-    STATIC_METHOD, INSTANCE_METHOD, AFTER_CONSTRUCTOR, GROOVY_PROPERTY;
+    STATIC_METHOD, INSTANCE_METHOD, AFTER_CONSTRUCTOR, GROOVY_PROPERTY_GETTER, GROOVY_PROPERTY_SETTER;
 
     public static CallableKindInfo fromAnnotation(Annotation annotation) {
         if (annotation instanceof CallableKind.StaticMethod) {
@@ -33,8 +33,11 @@ public enum CallableKindInfo {
         if (annotation instanceof CallableKind.AfterConstructor) {
             return AFTER_CONSTRUCTOR;
         }
-        if (annotation instanceof CallableKind.GroovyProperty) {
-            return GROOVY_PROPERTY;
+        if (annotation instanceof CallableKind.GroovyPropertyGetter) {
+            return GROOVY_PROPERTY_GETTER;
+        }
+        if (annotation instanceof CallableKind.GroovyPropertySetter) {
+            return GROOVY_PROPERTY_SETTER;
         }
         throw new IllegalArgumentException("Unexpected annotation " + annotation);
     }
