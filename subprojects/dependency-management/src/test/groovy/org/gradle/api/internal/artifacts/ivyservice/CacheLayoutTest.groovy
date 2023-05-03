@@ -54,7 +54,7 @@ class CacheLayoutTest extends Specification {
 
         then:
         // If you change the value here, update the docs in dependency_resolution.adoc#sub:cache_copy
-        def expectedVersion = 106
+        def expectedVersion = 107
         cacheLayout.name == 'metadata'
         cacheLayout.key == "metadata-2.${expectedVersion}"
         cacheLayout.version == CacheVersion.parse("2.${expectedVersion}")

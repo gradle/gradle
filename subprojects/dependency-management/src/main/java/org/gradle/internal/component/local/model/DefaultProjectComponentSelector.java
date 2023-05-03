@@ -26,7 +26,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
 import java.util.Collections;
@@ -71,17 +70,6 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     @Override
     public String getBuildPath() {
         return buildIdentifier.getBuildPath();
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public String getBuildName() {
-        DeprecationLogger.deprecateMethod(ProjectComponentSelector.class, "getBuildName()")
-            .withAdvice("Use getBuildPath() to get a unique identifier for the build.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "build_identifier_name_and_current_deprecation")
-            .nagUser();
-        return DeprecationLogger.whileDisabled(buildIdentifier::getName);
     }
 
     public Path getIdentityPath() {

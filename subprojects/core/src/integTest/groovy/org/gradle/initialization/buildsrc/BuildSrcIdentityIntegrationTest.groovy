@@ -167,14 +167,10 @@ Required by:
                 def components = configurations.compileClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 2
                 assert components[0].build.buildPath == ':buildSrc'
-                assert components[0].build.name == 'buildSrc'
-                assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 assert components[0].projectName == '$rootProjectName'
                 assert components[0].buildTreePath == ':buildSrc'
                 assert components[1].build.buildPath == ':buildSrc'
-                assert components[1].build.name == 'buildSrc'
-                assert components[1].build.currentBuild
                 assert components[1].projectPath == ':a'
                 assert components[1].projectName == 'a'
                 assert components[1].buildTreePath == ':buildSrc:a'
@@ -183,16 +179,9 @@ Required by:
                 assert selectors.size() == 1
                 assert selectors[0].displayName == 'project :buildSrc:a'
                 assert selectors[0].buildPath == ':buildSrc'
-                assert selectors[0].buildName == 'buildSrc'
                 assert selectors[0].projectPath == ':a'
             }
         """
-
-        2.times {
-            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
-            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
-        }
-        executer.expectDocumentedDeprecationWarning("The ProjectComponentSelector.getBuildName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
 
         expect:
         succeeds()

@@ -19,9 +19,9 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Pair;
@@ -73,6 +73,6 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
     public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
         DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
         Path foreignBuildPath = Path.path(getBuildIdentifier().getBuildPath());
-        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(foreignBuildPath), original.getIdentityPath(), original.projectPath(), original.getProjectName());
+        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(foreignBuildPath), original.getIdentityPath(), original.projectPath(), original.getProjectName());
     }
 }

@@ -26,7 +26,6 @@ class DefaultBuildIdentifierTest extends Specification {
         expect:
         def id = new DefaultBuildIdentifier(Path.path(":thing"))
         id.buildPath == ':thing'
-        id.currentBuild
         id.toString() == "build ':thing'"
     }
 
