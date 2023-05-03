@@ -275,8 +275,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
     }
 
     void "target binary compatibility is maintained"() {
-        Assume.assumeFalse(target == "1.6" && TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk6OrLater))
-        Assume.assumeFalse(target == "1.7" && TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk7OrLater))
+        Assume.assumeFalse(target == "1.6" && !canTargetJava6())
+        Assume.assumeFalse(target == "1.7" && !canTargetJava7())
 
         given:
         def api = toApi(target, [A: 'public class A {}'])
@@ -299,6 +299,14 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         '1.6'  | 50
         '1.7'  | 51
         '1.8'  | 52
+    }
+
+    private boolean canTargetJava6() {
+        TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk12OrEarlier)
+    }
+
+    private boolean canTargetJava7() {
+        TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk19OrEarlier)
     }
 
     def "should not remove public field"() {
