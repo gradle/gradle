@@ -32,6 +32,10 @@ public class ComponentIdGenerator {
         return nextId.getAndIncrement();
     }
 
+    public long nextVariantId() {
+        return nextId.getAndIncrement();
+    }
+
     public long nextGraphNodeId() {
         return nextId.getAndIncrement();
     }

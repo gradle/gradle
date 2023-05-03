@@ -32,6 +32,6 @@ public class LocalComponentGraphResolveStateFactory {
     }
 
     public LocalComponentGraphResolveState stateFor(LocalComponentMetadata metadata) {
-        return new DefaultLocalComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring);
+        return new DefaultLocalComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator);
     }
 }
