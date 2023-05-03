@@ -67,7 +67,7 @@ public class DefaultResolutionResultBuilder {
     }
 
     public void visitComponent(ResolvedGraphComponent component) {
-        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), component.getSelectedVariants(), component.getAvailableVariants(), component.getRepositoryName());
+        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), component.getSelectedVariants(), component.getAvailableVariants(), component.getRepositoryId());
     }
 
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends ResolvedGraphDependency> dependencies) {
@@ -92,9 +92,9 @@ public class DefaultResolutionResultBuilder {
         }
     }
 
-    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, String repoName) {
+    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, String repoId) {
         if (!modules.containsKey(id)) {
-            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, selectedVariants, allVariants, repoName));
+            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, selectedVariants, allVariants, repoId));
         }
     }
 

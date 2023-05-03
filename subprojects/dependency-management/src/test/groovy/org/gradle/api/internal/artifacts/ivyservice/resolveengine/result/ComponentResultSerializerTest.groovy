@@ -118,7 +118,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
             external.capabilities[1].version == '1.0'
             external.owner == extId
         }
-        result.repositoryName == 'repoName'
+        result.repositoryId == 'repoName'
     }
 
     private Capability capability(String name) {

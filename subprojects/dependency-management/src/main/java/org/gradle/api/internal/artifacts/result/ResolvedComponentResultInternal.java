@@ -23,12 +23,17 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public interface ResolvedComponentResultInternal extends ResolvedComponentResult {
+    /**
+     * Used by the Android plugin. Do not use this method.
+     */
+    @Deprecated
+    String getRepositoryName();
 
     /**
-     * <p>Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
+     * <p>Returns the id of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
      */
     @Nullable
-    String getRepositoryName();
+    String getRepositoryId();
 
     /**
      * Returns all the variants of this component available for selection. Does not include variants that cannot be consumed, which means this
