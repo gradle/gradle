@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -67,7 +66,7 @@ class EdgeState implements DependencyGraphEdge {
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
-    private ResolvedVariantResult resolvedVariant;
+    private NodeState resolvedVariant;
     private boolean unattached;
     private boolean used;
 
@@ -371,9 +370,19 @@ class EdgeState implements DependencyGraphEdge {
         return resolvedVariant != null || !findTargetNodes().isEmpty();
     }
 
-    @Override
     @Nullable
-    public ResolvedVariantResult getSelectedVariant() {
+    @Override
+    public Long getSelectedVariant() {
+        NodeState node = getSelectedNode();
+        if (node == null) {
+            return null;
+        } else {
+            return node.getNodeId();
+        }
+    }
+
+    @Nullable
+    public NodeState getSelectedNode() {
         if (resolvedVariant != null) {
             return resolvedVariant;
         }
@@ -381,7 +390,7 @@ class EdgeState implements DependencyGraphEdge {
         assert !targetNodes.isEmpty();
         for (NodeState targetNode : targetNodes) {
             if (targetNode.isSelected()) {
-                resolvedVariant = targetNode.getResolvedVariant();
+                resolvedVariant = targetNode;
                 return resolvedVariant;
             }
         }
@@ -411,8 +420,8 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ResolvedVariantResult getFromVariant() {
-        return from.getResolvedVariant();
+    public Long getFromVariant() {
+        return from.getNodeId();
     }
 
     @Nullable

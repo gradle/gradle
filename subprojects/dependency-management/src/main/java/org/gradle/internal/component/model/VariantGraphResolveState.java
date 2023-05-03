@@ -16,9 +16,12 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+
+import javax.annotation.Nullable;
 
 /**
  * State for a component variant that is used to perform dependency graph resolution.
@@ -38,6 +41,11 @@ public interface VariantGraphResolveState extends HasAttributes {
     CapabilitiesMetadata getCapabilities();
 
     VariantGraphResolveMetadata getMetadata();
+
+    /**
+     * Returns the public view for this variant.
+     */
+    ResolvedVariantResult getVariantResult(@Nullable ResolvedVariantResult externalVariant);
 
     /**
      * Determines the set of artifacts for this variant, if required during graph resolution. Does not necessarily download the artifacts.

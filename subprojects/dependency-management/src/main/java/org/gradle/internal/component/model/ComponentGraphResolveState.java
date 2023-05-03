@@ -49,7 +49,7 @@ public interface ComponentGraphResolveState {
     ModuleSources getSources();
 
     @Nullable
-    String getRepositoryName();
+    String getRepositoryId();
 
     ComponentGraphResolveMetadata getMetadata();
 
@@ -57,11 +57,6 @@ public interface ComponentGraphResolveState {
      * Returns the public view of all variants of this component that are available for variant selection, either during graph resolution or artifact resolution.
      */
     List<ResolvedVariantResult> getAllSelectableVariantResults();
-
-    /**
-     * Returns the public view for the given variant of this component.
-     */
-    ResolvedVariantResult getVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant);
 
     /**
      * Returns the candidates for variant selection during graph resolution.

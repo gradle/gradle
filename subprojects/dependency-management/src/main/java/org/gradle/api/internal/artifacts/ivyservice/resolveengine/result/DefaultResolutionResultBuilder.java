@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
@@ -41,6 +42,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,13 +57,14 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     private ComponentIdentifier componentId;
     private ModuleVersionIdentifier moduleVersion;
     private String repoId;
+    private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, AttributeContainer attributes) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
         builder.setRequestedAttributes(attributes);
         builder.startVisitComponent(0L, ComponentSelectionReasons.root());
         builder.visitComponentDetails(componentIdentifier, id, null);
-        builder.visitComponentVariants(Collections.emptyList(), Collections.emptyList());
+        builder.visitComponentVariants(Collections.emptyList());
         return builder.complete(0L);
     }
 
@@ -77,6 +80,7 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     public void startVisitComponent(Long id, ComponentSelectionReason selectionReason) {
         this.id = id;
         this.selectionReason = selectionReason;
+        this.selectedVariants.clear();
     }
 
     @Override
@@ -87,32 +91,48 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     }
 
     @Override
-    public void visitComponentVariants(List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants) {
-        // The nodes in the graph represent variants (mostly), so a given component may be visited multiple times
-        if (!components.containsKey(id)) {
-            components.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, selectedVariants, allVariants, repoName));
-        }
+    public void visitSelectedVariant(Long id, ResolvedVariantResult variant) {
+        selectedVariants.put(id, variant);
     }
 
-    public void visitOutgoingEdges(Long fromComponent, Collection<? extends ResolvedGraphDependency> dependencies) {
-        DefaultResolvedComponentResult from = components.get(fromComponent);
+    @Override
+    public void visitComponentVariants(List<ResolvedVariantResult> allVariants) {
+        // The nodes in the graph represent variants (mostly) and multiple variants of a component may be included in the graph, so a given component may be visited multiple times
+        if (!components.containsKey(id)) {
+            components.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, ImmutableMap.copyOf(selectedVariants), allVariants, repoId));
+        }
+        selectedVariants.clear();
+    }
+
+    public void visitOutgoingEdges(Long fromComponentId, Collection<? extends ResolvedGraphDependency> dependencies) {
+        DefaultResolvedComponentResult fromComponent = components.get(fromComponentId);
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
-            ResolvedVariantResult fromVariant = d.getFromVariant();
+            ResolvedVariantResult fromVariant = fromComponent.getVariant(d.getFromVariant());
+            if (fromVariant == null) {
+                throw new IllegalStateException("Corrupt serialized resolution result. Cannot find variant (" + d.getFromVariant() + ") for " + (d.isConstraint() ? "constraint " : "") + fromComponent + " -> " + d.getRequested().getDisplayName());
+            }
             if (d.getFailure() != null) {
-                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.isConstraint(), d.getReason(), d.getFailure());
+                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), fromComponent, d.isConstraint(), d.getReason(), d.getFailure());
             } else {
-                DefaultResolvedComponentResult selected = components.get(d.getSelected());
-                if (selected == null) {
-                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected module (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                DefaultResolvedComponentResult selectedComponent = components.get(d.getSelected());
+                if (selectedComponent == null) {
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
                 }
-                dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected, d.getSelectedVariant(), d.isConstraint());
-                selected.addDependent((ResolvedDependencyResult) dependencyResult);
+                ResolvedVariantResult selectedVariant;
+                if (d.getSelectedVariant() != null) {
+                    selectedVariant = selectedComponent.getVariant(d.getSelectedVariant());
+                    if (selectedVariant == null) {
+                        throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected variant (" + d.getSelectedVariant() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                    }
+                } else {
+                    selectedVariant = null;
+                }
+                dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), fromComponent, selectedComponent, selectedVariant, d.isConstraint());
+                selectedComponent.addDependent((ResolvedDependencyResult) dependencyResult);
             }
-            from.addDependency(dependencyResult);
-            if (fromVariant != null) {
-                from.associateDependencyToVariant(dependencyResult, fromVariant);
-            }
+            fromComponent.addDependency(dependencyResult);
+            fromComponent.associateDependencyToVariant(dependencyResult, fromVariant);
         }
     }
 
@@ -122,7 +142,7 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
             ModuleVersionSelector failureSelector = failure.getSelector();
             ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
             root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
-                    ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
+                ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
                 new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem())));
         }
     }
