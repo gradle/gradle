@@ -182,7 +182,16 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String LOWEST_MAJOR_GRADLE_VERSION
     static {
+        def releasedGradleVersions = new ReleasedVersionDistributions()
+        def probeVersions = ["4.10.3", "5.6.4", "6.9.2", "7.5.1", "7.6"]
+        String compatibleVersion = probeVersions.find {version ->
+            releasedGradleVersions.getDistribution(version)?.worksWith(Jvm.current())
+        }
+        LOWEST_MAJOR_GRADLE_VERSION = compatibleVersion
+    }
 
+    static String findLowestMajorGradleVersion() {
+        LOWEST_MAJOR_GRADLE_VERSION
     }
 
     static String getLowestMajorGradleVersion() {
