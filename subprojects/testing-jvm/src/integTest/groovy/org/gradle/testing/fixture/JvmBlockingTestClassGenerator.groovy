@@ -27,15 +27,15 @@ class JvmBlockingTestClassGenerator {
 
     private final TestFile root
     private final BlockingHttpServer server
-    private final String testAnnotationClass
-    private final String testDependencies
+    private final String testFrameworkImports
+    private final String testFrameworkDependencies
     private final String testFrameworkConfiguration
 
-    JvmBlockingTestClassGenerator(TestFile root, BlockingHttpServer server, String testAnnotationClass, String testDependencies, String testFrameworkConfiguration) {
+    JvmBlockingTestClassGenerator(TestFile root, BlockingHttpServer server, String testFrameworkImports, String testFrameworkDependencies, String testFrameworkConfiguration) {
         this.root = root
         this.server = server
-        this.testAnnotationClass = testAnnotationClass
-        this.testDependencies = testDependencies
+        this.testFrameworkImports = testFrameworkImports
+        this.testFrameworkDependencies = testFrameworkDependencies
         this.testFrameworkConfiguration = testFrameworkConfiguration
     }
 
@@ -46,7 +46,7 @@ class JvmBlockingTestClassGenerator {
             ${RepoScriptBlockUtil.mavenCentralRepository()}
 
             dependencies {
-                $testDependencies
+                $testFrameworkDependencies
             }
 
             tasks.withType(Test) {
@@ -54,14 +54,14 @@ class JvmBlockingTestClassGenerator {
                 forkEvery = $forkEvery
             }
 
-            $testFrameworkConfiguration
+            test.$testFrameworkConfiguration
         """
     }
 
     void withFailingTest() {
         root.file('src/test/java/pkg/FailedTest.java') << """
             package pkg;
-            import $testAnnotationClass;
+            $testFrameworkImports
             public class FailedTest {
                 @Test
                 public void failTest() {
@@ -75,7 +75,7 @@ class JvmBlockingTestClassGenerator {
     void withNonfailingTest() {
         root.file('src/test/java/pkg/OtherTest.java') << """
             package pkg;
-            import $testAnnotationClass;
+            $testFrameworkImports
             public class OtherTest {
                 @Test
                 public void passingTest() {
@@ -90,7 +90,7 @@ class JvmBlockingTestClassGenerator {
             final resource = "test_${it}" as String
             root.file("src/test/java/pkg/OtherTest_${it}.java") << """
                 package pkg;
-                import $testAnnotationClass;
+                $testFrameworkImports
                 public class OtherTest_${it} {
                     @Test
                     public void passingTest() {
@@ -107,7 +107,7 @@ class JvmBlockingTestClassGenerator {
             final testName = "OtherTest_${it}" as String
             final resource = "test_${it}" as String
             root.file("src/test/java/OtherTest_${it}.java") << """
-                import $testAnnotationClass;
+                $testFrameworkImports
                 public class ${testName} {
                     @Test
                     public void failedTest() {

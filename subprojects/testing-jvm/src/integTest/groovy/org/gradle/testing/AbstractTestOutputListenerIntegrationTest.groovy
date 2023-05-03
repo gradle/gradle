@@ -16,11 +16,11 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
 @Issue("GRADLE-1009")
-abstract class AbstractTestOutputListenerIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestOutputListenerIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def setup() {
         executer.noExtraLogging()
     }
