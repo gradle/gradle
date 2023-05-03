@@ -337,7 +337,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
          */
         @Nullable
         protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
-            if (metaClass instanceof MetaClassImpl) {
+            boolean isInstrumented = metaClass instanceof InstrumentedMetaClass
+                && ((InstrumentedMetaClass) metaClass).interceptsPropertyAccess(name);
+
+            if (metaClass instanceof MetaClassImpl && !isInstrumented) {
                 try {
                     return (MetaProperty) META_PROP_METHOD.invoke(metaClass, name, false);
                 } catch (Throwable e) {
