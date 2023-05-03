@@ -19,9 +19,9 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 /**
@@ -166,7 +166,7 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         test2Result.testClass('org.gradle.Test2').assertTestPassed('ok')
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "can use long paths for working directory"() {
         given:
         // windows can handle a path up to 260 characters
