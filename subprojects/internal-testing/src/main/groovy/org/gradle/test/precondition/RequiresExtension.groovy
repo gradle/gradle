@@ -16,8 +16,6 @@
 package org.gradle.test.precondition
 
 import groovy.transform.CompileStatic
-import org.gradle.test.fixtures.condition.PredicatesFile
-import org.spockframework.runtime.extension.ExtensionException
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecElementInfo
@@ -34,7 +32,6 @@ import org.spockframework.runtime.model.SpecInfo
  */
 @CompileStatic
 class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
-
     private final Set<Set<String>> acceptedCombinations
 
     /**
@@ -43,7 +40,7 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
      * This will automatically load {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv}.
      */
     RequiresExtension() {
-        this(PredicatesFile.readAllowedCombinations("/valid-precondition-combinations.csv"))
+        this(PredicatesFile.DEFAULT_ACCEPTED_COMBINATIONS)
     }
 
     /**
@@ -73,33 +70,11 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
      * Common method for handling annotations.
      */
     void visitAnnotation(Requires annotation, SpecElementInfo feature) {
-        def predicateClassNames = annotation.value().collect {
-            it.name
-        }
+        def predicateClassNames = annotation.value() as List
 
-        checkValidCombinations(predicateClassNames)
+        PredicatesFile.checkValidCombinations(predicateClassNames, acceptedCombinations)
         // If all preconditions are met, we DON'T skip the tests
         feature.skipped |= !TestPrecondition.doSatisfiesAll(annotation.value())
-    }
-
-    /**
-     * Checks if a precondition is present in the allowed precondition list stored
-     * in {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv}
-     *
-     * @param testPreconditions
-     */
-    protected void checkValidCombinations(List<String> predicateClassNames) {
-        def found = acceptedCombinations.contains(predicateClassNames as Set)
-
-        if (!found) {
-            def message = String.format(
-                "Requested requirements [%s] were not in the list of accepted combinations. " +
-                    "Add it to 'subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv' to be accepted. " +
-                    "See the documentation of this class to learn more about this feature.",
-                predicateClassNames.join(", ")
-            )
-            throw new ExtensionException(message)
-        }
     }
 
 }

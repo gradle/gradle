@@ -19,7 +19,7 @@ package org.gradle.test.precondition
 import org.spockframework.runtime.extension.ExtensionException
 import spock.lang.Specification
 
-class RequiresExtensionTest extends Specification {
+class PredicateFileTest extends Specification {
 
     Set<Set<String>> values = [
         // Value NOT shared between single and multi cases
@@ -29,11 +29,9 @@ class RequiresExtensionTest extends Specification {
         ["value2", "value3"] as Set,
     ] as Set
 
-    RequiresExtension extension = new RequiresExtension(values)
-
     def "accept single values"() {
         when:
-        extension.checkValidCombinations([value])
+        checkValidCombinations([value])
 
         then:
         noExceptionThrown()
@@ -44,7 +42,7 @@ class RequiresExtensionTest extends Specification {
 
     def "accept multiple values"() {
         when:
-        extension.checkValidCombinations(combination)
+        checkValidCombinations(combination)
 
         then:
         noExceptionThrown()
@@ -55,7 +53,7 @@ class RequiresExtensionTest extends Specification {
 
     def "throws exception when single value not found"() {
         when:
-        extension.checkValidCombinations(["nonexistent"])
+        checkValidCombinations(["nonexistent"])
 
         then:
         final ex = thrown(ExtensionException)
@@ -64,7 +62,7 @@ class RequiresExtensionTest extends Specification {
 
     def "throws exception when single values are not found"() {
         when:
-        extension.checkValidCombinations(["nonexistent1", "nonexistent2"])
+        checkValidCombinations(["nonexistent1", "nonexistent2"])
 
         then:
         final ex = thrown(ExtensionException)
@@ -72,16 +70,18 @@ class RequiresExtensionTest extends Specification {
     }
 
     def "standard implementation loads CSV correctly"() {
-        given:
-        RequiresExtension prodExtension = new RequiresExtension()
-
         when:
-        prodExtension.checkValidCombinations(
-            ["org.gradle.test.preconditions.UnitTestPreconditions\$Online"]
+        PredicatesFile.checkValidNameCombinations(
+            ["org.gradle.test.preconditions.UnitTestPreconditions\$Online"] as Set,
+            PredicatesFile.DEFAULT_ACCEPTED_COMBINATIONS
         )
 
         then:
         noExceptionThrown()
+    }
+
+    private checkValidCombinations(List<String> combinations) {
+        PredicatesFile.checkValidNameCombinations(combinations as Set, values)
     }
 
 }

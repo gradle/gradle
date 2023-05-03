@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.condition;
+package org.gradle.test.precondition;
+
+import org.spockframework.runtime.extension.ExtensionException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class PredicatesFile {
-
+    public static final Set<Set<String>> DEFAULT_ACCEPTED_COMBINATIONS = readAllowedCombinations("/valid-precondition-combinations.csv");
     public static final String PREDICATE_PACKAGE_PREFIX = "org.gradle.test.preconditions.";
 
     /**
@@ -71,6 +74,34 @@ public class PredicatesFile {
                 ).collect(Collectors.toSet());
         } catch (IOException e) {
             throw new RuntimeException("Error parsing resource " + resource, e);
+        }
+    }
+
+    /**
+     * Checks if a precondition is present in the allowed precondition list stored
+     * in {@code acceptedCombinations}
+     */
+    public static void checkValidCombinations(List<Class<?>> predicateClasses, Set<Set<String>> acceptedCombinations) {
+        if (predicateClasses.isEmpty()) {
+            return;
+        }
+        Set<String> predicateClassNames = predicateClasses.stream()
+            .map(Class::getName)
+            .collect(Collectors.toSet());
+        checkValidNameCombinations(predicateClassNames, acceptedCombinations);
+    }
+
+    static void checkValidNameCombinations(Set<String> predicateClassNames, Set<Set<String>> acceptedCombinations) {
+        boolean found = acceptedCombinations.contains(predicateClassNames);
+
+        if (!found) {
+            String message = String.format(
+                "Requested requirements [%s] were not in the list of accepted combinations. " +
+                    "Add it to 'subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv' to be accepted. " +
+                    "See the documentation of this class to learn more about this feature.",
+                String.join(", ", predicateClassNames)
+            );
+            throw new ExtensionException(message);
         }
     }
 }

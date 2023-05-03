@@ -26,6 +26,7 @@ class PreconditionVerifier implements TestRule {
     @Override
     Statement apply(@NotNull Statement base, @NotNull Description description) {
         List<Class<? extends TestPrecondition>> preconditions = description.annotations.findAll { it instanceof Requires }*.value().flatten()
+        PredicatesFile.checkValidCombinations(preconditions, PredicatesFile.DEFAULT_ACCEPTED_COMBINATIONS)
         TestPrecondition.doSatisfiesAll(preconditions.toArray(new Class<? extends TestPrecondition>[0])) ? base : EmptyStatement.INSTANCE
     }
 }
