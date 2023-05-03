@@ -487,14 +487,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class HasMsBuild implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-            return doSatisfies(Windows) && "embedded" != System.getProperty("org.gradle.integtest.executer")
-        }
-    }
-
     static final class SupportsTargetingJava6 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
