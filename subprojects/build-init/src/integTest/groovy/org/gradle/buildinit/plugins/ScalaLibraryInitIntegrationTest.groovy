@@ -116,6 +116,9 @@ class ScalaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationS
                     package org.acme;
 
                     class SampleMainTest{
+
+                        @org.junit.Test
+                        def sampleTest : Unit = { }
                     }
             """
 

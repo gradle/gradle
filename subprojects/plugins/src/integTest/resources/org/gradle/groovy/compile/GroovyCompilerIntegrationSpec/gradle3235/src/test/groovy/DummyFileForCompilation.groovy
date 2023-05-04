@@ -16,7 +16,11 @@
 
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import org.junit.jupiter.api.Test
 
 @Canonical
 @CompileStatic
-class DummyFileForCompilation {}
+class DummyFileForCompilation {
+    @Test
+    void dummyTest() {}
+}

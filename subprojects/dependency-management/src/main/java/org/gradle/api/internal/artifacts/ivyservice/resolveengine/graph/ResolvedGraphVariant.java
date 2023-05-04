@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.hash.Hasher;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-abstract class AbstractMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSource<S> {
-    @Override
-    public void appendId(Hasher hasher) {
-        hasher.putString(this.getClass().getName());
-    }
+import org.gradle.internal.component.model.VariantGraphResolveState;
+
+import javax.annotation.Nullable;
+
+public interface ResolvedGraphVariant {
+    /**
+     * Returns a simple id for this node, unique across all nodes in the same graph.
+     * This id cannot be used across graphs.
+     */
+    Long getNodeId();
+
+    VariantGraphResolveState getResolveState();
+
+    @Nullable
+    ResolvedGraphVariant getExternalVariant();
 }

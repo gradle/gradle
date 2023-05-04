@@ -157,6 +157,9 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
                 package org.acme
 
                 class SampleMainTest {
+
+                    @org.junit.jupiter.api.Test
+                    fun sampleTest() { }
                 }
         """
         when:

@@ -25,18 +25,18 @@ public interface ConfigurationResolver {
     /**
      * Traverses enough of the graph to calculate the build dependencies of the given resolve context. All failures are packaged in the result.
      */
-    void resolveBuildDependencies(ResolveContext configuration, ResolverResults result);
+    ResolverResults resolveBuildDependencies(ResolveContext configuration);
 
     /**
      * Traverses the full dependency graph of the given resolve context. All failures are packaged in the result.
      */
-    void resolveGraph(ResolveContext resolveContext, ResolverResults results) throws ResolveException;
+    ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException;
 
     /**
      * Calculates the artifacts to include in the result for the given resolve context. All failures are packaged in the result.
-     * Must be called using the same result instance as was passed to {@link #resolveGraph(ResolveContext, ResolverResults)}.
+     * Must be called using the same result instance that was returned by {@link #resolveGraph(ResolveContext)}.
      */
-    void resolveArtifacts(ResolveContext resolveContext, ResolverResults results) throws ResolveException;
+    ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) throws ResolveException;
 
     /**
      * Returns the list of repositories available to resolve a given resolve context. This is used for reporting only.

@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGrap
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import java.util.List;
 import java.util.Set;
@@ -31,8 +31,8 @@ class RootNode extends NodeState implements RootGraphNode {
     private final ResolveOptimizations resolveOptimizations;
     private final List<? extends DependencyMetadata> syntheticDependencies;
 
-    RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveMetadata configuration) {
-        super(resultId, id, moduleRevision, resolveState, configuration, false);
+    RootNode(long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveState root) {
+        super(resultId, id, moduleRevision, resolveState, root, false);
         moduleRevision.setRoot();
         this.resolveOptimizations = resolveState.getResolveOptimizations();
         this.syntheticDependencies = syntheticDependencies;
