@@ -37,6 +37,8 @@ class JUnit4JUnitIntegrationTest extends AbstractJUnit4JUnitIntegrationTest impl
         and:
         file("src/test/java/SomeTest.java") << """
             public class SomeTest extends org.junit.runner.Result {
+                @org.junit.Test
+                public void test() { }
             }
         """.stripIndent()
         then:
