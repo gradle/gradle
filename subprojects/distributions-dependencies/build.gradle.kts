@@ -120,7 +120,6 @@ dependencies {
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
         api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
-        api(libs.junit5JupiterEngine)   { version { strictly(junit5Version) }}
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
         api(libs.junitPlatform)         { version { strictly("1.8.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
