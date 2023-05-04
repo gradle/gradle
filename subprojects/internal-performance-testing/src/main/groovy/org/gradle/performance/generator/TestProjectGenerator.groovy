@@ -73,6 +73,8 @@ class TestProjectGenerator {
         if (isRoot) {
             file projectDir, "WORKSPACE", bazelContentGenerator.generateWorkspace()
             file projectDir, "junit.bzl", bazelContentGenerator.generateJunitHelper()
+        }
+        if (isRoot || config.compositeBuild) {
             file projectDir, "gradle/libs.versions.toml", fileContentGenerator.generateVersionCatalog()
         }
         file projectDir, "performance.scenarios", fileContentGenerator.generatePerformanceScenarios(isRoot)
