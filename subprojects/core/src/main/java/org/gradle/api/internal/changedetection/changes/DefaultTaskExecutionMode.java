@@ -26,7 +26,11 @@ import java.util.Optional;
  */
 public class DefaultTaskExecutionMode implements TaskExecutionMode {
 
-
+    private static final DefaultTaskExecutionMode UP_TO_DATE_WHEN_FALSE = new DefaultTaskExecutionMode("Task.upToDateWhen is false.", true, false);
+    private static final DefaultTaskExecutionMode UNTRACKED_NO_REASON = new DefaultTaskExecutionMode("Task state is not tracked.", false, false);
+    private static final DefaultTaskExecutionMode RERUN_TASKS_ENABLED = new DefaultTaskExecutionMode("Executed with '--rerun-tasks'.", true, false);
+    private static final DefaultTaskExecutionMode NO_OUTPUTS = new DefaultTaskExecutionMode("Task has not declared any outputs despite executing actions.", false, false);
+    private static final DefaultTaskExecutionMode INCREMENTAL = new DefaultTaskExecutionMode(null, true, true);
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final Optional<String> rebuildReason;
     private final boolean taskHistoryMaintained;
@@ -84,7 +88,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
      * The execution mode for incremental tasks.
      */
     public static TaskExecutionMode incremental() {
-        return new DefaultTaskExecutionMode(null, true, true);
+        return INCREMENTAL;
     }
 
     /**
@@ -92,7 +96,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
      * The message will be `Task has not declared any outputs despite executing actions.`.
      */
     public static TaskExecutionMode noOutputs() {
-        return new DefaultTaskExecutionMode("Task has not declared any outputs despite executing actions.", false, false);
+        return NO_OUTPUTS;
     }
 
     /**
@@ -100,7 +104,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
      * The message will be `Executed with '--rerun-tasks'.`.
      */
     public static TaskExecutionMode rerunTasksEnabled() {
-        return new DefaultTaskExecutionMode("Executed with '--rerun-tasks'.", true, false);
+        return RERUN_TASKS_ENABLED;
     }
 
     /**
@@ -108,7 +112,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
      * The message will be `Task.upToDateWhen is false.`.
      */
     public static TaskExecutionMode upToDateWhenFalse() {
-        return new DefaultTaskExecutionMode("Task.upToDateWhen is false.", true, false);
+        return UP_TO_DATE_WHEN_FALSE;
     }
 
     /**
@@ -116,7 +120,7 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
      * The message will be `Task state is not tracked.`.
      */
     public static TaskExecutionMode untracked() {
-        return new DefaultTaskExecutionMode("Task state is not tracked.", false, false);
+        return UNTRACKED_NO_REASON;
     }
 
     /**
