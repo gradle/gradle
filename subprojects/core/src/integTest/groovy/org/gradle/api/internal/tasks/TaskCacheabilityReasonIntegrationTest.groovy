@@ -65,7 +65,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             @UntrackedTask(because = 'untracked-task reason')
             class UntrackedTrackWithReason extends UnspecifiedCacheabilityTask {}
 
-            @UntrackedTask(because = 'untracked-task reason')
+            @UntrackedTask(because = 'untracked-task-with-cacheable reason')
             @CacheableTask
             class UntrackedTrackWithReasonWithCacheable extends UnspecifiedCacheabilityTask {}
 
