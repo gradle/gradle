@@ -23,7 +23,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":base-services")) {
+        because("Required to access org.gradle.internal.SystemProperties")
+    }
 
     testImplementation(project(":ivy"))
     testImplementation(testFixtures(project(":core")))
