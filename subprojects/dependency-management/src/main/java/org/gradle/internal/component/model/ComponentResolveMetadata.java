@@ -71,7 +71,6 @@ public interface ComponentResolveMetadata extends HasAttributes {
     /**
      * Returns the schema used by this component.
      */
-    @Nullable
     AttributesSchemaInternal getAttributesSchema();
 
     /**

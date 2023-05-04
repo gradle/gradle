@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -23,15 +24,18 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata
+import org.gradle.internal.component.model.ConfigurationGraphResolveState
 import org.gradle.internal.component.model.ConfigurationMetadata
+import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata
+import org.gradle.internal.component.model.VariantGraphResolveState
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 abstract class ExternalDependencyDescriptorTest extends Specification {
-    def attributesSchema = Stub(AttributesSchemaInternal)
-
     def requested = newSelector(DefaultModuleIdentifier.newId("org", "module"), v("1.2+"))
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")
 
@@ -69,9 +73,39 @@ abstract class ExternalDependencyDescriptorTest extends Specification {
         componentSelector.version == '1.2+'
     }
 
-    def configuration(String name, String... parents) {
+    ConfigurationMetadata configuration(String name, String... parents) {
         def config = Stub(ConfigurationMetadata)
         config.hierarchy >> ImmutableSet.copyOf(([name] as Set) + (parents as Set))
         return config
+    }
+
+    VariantGraphResolveState configuration(ComponentGraphResolveState component, String name) {
+        return configurationWithHierarchy(component, name, ImmutableSet.of(name))
+    }
+
+    VariantGraphResolveState configurationWithArtifacts(ComponentGraphResolveState component, String name) {
+        def artifacts = Stub(VariantArtifactGraphResolveMetadata)
+        artifacts.artifacts >> ImmutableList.of(Stub(ComponentArtifactMetadata))
+        def variant = configuration(component, name)
+        variant.resolveArtifacts() >> artifacts
+        return variant
+    }
+
+    VariantGraphResolveState configurationWithHierarchy(ComponentGraphResolveState component, String name, Set<String> hierarchy) {
+        def metadata = Stub(ConfigurationGraphResolveMetadata)
+        metadata.visible >> true
+        metadata.hierarchy >> hierarchy
+
+        def variant = Stub(VariantGraphResolveState)
+        variant.toString() >> name
+        variant.name >> name
+
+        def configuration = Stub(ConfigurationGraphResolveState)
+        component.getConfiguration(name) >> configuration
+        configuration.name >> name
+        configuration.toString() >> name
+        configuration.asVariant() >> variant
+        configuration.metadata >> metadata
+        return variant
     }
 }

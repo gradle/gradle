@@ -114,7 +114,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
                 ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, dependencies.build(), false, false
             );
         }
-        throw new IllegalArgumentException("Undefined configuration '" + name + "'");
+        return null;
     }
 
     @Override
