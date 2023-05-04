@@ -195,7 +195,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         when:
         withBuildCache().run "untrackedTrackWithReasonWithCacheable"
         then:
-        assertCachingDisabledFor DO_NOT_CACHE_IF_SPEC_SATISFIED, "Task is untracked because: untracked-task reason"
+        assertCachingDisabledFor DO_NOT_CACHE_IF_SPEC_SATISFIED, "Task is untracked because: untracked-task-with-cacheable reason"
     }
 
 
