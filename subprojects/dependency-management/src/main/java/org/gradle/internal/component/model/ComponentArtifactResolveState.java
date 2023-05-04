@@ -51,11 +51,6 @@ public interface ComponentArtifactResolveState {
     ComponentArtifactResolveMetadata getResolveMetadata();
 
     /**
-     * Returns the state required to resolve artifacts for the given variant that was selected during graph resolution.
-     */
-    VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant);
-
-    /**
      * Discovers the set of artifacts belonging to this component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
      */
     void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
