@@ -254,7 +254,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         then:
         def result = snapshotResults(":a:compileJava")
         def aCompileJava = result.inputFileProperties
-        aCompileJava.size() == 5
+        aCompileJava.size() == 6
 
         // Not in just-values property
         aCompileJava.keySet().every { !result.inputValueHashes.containsKey(it) }
