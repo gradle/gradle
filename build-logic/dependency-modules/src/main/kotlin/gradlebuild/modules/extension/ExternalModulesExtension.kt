@@ -104,7 +104,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val junit = "junit:junit"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
-    val junit5JupiterEngine = "org.junit.jupiter:junit-jupiter-engine"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
