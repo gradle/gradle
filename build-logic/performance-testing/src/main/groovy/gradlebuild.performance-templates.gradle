@@ -410,6 +410,10 @@ performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/android/nowinandroid.git'
     // Pinned from main branch
     ref = "d9057010282c48d257cd742701350108c27daa5d"
+    doLast {
+        def projectDirectory = generatedDir.get().asFile
+        setMaxWorkers(projectDirectory, 8)
+    }
 }
 
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
