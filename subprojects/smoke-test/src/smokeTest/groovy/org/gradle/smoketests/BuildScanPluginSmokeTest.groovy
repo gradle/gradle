@@ -92,6 +92,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
+    private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
 
     @IgnoreIf({ !GradleContextualExecuter.configCache })
     def "can use plugin #version with Gradle 8 configuration cache"() {
@@ -104,12 +105,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         scanRunner()
-            .expectDeprecationWarning(
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "The BuildIdentifier.getName() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-                "Build Scan plugin 3.13.1"
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
             ).build().output.contains("Build scan written to")
 
         where:
@@ -127,12 +127,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         scanRunner()
-            .expectDeprecationWarning(
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "The BuildIdentifier.getName() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-                "Build Scan plugin 3.13.1"
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
             )
             .build().output.contains("Build scan written to")
 
