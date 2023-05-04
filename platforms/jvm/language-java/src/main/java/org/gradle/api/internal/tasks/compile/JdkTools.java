@@ -95,7 +95,7 @@ public class JdkTools {
     }
 
     public JavaCompiler getSystemJavaCompiler(List<File> compilerPluginsClasspath) {
-        if (compilerPluginsClasspath.stream().anyMatch(f -> f.getName().startsWith("java-compiler-plugin"))) {
+        if (compilerPluginsClasspath.stream().anyMatch(f -> f.getName().startsWith("gradle-java-compiler-plugin"))) {
             return new DefaultIncrementalAwareCompiler(buildJavaCompiler());
         } else {
             return buildJavaCompiler();
