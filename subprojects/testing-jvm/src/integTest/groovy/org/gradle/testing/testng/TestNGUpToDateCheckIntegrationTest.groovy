@@ -26,7 +26,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         executer.noExtraLogging()
         file('src/test/java/SomeTest.java') << '''
             public class SomeTest {
-                @org.testng.annotations.Test
+                @org.testng.annotations.Test(groups = {"group to include"})
                 public void pass() {}
             }
         '''.stripIndent()
@@ -173,8 +173,8 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         property              | modification
-        'excludeGroups'       | '= ["some group"]'
-        'includeGroups'       | '= ["some group"]'
+        'excludeGroups'       | '= ["group to exclude"]'
+        'includeGroups'       | '= ["group to include"]'
         'outputDirectory'     | '= file("$buildDir/my-out")'
         'suiteXmlFiles'       | '= [file("suite.xml")]'
         'suiteXmlBuilder()'   | '''

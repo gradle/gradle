@@ -285,6 +285,9 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
                 package org.acme;
 
                 public class SampleMainTest {
+
+                    @org.junit.jupiter.api.Test
+                    public void sampleTest() { }
                 }
         """
         when:
