@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -151,6 +152,15 @@ abstract class AbstractValueProcessor {
             if (registry.canSerialize(valueClass)) {
                 return gradleSerialization(value, registry.build(valueClass), visitor);
             }
+        }
+
+        if (value instanceof URL) {
+            // TODO temp fix - URL.hashCode() is memoized. Java Serialization uses the memoized field, which is initialized to -1.
+            //      Calling URL.hashCode() will initialize the memoized field so Java Serialization uses the correct value.
+            //      https://github.com/gradle/gradle/issues/24979
+            //      Replace with something better? Use ValueSnapshotterSerializerRegistry?
+            final URL url = (URL) value;
+            url.hashCode();
         }
 
         // Fall back to Java serialization

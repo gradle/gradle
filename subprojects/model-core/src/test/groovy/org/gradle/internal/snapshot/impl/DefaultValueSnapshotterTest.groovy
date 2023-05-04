@@ -490,6 +490,26 @@ class DefaultValueSnapshotterTest extends Specification {
         areNotTheSame(snapshot, new Bean())
     }
 
+    def "creates snapshot for url from candidate"() {
+        expect:
+        def gradleUrl = new URL("https://gradle.org/")
+        def snapshot = snapshotter.snapshot(gradleUrl)
+        areTheSame(snapshot, gradleUrl)
+        areTheSame(snapshot, gradleUrl.with(true) { it.hashCode() })
+        areTheSame(snapshot, new URL(gradleUrl.toString()))
+        areTheSame(snapshot, new URL(gradleUrl.toString()).with(true) { it.hashCode() })
+
+        areNotTheSame(snapshot, new URL("https://gradle.org"))           // no trailing slash
+        areNotTheSame(snapshot, new URL("ftp://gradle.org/"))            // different protocol
+        areNotTheSame(snapshot, new URL("https://www.gradle.org/"))      // different subdomain
+        areNotTheSame(snapshot, new URL("https://blog.gradle.org/"))     // different subdomain
+        areNotTheSame(snapshot, new URL("https://gradle.org/releases/")) // different path
+        areNotTheSame(snapshot, new URL("https://github.org/"))          // different domain
+        areNotTheSame(snapshot, gradleUrl.toURI())                       // URI, not a URL
+        areNotTheSame(snapshot, new URL("https://gradle.org").toURI())   // URI, not a URL
+        areNotTheSame(snapshot, gradleUrl.toString())                    // String, not a URL
+    }
+
     def "creates snapshot for enum from candidate"() {
         expect:
         def snapshot = snapshotter.snapshot(Type1.TWO)
