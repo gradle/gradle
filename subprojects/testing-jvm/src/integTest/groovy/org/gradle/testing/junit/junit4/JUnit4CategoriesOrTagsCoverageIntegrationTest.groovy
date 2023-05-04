@@ -182,8 +182,8 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         testSources.with {
             ['test', 'integTest'].each { sourceSet ->
                 testClass('SomeTestClass', sourceSet).with {
-                    testMethod('ok1')
-                    testMethod('ok2')
+                    testMethod('ok1').withCategoryOrTag('CategoryA')
+                    testMethod('ok2').withCategoryOrTag('CategoryB')
                 }
                 testCategory('CategoryA', sourceSet)
                 testCategory('CategoryB', sourceSet)
@@ -256,8 +256,8 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         given:
         testSources.with {
             testClass('SomeTestClass').with {
-                testMethod('ok1')
-                testMethod('ok2')
+                testMethod('ok1').withCategoryOrTag('CategoryA')
+                testMethod('ok2').withCategoryOrTag('CategoryB')
             }
             testCategory('CategoryA')
             testCategory('CategoryB')

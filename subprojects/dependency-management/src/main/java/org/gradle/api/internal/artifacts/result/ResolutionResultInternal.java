@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import java.net.URI;
+package org.gradle.api.internal.artifacts.result;
 
-public interface PatternBasedResolver {
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.provider.Provider;
+
+/**
+ * Internal counterpart to {@link ResolutionResult}.
+ */
+public interface ResolutionResultInternal extends ResolutionResult {
+
     /**
-     * Must be called before any patterns are added.
+     * An optional non-fatal failure which may be attached to a resolution result.
      */
-    void setM2compatible(boolean b);
-
-    void addArtifactLocation(URI baseUri, String pattern);
-
-    void addDescriptorLocation(URI baseUri, String pattern);
+    Provider<Throwable> getNonFatalFailure();
 }
