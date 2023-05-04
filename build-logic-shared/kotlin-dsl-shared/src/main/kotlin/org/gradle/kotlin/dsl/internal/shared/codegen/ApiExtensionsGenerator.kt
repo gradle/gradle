@@ -17,9 +17,12 @@
 package org.gradle.kotlin.dsl.internal.shared.codegen
 
 
+import org.gradle.api.Incubating
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.pattern.PatternMatcher
+import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
+import org.objectweb.asm.Type
 import java.io.File
 
 
@@ -46,7 +49,13 @@ fun generateKotlinDslApiExtensionsSourceTo(
     parameterNamesSupplier: ParameterNamesSupplier
 ): List<File> =
 
-    apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplier).use { api ->
+    apiTypeProviderFor(
+        AsmConstants.ASM_LEVEL,
+        classPath,
+        classPathDependencies,
+        Type.getDescriptor(Incubating::class.java),
+        parameterNamesSupplier
+    ).use { api ->
 
         val extensionsPerTarget =
             kotlinDslApiExtensionsDeclarationsFor(api, apiSpec).groupedByTarget()

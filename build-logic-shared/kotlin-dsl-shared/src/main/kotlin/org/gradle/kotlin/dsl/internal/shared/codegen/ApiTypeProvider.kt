@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.internal.shared.codegen
 
-import org.gradle.api.Incubating
-import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.kotlin.dsl.internal.shared.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.shared.support.primitiveTypeStrings
 import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
@@ -46,12 +44,19 @@ import org.objectweb.asm.tree.MethodNode
 
 
 fun apiTypeProviderFor(
+    asmLevel: Int,
     classPath: List<File>,
     classPathDependencies: List<File> = emptyList(),
+    incubatingAnnotationTypeDescriptor: String,
     parameterNamesSupplier: ParameterNamesSupplier = { null }
 ): ApiTypeProvider =
 
-    ApiTypeProvider(ClassBytesRepository(classPath, classPathDependencies), parameterNamesSupplier)
+    ApiTypeProvider(
+        asmLevel,
+        ClassBytesRepository(classPath, classPathDependencies),
+        incubatingAnnotationTypeDescriptor,
+        parameterNamesSupplier
+    )
 
 
 private
@@ -79,8 +84,10 @@ fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: Str
  * - does not support generics with multiple bounds
  */
 class ApiTypeProvider internal constructor(
-        private val repository: ClassBytesRepository,
-        parameterNamesSupplier: ParameterNamesSupplier
+    private val asmLevel: Int,
+    private val repository: ClassBytesRepository,
+    private val incubatingAnnotationTypeDescriptor: String,
+    parameterNamesSupplier: ParameterNamesSupplier,
 ) : Closeable {
 
     private
@@ -114,13 +121,13 @@ class ApiTypeProvider internal constructor(
         }
 
     private
-    fun apiTypeFor(sourceName: String, classBytes: () -> ByteArray) = {
-        ApiType(sourceName, classNodeFor(classBytes), context)
+    fun apiTypeFor(sourceName: String, classBytes: () -> ByteArray): () -> ApiType = {
+        ApiType(asmLevel, sourceName, incubatingAnnotationTypeDescriptor, classNodeFor(classBytes), context)
     }
 
     private
-    fun classNodeFor(classBytesSupplier: () -> ByteArray) = {
-        ApiTypeClassNode().also {
+    fun classNodeFor(classBytesSupplier: () -> ByteArray): () -> ApiTypeClassNode = {
+        ApiTypeClassNode(asmLevel).also {
             ClassReader(classBytesSupplier()).accept(it, SKIP_CODE or SKIP_FRAMES)
         }
     }
@@ -132,8 +139,8 @@ class ApiTypeProvider internal constructor(
 
     internal
     class Context(
-            private val typeProvider: ApiTypeProvider,
-            private val parameterNamesSupplier: ParameterNamesSupplier
+        private val typeProvider: ApiTypeProvider,
+        private val parameterNamesSupplier: ParameterNamesSupplier
     ) {
         fun type(sourceName: String): ApiType? =
             typeProvider.type(sourceName)
@@ -145,7 +152,9 @@ class ApiTypeProvider internal constructor(
 
 
 class ApiType internal constructor(
+    private val asmLevel: Int,
     val sourceName: String,
+    private val incubatingAnnotationTypeDescriptor: String,
     private val delegateSupplier: () -> ClassNode,
     private val context: ApiTypeProvider.Context
 ) {
@@ -157,7 +166,7 @@ class ApiType internal constructor(
         get() = delegate.visibleAnnotations.has<java.lang.Deprecated>()
 
     val isIncubating: Boolean
-        get() = delegate.visibleAnnotations.has<Incubating>()
+        get() = delegate.visibleAnnotations.has(incubatingAnnotationTypeDescriptor)
 
     val isSAM: Boolean by unsafeLazy {
         delegate.access.isAbstract && singleAbstractMethodOf(delegate)?.access?.isPublic == true
@@ -168,7 +177,9 @@ class ApiType internal constructor(
     }
 
     val functions: List<ApiFunction> by unsafeLazy {
-        delegate.methods.filter(::isSignificantDeclaration).map { ApiFunction(this, it, context) }
+        delegate.methods
+            .filter(::isSignificantDeclaration)
+            .map { ApiFunction(asmLevel, this, incubatingAnnotationTypeDescriptor, it, context) }
     }
 
     private
@@ -234,16 +245,18 @@ class ApiType internal constructor(
     private
     val visitedSignature: ClassSignatureVisitor? by unsafeLazy {
         delegate.signature?.let { signature ->
-            ClassSignatureVisitor().also { SignatureReader(signature).accept(it) }
+            ClassSignatureVisitor(asmLevel).also { SignatureReader(signature).accept(it) }
         }
     }
 }
 
 
 class ApiFunction internal constructor(
-        val owner: ApiType,
-        private val delegate: MethodNode,
-        private val context: ApiTypeProvider.Context
+    private val asmLevel: Int,
+    val owner: ApiType,
+    private val incubatingAnnotationTypeDescriptor: String,
+    private val delegate: MethodNode,
+    private val context: ApiTypeProvider.Context
 ) {
     val name: String =
         delegate.name
@@ -255,7 +268,7 @@ class ApiFunction internal constructor(
         get() = owner.isDeprecated || delegate.visibleAnnotations.has<java.lang.Deprecated>()
 
     val isIncubating: Boolean
-        get() = owner.isIncubating || delegate.visibleAnnotations.has<Incubating>()
+        get() = owner.isIncubating || delegate.visibleAnnotations.has(incubatingAnnotationTypeDescriptor)
 
     val isStatic: Boolean =
         delegate.access.isStatic
@@ -275,19 +288,19 @@ class ApiFunction internal constructor(
     private
     val visitedSignature: MethodSignatureVisitor? by unsafeLazy {
         delegate.signature?.let { signature ->
-            MethodSignatureVisitor().also { visitor -> SignatureReader(signature).accept(visitor) }
+            MethodSignatureVisitor(asmLevel).also { visitor -> SignatureReader(signature).accept(visitor) }
         }
     }
 }
 
 
 data class ApiTypeUsage(
-        val sourceName: String,
-        val isNullable: Boolean = false,
-        val type: ApiType? = null,
-        val variance: Variance = Variance.INVARIANT,
-        val typeArguments: List<ApiTypeUsage> = emptyList(),
-        val bounds: List<ApiTypeUsage> = emptyList()
+    val sourceName: String,
+    val isNullable: Boolean = false,
+    val type: ApiType? = null,
+    val variance: Variance = Variance.INVARIANT,
+    val typeArguments: List<ApiTypeUsage> = emptyList(),
+    val bounds: List<ApiTypeUsage> = emptyList()
 ) {
     val isRaw: Boolean
         get() = typeArguments.isEmpty() && type?.typeParameters?.isEmpty() != false
@@ -333,11 +346,11 @@ data class ApiFunctionParameter internal constructor(
 
 private
 fun ApiTypeProvider.Context.apiTypeUsageFor(
-        binaryName: String,
-        isNullable: Boolean = false,
-        variance: Variance = Variance.INVARIANT,
-        typeArguments: List<TypeSignatureVisitor> = emptyList(),
-        bounds: List<TypeSignatureVisitor> = emptyList()
+    binaryName: String,
+    isNullable: Boolean = false,
+    variance: Variance = Variance.INVARIANT,
+    typeArguments: List<TypeSignatureVisitor> = emptyList(),
+    bounds: List<TypeSignatureVisitor> = emptyList()
 ): ApiTypeUsage =
 
     if (binaryName == "?") starProjectionTypeUsage
@@ -411,12 +424,16 @@ fun ApiTypeProvider.Context.apiTypeUsageForReturnType(delegate: MethodNode, retu
 
 private
 inline fun <reified AnnotationType : Any> List<AnnotationNode>?.has() =
-    if (this == null) false
-    else Type.getDescriptor(AnnotationType::class.java).let { desc -> any { it.desc == desc } }
+    has(Type.getDescriptor(AnnotationType::class.java))
 
 
 private
-class ApiTypeClassNode : ClassNode(AsmConstants.ASM_LEVEL) {
+fun List<AnnotationNode>?.has(annotationTypeDescriptor: String) =
+    this?.any { it.desc == annotationTypeDescriptor } ?: false
+
+
+private
+class ApiTypeClassNode(asmLevel: Int) : ClassNode(asmLevel) {
 
     override fun visitSource(file: String?, debug: String?) = Unit
     override fun visitOuterClass(owner: String?, name: String?, desc: String?) = Unit
@@ -428,7 +445,9 @@ class ApiTypeClassNode : ClassNode(AsmConstants.ASM_LEVEL) {
 
 
 private
-abstract class BaseSignatureVisitor : SignatureVisitor(AsmConstants.ASM_LEVEL) {
+abstract class BaseSignatureVisitor(
+    protected val asmLevel: Int,
+) : SignatureVisitor(asmLevel) {
 
     val typeParameters: MutableMap<String, MutableList<TypeSignatureVisitor>> = LinkedHashMap(1)
 
@@ -448,23 +467,23 @@ abstract class BaseSignatureVisitor : SignatureVisitor(AsmConstants.ASM_LEVEL) {
 
     private
     fun visitTypeParameterBound() =
-        TypeSignatureVisitor().also { typeParameters[currentTypeParameter]!!.add(it) }
+        TypeSignatureVisitor(asmLevel).also { typeParameters[currentTypeParameter]!!.add(it) }
 }
 
 
 private
-class ClassSignatureVisitor : BaseSignatureVisitor()
+class ClassSignatureVisitor(asmLevel: Int) : BaseSignatureVisitor(asmLevel)
 
 
 private
-class MethodSignatureVisitor : BaseSignatureVisitor() {
+class MethodSignatureVisitor(asmLevel: Int) : BaseSignatureVisitor(asmLevel) {
 
     val parameters: MutableList<TypeSignatureVisitor> = ArrayList(1)
 
-    val returnType = TypeSignatureVisitor()
+    val returnType = TypeSignatureVisitor(asmLevel)
 
     override fun visitParameterType(): SignatureVisitor =
-        TypeSignatureVisitor().also { parameters.add(it) }
+        TypeSignatureVisitor(asmLevel).also { parameters.add(it) }
 
     override fun visitReturnType(): SignatureVisitor =
         returnType
@@ -472,7 +491,10 @@ class MethodSignatureVisitor : BaseSignatureVisitor() {
 
 
 private
-class TypeSignatureVisitor(val variance: Variance = Variance.INVARIANT) : SignatureVisitor(AsmConstants.ASM_LEVEL) {
+class TypeSignatureVisitor(
+    private val asmLevel: Int,
+    val variance: Variance = Variance.INVARIANT
+) : SignatureVisitor(asmLevel) {
 
     var isArray = false
 
@@ -487,7 +509,7 @@ class TypeSignatureVisitor(val variance: Variance = Variance.INVARIANT) : Signat
         visitBinaryName(binaryNameOfBaseType(descriptor))
 
     override fun visitArrayType(): SignatureVisitor =
-        TypeSignatureVisitor().also {
+        TypeSignatureVisitor(asmLevel).also {
             visitBinaryName("kotlin.Array")
             isArray = true
             typeArguments.add(it)
@@ -501,11 +523,11 @@ class TypeSignatureVisitor(val variance: Variance = Variance.INVARIANT) : Signat
     }
 
     override fun visitTypeArgument() {
-        typeArguments.add(TypeSignatureVisitor().also { it.binaryName = "?" })
+        typeArguments.add(TypeSignatureVisitor(asmLevel).also { it.binaryName = "?" })
     }
 
     override fun visitTypeArgument(wildcard: Char): SignatureVisitor =
-        TypeSignatureVisitor(boundOf(wildcard)).also {
+        TypeSignatureVisitor(asmLevel, boundOf(wildcard)).also {
             expectTypeArgument = true
             typeArguments.add(it)
         }
@@ -517,7 +539,7 @@ class TypeSignatureVisitor(val variance: Variance = Variance.INVARIANT) : Signat
     private
     fun visitBinaryName(binaryName: String) {
         if (expectTypeArgument) {
-            TypeSignatureVisitor().let {
+            TypeSignatureVisitor(asmLevel).let {
                 typeArguments.add(it)
                 SignatureReader(binaryName).accept(it)
             }
