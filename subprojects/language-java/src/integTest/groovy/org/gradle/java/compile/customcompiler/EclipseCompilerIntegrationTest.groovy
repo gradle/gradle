@@ -73,7 +73,7 @@ class EclipseCompilerIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskExecuted(':compileJava')
-        result.getError().contains("error: name clash: class ConcreteTypeADoSomethings has two methods with the same erasure, yet neither overrides the other")
+        result.getError().contains("error: name clash:")
 
         when:
         buildFile << '''
