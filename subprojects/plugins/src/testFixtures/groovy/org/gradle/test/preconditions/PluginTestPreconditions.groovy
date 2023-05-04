@@ -31,28 +31,28 @@ class PluginTestPreconditions {
     static class BashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("bash") != null
+            return doSatisfies(UnitTestPreconditions.UnixDerivative) && locate("bash") != null
         }
     }
 
     static class DashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("dash") != null
+            return doSatisfies(UnitTestPreconditions.UnixDerivative) && locate("dash") != null
         }
     }
 
     static class StaticShAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("static-sh") != null
+            return doSatisfies(UnitTestPreconditions.UnixDerivative) && locate("static-sh") != null
         }
     }
 
     static class ShellcheckAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("shellcheck") != null
+            return doSatisfies(UnitTestPreconditions.UnixDerivative) && locate("shellcheck") != null
         }
     }
 }
