@@ -498,6 +498,7 @@ class DefaultValueSnapshotterTest extends Specification {
         areTheSame(snapshot, gradleUrl.with(true) { it.hashCode() })
         areTheSame(snapshot, new URL(gradleUrl.toString()))
         areTheSame(snapshot, new URL(gradleUrl.toString()).with(true) { it.hashCode() })
+        areTheSame(snapshot, gradleUrl.toURI())
 
         areNotTheSame(snapshot, new URL("https://gradle.org"))           // no trailing slash
         areNotTheSame(snapshot, new URL("ftp://gradle.org/"))            // different protocol
@@ -505,9 +506,14 @@ class DefaultValueSnapshotterTest extends Specification {
         areNotTheSame(snapshot, new URL("https://blog.gradle.org/"))     // different subdomain
         areNotTheSame(snapshot, new URL("https://gradle.org/releases/")) // different path
         areNotTheSame(snapshot, new URL("https://github.org/"))          // different domain
-        areNotTheSame(snapshot, gradleUrl.toURI())                       // URI, not a URL
-        areNotTheSame(snapshot, new URL("https://gradle.org").toURI())   // URI, not a URL
         areNotTheSame(snapshot, gradleUrl.toString())                    // String, not a URL
+
+        // carets will trigger a URISyntaxException.
+        def invalidUrl = new URL("https://example.com/with^in^path")
+        def invalidUrlSnapshot = snapshotter.snapshot(invalidUrl)
+        areNotTheSame(invalidUrlSnapshot, new URL("https://bar.net/another^invalid^path"))
+        areNotTheSame(invalidUrlSnapshot, null)
+        areTheSame(invalidUrlSnapshot, "https://example.com/with^in^path") // TODO I'm not sure if it's okay if a String and an invalid URI have the same snapshot?
     }
 
     def "creates snapshot for enum from candidate"() {
