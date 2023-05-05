@@ -20,8 +20,6 @@ import org.gradle.api.file.FileAccessPermission;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
-import javax.annotation.Nullable;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -125,12 +123,12 @@ public class DefaultFileAccessPermissionsTest {
         assertEquals("EXECUTE permission incorrect", execute, permission.getExecute().get());
     }
 
-    private static void assertInvalidUnixPermission(@Nullable String unixPermission, String errorMessage) {
+    private static void assertInvalidUnixPermission(String unixPermission, String errorMessage) {
         try {
             newUnixPermission(unixPermission).toUnixNumeric().get();
             fail("Expected exception not thrown!");
         } catch (Exception e) {
-            assertEquals(errorMessage, e.getCause().getMessage());
+            assertEquals(errorMessage, e.getMessage());
         }
     }
 
