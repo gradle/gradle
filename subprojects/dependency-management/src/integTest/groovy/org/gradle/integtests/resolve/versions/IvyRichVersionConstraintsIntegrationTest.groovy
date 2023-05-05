@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.versions
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import spock.lang.IgnoreIf
 
 @IgnoreIf({
@@ -26,17 +27,7 @@ import spock.lang.IgnoreIf
     // embedded mode
     !GradleContextualExecuter.embedded
 })
-class VersionRangeResolvePairIntegrationTest extends AbstractVersionRangeResolveIntegrationTest {
-    def "resolve pair #permutation"() {
-        given:
-        def candidates = permutation.candidates
-        def expectedSingle = permutation.expectedSingle
-        def expectedMulti = permutation.expectedMulti
-
-        expect:
-        checkScenarioResolution(expectedSingle, expectedMulti, candidates)
-
-        where:
-        permutation << VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
-    }
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+class IvyRichVersionConstraintsIntegrationTest extends AbstractRichVersionConstraintsIntegrationTest {
+    // Test split in two to reduce overall serial time execution
 }

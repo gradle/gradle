@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.versions
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.ivy.IvyModule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({
-    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
-    // infrastructure to simulate everything done here, so we're only going to execute this test in
-    // embedded mode
-    !GradleContextualExecuter.embedded
-})
-class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
+abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     void "can declare a strict dependency onto an external component"() {
         given:
