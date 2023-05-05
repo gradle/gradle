@@ -58,6 +58,7 @@ As a first migration step, it is recommended to prepare your Groovy build script
 
 * unifying quotes using double quotes,
 * disambiguating function invocations and property assignments (using respectively parentheses and assignment operator).
+* adapt extra properties access
 
 The former can easily be done by searching for `'` and replacing by `"`.
 For example,
@@ -123,6 +124,36 @@ group = "com.acme"                          // <1>
 dependencies {
     implementation("com.acme:example:1.0")  // <2>
 }
+----
+=====
+====
+In Groovy extra properties can be modified using the owning object's ext property, in Kotlin they are modified using owning object's extra property.
+
+For example,
+[.multi-language-sample]
+====
+.build.gradle
+=====
+[source,groovy]
+----
+ext {
+    springVersion = "3.1.0.RELEASE"
+    emailNotification = "build@master.org"
+}
+----
+=====
+====
+
+becomes:
+
+[.multi-language-sample]
+====
+.build.gradle
+=====
+[source,groovy]
+----
+val springVersion by extra("3.1.0.RELEASE")
+val emailNotification by extra { "build@master.org" }
 ----
 =====
 ====
@@ -203,7 +234,7 @@ include::sample[dir="snippets/kotlinDsl/configuring-plugins-declaratively-applie
 ====
 
 By contrast, if you use the imperative `apply()` function to apply a plugin, then you will have to use the `configure<T>()` function to configure that plugin.
-The following sample shows how this works for the Checkstyle Plugin by explicitly declaring the plugin's extension class — `CheckstyleExtension` — in the `configure<T>()` function:
+The following sample shows how this works for the Checkstyle Plugin by explicitly declaring the plugin's extension class — `CheckstyleExtension` — in the `configure<T>()` function:
 
 ====
 include::sample[dir="snippets/kotlinDsl/configuring-plugins-imperatively-applied/kotlin",files="build.gradle.kts[]"]
@@ -216,7 +247,7 @@ Again, we strongly recommend that you apply plugins declaratively via the `plugi
 .Knowing what plugin-provided extensions are available
 --
 Because your IDE knows about the configuration elements that a plugin provides, it will include those elements when you ask your IDE for suggestions.
-This will happen both at the top level of your build scripts — most plugin extensions are added to the `Project` object — and within an extension's configuration block.
+This will happen both at the top level of your build scripts — most plugin extensions are added to the `Project` object — and within an extension's configuration block.
 
 You can also run the `:kotlinDslAccessorsReport` task to learn about the extensions contributed by all applied plugins.
 It prints the Kotlin code you can use to access those extensions and provides the name and type of the accessor methods.
@@ -337,7 +368,7 @@ Type
      BootRun (org.springframework.boot.gradle.tasks.run.BootRun)
 ----
 
-Now that we know the types of the two tasks, we can import the relevant types — `BootJar` and `BootRun` — and configure the tasks as required.
+Now that we know the types of the two tasks, we can import the relevant types — `BootJar` and `BootRun` — and configure the tasks as required.
 Note that the IDE can assist us with the required imports, so we only need the simple names, i.e. without the full packages.
 Here's the resulting build script, complete with imports:
 
@@ -434,7 +465,7 @@ include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-custom/g
 ====
 
 Note that we can only use the `db(...)` and `integTestImplementation(...)` notation within the `dependencies {}` block in the above example because both configurations are declared as delegated properties beforehand via the `creating()` method.
-If the configurations were defined elsewhere, you could only reference them either by first creating delegating properties via `configurations`  — as opposed to `configurations.creating()` — or by using string literals within the `dependencies {}` block.
+If the configurations were defined elsewhere, you could only reference them either by first creating delegating properties via `configurations`  — as opposed to `configurations.creating()` — or by using string literals within the `dependencies {}` block.
 The following example demonstrates both approaches:
 
 ====
@@ -505,6 +536,5 @@ In addition, the Kotlin DSL provides several ways to opt into Groovy semantics.
 --
 Please find detailed documentation in the <<kotlin_dsl.adoc#sec:interoperability,interoperability section of the Gradle Kotlin DSL Primer>>.
 --
-
 
 
