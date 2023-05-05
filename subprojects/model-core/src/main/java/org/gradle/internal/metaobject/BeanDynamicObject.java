@@ -39,6 +39,7 @@ import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -108,15 +109,36 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         this.delegate = determineDelegate(bean);
     }
 
+    private static Method addInvocationHooksToMetaClassMethod;
+
+    static {
+        try {
+            Class<?> metaClassHelperClass = Class.forName("org.gradle.internal.classpath.InstrumentedGroovyMetaClassHelper");
+            addInvocationHooksToMetaClassMethod = metaClassHelperClass.getMethod("addInvocationHooksToMetaClass", Class.class);
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public MetaClassAdapter determineDelegate(Object bean) {
         if (bean instanceof Class) {
             return new ClassAdapter((Class<?>) bean);
         } else if (bean instanceof Map) {
             return new MapAdapter();
-        } else if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
-            return new MetaClassAdapter();
+        } else {
+            // We need to be able to instrument calls on objects that we wrap into BeanDynamicObject, e.g. on tasks.
+            // For that, we need to replace the metaclass of the wrapped object before the BeanDynamicObject is first used.
+            try {
+                addInvocationHooksToMetaClassMethod.invoke(null, bean.getClass());
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
+                return new MetaClassAdapter();
+            }
+            return new GroovyObjectAdapter();
         }
-        return new GroovyObjectAdapter();
     }
 
     public BeanDynamicObject withNoProperties() {

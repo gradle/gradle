@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.internal.metaobject.BeanDynamicObject
+
 import java.lang.reflect.Constructor
 import java.util.function.Predicate
 
@@ -68,6 +70,23 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
                 GroovySystem.metaClassRegistry.getMetaClass(NestedClassTwo.class) instanceof CallInterceptingMetaClass
             ]
         }(constructor)
+
+        then:
+        modifiedMetaClasses.every()
+    }
+
+    def 'constructing a BeanDynamicObject replaces the metaclass of the bean'() {
+        when:
+        def modifiedMetaClasses = instrumentedClasses.instrumentedClosure {
+            def instanceOne = new NestedClassOne()
+            new BeanDynamicObject(instanceOne)
+            def instanceTwo = new NestedClassTwo()
+            new BeanDynamicObject(instanceTwo, Object)
+            [
+                instanceOne.metaClass instanceof CallInterceptingMetaClass,
+                instanceTwo.metaClass instanceof CallInterceptingMetaClass
+            ]
+        }
 
         then:
         modifiedMetaClasses.every()
