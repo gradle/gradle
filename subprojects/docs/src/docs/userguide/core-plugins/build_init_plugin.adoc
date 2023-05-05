@@ -78,7 +78,7 @@ You can change the name of the generated project using the `--project-name` opti
 
 You can change the package used for generated source files using the `--package` option. It defaults to the project name.
 
-If the `--incubating` option is provided, Gradle will generate build scripts which may use the latest versions of APIs, which are marked `@Incubating` and remain <<feature_lifecycle.adoc#feature_lifecycle,subject to change>>.
+If the `--incubating` option is provided, Gradle will generate build scripts which may use the latest versions of APIs, which are marked `@Incubating` and remain <<feature_lifecycle.adoc#feature_lifecycle,subject to change>>. To disable this behavior, use `--no-incubating`.
 
 All build types also setup the Gradle wrapper.
 
