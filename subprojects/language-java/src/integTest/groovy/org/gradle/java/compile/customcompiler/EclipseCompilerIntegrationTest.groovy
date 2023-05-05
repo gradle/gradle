@@ -17,7 +17,10 @@
 package org.gradle.java.compile.customcompiler
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
+@Requires(UnitTestPreconditions.Jdk11OrLater) // Eclipse compiler requires Java 11+ (loading a compiler via API is supported by Gradle from Java 9+)
 class EclipseCompilerIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
