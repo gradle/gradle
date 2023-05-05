@@ -328,7 +328,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         unreadableOutput.makeReadable()
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "permissions block overrides mode"() {
         given:
         withSourceFiles("r--------")
@@ -350,7 +350,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         assertDestinationFilePermissions("rw-r--r--")
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "permissions block sets sensible defaults"() {
         given:
         withSourceFiles("r--------")
@@ -371,7 +371,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         assertDestinationFilePermissions("rw-r--r--")
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "permissions block can customize permissions (Groovy DSL)"() {
         given:
         withSourceFiles("r--------")
@@ -401,7 +401,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         assertDestinationFilePermissions("r-xr-xrw-")
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "permissions block can customize permissions (Kotlin DSL)"() {
         given:
         withSourceFiles("r--------")
@@ -433,7 +433,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         assertDestinationFilePermissions("r-xr-xrw-")
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "permissions can be created via factory (#description)"(String description, String setting) {
         given:
         withSourceFiles("r--------")
