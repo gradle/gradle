@@ -19,8 +19,9 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.Resources
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -205,7 +206,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(TestPrecondition.LINUX)
+    @Requires(UnitTestPreconditions.Linux)
     def "can compile after package case-rename"() {
         buildFile << """
             plugins {
@@ -578,7 +579,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1358")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     // Java 9 compiler throws error already: 'zip END header not found'
     def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
         buildFile << '''
@@ -601,7 +602,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1581")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "compile classpath snapshotting on Java 8 and earlier should warn when jar on classpath has non-utf8 characters in filenames"() {
         buildFile << '''
             apply plugin: 'java'
@@ -759,7 +760,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         skipped(':compileJava')
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile a module"() {
         given:
         buildFile << '''
@@ -784,7 +785,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2537")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile a module with --module-source-path"() {
         given:
         buildFile << '''
@@ -828,7 +829,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2537")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compile a module with --module-source-path and sourcepath warns and removes sourcepath"() {
         given:
         buildFile << '''
@@ -932,7 +933,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.JDK8_OR_EARLIER.fulfilled })
+    @Requires([UnitTestPreconditions.Jdk8OrEarlier, IntegTestPreconditions.Java7HomeAvailable, IntegTestPreconditions.Java8HomeAvailable ])
     // bootclasspath has been removed in Java 9+
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
@@ -973,7 +974,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // bootclasspath has been removed in Java 9+
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     @Issue("https://github.com/gradle/gradle/issues/19817")
     def "fails if bootclasspath is provided as a path instead of a single file"() {
         def jre = AvailableJavaHomes.getBestJre()
@@ -1190,7 +1191,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18262")
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "should compile sources from source with -sourcepath option for modules"() {
         given:
         buildFile << """

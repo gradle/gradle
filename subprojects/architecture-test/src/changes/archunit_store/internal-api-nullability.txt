@@ -2373,7 +2373,6 @@ Class <org.gradle.internal.classpath.intercept.CallInterceptorsSet$DecoratingCal
 Class <org.gradle.internal.classpath.intercept.CallInterceptorsSet$DecoratingCallSite$3> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CallInterceptorsSet.java:0)
 Class <org.gradle.internal.classpath.intercept.CallInterceptorsSet$DecoratingCallSite$4> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CallInterceptorsSet.java:0)
 Class <org.gradle.internal.classpath.intercept.CallInterceptorsSet$DecoratingCallSite> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CallInterceptorsSet.java:0)
-Class <org.gradle.internal.classpath.intercept.CallInterceptorsSet> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CallInterceptorsSet.java:0)
 Class <org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClassBoundCallInterceptor.java:0)
 Class <org.gradle.internal.classpath.intercept.InterceptScope$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InterceptScope.java:0)
 Class <org.gradle.internal.classpath.intercept.InterceptScope$CallType> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InterceptScope.java:0)

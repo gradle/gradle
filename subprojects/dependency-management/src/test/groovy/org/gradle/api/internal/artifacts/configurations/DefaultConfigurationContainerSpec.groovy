@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.Action
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
@@ -68,7 +68,6 @@ class DefaultConfigurationContainerSpec extends Specification {
     private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DependencyLockingProvider dependencyLockingProvider = Mock()
     private ProjectStateRegistry projectStateRegistry = Mock()
-    private DocumentationRegistry documentationRegistry = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
 
@@ -95,7 +94,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         buildOperationExecutor,
         Stub(PublishArtifactNotationParserFactory),
         immutableAttributesFactory,
-        documentationRegistry,
+        Stub(ResolveExceptionContextualizer),
         userCodeApplicationContext,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),

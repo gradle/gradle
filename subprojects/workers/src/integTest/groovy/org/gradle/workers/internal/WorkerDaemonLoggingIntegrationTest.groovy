@@ -18,9 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -68,26 +66,16 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         operation.progress.size() == 1000
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle/issues/24223")
     def "log messages are still delivered to the build process after a worker action runs"() {
         def lastOutput = ""
-        def startFile = file("start")
-        def stopFile = file("stop")
 
+        given:
         server.start()
 
         workActionThatProducesLotsOfOutput.action += """
             new Thread({
-                while (true) {
-                    sleep 1000
-                    println "checking..."
-                    if (new File("${TextUtil.normaliseFileSeparators(startFile.absolutePath)}").exists()) {
-                        println "beep..."
-                    }
-                    if (new File("${TextUtil.normaliseFileSeparators(stopFile.absolutePath)}").exists()) {
-                        break
-                    }
-                }
+                ${server.callFromBuild("beep")}
+                println "beep..."
             }).start()
         """
         workActionThatProducesLotsOfOutput.writeToBuildFile()
@@ -102,17 +90,14 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         """
 
         when:
-        def handler = server.expectAndBlock("block")
+        def handler = server.expectConcurrentAndBlock("block", "beep")
         def gradle = executer.withTasks("block").start()
 
         then:
         handler.waitForAllPendingCalls()
+        handler.release("beep")
 
         when:
-        lastOutput = gradle.standardOutput
-        startFile.createFile()
-
-        then:
         ConcurrentTestUtil.poll {
             def newOutput = gradle.standardOutput - lastOutput
             lastOutput = gradle.standardOutput
@@ -120,7 +105,6 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         }
 
         then:
-        stopFile.createFile()
         handler.releaseAll()
 
         then:

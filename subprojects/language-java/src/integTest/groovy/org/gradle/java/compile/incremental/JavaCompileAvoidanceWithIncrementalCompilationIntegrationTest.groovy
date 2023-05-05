@@ -17,13 +17,13 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class JavaCompileAvoidanceWithIncrementalCompilationIntegrationTest extends AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "fails when malformed jars are on the compile classpath"() {
         buildFile << """
             apply plugin: '${language.name}'

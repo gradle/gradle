@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
@@ -35,7 +34,7 @@ public interface ResolvedGraphDependency {
     ModuleVersionResolveException getFailure();
 
     /**
-     * Returns the simple id of the selected component.
+     * Returns the simple id of the selected component, as per {@link ResolvedGraphComponent#getResultId()}.
      */
     @Nullable
     Long getSelected();
@@ -48,8 +47,14 @@ public interface ResolvedGraphDependency {
 
     boolean isConstraint();
 
-    ResolvedVariantResult getFromVariant();
+    /**
+     * Returns the simple id of the source variant, as per {@link ResolvedGraphVariant#getNodeId()}.
+     */
+    Long getFromVariant();
 
+    /**
+     * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
+     */
     @Nullable
-    ResolvedVariantResult getSelectedVariant();
+    Long getSelectedVariant();
 }
