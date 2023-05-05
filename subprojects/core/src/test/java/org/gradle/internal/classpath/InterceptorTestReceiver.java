@@ -25,6 +25,26 @@ public class InterceptorTestReceiver {
         intercepted = "callNotIntercepted()-not-intercepted";
     }
 
+    private String testString = "testString";
+
+    public String getTestString() {
+        return testString;
+    }
+
+    public void setTestString(String newValue) {
+        testString = newValue;
+    }
+
+    private boolean testFlag = false;
+
+    public boolean isTestFlag() {
+        return testFlag;
+    }
+
+    public void setTestFlag(boolean newValue) {
+        testFlag = newValue;
+    }
+
     public String intercepted = null;
 
     @Override
