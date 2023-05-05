@@ -284,6 +284,9 @@ Here is the corresponding report for the `operators` component, showing dependen
 include::{snippetsPath}/native-binaries/cunit/tests/buildDependentComponentsReport.out[]
 ----
 
+Furthermore, the `--non-binaries` option shows non-buildable binaries in the report, `--no-non-buildable` hides them.
+Similarly, the `--test-suites` option shows test suites and `--no-test-suites` hides them.
+The option `--no-all` hides both non-buildable binaries and test suites from the report.
 
 [[sec:assemble_dependents]]
 === Assembling dependents
