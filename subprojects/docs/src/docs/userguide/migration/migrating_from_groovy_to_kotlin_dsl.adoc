@@ -58,6 +58,7 @@ As a first migration step, it is recommended to prepare your Groovy build script
 
 * unifying quotes using double quotes,
 * disambiguating function invocations and property assignments (using respectively parentheses and assignment operator).
+* adapt extra properties access
 
 The former can easily be done by searching for `'` and replacing by `"`.
 For example,
@@ -123,6 +124,36 @@ group = "com.acme"                          // <1>
 dependencies {
     implementation("com.acme:example:1.0")  // <2>
 }
+----
+=====
+====
+In Groovy extra properties can be modified using the owning object's ext property, in Kotlin they are modified using owning object's extra property.
+
+For example,
+[.multi-language-sample]
+====
+.build.gradle
+=====
+[source,groovy]
+----
+ext {
+    springVersion = "3.1.0.RELEASE"
+    emailNotification = "build@master.org"
+}
+----
+=====
+====
+
+becomes:
+
+[.multi-language-sample]
+====
+.build.gradle
+=====
+[source,groovy]
+----
+val springVersion by extra("3.1.0.RELEASE")
+val emailNotification by extra { "build@master.org" }
 ----
 =====
 ====
