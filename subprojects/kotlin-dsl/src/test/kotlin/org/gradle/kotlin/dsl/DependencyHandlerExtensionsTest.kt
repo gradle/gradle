@@ -10,6 +10,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
@@ -202,7 +203,7 @@ class DependencyHandlerExtensionsTest {
     fun `client module configuration`() {
 
         val clientModule = mock<ClientModule> {
-            on { setTransitive(any()) }.thenAnswer { it.mock }
+            on { isTransitive = any() }.thenAnswer { it.mock }
         }
 
         val commonsCliDependency = mock<ExternalModuleDependency>(name = "commonsCliDependency")
@@ -292,6 +293,25 @@ class DependencyHandlerExtensionsTest {
         }
 
         verify(dependencyHandler).add("configuration", baseConfig)
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/24503")
+    fun `given configuration provider and dependency notation, it will add the dependency to the configuration provider`() {
+
+        val dependencyHandler = newDependencyHandlerMock {
+            on { add(any(), any()) } doReturn mock<Dependency>()
+        }
+        val configuration = mock<NamedDomainObjectProvider<Configuration>> {
+            on { name } doReturn "c"
+        }
+
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
+        dependencies {
+            configuration("notation")
+        }
+
+        verify(dependencyHandler).add("c", "notation")
     }
 
     @Test
@@ -400,7 +420,7 @@ class DependencyHandlerExtensionsTest {
 
         val notation = mock<Provider<MinimalExternalModuleDependency>>()
         val config = mock<Configuration> {
-            on { getName() } doReturn "config"
+            on { name } doReturn "config"
         }
 
         val dependencies = DependencyHandlerScope.of(dependencyHandler)
@@ -420,7 +440,7 @@ class DependencyHandlerExtensionsTest {
 
         val notation = mock<Provider<MinimalExternalModuleDependency>>()
         val config = mock<Configuration> {
-            on { getName() } doReturn "config"
+            on { name } doReturn "config"
         }
 
         val dependencies = DependencyHandlerScope.of(dependencyHandler)
