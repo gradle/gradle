@@ -100,4 +100,30 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         "vararg with array"     | "Groovy dynamic dispatch" | { testVararg([it, it, it].toArray()) }    | true           | "testVararg(Object...)"
         "vararg with null item" | "Groovy dynamic dispatch" | { testVararg(null) }                      | true           | "testVararg(Object...)"
     }
+
+    def 'access to a #kind of a Groovy property from a #caller caller is intercepted as #expected'() {
+        when:
+        def intercepted = interceptedWhen(shouldDelegate, invocation)
+
+        then:
+        intercepted == expected
+
+        where:
+        kind                  | caller      | expected                                      | invocation                           | shouldDelegate
+        "normal getter"       | "call site" | "getTestString()"                             | { it.testString }                    | false
+        "boolean getter"      | "call site" | "isTestFlag()"                                | { it.testFlag }                      | false
+        "non-existent getter" | "call site" | "getNonExistentProperty()-non-existent"       | { it.nonExistentProperty }           | false
+
+        "normal getter"       | "dynamic"   | "getTestString()"                             | { testString }                       | true
+        "boolean getter"      | "dynamic"   | "isTestFlag()"                                | { testFlag }                         | true
+        "non-existent getter" | "dynamic"   | "getNonExistentProperty()-non-existent"       | { nonExistentProperty }              | true
+
+        "normal setter"       | "call site" | "setTestString(String)"                       | { it.testString = "value" }          | false
+        "boolean setter"      | "call site" | "setTestFlag(boolean)"                        | { it.testFlag = true }               | false
+        "non-existent getter" | "call site" | "setNonExistentProperty(String)-non-existent" | { it.nonExistentProperty = "value" } | false
+
+        "normal setter"       | "dynamic"   | "setTestString(String)"                       | { testString = "value" }             | true
+        "boolean setter"      | "call site" | "setTestFlag(boolean)"                        | { testFlag = true }                  | true
+        "non-existent getter" | "dynamic"   | "setNonExistentProperty(String)-non-existent" | { nonExistentProperty = "value" }    | true
+    }
 }

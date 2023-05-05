@@ -21,7 +21,9 @@ import org.gradle.internal.classpath.intercept.CallInterceptorsSet
 import spock.lang.Specification
 
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY
 
 class CallInterceptingMetaClassTest extends Specification {
 
@@ -62,7 +64,7 @@ class CallInterceptingMetaClassTest extends Specification {
         }
 
         then:
-        instance.intercepted == "test(InterceptorTestReceiver)"
+        instance.intercepted == "test()"
     }
 
     def 'intercepts a dynamic call to a non-existent method'() {
@@ -182,6 +184,105 @@ class CallInterceptingMetaClassTest extends Specification {
 
         "unrelated"      | [1, 2, 3]                                                      | false
         "notIntercepted" | []                                                             | false
+    }
+
+    def 'property access via #method property from closure is intercepted: #intercepted'() {
+        MissingPropertyException missingPropertyException = null
+
+        when:
+        def result = withEntryPoint(GET_PROPERTY, "testString") {
+            try {
+                propertyAccess()
+            } catch (MissingPropertyException e) {
+                missingPropertyException = e
+            }
+        }
+
+        then:
+        missing == (missingPropertyException != null)
+        missing || (result == (intercepted ? "testString-intercepted" : "testString"))
+        instance.intercepted == (intercepted ? "getTestString()" : null)
+
+        where:
+        method                                             | propertyAccess                                                                       | intercepted | missing
+        "getProperty(Object, String)"                      | { instance.metaClass.getProperty(instance, "testString") }                           | true        | false
+        "getProperty(Class, Object, String, false, false)" | { instance.metaClass.getProperty(getClass(), instance, "testString", false, false) } | true        | false
+
+        // These are not supported because of isCallToSuper or fromInsideClass
+        "getProperty(Class, Object, String, true, false)"  | { instance.metaClass.getProperty(getClass(), instance, "testString", true, false) }  | false       | true
+        "getProperty(Class, Object, String, false, true)"  | { instance.metaClass.getProperty(getClass(), instance, "testString", false, true) }  | false       | false
+        "getProperty(Class, Object, String, true, true)"   | { instance.metaClass.getProperty(getClass(), instance, "testString", true, true) }   | false       | true
+    }
+
+    def 'only one property read is intercepted per entry point'() {
+        when:
+        def result = withEntryPoint(GET_PROPERTY, "testString") {
+            [
+                instance.metaClass.getProperty(instance, "testString"),
+                instance.metaClass.getProperty(instance, "testString")
+            ]
+        }
+
+        then:
+        result == ["testString-intercepted", "testString"]
+    }
+
+    def 'intercepts setting #type property #method from closure'() {
+        given:
+        setExpr.delegate = instance
+
+        when:
+        withEntryPoint(SET_PROPERTY, propertyName) {
+            setExpr()
+        }
+
+        then:
+        instance.intercepted == intercepting
+
+        where:
+        method            | type      | intercepting                                  | propertyName          | setExpr
+        "directly"        | "string"  | "setTestString(String)"                       | "testString"          | { testString = "!" }
+        "directly"        | "boolean" | "setTestFlag(boolean)"                        | "testFlag"            | { testFlag = true }
+        "directly"        | "string"  | "setNonExistentProperty(String)-non-existent" | "nonExistentProperty" | { nonExistentProperty = "!" }
+        "via setProperty" | "string"  | "setTestString(String)"                       | "testString"          | { instance.metaClass.setProperty(null, instance, "testString", "!", false, false) }
+        "via setProperty" | "boolean" | "setTestFlag(boolean)"                        | "testFlag"            | { instance.metaClass.setProperty(null, instance, "testFlag", true, false, false) }
+        "via setProperty" | "string"  | "setNonExistentProperty(String)-non-existent" | "nonExistentProperty" | { instance.metaClass.setProperty(null, instance, "nonExistentProperty", "!", false, false) }
+    }
+
+    def 'intercepts getMetaProperty for matching properties'() {
+        MetaProperty property = null
+
+        when:
+        withEntryPoint(GET_PROPERTY, propertyName) {
+            property = instance.metaClass.getMetaProperty(propertyName)
+        }
+
+        then:
+        property != null
+        (property instanceof CallInterceptingMetaClass.InterceptedMetaProperty) == shouldIntercept
+
+        where:
+        propertyName | shouldIntercept
+        "testString" | true
+        "metaClass"  | false
+    }
+
+    def 'successive calls to getMetaProperty in the scope of an entry point all return the intercepted property'() {
+        List<MetaProperty> properties = []
+
+        when:
+        withEntryPoint(GET_PROPERTY, "testString") {
+            properties.add(instance.metaClass.getMetaProperty("testString"))
+            properties.add(instance.metaClass.getMetaProperty("testString"))
+        }
+        withEntryPoint(SET_PROPERTY, "testString") {
+            properties.add(instance.metaClass.getMetaProperty("testString"))
+            properties.add(instance.metaClass.getMetaProperty("testString"))
+        }
+
+        then:
+        properties.size() == 4
+        properties.every { it instanceof CallInterceptingMetaClass.InterceptedMetaProperty }
     }
 
     private static Object withEntryPoint(InstrumentedGroovyCallsTracker.CallKind kind, String name, Closure<?> call) {
