@@ -24,50 +24,68 @@ import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.configurationcache.serialization.readEnum
+import org.gradle.configurationcache.serialization.writeEnum
+
+
+private
+enum class ReferenceType {
+    SELF_REF,
+    TASK_REF,
+    PROHIBITED
+}
 
 
 internal
 object TaskReferenceCodec : Codec<Task> {
 
-    override suspend fun WriteContext.encode(value: Task) {
-        val owner = isolate.owner
-        val delegate = owner.delegate
+    override suspend fun WriteContext.encode(value: Task) = when {
+        value === isolate.owner.delegate ->
+            writeEnum(ReferenceType.SELF_REF)
 
-        if (value === delegate) {
-            writeBoolean(true)
-        } else {
-            writeBoolean(false)
-            val isTaskReferencesAllowed = owner is IsolateOwner.OwnerTask && owner.allowTaskReferences
-            val isTaskFromSameProject = delegate is Task && delegate.project == value.project
+        isTaskReferencesAllowed(value) -> {
+            writeEnum(ReferenceType.TASK_REF)
+            writeString(value.name)
+        }
 
-            if (isTaskReferencesAllowed && isTaskFromSameProject) {
-                writeNullableString(value.name)
-            } else {
-                logUnsupported(
-                    "serialize",
-                    Task::class,
-                    value.javaClass,
-                    documentationSection = RequirementsTaskAccess
-                )
-                writeNullableString(null)
-            }
+        else -> {
+            writeEnum(ReferenceType.PROHIBITED)
+            logUnsupported(
+                "serialize",
+                Task::class,
+                value.javaClass,
+                documentationSection = RequirementsTaskAccess
+            )
         }
     }
 
-    override suspend fun ReadContext.decode(): Task? =
-        if (readBoolean()) {
+    private
+    fun WriteContext.isTaskReferencesAllowed(value: Task): Boolean {
+        val owner = isolate.owner
+        val delegate = owner.delegate
+
+        val isTaskReferencesAllowed = owner is IsolateOwner.OwnerTask && owner.allowTaskReferences
+        val isTaskFromSameProject = delegate is Task && delegate.project == value.project
+
+        return isTaskReferencesAllowed && isTaskFromSameProject
+    }
+
+    override suspend fun ReadContext.decode(): Task? = when (readEnum<ReferenceType>()) {
+        ReferenceType.SELF_REF ->
             isolate.owner.delegate as Task
-        } else {
-            val taskName = readNullableString()
-            if (taskName != null) {
-                isolate.owner.service(TaskContainerInternal::class.java).resolveTask(taskName)
-            } else {
-                logUnsupported(
-                    "deserialize",
-                    Task::class,
-                    documentationSection = RequirementsTaskAccess
-                )
-                null
-            }
+
+        ReferenceType.TASK_REF -> {
+            val taskName = readString()
+            isolate.owner.service(TaskContainerInternal::class.java).resolveTask(taskName)
         }
+
+        ReferenceType.PROHIBITED -> {
+            logUnsupported(
+                "deserialize",
+                Task::class,
+                documentationSection = RequirementsTaskAccess
+            )
+            null
+        }
+    }
 }
