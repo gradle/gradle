@@ -26,7 +26,7 @@ import spock.lang.IgnoreIf
     // embedded mode
     !GradleContextualExecuter.embedded
 })
-class VersionRangeResolvePreferPairIntegrationTest extends AbstractVersionRangeResolveIntegrationTest {
+class VersionRangeResolvePreferPairBatch2IntegrationTest extends AbstractVersionRangeResolveIntegrationTest {
     def "resolve prefer pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -37,6 +37,6 @@ class VersionRangeResolvePreferPairIntegrationTest extends AbstractVersionRangeR
         checkScenarioResolution(expectedSingle, expectedMulti, candidates)
 
         where:
-        permutation << VersionRangeResolveTestScenarios.SCENARIOS_PREFER
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_PREFER_BATCH2
     }
 }
