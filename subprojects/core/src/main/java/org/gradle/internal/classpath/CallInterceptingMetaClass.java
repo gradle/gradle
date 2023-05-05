@@ -23,22 +23,30 @@ import groovy.lang.MetaClassRegistry;
 import groovy.lang.MetaMethod;
 import groovy.lang.MetaProperty;
 import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.reflection.CachedClass;
 import org.codehaus.groovy.reflection.ClassInfo;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.classpath.intercept.PropertyAwareCallInterceptor;
 import org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor;
+import org.gradle.internal.metaobject.InstrumentedMetaClass;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD;
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY;
 
 /**
  * A metaclass implementation that consults the Groovy call interception infrastructure ({@link InstrumentedGroovyCallsTracker} and {@link CallInterceptorResolver}).
@@ -49,10 +57,12 @@ import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallK
  * It implements {@link AdaptingMetaClass} in order to tell the Groovy runtime that it cannot cache the metamethod instances, as it does with the default {@link MetaClassImpl}.
  */
 @NonNullApi
-public class CallInterceptingMetaClass extends MetaClassImpl implements AdaptingMetaClass {
+public class CallInterceptingMetaClass extends MetaClassImpl implements AdaptingMetaClass, InstrumentedMetaClass {
 
     private MetaClass adaptee;
     private final CallInterceptorResolver interceptorResolver;
+
+    private static final Object[] NO_ARG = new Object[0];
 
     public CallInterceptingMetaClass(
         MetaClassRegistry registry,
@@ -69,17 +79,99 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     @Override
+    public Object getProperty(Class sender, Object object, String name, boolean useSuper, boolean fromInsideClass) {
+        if (useSuper || fromInsideClass) {
+            return adaptee.getProperty(sender, object, name, useSuper, fromInsideClass);
+        } else {
+            return invokeIntercepted(object, GET_PROPERTY, name, NO_ARG, () -> adaptee.getProperty(sender, object, name, false, false));
+        }
+    }
+
+    @Override
+    public Object getProperty(Object object, String property) {
+        return invokeIntercepted(object, GET_PROPERTY, property, NO_ARG, () -> adaptee.getProperty(object, property));
+    }
+
+    @Override
+    public void setProperty(Class sender, Object object, String name, Object newValue, boolean useSuper, boolean fromInsideClass) {
+        if (useSuper || fromInsideClass) {
+            adaptee.setProperty(sender, object, name, newValue, useSuper, fromInsideClass);
+        } else {
+            invokeIntercepted(object, SET_PROPERTY, name, new Object[]{newValue}, () -> {
+                adaptee.setProperty(sender, object, name, newValue, useSuper, fromInsideClass);
+                return null;
+            });
+        }
+    }
+
+    @Override
+    public void setProperty(Object object, String property, Object newValue) {
+        invokeIntercepted(object, SET_PROPERTY, property, new Object[]{newValue}, () -> {
+            adaptee.setProperty(object, property, newValue);
+            return null;
+        });
+    }
+
+    @Override
+    @Nullable
+    public MetaProperty getMetaProperty(String name) {
+        MetaProperty original = adaptee.getMetaProperty(name);
+        Pair<String, CallInterceptor> getterCallerAndInterceptor = findGetterCallerAndInterceptor(name);
+        Pair<String, CallInterceptor> setterCallerAndInterceptor = getterCallerAndInterceptor != null ? null : findSetterCallerAndInterceptor(name);
+        if (getterCallerAndInterceptor != null || setterCallerAndInterceptor != null) {
+            // TODO: the interceptor should tell the type
+            String consumerClass = getterCallerAndInterceptor != null ? getterCallerAndInterceptor.left : setterCallerAndInterceptor.left;
+            Class<?> propertyType = interceptedPropertyType(
+                original,
+                Optional.ofNullable(getterCallerAndInterceptor).map(Pair::right).orElse(null),
+                Optional.ofNullable(setterCallerAndInterceptor).map(Pair::right).orElse(null)
+            );
+            if (propertyType != null) {
+                return new InterceptedMetaProperty(name,
+                    propertyType, original,
+                    theClass, getterCallerAndInterceptor != null ? getterCallerAndInterceptor.right : null,
+                    setterCallerAndInterceptor != null ? setterCallerAndInterceptor.right : null,
+                    Objects.requireNonNull(consumerClass));
+            }
+        }
+        return original;
+    }
+
+    private @Nullable Class<?> interceptedPropertyType(
+        @Nullable MetaProperty originalProperty,
+        @Nullable CallInterceptor getterInterceptor,
+        @Nullable CallInterceptor setterInterceptor
+    ) {
+        if (getterInterceptor instanceof PropertyAwareCallInterceptor) {
+            Class<?> typeFromGetter = ((PropertyAwareCallInterceptor) getterInterceptor).matchesProperty(theClass);
+            if (typeFromGetter != null) {
+                return typeFromGetter;
+            }
+        }
+        if (setterInterceptor instanceof PropertyAwareCallInterceptor) {
+            Class<?> typeFromSetter = ((PropertyAwareCallInterceptor) setterInterceptor).matchesProperty(theClass);
+            if (typeFromSetter != null) {
+                return typeFromSetter;
+            }
+        }
+        if (originalProperty != null) {
+            return originalProperty.getType();
+        }
+        return null;
+    }
+
+    @Override
     public Object invokeMethod(Object object, String methodName, Object[] arguments) {
-        return invokeIntercepted(object, methodName, arguments, () -> adaptee.invokeMethod(object, methodName, arguments));
+        return invokeIntercepted(object, INVOKE_METHOD, methodName, arguments, () -> adaptee.invokeMethod(object, methodName, arguments));
     }
 
     @Override
     public Object invokeMethod(Class sender, Object object, String methodName, Object[] originalArguments, boolean isCallToSuper, boolean fromInsideClass) {
-        if (isCallToSuper) {
+        if (isCallToSuper || fromInsideClass) {
             // Calls to super are not supported by the call interception mechanisms as of now
-            return adaptee.invokeMethod(sender, object, methodName, originalArguments, true, fromInsideClass);
+            return adaptee.invokeMethod(sender, object, methodName, originalArguments, isCallToSuper, fromInsideClass);
         }
-        return invokeIntercepted(object, methodName, originalArguments, () -> adaptee.invokeMethod(sender, object, methodName, originalArguments, false, fromInsideClass));
+        return invokeIntercepted(object, INVOKE_METHOD, methodName, originalArguments, () -> adaptee.invokeMethod(sender, object, methodName, originalArguments, isCallToSuper, fromInsideClass));
     }
 
     @Override
@@ -108,12 +200,20 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         return original;
     }
 
-    private Object invokeIntercepted(Object receiver, String methodName, Object[] arguments, Callable<Object> invokeOriginal) {
-        String matchedCaller = InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(methodName, INVOKE_METHOD);
+    private Object invokeIntercepted(Object receiver, InstrumentedGroovyCallsTracker.CallKind kind, String name, Object[] arguments, Callable<Object> invokeOriginal) {
+        String matchedCaller = InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind);
         if (matchedCaller != null) {
-            CallInterceptor callInterceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.methodsNamed(methodName));
+            InterceptScope scope =
+                kind == INVOKE_METHOD ? InterceptScope.methodsNamed(name) :
+                    kind == GET_PROPERTY ? InterceptScope.readsOfPropertiesNamed(name) :
+                        kind == SET_PROPERTY ? InterceptScope.writesOfPropertiesNamed(name) :
+                            null;
+            if (scope == null) {
+                throw new IllegalArgumentException("unexpected invocation with kind " + kind);
+            }
+            CallInterceptor callInterceptor = interceptorResolver.resolveCallInterceptor(scope);
             if (callInterceptor != null) {
-                return invokeWithInterceptor(callInterceptor, methodName, INVOKE_METHOD, receiver, arguments, matchedCaller, invokeOriginal);
+                return invokeWithInterceptor(callInterceptor, name, kind, receiver, arguments, matchedCaller, invokeOriginal);
             }
         }
 
@@ -152,16 +252,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     @Override
-    public Object getProperty(Object object, String property) {
-        return adaptee.getProperty(object, property);
-    }
-
-    @Override
-    public void setProperty(Object object, String property, Object newValue) {
-        adaptee.setProperty(object, property, newValue);
-    }
-
-    @Override
     public Object invokeConstructor(Object[] arguments) {
         return adaptee.invokeConstructor(arguments);
     }
@@ -169,11 +259,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     @Override
     public Object invokeStaticMethod(Object object, String methodName, Object[] arguments) {
         return adaptee.invokeStaticMethod(object, methodName, arguments);
-    }
-
-    @Override
-    public MetaProperty getMetaProperty(String name) {
-        return adaptee.getMetaProperty(name);
     }
 
     @Override
@@ -186,7 +271,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
      */
     @Override
     public List<MetaMethod> respondsTo(Object obj, String name, Object[] argTypes) {
-        return Cast.uncheckedCast(super.respondsTo(obj, name, argTypes));
+        return Cast.uncheckedNonnullCast(super.respondsTo(obj, name, argTypes));
     }
 
     /**
@@ -194,7 +279,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
      */
     @Override
     public List<MetaMethod> respondsTo(Object obj, String name) {
-        return Cast.uncheckedCast(super.respondsTo(obj, name));
+        return Cast.uncheckedNonnullCast(super.respondsTo(obj, name));
     }
     //endregion
 
@@ -229,6 +314,98 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             }
         }
         return new InvocationImpl(receiver, arguments);
+    }
+
+    @Override
+    public boolean interceptsPropertyAccess(String propertyName) {
+        return findGetterCallerAndInterceptor(propertyName) != null || findSetterCallerAndInterceptor(propertyName) != null;
+    }
+
+    @Nullable
+    private Pair<String, CallInterceptor> findGetterCallerAndInterceptor(String propertyName) {
+        String caller = InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(propertyName, GET_PROPERTY);
+        if (caller == null) {
+            return null;
+        }
+        CallInterceptor interceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.readsOfPropertiesNamed(propertyName));
+        if (interceptor == null) {
+            return null;
+        }
+        return Pair.of(caller, interceptor);
+    }
+
+    @Nullable
+    private Pair<String, CallInterceptor> findSetterCallerAndInterceptor(String propertyName) {
+        String caller = InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(propertyName, SET_PROPERTY);
+        if (caller == null) {
+            return null;
+        }
+        CallInterceptor interceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(propertyName));
+        if (interceptor == null) {
+            return null;
+        }
+        return Pair.of(caller, interceptor);
+    }
+
+    @NonNullApi
+    public static class InterceptedMetaProperty extends MetaProperty {
+        @Nullable
+        private final MetaProperty original;
+        private final Class<?> ownerClass;
+        private final CallInterceptor getterInterceptor;
+        private final CallInterceptor setterInterceptor;
+        private final String consumerClass;
+
+        public InterceptedMetaProperty(
+            String name,
+            Class type,
+            @Nullable MetaProperty original,
+            Class<?> ownerClass, @Nullable CallInterceptor getterInterceptor,
+            @Nullable CallInterceptor setterInterceptor,
+            String getConsumerClass
+        ) {
+            super(name, type);
+            this.original = original;
+            this.ownerClass = ownerClass;
+            this.getterInterceptor = getterInterceptor;
+            this.setterInterceptor = setterInterceptor;
+            this.consumerClass = getConsumerClass;
+        }
+
+        @Override
+        public Object getProperty(Object object) {
+            if (getterInterceptor != null) {
+                return invokeWithInterceptor(getterInterceptor, name, GET_PROPERTY, object, NO_ARG, consumerClass, () -> {
+                    if (original != null) {
+                        return original.getProperty(object);
+                    } else {
+                        throw new MissingPropertyException(name);
+                    }
+                });
+            }
+            if (original != null) {
+                return original.getProperty(object);
+            }
+            throw new MissingPropertyException(name, ownerClass);
+        }
+
+        @Override
+        public void setProperty(Object object, Object newValue) {
+            if (setterInterceptor != null) {
+                invokeWithInterceptor(setterInterceptor, name, SET_PROPERTY, object, new Object[]{newValue}, consumerClass, () -> {
+                    if (original != null) {
+                        original.setProperty(object, newValue);
+                        return null;
+                    } else {
+                        throw new MissingPropertyException(name);
+                    }
+                });
+            } else if (original != null) {
+                original.setProperty(object, newValue);
+            } else {
+                throw new MissingPropertyException(name, ownerClass);
+            }
+        }
     }
 
     @NonNullApi
