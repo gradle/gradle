@@ -21,7 +21,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
 import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 
@@ -81,7 +80,10 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
 
     @Override
     public void unix(String permissions) {
-        unix(Providers.of(permissions));
+        String normalizedPermissions = normalizeUnixPermissions(permissions);
+        user.unix(normalizedPermissions, 0);
+        group.unix(normalizedPermissions, 1);
+        other.unix(normalizedPermissions, 2);
     }
 
     @Override
@@ -93,15 +95,17 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
     }
 
     private static Provider<String> normalizeUnixPermissions(Provider<String> permissions) {
-        return permissions.map(SerializableLambdas.transformer(p -> {
-            String trimmed = p.trim();
-            if (trimmed.length() == 4 && trimmed.startsWith("0")) {
-                return trimmed.substring(1);
-            }
-            if (trimmed.length() != 3 && trimmed.length() != 9) {
-                throw new InvalidUserDataException("'" + p + "' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-            }
-            return trimmed;
-        }));
+        return permissions.map(SerializableLambdas.transformer(DefaultFileAccessPermissions::normalizeUnixPermissions));
+    }
+
+    private static String normalizeUnixPermissions(String p) {
+        String trimmed = p.trim();
+        if (trimmed.length() == 4 && trimmed.startsWith("0")) {
+            return trimmed.substring(1);
+        }
+        if (trimmed.length() != 3 && trimmed.length() != 9) {
+            throw new InvalidUserDataException("'" + p + "' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        }
+        return trimmed;
     }
 }

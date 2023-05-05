@@ -29,6 +29,11 @@ public interface FileAccessPermissionInternal extends FileAccessPermission {
      * @param permission complete Unix-style permission for all users
      * @param index index of the part specific to this user group (so 0 for user, 1 for group, 2 for others)
      */
+    void unix(String permission, int index);
+
+    /**
+     * Provider based version of {@link #unix(String, int)}.
+     */
     void unix(Provider<String> permission, int index);
 
 }
