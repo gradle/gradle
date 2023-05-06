@@ -22,6 +22,8 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
+ * A specialized {@link ComponentGraphResolveState} for external components.
+ *
  * <p>Instances of this type are cached and reused for multiple graph resolutions, possibly in parallel. This means that the implementation must be thread-safe.
  */
 @ThreadSafe

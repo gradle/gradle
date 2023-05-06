@@ -64,11 +64,6 @@ public interface ComponentResolveMetadata extends HasAttributes {
     ModuleSources getSources();
 
     /**
-     * Creates a copy of this meta-data with the given sources.
-     */
-    ComponentResolveMetadata withSources(ModuleSources sources);
-
-    /**
      * Returns the schema used by this component.
      */
     AttributesSchemaInternal getAttributesSchema();
