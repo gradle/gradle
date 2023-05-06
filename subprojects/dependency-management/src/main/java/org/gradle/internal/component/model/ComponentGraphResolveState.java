@@ -46,11 +46,17 @@ public interface ComponentGraphResolveState {
      */
     ComponentIdentifier getId();
 
+    /**
+     * Information about the origin of this component.
+     */
     ModuleSources getSources();
 
     @Nullable
     String getRepositoryId();
 
+    /**
+     * The immutable metadata for this component.
+     */
     ComponentGraphResolveMetadata getMetadata();
 
     /**

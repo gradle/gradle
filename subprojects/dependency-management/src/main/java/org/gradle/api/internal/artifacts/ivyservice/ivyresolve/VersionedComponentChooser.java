@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
@@ -27,7 +28,7 @@ import java.util.Collection;
 
 public interface VersionedComponentChooser {
     @Nullable
-    ComponentGraphResolveMetadata selectNewestComponent(ComponentGraphResolveMetadata one, ComponentGraphResolveMetadata two);
+    ComponentGraphResolveMetadata selectNewestComponent(ModuleComponentGraphResolveMetadata one, ModuleComponentGraphResolveMetadata two);
 
     void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, ImmutableAttributes consumerAttributes);
 
