@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
@@ -115,11 +114,6 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
     @Override
     public ModuleSources getSources() {
         return MODULE_SOURCES;
-    }
-
-    @Override
-    public ComponentResolveMetadata withSources(ModuleSources source) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

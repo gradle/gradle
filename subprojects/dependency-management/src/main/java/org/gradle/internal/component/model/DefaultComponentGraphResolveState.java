@@ -27,6 +27,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 /**
  * Holds the resolution state for an external component.
  */
-public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
+public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
     private final ComponentIdGenerator idGenerator;
 
     // The resolve state for each configuration of this component
@@ -88,6 +89,11 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     @Override
+    public ModuleSources getSources() {
+        return getArtifactMetadata().getSources();
+    }
+
+    @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
         return selectableVariantResults;
     }
@@ -125,7 +131,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         private final ModuleConfigurationMetadata configuration;
         private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultConfigurationGraphResolveState(long instanceId, ComponentResolveMetadata component, ModuleConfigurationMetadata configuration, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
+        public DefaultConfigurationGraphResolveState(long instanceId, ExternalComponentResolveMetadata component, ModuleConfigurationMetadata configuration, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
             this.instanceId = instanceId;
             this.configuration = configuration;
             this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(component, configuration, allVariantsForArtifactSelection));
@@ -173,12 +179,12 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     private static class DefaultConfigurationArtifactResolveState implements VariantArtifactResolveState {
-        private final ComponentResolveMetadata artifactMetadata;
+        private final ExternalComponentResolveMetadata artifactMetadata;
         private final ConfigurationMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> legacyVariants;
         private final Set<? extends VariantResolveMetadata> allVariants;
 
-        public DefaultConfigurationArtifactResolveState(ComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedConfiguration, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
+        public DefaultConfigurationArtifactResolveState(ExternalComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedConfiguration, Optional<Set<? extends VariantResolveMetadata>> allVariantsForArtifactSelection) {
             this.artifactMetadata = artifactMetadata;
             this.graphSelectedConfiguration = graphSelectedConfiguration;
             this.legacyVariants = graphSelectedConfiguration.getVariants();
@@ -217,9 +223,9 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     private static class ExternalArtifactResolveMetadata implements ComponentArtifactResolveMetadata {
-        private final ComponentResolveMetadata metadata;
+        private final ExternalComponentResolveMetadata metadata;
 
-        public ExternalArtifactResolveMetadata(ComponentResolveMetadata metadata) {
+        public ExternalArtifactResolveMetadata(ExternalComponentResolveMetadata metadata) {
             this.metadata = metadata;
         }
 
