@@ -31,6 +31,9 @@ public interface ModuleComponentGraphResolveState extends ComponentGraphResolveS
     @Override
     ModuleComponentIdentifier getId();
 
+    @Override
+    ModuleComponentGraphResolveMetadata getMetadata();
+
     // Try to avoid using this, this is here to allow migration away from ModuleComponentResolveMetadata
     ModuleComponentResolveMetadata getModuleResolveMetadata();
 }
