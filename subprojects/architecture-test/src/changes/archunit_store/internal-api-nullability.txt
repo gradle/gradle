@@ -3593,7 +3593,6 @@ Class <org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream> is no
 Class <org.gradle.internal.serialize.FlushableEncoder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (FlushableEncoder.java:0)
 Class <org.gradle.internal.serialize.HashCodeSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (HashCodeSerializer.java:0)
 Class <org.gradle.internal.serialize.InputStreamBackedDecoder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InputStreamBackedDecoder.java:0)
-Class <org.gradle.internal.serialize.Int2ObjectMapSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Int2ObjectMapSerializer.java:0)
 Class <org.gradle.internal.serialize.IntSetSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IntSetSerializer.java:0)
 Class <org.gradle.internal.serialize.InterningStringSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InterningStringSerializer.java:0)
 Class <org.gradle.internal.serialize.ListSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ListSerializer.java:0)
