@@ -18,11 +18,13 @@ package org.gradle.configurationcache.problems
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.problems.buildtree.ProblemLocationAnalyzer
 
 
 class DefaultProblemFactory(
     private val userCodeContext: UserCodeApplicationContext,
+    private val problemDiagnosticsFactory: ProblemDiagnosticsFactory,
     private val locationAnalyzer: ProblemLocationAnalyzer
 ) : ProblemFactory {
     override fun locationForCaller(consumer: String?): PropertyTrace {

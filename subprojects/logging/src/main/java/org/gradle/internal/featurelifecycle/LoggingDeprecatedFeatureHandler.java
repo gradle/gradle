@@ -23,6 +23,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private final Set<String> messages = new HashSet<String>();
     private boolean deprecationsFound = false;
+    private ProblemDiagnosticsFactory problemDiagnosticsFactory;
     private UsageLocationReporter locationReporter;
 
     private WarningMode warningMode = WarningMode.Summary;
@@ -55,7 +57,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    public void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
+    public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, UsageLocationReporter reporter, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
+        this.problemDiagnosticsFactory = problemDiagnosticsFactory;
         this.locationReporter = reporter;
         this.warningMode = warningMode;
         this.progressEventEmitter = progressEventEmitter;

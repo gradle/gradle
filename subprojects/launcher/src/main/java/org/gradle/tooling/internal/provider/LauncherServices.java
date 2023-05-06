@@ -73,6 +73,7 @@ import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
@@ -230,6 +231,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
+            ProblemDiagnosticsFactory problemDiagnosticsFactory,
             ScriptUsageLocationReporter usageLocationReporter,
             StartParameter startParameter
         ) {
@@ -258,7 +260,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             buildLoggerFactory),
                         options),
                     gradleEnterprisePluginManager)),
-                usageLocationReporter, eventEmitter, startParameter);
+                problemDiagnosticsFactory, usageLocationReporter, eventEmitter, startParameter);
         }
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
