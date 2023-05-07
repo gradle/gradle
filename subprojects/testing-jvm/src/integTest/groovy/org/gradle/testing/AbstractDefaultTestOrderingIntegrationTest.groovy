@@ -15,17 +15,11 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_VINTAGE_VERSION
-
-@TargetCoverage({ JUNIT_4 + LATEST_VINTAGE_VERSION + LATEST_JUPITER_VERSION })
-class DefaultTestOrderingIntegrationTest extends MultiVersionIntegrationSpec {
+abstract class AbstractDefaultTestOrderingIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
@@ -36,11 +30,11 @@ class DefaultTestOrderingIntegrationTest extends MultiVersionIntegrationSpec {
 
     private void addEmptyTestClass(String testName) {
         file("src/test/java/${testName}.java") << """
-import org.junit.*;
-public class ${testName} {
-    @Test public void test() {}
-}
-"""
+            ${testFrameworkImports}
+            public class ${testName} {
+                @Test public void test() {}
+            }
+        """.stripIndent()
     }
 
     def "test classes are scanned and run in deterministic order by default"() {
@@ -54,20 +48,23 @@ public class ${testName} {
         addEmptyTestClass("AbTest")
 
         String expectedTestMessages = """
-executed Test test(AATest)
-executed Test test(ACTest)
-executed Test test(AZTest)
-executed Test test(AbTest)
-executed Test test(AdTest)
-executed Test test(AyTest)
-executed Test test(AÄTest)
-executed Test test(AÆTest)
+executed Test ${maybeParentheses('test')}(AATest)
+executed Test ${maybeParentheses('test')}(ACTest)
+executed Test ${maybeParentheses('test')}(AZTest)
+executed Test ${maybeParentheses('test')}(AbTest)
+executed Test ${maybeParentheses('test')}(AdTest)
+executed Test ${maybeParentheses('test')}(AyTest)
+executed Test ${maybeParentheses('test')}(AÄTest)
+executed Test ${maybeParentheses('test')}(AÆTest)
 """
 
         file("build.gradle") << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.12' }
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
             test.beforeTest { println "executed " + it }
         """
 

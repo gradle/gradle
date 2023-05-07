@@ -17,10 +17,10 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
+import org.gradle.testing.AbstractIncrementalTestIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 @TargetCoverage({ JUNIT_JUPITER })
-class JUnitJupiterFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnitJupiterMultiVersionTest {
+class JUnitJupiterIncrementalTestIntegrationTest extends AbstractIncrementalTestIntegrationTest implements JUnitJupiterMultiVersionTest {
 }
