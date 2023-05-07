@@ -16,18 +16,12 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.TargetCoverage
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_VINTAGE_VERSION
-
-@TargetCoverage({ LATEST_JUNIT4_VERSION + LATEST_VINTAGE_VERSION + LATEST_JUPITER_VERSION })
-class JUnit4TestFilteringSamplesIntegrationTest extends MultiVersionIntegrationSpec {
+class JUnit4TestFilteringSamplesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'testing/filtering/groovy')
 
