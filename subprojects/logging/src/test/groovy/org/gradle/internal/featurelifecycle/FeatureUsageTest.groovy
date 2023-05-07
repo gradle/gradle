@@ -27,11 +27,14 @@ import static SimulatedSingleMessageLogger.INDIRECT_CALL_2
 class FeatureUsageTest extends Specification {
 
     def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedSummary. #expectedMethod. #usage."() {
+        given:
+        def stack = FeatureUsage.calculateStack(usage.calledFrom, usage.exception.stackTrace)
+
         expect:
-        !usage.stack.empty
+        !stack.empty
         usage.summary == expectedSummary
 
-        def stackTraceRoot = usage.stack[0]
+        def stackTraceRoot = stack[0]
         stackTraceRoot.className == callLocationClass.name
         stackTraceRoot.methodName == expectedMethod
 

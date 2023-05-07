@@ -27,7 +27,7 @@ class ConfigurationCacheEnvironmentChangeTrackerTest {
     private
     val locationAnalyzer = ProblemLocationAnalyzer { _, _ -> null }
     private
-    val tracker = ConfigurationCacheEnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), DefaultProblemDiagnosticsFactory(locationAnalyzer), locationAnalyzer))
+    val tracker = ConfigurationCacheEnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), DefaultProblemDiagnosticsFactory(locationAnalyzer)))
 
     @Test
     fun `can load state after capturing`() {

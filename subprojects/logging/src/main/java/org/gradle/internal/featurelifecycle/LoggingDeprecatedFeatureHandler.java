@@ -38,7 +38,6 @@ import java.util.Set;
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
     public static final String WARNING_SUMMARY = "Deprecated Gradle features were used in this build, making it incompatible with Gradle";
-    public static final String WARNING_LOGGING_DOCS_MESSAGE = "See";
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
@@ -48,7 +47,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private final Set<String> messages = new HashSet<String>();
     private boolean deprecationsFound = false;
-    private ProblemDiagnosticsFactory problemDiagnosticsFactory;
+    private ProblemDiagnosticsFactory problemDiagnosticsFactory = new NoOpProblemDiagnosticsFactory();
 
     private WarningMode warningMode = WarningMode.Summary;
     private BuildOperationProgressEventEmitter progressEventEmitter;
@@ -62,9 +61,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     @Override
     public void featureUsed(final DeprecatedFeatureUsage usage) {
-        if (problemDiagnosticsFactory == null) {
-            throw new IllegalStateException("This handler has not been initialized yet.");
-        }
         deprecationsFound = true;
         ProblemDiagnostics diagnostics = problemDiagnosticsFactory.forCurrentCaller(new ProblemDiagnosticsFactory.StackTraceTransformer() {
             @Override
@@ -109,7 +105,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     public void reset() {
-        problemDiagnosticsFactory = null;
+        problemDiagnosticsFactory = new NoOpProblemDiagnosticsFactory();
         progressEventEmitter = null;
         messages.clear();
         deprecationsFound = false;
@@ -151,7 +147,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {
         message.append(lineSeparator);
         message.append(ELEMENT_PREFIX);
-        message.append(frame.toString());
+        message.append(frame);
     }
 
     private static void appendRunWithStacktraceInfo(StringBuilder message, String lineSeparator) {

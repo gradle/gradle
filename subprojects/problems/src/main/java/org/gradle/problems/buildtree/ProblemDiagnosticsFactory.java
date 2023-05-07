@@ -20,16 +20,14 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.ProblemDiagnostics;
 
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 
 @ServiceScope(Scopes.BuildTree.class)
 public interface ProblemDiagnosticsFactory {
-    ProblemDiagnostics forCurrentCaller();
-
     ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer);
 
-    ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionSupplier);
+    ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception);
 
     interface StackTraceTransformer {
         List<StackTraceElement> transform(StackTraceElement[] original);

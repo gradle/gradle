@@ -24,10 +24,9 @@ import org.gradle.problems.buildtree.ProblemLocationAnalyzer;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
-    private static final StackTraceTransformer NO_OP = original -> ImmutableList.copyOf(original);
+    private static final StackTraceTransformer NO_OP = ImmutableList::copyOf;
     private final ProblemLocationAnalyzer locationAnalyzer;
 
     public DefaultProblemDiagnosticsFactory(ProblemLocationAnalyzer locationAnalyzer) {
@@ -35,13 +34,12 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     }
 
     @Override
-    public ProblemDiagnostics forCurrentCaller() {
-        return locationFromStackTrace(new Exception(), false, NO_OP);
-    }
-
-    @Override
-    public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionSupplier) {
-        return locationFromStackTrace(exceptionSupplier.get(), true, NO_OP);
+    public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
+        if (exception == null) {
+            return locationFromStackTrace(new Exception(), false, NO_OP);
+        } else {
+            return locationFromStackTrace(exception, true, NO_OP);
+        }
     }
 
     @Override
