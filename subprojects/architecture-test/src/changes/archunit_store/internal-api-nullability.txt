@@ -2496,8 +2496,6 @@ Class <org.gradle.internal.featurelifecycle.IncubatingFeatureUsage> is not annot
 Class <org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler$DoNothingReporter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LoggingDeprecatedFeatureHandler.java:0)
 Class <org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LoggingDeprecatedFeatureHandler.java:0)
 Class <org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LoggingIncubatingFeatureHandler.java:0)
-Class <org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ScriptUsageLocationReporter.java:0)
-Class <org.gradle.internal.featurelifecycle.UsageLocationReporter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (UsageLocationReporter.java:0)
 Class <org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (FileSystemDefaultExcludesListener.java:0)
 Class <org.gradle.internal.graph.CachingDirectedGraphWalker$GraphWithEmptyEdges> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CachingDirectedGraphWalker.java:0)
 Class <org.gradle.internal.graph.CachingDirectedGraphWalker$NodeDetails> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CachingDirectedGraphWalker.java:0)

@@ -19,10 +19,10 @@ package org.gradle.internal.deprecation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.internal.DefaultGradleVersion
 import org.junit.Rule
@@ -35,7 +35,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(BuildOperationProgressEventEmitter))
+        DeprecationLogger.init(Mock(ProblemDiagnosticsFactory), WarningMode.All, Mock(BuildOperationProgressEventEmitter))
     }
 
     def cleanup() {
@@ -150,7 +150,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     def "reports suppressed deprecation messages with --warning-mode summary"() {
         given:
         def documentationReference = new DocumentationRegistry().getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")
-        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.Summary, Mock(BuildOperationProgressEventEmitter))
+        DeprecationLogger.init(Mock(ProblemDiagnosticsFactory), WarningMode.Summary, Mock(BuildOperationProgressEventEmitter))
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         when:

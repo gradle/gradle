@@ -16,19 +16,59 @@
 
 package org.gradle.internal.problems;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
+import org.gradle.problems.buildtree.ProblemLocationAnalyzer;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
+    private static final StackTraceTransformer NO_OP = original -> ImmutableList.copyOf(original);
+    private final ProblemLocationAnalyzer locationAnalyzer;
+
+    public DefaultProblemDiagnosticsFactory(ProblemLocationAnalyzer locationAnalyzer) {
+        this.locationAnalyzer = locationAnalyzer;
+    }
+
     @Override
     public ProblemDiagnostics forCurrentCaller() {
-        throw new UnsupportedOperationException();
+        return locationFromStackTrace(new Exception(), false, NO_OP);
     }
 
     @Override
     public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionSupplier) {
-        throw new UnsupportedOperationException();
+        return locationFromStackTrace(exceptionSupplier.get(), true, NO_OP);
+    }
+
+    @Override
+    public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
+        return locationFromStackTrace(new Exception(), false, transformer);
+    }
+
+    private ProblemDiagnostics locationFromStackTrace(Throwable throwable, boolean fromException, StackTraceTransformer transformer) {
+        List<StackTraceElement> stackTrace = transformer.transform(throwable.getStackTrace());
+        Location location = locationAnalyzer.locationForUsage(stackTrace, fromException);
+        return new ProblemDiagnostics() {
+            @Nullable
+            @Override
+            public Throwable getException() {
+                return fromException ? throwable : null;
+            }
+
+            @Override
+            public List<StackTraceElement> getStack() {
+                return stackTrace;
+            }
+
+            @Nullable
+            @Override
+            public Location getLocation() {
+                return location;
+            }
+        };
     }
 }

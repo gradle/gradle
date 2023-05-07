@@ -41,7 +41,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkInputListeners;
-import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -232,7 +231,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
             ProblemDiagnosticsFactory problemDiagnosticsFactory,
-            ScriptUsageLocationReporter usageLocationReporter,
             StartParameter startParameter
         ) {
             return new InitDeprecationLoggingActionExecutor(new RootBuildLifecycleBuildActionExecutor(
@@ -260,7 +258,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             buildLoggerFactory),
                         options),
                     gradleEnterprisePluginManager)),
-                problemDiagnosticsFactory, usageLocationReporter, eventEmitter, startParameter);
+                problemDiagnosticsFactory, eventEmitter, startParameter);
         }
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {

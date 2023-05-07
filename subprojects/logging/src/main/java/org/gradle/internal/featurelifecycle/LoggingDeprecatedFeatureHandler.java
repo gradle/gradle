@@ -23,6 +23,8 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.problems.Location;
+import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
@@ -47,37 +49,41 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private final Set<String> messages = new HashSet<String>();
     private boolean deprecationsFound = false;
     private ProblemDiagnosticsFactory problemDiagnosticsFactory;
-    private UsageLocationReporter locationReporter;
 
     private WarningMode warningMode = WarningMode.Summary;
     private BuildOperationProgressEventEmitter progressEventEmitter;
     private GradleException error;
 
-    public LoggingDeprecatedFeatureHandler() {
-        this.locationReporter = DoNothingReporter.INSTANCE;
-    }
-
-    public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, UsageLocationReporter reporter, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
+    public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
         this.problemDiagnosticsFactory = problemDiagnosticsFactory;
-        this.locationReporter = reporter;
         this.warningMode = warningMode;
         this.progressEventEmitter = progressEventEmitter;
     }
 
     @Override
-    public void featureUsed(DeprecatedFeatureUsage usage) {
+    public void featureUsed(final DeprecatedFeatureUsage usage) {
+        if (problemDiagnosticsFactory == null) {
+            throw new IllegalStateException("This handler has not been initialized yet.");
+        }
         deprecationsFound = true;
+        ProblemDiagnostics diagnostics = problemDiagnosticsFactory.forCurrentCaller(new ProblemDiagnosticsFactory.StackTraceTransformer() {
+            @Override
+            public List<StackTraceElement> transform(StackTraceElement[] original) {
+                return FeatureUsage.calculateStack(usage.getCalledFrom(), original);
+            }
+        });
         if (warningMode.shouldDisplayMessages()) {
             String featureMessage = usage.formattedMessage();
             StringBuilder message = new StringBuilder();
-            locationReporter.reportLocation(usage, message);
-            if (message.length() > 0) {
+            Location location = diagnostics.getLocation();
+            if (location != null) {
+                message.append(location.getFormatted());
                 message.append(SystemProperties.getInstance().getLineSeparator());
             }
             message.append(featureMessage);
-            displayDeprecationIfSameMessageNotDisplayedBefore(message, usage.getStack());
+            displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getStack());
         }
-        fireDeprecatedUsageBuildOperationProgress(usage);
+        fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }
 
     private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, List<StackTraceElement> callStack) {
@@ -96,13 +102,14 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
     }
 
-    private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage) {
+    private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         if (progressEventEmitter != null) {
-            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage));
+            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics));
         }
     }
 
     public void reset() {
+        problemDiagnosticsFactory = null;
         progressEventEmitter = null;
         messages.clear();
         deprecationsFound = false;
@@ -189,13 +196,4 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     public GradleException getDeprecationFailure() {
         return error;
     }
-
-    private enum DoNothingReporter implements UsageLocationReporter {
-        INSTANCE;
-
-        @Override
-        public void reportLocation(FeatureUsage usage, StringBuilder target) {
-        }
-    }
-
 }

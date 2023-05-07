@@ -19,6 +19,9 @@ package org.gradle.problems;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * An immutable set of diagnostic information for a problem.
+ */
 public interface ProblemDiagnostics {
     /**
      * Returns an exception that can be thrown when this problem should result in an error.
@@ -31,9 +34,8 @@ public interface ProblemDiagnostics {
     /**
      * Returns the stack trace that can be reported to the user about where the problem occurred.
      *
-     * <p>Not every problem has a meaningful stack, even when the problem has an associated exception.</p>
+     * <p>Not every problem has a meaningful stack, even when the problem has an associated exception. Returns an empty list in this case.</p>
      */
-    @Nullable
     List<StackTraceElement> getStack();
 
     /**

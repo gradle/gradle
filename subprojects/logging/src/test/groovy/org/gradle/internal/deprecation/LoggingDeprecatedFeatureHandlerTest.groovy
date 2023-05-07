@@ -22,7 +22,6 @@ import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.FeatureUsage
 import org.gradle.internal.featurelifecycle.FeatureUsageTest
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationListener
@@ -33,6 +32,7 @@ import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.time.Clock
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -46,7 +46,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()
-    final locationReporter = Mock(UsageLocationReporter)
+    final locationReporter = Mock(ProblemDiagnosticsFactory)
     final handler = new LoggingDeprecatedFeatureHandler()
     final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()

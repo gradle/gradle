@@ -18,12 +18,16 @@ package org.gradle.configurationcache.services
 
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.configurationcache.problems.DefaultProblemFactory
+import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory
+import org.gradle.problems.buildtree.ProblemLocationAnalyzer
 import org.junit.Test
 
 
 class ConfigurationCacheEnvironmentChangeTrackerTest {
     private
-    val tracker = ConfigurationCacheEnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), { _, _ -> null }))
+    val locationAnalyzer = ProblemLocationAnalyzer { _, _ -> null }
+    private
+    val tracker = ConfigurationCacheEnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), DefaultProblemDiagnosticsFactory(locationAnalyzer), locationAnalyzer))
 
     @Test
     fun `can load state after capturing`() {
