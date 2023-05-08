@@ -33,6 +33,7 @@ The `build.gradle` file might look as follows:
 include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/kotlin",files="build.gradle.kts"]
 include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/groovy",files="build.gradle"]
 ====
+
 <1> *Define artifact sources for project.*
 
 <2> *Remote and local repositories for artifact locations.*
