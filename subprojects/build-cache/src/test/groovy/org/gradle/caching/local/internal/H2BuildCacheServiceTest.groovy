@@ -18,7 +18,9 @@ package org.gradle.caching.local.internal
 
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.internal.DefaultBuildCacheKey
 import org.gradle.caching.internal.controller.service.StoreTarget
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,6 +39,22 @@ class H2BuildCacheServiceTest extends Specification {
 
     BuildCacheKey key = Mock(BuildCacheKey) {
         getHashCode() >> "1234abcd"
+    }
+
+    def "can open database cheaply"() {
+        def tmpFile = temporaryFolder.createFile("test")
+        tmpFile << "Hello world"
+
+        expect:
+        10000.times { index ->
+            if (index % 100 == 0) {
+                print "."
+            }
+            def service2 = new H2BuildCacheService(dbDir.toPath(), 20)
+            def key2 = new DefaultBuildCacheKey(TestHashCodes.hashCodeFrom(index))
+            service2.store(key2, new StoreTarget(tmpFile))
+            service2.close()
+        }
     }
 
     def "can write to h2"() {
