@@ -74,6 +74,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
         this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
+        if (spec.isDryRun()) {
+            System.setProperty("testng.mode.dryrun", "true");
+        }
     }
 
     @Override
@@ -131,19 +134,18 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             }
         }
 
-        IMethodInterceptor filter = new MatchesAllFilter();
         TestFilterSpec filterSpec = spec.getFilter();
         if (!filterSpec.getIncludedTests().isEmpty() || !filterSpec.getIncludedTestsCommandLine().isEmpty() || !filterSpec.getExcludedTests().isEmpty()) {
-            filter = new SelectedTestsFilter(filterSpec);
+            testNg.addListener(new SelectedTestsFilter(filterSpec));
         }
 
-        testNg.addListener(filter);
 
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
             testNg.setTestClasses(testClasses.toArray(new Class<?>[0]));
         }
+
         testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, clock)));
         testNg.run();
     }

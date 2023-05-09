@@ -42,6 +42,9 @@ public interface TestClassExecutionResult {
      */
     @SuppressWarnings("unchecked")
     default TestClassExecutionResult assertTestOutcomes(TestOutcome status, String... testNames) {
+        if (status == TestOutcome.SKIPPED) {
+            return assertTestsSkipped(testNames);
+        }
         for (String testName : testNames) {
             switch (status) {
                 case PASSED:
@@ -49,9 +52,6 @@ public interface TestClassExecutionResult {
                     break;
                 case FAILED:
                     assertTestFailed(testName);
-                    break;
-                case SKIPPED:
-                    assertTestSkipped(testName);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown test outcome: " + status);

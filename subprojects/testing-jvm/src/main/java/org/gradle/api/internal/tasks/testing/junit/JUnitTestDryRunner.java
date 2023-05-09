@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.NonNullApi;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
 
+import java.util.LinkedList;
+
+@NonNullApi
 public class JUnitTestDryRunner extends Runner {
     private final Runner runner;
 
@@ -34,21 +38,14 @@ public class JUnitTestDryRunner extends Runner {
 
     @Override
     public void run(RunNotifier notifier) {
-        dryRun(notifier, getDescription());
-    }
-
-    private void dryRun(RunNotifier notifier, Description description) {
-        if (description.isSuite()) {
-            notifier.fireTestSuiteStarted(description);
-
-            for (Description child : description.getChildren()) {
-                dryRun(notifier, child);
+        LinkedList<Description> queue = new LinkedList<Description>();
+        queue.add(runner.getDescription());
+        while (!queue.isEmpty()) {
+            Description description = queue.removeFirst();
+            queue.addAll(description.getChildren());
+            if (JUnitTestEventAdapter.methodName(description) != null) {
+                notifier.fireTestIgnored(description);
             }
-
-            notifier.fireTestSuiteFinished(description);
-        } else {
-            notifier.fireTestStarted(description);
-            notifier.fireTestFinished(description);
         }
     }
 }

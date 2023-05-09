@@ -224,7 +224,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                     case KOTLIN_TEST: // fall-through
                     case JUNIT_JUPITER: // fall-through
                     case SPOCK:
-                        return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false);
+                        return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false, task.getDryRun());
                     case TESTNG:
                         return new TestNGTestFramework(task, (DefaultTestFilter) task.getFilter(), getObjectFactory());
                     default:

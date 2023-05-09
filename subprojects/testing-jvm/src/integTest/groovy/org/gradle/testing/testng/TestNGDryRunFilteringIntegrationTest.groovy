@@ -19,8 +19,19 @@ package org.gradle.testing.testng
 
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.TestOutcome
+import org.gradle.testing.DryRunFilteringTest
 import org.gradle.testing.fixture.TestNGCoverage
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-class TestNGFilteringIntegrationTest extends AbstractTestNGFilteringIntegrationTest {
+@TargetCoverage({ TestNGCoverage.SUPPORTS_DRY_RUN })
+class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegrationTest implements DryRunFilteringTest {
+    @Override
+    TestOutcome getPassedTestOutcome() {
+        return TestOutcome.PASSED
+    }
+
+    @Override
+    TestOutcome getFailedTestOutcome() {
+        return TestOutcome.PASSED
+    }
 }

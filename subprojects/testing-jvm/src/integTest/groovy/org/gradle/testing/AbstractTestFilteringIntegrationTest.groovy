@@ -18,24 +18,33 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestOutcome
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.hamcrest.Matchers
 import spock.lang.Issue
 
 abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
-    TestOutcome getTestOutcome() {
-        return TestOutcome.PASSED
+    TestOutcome getPassedTestOutcome() {
+        return dryRun ? TestOutcome.SKIPPED : TestOutcome.PASSED
     }
 
-    List<String> getTestTaskArguments() {
-        return []
+    TestOutcome getFailedTestOutcome() {
+        return dryRun ? TestOutcome.SKIPPED : TestOutcome.FAILED
+    }
+
+    final List<String> getTestTaskArguments() {
+        return dryRun ? ['--test-dry-run'] : []
+    }
+
+    boolean isDryRun() {
+        return false
     }
 
     def succeedsWithTestTaskArguments(String... args) {
-        succeeds(args + testTaskArguments)
+        succeeds((args + testTaskArguments) as String[])
     }
 
     def failsWithTestTaskArguments(String... args) {
-        fails(args + testTaskArguments)
+        fails((args + testTaskArguments) as String[])
     }
 
     def setup() {
@@ -117,8 +126,13 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
             package org.gradle;
             ${testFrameworkImports}
             public class FooTest {
-                @Test public void pass() {}
-                @Test public void fail() { throw new RuntimeException("Boo!"); }
+                @Test public void pass() {
+                    System.err.println("ran FooTest.pass!");
+                }
+                @Test public void fail() {
+                    System.err.println("ran FooTest.fail!");
+                    throw new RuntimeException("Boo!");
+                }
             }
         """
         file("src/test/java/org/gradle/OtherTest.java") << """
@@ -131,15 +145,28 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         when:
-        succeedsWithTestTaskArguments("test")
+        if (buildSuccess || dryRun) {
+            succeedsWithTestTaskArguments("test")
+        } else {
+            failsWithTestTaskArguments("test")
+        }
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("org.gradle.FooTest")
-        result.testClass("org.gradle.FooTest").assertTestOutcomes(testOutcome, "pass")
+        result.testClass("org.gradle.FooTest").assertTestOutcomes(testOutcome, testName)
+        if (dryRun) {
+            result.testClassByXml("org.gradle.FooTest").assertTestCaseStderr(testName, Matchers.emptyString())
+        } else {
+            result.testClassByXml("org.gradle.FooTest").assertTestCaseStderr(testName, Matchers.containsString("ran FooTest.${testName}!"))
+        }
 
         where:
-        pattern << ['FooTest.pass', 'org.gradle.FooTest.pass']
+        pattern                   | testOutcome       | testName | buildSuccess
+        'FooTest.pass'            | passedTestOutcome | 'pass'   | true
+        'org.gradle.FooTest.pass' | passedTestOutcome | 'pass'   | true
+        'FooTest.fail'            | failedTestOutcome | 'fail'   | false
+        'org.gradle.FooTest.fail' | failedTestOutcome | 'fail'   | false
     }
 
     def "executes multiple methods from a test class"() {
@@ -218,8 +245,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("Foo1Test", "Foo2Test")
-        result.testClass("Foo1Test").assertTestOutcomes(testOutcome, "pass1")
-        result.testClass("Foo2Test").assertTestOutcomes(testOutcome, "pass2")
+        result.testClass("Foo1Test").assertTestOutcomes(passedTestOutcome, "pass1")
+        result.testClass("Foo2Test").assertTestOutcomes(passedTestOutcome, "pass2")
     }
 
     def "reports when no matching methods found"() {
@@ -288,7 +315,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         when: succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
-        then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestOutcomes(testOutcome, "pass")
+        then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestOutcomes(passedTestOutcome, "pass")
 
         when: succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
         then: skipped(":test") //up-to-date
@@ -298,7 +325,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
 
         then:
         executedAndNotSkipped(":test")
-        new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestOutcome(testOutcome, "pass", "pass2")
+        new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestOutcomes(passedTestOutcome, "pass", "pass2")
     }
 
     def "can select multiple tests from commandline #scenario"() {
@@ -339,16 +366,16 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted(stringArrayOf(classesExecuted))
         if (!foo1TestsExecuted.isEmpty()) {
-            result.testClass("Foo1Test").assertTestOutcomes(testOutcome, stringArrayOf(foo1TestsExecuted))
+            result.testClass("Foo1Test").assertTestOutcomes(passedTestOutcome, stringArrayOf(foo1TestsExecuted))
         }
         if (!foo2TestsExecuted.isEmpty()) {
-            result.testClass("Foo2Test").assertTestOutcomes(testOutcome, stringArrayOf(foo2TestsExecuted))
+            result.testClass("Foo2Test").assertTestOutcomes(passedTestOutcome, stringArrayOf(foo2TestsExecuted))
         }
         if (!barTestsExecuted.isEmpty()) {
-            result.testClass("BarTest").assertTestOutcomes(testOutcome, stringArrayOf(barTestsExecuted))
+            result.testClass("BarTest").assertTestOutcomes(passedTestOutcome, stringArrayOf(barTestsExecuted))
         }
         if (!otherTestsExecuted.isEmpty()) {
-            result.testClass("OtherTest").assertTestOutcomes(testOutcome, stringArrayOf(otherTestsExecuted))
+            result.testClass("OtherTest").assertTestOutcomes(passedTestOutcome, stringArrayOf(otherTestsExecuted))
         }
 
         where:
@@ -445,15 +472,15 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
 
         and:
         def executionResult = new DefaultTestExecutionResult(testDirectory)
-        executionResult.testClass("ATest").assertTestOutcomes(testOutcome, "test")
+        executionResult.testClass("ATest").assertTestOutcomes(passedTestOutcome, "test")
         !executionResult.testClassExists("BTest")
-        executionResult.testClass("CTest").assertTestOutcomes(testOutcome, "test")
+        executionResult.testClass("CTest").assertTestOutcomes(passedTestOutcome, "test")
     }
 
-    private createTestABC(){
+    private createTestABC() {
         file('src/test/java/ATest.java') << """
-            ${testFrameworkImports}
-            public class ATest {
+		${testFrameworkImports}
+		public class ATest {
                 @Test public void test() { System.out.println("ATest!"); }
             }
         """

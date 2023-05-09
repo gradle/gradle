@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.testing.junit.junit4
 
-/**
- * The base class for any test framework specific options.
- */
-public class TestFrameworkOptions {
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.DryRunFilteringTest
+
+import static org.gradle.testing.fixture.JUnitCoverage.IGNORE_ON_CLASS
+
+@TargetCoverage({ IGNORE_ON_CLASS })
+class JUnit4DryRunFilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnit4MultiVersionTest, DryRunFilteringTest {
 }
