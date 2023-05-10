@@ -32,6 +32,7 @@ import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
@@ -104,13 +105,19 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
     def "sets test filter with information from #requestType"() {
         setup:
         _ * buildProjectRegistry.allProjects >> [projectState]
-        1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
-        1 * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
-        1 * testExecutionRequest.getTaskAndTests() >> tasksAndTests
+        _ * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
+        _ * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
+        _ * testExecutionRequest.getTaskAndTests() >> tasksAndTests
+        def graph = Mock(BuildTreeWorkGraph.FinalizedGraph) {
+            withTasks(_) >> { args ->
+                args[0].accept(testTask)
+            }
+        }
 
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
         when:
         buildConfigurationAction.applyTasksTo(context, executionPlan)
+        buildConfigurationAction.postProcessExecutionPlan(graph)
         then:
         1 * testFilter.includeTest(expectedClassFilter, expectedMethodFilter)
 
@@ -142,6 +149,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         _ * testTaskCollection.toArray() >> [testTask].toArray()
         _ * tasksContainerInternal.withType(Test) >> testTaskCollection
         _ * testTask.getOutputs() >> outputsInternal
+        _ * testTask.getPath() >> TEST_TASK_NAME
         _ * context.getSelection(TEST_TASK_NAME) >> new TaskSelection(null, null, new TaskNameResolver.FixedTaskSelectionResult(testTaskCollection))
     }
 
