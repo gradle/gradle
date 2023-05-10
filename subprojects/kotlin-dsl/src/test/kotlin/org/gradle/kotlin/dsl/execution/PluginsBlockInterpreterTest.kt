@@ -338,16 +338,24 @@ class PluginsBlockInterpreterTest {
                 id( /** kdoc comment */ "plugin-id-3")
                 id("plugin-id-4" /** kdoc comment */ )
                 id("plugin-id-5") /** kdoc comment */
-                id("plugin-id-6") /** kdoc comment */ .version("1.0")
-                id("plugin-id-7"). /** kdoc comment */ version("1.0")
-                id("plugin-id-8") /** kdoc comment */ version "1.0"
-                id("plugin-id-9") version /** kdoc comment */ "1.0"
             """,
             PluginRequestSpec("plugin-id-1"),
             PluginRequestSpec("plugin-id-2"),
             PluginRequestSpec("plugin-id-3"),
             PluginRequestSpec("plugin-id-4"),
             PluginRequestSpec("plugin-id-5"),
+        )
+    }
+
+    @Test
+    fun `comment - kdoc inline with version`() {
+        assertStaticInterpretationOf(
+            """
+                id("plugin-id-6") /** kdoc comment */ .version("1.0")
+                id("plugin-id-7"). /** kdoc comment */ version("1.0")
+                id("plugin-id-8") /** kdoc comment */ version "1.0"
+                id("plugin-id-9") version /** kdoc comment */ "1.0"
+            """,
             PluginRequestSpec("plugin-id-6", version = "1.0"),
             PluginRequestSpec("plugin-id-7", version = "1.0"),
             PluginRequestSpec("plugin-id-8", version = "1.0"),
