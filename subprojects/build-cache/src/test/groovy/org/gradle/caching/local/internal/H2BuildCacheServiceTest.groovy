@@ -29,7 +29,12 @@ class H2BuildCacheServiceTest extends Specification {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def dbDir = temporaryFolder.createDir("h2db")
-    def service = new H2BuildCacheService(dbDir.toPath(), 20)
+    H2BuildCacheService service
+
+    def setup() {
+        service = new H2BuildCacheService(dbDir.toPath(), 20)
+        service.open()
+    }
 
     def cleanup() {
         service.close()
@@ -74,6 +79,7 @@ class H2BuildCacheServiceTest extends Specification {
 
         expect:
         def newService = new H2BuildCacheService(dbDir.toPath(), 20)
+        newService.open()
         newService.load(key, new BuildCacheEntryReader() {
             @Override
             void readFrom(InputStream input) throws IOException {
