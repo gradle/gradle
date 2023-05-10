@@ -211,6 +211,8 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             return this;
         }
 
+
+
         @Override
         public ExecutionResult<Void> runWork() {
             assertIsOwner();
@@ -222,6 +224,12 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 state = State.Finished;
             }
         }
+
+        @Override
+        public void withTasks(Consumer<? super Task> visitTask) {
+            controllers.withTasks(visitTask);
+        }
+
 
         @Override
         public void close() {

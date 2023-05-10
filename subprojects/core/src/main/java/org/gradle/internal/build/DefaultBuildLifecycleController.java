@@ -265,6 +265,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
+        public void withTasks(Consumer<? super Task> visitTask) {
+            plan.getContents().getTasks().forEach(visitTask);
+        }
+
+        @Override
         public void onComplete(Consumer<LocalTaskNode> handler) {
             handlers.add(handler);
         }

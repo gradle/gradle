@@ -29,4 +29,6 @@ public interface BuildWorkPlan extends Stoppable {
     void onComplete(Consumer<LocalTaskNode> handler);
 
     void addFilter(Spec<Task> filter);
+
+    void withTasks(Consumer<? super Task> visitTask);
 }
