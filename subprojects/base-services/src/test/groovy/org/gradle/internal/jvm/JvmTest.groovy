@@ -43,10 +43,14 @@ class JvmTest extends Specification {
 
     def setup() {
         JavaVersion.resetCurrent()
+        OperatingSystem.resetCurrent()
+        // if tests run on Mac OS, they might pick up an Apple JVM based on this property
+        System.properties['os.name'] = 'Dummy'
     }
 
     def cleanup() {
         JavaVersion.resetCurrent()
+        OperatingSystem.resetCurrent()
     }
 
     def assertJreHomeIfNotJava9(Jvm jvm, TestFile softwareRoot, String jreHome) {
@@ -364,13 +368,32 @@ class JvmTest extends Specification {
         jvm.getClass() == Jvm.JvmImplementation
     }
 
+    def "uses OS name to determine if Apple JVM"() {
+        when:
+        System.properties['os.name'] = 'Mac OS X'
+        def jvm = Jvm.createCurrent()
+
+        then:
+        jvm.getClass() == Jvm.AppleJvm
+    }
+
+    def "JAVA_CLASS_NAME_* env is not inherited on Mac OS"() {
+        when:
+        System.properties['os.name'] = 'Mac OS X'
+
+        def jvm = Jvm.createCurrent()
+
+        then:
+        jvm.getInheritableEnvironmentVariables(["JAVA_MAIN_CLASS_1234": "com.foo.Main"]).isEmpty()
+    }
+
     def "uses system property to determine if IBM JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'IBM Corporation'
         def jvm = Jvm.createCurrent()
 
         then:
-        jvm.getClass() == Jvm.IbmJvm
+        jvm.isIbmJvm()
     }
 
     def "finds executable for java home supplied"() {

@@ -63,7 +63,7 @@ public class Jvm implements JavaInfo {
     @VisibleForTesting
     static JvmImplementation createCurrent() {
         String vendor = System.getProperty("java.vm.vendor");
-        if (vendor.toLowerCase().startsWith("apple inc.")) {
+        if (vendor.toLowerCase().startsWith("apple inc.") || OperatingSystem.current().isMacOsX()) {
             return new AppleJvm(OperatingSystem.current());
         }
         if (vendor.toLowerCase().startsWith("ibm corporation")) {
@@ -359,7 +359,8 @@ public class Jvm implements JavaInfo {
     }
 
     public boolean isIbmJvm() {
-        return false;
+        String vendor = System.getProperty("java.vm.vendor");
+        return vendor.toLowerCase().startsWith("ibm corporation");
     }
 
     /**
