@@ -21,7 +21,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.caching.internal.StatefulNextGenBuildCacheService;
 import org.h2.Driver;
 
@@ -34,7 +33,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNextGenBuildCacheService {
+public class H2BuildCacheService implements StatefulNextGenBuildCacheService {
 
     private HikariDataSource dataSource;
     private final Path dbPath;
