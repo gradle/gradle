@@ -29,6 +29,7 @@ import org.gradle.execution.EntryTaskSelector
 import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
@@ -104,19 +105,25 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
     def "sets test filter with information from #requestType"() {
         setup:
         _ * buildProjectRegistry.allProjects >> [projectState]
-        1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
-        1 * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
-        1 * testExecutionRequest.getTaskAndTests() >> tasksAndTests
+        _ * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
+        _ * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
+        _ * testExecutionRequest.getTaskAndTests() >> tasksAndTests
+        def executionPlanContents = Mock(QueryableExecutionPlan) {
+            getTasks() >> [testTask]
+        }
 
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
         when:
         buildConfigurationAction.applyTasksTo(context, executionPlan)
+        buildConfigurationAction.postProcessExecutionPlan(executionPlan)
+
         then:
         1 * testFilter.includeTest(expectedClassFilter, expectedMethodFilter)
 
         1 * testTask.setIgnoreFailures(true)
         1 * testFilter.setFailOnNoMatchingTests(false)
         1 * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
+        1 * executionPlan.getContents() >> executionPlanContents
 
         where:
         requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter | tasksAndTests
@@ -142,6 +149,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         _ * testTaskCollection.toArray() >> [testTask].toArray()
         _ * tasksContainerInternal.withType(Test) >> testTaskCollection
         _ * testTask.getOutputs() >> outputsInternal
+        _ * testTask.getPath() >> TEST_TASK_NAME
         _ * context.getSelection(TEST_TASK_NAME) >> new TaskSelection(null, null, new TaskNameResolver.FixedTaskSelectionResult(testTaskCollection))
     }
 

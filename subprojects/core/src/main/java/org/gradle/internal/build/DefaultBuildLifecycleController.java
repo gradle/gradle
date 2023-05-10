@@ -188,6 +188,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
                 workPlan.plan.onComplete(handler);
             }
+            for (Consumer<ExecutionPlan> finalization : workPlan.finalizations) {
+                finalization.accept(workPlan.plan);
+            }
             workPlan.finalizedPlan = workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
         });
     }
@@ -246,6 +249,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private final DefaultBuildLifecycleController owner;
         private final ExecutionPlan plan;
         private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
+        private final List<Consumer<ExecutionPlan>> finalizations = new ArrayList<>();
         private FinalizedExecutionPlan finalizedPlan;
         private boolean empty = true;
 
@@ -262,6 +266,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         @Override
         public void addFilter(Spec<Task> filter) {
             plan.addFilter(filter);
+        }
+
+        @Override
+        public void addFinalization(Consumer<ExecutionPlan> finalization) {
+            finalizations.add(finalization);
         }
 
         @Override
