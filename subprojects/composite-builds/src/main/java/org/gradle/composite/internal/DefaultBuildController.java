@@ -121,6 +121,11 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
+    public void withTasks(Consumer<? super Task> visitTask) {
+        workGraph.withTasks(visitTask);
+    }
+
+    @Override
     public void stop() {
         workGraph.stop();
     }

@@ -18,9 +18,13 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 
 public interface EntryTaskSelector {
     void applyTasksTo(Context context, ExecutionPlan plan);
+
+    default void postProcessExecutionPlan(BuildTreeWorkGraph.FinalizedGraph plan) {
+    }
 
     interface Context {
         TaskSelection getSelection(String taskPath);

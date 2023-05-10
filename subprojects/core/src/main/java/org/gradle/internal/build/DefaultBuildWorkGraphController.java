@@ -217,6 +217,11 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
         }
 
+        @Override
+        public void withTasks(Consumer<? super Task> visitTask) {
+            plan.withTasks(visitTask);
+        }
+
         private void assertIsOwner() {
             if (Thread.currentThread() != owner) {
                 throw new IllegalStateException("Current thread is not the owner of this work graph.");

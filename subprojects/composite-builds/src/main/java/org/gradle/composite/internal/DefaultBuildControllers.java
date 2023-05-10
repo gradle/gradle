@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.execution.plan.PlanExecutor;
@@ -34,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 class DefaultBuildControllers implements BuildControllers {
     // Always iterate over the controllers in a fixed order
@@ -62,6 +64,11 @@ class DefaultBuildControllers implements BuildControllers {
         BuildController newBuildController = new DefaultBuildController(build, workerLeaseService);
         controllers.put(build.getBuildIdentifier(), newBuildController);
         return newBuildController;
+    }
+
+    @Override
+    public void withTasks(Consumer<? super Task> visitTask) {
+        controllers.forEach((key, buildController) -> buildController.withTasks(visitTask));
     }
 
     @Override

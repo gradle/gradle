@@ -30,6 +30,7 @@ import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
+import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
@@ -67,6 +68,13 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
+    @Override
+    public void postProcessExecutionPlan(BuildTreeWorkGraph.FinalizedGraph plan) {
+        configureTestTasksForTestDescriptors(plan, testExecutionRequest);
+        configureTestTasksForInternalJvmTestRequest(plan, testExecutionRequest);
+        configureTestTasksInBuild(plan, testExecutionRequest);
+    }
+
     private void configureTestTasks(Set<Task> tasks) {
         for (Task task : tasks) {
             if (task instanceof Test) {
@@ -91,24 +99,22 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
-    private List<Task> configureBuildForTestDescriptors(Context context, TestExecutionRequestAction testExecutionRequest) {
+    private void configureTestTasksForTestDescriptors(BuildTreeWorkGraph.FinalizedGraph graph, TestExecutionRequestAction testExecutionRequest) {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
         List<Task> tasksToRun = new ArrayList<>();
         for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
-            String testTaskPath = entry.getKey();
-            for (Test testTask : queryTestTasks(context, testTaskPath)) {
+            for (Test testTask : queryTestTasks(graph, entry.getKey())) {
                 for (InternalJvmTestRequest jvmTestRequest : entry.getValue()) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
                 }
-                tasksToRun.add(testTask);
             }
         }
 
         for (InternalTaskSpec taskSpec : testExecutionRequest.getTaskSpecs()) {
             if (taskSpec instanceof InternalTestSpec) {
                 InternalTestSpec testSpec = (InternalTestSpec) taskSpec;
-                Set<Test> tasks = queryTestTasks(context, taskSpec.getTaskPath());
+                Set<Test> tasks = queryTestTasks(graph, taskSpec.getTaskPath());
                 for (Test task : tasks) {
                     tasksToRun.add(task);
                     DefaultTestFilter filter = (DefaultTestFilter) task.getFilter();
@@ -126,6 +132,22 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                         filter.getCommandLineIncludePatterns().add(pkg + ".*");
                     }
                 }
+            }
+        }
+    }
+
+    private List<Task> configureBuildForTestDescriptors(Context context, TestExecutionRequestAction testExecutionRequest) {
+        Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
+        List<Task> tasksToRun = new ArrayList<>();
+        for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
+            String testTaskPath = entry.getKey();
+            tasksToRun.addAll(queryTestTasks(context, testTaskPath));
+        }
+
+        for (InternalTaskSpec taskSpec : testExecutionRequest.getTaskSpecs()) {
+            if (taskSpec instanceof InternalTestSpec) {
+                Set<Test> tasks = queryTestTasks(context, taskSpec.getTaskPath());
+                tasksToRun.addAll(tasks);
             } else {
                 tasksToRun.addAll(queryTasks(context, taskSpec.getTaskPath()));
             }
@@ -134,14 +156,13 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         return tasksToRun;
     }
 
-    private List<Test> configureBuildForTestTasks(Context context, TestExecutionRequestAction testExecutionRequest) {
+    private void configureTestTasksInBuild(BuildTreeWorkGraph.FinalizedGraph graph, TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
 
         final List<String> testTaskPaths = CollectionUtils.collect(testDescriptors, testDescriptor -> ((DefaultTestDescriptor) testDescriptor).getTaskPath());
 
-        List<Test> testTasksToRun = new ArrayList<>();
         for (final String testTaskPath : testTaskPaths) {
-            for (Test testTask : queryTestTasks(context, testTaskPath)) {
+            for (Test testTask : queryTestTasks(graph, testTaskPath)) {
                 for (InternalTestDescriptor testDescriptor : testDescriptors) {
                     DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
                     if (defaultTestDescriptor.getTaskPath().equals(testTaskPath)) {
@@ -154,8 +175,18 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                         }
                     }
                 }
-                testTasksToRun.add(testTask);
             }
+        }
+    }
+
+    private List<Test> configureBuildForTestTasks(Context context, TestExecutionRequestAction testExecutionRequest) {
+        final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
+
+        final List<String> testTaskPaths = CollectionUtils.collect(testDescriptors, testDescriptor -> ((DefaultTestDescriptor) testDescriptor).getTaskPath());
+
+        List<Test> testTasksToRun = new ArrayList<>();
+        for (final String testTaskPath : testTaskPaths) {
+            testTasksToRun.addAll(queryTestTasks(context, testTaskPath));
         }
         return testTasksToRun;
     }
@@ -187,25 +218,49 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         return result;
     }
 
+    private Set<Test> queryTestTasks(BuildTreeWorkGraph.FinalizedGraph graph, String testTaskPath) {
+        Set<Test> result = new LinkedHashSet<>();
+        graph.withTasks(task -> {
+            if (task.getPath().equals(testTaskPath)) {
+                if (!(task instanceof Test)) {
+                    throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
+                }
+                result.add((Test) task);
+            }
+        });
+        return result;
+    }
+
+    private void configureTestTasksForInternalJvmTestRequest(BuildTreeWorkGraph.FinalizedGraph plan, TestExecutionRequestAction testExecutionRequest) {
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
+        if (internalJvmTestRequests.isEmpty()) {
+            return;
+        }
+
+        plan.withTasks(task -> {
+            if (task instanceof Test) {
+                Test testTask = (Test) task;
+                for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
+                    final TestFilter filter = testTask.getFilter();
+                    filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+                }
+            }
+        });
+    }
+
     private List<Test> configureBuildForInternalJvmTestRequest(GradleInternal gradle, TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
         if (internalJvmTestRequests.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<Test> tasksToExecute = new ArrayList<Test>();
+        List<Test> tasksToExecute = new ArrayList<>();
 
         gradle.getOwner().ensureProjectsConfigured();
         for (ProjectState projectState : gradle.getOwner().getProjects().getAllProjects()) {
             projectState.ensureConfigured();
             projectState.applyToMutableState(project -> {
                 final Collection<Test> testTasks = project.getTasks().withType(Test.class);
-                for (Test testTask : testTasks) {
-                    for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
-                        final TestFilter filter = testTask.getFilter();
-                        filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
-                    }
-                }
                 tasksToExecute.addAll(testTasks);
             });
         }

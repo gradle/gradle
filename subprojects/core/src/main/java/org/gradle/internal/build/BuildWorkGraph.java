@@ -48,4 +48,6 @@ public interface BuildWorkGraph extends Stoppable {
      * Runs all work in this graph.
      */
     ExecutionResult<Void> runWork();
+
+    void withTasks(Consumer<? super Task> visitTask);
 }

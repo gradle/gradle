@@ -44,6 +44,8 @@ public interface BuildTreeWorkGraph {
          * <p>This can be called only once for a given graph.</p>
          */
         ExecutionResult<Void> runWork();
+
+        void withTasks(Consumer<? super Task> visitTask);
     }
 
     interface Builder {

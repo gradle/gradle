@@ -58,4 +58,6 @@ public interface BuildController extends Stoppable {
      * Must call {@link #scheduleQueuedTasks()} and {@link #finalizeWorkGraph()} prior to calling this method.
      */
     void startExecution(ExecutorService executorService, Consumer<ExecutionResult<Void>> completionHandler);
+
+    void withTasks(Consumer<? super Task> visitTask);
 }
