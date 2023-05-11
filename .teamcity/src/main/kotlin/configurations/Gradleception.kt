@@ -1,5 +1,7 @@
 package configurations
 
+import common.BuildToolBuildJvm
+import common.Jvm
 import common.buildToolGradleParameters
 import common.customGradle
 import common.dependsOn
@@ -18,7 +20,12 @@ import model.Stage
  * Build a Gradle distribution (dogfood-first) and use this distribution to build a distribution again (dogfood-second).
  * Use `dogfood-second` to run `test sanityCheck`.
  */
-class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = false) : BaseGradleBuildType(stage = stage, init = {
+class Gradleception(
+    model: CIBuildModel,
+    stage: Stage,
+    bundleGroovy4: Boolean = false,
+    buildJvm: Jvm = BuildToolBuildJvm,
+) : BaseGradleBuildType(stage = stage, init = {
     if (bundleGroovy4) id("${model.projectId}_GradleceptionWithGroovy4") else id("${model.projectId}_Gradleception")
     name = if (bundleGroovy4) "Gradleception - Groovy 4.x Java8 Linux" else "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)" + if (bundleGroovy4) " - bundling Groovy 4" else ""
@@ -54,7 +61,8 @@ class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = 
     val buildScanTags = if (bundleGroovy4) listOf(buildScanTagForType, buildScanTagForGroovy4) else listOf(buildScanTagForType)
     val bundleGroovy4SysProp = "-DbundleGroovy4=true"
     val maybeBundleGroovy4SysProp = if (bundleGroovy4) bundleGroovy4SysProp else ""
-    val defaultParameters = (buildToolGradleParameters() + buildScanTags + maybeBundleGroovy4SysProp + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
+    val maybeIgnoreJavaCheckSysProp = if (buildJvm.version != BuildToolBuildJvm.version) "-Dorg.gradle.ignoreBuildJavaVersionCheck=true" else ""
+    val defaultParameters = (buildToolGradleParameters() + buildScanTags + maybeBundleGroovy4SysProp + maybeIgnoreJavaCheckSysProp + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 
     params {
         // Override the default commit id so the build steps produce reproducible distribution
@@ -66,6 +74,7 @@ class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = 
         this,
         ":distributions-full:install",
         extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType $maybeBundleGroovy4SysProp",
+        buildJvm = buildJvm,
         extraSteps = {
             script {
                 name = "CALCULATE_MD5_VERSION_FOR_DOGFOODING_DISTRIBUTION"

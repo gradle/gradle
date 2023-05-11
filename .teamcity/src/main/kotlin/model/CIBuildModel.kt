@@ -78,6 +78,7 @@ data class CIBuildModel(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
                 SpecificBuild.GradleceptionWithGroovy4,
+                SpecificBuild.GradleceptionWithMaxLtsJdk,
                 SpecificBuild.CheckLinks,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
                 SpecificBuild.SantaTrackerSmokeTests,
@@ -380,6 +381,11 @@ enum class SpecificBuild {
     GradleceptionWithGroovy4 {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return Gradleception(model, stage, true)
+        }
+    },
+    GradleceptionWithMaxLtsJdk {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return Gradleception(model, stage, buildJvm = JvmCategory.MAX_LTS_VERSION)
         }
     },
     CheckLinks {
