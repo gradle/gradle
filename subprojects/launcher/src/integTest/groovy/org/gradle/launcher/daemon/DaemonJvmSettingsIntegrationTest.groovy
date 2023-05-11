@@ -19,8 +19,8 @@ package org.gradle.launcher.daemon
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.IgnoreIf
 
 class DaemonJvmSettingsIntegrationTest extends DaemonIntegrationSpec {
@@ -44,8 +44,9 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         executer.useOnlyRequestedJvmOpts()
 
         file('build.gradle') << """
-            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx1024m')
-            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.count { !it.startsWith('--add-opens=') && !it.startsWith('-D') } == 1
+            def inputArguments = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments
+            assert inputArguments.contains('-Xmx1024m')
+            assert inputArguments.count { !it.startsWith('--add-opens=') && !it.startsWith('-D') && !it.startsWith('-javaagent:') } == 1
         """
 
         when:
@@ -100,7 +101,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         javaToolOptions << ["-Xms513m", "-Xmx255m", "-Xms128m -Xmx256m"]
     }
 
-    @Requires(TestPrecondition.JDK16_OR_EARLIER) // TraceClassLoading option has been deprecated and is removed in JDK17
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier) // TraceClassLoading option has been deprecated and is removed in JDK17
     def 'can start the daemon with ClassLoading tracing enabled'() {
         given:
         file('build.gradle') << """

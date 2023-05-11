@@ -138,11 +138,24 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
         result.getExecution().ifSuccessfulOrElse(
-            executionResult -> result.getAfterExecutionState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime())),
+            executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
         );
         return result;
+    }
+
+    /**
+     * Stores the results of the given work in the build cache, unless storing was disabled for this execution or work was untracked.
+     * <p>
+     * The former is currently used only for tasks and can be triggered via {@code org.gradle.api.internal.TaskOutputsEnterpriseInternal}.
+     */
+    private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
+        if (executionResult.canStoreOutputsInCache()) {
+            result.getAfterExecutionState()
+                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
+        } else {
+            LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
+        }
     }
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {

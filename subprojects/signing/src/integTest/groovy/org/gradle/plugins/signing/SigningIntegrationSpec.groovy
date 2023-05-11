@@ -18,6 +18,7 @@ package org.gradle.plugins.signing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.test.fixtures.GpgCmdFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
@@ -31,7 +32,8 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         GPG_CMD
     }
 
-    @Rule public final TestResources resources = new TestResources(temporaryFolder, "keys")
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder, "keys")
 
     Path gpgHomeSymlink
 
@@ -150,7 +152,6 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     TestFile fileRepoFile(String name) {
         file("build", "fileRepo", name)
     }
-
 
     void jarUploaded(String jarFileName = jarFileName) {
         assert m2RepoFile(jarFileName).exists()

@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.objectweb.asm.Opcodes
 
 
+internal
 object GradleJvmVersion {
 
     /**

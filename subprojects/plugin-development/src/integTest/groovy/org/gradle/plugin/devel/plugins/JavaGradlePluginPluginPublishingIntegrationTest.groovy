@@ -17,7 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Issue
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX
 
@@ -34,7 +34,6 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "publishing")
     def "Publishes main plugin artifact to Ivy"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -61,7 +60,6 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache(because = "publishing")
     def "Publishes one Ivy marker for every plugin"() {
         given:
         plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
@@ -108,7 +106,6 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "publishing")
     def "Can publish to Maven and Ivy at the same time"() {
         given:
         plugin('foo', 'com.example.foo')
@@ -127,7 +124,6 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache(because = "publishing")
     def "Can publish supplementary artifacts to both Maven and Ivy"() {
 
         given:
@@ -170,7 +166,79 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache(because = "publishing")
+    @Issue("https://github.com/gradle/gradle/issues/23551")
+    def "Can publish maven with changed artifactId"() {
+
+        given:
+        plugin('foo', 'com.example.foo')
+        publishToMaven()
+
+        and:
+        buildFile << """
+            publishing {
+                afterEvaluate {
+                    publications {
+                        getByName("pluginMaven") {
+                            configure {
+                                artifactId = "foo-new"
+                                groupId = "com.example.foo.new"
+                                version = "1.2.3"
+                            }
+                        }
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'publish'
+
+
+        then:
+        mavenRepo.module('com.example.foo.new', 'foo-new', '1.2.3').assertPublished()
+
+        def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        module.assertPublished()
+        module.getPomFile().text.contains('foo-new')
+        module.getPomFile().text.contains('com.example.foo.new')
+        module.getPomFile().text.contains('1.2.3')
+    }
+
+    def "Can publish ivy with changed artifactId"() {
+
+        given:
+        plugin('foo', 'com.example.foo')
+        publishToIvy()
+
+        and:
+        buildFile << """
+            publishing {
+                afterEvaluate {
+                    publications {
+                        getByName("pluginIvy") {
+                            configure {
+                                module = "foo-new"
+                                organisation = "com.example.foo.new"
+                                revision = "1.2.3"
+                            }
+                        }
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'publish'
+
+
+        then:
+        ivyRepo.module('com.example.foo.new', 'foo-new', '1.2.3').assertPublished()
+
+        def module = ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        module.assertPublished()
+        module.parsedIvy.dependencies["com.example.foo.new:foo-new:1.2.3"] != null
+    }
+
     def "Can handle unspecified version"() {
         given:
         buildFile << """

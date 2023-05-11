@@ -255,8 +255,6 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.END -> return unknown("Unexpected token '$tokenText'")
-
-                    else -> return unknown("Unhandled interpreter state '$state'")
                 }
                 previousTokenType = tokenType
             }

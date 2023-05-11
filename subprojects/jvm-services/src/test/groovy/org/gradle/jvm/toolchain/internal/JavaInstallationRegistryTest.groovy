@@ -16,9 +16,17 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.logging.Logger
+import org.gradle.internal.SystemProperties
+import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
+import org.gradle.internal.progress.RecordingProgressLoggerFactory
 import spock.lang.Specification
 
 class JavaInstallationRegistryTest extends Specification {
@@ -27,6 +35,8 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "registry keeps track of initial installations"() {
         when:
+        createExecutable(tempFolder)
+
         def registry = newRegistry(tempFolder)
 
         then:
@@ -36,6 +46,8 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "registry filters non-unique locations"() {
         when:
+        createExecutable(tempFolder)
+
         def registry = newRegistry(tempFolder, tempFolder)
 
         then:
@@ -44,6 +56,8 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "duplicates are detected using canonical form"() {
         given:
+        createExecutable(tempFolder)
+
         def registry = newRegistry(tempFolder, new File(tempFolder, "/."))
 
         when:
@@ -55,8 +69,11 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "can be initialized with suppliers"() {
         given:
+        createExecutable(tempFolder)
         def tmpDir2 = createTempDir()
+        createExecutable(tmpDir2)
         def tmpDir3 = createTempDir()
+        createExecutable(tmpDir3)
 
         when:
         def registry = newRegistry(tempFolder, tmpDir2, tmpDir3)
@@ -67,6 +84,8 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "list of installations is cached"() {
         given:
+        createExecutable(tempFolder)
+
         def registry = newRegistry(tempFolder)
 
         when:
@@ -80,8 +99,9 @@ class JavaInstallationRegistryTest extends Specification {
     def "normalize installations to account for macOS folder layout"() {
         given:
         def expectedHome = new File(tempFolder, "Contents/Home")
-        assert expectedHome.mkdirs()
-        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.MAC_OS)
+        createExecutable(expectedHome, OperatingSystem.MAC_OS)
+
+        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.MAC_OS, new NoOpProgressLoggerFactory())
 
         when:
         def installations = registry.listInstallations()
@@ -93,12 +113,9 @@ class JavaInstallationRegistryTest extends Specification {
     def "normalize installations to account for standalone jre"() {
         given:
         def expectedHome = new File(tempFolder, "jre")
-        assert expectedHome.mkdirs()
-        def jreBinFolder = new File(expectedHome, "bin")
-        assert jreBinFolder.mkdir()
-        assert new File(jreBinFolder, OperatingSystem.current().getExecutableName( "java")).createNewFile()
+        createExecutable(expectedHome)
 
-        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.current())
+        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory())
 
         when:
         def installations = registry.listInstallations()
@@ -110,9 +127,11 @@ class JavaInstallationRegistryTest extends Specification {
     def "skip path normalization on non-osx systems"() {
         given:
         def rootWithMacOsLayout = createTempDir()
+        createExecutable(rootWithMacOsLayout, OperatingSystem.LINUX)
         def expectedHome = new File(rootWithMacOsLayout, "Contents/Home")
         assert expectedHome.mkdirs()
-        def registry = new JavaInstallationRegistry([forDirectory(rootWithMacOsLayout)], new TestBuildOperationExecutor(), OperatingSystem.LINUX)
+
+        def registry = new JavaInstallationRegistry([forDirectory(rootWithMacOsLayout)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.LINUX, new NoOpProgressLoggerFactory())
 
         when:
         def installations = registry.listInstallations()
@@ -124,13 +143,13 @@ class JavaInstallationRegistryTest extends Specification {
     def "detecting installations is tracked as build operation"() {
         def executor = new TestBuildOperationExecutor()
         given:
-        def registry = new JavaInstallationRegistry(Collections.emptyList(), executor, OperatingSystem.current())
+        def registry = new JavaInstallationRegistry(Collections.emptyList(), metadataDetector(), executor, OperatingSystem.current(), new NoOpProgressLoggerFactory())
 
         when:
         registry.listInstallations()
 
         then:
-        executor.log.getDescriptors().find { it.displayName == "Toolchain detection"}
+        executor.log.getDescriptors().find { it.displayName == "Toolchain detection" }
     }
 
     def "warns and filters invalid installations, exists: #exists, directory: #directory"() {
@@ -140,7 +159,7 @@ class JavaInstallationRegistryTest extends Specification {
         file.isDirectory() >> directory
         file.absolutePath >> path
         def logger = Mock(Logger)
-        def registry = JavaInstallationRegistry.withLogger([forDirectory(file)], logger, new TestBuildOperationExecutor())
+        def registry = JavaInstallationRegistry.withLogger([forDirectory(file)], metadataDetector(), logger, new TestBuildOperationExecutor(), new NoOpProgressLoggerFactory())
 
         when:
         def installations = registry.listInstallations()
@@ -155,8 +174,68 @@ class JavaInstallationRegistryTest extends Specification {
         '/foo/file' | true   | false     | false | 'Path for java installation {} points to a file, not a directory'
     }
 
+    def "warns and filters installations without java executable"() {
+        given:
+        def logger = Mock(Logger)
+        def tempFolder = createTempDir()
+        def registry = JavaInstallationRegistry.withLogger([forDirectory(tempFolder)], metadataDetector(), logger, new TestBuildOperationExecutor(), new NoOpProgressLoggerFactory())
+        def logOutput = "Path for java installation {} does not contain a java executable"
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations.isEmpty()
+        1 * logger.warn(logOutput, "'" + tempFolder + "' (testSource)")
+    }
+
+    def "can detect enclosed jre installations"() {
+        given:
+        createExecutable(tempFolder)
+        def jreHome = new File(tempFolder, "jre")
+        createExecutable(jreHome)
+
+        def registry = newRegistry(jreHome)
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations*.location.contains(tempFolder)
+    }
+
+    def "displays progress"() {
+        given:
+        createExecutable(tempFolder)
+        def loggerFactory = new RecordingProgressLoggerFactory()
+
+        def registry = new JavaInstallationRegistry(
+            [forDirectory(tempFolder)],
+            metadataDetector(),
+            new TestBuildOperationExecutor(),
+            OperatingSystem.current(),
+            loggerFactory
+        )
+
+        when:
+        registry.toolchains()
+
+        then:
+        loggerFactory.recordedMessages.find { it.contains("Extracting toolchain metadata from '$tempFolder'") }
+    }
+
     InstallationSupplier forDirectory(File directory) {
-        { it -> Collections.singleton(new InstallationLocation(directory, "testSource")) }
+        return new InstallationSupplier() {
+            @Override
+            String getSourceName() {
+                "testSource"
+            }
+
+            @Override
+            Set<InstallationLocation> get() {
+                return Collections.singleton(new InstallationLocation(directory, getSourceName()))
+            }
+        }
     }
 
     File createTempDir() {
@@ -165,7 +244,27 @@ class JavaInstallationRegistryTest extends Specification {
         file.canonicalFile
     }
 
+    void createExecutable(File javaHome, os = OperatingSystem.current()) {
+        def executableName = os.getExecutableName("java")
+        def executable = new File(javaHome, "bin/$executableName")
+        assert executable.parentFile.mkdirs()
+        executable.createNewFile()
+    }
+
+    private JvmMetadataDetector metadataDetector() {
+        def execHandleFactory = TestFiles.execHandleFactory();
+        def temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
+        def defaultJvmMetadataDetector = new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider)
+        new CachingJvmMetadataDetector(defaultJvmMetadataDetector)
+    }
+
     private JavaInstallationRegistry newRegistry(File... location) {
-        new JavaInstallationRegistry(location.collect { forDirectory(it) }, new TestBuildOperationExecutor(), OperatingSystem.current())
+        new JavaInstallationRegistry(
+            location.collect { forDirectory(it) },
+            metadataDetector(),
+            new TestBuildOperationExecutor(),
+            OperatingSystem.current(),
+            new NoOpProgressLoggerFactory()
+        )
     }
 }

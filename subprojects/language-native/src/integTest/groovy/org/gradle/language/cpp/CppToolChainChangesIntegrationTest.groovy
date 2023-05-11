@@ -21,12 +21,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
-import org.junit.Assume
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
+import org.opentest4j.TestAbortedException
 
-import static org.gradle.util.TestPrecondition.NOT_MAC_OS_X_M1
-
-@Requires(NOT_MAC_OS_X_M1)
+@Requires(UnitTestPreconditions.NotMacOsM1)
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -129,8 +128,12 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         def availableToolChains = AvailableToolChains.toolChains.findAll {
             it.available && !(it instanceof AvailableToolChains.InstalledSwiftc)
         }
+        println("AvailableToolChains: $availableToolChains")
         int numberOfToolChains = availableToolChains.size()
-        Assume.assumeTrue('2 or more tool chains are required for this test', numberOfToolChains >= 2)
+        if (numberOfToolChains < 2) {
+            // Don't use JUnit 4 Assume: https://github.com/spockframework/spock/issues/1185
+            throw new TestAbortedException('2 or more tool chains are required for this test')
+        }
         List<List<InstalledToolChain>> result = (0..<(numberOfToolChains - 1)).collectMany { first ->
             ((first + 1)..<numberOfToolChains).collect { second ->
                 [availableToolChains[first], availableToolChains[second]]

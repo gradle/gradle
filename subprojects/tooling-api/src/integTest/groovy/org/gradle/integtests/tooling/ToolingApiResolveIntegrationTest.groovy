@@ -45,8 +45,9 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register('resolve') {
+                def configuration = configurations.${configuration}
                 doLast {
-                    println configurations.${configuration}.files.collect { it.name }
+                    println configuration.files.collect { it.name }
                 }
             }
         """
@@ -90,8 +91,9 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register('resolve') {
+                def sources = configurations.sources
                 doLast {
-                    println configurations.sources.files.collect { it.name }
+                    println sources.files.collect { it.name }
                 }
             }
         """

@@ -17,14 +17,12 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.api.Action
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.component.BuildableJavaComponent
-import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Function
@@ -35,16 +33,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
     def projectState = Mock(ProjectState) {
         fromMutableState(_) >> { Function function -> function.apply(project) }
     }
-    def component = Stub(BuildableJavaComponent) {
-        getRuntimeClasspath() >> Stub(FileCollection)
-    }
-    def services = Mock(ServiceRegistry) {
-        get(ComponentRegistry) >> Stub(ComponentRegistry) {
-            getMainComponent() >> component
-        }
-    }
     def project = Mock(ProjectInternal) {
-        getServices() >> services
         getOwner() >> projectState
     }
     def gradle = Mock(GradleInternal) {
@@ -52,20 +41,9 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
         getRootProject() >> project
     }
 
-    def "configures task names"() {
-        def listener = new BuildSrcBuildListenerFactory().create()
-        component.getBuildTasks() >> ['barBuild']
-
-        when:
-        listener.onConfigure(gradle)
-
-        then:
-        1 * startParameter.setTaskNames(['barBuild'])
-    }
-
     def "executes buildSrc configuration action after projects are loaded"() {
         def action = Mock(Action)
-        def listener = new BuildSrcBuildListenerFactory(action).create()
+        def listener = new BuildSrcBuildListenerFactory(action, TestUtil.objectInstantiator(), Stub(CachedClasspathTransformer)).create()
 
         when:
         listener.projectsLoaded(gradle)

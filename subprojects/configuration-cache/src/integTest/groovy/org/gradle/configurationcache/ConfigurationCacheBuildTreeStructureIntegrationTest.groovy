@@ -285,19 +285,19 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             size() == 3
             it.find { it.details.buildPath == ":" }
             it.find { it.details.buildPath == ":include" }
-            it.find { it.details.buildPath == ":inner-include" }
+            it.find { it.details.buildPath == ":include:inner-include" }
         }
         with(fixture.all(LoadProjectsBuildOperationType)) {
             size() == 3
             it.find { it.details.buildPath == ":" }
             it.find { it.details.buildPath == ":include" }
-            it.find { it.details.buildPath == ":inner-include" }
+            it.find { it.details.buildPath == ":include:inner-include" }
         }
         with(fixture.progress(BuildIdentifiedProgressDetails)) {
             size() == 3
             it.find { it.details.buildPath == ":" }
             it.find { it.details.buildPath == ":include" }
-            it.find { it.details.buildPath == ":inner-include" }
+            it.find { it.details.buildPath == ":include:inner-include" }
         }
         with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
             size() == 3
@@ -307,7 +307,7 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             with(it.find { it.details.buildPath == ":include" }) {
                 details.rootProject.children.size() == 1
             }
-            with(it.find { it.details.buildPath == ":inner-include" }) {
+            with(it.find { it.details.buildPath == ":include:inner-include" }) {
                 details.rootProject.children.size() == 1
             }
         }
@@ -324,7 +324,7 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             size() == 3
             it.find { it.details.buildPath == ":" }
             it.find { it.details.buildPath == ":include" }
-            it.find { it.details.buildPath == ":inner-include" }
+            it.find { it.details.buildPath == ":include:inner-include" }
         }
         with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
             size() == 3
@@ -334,18 +334,18 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
             with(it.find { it.details.buildPath == ":include" }) {
                 details.rootProject.children.size() == 1
             }
-            with(it.find { it.details.buildPath == ":inner-include" }) {
+            with(it.find { it.details.buildPath == ":include:inner-include" }) {
                 details.rootProject.children.size() == 1
             }
         }
 
         where:
-        task                         | projects                                        | builds
-        ":thing"                     | [':']                                           | [':']
-        ":child:thing"               | [':', ':child']                                 | [':']
-        ":include:thing"             | [':', ':include']                               | [':', ':include']
-        ":include:child:thing"       | [':', ':include', ':include:child']             | [':', ':include']
-        ":inner-include:thing"       | [':', ':inner-include']                         | [':', ':inner-include']
-        ":inner-include:child:thing" | [':', ':inner-include', ':inner-include:child'] | [':', ':inner-include']
+        task                                 | projects                                                        | builds
+        ":thing"                             | [':']                                                           | [':']
+        ":child:thing"                       | [':', ':child']                                                 | [':']
+        ":include:thing"                     | [':', ':include']                                               | [':', ':include']
+        ":include:child:thing"               | [':', ':include', ':include:child']                             | [':', ':include']
+        ":include:inner-include:thing"       | [':', ':include:inner-include']                                 | [':', ':include:inner-include']
+        ":include:inner-include:child:thing" | [':', ':include:inner-include', ':include:inner-include:child'] | [':', ':include:inner-include']
     }
 }

@@ -19,11 +19,11 @@ import com.google.common.collect.Lists;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -48,13 +48,13 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
     private final PersistentCache store;
-    private final PersistentIndexedCache<CacheKey, CacheEntry> cache;
+    private final IndexedCache<CacheKey, CacheEntry> cache;
     private final boolean useKeyServers;
     private final HashCode keyringFileHash;
 
     public CrossBuildSignatureVerificationService(SignatureVerificationService delegate,
                                                   FileHasher fileHasher,
-                                                  BuildScopedCache scopedCache,
+                                                  BuildScopedCacheBuilderFactory cacheBuilderFactory,
                                                   InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
                                                   BuildCommencedTimeProvider timeProvider,
                                                   boolean refreshKeys,
@@ -66,13 +66,13 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         this.refreshKeys = refreshKeys;
         this.useKeyServers = useKeyServers;
         this.keyringFileHash = keyringFileHash;
-        store = scopedCache.cache("signature-verification")
+        store = cacheBuilderFactory.createCacheBuilder("signature-verification")
             .withDisplayName("Signature verification cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
-        cache = store.createCache(
-            PersistentIndexedCacheParameters.of(
+        cache = store.createIndexedCache(
+            IndexedCacheParameters.of(
                 "signature-verification",
                 new CacheKeySerializer(stringSerializer, new SetSerializer<>(stringSerializer)),
                 new CacheEntrySerializer(stringSerializer)

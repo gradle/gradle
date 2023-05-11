@@ -204,14 +204,19 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     def "detects problems on nested collections"() {
         javaTaskSource << """
             import org.gradle.api.*;
+            import org.gradle.api.model.*;
             import org.gradle.api.provider.*;
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
             import java.util.*;
             import java.io.File;
+            import javax.inject.Inject;
 
             @DisableCachingByDefault(because = "test task")
-            public class MyTask extends DefaultTask {
+            public abstract class MyTask extends DefaultTask {
+                @Inject
+                protected abstract ObjectFactory getObjects();
+
                 @Nested
                 public Options getOptions() {
                     return new Options();
@@ -244,7 +249,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
 
                 @Nested
                 public Provider<Options> getProvidedOptions() {
-                    return getProject().getObjects().property(Options.class).convention(new Options());
+                    return getObjects().property(Options.class).convention(new Options());
                 }
 
                 @Nested

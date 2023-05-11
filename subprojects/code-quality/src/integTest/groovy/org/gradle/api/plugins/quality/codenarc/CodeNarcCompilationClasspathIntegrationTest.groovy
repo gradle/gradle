@@ -18,8 +18,8 @@ package org.gradle.api.plugins.quality.codenarc
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpec {
 
@@ -47,7 +47,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasCause('CodeNarc rule violations were found')
     }
 
-    @Requires(TestPrecondition.JDK15_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk15OrEarlier)
     def "an informative error is shown when a compilation classpath is specified on a CodeNarc task when using an incompatible CodeNarc version"() {
         given:
         buildFileWithCodeNarcAndCompilationClasspath(UNSUPPORTED_COMPILATION_CLASSPATH_VERSION)

@@ -40,7 +40,6 @@ import org.gradle.internal.snapshot.impl.ImplementationValue;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
@@ -85,8 +84,8 @@ public class DefaultPropertyWalker implements PropertyWalker {
             }
 
             @Override
-            public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
-                PropertyValue cachedValue = new CachedPropertyValue(value, propertyMetadata.getGetterMethod());
+            public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
+                PropertyValue cachedValue = new CachedPropertyValue(() -> propertyMetadata.getPropertyValue(parent), propertyMetadata.getDeclaredType().getRawType());
                 PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
                 if (handler == null) {
                     throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
@@ -98,11 +97,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     private static class CachedPropertyValue implements PropertyValue {
 
-        private final Method method;
         private final Supplier<Object> cachedInvoker;
+        private final Class<?> declaredType;
 
-        public CachedPropertyValue(Supplier<Object> supplier, Method method) {
-            this.method = method;
+        public CachedPropertyValue(Supplier<Object> supplier, Class<?> declaredType) {
+            this.declaredType = declaredType;
             this.cachedInvoker = Suppliers.memoize(() -> DeprecationLogger.whileDisabled(supplier::get));
         }
 
@@ -131,26 +130,21 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
 
         private boolean isProvider() {
-            return Provider.class.isAssignableFrom(method.getReturnType());
+            return Provider.class.isAssignableFrom(declaredType);
         }
 
         private boolean isConfigurable() {
-            return HasConfigurableValue.class.isAssignableFrom(method.getReturnType());
+            return HasConfigurableValue.class.isAssignableFrom(declaredType);
         }
 
         private boolean isBuildable() {
-            return Buildable.class.isAssignableFrom(method.getReturnType());
+            return Buildable.class.isAssignableFrom(declaredType);
         }
 
         @Nullable
         @Override
         public Object call() {
             return cachedInvoker.get();
-        }
-
-        @Override
-        public String toString() {
-            return "Method: " + method;
         }
     }
 

@@ -676,11 +676,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract TestFile source(String path)
 
-    static DocumentedProblem error(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+    static DocumentedProblem error(String message, String id = "incremental_build", String section = "") {
         new DocumentedProblem(message, ERROR, id, section)
     }
 
-    static DocumentedProblem warning(String message, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+    static DocumentedProblem warning(String message, String id = "incremental_build", String section = "") {
         new DocumentedProblem(message, WARNING, id, section)
     }
 
@@ -702,12 +702,12 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         final String section
         final boolean defaultDocLink
 
-        DocumentedProblem(String message, Severity severity, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
+        DocumentedProblem(String message, Severity severity, String id = "incremental_build", String section = "") {
             this.message = message
             this.severity = severity
             this.id = id
             this.section = section
-            this.defaultDocLink = (id == "more_about_tasks") && (section == "sec:up_to_date_checks")
+            this.defaultDocLink = (id == "incremental_build") && (section == "")
         }
     }
 }

@@ -16,15 +16,18 @@
 
 package org.gradle.api.plugins.quality.checkstyle
 
+import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -172,6 +175,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
+        failure.assertHasResolutions(SCAN)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
 
@@ -180,7 +184,12 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
     }
 
     Jvm setupExecutorForToolchains() {
-        Jvm jdk = AvailableJavaHomes.getDifferentVersion()
+        Jvm jdk = AvailableJavaHomes.getDifferentVersion(new Spec<JvmInstallationMetadata>() {
+            @Override
+            boolean isSatisfiedBy(JvmInstallationMetadata metadata) {
+                metadata.getLanguageVersion() >= CheckstyleCoverage.getMinimumSupportedJdkVersion(versionNumber)
+            }
+        })
         withInstallations(jdk)
         return jdk
     }

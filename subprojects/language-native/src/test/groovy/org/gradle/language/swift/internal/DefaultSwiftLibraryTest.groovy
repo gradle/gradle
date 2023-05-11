@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift.internal
 
-import org.gradle.language.cpp.internal.DefaultUsageContext
+import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.MachineArchitecture
@@ -110,8 +110,8 @@ class DefaultSwiftLibraryTest extends Specification {
 
     private NativeVariantIdentity getIdentity() {
         return new NativeVariantIdentity("test", null, null, null, true, false, targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64),
-            new DefaultUsageContext("test", AttributeTestUtil.attributesFactory().mutable()),
-            new DefaultUsageContext("test", AttributeTestUtil.attributesFactory().mutable())
+            new DefaultSoftwareComponentVariant("test", AttributeTestUtil.attributesFactory().mutable()),
+            new DefaultSoftwareComponentVariant("test", AttributeTestUtil.attributesFactory().mutable())
         )
     }
 

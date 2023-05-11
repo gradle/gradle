@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.specs.Spec
@@ -89,6 +90,7 @@ class TaskNodeCodec(
             writeClass(taskType)
             writeString(projectPath)
             writeString(taskName)
+            writeLong(task.taskIdentity.uniqueId)
             writeNullableString(task.reasonTaskIsIncompatibleWithConfigurationCache.orElse(null))
 
             withDebugFrame({ taskType.name }) {
@@ -117,9 +119,10 @@ class TaskNodeCodec(
         val taskType = readClassOf<Task>()
         val projectPath = readString()
         val taskName = readString()
+        val uniqueId = readLong()
         val incompatibleReason = readNullableString()
 
-        val task = createTask(projectPath, taskName, taskType, incompatibleReason)
+        val task = createTask(projectPath, taskName, taskType, uniqueId, incompatibleReason)
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
@@ -171,7 +174,7 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeRequiredServices(task: TaskInternal) {
-        writeCollection(task.requiredServices.elements)
+        writeCollection(task.requiredServices.searchServices())
     }
 
     private
@@ -227,11 +230,11 @@ suspend fun <T> T.withTaskOf(
     action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwner.OwnerTask(task), codec) {
-        withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
+        withPropertyTrace(PropertyTrace.Task(taskType, task.identityPath.path)) {
             if (task.isCompatibleWithConfigurationCache) {
                 action()
             } else {
-                forIncompatibleType(action)
+                forIncompatibleType(task.identityPath.path, action)
             }
         }
     }
@@ -421,13 +424,13 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     val normalizer = readEnum<InputNormalizer>()
                     val directorySensitivity = readEnum<DirectorySensitivity>()
                     val lineEndingNormalization = readEnum<LineEndingSensitivity>()
-                    (task as TaskInternal).inputs.run {
+                    ((task as TaskInternal).inputs.run {
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
                             InputFilePropertyType.DIRECTORY -> dir(pack(propertyValue))
                             InputFilePropertyType.FILES -> files(pack(propertyValue))
                         }
-                    }.run {
+                    } as TaskInputFilePropertyBuilderInternal).run {
                         withPropertyName(propertyName)
                         optional(optional)
                         skipWhenEmpty(inputBehavior.shouldSkipWhenEmpty())
@@ -474,8 +477,8 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 
 private
-fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>, incompatibleReason: String?): TaskInternal {
-    val task = getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass) as TaskInternal
+fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>, uniqueId: Long, incompatibleReason: String?): TaskInternal {
+    val task = getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass, uniqueId) as TaskInternal
     if (incompatibleReason != null) {
         task.notCompatibleWithConfigurationCache(incompatibleReason)
     }

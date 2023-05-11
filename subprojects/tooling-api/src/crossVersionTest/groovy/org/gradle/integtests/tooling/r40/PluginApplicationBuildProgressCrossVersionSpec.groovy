@@ -501,7 +501,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         when:
         withConnection {
-            ProjectConnection connection -> connection.newBuild().addProgressListener(events).run()
+            it.newBuild()
+                .addProgressListener(events)
+                .run()
         }
 
         then:

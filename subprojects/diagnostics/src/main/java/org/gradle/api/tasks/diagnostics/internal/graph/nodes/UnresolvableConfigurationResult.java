@@ -38,11 +38,13 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
         );
     }
 
+    @SuppressWarnings("deprecation")
     private static Set<? extends RenderableDependency> unresolvableChildren(Configuration configuration) {
         final DependencySet dependencies = configuration.getDependencies();
         if (dependencies.isEmpty()) {
             return Collections.emptySet();
         }
+
         Set<UnresolvableRenderableDependency> children = Sets.newLinkedHashSet();
         for (final Dependency dependency : dependencies) {
             children.add(new UnresolvableRenderableDependency(

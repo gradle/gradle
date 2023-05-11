@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -962,40 +961,36 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "should not allow precompiled plugin to conflict with core plugin"() {
-        given:
+        when:
         enablePrecompiledPluginsInBuildSrc()
-
         file("buildSrc/src/main/groovy/plugins/java.gradle") << ""
 
-        when:
-        def failure = fails "help"
-
         then:
-        failure.assertHasCause("The precompiled plugin (${'src/main/groovy/plugins/java.gradle'.replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.\n\n"
-            + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+        fails("help")
+            .assertHasCause("The precompiled plugin (${'src/main/groovy/plugins/java.gradle'.replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.")
+            .assertHasResolution(getDocLinkMessage())
+    }
+
+    private getDocLinkMessage() {
+        documentationRegistry.getDocumentationRecommendationFor("information", "custom_plugins", "sec:precompiled_plugins")
     }
 
     def "should not allow precompiled plugin to have org.gradle prefix"() {
-        given:
+        when:
         enablePrecompiledPluginsInBuildSrc()
-
         file("buildSrc/src/main/groovy/plugins/${pluginName}.gradle") << ""
 
-        when:
-        fails "help"
-
         then:
-        failure.assertHasCause("The precompiled plugin (${"src/main/groovy/plugins/${pluginName}.gradle".replace("/", File.separator)}) cannot start with 'org.gradle'.\n\n"
-            + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+        fails("help")
+            .assertHasCause("The precompiled plugin (${"src/main/groovy/plugins/${pluginName}.gradle".replace("/", File.separator)}) cannot start with 'org.gradle'.")
+            .assertHasResolution(getDocLinkMessage())
 
         where:
         pluginName << ["org.gradle.my-plugin", "org.gradle"]
     }
 
     private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
-        Map<String, String> plugins = [:]
-        plugins.putAt(pluginFile, pluginContent)
-        return packagePrecompiledPlugins(plugins)
+        return packagePrecompiledPlugins(Collections.singletonMap(pluginFile, pluginContent))
     }
 
     private String packagePrecompiledPlugins(Map<String, String> pluginToContent) {

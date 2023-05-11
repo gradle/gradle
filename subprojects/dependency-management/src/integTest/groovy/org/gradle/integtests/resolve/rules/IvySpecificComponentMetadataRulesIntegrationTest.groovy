@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.encoding.Identifier
@@ -35,21 +34,14 @@ dependencies {
     conf 'org.test:projectA:1.0'
 }
 
-// implement Sync manually to make sure that task is never up-to-date
-task resolve {
-    doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
-    }
+task resolve(type: Sync) {
+    from configurations.conf
+    into 'libs'
 }
 """
         new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can access Ivy metadata"() {
         given:
         repository {
@@ -139,7 +131,6 @@ dependencies {
         fails 'resolve'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasLineNumber(lines + 6)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
@@ -258,7 +249,6 @@ resolve.doLast { assert ruleInvoked }
         succeeds 'resolve'
     }
 
-    @ToBeFixedForConfigurationCache
     def "changed Ivy metadata becomes visible once module is refreshed"() {
         def baseScript = buildFile.text
 

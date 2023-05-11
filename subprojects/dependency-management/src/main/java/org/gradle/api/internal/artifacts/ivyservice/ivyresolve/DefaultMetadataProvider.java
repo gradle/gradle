@@ -39,6 +39,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -52,7 +53,7 @@ import java.util.List;
 class DefaultMetadataProvider implements MetadataProvider {
     private final static Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails> TO_COMPONENT_METADATA = BuildableComponentMetadataSupplierDetails::getExecutionResult;
     private final ModuleComponentResolveState resolveState;
-    private BuildableModuleComponentMetaDataResolveResult cachedResult;
+    private BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> cachedResult;
     private ComponentMetadata cachedComponentMetadata;
     private boolean computedMetadata;
 
@@ -81,7 +82,7 @@ class DefaultMetadataProvider implements MetadataProvider {
         if (metadata != null) {
             metadata = transformThroughComponentMetadataRules(componentMetadataSupplier, metadata);
         } else if (resolve()) {
-            metadata = new ComponentMetadataAdapter(cachedResult.getMetaData());
+            metadata = new ComponentMetadataAdapter(cachedResult.getMetaData().getModuleResolveMetadata());
         }
         return metadata;
     }
@@ -105,7 +106,7 @@ class DefaultMetadataProvider implements MetadataProvider {
     @Override
     public IvyModuleDescriptor getIvyModuleDescriptor() {
         if (resolve()) {
-            ModuleComponentResolveMetadata metaData = cachedResult.getMetaData();
+            ModuleComponentResolveMetadata metaData = cachedResult.getMetaData().getModuleResolveMetadata();
             if (metaData instanceof IvyModuleResolveMetadata) {
                 IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metaData;
                 return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
@@ -126,7 +127,7 @@ class DefaultMetadataProvider implements MetadataProvider {
         return cachedResult == null || cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
     }
 
-    public BuildableModuleComponentMetaDataResolveResult getResult() {
+    public BuildableModuleComponentMetaDataResolveResult<?> getResult() {
         return cachedResult;
     }
 

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.concurrent.locks.Lock;
 
-class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
+public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
     private final String cacheDisplayName;
     private final File lockTarget;

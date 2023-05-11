@@ -17,11 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class DifferentJnaVersionInPluginIntegrationSpec extends AbstractIntegrationSpec {
-    @Requires(TestPrecondition.NOT_MAC_OS_X_M1)
+    @Requires(UnitTestPreconditions.NotMacOsM1)
     def 'can build a plugin with a different jna version'() {
         given:
         buildScript """

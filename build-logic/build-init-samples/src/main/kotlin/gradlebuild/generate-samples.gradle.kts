@@ -52,15 +52,15 @@ fun setupGeneratorTask(language: Language, kind: String, modularizationOption: M
     val generateSampleTask = project.tasks.register<GenerateSample>("generateSample${sampleName.capitalize()}") {
         readmeTemplates.convention(layout.projectDirectory.dir("src/samples/readme-templates"))
         target.convention(layout.buildDirectory.dir("generated-samples/$buildInitType" + if (modularizationOption.isMulti()) "-with-libraries" else ""))
-        type.set(buildInitType)
-        modularization.set(modularizationOption)
+        type = buildInitType
+        modularization = modularizationOption
     }
     samples.publishedSamples.create(sampleName) {
-        dsls.set(setOf(Dsl.GROOVY, Dsl.KOTLIN))
-        sampleDirectory.set(generateSampleTask.flatMap { it.target })
-        displayName.set("Building $languageDisplayName $capKind$multiProjectSuffix")
-        description.set("Setup a $languageDisplayName $kind project$multiProjectSuffix step-by-step.")
-        category.set(language.toString())
+        dsls = setOf(Dsl.GROOVY, Dsl.KOTLIN)
+        sampleDirectory = generateSampleTask.flatMap { it.target }
+        displayName = "Building $languageDisplayName $capKind$multiProjectSuffix"
+        description = "Setup a $languageDisplayName $kind project$multiProjectSuffix step-by-step."
+        category = language.toString()
     }
 }
 

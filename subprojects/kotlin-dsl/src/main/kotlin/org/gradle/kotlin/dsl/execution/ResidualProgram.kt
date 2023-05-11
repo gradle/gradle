@@ -54,6 +54,12 @@ sealed class ResidualProgram {
         object CloseTargetScope : StageTransition, Instruction()
 
         /**
+         * Causes the evaluation of the compiled [script] against the script host
+         * with `buildscript {}` block context, collecting project script dependencies.
+         */
+        data class CollectProjectScriptDependencies(val script: ProgramSource) : Instruction()
+
+        /**
          * Causes the target scope to be closed by applying a default set of plugin requests that includes
          * the set of [auto-applied plugins][org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler].
          */
@@ -88,7 +94,7 @@ sealed class ResidualProgram {
         object ApplyBasePlugins : Instruction()
 
         /**
-         * Causes the evaluation of the precompiled [script] against the script host.
+         * Causes the evaluation of the compiled [script] against the script host.
          */
         data class Eval(val script: ProgramSource) : Instruction()
 

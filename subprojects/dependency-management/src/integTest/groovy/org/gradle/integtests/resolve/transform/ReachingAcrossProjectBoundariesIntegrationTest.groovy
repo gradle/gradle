@@ -33,9 +33,9 @@ class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyR
                     implementation project(':b')
                 }
                 task prepare {
-                    inputs.files configurations.implementation
+                    inputs.files configurations.resolver
                     doFirst {
-                        configurations.implementation.files.name
+                        configurations.resolver.files.name
                     }
                 }
             }

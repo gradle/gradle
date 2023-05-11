@@ -16,30 +16,38 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.DisplayName;
+
 /**
  * Details about the origin of the contents of the ClassLoader scope.
  */
 public interface ClassLoaderScopeOrigin {
     class Script implements ClassLoaderScopeOrigin {
         private final String fileName;
-        private final String displayName;
+        private final DisplayName longDisplayName;
+        private final DisplayName shortDisplayName;
 
-        public Script(String fileName, String displayName) {
+        public Script(String fileName, DisplayName longDisplayName, DisplayName shortDisplayName) {
             this.fileName = fileName;
-            this.displayName = displayName;
+            this.longDisplayName = longDisplayName;
+            this.shortDisplayName = shortDisplayName;
         }
 
         public String getFileName() {
             return fileName;
         }
 
-        public String getDisplayName() {
-            return displayName;
+        public DisplayName getLongDisplayName() {
+            return longDisplayName;
+        }
+
+        public DisplayName getShortDisplayName() {
+            return shortDisplayName;
         }
 
         @Override
         public int hashCode() {
-            return fileName.hashCode() ^ displayName.hashCode();
+            return fileName.hashCode() ^ longDisplayName.hashCode();
         }
 
         @Override
@@ -51,7 +59,7 @@ public interface ClassLoaderScopeOrigin {
                 return false;
             }
             Script other = (Script) obj;
-            return fileName.equals(other.fileName) && displayName.equals(other.displayName);
+            return fileName.equals(other.fileName) && longDisplayName.equals(other.longDisplayName);
         }
     }
 }

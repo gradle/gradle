@@ -155,8 +155,11 @@ public abstract class GenerateMavenPom extends DefaultTask {
         for (MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {
             pomGenerator.addRuntimeDependency(runtimeDependency);
         }
-        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalDependencies()) {
-            pomGenerator.addOptionalDependency(optionalDependency);
+        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalApiDependencies()) {
+            pomGenerator.addOptionalApiDependency(optionalDependency);
+        }
+        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalRuntimeDependencies()) {
+            pomGenerator.addOptionalRuntimeDependency(optionalDependency);
         }
 
         pomGenerator.withXml(pomInternal.getXmlAction());

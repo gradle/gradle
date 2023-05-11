@@ -17,7 +17,6 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("kotlin-android-extensions")
     id("jacoco")
 }
 
@@ -32,6 +31,9 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        viewBinding = true
     }
     buildTypes {
         getByName("release") {
@@ -103,8 +105,8 @@ project.afterEvaluate {
                 sourceDirectories.from(files(coverageSourceDirs))
                 executionData.from(files("${project.buildDir}/jacoco/${testTaskName}.exec"))
                 reports {
-                    xml.required.set(true)
-                    html.required.set(true)
+                    xml.required = true
+                    html.required = true
                 }
             }
         }

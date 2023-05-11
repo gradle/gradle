@@ -32,6 +32,7 @@ inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
  *
  * Always using the same line separator on all systems to allow for reproducible outputs.
  */
+internal
 fun Appendable.appendReproducibleNewLine(value: CharSequence = ""): Appendable {
     assert('\r' !in value) {
         "Unexpected line ending in string."

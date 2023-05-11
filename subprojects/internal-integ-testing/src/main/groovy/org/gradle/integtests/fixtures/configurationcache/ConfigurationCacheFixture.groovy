@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class ConfigurationCacheFixture {
-    static final String CONFIGURATION_CACHE_MESSAGE = "Configuration cache is an incubating feature."
     static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
     static final String CONFIGURE_ON_DEMAND_MESSAGE = "Configuration on demand is an incubating feature."
 
@@ -44,7 +43,6 @@ class ConfigurationCacheFixture {
      * Asserts that the configuration cache was not enabled.
      */
     void assertNotEnabled() {
-        spec.outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
         configurationCacheBuildOperations.assertNoConfigurationCache()
@@ -115,7 +113,7 @@ class ConfigurationCacheFixture {
         assertHasStoreReason(details)
         configurationCacheBuildOperations.assertStateStored(false)
 
-        def message = "Configuration cache entry ${details.storeAction}."
+        def message = "Configuration cache entry ${details.storeAction}"
         boolean isFailure = spec.result instanceof ExecutionFailure
         if (isFailure) {
             spec.outputContains(message)
@@ -240,7 +238,6 @@ class ConfigurationCacheFixture {
             // Runs in quiet mode, and does not log anything
             return
         }
-        spec.outputContains(CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
     }

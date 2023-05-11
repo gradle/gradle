@@ -161,16 +161,18 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
             /**
              * The “primary” attribute of the current property.
              *
-             * Used by Gradle Enterprise plugin < 3.8, retained for backwards compatibility.
+             * Used by Gradle Enterprise plugin &lt; 3.8, retained for backwards compatibility.
              *
              * Returns the name value of one of:
              *
+             * <ul>
              * <li>org.gradle.internal.fingerprint.FingerprintingStrategy#CLASSPATH_IDENTIFIER</li>
              * <li>org.gradle.internal.fingerprint.FingerprintingStrategy#COMPILE_CLASSPATH_IDENTIFIER</li>
              * <li>org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy#IDENTIFIER</li>
              * <li>org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy#IDENTIFIER</li>
              * <li>org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy#IDENTIFIER</li>
              * <li>org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy#IDENTIFIER</li>
+             * </ul>
              *
              * @deprecated since 7.3, superseded by {@link #getPropertyAttributes()}
              */

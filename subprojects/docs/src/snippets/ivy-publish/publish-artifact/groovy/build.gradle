@@ -7,8 +7,11 @@ group = "org.gradle.sample"
 version = "1.0"
 
 // tag::custom-artifact[]
+configurations {
+    conf
+}
 def rpmFile = layout.buildDirectory.file("rpms/my-package.rpm")
-def rpmArtifact = artifacts.add("archives", rpmFile.get().asFile) {
+def rpmArtifact = artifacts.add("conf", rpmFile.get().asFile) {
     type "rpm"
     builtBy "rpm"
 }
@@ -16,9 +19,10 @@ def rpmArtifact = artifacts.add("archives", rpmFile.get().asFile) {
 
 tasks.register('rpm') {
     outputs.file rpmFile
+    def rpmFileLocation = rpmFile
     doLast {
         // produce real RPM here
-        rpmFile.get().asFile << "file contents"
+        rpmFileLocation.get().asFile << "file contents"
     }
 }
 

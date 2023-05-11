@@ -62,7 +62,7 @@ import java.io.File
 import javax.inject.Inject
 
 
-class ProjectAccessorsClassPathGenerator @Inject constructor(
+class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,
     private val executionEngine: ExecutionEngine,
@@ -104,6 +104,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
 }
 
 
+internal
 class GenerateProjectAccessors(
     private val project: Project,
     private val projectSchema: TypedProjectSchema,
@@ -629,10 +630,12 @@ import org.gradle.kotlin.dsl.accessors.runtime.*
 /**
  * Location of the discontinued project schema snapshot, relative to the root project.
  */
+internal
 const val projectSchemaResourcePath =
     "gradle/project-schema.json"
 
 
+internal
 const val projectSchemaResourceDiscontinuedWarning =
     "Support for $projectSchemaResourcePath was removed in Gradle 5.0. The file is no longer used and it can be safely deleted."
 

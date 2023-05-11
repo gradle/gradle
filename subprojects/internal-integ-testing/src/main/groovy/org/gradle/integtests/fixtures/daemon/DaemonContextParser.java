@@ -55,7 +55,7 @@ public class DaemonContextParser {
     }
 
     private static DaemonContext parseFrom(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n]+)?,daemonOpts=([^\\n]+)].*",
+        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n,]+)?(?:,applyInstrumentationAgent=([^\\n,]+))?,daemonOpts=([^\\n]+)].*",
                 Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
@@ -67,8 +67,9 @@ public class DaemonContextParser {
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
             Integer idleTimeout = Integer.decode(matcher.group(5));
             DaemonParameters.Priority priority = matcher.group(6) == null ? DaemonParameters.Priority.NORMAL : DaemonParameters.Priority.valueOf(matcher.group(6).substring(",priority=".length()));
-            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(7)));
-            return new DefaultDaemonContext(uid, new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, priority);
+            boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(7));
+            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(8)));
+            return new DefaultDaemonContext(uid, new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, priority);
         } else {
             return null;
         }

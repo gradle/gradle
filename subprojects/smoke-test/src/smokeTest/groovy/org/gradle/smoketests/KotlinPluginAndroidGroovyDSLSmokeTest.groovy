@@ -16,15 +16,16 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@LocalOnly
 class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER, AGP_NO_CC_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()
@@ -41,13 +42,16 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = createRunner(workers, kotlinPluginVersion, 'clean', ":app:testDebugUnitTestCoverage")
+        def runner = createRunner(workers, kotlinPluginVersion, androidPluginVersion, 'clean', ":app:testDebugUnitTestCoverage")
         def result = useAgpVersion(androidPluginVersion, runner)
             .deprecations(KotlinAndroidDeprecations) {
                 expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
                 expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
                 expectReportDestinationPropertyDeprecation(androidPluginVersion)
                 expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersion)
+                if (GradleContextualExecuter.configCache || VersionNumber.parse(kotlinPluginVersion) >= VersionNumber.parse("1.8.0")) {
+                    expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
+                }
             }.build()
 
         then:
@@ -67,7 +71,13 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String... tasks) {
+    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String androidPluginVersion, String... tasks) {
         return KotlinPluginSmokeTest.runnerFor(this, workers, VersionNumber.parse(kotlinVersion), tasks)
+            .deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
+                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                expectBasePluginConventionDeprecation(kotlinVersion, androidPluginVersion)
+                expectProjectConventionDeprecation(kotlinVersion, androidPluginVersion)
+                expectConventionTypeDeprecation(kotlinVersion, androidPluginVersion)
+            }
     }
 }

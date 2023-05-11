@@ -29,7 +29,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         publishBuildStatusToGithub(model)
     }
 
-    val enableTriggers = model.branch.enableTriggers
+    val enableTriggers = model.branch.enableVcsTriggers
     if (stage.trigger == Trigger.eachCommit) {
         triggers.vcs {
             quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM

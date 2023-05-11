@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-
 class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "can add configurations" () {
         buildFile << """
@@ -83,5 +82,30 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "addConfigs"
+    }
+
+    def "can remove and add configurations between resolutions"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+
+        buildFile << """
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            task resolve {
+                def conf = configurations.create("conf")
+                conf.dependencies.add(project.dependencies.create("org:foo:1.0"))
+                conf.files
+                configurations.remove(conf)
+
+                def conf2 = configurations.create("conf2")
+                conf2.dependencies.add(project.dependencies.create("org:foo:1.0"))
+                conf2.files
+            }
+        """
+
+        expect:
+        succeeds("resolve")
     }
 }

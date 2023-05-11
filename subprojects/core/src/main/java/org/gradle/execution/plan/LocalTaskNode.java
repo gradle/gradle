@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
@@ -50,11 +49,13 @@ public class LocalTaskNode extends TaskNode {
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
+    private ProjectInternal taskProject;
 
     public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
         this.validationContext = workValidationContext;
         this.resolveMutationsNode = resolveNodeFactory.apply(this);
+        this.taskProject = (ProjectInternal) task.getProject();
     }
 
     /**
@@ -75,7 +76,7 @@ public class LocalTaskNode extends TaskNode {
             return null;
         } else {
             // Running the task requires permission to execute against its containing project
-            return ((ProjectInternal) task.getProject()).getOwner().getTaskExecutionLock();
+            return taskProject.getOwner().getTaskExecutionLock();
         }
     }
 
@@ -83,7 +84,7 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public ProjectInternal getOwningProject() {
         // Task requires its owning project's execution services
-        return (ProjectInternal) task.getProject();
+        return taskProject;
     }
 
     @Override
@@ -116,7 +117,7 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
         // Make sure it has been configured
-        ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
+        taskProject.getTasks().prepareForExecution(task);
 
         for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
@@ -223,8 +224,7 @@ public class LocalTaskNode extends TaskNode {
         final LocalTaskNode taskNode = this;
         final TaskInternal task = getTask();
         final MutationInfo mutations = getMutationInfo();
-        ProjectInternal project = (ProjectInternal) task.getProject();
-        ServiceRegistry serviceRegistry = project.getServices();
+        ServiceRegistry serviceRegistry = taskProject.getServices();
         final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
         PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
@@ -235,6 +235,8 @@ public class LocalTaskNode extends TaskNode {
             addDestroyablesToMutations(taskProperties.getDestroyableFiles());
 
             mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
+            // piggyback on mutation resolution to declare service references as used services
+            task.acceptServiceReferences(taskProperties.getServiceReferences());
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }

@@ -18,7 +18,6 @@ package org.gradle.internal.session;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
@@ -26,7 +25,6 @@ import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
@@ -34,13 +32,13 @@ import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.cache.internal.BuildScopeCacheDir;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildOperationCleanupActionDecorator;
+import org.gradle.cache.internal.BuildScopeCacheDir;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCache;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.PendingChangesManager;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
@@ -62,7 +60,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
-import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
@@ -163,21 +160,17 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new ProjectCacheDir(cacheDir.getDir(), progressLoggerFactory, deleter);
     }
 
-    BuildTreeScopedCache createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
-        return new DefaultBuildTreeScopedCache(projectCacheDir.getDir(), cacheRepository);
+    BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
-    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCache scopedCache) {
-        File workDir = scopedCache.baseDirForCache("fileChanges");
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+        File workDir = cacheBuilderFactory.baseDirForCache("fileChanges");
         return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
 
     ScriptSourceHasher createScriptSourceHasher() {
         return new DefaultScriptSourceHasher();
-    }
-
-    DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
-        return new DefaultImmutableAttributesFactory(isolatableFactory, instantiator);
     }
 
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
@@ -208,8 +201,8 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
             .build();
     }
 
-    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(scopedCache, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
+    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
         return new CrossBuildFileHashCacheWrapper(crossBuildCache);
     }
 

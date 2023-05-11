@@ -21,7 +21,7 @@ import org.gradle.api.file.DirectoryProperty;
 /**
  * <p>A {@link Convention} used for the BasePlugin.</p>
  *
- * @deprecated Use {@link BasePluginExtension} instead. This class is scheduled for removal in Gradle 8.0.
+ * @deprecated Use {@link BasePluginExtension} instead. This class is scheduled for removal in Gradle 9.0.
  */
 @Deprecated
 public abstract class BasePluginConvention {

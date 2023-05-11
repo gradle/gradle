@@ -54,10 +54,10 @@ fun registerTransforms() {
                 .attribute(Attributes.minified, true)
             to.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
             parameters {
-                shadowPackage.set("org.gradle.internal.impldep")
-                keepPackages.set(shadedJarExtension.keepPackages)
-                unshadedPackages.set(shadedJarExtension.unshadedPackages)
-                ignoredPackages.set(shadedJarExtension.ignoredPackages)
+                shadowPackage = "org.gradle.internal.impldep"
+                keepPackages = shadedJarExtension.keepPackages
+                unshadedPackages = shadedJarExtension.unshadedPackages
+                ignoredPackages = shadedJarExtension.ignoredPackages
             }
         }
 
@@ -99,7 +99,7 @@ fun addShadedJarTask(): TaskProvider<ShadedJar> {
     val configurationToShade = shadedJarExtension.shadedConfiguration
 
     return tasks.register("${project.name.kebabToCamel()}ShadedJar", ShadedJar::class) {
-        jarFile.set(layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" }))
+        jarFile = layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" })
         classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
         entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
         relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))

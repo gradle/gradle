@@ -46,4 +46,4 @@ build/publishing-repository/
 5 directories, 20 files
 ----
 
-For more information, see link:{userManualPath}/groovy_plugin.html[Groovy Plugin reference chapter].
+For more information, see link:{userManualPath}/publishing_setup.html[Publishing Libraries].

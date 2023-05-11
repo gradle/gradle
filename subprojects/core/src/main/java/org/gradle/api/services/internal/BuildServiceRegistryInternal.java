@@ -37,19 +37,35 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
      */
     BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
 
+    /**
+     * Same as #register(name, implementationType, parameters, maxUsages), but conditional.
+     *
+     * @param name
+     * @param implementationType
+     * @param parameters
+     * @param maxUsages
+     * @return the registered or already existing provider
+     */
+    BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
 
+    /**
+     * Returns a shared build service provider that can lazily resolve to the service named and typed as given.
+     */
     BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType);
 
     @Nullable
     SharedResource forService(BuildServiceProvider<?, ?> service);
 
-    /**
-     * Discards all registered services.
-     */
-    void discardAll();
-
     @Nullable
     BuildServiceRegistration<?, ?> findByName(String name);
+
+    @Nullable
+    BuildServiceRegistration<?, ?> findByType(Class<?> type);
+
+    @Nullable
+    BuildServiceRegistration<?, ?> findRegistration(Class<?> type, String name);
+
+    Set<BuildServiceRegistration<?, ?>> findRegistrations(Class<?> type, String name);
 
     List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services);
 }

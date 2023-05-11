@@ -16,17 +16,18 @@
 
 package org.gradle.internal.component;
 
-import com.google.common.base.Optional;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
+import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -38,16 +39,22 @@ public class NoMatchingConfigurationSelectionException extends StyledException {
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
         ComponentGraphResolveMetadata targetComponent,
-        boolean variantAware) {
-        super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
+        GraphSelectionCandidates candidates
+    ) {
+        super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates));
     }
 
-    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, boolean variantAware) {
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
+        boolean variantAware = candidates.isUseVariants();
         Map<String, VariantGraphResolveMetadata> variants = new TreeMap<>();
-        Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
-        List<? extends VariantGraphResolveMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
-        for (VariantGraphResolveMetadata variant : variantsParticipatingInSelection) {
-            variants.put(variant.getName(), variant);
+        if (variantAware) {
+            for (VariantGraphResolveState variant : candidates.getVariants()) {
+                variants.put(variant.getName(), variant.getMetadata());
+            }
+        } else {
+            for (ConfigurationGraphResolveMetadata configuration : candidates.getCandidateConfigurations()) {
+                variants.put(configuration.getName(), configuration);
+            }
         }
         TreeFormatter formatter = new TreeFormatter();
         String targetVariantText = style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName());

@@ -26,7 +26,6 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.UnknownProjectException
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyFactory
@@ -42,6 +41,7 @@ import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -136,7 +136,7 @@ class DefaultProjectTest extends Specification {
     Factory<AntBuilder> antBuilderFactoryMock = Stub(Factory)
     AntBuilder testAntBuilder
 
-    ConfigurationContainer configurationContainerMock = Stub(ConfigurationContainer)
+    RoleBasedConfigurationContainerInternal configurationContainerMock = Stub(RoleBasedConfigurationContainerInternal)
     RepositoryHandler repositoryHandlerMock = Stub(RepositoryHandler)
     DependencyHandler dependencyHandlerMock = Stub(DependencyHandler)
     DependencyFactory dependencyFactoryMock = Stub(DependencyFactory)
@@ -193,7 +193,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(TaskContainerInternal) >> taskContainerMock
         taskContainerMock.getTasksAsDynamicObject() >> new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))
         serviceRegistryMock.get((Type) RepositoryHandler) >> repositoryHandlerMock
-        serviceRegistryMock.get(ConfigurationContainer) >> configurationContainerMock
+        serviceRegistryMock.get(RoleBasedConfigurationContainerInternal) >> configurationContainerMock
         serviceRegistryMock.get(ArtifactHandler) >> Stub(ArtifactHandler)
         serviceRegistryMock.get(DependencyHandler) >> dependencyHandlerMock
         serviceRegistryMock.get(DependencyFactory) >> dependencyFactoryMock
@@ -277,6 +277,7 @@ class DefaultProjectTest extends Specification {
     private DefaultProject defaultProject(String name, ProjectState owner, def parent, File rootDir, ClassLoaderScope scope) {
         _ * owner.identityPath >> (parent == null ? Path.ROOT : parent.identityPath.child(name))
         _ * owner.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
+        _ * owner.depth >> owner.projectPath.segmentCount()
         def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, owner, projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
         _ * owner.applyToMutableState(_) >> { Consumer action -> action.accept(project) }
         return project

@@ -71,7 +71,7 @@ include::sample[dir="snippets/publishing/javaLibrary/kotlin",files="build.gradle
 include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=apply-plugins]"]
 ====
 
-Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project's production JAR file — the one produced by the `jar` task — to a custom, Maven repository. We do that with the following `publishing {}` block, which is backed by link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]:
+Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project's production JAR file — the one produced by the `jar` task — to a custom Maven repository. We do that with the following `publishing {}` block, which is backed by link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]:
 
 .Configuring a Java library for publishing
 ====

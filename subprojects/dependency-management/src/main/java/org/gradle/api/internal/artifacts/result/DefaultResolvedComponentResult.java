@@ -19,11 +19,13 @@ package org.gradle.api.internal.artifacts.result;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
@@ -31,6 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -41,20 +44,22 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
     private final List<ResolvedVariantResult> selectedVariants;
+    private final Map<Long, ResolvedVariantResult> selectedVariantsById;
     private final List<ResolvedVariantResult> allVariants;
-    private final String repositoryName;
+    private final String repositoryId;
     private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = ArrayListMultimap.create();
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
-        List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, String repositoryName
+        Map<Long, ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, @Nullable String repositoryId
     ) {
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
-        this.selectedVariants = selectedVariants;
-        this.allVariants = allVariants;
-        this.repositoryName = repositoryName;
+        this.selectedVariantsById = selectedVariants;
+        this.selectedVariants = ImmutableList.copyOf(selectedVariants.values());
+        this.allVariants = allVariants.isEmpty() ? this.selectedVariants : allVariants;
+        this.repositoryId = repositoryId;
     }
 
     @Override
@@ -62,10 +67,16 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return componentId;
     }
 
+    @Override
+    @Deprecated
+    public String getRepositoryName() {
+        return repositoryId;
+    }
+
     @Nullable
     @Override
-    public String getRepositoryName() {
-        return repositoryName;
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
     @Override
@@ -110,7 +121,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public List<ResolvedVariantResult> getAllVariants() {
+    public List<ResolvedVariantResult> getAvailableVariants() {
         return allVariants;
     }
 
@@ -132,7 +143,29 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
     }
 
+    @Nullable
+    public ResolvedVariantResult getVariant(Long id) {
+        return selectedVariantsById.get(id);
+    }
+
     public void associateDependencyToVariant(DependencyResult dependencyResult, ResolvedVariantResult fromVariant) {
         variantDependencies.put(fromVariant, dependencyResult);
+    }
+
+    public static void eachElement(
+        ResolvedComponentResult node,
+        Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
+        Set<ResolvedComponentResult> visited
+    ) {
+        if (!visited.add(node)) {
+            return;
+        }
+        moduleAction.execute(node);
+        for (DependencyResult d : node.getDependencies()) {
+            dependencyAction.execute(d);
+            if (d instanceof ResolvedDependencyResult) {
+                eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);
+            }
+        }
     }
 }

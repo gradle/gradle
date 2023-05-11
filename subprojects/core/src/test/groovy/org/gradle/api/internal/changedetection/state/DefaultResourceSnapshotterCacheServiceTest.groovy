@@ -24,7 +24,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.testfixtures.internal.TestInMemoryPersistentIndexedCache
+import org.gradle.testfixtures.internal.TestInMemoryIndexedCache
 import spock.lang.Specification
 
 
@@ -33,7 +33,7 @@ class DefaultResourceSnapshotterCacheServiceTest extends Specification {
     def path = "some"
     def snapshot = new RegularFileSnapshot(path, "path", TestHashCodes.hashCodeFrom(456), DefaultFileMetadata.file(3456, 456, FileMetadata.AccessType.DIRECT))
     def snapshotContext = new DefaultRegularFileSnapshotContext({path}, snapshot)
-    def snapshotterCache = new DefaultResourceSnapshotterCacheService(new TestInMemoryPersistentIndexedCache(new HashCodeSerializer()))
+    def snapshotterCache = new DefaultResourceSnapshotterCacheService(new TestInMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {
         def expectedHash = TestHashCodes.hashCodeFrom(123)

@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
@@ -50,7 +52,6 @@ class ScalaCompileIntegrationTest extends MultiVersionIntegrationSpec implements
 
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
         JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
@@ -70,6 +71,50 @@ class Person {
         } else {
             result.assertHasErrorOutput("src/main/scala/Person.scala:3:29: type mismatch;\n found   : Int(42)\n required: String")
         }
+    }
+
+    def "can assign #value to additional parameters"() {
+        file("src/main/scala/ScalaHall.scala") << "class ScalaHall(name: String)"
+
+        buildFile << """
+            tasks.withType(ScalaCompile) {
+              scalaCompileOptions.additionalParameters = $expression
+            }
+        """
+
+        when:
+        run ":compileScala"
+
+        then:
+        executedAndNotSkipped(":compileScala")
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+
+        where:
+        value            | expression
+        "null"           | "null"
+        "mutable list"   | "[]"
+        "immutable list" | "[].asImmutable()"
+    }
+
+    @Requires(UnitTestPreconditions.Jdk11OrLater)
+    def "can compile sources using later JDK APIs"() {
+        file("src/main/scala/App.scala") << """
+            object App {
+              def main(args: Array[String]): Unit = {
+                var x : String = "Test String"
+                // isBlank is from JDK 11
+                println(x.isBlank)
+              }
+            }
+        """
+
+        when:
+        run ":compileScala"
+
+        then:
+        executedAndNotSkipped(":compileScala")
+
+        JavaVersion.forClass(scalaClassFile("App.class").bytes) == JavaVersion.VERSION_1_8
     }
 
 }

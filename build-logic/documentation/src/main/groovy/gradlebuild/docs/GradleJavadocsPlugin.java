@@ -16,8 +16,10 @@
 
 package gradlebuild.docs;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
@@ -102,8 +104,26 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
 
             if (BuildEnvironment.INSTANCE.getJavaVersion().isJava11Compatible()) {
+                // TODO html4 output was removed in Java 13, see https://bugs.openjdk.org/browse/JDK-8215578
                 options.addBooleanOption("html4", true);
                 options.addBooleanOption("-no-module-directories", true);
+
+                FileSystemOperations fs = getFs();
+                //noinspection Convert2Lambda
+                task.doLast(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        fs.copy(copySpec -> {
+                            // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK's side
+                            // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
+                            // Here we generate this file manually
+                            copySpec.from(generatedJavadocDirectory.file("element-list"), sub -> {
+                                sub.rename(t -> "package-list");
+                            });
+                            copySpec.into(generatedJavadocDirectory);
+                        });
+                    }
+                });
             }
         });
 

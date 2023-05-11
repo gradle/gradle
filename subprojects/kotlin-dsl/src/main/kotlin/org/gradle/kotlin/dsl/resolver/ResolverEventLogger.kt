@@ -23,8 +23,6 @@ import org.gradle.kotlin.dsl.support.userHome
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
-import com.google.common.annotations.VisibleForTesting
-
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -39,7 +37,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 
-@VisibleForTesting
+internal
 interface ResolverEventLogger {
     fun log(event: ResolverEvent)
 }
@@ -146,7 +144,7 @@ object DefaultResolverEventLogger : ResolverEventLogger {
 }
 
 
-@VisibleForTesting
+internal
 fun prettyPrint(e: ResolverEvent): String = e.run {
     when (this) {
         is SubmittedModelRequest ->

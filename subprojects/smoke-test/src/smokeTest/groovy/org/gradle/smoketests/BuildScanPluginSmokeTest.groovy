@@ -19,9 +19,10 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
+import spock.lang.IgnoreIf
 
 // https://plugins.gradle.org/plugin/com.gradle.enterprise
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
@@ -77,21 +78,63 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.11.1",
         "3.11.2",
         "3.11.3",
-        "3.11.4"
+        "3.11.4",
+        "3.12",
+        "3.12.1",
+        "3.12.2",
+        "3.12.3",
+        "3.12.4",
+        "3.12.5",
+        "3.12.6",
+        "3.13",
+        "3.13.1",
+        "3.13.2"
     ]
 
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
+    private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
+    private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
 
-    def "can use plugin #version"() {
+    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    def "can use plugin #version with Gradle 8 configuration cache"() {
         given:
         def versionNumber = VersionNumber.parse(version)
-        Assume.assumeFalse(GradleContextualExecuter.configCache && versionNumber < FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE)
+        Assume.assumeFalse(versionNumber < FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE)
 
         when:
         usePluginVersion version
 
         then:
-        build().output.contains("Build scan written to")
+        scanRunner()
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "The BuildIdentifier.getName() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use getBuildPath() to get a unique identifier for the build. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+            ).build().output.contains("Build scan written to")
+
+        where:
+        version << SUPPORTED
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.configCache })
+    def "can use plugin #version"() {
+        given:
+        def versionNumber = VersionNumber.parse(version)
+        Assume.assumeFalse(versionNumber < FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE)
+
+        when:
+        usePluginVersion version
+
+        then:
+        scanRunner()
+            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+                "The BuildIdentifier.getName() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use getBuildPath() to get a unique identifier for the build. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+            )
+            .build().output.contains("Build scan written to")
 
         where:
         version << SUPPORTED
@@ -116,11 +159,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         scanRunner(args).build()
     }
 
-    BuildResult buildAndFail(String... args) {
-        scanRunner(args).buildAndFail()
-    }
-
-    GradleRunner scanRunner(String... args) {
+    SmokeTestGradleRunner scanRunner(String... args) {
         runner("build", "-Dscan.dump", *args).forwardOutput()
     }
 

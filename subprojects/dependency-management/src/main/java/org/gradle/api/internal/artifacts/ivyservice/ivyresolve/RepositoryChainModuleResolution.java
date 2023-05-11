@@ -15,19 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 
 class RepositoryChainModuleResolution implements StringVersioned {
-    public final ModuleComponentRepository repository;
-    public final ModuleComponentResolveMetadata module;
+    public final ModuleComponentRepository<?> repository;
+    public final ModuleComponentGraphResolveState component;
 
-    public RepositoryChainModuleResolution(ModuleComponentRepository repository, ModuleComponentResolveMetadata module) {
+    public RepositoryChainModuleResolution(ModuleComponentRepository<?> repository, ModuleComponentGraphResolveState component) {
         this.repository = repository;
-        this.module = module;
+        this.component = component;
     }
 
     @Override
     public String getVersion() {
-        return module.getModuleVersionId().getVersion();
+        return component.getId().getVersion();
     }
 }

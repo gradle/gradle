@@ -32,7 +32,6 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -122,11 +121,6 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation() {
-        return null;
-    }
-
-    @Override
     public boolean isCanBeResolved() {
         return false;
     }
@@ -173,5 +167,10 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     @Override
     public boolean isExternalVariant() {
         return variant.isExternalVariant();
+    }
+
+    @Override
+    public boolean isEligibleForCaching() {
+        return variant.isEligibleForCaching();
     }
 }

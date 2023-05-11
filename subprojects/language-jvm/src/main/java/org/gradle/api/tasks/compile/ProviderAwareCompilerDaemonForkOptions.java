@@ -53,7 +53,7 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
      * Returns the full set of arguments to use to launch the JVM for the compiler process. This includes arguments to define
      * system properties, the minimum/maximum heap size, and the bootstrap classpath.
      *
-     * @return The arguments. Returns an empty list if there are no arguments.
+     * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @Internal
     public List<String> getAllJvmArgs() {

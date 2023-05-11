@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
+
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.Module
@@ -23,9 +24,10 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -36,12 +38,12 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
     ComponentIdentifierFactory componentIdentifierFactory = Mock()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    LocalComponentMetadataBuilder configurationComponentMetaDataBuilder = Mock()
-    def configurationsProvider = Stub(ConfigurationsProvider) {
-        getAll() >> ([] as Set)
+    LocalConfigurationMetadataBuilder configurationMetadataBuilder = Mock(LocalConfigurationMetadataBuilder) {
+        create(_, _, _, _, _, _) >> Mock(LocalConfigurationMetadata)
     }
+
+    def configurationsProvider = Stub(ConfigurationsProvider)
     ProjectStateRegistry projectStateRegistry = Mock()
-    DependencyLockingProvider dependencyLockingProvider = Mock()
 
     def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 
@@ -49,9 +51,8 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         metaDataProvider,
         componentIdentifierFactory,
         moduleIdentifierFactory,
-        configurationComponentMetaDataBuilder,
+        configurationMetadataBuilder,
         projectStateRegistry,
-        dependencyLockingProvider,
         TestUtil.calculatedValueContainerFactory()
     )
 
@@ -87,25 +88,53 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         !otherRoot.is(root)
     }
 
-    def "caching of component metadata when #mutationType change"() {
+    def "reevaluates component metadata when #mutationType change"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
             new DefaultModuleComponentIdentifier(mid, '1.0')
         }
         def root = builder.toRootComponentMetaData()
+
+        assert !root.isConfigurationRealized("conf")
+        root.getConfiguration("conf")
+        assert root.isConfigurationRealized("conf")
 
         when:
         builder.validator.validateMutation(mutationType)
         def otherRoot = builder.toRootComponentMetaData()
 
         then:
-        otherRoot.is(root) == cached
+        root == otherRoot
+        !root.isConfigurationRealized("conf")
 
         where:
-        mutationType                                | cached
-        MutationValidator.MutationType.DEPENDENCIES | false
-        MutationValidator.MutationType.ARTIFACTS    | false
-        MutationValidator.MutationType.ROLE         | true
-        MutationValidator.MutationType.STRATEGY     | true
+        mutationType << [
+            MutationValidator.MutationType.DEPENDENCIES,
+            MutationValidator.MutationType.DEPENDENCY_ATTRIBUTES,
+            MutationValidator.MutationType.ARTIFACTS,
+            MutationValidator.MutationType.USAGE,
+            MutationValidator.MutationType.HIERARCHY
+        ]
     }
 
+    def "does not reevaluate component metadata when #mutationType change"() {
+        componentIdentifierFactory.createComponentIdentifier(_) >> {
+            new DefaultModuleComponentIdentifier(mid, '1.0')
+        }
+        def root = builder.toRootComponentMetaData()
+
+        assert !root.isConfigurationRealized("conf")
+        root.getConfiguration("conf")
+        assert root.isConfigurationRealized("conf")
+
+        when:
+        builder.validator.validateMutation(mutationType)
+        def otherRoot = builder.toRootComponentMetaData()
+
+        then:
+        root == otherRoot
+        root.isConfigurationRealized("conf")
+
+        where:
+        mutationType << [MutationValidator.MutationType.STRATEGY]
+    }
 }

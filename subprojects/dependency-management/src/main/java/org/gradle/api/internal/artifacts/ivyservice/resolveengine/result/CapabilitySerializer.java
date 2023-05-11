@@ -17,13 +17,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.capabilities.Capability;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
+/**
+ * A thread-safe and reusable serializer for {@link Capability}.
+ */
 public class CapabilitySerializer implements Serializer<Capability> {
 
     @Override
@@ -31,7 +34,7 @@ public class CapabilitySerializer implements Serializer<Capability> {
         String group = decoder.readString();
         String name = decoder.readString();
         String version = decoder.readNullableString();
-        return new ImmutableCapability(group, name, version);
+        return new DefaultImmutableCapability(group, name, version);
     }
 
     @Override

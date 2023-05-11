@@ -16,14 +16,18 @@
 
 package org.gradle.internal.classpath
 
+
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -92,6 +96,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
+    @IgnoreIf({ AbstractGradleExecuter.agentInstrumentationEnabled }) // Agent-based instrumentation doesn't expose cached JARs
     def "build script classloader copies jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
@@ -310,6 +315,148 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
         then:
         noExceptionThrown()
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.getJdk11() == null || AvailableJavaHomes.getJdk8() == null })
+    def "proper version is selected for multi-release jar"() {
+        given:
+        createDir("mrjar") {
+            file("build.gradle") << """
+                plugins {
+                    id("java")
+                    id 'me.champeau.mrjar' version "0.1.1"
+                }
+
+                multiRelease {
+                    targetVersions 8, 11
+                }
+            """
+            file("src/main/java/org/gradle/test/mrjar/Foo.java") << """
+                package org.gradle.test.mrjar;
+
+                public class Foo {
+                    public static String getBar() {
+                        return "DEFAULT";
+                    }
+                }
+            """
+            file("src/java11/java/org/gradle/test/mrjar/Foo.java") << """
+                package org.gradle.test.mrjar;
+
+                public class Foo {
+                    public static String getBar() {
+                        return "11";
+                    }
+                }
+            """
+        }
+
+        buildScript("""
+            buildscript {
+                dependencies {
+                    classpath "org.gradle.test:mrjar:1.+"
+                }
+            }
+
+            import org.gradle.test.mrjar.Foo
+
+            tasks.register("printFoo") {
+                doLast {
+                    println("JAR = \${Foo.bar}")
+                }
+            }
+        """)
+        settingsFile("""
+            includeBuild("mrjar") {
+                dependencySubstitution {
+                    substitute module('org.gradle.test:mrjar') using project(':')
+                }
+            }
+        """)
+
+        def java8Home = AvailableJavaHomes.getJdk8().javaHome
+        def java11Home = AvailableJavaHomes.getJdk11().javaHome
+
+        when:
+        executer.withJavaHome(java8Home).withArguments("-Porg.gradle.java.installations.paths=$java8Home,$java11Home")
+        succeeds("printFoo")
+
+        then:
+        outputContains("JAR = DEFAULT")
+
+        when:
+        executer.withJavaHome(java11Home).withArguments("-Porg.gradle.java.installations.paths=$java8Home,$java11Home")
+        succeeds("printFoo")
+
+        then:
+        outputContains("JAR = 11")
+    }
+
+    def "class with #lambdaCount lambdas can be instrumented"() {
+        given:
+        createDir("buildSrc/src/main/java") {
+            try(def src = file("ManyLambdas.java").newWriter()) {
+                src.append("""
+                    import ${List.name};
+                    import ${ArrayList.name};
+
+                    public class ManyLambdas {
+                        public List<Runnable> createLotsOfLambdas() {
+                            List<Runnable> runnables = new ArrayList<>($lambdaCount);
+                """)
+                for (int i = 1; i <= lambdaCount; ++i) {
+                    src.append("""
+                            runnables.add(() -> System.out.println("lambda #" + $i));
+                    """)
+                }
+                src.append("""
+                            return runnables;
+                        }
+                    }
+                """)
+            }
+        }
+        buildScript("""
+            abstract class LambdaTask extends DefaultTask {
+                @Input
+                abstract ListProperty<Runnable> getMyActions()
+
+                @TaskAction
+                def runMyActions() {
+                    myActions.get().forEach {
+                        it.run()
+                    }
+                }
+            }
+
+            def getDeserializeMethodsCount(Class<?> cls) {
+                return Arrays.stream(cls.getDeclaredMethods()).filter {
+                    it.name.startsWith('\$deserializeLambda')
+                }.count()
+            }
+
+            tasks.register("lambda", LambdaTask) {
+                myActions = new ManyLambdas().createLotsOfLambdas()
+
+                doFirst {
+                    println("generated method count = \${getDeserializeMethodsCount(ManyLambdas)}")
+                }
+            }
+        """)
+
+        when:
+        succeeds("lambda")
+
+        then:
+        outputContains("generated method count = $expectedMethodCount")
+        outputContains("lambda #1")
+        outputContains("lambda #$lambdaCount")
+
+        where:
+        lambdaCount || expectedMethodCount
+        1000        || 1
+        2000        || 2
+        3200        || 3
     }
 
     void notInJarCache(String filename) {

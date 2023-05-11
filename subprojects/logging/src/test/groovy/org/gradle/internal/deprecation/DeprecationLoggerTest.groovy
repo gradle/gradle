@@ -98,6 +98,18 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         outputEventListener.events.empty
     }
 
+    def "nested whileDisabled call does not enable deprecation log in the outer method"() {
+        when:
+        DeprecationLogger.whileDisabled {
+            DeprecationLogger.whileDisabled {
+            }
+            DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+        }
+
+        then:
+        outputEventListener.events.empty
+    }
+
     def "warnings are disabled for the current thread only"() {
         when:
         async {
@@ -137,8 +149,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
     def "reports suppressed deprecation messages with --warning-mode summary"() {
         given:
-        def documentation = new DocumentationRegistry()
-        def documentationReference = documentation.getDocumentationFor("command_line_interface", "sec:command_line_warnings")
+        def documentationReference = new DocumentationRegistry().getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")
         DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.Summary, Mock(BuildOperationProgressEventEmitter))
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
@@ -153,7 +164,7 @@ Deprecated Gradle features were used in this build, making it incompatible with 
 
 You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
 
-See ${documentationReference}"""
+${documentationReference}"""
     }
 
 }

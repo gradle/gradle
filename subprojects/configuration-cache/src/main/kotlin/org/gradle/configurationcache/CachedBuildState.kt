@@ -51,7 +51,15 @@ class ProjectWithNoWork(
 ) : CachedProjectState(path, projectDir, buildFile)
 
 
-data class BuildToStore(val build: VintageGradleBuild, val hasWork: Boolean)
+data class BuildToStore(
+    val build: VintageGradleBuild,
+    // Does this build have work scheduled?
+    val hasWork: Boolean,
+    // Does this build have a child build with work scheduled?
+    val hasChildren: Boolean
+) {
+    fun hasChildren() = BuildToStore(build, hasWork, true)
+}
 
 
 /**

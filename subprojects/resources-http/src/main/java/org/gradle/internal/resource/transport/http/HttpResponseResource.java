@@ -44,7 +44,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename());
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.wasMissing());
     }
 
     public URI getURI() {

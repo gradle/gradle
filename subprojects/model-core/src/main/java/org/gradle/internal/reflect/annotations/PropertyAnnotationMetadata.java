@@ -17,7 +17,9 @@
 package org.gradle.internal.reflect.annotations;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -32,4 +34,9 @@ public interface PropertyAnnotationMetadata extends Comparable<PropertyAnnotatio
     <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType);
 
     ImmutableMap<AnnotationCategory, Annotation> getAnnotations();
+
+    TypeToken<?> getDeclaredType();
+
+    @Nullable
+    Object getPropertyValue(Object object);
 }

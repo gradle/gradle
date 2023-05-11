@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -39,7 +38,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         assertMetadataExists()
         hasNoModules()
-
     }
 
     def "warns if trying to generate with an unknown checksum type (#checksums)"() {
@@ -107,7 +105,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "generates verification file for dependencies downloaded in previous build (stop in between = #stop)"() {
         given:
         javaLibrary()
@@ -162,12 +159,12 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         buildFile << """
             configurations {
                 conf1 {
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
                 }
                 conf2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                 }
             }
 
@@ -180,6 +177,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         when:
         writeVerificationMetadata()
+
         run ":help"
 
         then:
@@ -282,6 +280,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         when:
         writeVerificationMetadata()
+
         run ":help"
 
         then:
@@ -379,6 +378,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         when:
         writeVerificationMetadata()
+
         run ":help"
 
         then:
@@ -456,6 +456,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         when:
         writeVerificationMetadata()
+
         succeeds ':help'
 
         then:
@@ -691,6 +692,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         """
         when:
         writeVerificationMetadata()
+
         run ":help"
 
         then:
@@ -774,6 +776,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             executer.stop()
         }
         writeVerificationMetadata()
+
         run ":help"
 
         then:
@@ -1246,6 +1249,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         when:
         writeVerificationMetadata()
+
         run ":help"
 
         then:
@@ -1262,6 +1266,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             }
         """
         writeVerificationMetadata()
+
         run ":help"
 
         then:
@@ -1296,6 +1301,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
 
         writeVerificationMetadata()
+
         run ":help", "--offline"
 
         then:
@@ -1341,6 +1347,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         when:
         writeVerificationMetadata()
+
         run ":help"
 
         then:
@@ -1380,6 +1387,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 
         when:
         writeVerificationMetadata()
+
         run ":help"
 
         then:

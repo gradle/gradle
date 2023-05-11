@@ -19,13 +19,7 @@ package org.gradle.api.publish.ivy.internal.publisher;
 public interface IvyPublicationIdentity {
     String getOrganisation();
 
-    void setOrganisation(String organisation);
-
     String getModule();
 
-    void setModule(String module);
-
     String getRevision();
-
-    void setRevision(String revision);
 }

@@ -20,8 +20,9 @@ import com.microsoft.playwright.Browser
 import com.microsoft.playwright.BrowserContext
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.Flaky
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import java.util.function.Consumer
 
@@ -31,7 +32,8 @@ import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCac
 // dependencies on Linux and times out downloading the driver on MacOS.
 //
 // Comment out the @Requires annotation below to run the test locally on non Windows platforms.
-@Requires(TestPrecondition.WINDOWS)
+@Requires(UnitTestPreconditions.Windows)
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3820")
 class ConfigurationCacheReportIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "report with problem loads successfully"() {

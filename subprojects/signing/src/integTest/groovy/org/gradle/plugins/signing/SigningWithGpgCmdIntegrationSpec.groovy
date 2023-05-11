@@ -16,17 +16,17 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.Requires
 
-@Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.SigningTestPreconditions
+
+@Requires(SigningTestPreconditions.GpgAvailable)
 class SigningWithGpgCmdIntegrationSpec extends SigningIntegrationSpec {
 
     SignMethod getSignMethod() {
         return SignMethod.GPG_CMD
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses the default signatory"() {
         given:
         buildFile << """
