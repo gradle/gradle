@@ -220,6 +220,7 @@ Method <org.gradle.buildinit.tasks.InitBuild.getAvailableDSLs()> does not have r
 Method <org.gradle.buildinit.tasks.InitBuild.getAvailableTestFrameworks()> does not have raw return type assignable to org.gradle.api.provider.Provider in (InitBuild.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getDsl()> does not have raw return type assignable to org.gradle.api.provider.Property in (InitBuild.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getPackageName()> does not have raw return type assignable to org.gradle.api.provider.Property in (InitBuild.java:0)
+Method <org.gradle.buildinit.tasks.InitBuild.getProjectDirectory()> does not have raw return type assignable to org.gradle.api.provider.Property in (InitBuild.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getProjectLayoutRegistry()> does not have raw return type assignable to org.gradle.api.provider.Property in (InitBuild.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getProjectName()> does not have raw return type assignable to org.gradle.api.provider.Property in (InitBuild.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getTestFramework()> does not have raw return type assignable to org.gradle.api.provider.Property in (InitBuild.java:0)
