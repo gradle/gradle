@@ -43,6 +43,7 @@ public class MVStoreBuildCacheService implements StatefulNextGenBuildCacheServic
     public void open() {
         mvStore = new MVStore.Builder()
             .fileName(dbPath.resolve("filestore").toString())
+            .autoCompactFillRate(0)
             .open();
         keys = mvStore.openMap("keys");
         Map<Long, byte[]> dataMap = mvStore.openMap("data");
