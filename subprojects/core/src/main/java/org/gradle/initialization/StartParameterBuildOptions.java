@@ -89,8 +89,10 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class ProjectCacheDirOption extends StringBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.projectcachedir";
+        
         public ProjectCacheDirOption() {
-            super(null, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory."));
+            super(PROPERTY_NAME, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory."));
         }
 
         @Override
