@@ -65,6 +65,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +95,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final boolean eagerlyCreateLazyTasks;
 
     private MutableModelNode modelNode;
+    private Set<DeferredTaskProvider<?>> deferredTaskProviders = new HashSet<>();
 
     public DefaultTaskContainer(
         ProjectInternal project,
@@ -535,6 +537,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public void discoverTasks() {
         project.fireDeferredConfiguration();
+        Set<DeferredTaskProvider<?>> set = deferredTaskProviders;
+        deferredTaskProviders = null;
+        for (DeferredTaskProvider<?> provider : set) {
+            provider.get();
+        }
         if (modelNode != null) {
             project.getModelRegistry().atStateOrLater(modelNode.getPath(), ModelNode.State.SelfClosed);
         }
@@ -658,7 +665,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     // Cannot be private due to reflective instantiation
     public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
-        private final TaskIdentity<I> identity;
+        protected final TaskIdentity<I> identity;
         private Object[] constructorArgs;
 
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
@@ -714,6 +721,49 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
     }
 
+    public class DeferredTaskProviderImpl<T extends Task> extends TaskCreatingProvider<T> implements DeferredTaskProvider<T> {
+        public DeferredTaskProviderImpl(TaskIdentity<T> identity, Object... constructorArgs) {
+            super(identity, null, constructorArgs);
+        }
+
+        @Override
+        protected void tryCreate() {
+            if (deferredTaskProviders != null) {
+                throw new IllegalStateException(String.format("Cannot create task '%s' manually", identity.identityPath));
+            }
+            super.tryCreate();
+        }
+    }
+
+    @Override
+    public <T extends Task> DeferredTaskProvider<T> registerDeferred(String name, Class<T> type, Object... constructorArgs) {
+        if (hasWithName(name)) {
+            failOnDuplicateTask(name);
+        }
+
+        TaskIdentity<T> identity = taskIdentityFactory.create(name, type, project);
+
+        // TODO respect eager configuration flag
+        return buildOperationExecutor.call(new CallableBuildOperation<DeferredTaskProvider<T>>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return registerDeferredDescriptor(identity);
+            }
+
+            @Override
+            public DeferredTaskProvider<T> call(BuildOperationContext context) {
+                DeferredTaskProvider<T> provider = Cast.uncheckedNonnullCast(
+                    getInstantiator().newInstance(
+                        DeferredTaskProviderImpl.class, DefaultTaskContainer.this, identity, constructorArgs
+                    )
+                );
+                deferredTaskProviders.add(provider);
+                context.setResult(REGISTER_RESULT);
+                return provider;
+            }
+        });
+    }
+
     private RuntimeException taskCreationException(String name, Throwable cause) {
         if (cause instanceof DuplicateTaskException) {
             return (RuntimeException) cause;
@@ -728,6 +778,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private static BuildOperationDescriptor.Builder registerDescriptor(TaskIdentity<?> identity) {
         return BuildOperationDescriptor.displayName("Register task " + identity.identityPath)
+            .details(new RegisterDetails(identity));
+    }
+
+    private static BuildOperationDescriptor.Builder registerDeferredDescriptor(TaskIdentity<?> identity) {
+        return BuildOperationDescriptor.displayName("Register deferred task " + identity.identityPath)
             .details(new RegisterDetails(identity));
     }
 

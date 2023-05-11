@@ -17,10 +17,11 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
@@ -34,11 +35,12 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultJvmTestSuiteTarget(String name, TaskContainerInternal tasks, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
 
         // Might not always want Test type here?
-        this.testTask = tasks.register(name, Test.class, t -> {
+        this.testTask = name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME) ? tasks.register(name, Test.class) : tasks.registerDeferred(name, Test.class);
+        this.testTask.configure(t -> {
             t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         });

@@ -281,13 +281,17 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integTest(JvmTestSuite) {
                         ${testingFrameworkDeclaration}
+                        targets {
+                            all {
+                                testTask {
+                                    doLast {
+                                        assert testFramework instanceof ${testingFrameworkType.canonicalName}
+                                        assert classpath.any { it.name == "${testingFrameworkDep}" }
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-            }
-            tasks.integTest {
-                doLast {
-                    assert testFramework instanceof ${testingFrameworkType.canonicalName}
-                    assert classpath.any { it.name == "${testingFrameworkDep}" }
                 }
             }
         """
@@ -366,15 +370,18 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     integTest {
                         useJUnit()
+                        targets {
+                            all {
+                                testTask {
+                                    doLast {
+                                        assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                        assert classpath.size() == 2
+                                        assert classpath.any { it.name == "junit-4.13.2.jar" }
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-            }
-
-            tasks.integTest {
-                doLast {
-                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert classpath.size() == 2
-                    assert classpath.any { it.name == "junit-4.13.2.jar" }
                 }
             }
         """
