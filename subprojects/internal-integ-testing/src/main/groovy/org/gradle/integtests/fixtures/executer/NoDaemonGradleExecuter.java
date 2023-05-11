@@ -111,7 +111,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         environmentVars.put(jvmOptsEnvVar, value);
 
         // Add a JAVA_HOME if none provided
-        if (!environmentVars.containsKey("JAVA_HOME")) {
+        if (!environmentVars.containsKey("JAVA_HOME") || environmentVars.get("JAVA_HOME").equals(System.getenv("JAVA_HOME"))) {
             environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
         }
     }
