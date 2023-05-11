@@ -26,7 +26,7 @@ Let's explore the main concepts with the help of a theoretical but common projec
 * Some Java source files import classes from the link:https://github.com/google/guava[Google Guava] library.
 * This project uses link:http://junit.org/junit5/[JUnit] for testing.
 
-The `build.gradle` file might look as follows:
+The Gradle build file might look as follows:
 
 .Gradle build file with dependencies
 ====
@@ -34,19 +34,19 @@ include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/
 include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/groovy",files="build.gradle"]
 ====
 
-<1> *Define artifact sources for project.*
+<1> *Define repositories for project.*
 
-<2> *Remote and local repositories for artifact locations.*
+<2> *Remote and local repositories for dependency locations.*
 +
 You can <<declaring_repositories.adoc#declaring-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
-In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven] and link:https://maven.google.com/[Google] _repositories_. +
+In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_. +
 During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
 Gradle then <<dependency_resolution.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
 Subsequent builds use the cache to avoid unnecessary network calls and speed up the build process.
 
-<3> *Define artifacts used by project.*
+<3> *Define dependencies used by project.*
 
-<4> *Specific artifact name and version within a specific scope.*
+<4> *Specific dependency name and version within a specific scope.*
 +
 You can add code to your Java project from an external library such as `com.google.common.base` (a Guava package) which becomes a _dependency_. +
 In this example, the theoretical project uses Guava version 31.1-jre and JUnit 4.13.2 as _dependencies_. +
