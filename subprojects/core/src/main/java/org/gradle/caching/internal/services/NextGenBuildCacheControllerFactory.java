@@ -32,7 +32,7 @@ import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.controller.NextGenBuildCacheHandler;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
-import org.gradle.caching.local.internal.H2BuildCacheService;
+import org.gradle.caching.local.internal.MVStoreBuildCacheService;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
@@ -44,7 +44,7 @@ import org.gradle.util.internal.IncubationLogger;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2BuildCacheService> {
+public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<MVStoreBuildCacheService> {
 
     private final Deleter deleter;
     private final BuildInvocationScopeId buildInvocationScopeId;
@@ -76,7 +76,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
     @Override
     protected BuildCacheController doCreateController(
-        @Nullable DescribedBuildCacheService<DirectoryBuildCache, H2BuildCacheService> localDescribedService,
+        @Nullable DescribedBuildCacheService<DirectoryBuildCache, MVStoreBuildCacheService> localDescribedService,
         @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
     ) {
         IncubationLogger.incubatingFeatureUsed("Next generation build cache");

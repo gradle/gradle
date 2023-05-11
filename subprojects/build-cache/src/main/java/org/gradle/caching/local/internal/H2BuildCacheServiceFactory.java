@@ -21,6 +21,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.internal.StatefulNextGenBuildCacheService;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.file.PathToFileResolver;
@@ -66,8 +67,8 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
         describer.type(H2_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath());
 
-        H2BuildCacheService h2Service = new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount());
-        return new LockOnDemandCrossProcessBuildCacheService("build-cache-2", target, lockManager, h2Service);
+        StatefulNextGenBuildCacheService buildCacheService = new MVStoreBuildCacheService(target.toPath());
+        return new LockOnDemandCrossProcessBuildCacheService("build-cache-2", target, lockManager, buildCacheService);
     }
 
     private static void checkDirectory(File directory) {
