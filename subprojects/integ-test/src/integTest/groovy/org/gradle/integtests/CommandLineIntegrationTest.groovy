@@ -54,40 +54,42 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void canDefineJavaHomeUsingEnvironmentVariable() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
 
         // Handle JAVA_HOME specified
-        executer.withEnvironmentVars('JAVA_HOME': javaHome).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withJavaHome(javaHome).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
 
         // Handle JAVA_HOME with trailing separator
-        executer.withEnvironmentVars('JAVA_HOME': javaHome + File.separator).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withJavaHome(javaHome + File.separator).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
 
         if (!OperatingSystem.current().isWindows()) {
             return
         }
 
         // Handle JAVA_HOME wrapped in quotes
-        executer.withEnvironmentVars('JAVA_HOME': "\"$javaHome\"").withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withJavaHome("\"$javaHome\"").withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
 
         // Handle JAVA_HOME with slash separators. This is allowed by the JVM
-        executer.withEnvironmentVars('JAVA_HOME': javaHome.replace(File.separator, '/')).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withJavaHome(javaHome.replace(File.separator, '/')).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 
     @Test
     void usesJavaCommandFromPathWhenJavaHomeNotSpecified() {
+        Assume.assumeFalse(GradleContextualExecuter.embedded)
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
 
         String path = String.format('%s%s%s', Jvm.current().javaExecutable.parentFile, File.pathSeparator, System.getenv('PATH'))
-        executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
+        executer.withEnvironmentVars('PATH': path).withJavaHome('').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 
     @Test
     void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
         Assume.assumeFalse(GradleContextualExecuter.embedded)
 
-        def failure = executer.withEnvironmentVars('JAVA_HOME': testDirectory).withTasks('checkJavaHome').runWithFailure()
+        def failure = executer.withJavaHome(testDirectory).withTasks('checkJavaHome').runWithFailure()
         if (OperatingSystem.current().isWindows()) {
             assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
         } else {
@@ -112,7 +114,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
                 path = binDir.absolutePath
             }
 
-            def failure = executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withTasks('checkJavaHome').runWithFailure()
+            def failure = executer.withEnvironmentVars('PATH': path).withJavaHome('').withTasks('checkJavaHome').runWithFailure()
             assert failure.error.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
         } finally {
             links.each {

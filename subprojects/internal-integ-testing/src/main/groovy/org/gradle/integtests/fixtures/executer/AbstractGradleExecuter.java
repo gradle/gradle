@@ -40,6 +40,7 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -150,7 +151,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private String executable;
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
-    private File javaHome;
+    private String javaHome;
     private File buildScript;
     private File projectDir;
     private File settingsFile;
@@ -616,18 +617,32 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
-    public File getJavaHome() {
-        return javaHome == null ? Jvm.current().getJavaHome() : javaHome;
+    protected String getJavaHome() {
+        return javaHome == null ? Jvm.current().getJavaHome().getAbsolutePath() : javaHome;
+    }
+
+    protected File getJavaHomeLocation() {
+        return new File(getJavaHome());
     }
 
     @Override
-    public GradleExecuter withJavaHome(File javaHome) {
+    public GradleExecuter withJavaHome(String javaHome) {
         this.javaHome = javaHome;
         return this;
     }
 
+    @Override
+    public GradleExecuter withJavaHome(File javaHome) {
+        this.javaHome = javaHome == null ? null : javaHome.getAbsolutePath();
+        return this;
+    }
+
     private JavaVersion getJavaVersionFromJavaHome() {
-        return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome()));
+        try {
+            return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHomeLocation()));
+        } catch (IllegalArgumentException | JavaHomeException e) {
+            return JavaVersion.current();
+        }
     }
 
     @Override
