@@ -17,6 +17,7 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -32,16 +33,19 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
     private static final String H2_BUILD_CACHE_TYPE = "h2";
 
+    private final FileLockManager lockManager;
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ParallelismConfiguration parallelismConfiguration;
     private final PathToFileResolver resolver;
 
     @Inject
     public H2BuildCacheServiceFactory(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-            ParallelismConfiguration parallelismConfiguration,
-            PathToFileResolver resolver
+        FileLockManager lockManager,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        ParallelismConfiguration parallelismConfiguration,
+        PathToFileResolver resolver
     ) {
+        this.lockManager = lockManager;
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.parallelismConfiguration = parallelismConfiguration;
         this.resolver = resolver;
@@ -62,7 +66,8 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
         describer.type(H2_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath());
 
-        return new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount());
+        H2BuildCacheService h2Service = new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount());
+        return new LockOnDemandCrossProcessBuildCacheService("build-cache-2", target, lockManager, h2Service);
     }
 
     private static void checkDirectory(File directory) {
