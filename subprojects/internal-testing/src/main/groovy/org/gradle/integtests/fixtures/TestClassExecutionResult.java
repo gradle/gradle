@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures;
 
 import org.hamcrest.Matcher;
+import org.hamcrest.core.IsAnything;
 
 import java.util.List;
 
@@ -39,6 +40,8 @@ public interface TestClassExecutionResult {
 
     /**
      * Asserts that the given tests have the given outcome for the given test class.
+     *
+     * In case of FAILED only one error message is assumed.
      */
     @SuppressWarnings("unchecked")
     default TestClassExecutionResult assertTestOutcomes(TestOutcome status, String... testNames) {
@@ -51,7 +54,7 @@ public interface TestClassExecutionResult {
                     assertTestPassed(testName);
                     break;
                 case FAILED:
-                    assertTestFailed(testName);
+                    assertTestFailed(testName, new IsAnything<>());
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown test outcome: " + status);
@@ -80,6 +83,7 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers);
 
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
+
     /**
      *
      */
@@ -116,7 +120,9 @@ public interface TestClassExecutionResult {
 
     interface TestCase {
         String getName();
+
         String getDisplayName();
+
         List<String> getMessages();
     }
 }

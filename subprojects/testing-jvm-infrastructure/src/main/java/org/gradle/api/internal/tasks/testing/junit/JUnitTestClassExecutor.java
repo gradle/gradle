@@ -103,7 +103,7 @@ public class JUnitTestClassExecutor implements Action<String> {
             return;
         }
 
-        if (options.isDryRun()) {
+        if (spec.isDryRun()) {
             runner = new JUnitTestDryRunner(runner);
         }
 

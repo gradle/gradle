@@ -156,9 +156,9 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         result.assertTestClassesExecuted("org.gradle.FooTest")
         result.testClass("org.gradle.FooTest").assertTestOutcomes(testOutcome, testName)
         if (dryRun) {
-            result.testClassByXml("org.gradle.FooTest").assertTestCaseStderr(testName, Matchers.emptyString())
+            result.testClassByXml("org.gradle.FooTest").assertStderr(Matchers.emptyString())
         } else {
-            result.testClassByXml("org.gradle.FooTest").assertTestCaseStderr(testName, Matchers.containsString("ran FooTest.${testName}!"))
+            result.testClassByXml("org.gradle.FooTest").assertStderr(Matchers.containsString("ran FooTest.${testName}!"))
         }
 
         where:
