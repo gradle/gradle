@@ -45,7 +45,7 @@ public class BlockingHttpsServer extends BlockingHttpServer {
      */
     public void configure(TestKeyStore testKeyStore, Predicate<String> tlsProtocolFilter) {
         HttpsServer httpsServer = (HttpsServer) this.server;
-        SSLContext context = testKeyStore.asSSLContext();
+        SSLContext context = testKeyStore.asServerSSLContext();
         httpsServer.setHttpsConfigurator(new HttpsConfigurator(context) {
             @Override
             public void configure(HttpsParameters params) {

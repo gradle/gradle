@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transport.http
 
 import org.apache.http.ssl.SSLInitializationException
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -28,144 +30,151 @@ import java.security.KeyStore
  * properties specified.
  */
 class DefaultSslContextFactoryTest extends Specification {
-    def props
-    def loader
-
     @TempDir
     File temporaryDir
 
-    void setup() {
-        props = ['java.home': System.properties['java.home']]
-        loader = new DefaultSslContextFactory.SslContextCacheLoader()
-    }
+    @Rule
+    SetSystemProperties properties = new SetSystemProperties()
+
+    def factory = new DefaultSslContextFactory()
 
     void 'no properties specified'() {
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        notThrown(SSLInitializationException)
+        noExceptionThrown()
     }
 
     void 'non-existent truststore file'() {
         given:
-        props['javax.net.ssl.trustStore'] = 'will-not-exist'
+        System.properties['javax.net.ssl.trustStore'] = 'will-not-exist'
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        thrown(SSLInitializationException)
+        Exception exception = thrown()
+        exception.cause instanceof SSLInitializationException
+        exception.cause.cause instanceof FileNotFoundException
     }
 
     void 'valid truststore file without specifying password'() {
         given:
-        props['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
+        System.properties['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         // NOTE: This should not fail, as a password is only necessary for
         //       integrity checking, not accessing trusted public certificates
         //       contained within a keystore
         then:
-        notThrown(SSLInitializationException)
+        noExceptionThrown()
     }
 
     void 'valid truststore file with incorrect password'() {
         given:
-        props['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
-        props['javax.net.ssl.trustStorePassword'] = 'totally-wrong'
+        System.properties['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
+        System.properties['javax.net.ssl.trustStorePassword'] = 'totally-wrong'
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        thrown(SSLInitializationException)
+        Exception exception = thrown()
+        exception.cause instanceof SSLInitializationException
+        exception.cause.message.contains("Integrity check failed")
     }
 
     void 'valid truststore file with correct password'() {
         given:
-        props['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
-        props['javax.net.ssl.trustStorePassword'] = 'changeit'
+        System.properties['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
+        System.properties['javax.net.ssl.trustStorePassword'] = 'changeit'
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        notThrown(SSLInitializationException)
+        noExceptionThrown()
     }
 
     void 'non-existent keystore file'() {
         given:
-        props['javax.net.ssl.keyStore'] = 'will-not-exist'
+        System.properties['javax.net.ssl.keyStore'] = 'will-not-exist'
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        thrown(SSLInitializationException)
+        Exception exception = thrown()
+        exception.cause instanceof SSLInitializationException
+        exception.cause.cause instanceof FileNotFoundException
     }
 
     @Issue("gradle/gradle#7546")
     void 'keystore type without keystore file'() {
         given:
-        props['javax.net.ssl.keyStoreType'] = 'JKS'
+        System.properties['javax.net.ssl.keyStoreType'] = 'JKS'
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        notThrown(SSLInitializationException)
+        noExceptionThrown()
     }
 
     void 'keystore type with NONE keystore file'() {
         given:
-        props['javax.net.ssl.keyStoreType'] = 'JKS'
-        props['javax.net.ssl.keyStore'] = 'NONE'
+        System.properties['javax.net.ssl.keyStoreType'] = 'JKS'
+        System.properties['javax.net.ssl.keyStore'] = 'NONE'
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        notThrown(SSLInitializationException)
+        noExceptionThrown()
     }
 
     void 'valid keystore file without specifying password'() {
         given:
-        props['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
+        System.properties['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         // NOTE: This should fail, as the private keys password must match
         //       the keystore password, so a password is necessary
         then:
-        thrown(SSLInitializationException)
+        Exception exception = thrown()
+        exception.cause instanceof SSLInitializationException
+        exception.cause.message.contains("Integrity check failed")
     }
 
     void 'valid keystore file with incorrect password'() {
         given:
-        props['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
-        props['javax.net.ssl.keyStorePassword'] = 'totally-wrong'
+        System.properties['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
+        System.properties['javax.net.ssl.keyStorePassword'] = 'totally-wrong'
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        thrown(SSLInitializationException)
+        Exception exception = thrown()
+        exception.cause instanceof SSLInitializationException
+        exception.cause.message.contains("Integrity check failed")
     }
 
     void 'valid keystore file with correct password'() {
         given:
-        props['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
-        props['javax.net.ssl.keyStorePassword'] = 'changeit'
+        System.properties['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
+        System.properties['javax.net.ssl.keyStorePassword'] = 'changeit'
 
         when:
-        loader.load(props)
+        factory.createSslContext()
 
         then:
-        notThrown(SSLInitializationException)
+        noExceptionThrown()
     }
 
     File createTrustStore(String password) {

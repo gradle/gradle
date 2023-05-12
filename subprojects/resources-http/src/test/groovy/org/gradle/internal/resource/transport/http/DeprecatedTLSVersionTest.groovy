@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -39,9 +40,12 @@ class DeprecatedTLSVersionTest extends Specification {
     TestKeyStore keyStore = TestKeyStore.init(resources.dir)
     HttpSettings settings = DefaultHttpSettings.builder()
         .withAuthenticationSettings([])
-        .withSslContextFactory { keyStore.asSSLContext() }
+        .withSslContextFactory(new DefaultSslContextFactory())
         .withRedirectVerifier({})
         .build()
+
+    @Rule
+    SetSystemProperties properties = new SetSystemProperties(keyStore.getServerAndClientCertSettings())
 
     def "server that only supports deprecated TLS versions"() {
         given:
