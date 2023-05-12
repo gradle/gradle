@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.execution
 import org.gradle.kotlin.dsl.execution.ResidualProgram.PluginRequestSpec
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.instanceOf
 import org.junit.Test
 
 
@@ -224,7 +225,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `comment - block inline`() {
+    fun `id - comment - block inline`() {
         assertStaticInterpretationOf(
             """
                 /* block comment */ id("plugin-id-1")
@@ -232,16 +233,24 @@ class PluginsBlockInterpreterTest {
                 id( /* block comment */ "plugin-id-3")
                 id("plugin-id-4" /* block comment */ )
                 id("plugin-id-5") /* block comment */
-                id("plugin-id-6") /* block comment */ .version("1.0")
-                id("plugin-id-7"). /* block comment */ version("1.0")
-                id("plugin-id-8") /* block comment */ version "1.0"
-                id("plugin-id-9") version /* block comment */ "1.0"
             """,
             PluginRequestSpec("plugin-id-1"),
             PluginRequestSpec("plugin-id-2"),
             PluginRequestSpec("plugin-id-3"),
             PluginRequestSpec("plugin-id-4"),
             PluginRequestSpec("plugin-id-5"),
+        )
+    }
+
+    @Test
+    fun `id version - comment - block inline`() {
+        assertStaticInterpretationOf(
+            """
+                id("plugin-id-6") /* block comment */ .version("1.0")
+                id("plugin-id-7"). /* block comment */ version("1.0")
+                id("plugin-id-8") /* block comment */ version "1.0"
+                id("plugin-id-9") version /* block comment */ "1.0"
+            """,
             PluginRequestSpec("plugin-id-6", version = "1.0"),
             PluginRequestSpec("plugin-id-7", version = "1.0"),
             PluginRequestSpec("plugin-id-8", version = "1.0"),
@@ -250,7 +259,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `comment - block multiline`() {
+    fun `id - comment - block multiline`() {
         assertStaticInterpretationOf(
             """
 
@@ -274,6 +283,21 @@ class PluginsBlockInterpreterTest {
                 block
                 comment */
 
+                id("plugin-id-11")
+            """,
+            PluginRequestSpec("plugin-id-1"),
+            PluginRequestSpec("plugin-id-2"),
+            PluginRequestSpec("plugin-id-3"),
+            PluginRequestSpec("plugin-id-4"),
+            PluginRequestSpec("plugin-id-5"),
+            PluginRequestSpec("plugin-id-11"),
+        )
+    }
+
+    @Test
+    fun `id version - comment - block multiline`() {
+        assertStaticInterpretationOf(
+            """
                 id("plugin-id-6") /* multiline
                 block
                 comment */ .version("1.0")
@@ -295,17 +319,11 @@ class PluginsBlockInterpreterTest {
                 comment */
                 id("plugin-id-11")
             """,
-            PluginRequestSpec("plugin-id-1"),
-            PluginRequestSpec("plugin-id-2"),
-            PluginRequestSpec("plugin-id-3"),
-            PluginRequestSpec("plugin-id-4"),
-            PluginRequestSpec("plugin-id-5"),
             PluginRequestSpec("plugin-id-6", version = "1.0"),
             PluginRequestSpec("plugin-id-7", version = "1.0"),
             PluginRequestSpec("plugin-id-8", version = "1.0"),
             PluginRequestSpec("plugin-id-9", version = "1.0"),
             PluginRequestSpec("plugin-id-10", version = "1.0"),
-            PluginRequestSpec("plugin-id-11"),
         )
     }
 
@@ -348,7 +366,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `comment - kdoc inline with version`() {
+    fun `id version - comment - kdoc inline`() {
         assertStaticInterpretationOf(
             """
                 id("plugin-id-6") /** kdoc comment */ .version("1.0")
@@ -364,7 +382,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `comment - kdoc multiline`() {
+    fun `id - comment - kdoc multiline`() {
         assertStaticInterpretationOf(
             """
 
