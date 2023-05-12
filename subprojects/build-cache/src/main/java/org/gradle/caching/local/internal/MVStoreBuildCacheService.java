@@ -20,50 +20,47 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.StatefulNextGenBuildCacheService;
+import org.gradle.caching.local.internal.mvstore.MVStoreLruStreamMap;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.StreamStore;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Map;
 
 public class MVStoreBuildCacheService implements StatefulNextGenBuildCacheService {
 
+    private final int maxConcurrency;
     private MVStore mvStore;
-    private Map<String, byte[]> keys;
-    private StreamStore data;
+    private MVStoreLruStreamMap lruStreamMap;
     private final Path dbPath;
 
-    public MVStoreBuildCacheService(Path dbPath) {
+    public MVStoreBuildCacheService(Path dbPath, int maxConcurrency) {
         this.dbPath = dbPath;
+        this.maxConcurrency = maxConcurrency;
     }
 
     @Override
     public void open() {
         mvStore = new MVStore.Builder()
-            .fileName(dbPath.resolve("filestore").toString())
+            .fileName(dbPath.resolve("filestore.mvstore.db").toString())
             .autoCompactFillRate(0)
             .open();
-        keys = mvStore.openMap("keys");
-        Map<Long, byte[]> dataMap = mvStore.openMap("data");
-        data = new StreamStore(dataMap);
+        lruStreamMap = new MVStoreLruStreamMap(mvStore, maxConcurrency);
     }
 
     @Override
     public boolean contains(BuildCacheKey key) {
-        return keys.containsKey(key.getHashCode());
+        return lruStreamMap.containsKey(key);
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        byte[] id = keys.get(key.getHashCode());
-        if (id == null) {
+        try (InputStream inputStream = lruStreamMap.get(key)) {
+            if (inputStream != null) {
+                reader.readFrom(inputStream);
+                return true;
+            }
             return false;
-        }
-        try (InputStream inputStream = data.get(id)) {
-            reader.readFrom(inputStream);
-            return true;
         } catch (IOException e) {
             throw new BuildCacheException("loading " + key, e);
         }
@@ -71,11 +68,9 @@ public class MVStoreBuildCacheService implements StatefulNextGenBuildCacheServic
 
     @Override
     public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
-        keys.computeIfAbsent(key.getHashCode(), k -> {
-            try (InputStream input = writer.openStream()) {
-                byte[] id = data.put(input);
-                keys.put(key.getHashCode(), id);
-                return id;
+        lruStreamMap.putIfAbsent(key, () -> {
+            try {
+                return writer.openStream();
             } catch (IOException e) {
                 throw new BuildCacheException("storing " + key, e);
             }

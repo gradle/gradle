@@ -293,7 +293,7 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         return (a < b) ? -1 : ((a == b) ? 0 : 1);
     }
 
-    private static int compareBytes(byte[] a, byte[] b) {
+    public static int compareBytes(byte[] a, byte[] b) {
         int result;
         int len1 = a.length;
         int len2 = b.length;
