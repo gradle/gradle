@@ -67,7 +67,7 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
         describer.type(H2_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath());
 
-        StatefulNextGenBuildCacheService buildCacheService = new MVStoreBuildCacheService(target.toPath());
+        StatefulNextGenBuildCacheService buildCacheService = new MVStoreBuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount());
         return new LockOnDemandCrossProcessBuildCacheService("build-cache-2", target, lockManager, buildCacheService);
     }
 

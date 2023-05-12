@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal
 
+
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.service.StoreTarget
@@ -32,7 +33,7 @@ class MVStoreBuildCacheServiceTest extends Specification {
     MVStoreBuildCacheService service
 
     def setup() {
-        service = new MVStoreBuildCacheService(dbDir.toPath())
+        service = new MVStoreBuildCacheService(dbDir.toPath(), 20)
         service.open()
     }
 
@@ -41,7 +42,7 @@ class MVStoreBuildCacheServiceTest extends Specification {
     }
 
     BuildCacheKey key = Mock(BuildCacheKey) {
-        getHashCode() >> "1234abcd"
+        toByteArray() >> "1234abcd".bytes
     }
 
     def "can write to h2"() {
@@ -78,7 +79,7 @@ class MVStoreBuildCacheServiceTest extends Specification {
         service.close()
 
         expect:
-        def newService = new MVStoreBuildCacheService(dbDir.toPath())
+        def newService = new MVStoreBuildCacheService(dbDir.toPath(), 20)
         newService.open()
         newService.load(key, new BuildCacheEntryReader() {
             @Override
