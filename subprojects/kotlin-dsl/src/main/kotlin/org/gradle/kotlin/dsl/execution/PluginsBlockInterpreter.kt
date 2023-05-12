@@ -40,8 +40,8 @@ sealed class PluginsBlockInterpretation {
 internal
 fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
     val blockString = program.fragment.blockString
-    return when (val r = pluginsBlockParser.parse(blockString)) {
-        is ParserResult.Failure -> PluginsBlockInterpretation.Dynamic(r.reason + " in `$blockString`")
+    return when (val r = pluginsBlockParser(blockString)) {
+        is ParserResult.Failure -> PluginsBlockInterpretation.Dynamic(r.reason)
         is ParserResult.Success -> PluginsBlockInterpretation.Static(
             r.result.let { (ids, id) ->
                 buildList {

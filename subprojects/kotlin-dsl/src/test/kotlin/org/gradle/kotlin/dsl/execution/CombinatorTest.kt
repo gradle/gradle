@@ -27,96 +27,96 @@ class CombinatorTest {
     @Test
     fun `can parse symbols`() {
         val parser = symbol("foo")
-        assertThat(
-            parser.parse("foo"),
-            equalTo(ParserResult.Success(Unit))
-        )
-        assertThat(
-            parser.parse("bar"),
-            equalTo(ParserResult.Failure("Expecting symbol 'foo', got 'IDENTIFIER'"))
+        assertSuccess(parser("foo"))
+        assertFailure(
+            parser("bar"),
+            "Expecting symbol 'foo', got 'bar'"
         )
     }
 
     @Test
     fun `can parse sequence of symbols`() {
         val parser = symbol("foo") + symbol("bar")
-        assertThat(
-            parser.parse("foo bar"),
-            equalTo(ParserResult.Success(Unit))
-        )
-        assertThat(
-            parser.parse("foo /*comment*/  bar"),
-            equalTo(ParserResult.Success(Unit))
-        )
+        assertSuccess(parser("foo bar"))
+        assertSuccess(parser("foo /*comment*/  bar"))
     }
 
     @Test
     fun `can parse many symbols`() {
         val parser = many(symbol("foo"))
-        assertThat(
-            parser.parse("foo"),
-            equalTo(ParserResult.Success(listOf(Unit)))
+        assertSuccess(
+            parser("foo"),
+            listOf(Unit)
         )
-        assertThat(
-            parser.parse("foo foo"),
-            equalTo(ParserResult.Success(listOf(Unit, Unit)))
+        assertSuccess(
+            parser("foo foo"),
+            listOf(Unit, Unit)
         )
     }
 
     @Test
     fun `can parse many symbols before another symbol`() {
         val parser = many(symbol("foo")) + symbol("bar")
-        assertThat(
-            parser.parse("foo bar"),
-            equalTo(ParserResult.Success(listOf(Unit)))
+        assertSuccess(
+            parser("foo bar"),
+            listOf(Unit)
         )
-        assertThat(
-            parser.parse("foo foo bar"),
-            equalTo(ParserResult.Success(listOf(Unit, Unit)))
+        assertSuccess(
+            parser("foo foo bar"),
+            listOf(Unit, Unit)
         )
     }
 
     @Test
     fun `can fail many symbols`() {
         val parser = many(symbol("foo"))
-        assertThat(
-            parser.parse("foofoo"),
-            equalTo(ParserResult.Success(listOf()))
+        assertSuccess(
+            parser("foofoo"),
+            listOf()
         )
     }
 
     @Test
     fun `can fail on sequence of symbols`() {
         val parser = symbol("foo") + symbol("bar")
-        assertThat(
-            parser.parse("foo"),
-            equalTo(ParserResult.Failure("Expecting symbol 'bar', got 'null'"))
-        )
-        assertThat(
-            parser.parse("bar"),
-            equalTo(ParserResult.Failure("Expecting symbol 'foo', got 'IDENTIFIER'"))
-        )
-        assertThat(
-            parser.parse("foobar"),
-            equalTo(ParserResult.Failure("Expecting symbol 'foo', got 'IDENTIFIER'"))
-        )
+        assertFailure(parser("foo"), "Expecting symbol 'bar', got ''")
+        assertFailure(parser("bar"), "Expecting symbol 'foo', got 'bar'")
+        assertFailure(parser("foobar"), "Expecting symbol 'foo', got 'foobar'")
     }
 
     @Test
     fun `can parse tokens`() {
         val parser = token(KtTokens.OPEN_QUOTE)
-        assertThat(
-            parser.parse("\""),
-            equalTo(ParserResult.Success(Unit))
-        )
+        assertSuccess(parser("\""))
     }
 
     @Test
     fun `can parse string literals`() {
         val parser = stringLiteral()
+        assertSuccess(
+            parser("\"foo\""),
+            "foo"
+        )
+    }
+
+    private
+    fun assertFailure(parse: ParserResult<Unit>, reason: String) {
         assertThat(
-            parser.parse("\"foo\""),
-            equalTo(ParserResult.Success("foo"))
+            parse,
+            equalTo(ParserResult.Failure(reason))
+        )
+    }
+
+    private
+    fun assertSuccess(result: ParserResult<Unit>) {
+        assertSuccess(result, Unit)
+    }
+
+    private
+    fun <T> assertSuccess(result: ParserResult<T>, expected: T) {
+        assertThat(
+            result,
+            equalTo(ParserResult.Success(expected))
         )
     }
 }

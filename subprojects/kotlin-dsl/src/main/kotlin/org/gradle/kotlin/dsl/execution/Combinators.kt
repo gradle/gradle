@@ -33,7 +33,7 @@ fun <T, R> Parser<T>.map(crossinline f: (T) -> R): Parser<R> {
 }
 
 
-fun <T> Parser<T>.parse(input: String) =
+operator fun <T> Parser<T>.invoke(input: String) =
     KotlinLexer().let { lexer ->
         lexer.start(input)
         this(lexer)
