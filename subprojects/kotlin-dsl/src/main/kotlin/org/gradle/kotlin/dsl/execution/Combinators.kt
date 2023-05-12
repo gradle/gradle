@@ -120,8 +120,8 @@ fun symbol(s: String): Parser<Unit> = {
     if (tokenType == KtTokens.IDENTIFIER && tokenText == s) {
         advance()
         skipWhitespace(false)
-        ParserResult.Success(Unit)
-    } else failure("Expecting symbol '$s', got '$tokenType'")
+        unitSuccess
+    } else failure("Expecting symbol '$s', got '$tokenText'")
 }
 
 
@@ -144,7 +144,7 @@ fun <T> token(token: KtToken, f: KotlinLexer.() -> T): Parser<T> = {
         }
 
         else -> {
-            failure("Expecting token '$token', got '$tokenType'")
+            failure("Expecting token '$token', got '$tokenText'")
         }
     }
 }
@@ -152,13 +152,13 @@ fun <T> token(token: KtToken, f: KotlinLexer.() -> T): Parser<T> = {
 
 fun ws(): Parser<Unit> = {
     skipWhitespace(false)
-    ParserResult.Success(Unit)
+    unitSuccess
 }
 
 
 fun wsOrNewLine(): Parser<Unit> = {
     skipWhitespace(true)
-    ParserResult.Success(Unit)
+    unitSuccess
 }
 
 
@@ -167,7 +167,7 @@ fun <T : Any> optional(parser: Parser<T>): Parser<T?> = {
     when (val r = parser()) {
         is ParserResult.Failure -> {
             restore(mark)
-            ParserResult.Success(null)
+            nullSuccess
         }
 
         is ParserResult.Success -> r
@@ -197,31 +197,40 @@ private
 fun KotlinLexer.statementSeparator_(): ParserResult<Unit> {
     var seenSeparator = false
     while (tokenType != null) {
-        if (tokenType == KtTokens.WHITE_SPACE) {
-            if (hasNewLine()) {
+        when (tokenType) {
+            KtTokens.WHITE_SPACE -> {
+                if (hasNewLine()) {
+                    seenSeparator = true
+                }
+                advance()
+            }
+
+            KtTokens.SEMICOLON -> {
+                advance()
                 seenSeparator = true
             }
-            advance()
-        } else if (tokenType == KtTokens.SEMICOLON) {
-            advance()
-            seenSeparator = true
-        } else if (tokenType in KtTokens.COMMENTS) {
-            advance()
-        } else {
-            break
+
+            in KtTokens.COMMENTS -> {
+                advance()
+            }
+
+            else -> {
+                break
+            }
         }
     }
-    return if (seenSeparator) ParserResult.Success(Unit)
+    return if (seenSeparator) unitSuccess
     else failure("Expecting <STATEMENT SEPARATOR>")
 }
 
 
 private
-fun KotlinLexer.hasNewLine() = '\n' in tokenSequence
+fun KotlinLexer.hasNewLine() =
+    '\n' in tokenSequence
 
 
-fun KotlinLexer.failure(reason: String): ParserResult.Failure =
-    ParserResult.Failure("$reason-->${currentPosition.offset}:`$tokenSequence`")
+fun failure(reason: String): ParserResult.Failure =
+    ParserResult.Failure(reason)
 
 
 sealed interface ParserResult<out T> {
@@ -235,3 +244,11 @@ fun <R, T> ParserResult<T>.map(f: (T) -> R): ParserResult<R> = when (this) {
     is ParserResult.Failure -> this
     is ParserResult.Success -> ParserResult.Success(f(result))
 }
+
+
+private
+val unitSuccess = ParserResult.Success(Unit)
+
+
+private
+val nullSuccess = ParserResult.Success(null)
