@@ -1,9 +1,12 @@
 
 The Gradle team is excited to announce Gradle @version@.
 
-This is the first patch release for Gradle 7.6.
+This is the second patch release for Gradle 7.6.
 
 It fixes the following issues:
+* TODO
+
+Issues fixed in the first patch release:
 * [#19065](https://github.com/gradle/gradle/issues/19065) Platform dependencies not possible in dependency block of test suite plugin
 * [#22688](https://github.com/gradle/gradle/issues/22688) Increased memory usage (with -p option)
 * [#22796](https://github.com/gradle/gradle/issues/22796) Building gradle itself fails during toolchain download: permission denied copying a file within `.gradle/jdks`
