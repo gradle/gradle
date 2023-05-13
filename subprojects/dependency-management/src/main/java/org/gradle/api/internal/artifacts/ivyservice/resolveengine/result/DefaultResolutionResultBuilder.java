@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
@@ -42,7 +44,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,10 +51,10 @@ import java.util.Set;
 
 public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor {
     private static final DefaultComponentSelectionDescriptor DEPENDENCY_LOCKING = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"));
-    private final Map<Long, DefaultResolvedComponentResult> components = new HashMap<>();
+    private final Long2ObjectMap<DefaultResolvedComponentResult> components = new Long2ObjectOpenHashMap<>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
     private AttributeContainer requestedAttributes;
-    private Long id;
+    private long id;
     private ComponentSelectionReason selectionReason;
     private ComponentIdentifier componentId;
     private ModuleVersionIdentifier moduleVersion;
@@ -75,7 +76,7 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
         requestedAttributes = attributes;
     }
 
-    public ResolutionResult complete(Long rootId) {
+    public ResolutionResult complete(long rootId) {
         return new DefaultResolutionResult(new RootFactory(components.get(rootId)), requestedAttributes);
     }
 
@@ -111,9 +112,10 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
             components.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, ImmutableMap.copyOf(selectedVariants), allVariants, repoId));
         }
         selectedVariants.clear();
+        allVariants = null;
     }
 
-    public void visitOutgoingEdges(Long fromComponentId, Collection<? extends ResolvedGraphDependency> dependencies) {
+    public void visitOutgoingEdges(long fromComponentId, Collection<? extends ResolvedGraphDependency> dependencies) {
         DefaultResolvedComponentResult fromComponent = components.get(fromComponentId);
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
@@ -124,7 +126,7 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
             if (d.getFailure() != null) {
                 dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), fromComponent, d.isConstraint(), d.getReason(), d.getFailure());
             } else {
-                DefaultResolvedComponentResult selectedComponent = components.get(d.getSelected());
+                DefaultResolvedComponentResult selectedComponent = components.get(d.getSelected().longValue());
                 if (selectedComponent == null) {
                     throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
                 }
@@ -145,7 +147,7 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
         }
     }
 
-    public void addExtraFailures(Long rootId, Set<UnresolvedDependency> extraFailures) {
+    public void addExtraFailures(long rootId, Set<UnresolvedDependency> extraFailures) {
         DefaultResolvedComponentResult root = components.get(rootId);
         for (UnresolvedDependency failure : extraFailures) {
             ModuleVersionSelector failureSelector = failure.getSelector();
