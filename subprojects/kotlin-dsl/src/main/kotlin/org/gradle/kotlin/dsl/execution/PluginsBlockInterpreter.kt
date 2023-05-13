@@ -43,12 +43,10 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
     return when (val r = pluginsBlockParser(blockString)) {
         is ParserResult.Failure -> PluginsBlockInterpretation.Dynamic(r.reason)
         is ParserResult.Success -> PluginsBlockInterpretation.Static(
-            r.result.let { (ids, id) ->
+            r.result.let { (specs, spec) ->
                 buildList {
-                    addAll(ids.map { ResidualProgram.PluginRequestSpec(it) })
-                    id?.let { id ->
-                        add(ResidualProgram.PluginRequestSpec(id))
-                    }
+                    addAll(specs)
+                    spec?.let { add(it) }
                 }
             }
         )
@@ -56,7 +54,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
 }
 
 
-internal
+private
 fun pluginId() =
     symbol("id") +
         token(LPAR) + ws() +
@@ -64,9 +62,15 @@ fun pluginId() =
         token(RPAR)
 
 
-internal
+private
+val pluginSpec = pluginId().map {
+    ResidualProgram.PluginRequestSpec(it)
+}
+
+
+private
 val pluginsBlockParser =
     token(LBRACE) + wsOrNewLine() +
-        many(pluginId() + statementSeparator()) +
-        optional(ws() + pluginId()) +
-        ws() + token(RBRACE)
+        many(pluginSpec + statementSeparator()) +
+        optional(pluginSpec + wsOrNewLine()) +
+        token(RBRACE)
