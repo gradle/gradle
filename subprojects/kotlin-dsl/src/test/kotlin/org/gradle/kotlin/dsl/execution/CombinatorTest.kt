@@ -30,7 +30,7 @@ class CombinatorTest {
         assertSuccess(parser("foo"))
         assertFailure(
             parser("bar"),
-            "Expecting symbol 'foo', got 'bar'"
+            "Expecting symbol 'foo'"
         )
     }
 
@@ -79,9 +79,9 @@ class CombinatorTest {
     @Test
     fun `can fail on sequence of symbols`() {
         val parser = symbol("foo") + symbol("bar")
-        assertFailure(parser("foo"), "Expecting symbol 'bar', got ''")
-        assertFailure(parser("bar"), "Expecting symbol 'foo', got 'bar'")
-        assertFailure(parser("foobar"), "Expecting symbol 'foo', got 'foobar'")
+        assertFailure(parser("foo"), "Expecting symbol 'bar'")
+        assertFailure(parser("bar"), "Expecting symbol 'foo'")
+        assertFailure(parser("foobar"), "Expecting symbol 'foo'")
     }
 
     @Test
