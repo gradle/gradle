@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.CapabilitiesResolution;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.DependencyResolveDetails;
-import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
@@ -29,6 +28,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -42,8 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.Actions;
-import org.gradle.internal.Cast;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.rules.SpecRuleAction;
@@ -226,13 +225,17 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public Action<DependencySubstitution> getDependencySubstitutionRule() {
+    public ImmutableActionSet<DependencySubstitutionInternal> getDependencySubstitutionRule() {
+        ImmutableActionSet<DependencySubstitutionInternal> result = ImmutableActionSet.empty();
         Set<ModuleVersionSelector> forcedModules = getForcedModules();
-        Action<DependencySubstitution> moduleForcingResolveRule = Cast.uncheckedCast(forcedModules.isEmpty() ? Actions.doNothing() : new ModuleForcingResolveRule(forcedModules));
-        Action<DependencySubstitution> localDependencySubstitutionsAction = this.dependencySubstitutions.getRuleAction();
-        Action<DependencySubstitution> globalDependencySubstitutionRulesAction = (useGlobalDependencySubstitutionRules.get() ?
-           globalDependencySubstitutionRules :  DependencySubstitutionRules.NO_OP).getRuleAction();
-        return Actions.composite(moduleForcingResolveRule, localDependencySubstitutionsAction, globalDependencySubstitutionRulesAction);
+        if (!forcedModules.isEmpty()) {
+            result = result.add(new ModuleForcingResolveRule(forcedModules));
+        }
+        result = result.add(dependencySubstitutions.getRuleAction());
+        if (useGlobalDependencySubstitutionRules.get()) {
+            result = result.add(globalDependencySubstitutionRules.getRuleAction());
+        }
+        return result;
     }
 
     @Override

@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
+import org.gradle.internal.ImmutableActionSet;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
@@ -43,7 +43,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * @return the dependency substitution rule (may aggregate multiple rules)
      */
-    Action<DependencySubstitution> getDependencySubstitutionRule();
+    ImmutableActionSet<DependencySubstitutionInternal> getDependencySubstitutionRule();
 
     /**
      * Used by tests to validate behaviour of the 'task graph modified' state
