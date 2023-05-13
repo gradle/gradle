@@ -64,7 +64,9 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndInde
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.SelectedVariantSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -519,7 +521,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
             AttributeDesugaring attributeDesugaring,
             WorkerLeaseService workerLeaseService,
-            ResolveExceptionContextualizer resolveExceptionContextualizer
+            ResolveExceptionContextualizer resolveExceptionContextualizer,
+            ComponentDetailsSerializer componentDetailsSerializer,
+            SelectedVariantSerializer selectedVariantSerializer
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 artifactDependencyResolver,
@@ -549,7 +553,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 projectDependencyResolver,
                 componentSelectionDescriptorFactory,
                 workerLeaseService,
-                resolveExceptionContextualizer
+                resolveExceptionContextualizer,
+                componentDetailsSerializer,
+                selectedVariantSerializer
             );
 
             return new ErrorHandlingConfigurationResolver(
