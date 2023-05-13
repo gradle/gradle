@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -33,10 +36,11 @@ public class ThisBuildOnlyComponentDetailsSerializer implements ComponentDetails
     private final ConcurrentMap<Long, ComponentGraphResolveState> components = new ConcurrentHashMap<>();
 
     @Override
-    public void writeComponentDetails(ComponentGraphResolveState component, Encoder encoder) throws IOException {
+    public void writeComponentDetails(ComponentGraphResolveState component, boolean requireAllVariants, Encoder encoder) throws IOException {
         long instanceId = component.getInstanceId();
         components.putIfAbsent(instanceId, component);
         encoder.writeSmallLong(instanceId);
+        encoder.writeBoolean(requireAllVariants);
     }
 
     @Override
@@ -47,5 +51,13 @@ public class ThisBuildOnlyComponentDetailsSerializer implements ComponentDetails
             throw new IllegalStateException("No component with id " + instanceId + " found.");
         }
         visitor.visitComponentDetails(component.getId(), component.getMetadata().getModuleVersionId(), component.getRepositoryId());
+        List<ResolvedVariantResult> availableVariants;
+        if (decoder.readBoolean()) {
+            // use all available variants
+            availableVariants = component.getAllSelectableVariantResults();
+        } else {
+            availableVariants = ImmutableList.of();
+        }
+        visitor.visitComponentVariants(availableVariants);
     }
 }
