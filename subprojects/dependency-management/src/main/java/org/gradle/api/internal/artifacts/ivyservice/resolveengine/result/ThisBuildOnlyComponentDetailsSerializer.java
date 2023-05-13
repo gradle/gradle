@@ -17,23 +17,26 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * A serializer used for resolution results that will be consumed from the same Gradle invocation that produces them.
  *
  * <p>Writes a reference to the {@link ComponentGraphResolveState} instance to build the result from, rather than persisting the associated data.</p>
  */
+@ThreadSafe
 public class ThisBuildOnlyComponentDetailsSerializer implements ComponentDetailsSerializer {
-    private final ConcurrentMap<Long, ComponentGraphResolveState> components = new ConcurrentHashMap<>();
+    private final Long2ObjectMap<ComponentGraphResolveState> components = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
     @Override
     public void writeComponentDetails(ComponentGraphResolveState component, boolean requireAllVariants, Encoder encoder) throws IOException {
