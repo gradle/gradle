@@ -71,18 +71,19 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private AttributeContainer rootAttributes;
     private boolean mayHaveVirtualPlatforms;
 
-    public StreamingResolutionResultBuilder(BinaryStore store,
-                                            Store<ResolvedComponentResult> cache,
-                                            AttributeContainerSerializer attributeContainerSerializer,
-                                            AttributeDesugaring desugaring,
-                                            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                            boolean returnAllVariants) {
+    public StreamingResolutionResultBuilder(
+        BinaryStore store,
+        Store<ResolvedComponentResult> cache,
+        AttributeContainerSerializer attributeContainerSerializer,
+        AttributeDesugaring desugaring,
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        boolean returnAllVariants
+    ) {
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
-        ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
         this.dependencyResultSerializer = new DependencyResultSerializer(componentSelectionDescriptorFactory);
         ComponentDetailsSerializer componentDetailsSerializer = new ThisBuildOnlyComponentDetailsSerializer();
         SelectedVariantSerializer selectedVariantSerializer = new ThisBuildOnlySelectedVariantSerializer();
-        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, selectedVariantSerializer, resolvedVariantResultSerializer, componentSelectionDescriptorFactory, returnAllVariants);
+        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, selectedVariantSerializer, componentSelectionDescriptorFactory, returnAllVariants);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
@@ -200,7 +201,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
         private ResolvedComponentResult deserialize(Decoder decoder) {
             componentSelectorSerializer.reset();
-            componentResultSerializer.reset();
             int valuesRead = 0;
             byte type = -1;
             Timer clock = Time.startTimer();

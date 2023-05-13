@@ -44,4 +44,9 @@ public interface ResolvedComponentVisitor {
      * Visit the graph dependent details of the component.
      */
     void visitComponentVariants(List<ResolvedVariantResult> allVariants);
+
+    /**
+     * Finishes visiting a component.
+     */
+    void endVisitComponent();
 }
