@@ -139,6 +139,12 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
+    public void discard() {
+        substitutionRules = ImmutableActionSet.empty();
+        rulesMayAddProjectDependency = false;
+    }
+
+    @Override
     public boolean rulesMayAddProjectDependency() {
         return rulesMayAddProjectDependency;
     }

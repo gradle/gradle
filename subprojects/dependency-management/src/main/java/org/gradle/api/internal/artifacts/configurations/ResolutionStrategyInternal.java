@@ -25,6 +25,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.Capabilit
 import org.gradle.internal.ImmutableActionSet;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
+    /**
+     * Discard any configuration state that is not required after graph resolution has been attempted.
+     */
+    void discardStateRequiredForGraphResolution();
 
     /**
      * Gets the current expiry policy for dynamic revisions.
