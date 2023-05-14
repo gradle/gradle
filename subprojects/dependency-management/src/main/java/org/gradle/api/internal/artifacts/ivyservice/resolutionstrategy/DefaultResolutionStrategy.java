@@ -120,6 +120,11 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    public void discardStateRequiredForGraphResolution() {
+        dependencySubstitutions.discard();
+    }
+
+    @Override
     public void setMutationValidator(MutationValidator validator) {
         mutationValidator = validator;
         cachePolicy.setMutationValidator(validator);
