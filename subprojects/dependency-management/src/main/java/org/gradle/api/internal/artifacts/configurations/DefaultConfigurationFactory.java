@@ -19,11 +19,13 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -53,13 +55,15 @@ public class DefaultConfigurationFactory {
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
+    private final DependencyLockingProvider dependencyLockingProvider;
     private final DomainObjectContext domainObjectContext;
     private final FileCollectionFactory fileCollectionFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
-    private final DocumentationRegistry documentationRegistry;
+    private final ResolveExceptionContextualizer exceptionContextualizer;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerThreadRegistry workerThreadRegistry;
@@ -73,12 +77,14 @@ public class DefaultConfigurationFactory {
         ConfigurationResolver resolver,
         ListenerManager listenerManager,
         DependencyMetaDataProvider metaDataProvider,
+        ComponentIdentifierFactory componentIdentifierFactory,
+        DependencyLockingProvider dependencyLockingProvider,
         DomainObjectContext domainObjectContext,
         FileCollectionFactory fileCollectionFactory,
         BuildOperationExecutor buildOperationExecutor,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
         ImmutableAttributesFactory attributesFactory,
-        DocumentationRegistry documentationRegistry,
+        ResolveExceptionContextualizer exceptionContextualizer,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
@@ -90,13 +96,15 @@ public class DefaultConfigurationFactory {
         this.resolver = resolver;
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
+        this.componentIdentifierFactory = componentIdentifierFactory;
+        this.dependencyLockingProvider = dependencyLockingProvider;
         this.domainObjectContext = domainObjectContext;
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
-        this.documentationRegistry = documentationRegistry;
+        this.exceptionContextualizer = exceptionContextualizer;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
@@ -112,35 +120,41 @@ public class DefaultConfigurationFactory {
         String name,
         ConfigurationsProvider configurationsProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
+        RootComponentMetadataBuilder rootComponentMetadataBuilder,
+        ConfigurationRole role,
+        boolean lockUsage
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
-            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+                listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         return instantiator.newInstance(
-            DefaultConfiguration.class,
-            domainObjectContext,
-            name,
-            configurationsProvider,
-            resolver,
-            dependencyResolutionListeners,
-            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
-            metaDataProvider,
-            resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationExecutor,
-            instantiator,
-            artifactNotationParser,
-            capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            documentationRegistry,
-            userCodeApplicationContext,
-            projectStateRegistry,
-            workerThreadRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueContainerFactory,
-            this,
-            taskDependencyFactory
+                DefaultConfiguration.class,
+                domainObjectContext,
+                name,
+                configurationsProvider,
+                resolver,
+                dependencyResolutionListeners,
+                listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
+                metaDataProvider,
+                componentIdentifierFactory,
+                dependencyLockingProvider,
+                resolutionStrategyFactory,
+                fileCollectionFactory,
+                buildOperationExecutor,
+                instantiator,
+                artifactNotationParser,
+                capabilityNotationParser,
+                attributesFactory,
+                rootComponentMetadataBuilder,
+                exceptionContextualizer,
+                userCodeApplicationContext,
+                projectStateRegistry,
+                workerThreadRegistry,
+                domainObjectCollectionFactory,
+                calculatedValueContainerFactory,
+                this,
+                taskDependencyFactory,
+                role,
+                lockUsage
         );
     }
 }

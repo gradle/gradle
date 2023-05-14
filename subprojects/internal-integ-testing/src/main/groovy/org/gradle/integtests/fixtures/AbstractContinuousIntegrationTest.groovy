@@ -200,7 +200,7 @@ ${result.error}
             throw new RuntimeException("""Timeout waiting for build to complete. Output:
 $lastOutput
 
-Error: 
+Error:
 ${gradle.errorOutput}
 
 Look for additional thread dump files in the following folder: $temporaryFolder
@@ -314,7 +314,7 @@ Look for additional thread dump files in the following folder: $temporaryFolder
         }
     }
 
-    private waitForNotRunning() {
+    void waitForNotRunning() {
         ConcurrentTestUtil.poll(WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS) {
             assert !gradle.running
         }

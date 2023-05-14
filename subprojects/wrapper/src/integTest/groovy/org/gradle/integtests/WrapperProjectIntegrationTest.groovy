@@ -64,8 +64,9 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
         }
         projectDir.file("build.gradle") << """
             task assertProjectDirHasMeta {
+                def dirName = provider { projectDir.name }
                 doLast {
-                    assert projectDir.name == 'foo\$bar-baz'
+                    assert  dirName.get() == 'foo\$bar-baz'
                 }
             }
         """

@@ -296,7 +296,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
-        def compileJava = project.tasks['compileCustomJava']
+        def compileJava = project.tasks['compileCustomJava'] as JavaCompile
         compileJava.options.annotationProcessorGeneratedSourcesDirectory = generatedSourcesDir
 
         then:

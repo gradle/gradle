@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.scala
 
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -36,7 +36,7 @@ class Scala3PluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         task instanceof ScalaDoc
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
+        task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileScala')
         task.destinationDir == project.file("$project.docsDir/scaladoc")
         // This assertion is a little tricky, because `task.source` is an empty list since we didn't compile these files, so we check here if [] == []
         task.source as List  == project.sourceSets.main.output.findAll { it.name.endsWith(".tasty") } as List // We take output of main (with tasty files)

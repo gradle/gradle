@@ -30,7 +30,7 @@ fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
 
 
 internal
-fun BuildOperationExecutor.withStoreOperation(cacheKey: String, block: () -> Unit) =
+fun BuildOperationExecutor.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> Unit) =
     withOperation("Store configuration cache state", block, StoreDetails, StoreResult)
 
 

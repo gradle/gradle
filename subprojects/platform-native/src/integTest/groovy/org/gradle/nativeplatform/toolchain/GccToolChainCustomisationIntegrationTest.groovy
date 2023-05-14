@@ -22,8 +22,8 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
@@ -109,7 +109,7 @@ model {
         executable("build/exe/main/sparc/main").exec().out == helloWorldApp.englishOutput
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "can configure tool executables"() {
         def binDir = testDirectory.createDir("bin")
@@ -138,7 +138,7 @@ model {
         executable("build/exe/main/main").exec().out == helloWorldApp.frenchOutput
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "can configure platform specific executables"() {
         def binDir = testDirectory.createDir("bin")
@@ -208,7 +208,7 @@ model {
         executable("build/exe/execTest/alwaysFrench/execTest").exec().out == "C compiler used"
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "can configure setTargets with alternate toolchain"() {
         def binDir = testDirectory.createDir("bin")

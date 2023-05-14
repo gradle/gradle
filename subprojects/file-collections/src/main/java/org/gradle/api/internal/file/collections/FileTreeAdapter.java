@@ -30,6 +30,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -37,10 +38,22 @@ import java.util.function.Consumer;
  */
 public final class FileTreeAdapter extends AbstractFileTree {
     private final MinimalFileTree tree;
+    private final FileCollectionObservationListener listener;
 
-    public FileTreeAdapter(MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    public FileTreeAdapter(MinimalFileTree tree, FileCollectionObservationListener listener, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
         super(taskDependencyFactory, patternSetFactory);
         this.tree = tree;
+        this.listener = listener;
+    }
+
+    public FileTreeAdapter(MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        this(tree, fileCollection -> {}, taskDependencyFactory, patternSetFactory);
+    }
+
+    @Override
+    public Set<File> getFiles() {
+        listener.fileCollectionObserved(this);
+        return super.getFiles();
     }
 
     public MinimalFileTree getTree() {
@@ -85,9 +98,9 @@ public final class FileTreeAdapter extends AbstractFileTree {
     public FileTreeInternal matching(PatternFilterable patterns) {
         if (tree instanceof PatternFilterableFileTree) {
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
-            return new FileTreeAdapter(filterableTree.filter(patterns), taskDependencyFactory, patternSetFactory);
+            return new FileTreeAdapter(filterableTree.filter(patterns), listener, taskDependencyFactory, patternSetFactory);
         } else if (tree instanceof FileSystemMirroringFileTree) {
-            return new FileTreeAdapter(new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree), taskDependencyFactory, patternSetFactory);
+            return new FileTreeAdapter(new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree), listener, taskDependencyFactory, patternSetFactory);
         }
         throw new UnsupportedOperationException(String.format("Do not know how to filter %s.", tree));
     }

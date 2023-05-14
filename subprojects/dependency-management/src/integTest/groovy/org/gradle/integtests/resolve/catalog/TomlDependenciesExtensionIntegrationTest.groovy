@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -37,7 +36,6 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogInt
 
     TestFile tomlFile = testDirectory.file("gradle/libs.versions.toml")
 
-    @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
         tomlFile << """[libraries]
 foo = "org.gradle.test:lib:1.0"
@@ -47,8 +45,8 @@ foo = "org.gradle.test:lib:1.0"
             apply plugin: 'java-library'
 
             tasks.register("verifyExtension") {
+                def lib = libs.foo
                 doLast {
-                    def lib = libs.foo
                     assert lib instanceof Provider
                     def dep = lib.get()
                     assert dep instanceof MinimalExternalModuleDependency
@@ -760,7 +758,7 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
         then:
         verifyContains(failure.error, parseError {
             inCatalog('libs')
-            addError('At line 3, column 1: Unexpected \'/\', expected a newline or end-of-input')
+            addError("In file '${tomlFile.absolutePath}' at line 3, column 1: Unexpected \'/\', expected a newline or end-of-input")
         })
     }
 

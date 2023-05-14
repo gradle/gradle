@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager
-import org.gradle.cache.PersistentIndexedCache
+
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator
+import org.gradle.cache.IndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.file.FileAccessTracker
@@ -37,15 +38,15 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass())
 
-    ArtifactCacheLockingManager cacheLockingManager = Mock(ArtifactCacheLockingManager)
+    ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator = Mock(ArtifactCacheLockingAccessCoordinator)
     BuildCommencedTimeProvider timeProvider = Mock(BuildCommencedTimeProvider)
-    PersistentIndexedCache persistentIndexedCache = Mock(PersistentIndexedCache)
+    IndexedCache persistentIndexedCache = Mock(IndexedCache)
     CachedArtifact cachedArtifact = Stub(CachedArtifact)
     FileAccessTracker fileAccessTracker = Stub(FileAccessTracker)
     String persistentCacheFile = "cacheFile"
     Path commonRootPath = folder.createDir("common").toPath()
 
-    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager, fileAccessTracker, commonRootPath)
+    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheAccessCoordinator, fileAccessTracker, commonRootPath)
 
     def "storing null artifactFile not supported"() {
         given:
@@ -70,7 +71,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def "stored artifact is put into persistentIndexedCache"() {
         given:
-        1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
+        1 * cacheAccessCoordinator.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
         def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
         def testFile = folder.createFile("aTestFile")
 
@@ -78,7 +79,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
         index.store(key, testFile, TestHashCodes.hashCodeFrom(10))
 
         then:
-        1 * cacheLockingManager.useCache(_) >> { Runnable action -> action.run() }
+        1 * cacheAccessCoordinator.useCache(_) >> { Runnable action -> action.run() }
         1 * timeProvider.currentTime >> 123
         1 * persistentIndexedCache.put(key, _) >> { k, v ->
             assert v.cachedAt == 123
@@ -164,8 +165,8 @@ class DefaultModuleArtifactCacheTest extends Specification {
     }
 
     def createEntryInPersistentCache() {
-        1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
-        1 * cacheLockingManager.useCache(_) >> { Factory<?> factory -> factory.create()}
+        1 * cacheAccessCoordinator.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
+        1 * cacheAccessCoordinator.useCache(_) >> { Factory<?> factory -> factory.create()}
         def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
         1 * persistentIndexedCache.getIfPresent(key) >> cachedArtifact
         key

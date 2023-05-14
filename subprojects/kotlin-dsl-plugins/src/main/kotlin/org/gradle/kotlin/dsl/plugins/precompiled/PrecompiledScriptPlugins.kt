@@ -22,14 +22,14 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.internal.Factory
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 
 /**
@@ -54,7 +54,10 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
     class Target(override val project: Project) : PrecompiledScriptPluginsSupport.Target {
 
         override val jvmTarget: Provider<JavaVersion> =
-            project.the<KotlinDslPluginOptions>().jvmTarget.map { JavaVersion.toVersion(it) }
+            DeprecationLogger.whileDisabled(Factory {
+                @Suppress("DEPRECATION")
+                project.kotlinDslPluginOptions.jvmTarget.map { JavaVersion.toVersion(it) }
+            })!!
 
         override val kotlinSourceDirectorySet: SourceDirectorySet
             get() = project.sourceSets["main"].kotlin
@@ -62,11 +65,15 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 }
 
 
+val Project.kotlinDslPluginOptions: KotlinDslPluginOptions
+    get() = extensions.getByType()
+
+
 private
-val Project.sourceSets
-    get() = project.the<SourceSetContainer>()
+val Project.sourceSets: SourceSetContainer
+    get() = extensions.getByType()
 
 
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = @Suppress("deprecation") withConvention(KotlinSourceSet::class) { kotlin }
+    get() = extensions.getByName("kotlin") as SourceDirectorySet

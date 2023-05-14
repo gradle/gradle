@@ -7,6 +7,8 @@ description = "The collector project for the 'jvm' portion of the Gradle distrib
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
 
+    agentsRuntimeOnly(project(":instrumentation-agent"))
+
     pluginsRuntimeOnly(platform(project(":distributions-basics")))
 
     pluginsRuntimeOnly(project(":scala"))

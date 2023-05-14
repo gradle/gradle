@@ -18,7 +18,9 @@ package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.invocation.Gradle
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.fileOperationsFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
 
@@ -29,6 +31,14 @@ import org.gradle.kotlin.dsl.support.serviceOf
  */
 @Deprecated("Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0")
 open class PrecompiledInitScript(target: Gradle) : @Suppress("deprecation") InitScriptApi(target) {
+
+    init {
+        DeprecationLogger.deprecateBehaviour("Applying a Kotlin DSL precompiled script plugin published with Gradle versions < 6.0.")
+            .withAdvice("Use a version of the plugin published with Gradle >= 6.0.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
+            .nagUser()
+    }
 
     override val fileOperations by lazy { fileOperationsFor(delegate, null) }
 

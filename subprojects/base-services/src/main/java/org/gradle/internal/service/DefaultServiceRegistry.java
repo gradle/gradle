@@ -73,6 +73,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * org.gradle.internal.concurrent.Stoppable} then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called. Instances are closed in reverse dependency order.</p>
  *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
+ *
+ * <p>Service interfaces should be annotated with {@link org.gradle.internal.service.scopes.ServiceScope} to indicate their intended usage.</p>
+ *
+ * <p>Service interfaces can be annotated with {@link org.gradle.internal.service.scopes.StatefulListener} to indicate that services instances that implement the interface should
+ * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
+ * registered as a listener.</p>
  */
 public class DefaultServiceRegistry implements ServiceRegistry, Closeable, ContainsServices {
     private enum State {INIT, STARTED, CLOSED}
@@ -497,8 +503,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             collectProvidersForClassHierarchy(inspector, serviceProvider.serviceClass, serviceProvider);
             services.add(serviceProvider);
             for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
-                if (inspector.hasAnnotation(serviceProvider.serviceClass, annotationHandler.getAnnotation())) {
-                    annotationHandler.whenRegistered(new RegistrationWrapper(serviceProvider));
+                for (Class<? extends Annotation> annotation : annotationHandler.getAnnotations()) {
+                    if (inspector.hasAnnotation(serviceProvider.serviceClass, annotation)) {
+                        annotationHandler.whenRegistered(annotation, new RegistrationWrapper(serviceProvider));
+                    }
                 }
             }
         }
@@ -534,10 +542,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
             }
             for (AnnotatedServiceLifecycleHandler lifecycleHandler : lifecycleHandlers) {
-                boolean implementationHasAnnotation = inspector.hasAnnotation(instance.getClass(), lifecycleHandler.getAnnotation());
-                boolean declaredWithAnnotation = inspector.hasAnnotation(serviceType, lifecycleHandler.getAnnotation());
-                if (implementationHasAnnotation && !declaredWithAnnotation) {
-                    throw new IllegalStateException(String.format("%s is annotated with @%s but is not declared as a service with this annotation. This service is declared as having type %s.", serviceProvider.getDisplayName(), format(lifecycleHandler.getAnnotation()), format(serviceType)));
+                for (Class<? extends Annotation> annotation : lifecycleHandler.getAnnotations()) {
+                    boolean implementationHasAnnotation = inspector.hasAnnotation(instance.getClass(), annotation);
+                    boolean declaredWithAnnotation = inspector.hasAnnotation(serviceType, annotation);
+                    if (implementationHasAnnotation && !declaredWithAnnotation) {
+                        throw new IllegalStateException(String.format("%s is annotated with @%s but is not declared as a service with this annotation. This service is declared as having type %s.", serviceProvider.getDisplayName(), format(annotation), format(serviceType)));
+                    }
                 }
             }
         }
@@ -545,8 +555,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
             lifecycleHandlers.add(annotationHandler);
             for (SingletonService candidate : services) {
-                if (inspector.hasAnnotation(candidate.serviceClass, annotationHandler.getAnnotation())) {
-                    annotationHandler.whenRegistered(new RegistrationWrapper(candidate));
+                for (Class<? extends Annotation> annotation : annotationHandler.getAnnotations()) {
+                    if (inspector.hasAnnotation(candidate.serviceClass, annotation)) {
+                        annotationHandler.whenRegistered(annotation, new RegistrationWrapper(candidate));
+                    }
                 }
             }
         }

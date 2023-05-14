@@ -15,15 +15,28 @@
  */
 package org.gradle.api.plugins.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.specs.Spec;
 
-import static org.gradle.api.plugins.JavaBasePlugin.UNPUBLISHABLE_VARIANT_ARTIFACTS;
+import java.util.Set;
 
 public class JavaConfigurationVariantMapping implements Action<ConfigurationVariantDetails> {
+
+    /**
+     * A list of known artifact types which are known to prevent from
+     * publication.
+     */
+    public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = ImmutableSet.of(
+        ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+        ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
+        ArtifactTypeDefinition.DIRECTORY_TYPE
+    );
+
     private final String scope;
     private final boolean optional;
 

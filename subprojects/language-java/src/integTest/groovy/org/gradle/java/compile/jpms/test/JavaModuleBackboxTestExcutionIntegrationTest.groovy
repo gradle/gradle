@@ -17,7 +17,8 @@
 package org.gradle.java.compile.jpms.test
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTestingIntegrationTest {
@@ -71,10 +72,7 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
     def "runs JUnit5 blackbox test as module using the module path"() {
         given:
         buildFile << """
-            test { useJUnitPlatform() }
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
-            }
+            testing.suites.test.useJUnitJupiter()
         """
 
         when:
@@ -111,7 +109,7 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
     // In all places where we support Java Modules, we do not check if we actually run on Java 9 or later.
     // Instead, we just let javac/java/javadoc fail. We could improve by checking ourselves and throwing a different error.
     // But we should do that in all places then.
-    @Requires(adhoc = { AvailableJavaHomes.getJdk8() })
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
     def "fails testing a Java module on Java 8"() {
         given:
         buildFile << """

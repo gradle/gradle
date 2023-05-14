@@ -24,6 +24,18 @@ import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "configuration cache is out of incubation"() {
+        given:
+        settingsFile << ""
+
+        when:
+        run("help", "--configuration-cache")
+
+        then:
+        result.assertHasPostBuildOutput("Configuration cache entry stored.")
+        !output.contains("Configuration cache is an incubating feature.")
+    }
+
     def "configuration cache for Help plugin task '#task' on empty project"() {
         given:
         settingsFile.createFile()
@@ -185,15 +197,6 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         configurationCache.assertStateLoaded()
-    }
-
-    private static String removeVfsLogOutput(String normalizedOutput) {
-        normalizedOutput
-            .replaceAll(/Received \d+ file system events .*\n/, '')
-            .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
-            .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
-            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
-            .replaceAll(/Virtual file system .*\n/, '')
     }
 
     def "can request to recreate the cache"() {

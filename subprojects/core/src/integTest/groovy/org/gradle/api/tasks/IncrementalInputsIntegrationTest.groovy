@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.work.Incremental
 import spock.lang.Issue
@@ -215,7 +214,6 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
         executesNonIncrementally()
     }
 
-    @ToBeFixedForConfigurationCache(because = "File.exists() called at configuration time is not tracked as an input")
     def "incremental task is informed that all input files are 'out-of-date' when input file property has been removed"() {
         given:
         buildFile << """

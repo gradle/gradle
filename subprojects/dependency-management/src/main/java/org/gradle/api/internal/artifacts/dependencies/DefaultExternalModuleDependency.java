@@ -21,22 +21,24 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 
+import javax.annotation.Nullable;
+
 public class DefaultExternalModuleDependency extends AbstractExternalModuleDependency implements ExternalModuleDependency {
 
     public DefaultExternalModuleDependency(String group, String name, String version) {
         this(group, name, version, null);
     }
 
-    public DefaultExternalModuleDependency(String group, String name, String version, String configuration) {
+    public DefaultExternalModuleDependency(String group, String name, String version, @Nullable String configuration) {
         super(assertModuleId(group, name), version, configuration);
     }
 
-    public DefaultExternalModuleDependency(ModuleIdentifier id, MutableVersionConstraint versionConstraint) {
-        super(id, versionConstraint);
+    public DefaultExternalModuleDependency(ModuleIdentifier id, MutableVersionConstraint versionConstraint, @Nullable String configuration) {
+        super(id, versionConstraint, configuration);
     }
 
     @Override
-    public DefaultExternalModuleDependency copy() {
+    public ExternalModuleDependency copy() {
         DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getTargetConfiguration());
         copyTo(copiedModuleDependency);
         return copiedModuleDependency;

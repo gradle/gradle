@@ -46,6 +46,7 @@ dependencies {
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":dependency-management"))
@@ -67,4 +68,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

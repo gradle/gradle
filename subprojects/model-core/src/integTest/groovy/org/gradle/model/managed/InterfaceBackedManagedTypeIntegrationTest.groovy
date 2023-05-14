@@ -18,13 +18,13 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
 // Fail since build 125
-@Requires(TestPrecondition.JDK8_OR_EARLIER)
+@Requires(UnitTestPreconditions.Jdk8OrEarlier)
 @Issue('https://github.com/gradle/gradle/issues/721')
 @UnsupportedWithConfigurationCache(because = "software model")
 class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec {

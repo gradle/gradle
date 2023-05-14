@@ -18,8 +18,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.escapeString
@@ -147,7 +147,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // https://github.com/rzwitserloot/lombok/issues/2681
-    @Requires(TestPrecondition.JDK15_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk15OrEarlier)
     def "can use external annotation processor for Java class, from processor path"() {
         given:
         buildFile << basicScalaProject()
@@ -181,7 +181,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     static String annotationProcessorDependency(File repoDir, String processorDependency) {
         """
-            sourceCompatibility = '1.7'
+            java.sourceCompatibility = '1.7'
 
             repositories {
                 maven {
@@ -266,7 +266,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
                 group = '$group'
                 version = '$version'
-                sourceCompatibility = '1.7'
+                java.sourceCompatibility = '1.7'
 
                 publishing {
                    publications {

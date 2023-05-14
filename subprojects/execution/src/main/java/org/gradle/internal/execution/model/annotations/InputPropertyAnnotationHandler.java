@@ -53,7 +53,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validateUnsupportedInputPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
-        Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
+        Class<?> valueType = propertyMetadata.getDeclaredType().getRawType();
         validateNotDirectoryType(propertyMetadata, validationContext, valueType);
         validateNotFileType(propertyMetadata, validationContext, valueType);
         validateNotPrimitiveType(propertyMetadata, validationContext, valueType);

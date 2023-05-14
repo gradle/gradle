@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
@@ -139,6 +140,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         val target = mock<Settings>()
         val programHost = safeMockProgramHost()
         val scriptHost = scriptHostWith(target)
+        val stage2ProgramId = ProgramId(stage2SettingsTemplateId, sourceHash, mock())
 
         withExecutableProgramFor(
             Dynamic(Static(CloseTargetScope), source),
@@ -163,16 +165,14 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             program.loadSecondStageFor(
                 programHost,
                 scriptHost,
-                stage2SettingsTemplateId,
-                sourceHash,
+                stage2ProgramId,
                 ClassPath.EMPTY
             )
 
             verify(programHost).compileSecondStageOf(
                 program,
                 scriptHost,
-                stage2SettingsTemplateId,
-                sourceHash,
+                stage2ProgramId,
                 ProgramKind.TopLevel,
                 ProgramTarget.Settings,
                 ClassPath.EMPTY
@@ -553,13 +553,12 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                 )
 
                 verify(programHost).compileSecondStageOf(
-                    program,
-                    scriptHost,
-                    scriptTemplateId,
-                    sourceHash,
-                    ProgramKind.TopLevel,
-                    programTarget,
-                    accessorsClassPath
+                    same(program),
+                    same(scriptHost),
+                    argThat { this.sourceHash == sourceHash && this.templateId == scriptTemplateId },
+                    same(ProgramKind.TopLevel),
+                    same(programTarget),
+                    same(accessorsClassPath)
                 )
 
                 verifyNoMoreInteractions()
@@ -596,13 +595,12 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                 )
 
                 verify(programHost).compileSecondStageOf(
-                    program,
-                    scriptHost,
-                    scriptTemplateId,
-                    sourceHash,
-                    ProgramKind.TopLevel,
-                    programTarget,
-                    accessorsClassPath
+                    same(program),
+                    same(scriptHost),
+                    argThat { this.sourceHash == sourceHash && this.templateId == scriptTemplateId },
+                    same(ProgramKind.TopLevel),
+                    same(programTarget),
+                    same(accessorsClassPath)
                 )
 
                 verifyNoMoreInteractions()
@@ -625,13 +623,14 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         }
 
         val scriptTemplateId = "Project/TopLevel/stage2"
+        val programId = ProgramId(scriptTemplateId, sourceHash, mock())
 
         private
         fun verifyStandardOutput(program: ExecutableProgram) {
             assertStandardOutputOf(expectedStage1Output) {
                 program.execute(programHost, scriptHost)
                 if (program is ExecutableProgram.StagedProgram) {
-                    program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash, accessorsClassPath)
+                    program.loadSecondStageFor(programHost, scriptHost, programId, accessorsClassPath)
                 }
             }
         }

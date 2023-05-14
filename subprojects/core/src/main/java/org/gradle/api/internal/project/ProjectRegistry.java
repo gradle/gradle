@@ -39,6 +39,4 @@ public interface ProjectRegistry<T extends ProjectIdentifier> {
     Set<T> getSubProjects(String path);
 
     Set<T> findAll(Spec<? super T> constraint);
-
-    void discardAll();
 }

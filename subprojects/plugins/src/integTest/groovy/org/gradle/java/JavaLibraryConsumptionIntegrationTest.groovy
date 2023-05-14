@@ -29,10 +29,16 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation 'io.reactivex:rxnetty:0.4.4'
             }
+
+            def displayNamesOf(config) {
+                provider { config.incoming.resolutionResult.allDependencies*.requested.displayName }
+            }
             task checkForRxJavaDependency {
+                def runtimeClasspathNames = displayNamesOf(configurations.runtimeClasspath)
+                def compileClasspathNames = displayNamesOf(configurations.compileClasspath)
                 doLast {
-                    assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
-                    assert !configurations.compileClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
+                    assert runtimeClasspathNames.get().find { it == 'io.reactivex:rxjava:1.0.1' }
+                    assert !compileClasspathNames.get().find { it == 'io.reactivex:rxjava:1.0.1' }
                 }
             }
         """
@@ -54,7 +60,7 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 consumer {
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
                     attributes {
                         // intentionally not complete
@@ -71,8 +77,9 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register("resolve") {
+                def files = provider { configurations.consumer.files }
                 doLast {
-                    println configurations.consumer.files
+                    println files.get()
                 }
             }
         """

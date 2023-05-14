@@ -18,10 +18,11 @@ package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.GpgCmdFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.SigningTestPreconditions
 import org.junit.Rule
 
 class SigningSamplesSpec extends AbstractSampleIntegrationTest {
@@ -33,7 +34,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/conditional')
-    @ToBeFixedForConfigurationCache
     def "conditional signing with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -53,8 +53,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/gnupg-signatory')
-    @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
-    @ToBeFixedForConfigurationCache
+    @Requires(SigningTestPreconditions.GpgAvailable)
     def "use gnupg signatory with dsl #dsl"() {
         setup:
         def projectDir = sample.dir.file(dsl)
@@ -64,7 +63,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         inDirectory(projectDir)
 
         and:
-        run "signArchives"
+        run "signRuntimeElements"
 
         then:
         projectDir.file("build/libs/gnupg-signatory-1.0.jar.asc").assertExists()
@@ -77,7 +76,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/maven-publish')
-    @ToBeFixedForConfigurationCache
     def "publish attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -114,7 +112,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/in-memory')
-    @ToBeFixedForConfigurationCache
     def "uses in-memory PGP keys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)
@@ -135,7 +132,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/in-memory-subkey')
-    @ToBeFixedForConfigurationCache
     def "uses in-memory PGP subkeys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)

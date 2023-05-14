@@ -9,13 +9,34 @@
 }
 
 #fixed-issues-list li:before,
-.table-of-contents ul li:before,
 .topic ul li:before {
   color: #02303A;
   content: '\002022';
   font: 0.9em bold sans-serif;
   margin-left: -1em;
   margin-right: 0.4em;
+}
+
+li.mainTopic :before {
+  color: #02303A;
+  content: '\002022';
+  font: 0.9em bold sans-serif;
+  margin-left: -1em;
+  margin-right: 0.4em;
+}
+
+li.subTopic :before {
+  color: #02303A;
+  content: '\002022';
+  font: 0.9em bold sans-serif;
+  margin-left: 3em;
+  margin-right: 0.4em;
+}
+
+h4 {
+  margin-top: 1rem;
+  font-size: 1.0625rem;
+  font-style: italic;
 }
 
 pre {

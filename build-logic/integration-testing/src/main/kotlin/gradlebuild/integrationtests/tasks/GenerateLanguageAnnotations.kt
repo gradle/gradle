@@ -26,7 +26,8 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.submit
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
+import org.gradle.kotlin.dsl.*
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
@@ -48,11 +49,11 @@ abstract class GenerateLanguageAnnotations : DefaultTask() {
     @TaskAction
     fun generateAnnotations() {
         val queue = workerExecutor.classLoaderIsolation {
-            classpath.setFrom(classpath)
+            classpath = this@GenerateLanguageAnnotations.classpath
         }
         queue.submit(AnnotationGeneratorWorkAction::class) {
-            packageName.set(this@GenerateLanguageAnnotations.packageName)
-            destDir.set(this@GenerateLanguageAnnotations.destDir)
+            packageName = this@GenerateLanguageAnnotations.packageName
+            destDir = this@GenerateLanguageAnnotations.destDir
         }
     }
 }

@@ -23,7 +23,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -32,9 +31,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -46,13 +43,12 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.concurrent.Callable;
 
 import static java.util.Collections.singleton;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.callable;
 import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
 
 /**
@@ -74,22 +70,23 @@ public abstract class Ear extends Jar {
         generateDeploymentDescriptor = getObjectFactory().property(Boolean.class);
         generateDeploymentDescriptor.convention(true);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
-            (Callable<String>) () -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)
+            callable(() -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME))
         );
-        getMainSpec().appendCachingSafeCopyAction(details -> {
+        getMainSpec().appendCachingSafeCopyAction(action(details -> {
             if (generateDeploymentDescriptor.get()) {
                 checkIfShouldGenerateDeploymentDescriptor(details);
                 recordTopLevelModules(details);
             }
-        });
+        }));
 
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
-        descriptorChild.from((Callable<FileTree>) () -> {
+        // the generated descriptor should only be used if one does not already exist
+        descriptorChild.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
+        descriptorChild.from(callable(() -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
-
             if (descriptor != null && generateDeploymentDescriptor.get()) {
                 if (descriptor.getLibraryDirectory() == null) {
                     descriptor.setLibraryDirectory(getLibDirName());
@@ -104,34 +101,23 @@ public abstract class Ear extends Jar {
                 //  so any captured manifest attribute providers are re-evaluated
                 //  on each run.
                 //  See https://github.com/gradle/configuration-cache/issues/168
-                Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
                 final OutputChangeListener outputChangeListener = outputChangeListener();
                 return fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
-                    file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath())),
-                    outputStream -> {
-                        try {
-                            outputStream.write(cachedDescriptor.get());
-                        } catch (IOException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                    }
+                    action(file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
+                    action(outputStream ->
+                        // delay obtaining contents to account for descriptor changes
+                        // (for instance, due to modules discovered)
+                        descriptor.writeTo(new OutputStreamWriter(outputStream))
+                    )
                 );
             }
 
             return null;
-        });
+        }));
 
         appDir = getObjectFactory().directoryProperty();
-    }
-
-    private Cached<byte[]> cachedContentsOf(DeploymentDescriptor descriptor) {
-        return Cached.of(() -> {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            descriptor.writeTo(new OutputStreamWriter(bytes));
-            return bytes.toByteArray();
-        });
     }
 
     private FileCollectionFactory fileCollectionFactory() {

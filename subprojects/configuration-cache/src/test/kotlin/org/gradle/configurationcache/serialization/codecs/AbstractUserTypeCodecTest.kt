@@ -180,6 +180,8 @@ abstract class AbstractUserTypeCodecTest {
         includedTaskGraph = mock(),
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
-        javaSerializationEncodingLookup = JavaSerializationEncodingLookup()
+        javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
+        flowProviders = mock(),
+        transformationNodeFactory = mock(),
     )
 }

@@ -15,14 +15,15 @@
  */
 package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public class DefaultBuildableModuleComponentMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleComponentMetaDataResolveResult {
+import java.util.function.Function;
+
+public class DefaultBuildableModuleComponentMetaDataResolveResult<T> extends DefaultResourceAwareResolveResult implements BuildableModuleComponentMetaDataResolveResult<T> {
 
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
-    private ModuleComponentResolveMetadata metaData;
+    private T metaData;
     private boolean authoritative;
 
     private void reset(State state) {
@@ -37,14 +38,15 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     }
 
     @Override
-    public void resolved(ModuleComponentResolveMetadata metaData) {
+    public void resolved(T metaData) {
         reset(State.Resolved);
+        this.failure = null;
         this.metaData = metaData;
         authoritative = true;
     }
 
     @Override
-    public void setMetadata(ModuleComponentResolveMetadata metaData) {
+    public void setMetadata(T metaData) {
         assertResolved();
         this.metaData = metaData;
     }
@@ -52,12 +54,15 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     @Override
     public void missing() {
         reset(State.Missing);
+        this.metaData = null;
+        this.failure = null;
         authoritative = true;
     }
 
     @Override
     public void failed(ModuleVersionResolveException failure) {
         reset(State.Failed);
+        this.metaData = null;
         this.failure = failure;
         authoritative = true;
     }
@@ -79,7 +84,7 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     }
 
     @Override
-    public ModuleComponentResolveMetadata getMetaData() throws ModuleVersionResolveException {
+    public T getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
     }
@@ -104,6 +109,22 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     @Override
     public boolean shouldUseGradleMetatada() {
         return state == State.Redirect;
+    }
+
+    public <S> void applyTo(BuildableModuleComponentMetaDataResolveResult<S> target, Function<T, S> resultMapper) {
+        if (state == State.Resolved) {
+            target.resolved(resultMapper.apply(metaData));
+        } else if (state == State.Failed) {
+            target.failed(failure);
+        } else if (state == State.Redirect) {
+            target.redirectToGradleMetadata();
+        } else if (state == State.Missing) {
+            target.missing();
+        } else {
+            throw new IllegalStateException();
+        }
+        target.setAuthoritative(authoritative);
+        applyTo(target);
     }
 
     private void assertHasResult() {

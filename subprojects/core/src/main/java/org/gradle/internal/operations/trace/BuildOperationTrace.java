@@ -20,6 +20,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
+import groovy.json.JsonGenerator;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
@@ -88,6 +89,7 @@ public class BuildOperationTrace implements Stoppable {
 
     private final String basePath;
     private final OutputStream logOutputStream;
+    private final JsonGenerator jsonGenerator = createJsonGenerator();
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
@@ -163,7 +165,7 @@ public class BuildOperationTrace implements Stoppable {
         ClassLoader previousClassLoader = currentThread.getContextClassLoader();
         currentThread.setContextClassLoader(JsonOutput.class.getClassLoader());
         try {
-            String json = JsonOutput.toJson(operation.toMap());
+            String json = jsonGenerator.toJson(operation.toMap());
             try {
                 synchronized (logOutputStream) {
                     logOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
@@ -180,7 +182,7 @@ public class BuildOperationTrace implements Stoppable {
 
     private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
         try {
-            String rawJson = JsonOutput.toJson(BuildOperationTree.serialize(roots));
+            String rawJson = jsonGenerator.toJson(BuildOperationTree.serialize(roots));
             String prettyJson = JsonOutput.prettyPrint(rawJson);
             Files.asCharSink(file(basePath, "-tree.json"), Charsets.UTF_8).write(prettyJson);
         } catch (OutOfMemoryError e) {
@@ -231,12 +233,12 @@ public class BuildOperationTrace implements Stoppable {
 
                         if (record.details != null) {
                             stringBuilder.append(" ");
-                            stringBuilder.append(JsonOutput.toJson(record.details));
+                            stringBuilder.append(jsonGenerator.toJson(record.details));
                         }
 
                         if (record.result != null) {
                             stringBuilder.append(" ");
-                            stringBuilder.append(JsonOutput.toJson(record.result));
+                            stringBuilder.append(jsonGenerator.toJson(record.result));
                         }
 
                         stringBuilder.append(" [");
@@ -393,4 +395,20 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
+    private static JsonGenerator createJsonGenerator() {
+        return new JsonGenerator.Options()
+            .addConverter(new JsonGenerator.Converter() {
+                @Override
+                public boolean handles(Class<?> type) {
+                    return Class.class.equals(type);
+                }
+
+                @Override
+                public Object convert(Object value, String key) {
+                    Class<?> clazz = (Class<?>) value;
+                    return clazz.getName();
+                }
+            })
+            .build();
+    }
 }

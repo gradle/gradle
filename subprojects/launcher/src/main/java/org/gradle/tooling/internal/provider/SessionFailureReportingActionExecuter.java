@@ -52,7 +52,7 @@ public class SessionFailureReportingActionExecuter implements BuildActionExecute
             // TODO - wire this stuff in properly
 
             // Sanitise the exception and report it
-            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(null));
+            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser((stack, fromException) -> null));
             if (action.getStartParameter().getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
                 exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
             }

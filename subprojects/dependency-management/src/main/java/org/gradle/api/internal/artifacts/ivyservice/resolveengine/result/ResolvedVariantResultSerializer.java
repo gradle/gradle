@@ -28,10 +28,15 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A serializer for {@link ResolvedVariantResult} that is not thread safe and not reusable.
+ */
+@NotThreadSafe
 public class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResult> {
     private final Map<ResolvedVariantResult, Integer> written = Maps.newHashMap();
     private final List<ResolvedVariantResult> read = Lists.newArrayList();

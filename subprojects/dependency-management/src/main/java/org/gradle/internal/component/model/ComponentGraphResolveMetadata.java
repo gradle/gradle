@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Optional;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -25,6 +23,7 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -45,7 +44,6 @@ public interface ComponentGraphResolveMetadata {
 
     ModuleVersionIdentifier getModuleVersionId();
 
-    @Nullable
     AttributesSchemaInternal getAttributesSchema();
 
     boolean isChanging();
@@ -61,17 +59,8 @@ public interface ComponentGraphResolveMetadata {
     ConfigurationGraphResolveMetadata getConfiguration(String name);
 
     /**
-     * Returns the synthetic dependencies for the root configuration with the supplied name.
-     * Synthetic dependencies are dependencies which are an internal implementation detail of Gradle,
-     * used for example in dependency locking or consistent resolution. They are not "real" dependencies
-     * in the sense that they are not added by users, and they are not always used during resolution
-     * based on which phase of execution we are (task dependencies, execution, ...)
-     *
-     * @param configuration the name of the configuration for which to get the synthetic dependencies
-     * @return the synthetic dependencies of the requested configuration
+     * Returns the platforms that this component belongs to.
      */
-    List<? extends DependencyMetadata> getSyntheticDependencies(String configuration);
-
     List<? extends VirtualComponentIdentifier> getPlatformOwners();
 
     @Nullable

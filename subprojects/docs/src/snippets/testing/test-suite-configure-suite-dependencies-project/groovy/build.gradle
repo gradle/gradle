@@ -38,11 +38,6 @@ testing {
                 implementation project() // <3>
             }
         }
-        customUnitTest(JvmTestSuite) {
-            dependencies {
-                implementation projectInternalView() // <4>
-            }
-        }
     }
 }
 // end::configure-suite-dependencies-project[]

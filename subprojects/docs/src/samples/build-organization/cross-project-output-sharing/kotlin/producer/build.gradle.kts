@@ -7,7 +7,6 @@ val makeFile = tasks.register("makeFile") {
 }
 
 val sharedConfiguration by configurations.creating {
-    isCanBeConsumed = true
     isCanBeResolved = false
 }
 

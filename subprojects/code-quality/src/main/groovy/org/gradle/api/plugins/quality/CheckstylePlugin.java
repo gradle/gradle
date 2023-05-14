@@ -45,7 +45,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
-    public static final String DEFAULT_CHECKSTYLE_VERSION = "8.45.1";
+    public static final String DEFAULT_CHECKSTYLE_VERSION = "9.3";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
     private CheckstyleExtension extension;
 
@@ -113,7 +113,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         ProviderFactory providers = project.getProviders();
         Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
         task.getReports().all(action(report -> {
-            report.getRequired().convention(true);
+            report.getRequired().convention(!report.getName().equals("sarif"));
             report.getOutputLocation().convention(
                 layout.getProjectDirectory().file(providers.provider(() -> {
                     String reportFileName = baseName + "." + report.getName();

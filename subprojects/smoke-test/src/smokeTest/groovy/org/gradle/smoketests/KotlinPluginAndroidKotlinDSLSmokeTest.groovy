@@ -16,15 +16,16 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@LocalOnly(because = "Needs Android environment")
 class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER, AGP_NO_CC_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example-kotlin-dsl (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()
@@ -41,14 +42,16 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = createRunner(workers, kotlinPluginVersion, 'clean', ':app:testDebugUnitTestCoverage')
-
+        def runner = createRunner(workers, kotlinPluginVersion, androidPluginVersion, 'clean', ':app:testDebugUnitTestCoverage')
         def result = useAgpVersion(androidPluginVersion, runner)
             .deprecations(KotlinAndroidDeprecations) {
                 expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
                 expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
                 expectReportDestinationPropertyDeprecation(androidPluginVersion)
                 expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersion)
+                if (GradleContextualExecuter.isConfigCache() || VersionNumber.parse(kotlinPluginVersion) >= VersionNumber.parse("1.8.0")) {
+                    expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
+                }
             }.build()
 
         then:
@@ -57,8 +60,8 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
 //  and comment out the lines coming after
-//        kotlinPluginVersion = TestedVersions.kotlin.versions.last()
-//        androidPluginVersion = TestedVersions.androidGradle.versions.last()
+//        kotlinPluginVersion = TestedVersions.kotlin.latestStable()
+//        androidPluginVersion = TestedVersions.androidGradle.latestStable()
 //        workers = false
 
         [kotlinPluginVersion, androidPluginVersion, workers] << [
@@ -68,7 +71,13 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String... tasks) {
+    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String agpVersion, String... tasks) {
         return KotlinPluginSmokeTest.runnerFor(this, workers, VersionNumber.parse(kotlinVersion), tasks)
+            .deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
+                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                expectBasePluginConventionDeprecation(kotlinVersion, agpVersion)
+                expectProjectConventionDeprecation(kotlinVersion, agpVersion)
+                expectConventionTypeDeprecation(kotlinVersion, agpVersion)
+            }
     }
 }

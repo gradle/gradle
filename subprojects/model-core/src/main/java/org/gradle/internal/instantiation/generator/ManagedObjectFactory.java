@@ -19,6 +19,7 @@ package org.gradle.internal.instantiation.generator;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -92,11 +93,14 @@ public class ManagedObjectFactory {
         if (type.isAssignableFrom(SetProperty.class)) {
             return attachOwner(getObjectFactory().setProperty(paramType), owner, propertyName);
         }
+        if (type.isAssignableFrom(DomainObjectSet.class)) {
+            return attachOwner(getObjectFactory().domainObjectSet(paramType), owner, propertyName);
+        }
         if (type.isAssignableFrom(NamedDomainObjectContainer.class)) {
             return attachOwner(getObjectFactory().domainObjectContainer(paramType), owner, propertyName);
         }
-        if (type.isAssignableFrom(DomainObjectSet.class)) {
-            return attachOwner(getObjectFactory().domainObjectSet(paramType), owner, propertyName);
+        if (type.isAssignableFrom(ExtensiblePolymorphicDomainObjectContainer.class)) {
+            return attachOwner(getObjectFactory().polymorphicDomainObjectContainer(paramType), owner, propertyName);
         }
         throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
     }

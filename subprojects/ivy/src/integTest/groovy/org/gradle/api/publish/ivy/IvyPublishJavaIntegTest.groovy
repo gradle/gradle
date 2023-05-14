@@ -17,8 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 
@@ -35,7 +35,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 """
     }
 
-    @ToBeFixedForConfigurationCache
     void "can publish jar and descriptor to ivy repository"() {
         requiresExternalDependencies = true
         given:
@@ -73,7 +72,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     void "'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin"() {
         given:
         file("settings.gradle") << '''
@@ -138,7 +136,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     }
 
-    @ToBeFixedForConfigurationCache
     void "ignores extra artifacts added to configurations"() {
         given:
         createBuildScripts("""
@@ -169,7 +166,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublishedAsJavaModule()
     }
 
-    @ToBeFixedForConfigurationCache
     void "can publish additional artifacts for java project"() {
         requiresExternalDependencies = true
         given:
@@ -224,7 +220,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("GRADLE-3514")
-    @ToBeFixedForConfigurationCache
     void "generated ivy descriptor includes dependency exclusions"() {
         requiresExternalDependencies = true
 
@@ -316,7 +311,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4356, https://github.com/gradle/gradle/issues/5035")
-    @ToBeFixedForConfigurationCache
     void "generated ivy descriptor includes configuration exclusions"() {
         def exclusion = { name -> "$name-group:$name-module" }
         def exclusions = { conf -> javaLibrary.parsedIvy.exclusions.findAll { it.conf == conf }.collect { it.org + ":" + it.module } }
@@ -370,7 +364,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     void "defaultDependencies are included in published ivy descriptor"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
@@ -381,6 +374,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             group = 'org.gradle.test'
             version = '1.9'
+
+            ${emptyJavaClasspath()}
 
             publishing {
                 repositories {
@@ -409,7 +404,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertApiDependencies("org.test:default-dependency:1.1")
     }
 
-    @ToBeFixedForConfigurationCache
     void "dependency mutations are included in published ivy descriptor"() {
         given:
         settingsFile << "rootProject.name = 'publishTest'"
@@ -420,6 +414,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             group = 'org.gradle.test'
             version = '1.9'
+
+            ${emptyJavaClasspath()}
 
             publishing {
                 repositories {
@@ -455,7 +451,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:X')
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with strict and prefer dependencies"() {
         requiresExternalDependencies = true
 
@@ -523,7 +518,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependency constraints"() {
         requiresExternalDependencies = true
         given:
@@ -608,7 +602,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies without version"() {
         requiresExternalDependencies = true
         given:
@@ -674,7 +667,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies without version and using versionMapping"() {
         requiresExternalDependencies = true
         given:
@@ -736,7 +728,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint"() {
         requiresExternalDependencies = true
         given:
@@ -804,8 +795,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         "latest.release" | "20040616"
     }
 
-
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies with version using versionMapping and not adding revConstraints"() {
         requiresExternalDependencies = true
         given:
@@ -860,8 +849,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with rejected versions"() {
         requiresExternalDependencies = true
 
@@ -934,7 +921,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with capabilities"() {
         given:
         createBuildScripts("""
@@ -972,7 +958,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can ignore publication warnings"() {
         given:
         def silenceMethod = "suppressIvyMetadataWarningsFor"
@@ -1003,7 +988,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can ignore all publication warnings by variant name"() {
         given:
         def silenceMethod = "suppressIvyMetadataWarningsFor"
@@ -1033,7 +1017,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can ignore all publication warnings"() {
         given:
         createBuildScripts("""
@@ -1061,7 +1044,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies/constraints with attributes"() {
         given:
         settingsFile << "include 'utils'\n"
@@ -1103,6 +1085,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
+
+            ${emptyJavaClasspath()}
 
             publishing {
                 publications {
@@ -1147,7 +1131,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("gradle/gradle#5450")
-    @ToBeFixedForConfigurationCache
     def "doesn't fail with NPE if no component is attached to a publication"() {
         createBuildScripts("""
         publishing {
@@ -1167,7 +1150,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         outputContains "Ivy publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
@@ -1196,7 +1178,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         true    | true
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish feature variants (optional: #optional)"() {
         given:
         createBuildScripts """
@@ -1207,6 +1188,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 if ($optional) mapToOptional()
             }
+            ${emptyJavaClasspath()}
             publishing {
                 publications {
                     ivy(IvyPublication) {
@@ -1239,7 +1221,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         optional << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "an optional feature variant can repeat a dependency from a main variant"() {
         given:
         createBuildScripts("""
@@ -1251,6 +1232,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 mapToOptional()
             }
+            ${emptyJavaClasspath()}
             publishing {
                 publications {
                     ivy(IvyPublication) {
@@ -1270,7 +1252,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "a component's variant can be modified before publishing"() {
         given:
         createBuildScripts """
@@ -1278,6 +1259,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 api 'org:foo:1.0'
                 implementation 'org:bar:1.0'
             }
+            ${emptyJavaClasspath()}
             components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
                 skip()
             }
@@ -1311,7 +1293,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
             }
 
@@ -1331,7 +1313,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + variantAttributesLink())
+    }
+
+    private variantAttributesLink() {
+        documentationRegistry.getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category")
     }
 
     def "can not publish variant with attribute specifying category = verification if defining new attribute with string"() {
@@ -1341,7 +1328,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Attribute.of('org.gradle.category', String), 'verification')
             }
 
@@ -1361,7 +1348,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category"))
     }
 
     def "can not publish test results from java test suite"() {
@@ -1406,10 +1394,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('test', 'publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category"))
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish variants with attribute specifying category if value not verification"() {
         given:
         createBuildScripts("""
@@ -1417,7 +1405,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'not verification'))
             }
 
@@ -1469,7 +1457,7 @@ $append
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
@@ -1481,8 +1469,11 @@ $append
                 optionalFeatureRuntimeElements file:file("\$buildDir/other-artifact.jar"), builtBy: 'touchFile', classifier: 'optional-feature'
             }
             task touchFile {
+                // explicit dependency otherwise this task may run before the Jar task
+                dependsOn tasks.jar
+                def file = file("\$buildDir/other-artifact.jar")
                 doLast {
-                    file("\$buildDir/other-artifact.jar") << "test"
+                    file << "test"
                 }
             }
         """

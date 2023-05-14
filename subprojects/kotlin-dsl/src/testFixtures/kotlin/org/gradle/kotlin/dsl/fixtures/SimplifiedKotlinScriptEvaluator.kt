@@ -152,12 +152,11 @@ class SimplifiedKotlinScriptEvaluator(
 
         override fun cachedDirFor(
             scriptHost: KotlinScriptHost<*>,
-            templateId: String,
-            sourceHash: HashCode,
+            programId: ProgramId,
             compilationClassPath: ClassPath,
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
-        ): File = baseCacheDir.resolve(sourceHash.toString()).resolve(templateId).also { cacheDir ->
+        ): File = baseCacheDir.resolve(programId.sourceHash.toString()).resolve(programId.templateId).also { cacheDir ->
             cacheDir.mkdirs()
             initializer(cacheDir)
         }
@@ -165,7 +164,10 @@ class SimplifiedKotlinScriptEvaluator(
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
             scriptCompilationClassPath
 
-        override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+        override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+            ClassPath.EMPTY
+
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             ClassPath.EMPTY
 
         override fun startCompilerOperation(description: String): AutoCloseable =
@@ -206,6 +208,9 @@ class SimplifiedKotlinScriptEvaluator(
 
         override val jvmTarget: JavaVersion
             get() = JavaVersion.current()
+
+        override val allWarningsAsErrors: Boolean
+            get() = false
     }
 }
 

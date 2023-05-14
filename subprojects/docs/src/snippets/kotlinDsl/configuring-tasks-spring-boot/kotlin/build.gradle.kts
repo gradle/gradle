@@ -6,7 +6,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 // tag::accessors[]
 plugins {
     java
-    id("org.springframework.boot") version "2.4.5"
+    id("org.springframework.boot") version "2.7.8"
 }
 
 // end::lazy[]
@@ -15,7 +15,7 @@ plugins {
 // tag::accessors[]
 tasks.bootJar {
     archiveFileName.set("app.jar")
-    mainClassName = "com.example.demo.Demo"
+    mainClass.set("com.example.demo.Demo")
 }
 
 tasks.bootRun {
@@ -27,7 +27,7 @@ tasks.bootRun {
 // tag::lazy[]
 tasks.named<BootJar>("bootJar") {
     archiveFileName.set("app.jar")
-    mainClassName = "com.example.demo.Demo"
+    mainClass.set("com.example.demo.Demo")
 }
 
 tasks.named<BootRun>("bootRun") {

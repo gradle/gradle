@@ -39,21 +39,32 @@ public class DefaultDaemonContext implements DaemonContext {
     private final Long pid;
     private final Integer idleTimeout;
     private final List<String> daemonOpts;
+    private final boolean applyInstrumentationAgent;
     private final DaemonParameters.Priority priority;
 
-    public DefaultDaemonContext(String uid, File javaHome, File daemonRegistryDir, Long pid, Integer idleTimeout, List<String> daemonOpts, DaemonParameters.Priority priority) {
+    public DefaultDaemonContext(
+        String uid,
+        File javaHome,
+        File daemonRegistryDir,
+        Long pid,
+        Integer idleTimeout,
+        List<String> daemonOpts,
+        boolean applyInstrumentationAgent,
+        DaemonParameters.Priority priority
+    ) {
         this.uid = uid;
         this.javaHome = javaHome;
         this.daemonRegistryDir = daemonRegistryDir;
         this.pid = pid;
         this.idleTimeout = idleTimeout;
         this.daemonOpts = daemonOpts;
+        this.applyInstrumentationAgent = applyInstrumentationAgent;
         this.priority = priority;
     }
 
     public String toString() {
-        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,daemonOpts=%s]",
-            uid, javaHome, daemonRegistryDir, pid, idleTimeout, priority, Joiner.on(',').join(daemonOpts));
+        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,applyInstrumentationAgent=%s,daemonOpts=%s]",
+            uid, javaHome, daemonRegistryDir, pid, idleTimeout, priority, applyInstrumentationAgent, Joiner.on(',').join(daemonOpts));
     }
 
     @Override
@@ -87,6 +98,11 @@ public class DefaultDaemonContext implements DaemonContext {
     }
 
     @Override
+    public boolean shouldApplyInstrumentationAgent() {
+        return applyInstrumentationAgent;
+    }
+
+    @Override
     public DaemonParameters.Priority getPriority() {
         return priority;
     }
@@ -106,8 +122,9 @@ public class DefaultDaemonContext implements DaemonContext {
             for (int i = 0; i < daemonOptCount; i++) {
                 daemonOpts.add(decoder.readString());
             }
+            boolean applyInstrumentationAgent = decoder.readBoolean();
             DaemonParameters.Priority priority = decoder.readBoolean() ? DaemonParameters.Priority.values()[decoder.readInt()] : null;
-            return new DefaultDaemonContext(uid, javaHome, registryDir, pid, idle, daemonOpts, priority);
+            return new DefaultDaemonContext(uid, javaHome, registryDir, pid, idle, daemonOpts, applyInstrumentationAgent, priority);
         }
 
         @Override
@@ -127,6 +144,7 @@ public class DefaultDaemonContext implements DaemonContext {
             for (String daemonOpt : context.daemonOpts) {
                 encoder.writeString(daemonOpt);
             }
+            encoder.writeBoolean(context.applyInstrumentationAgent);
             encoder.writeBoolean(context.priority != null);
             if (context.priority != null) {
                 encoder.writeInt(context.priority.ordinal());

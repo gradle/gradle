@@ -41,6 +41,11 @@ public class WindowsInstallationSupplier extends AutoDetectingInstallationSuppli
     }
 
     @Override
+    public String getSourceName() {
+        return "Windows Registry";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         if (os.isWindows()) {
             return findInstallationsInRegistry();
@@ -58,7 +63,7 @@ public class WindowsInstallationSupplier extends AutoDetectingInstallationSuppli
             "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Runtime Environment"
         ).stream().map(this::findJvms).flatMap(List::stream);
         return Stream.concat(openJdkInstallations, jvms)
-            .map(javaHome -> new InstallationLocation(new File(javaHome), "Windows Registry"))
+            .map(javaHome -> new InstallationLocation(new File(javaHome), getSourceName()))
             .collect(Collectors.toSet());
     }
 

@@ -81,6 +81,8 @@ ear {
         def ear = new JarTestFixture(file('build/libs/root.ear'))
         ear.assertContainsFile("CUSTOM/lib/earLib.jar")
         ear.assertFileContent("META-INF/application.xml", CoreMatchers.containsString("cool ear"))
+        def appXml = new XmlSlurper().parseText(ear.content('META-INF/application.xml'))
+        appXml.'library-directory'.text() == 'CUSTOM/lib'
     }
 
     void "includes modules in deployment descriptor"() {
@@ -100,7 +102,7 @@ dependencies {
 
         then:
         def appXml = new XmlSlurper().parse(
-                file('unzipped/META-INF/application.xml'))
+            file('unzipped/META-INF/application.xml'))
         def modules = appXml.module
         modules[0].ejb.text() == 'moduleA.jar'
         modules[1].web.'web-uri'.text() == 'moduleB.war'
@@ -176,7 +178,7 @@ apply plugin: 'ear'
 ear {
     ${descriptorConfig}
     deploymentDescriptor {
-        applicationName = 'descriptor modification will not have any affect when application.xml already exists in source'
+        applicationName = 'descriptor modification will not have any effect when application.xml already exists in source'
     }
 }
 """
@@ -191,9 +193,9 @@ ear {
         ear.assertFileContent("META-INF/application.xml", applicationXml)
 
         where:
-        location    | descriptorConfig   | appDirectory
-        "specified" | "appDirName 'app'" | "app"
-        "default"   | ""                 | "src/main/application"
+        location    | descriptorConfig                                                                   | appDirectory
+        "specified" | "tasks.named('ear') { appDirectory = project.layout.projectDirectory.dir('app') }" | "app"
+        "default"   | ""                                                                                 | "src/main/application"
     }
 
     void "works with existing descriptor containing a doctype declaration"() {
@@ -274,7 +276,7 @@ ear {
 
         then:
         def appXml = new XmlSlurper().parse(
-                file('unzipped/META-INF/application.xml'))
+            file('unzipped/META-INF/application.xml'))
         def roles = appXml."security-role"
         roles[0]."role-name".text() == 'superman'
         roles[0].description.text() == 'This is the SUPERMAN role'
@@ -434,6 +436,26 @@ ear {
         def ear = new JarTestFixture(file('build/tmp/ear/test.ear'))
         // default location should be 'lib'
         ear.assertContainsFile("lib/rootLib.jar")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19725")
+    def "can apply ear plugin to empty project"() {
+        given:
+        settingsFile << """
+        rootProject.name = 'empty-project'
+        """
+        buildFile << """
+            apply plugin: 'ear'
+        """
+
+        when:
+        succeeds 'assemble'
+        succeeds 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/empty-project.ear'))
+        ear.assertContainsFile("META-INF/MANIFEST.MF")
+        ear.assertContainsFile("META-INF/application.xml")
     }
 
     def "ear contains runtime classpath of upstream java project"() {

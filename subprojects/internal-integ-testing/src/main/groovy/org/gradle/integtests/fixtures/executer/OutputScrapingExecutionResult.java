@@ -23,7 +23,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
-import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
 import org.spockframework.runtime.SpockAssertionError;
@@ -166,9 +166,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
                 // Remove the "Daemon will be shut down" message
                 i++;
-            } else if (line.contains(LowHeapSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
-                // Remove the "Expiring Daemon" message
-                i++;
+            } else if (line.contains(HealthExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
+                // Remove the "The Daemon will expire" message
+                i+=7;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
                 // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
                 i+=4;

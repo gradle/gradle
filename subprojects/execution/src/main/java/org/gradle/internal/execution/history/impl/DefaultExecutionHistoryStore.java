@@ -19,9 +19,9 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import org.gradle.cache.CacheDecorator;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -38,7 +38,7 @@ import static com.google.common.collect.Maps.transformValues;
 
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
-    private final PersistentIndexedCache<String, PreviousExecutionState> store;
+    private final IndexedCache<String, PreviousExecutionState> store;
 
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,
@@ -53,8 +53,8 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         );
 
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
-        this.store = cache.get().createCache(
-            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer)
+        this.store = cache.get().createIndexedCache(
+            IndexedCacheParameters.of("executionHistory", String.class, serializer)
             .withCacheDecorator(inMemoryCacheDecorator)
         );
     }

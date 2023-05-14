@@ -26,11 +26,16 @@ import java.util.Map;
 
 /**
  * A repository of module components.
+ *
+ * @param <T> the component resolution result type
  */
-public interface ModuleComponentRepository {
+public interface ModuleComponentRepository<T> {
     /**
-     * A unique identifier for this repository, based on it's type and attributes.
-     * Two repositories with the same configuration in different projects will share the same id.
+     * A unique identifier for this repository, based on its type and attributes.
+     * Two repositories with the same configuration will share the same id.
+     * This id is stable across builds on the same machine.
+     *
+     * <p>The name is not encoded in the id, as it is not relevant for resolution. The name is only used for diagnotics.</p>
      */
     String getId();
 
@@ -42,13 +47,13 @@ public interface ModuleComponentRepository {
     /**
      * Accessor that attempts to locate module components without expensive network operations.
      */
-    ModuleComponentRepositoryAccess getLocalAccess();
+    ModuleComponentRepositoryAccess<T> getLocalAccess();
 
     /**
      * Accessor that attempts to locate module components remotely, allowing expensive network operations.
      * This access will be disabled when Gradle is executed with `--offline`.
      */
-    ModuleComponentRepositoryAccess getRemoteAccess();
+    ModuleComponentRepositoryAccess<T> getRemoteAccess();
 
     // TODO - put this somewhere else
     Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache();

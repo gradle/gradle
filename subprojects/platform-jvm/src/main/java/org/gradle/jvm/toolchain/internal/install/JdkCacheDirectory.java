@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.cache.FileLock;
@@ -31,7 +32,7 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
-import org.gradle.jvm.toolchain.internal.JavaToolchainMatcher;
+import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,7 +193,7 @@ public class JdkCacheDirectory {
     private JvmInstallationMetadata getMetadata(File markedLocation) {
         File javaHome = getJavaHome(markedLocation);
 
-        JvmInstallationMetadata metadata = detector.getMetadata(new InstallationLocation(javaHome, "provisioned toolchain"));
+        JvmInstallationMetadata metadata = detector.getMetadata(new InstallationLocation(javaHome, "provisioned toolchain", true));
         if (!metadata.isValidInstallation()) {
             throw new GradleException("Provisioned toolchain '" + javaHome + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
         }
@@ -207,7 +208,7 @@ public class JdkCacheDirectory {
     }
 
     private static void validateMetadataMatchesSpec(JavaToolchainSpec spec, URI uri, JvmInstallationMetadata metadata) {
-        if (!new JavaToolchainMatcher(spec).test(metadata)) {
+        if (!new JvmInstallationMetadataMatcher(spec).test(metadata)) {
             throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + ".");
         }
     }
@@ -233,6 +234,7 @@ public class JdkCacheDirectory {
             operations.copy(spec -> {
                 spec.from(fileTree);
                 spec.into(unpackFolder);
+                spec.setDuplicatesStrategy(DuplicatesStrategy.WARN);
             });
         }
 

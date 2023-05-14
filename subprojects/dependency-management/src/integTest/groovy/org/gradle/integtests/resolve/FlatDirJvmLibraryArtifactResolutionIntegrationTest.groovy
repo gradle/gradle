@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     JvmLibraryArtifactResolveTestFixture fixture
@@ -50,7 +49,6 @@ repositories {
         file("sources/some-artifact-1.0-sources.jar").assertHasChangedSince(snapshot)
     }
 
-    @ToBeFixedForConfigurationCache(because = "locations are missing from exception")
     def "resolves artifacts of non-existing component"() {
         def location1 = file("repo/some-artifact-1.0.jar").toURL()
         def location2 = file("repo/some-artifact.jar").toURL()
@@ -85,7 +83,6 @@ Searched in the following locations:
         succeeds("verify")
     }
 
-    @ToBeFixedForConfigurationCache(because = "locations are missing from exception")
     def "can only resolve component if main artifact exists"() {
         file("repo/some-artifact-1.0-sources.jar").createFile()
         file("repo/some-artifact-1.0-javadoc.jar").createFile()

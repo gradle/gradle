@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.cached
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinatorStub
 import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -33,7 +33,7 @@ class AbstractCachedIndexTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     static final CACHE_NAME = "my-cache"
-    def cacheLockingManager = new ArtifactCacheLockingManagerStub()
+    def cacheAccessCoordinator = new ArtifactCacheLockingAccessCoordinatorStub()
     def fileAccessTracker = Mock(FileAccessTracker)
     def valueSerializer = new Serializer<CachedItem>() {
         @Override
@@ -51,7 +51,7 @@ class AbstractCachedIndexTest extends Specification {
         }
     }
 
-    @Subject AbstractCachedIndex<String, CachedItem> cachedIndex = new AbstractCachedIndex(CACHE_NAME, STRING_SERIALIZER, valueSerializer, cacheLockingManager, fileAccessTracker) {}
+    @Subject AbstractCachedIndex<String, CachedItem> cachedIndex = new AbstractCachedIndex(CACHE_NAME, STRING_SERIALIZER, valueSerializer, cacheAccessCoordinator, fileAccessTracker) {}
 
     def "tracks access to looked up files"() {
         given:
@@ -76,7 +76,7 @@ class AbstractCachedIndexTest extends Specification {
 
         then:
         item == null
-        cacheLockingManager.getCache(CACHE_NAME).getIfPresent("foo") == null
+        cacheAccessCoordinator.getCache(CACHE_NAME).getIfPresent("foo") == null
         0 * fileAccessTracker.markAccessed(_)
     }
 

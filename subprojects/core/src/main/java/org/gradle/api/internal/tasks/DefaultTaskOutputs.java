@@ -24,7 +24,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -50,11 +50,12 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 @NonNullApi
-public class DefaultTaskOutputs implements TaskOutputsInternal {
+public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
+    private boolean storeInCache = true;
     private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
     private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
     private FileCollection previousOutputFiles;
@@ -94,6 +95,17 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Spec)", () -> {
             upToDateSpec = upToDateSpec.and(spec);
         });
+    }
+
+    @Override
+    public boolean getStoreInCache() {
+        return storeInCache;
+    }
+
+    @Override
+    public void doNotStoreInCache() {
+        // Not wrapped in TaskMutator to allow calls during task execution
+        storeInCache = false;
     }
 
     @Override

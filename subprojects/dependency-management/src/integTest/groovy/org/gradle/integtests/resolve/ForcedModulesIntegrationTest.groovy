@@ -19,9 +19,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
+    private ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
 
     def setup() {
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "can force the version of a particular module"() {
@@ -41,8 +42,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.4.4.jar']
+        assert compileClasspath*.name == ['foo-1.4.4.jar']
     }
 }
 """
@@ -70,8 +72,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
+        assert compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
     }
 }
 """
@@ -160,18 +163,6 @@ project(':tool') {
 		implementation project(':api')
 		implementation project(':impl')
 	}
-    task checkDeps {
-        doLast {
-            assert configurations.runtimeClasspath*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
-            def metadata = configurations.runtimeClasspath.resolvedConfiguration
-            def api = metadata.firstLevelModuleDependencies.find { it.moduleName == 'api' }
-            assert api.children.size() == 1
-            assert api.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
-            def impl = metadata.firstLevelModuleDependencies.find { it.moduleName == 'impl' }
-            assert impl.children.size() == 1
-            assert impl.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
-        }
-    }
 }
 
 allprojects {
@@ -184,9 +175,23 @@ allprojects {
 }
 
 """
+        resolve.expectDefaultConfiguration("runtimeElements")
+        resolve.prepare("runtimeClasspath")
 
         expect:
         run(":tool:checkDeps")
+        resolve.expectGraph {
+            root(":tool", "org.foo.unittests:tool:1.0") {
+                project(":api", "org.foo.unittests:api:1.0") {
+                    edge("org:foo:1.4.4", "org:foo:1.5.5") {
+                        forced()
+                    }
+                }
+                project(":impl", "org.foo.unittests:impl:1.0") {
+                    edge("org:foo:1.3.3", "org:foo:1.5.5")
+                }
+            }
+        }
     }
 
     void "latest strategy respects forced modules"() {
@@ -225,8 +230,9 @@ project(':tool') {
 	    }
 	}
     task checkDeps {
+        def runtimeClasspath = configurations.runtimeClasspath
         doLast {
-            assert configurations.runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
+            assert runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
         }
     }
 }
@@ -253,8 +259,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar']
+        assert compileClasspath*.name == ['foo-1.3.3.jar']
     }
 }
 """
@@ -283,8 +290,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.9.jar']
+        assert compileClasspath*.name == ['foo-1.9.jar']
     }
 }
 """

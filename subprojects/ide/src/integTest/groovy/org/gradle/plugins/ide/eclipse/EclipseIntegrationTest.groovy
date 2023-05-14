@@ -21,8 +21,9 @@ import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import org.junit.ComparisonFailure
@@ -131,7 +132,7 @@ sourceSets {
         def classpath = parseClasspathFile()
 
         def outputs = findEntries(classpath, "output")
-        assert outputs*.@path == ["bin/default"]
+        assert outputs*.@path == [EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH]
 
         def sources = findEntries(classpath, "src")
         sources.each { assert !it.attributes().containsKey("path") }
@@ -388,8 +389,10 @@ apply plugin: 'eclipse'
         runEclipseTask '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
+java {
     sourceCompatibility = 1.4
     targetCompatibility = 1.3
+}
 '''
         def jdt = parseJdtFile()
         assert jdt.contains('source=1.4')
@@ -402,8 +405,10 @@ apply plugin: 'eclipse'
         runEclipseTask '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
-sourceCompatibility = 1.4
-targetCompatibility = 1.5
+java {
+    sourceCompatibility = 1.4
+    targetCompatibility = 1.5
+}
 eclipse {
     jdt {
         sourceCompatibility = 1.3

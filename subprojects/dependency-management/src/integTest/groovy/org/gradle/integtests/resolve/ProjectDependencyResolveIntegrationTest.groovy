@@ -138,9 +138,11 @@ project(":b") {
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", 'test:a:') {
+                    notRequested()
                     byReason('can provide a dependency reason for project dependencies too')
                     variant('runtime')
                     module('org.other:externalA:1.2') {
+                        notRequested()
                         byReason('also check dependency reasons')
                         variant('runtime', ['org.gradle.status': 'release', 'org.gradle.category': 'library', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'])
                     }

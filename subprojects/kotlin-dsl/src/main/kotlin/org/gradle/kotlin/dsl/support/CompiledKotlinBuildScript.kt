@@ -26,8 +26,8 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
-
 import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
@@ -57,7 +57,7 @@ open class CompiledKotlinBuildScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit): Unit =
+    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         invalidPluginsCall()
 }
 
@@ -67,7 +67,7 @@ open class CompiledKotlinBuildScript(
  */
 @ImplicitReceiver(Project::class)
 open class CompiledKotlinBuildscriptBlock(
-    host: KotlinScriptHost<Project>
+    private val host: KotlinScriptHost<Project>
 ) : CompiledKotlinBuildScript(host) {
 
     /**
@@ -76,7 +76,7 @@ open class CompiledKotlinBuildscriptBlock(
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScopeInternal(host.target, buildscript).block()
     }
 }
 
@@ -95,7 +95,7 @@ open class CompiledKotlinSettingsBuildscriptBlock(
      * @see [Settings.getBuildscript]
      */
     fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScope(buildscript).block()
     }
 }
 
@@ -133,7 +133,7 @@ open class CompiledKotlinInitscriptBlock(
      * Configures the classpath of the init script.
      */
     fun initscript(block: ScriptHandlerScope.() -> Unit) {
-        initscript.configureWith(block)
+        ScriptHandlerScope(initscript).block()
     }
 }
 

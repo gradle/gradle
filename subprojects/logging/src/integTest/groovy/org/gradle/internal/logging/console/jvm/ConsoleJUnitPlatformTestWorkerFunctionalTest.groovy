@@ -16,8 +16,6 @@
 
 package org.gradle.internal.logging.console.jvm
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-
 class ConsoleJUnitPlatformTestWorkerFunctionalTest extends AbstractConsoleJvmTestWorkerFunctionalTest {
 
     @Override
@@ -26,16 +24,7 @@ class ConsoleJUnitPlatformTestWorkerFunctionalTest extends AbstractConsoleJvmTes
     }
 
     @Override
-    String testDependency() {
-        "org.junit.jupiter:junit-jupiter:$LATEST_JUPITER_VERSION"
-    }
-
-    @Override
     String testFrameworkConfiguration() {
-        """
-            tasks.withType(Test) {
-                useJUnitPlatform()
-            }
-        """
+        'testing.suites.test.useJUnitJupiter()'
     }
 }

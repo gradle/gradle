@@ -17,13 +17,14 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 
 import java.util.List;
 
 public interface JavaToolchainResolverRegistryInternal extends JavaToolchainResolverRegistry {
 
-    JavaToolchainRepositoryHandler getRepositories();
+    JavaToolchainRepositoryHandlerInternal getRepositories();
 
     List<? extends RealizedJavaToolchainRepository> requestedRepositories();
+
+    void preventFromFurtherMutation();
 }

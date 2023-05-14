@@ -51,6 +51,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
 
     @Override
     public Result execute(UnitOfWork work, C context) {
+        Class<? extends UnitOfWork> workType = work.getClass();
+        UnitOfWork.Identity identity = context.getIdentity();
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext operationContext) {
@@ -63,7 +65,17 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Executing " + work.getDisplayName())
-                    .details(Operation.Details.INSTANCE);
+                    .details(new Operation.Details() {
+                        @Override
+                        public Class<?> getWorkType() {
+                            return workType;
+                        }
+
+                        @Override
+                        public UnitOfWork.Identity getIdentity() {
+                            return identity;
+                        }
+                    });
             }
         });
     }
@@ -120,8 +132,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
      */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
-            Operation.Details INSTANCE = new Operation.Details() {
-            };
+            Class<?> getWorkType();
+            UnitOfWork.Identity getIdentity();
         }
 
         interface Result {
@@ -147,6 +159,11 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         @Override
         public Object getOutput() {
             return workOutput.getOutput();
+        }
+
+        @Override
+        public boolean canStoreOutputsInCache() {
+            return workOutput.canStoreInCache();
         }
     }
 }

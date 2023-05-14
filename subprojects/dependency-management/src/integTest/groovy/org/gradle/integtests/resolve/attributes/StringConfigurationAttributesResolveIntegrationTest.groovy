@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.attributes
+
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the string attributes notation.
  */

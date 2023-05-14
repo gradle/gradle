@@ -34,8 +34,8 @@ interface GradleSubprojectProvider {
 data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : GradleSubprojectProvider {
     @Suppress("UNCHECKED_CAST")
     override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Any>) }
-    private val nameToSubproject = subprojects.map { it.name to it }.toMap()
 
+    private val nameToSubproject = subprojects.map { it.name to it }.toMap()
     override fun getSubprojectsForFunctionalTest(testConfig: TestCoverage) =
         subprojects.filter { it.hasTestsOf(testConfig.testType) }
 

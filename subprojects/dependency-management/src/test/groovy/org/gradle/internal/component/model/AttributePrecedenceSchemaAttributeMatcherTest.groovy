@@ -23,7 +23,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -31,9 +30,7 @@ import spock.lang.Specification
 
 class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
 
-    def matcher = new ComponentAttributeMatcher()
-    def schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory(), new TestIsolatableFactory())
-    def selectionSchema
+    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), new TestIsolatableFactory())
     def explanationBuilder = Stub(AttributeMatchingExplanationBuilder)
 
     def highest = Attribute.of("highest", String)
@@ -90,7 +87,6 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
             compatibilityRules.add(CompatibilityRule)
             disambiguationRules.add(DisambiguationRule)
         }
-        selectionSchema = schema.mergeWith(EmptySchema.INSTANCE)
     }
 
     def "when precedence is known, disambiguates by ordered elimination"() {
@@ -102,13 +98,13 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def candidate6 = candidate("compatible", "compatible", "compatible")
         def requested = requested("requested", "requested","requested")
         expect:
-        matcher.match(selectionSchema, [candidate1], requested, null, explanationBuilder) == [candidate1]
-        matcher.match(selectionSchema, [candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate1]
-        matcher.match(selectionSchema, [candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate2]
-        matcher.match(selectionSchema, [candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate3]
-        matcher.match(selectionSchema, [candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate4]
-        matcher.match(selectionSchema, [candidate5, candidate6], requested, null, explanationBuilder) == [candidate5]
-        matcher.match(selectionSchema, [candidate6], requested, null, explanationBuilder) == [candidate6]
+        schema.matcher().matches([candidate1], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matches([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matches([candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate2]
+        schema.matcher().matches([candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate3]
+        schema.matcher().matches([candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate4]
+        schema.matcher().matches([candidate5, candidate6], requested, explanationBuilder) == [candidate5]
+        schema.matcher().matches([candidate6], requested, explanationBuilder) == [candidate6]
     }
 
     def "disambiguates extra attributes in precedence order"() {
@@ -119,9 +115,9 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def requested = AttributeTestUtil.attributes("unknown": "unknown")
 
         expect:
-        matcher.match(selectionSchema, [candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate1]
-        matcher.match(selectionSchema, [candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate2]
-        matcher.match(selectionSchema, [candidate3, candidate4], requested, null, explanationBuilder) == [candidate3]
+        schema.matcher().matches([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matches([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate2]
+        schema.matcher().matches([candidate3, candidate4], requested, explanationBuilder) == [candidate3]
     }
 
     private static AttributeContainerInternal requested(String highestValue, String middleValue, String lowestValue) {

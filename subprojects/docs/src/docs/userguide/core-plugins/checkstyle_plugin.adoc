@@ -123,6 +123,17 @@ include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradl
 
 https://github.com/checkstyle/contribution/tree/master/xsl[View a sample Checkstyle stylesheet.]
 
+[[sec:enable_checkstyle_sarif]]
+== Generate SARIF report
+
+link:https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html[SARIF] report is supported on Checkstyle versions 10.3.3 and newer. It is not enabled by default.
+
+.Enable SARIF Report
+====
+include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=enable-checkstyle-sarif-report]"]
+include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=enable-checkstyle-sarif-report]"]
+====
+
 [[sec:checkstyle_customize_memory]]
 == Changing the amount of memory given to Checkstyle
 

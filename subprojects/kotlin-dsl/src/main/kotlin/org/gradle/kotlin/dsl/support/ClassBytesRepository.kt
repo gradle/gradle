@@ -20,14 +20,12 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
-import com.google.common.annotations.VisibleForTesting
-
 import java.io.Closeable
 import java.io.File
 import java.util.jar.JarFile
 
 
-@VisibleForTesting
+internal
 fun classPathBytesRepositoryFor(classPath: List<File>, classPathDependencies: List<File> = emptyList()) =
     ClassBytesRepository(DefaultClassPath.of(classPath), DefaultClassPath.of(classPathDependencies))
 
@@ -46,7 +44,7 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  * Follows the one directory per package name segment convention.
  * Keeps JAR files open for fast lookup, must be closed.
  */
-@VisibleForTesting
+internal
 class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPath = ClassPath.EMPTY) : Closeable {
 
     private
@@ -165,7 +163,7 @@ private
 val slashOrDollar = Regex("[/$]")
 
 
-@VisibleForTesting
+internal
 fun kotlinSourceNameOf(classFilePath: String): String =
     classFilePath
         .removeSuffix(classFileExtension)
@@ -173,7 +171,7 @@ fun kotlinSourceNameOf(classFilePath: String): String =
         .replace(slashOrDollar, ".")
 
 
-@VisibleForTesting
+internal
 fun classFilePathCandidatesFor(sourceName: String): Sequence<String> =
     sourceName.replace(".", "/").let { path ->
         candidateClassFiles(path) + nestedClassFilePathCandidatesFor(path)

@@ -45,7 +45,7 @@ class ResolutionResultDataBuilder {
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1', ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested(), ResolvedVariantResult variant = newVariant(), String repoId = null) {
-        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, module), version), [variant], [variant], repoId)
+        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, module), version), [1: variant], [variant], repoId)
     }
 
     static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {

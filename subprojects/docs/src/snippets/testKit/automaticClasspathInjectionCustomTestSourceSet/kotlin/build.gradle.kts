@@ -24,6 +24,7 @@ dependencies {
     "functionalTestImplementation"("org.spockframework:spock-core:2.2-groovy-3.0") {
         exclude(group = "org.codehaus.groovy")
     }
+    "functionalTestRuntimeOnly"("org.junit.platform:junit-platform-launcher")
 }
 // end::custom-test-source-set[]
 

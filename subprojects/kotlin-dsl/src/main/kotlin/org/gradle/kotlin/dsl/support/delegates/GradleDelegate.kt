@@ -27,16 +27,29 @@ import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
+import org.gradle.internal.deprecation.DeprecationLogger
 import java.io.File
 
 
 /**
  * Facilitates the implementation of the [Gradle] interface by delegation via subclassing.
  */
+@Deprecated("Will be removed in Gradle 9.0")
 abstract class GradleDelegate : Gradle {
+
+    init {
+        @Suppress("DEPRECATION")
+        if (!org.gradle.kotlin.dsl.InitScriptApi::class.java.isAssignableFrom(this::class.java)) {
+            DeprecationLogger.deprecateType(GradleDelegate::class.java)
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser()
+        }
+    }
 
     internal
     abstract val delegate: Gradle
@@ -155,4 +168,7 @@ abstract class GradleDelegate : Gradle {
 
     override fun getPluginManager(): PluginManager =
         delegate.pluginManager
+
+    override fun getExtensions(): ExtensionContainer =
+        delegate.extensions
 }

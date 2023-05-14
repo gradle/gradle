@@ -33,7 +33,7 @@ import java.io.File;
 import java.io.IOException;
 
 // tag::git-clone[]
-@UntrackedTask(because = "Git tracks the state")                                           // <1>
+@UntrackedTask(because = "Git tracks the state") // <1>
 public abstract class GitClone extends DefaultTask {
 
     @Input

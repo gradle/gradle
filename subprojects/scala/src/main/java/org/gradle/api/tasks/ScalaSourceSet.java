@@ -25,7 +25,7 @@ import org.gradle.api.file.SourceDirectorySet;
  * org.gradle.api.tasks.SourceSet} by the {@code ScalaPlugin}.
  *
  * @deprecated Using conventions to contribute source sets is deprecated. You can configure the groovy sources via the {@code ScalaSourceDirectorySet} extension (e.g.
- * {@code sourceSet.getExtensions().getByType(ScalaSourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 8.0.
+ * {@code sourceSet.getExtensions().getByType(ScalaSourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 9.0.
  */
 @Deprecated
 public interface ScalaSourceSet {

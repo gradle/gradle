@@ -49,6 +49,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
+
 /**
  * Runs CodeNarc against some source files.
  */
@@ -111,23 +113,17 @@ public abstract class CodeNarc extends SourceTask implements VerificationTask, R
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected ObjectFactory getObjectFactory();
 
     @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected JavaToolchainService getToolchainService();
 
     @Inject
-    protected WorkerExecutor getWorkerExecutor() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected WorkerExecutor getWorkerExecutor();
 
     /**
      * JavaLauncher for toolchain support
-     * @since 8.0
+     * @since 8.1
      */
     @Incubating
     @Nested
@@ -139,12 +135,13 @@ public abstract class CodeNarc extends SourceTask implements VerificationTask, R
     public void run() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            spec.getClasspath().from(getCodenarcClasspath());
+            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
         });
         workQueue.submit(CodeNarcAction.class, this::setupParameters);
     }
 
     private void setupParameters(CodeNarcActionParameters parameters) {
+        parameters.getAntLibraryClasspath().setFrom(getCodenarcClasspath());
         parameters.getCompilationClasspath().setFrom(getCompilationClasspath());
         parameters.getConfig().set(getConfigFile());
         parameters.getMaxPriority1Violations().set(getMaxPriority1Violations());

@@ -29,22 +29,14 @@ import java.util.Objects;
 
 final class DebugLoggerWarningAction implements Action<ExecutionListener> {
 
-    static final String WARNING_MESSAGE_BODY;
-
-    static {
-        @SuppressWarnings("StringBufferReplaceableByString") // Readability is better this way.
-        final StringBuilder sb = new StringBuilder();
-        sb.append('\n');
-        sb.append("#############################################################################\n");
-        sb.append("   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
-        sb.append('\n');
-        sb.append("   Debug level logging will leak security sensitive information!\n");
-        sb.append('\n');
-        sb.append("   ").append(new DocumentationRegistry().getDocumentationFor("logging", "sec:debug_security")).append('\n');
-        sb.append("#############################################################################\n");
-        WARNING_MESSAGE_BODY = sb.toString();
-    }
-
+    static final String WARNING_MESSAGE_BODY = "\n" +
+        "#############################################################################\n" +
+        "   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n" +
+        "\n" +
+        "   Debug level logging will leak security sensitive information!\n" +
+        "\n" +
+        "   " + new DocumentationRegistry().getDocumentationRecommendationFor("details", "logging", "sec:debug_security") + "\n" +
+        "#############################################################################\n";
 
     private final Logger logger;
     private final LoggingConfiguration loggingConfiguration;

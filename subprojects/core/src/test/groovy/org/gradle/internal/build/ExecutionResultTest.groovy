@@ -28,6 +28,7 @@ class ExecutionResultTest extends Specification {
         expect:
         result.value == 12
         result.valueOrRethrow == 12
+        result.failureOrNull == null
         result.failures.empty
         result.rethrow()
 
@@ -50,6 +51,7 @@ class ExecutionResultTest extends Specification {
         expect:
         result.value == null
         result.valueOrRethrow == null
+        result.failureOrNull == null
         result.failures.empty
         result.rethrow()
     }
@@ -61,6 +63,7 @@ class ExecutionResultTest extends Specification {
         expect:
         result.failures == [failure]
         result.failure == failure
+        result.failureOrNull == failure
 
         when:
         result.valueOrRethrow
@@ -92,6 +95,8 @@ class ExecutionResultTest extends Specification {
         result.failures == [failure1, failure2]
         result.failure instanceof MultipleBuildFailures
         result.failure.causes == [failure1, failure2]
+        result.failureOrNull instanceof MultipleBuildFailures
+        result.failureOrNull.causes == [failure1, failure2]
 
         when:
         result.valueOrRethrow
@@ -120,6 +125,7 @@ class ExecutionResultTest extends Specification {
         expect:
         result.value == null
         result.valueOrRethrow == null
+        result.failureOrNull == null
         result.failures.empty
         result.rethrow()
     }

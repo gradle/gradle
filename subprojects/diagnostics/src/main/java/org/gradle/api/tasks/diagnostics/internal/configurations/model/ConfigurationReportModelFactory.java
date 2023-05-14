@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -78,7 +79,7 @@ public final class ConfigurationReportModelFactory {
 
     private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
         // Important to lock the config prior to extracting the attributes, as some attributes, such as TargetJvmVersion, are actually added by this locking process
-        configuration.preventFromFurtherMutation();
+        List<? extends GradleException> lenientErrors = configuration.preventFromFurtherMutationLenient();
 
         final List<ReportAttribute> attributes = configuration.getAttributes().keySet().stream()
             .map(a -> convertAttributeInContainer(a, configuration.getAttributes(), project.getDependencies().getAttributesSchema()))
@@ -117,7 +118,8 @@ public final class ConfigurationReportModelFactory {
             type = null;
         }
 
-        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, attributes, capabilities, artifacts, variants, extendedConfigurations);
+        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, new ArrayList<>(lenientErrors),
+            attributes, capabilities, artifacts, variants, extendedConfigurations);
     }
 
     private ReportArtifact convertPublishArtifact(PublishArtifact publishArtifact, FileResolver fileResolver) {
