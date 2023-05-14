@@ -73,10 +73,10 @@ class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
             def resolveMainClassName = tasks.register('resolveMainClassName', ResolveMainClassName) {
                 classpath.from(compileJava)
                 mainClassFromBootExtension.set(
-                    project.convention.findByType(BootExtension.class)?.mainClassName
+                    project.extensions.findByType(BootExtension.class)?.mainClassName
                 )
                 mainClassFromJavaApplication.set(
-                    project.convention.findByType(JavaApplication.class)?.mainClass
+                    project.extensions.findByType(JavaApplication.class)?.mainClass
                 )
                 mainClassFile = layout.buildDirectory.file('mainClass.txt')
             }

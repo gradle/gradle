@@ -12,7 +12,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.plugins.Convention
 import org.gradle.api.reflect.TypeOf
 
 import org.junit.Assert.fail
@@ -28,7 +27,7 @@ class ProjectExtensionsTest {
     fun `can get generic project extension by type`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val extension = mock<NamedDomainObjectContainer<List<String>>>()
         val extensionType = typeOf<NamedDomainObjectContainer<List<String>>>()
 
@@ -49,7 +48,7 @@ class ProjectExtensionsTest {
     fun `can configure generic project extension by type`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val extension = mock<NamedDomainObjectContainer<List<String>>>()
         val extensionType = typeOf<NamedDomainObjectContainer<List<String>>>()
 
@@ -70,7 +69,7 @@ class ProjectExtensionsTest {
     fun `can get convention by type`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val javaConvention = mock<CustomConvention>()
 
         whenever(project.convention)
@@ -91,7 +90,7 @@ class ProjectExtensionsTest {
     fun `can configure convention by type`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val javaConvention = mock<CustomConvention>()
 
         whenever(project.convention)
@@ -114,7 +113,7 @@ class ProjectExtensionsTest {
     fun `the() falls back to throwing getByType when not found`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val conventionType = typeOf<CustomConvention>()
 
         whenever(project.convention)
@@ -141,7 +140,7 @@ class ProjectExtensionsTest {
     fun `configure() falls back to throwing configure when not found`() {
 
         val project = mock<Project>()
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val conventionType = typeOf<CustomConvention>()
 
         whenever(project.convention)

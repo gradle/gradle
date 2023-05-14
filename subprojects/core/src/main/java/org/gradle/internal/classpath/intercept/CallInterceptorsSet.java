@@ -20,6 +20,7 @@ import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
 import org.gradle.api.GradleException;
+import org.gradle.api.NonNullApi;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
@@ -28,11 +29,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Holds a collection of interceptors and can decorate a Groovy CallSite if it is within a scope of a registered interceptor.
  */
-public class CallInterceptorsSet {
+@NonNullApi
+public class CallInterceptorsSet implements CallSiteDecorator {
     private final Map<InterceptScope, CallInterceptor> interceptors = new HashMap<>();
     private final Set<String> interceptedCallSiteNames = new HashSet<>();
 
@@ -55,12 +58,10 @@ public class CallInterceptorsSet {
     };
 
     /**
-     * Creates the interceptor set out of provided interceptors.
+     * Creates the interceptor set, collecting the interceptors from the stream.
      */
-    public CallInterceptorsSet(CallInterceptor... interceptors) {
-        for (CallInterceptor interceptor : interceptors) {
-            addInterceptor(interceptor);
-        }
+    public CallInterceptorsSet(Stream<CallInterceptor> interceptors) {
+        interceptors.forEach(this::addInterceptor);
     }
 
     private void addInterceptor(CallInterceptor interceptor) {
@@ -75,6 +76,7 @@ public class CallInterceptorsSet {
         }
     }
 
+    @Override
     public java.lang.invoke.CallSite maybeDecorateIndyCallSite(java.lang.invoke.CallSite originalCallSite, MethodHandles.Lookup caller, String callType, String name, int flags) {
         CacheableCallSite ccs = toGroovyCacheableCallSite(originalCallSite);
         switch (callType) {
@@ -115,6 +117,7 @@ public class CallInterceptorsSet {
      * @param originalCallSite the CallSite to decorate
      * @return the new CallSite capable of intercepting calls or the original CallSite if interception not neccessary.
      */
+    @Override
     public CallSite maybeDecorateGroovyCallSite(CallSite originalCallSite) {
         if (shouldDecorate(originalCallSite)) {
             return new DecoratingCallSite(originalCallSite);

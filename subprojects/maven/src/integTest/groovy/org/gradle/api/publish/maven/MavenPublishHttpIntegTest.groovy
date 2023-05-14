@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -323,9 +323,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     /**
-     * @see org.gradle.configurationcache.ConfigurationCachePublishingIntegrationTest
+     * @see org.gradle.configurationcache.ConfigurationCacheMavenPublishIntegrationTest
      */
-    @UnsupportedWithConfigurationCache(because="Unsafe/inline credentials not supported with CC")
     def "cannot publish to authenticated repository using credentials Provider with inferred identity if repo has incompatible name"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "incompatible_repo_name")
@@ -335,11 +334,14 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToIncompatible_repo_nameRepository'.")
+        if (GradleContextualExecuter.isConfigCache()) {
+            failure.assertHasDescription("Configuration cache state could not be cached:")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToIncompatible_repo_nameRepository'.")
+        }
         failure.assertHasCause("Identity may contain only letters and digits, received: incompatible_repo_name")
     }
 
-    @UnsupportedWithConfigurationCache(because="Unsafe/inline credentials not supported with CC")
     def "can publish to authenticated repository using inlined credentials"() {
         given:
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
@@ -357,9 +359,11 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         module.assertPublishedAsJavaModule()
+        if (GradleContextualExecuter.isConfigCache()) {
+            postBuildOutputContains("Configuration cache entry discarded")
+        }
     }
 
-    @UnsupportedWithConfigurationCache(because="Unsafe/inline credentials not supported with CC")
     def "can publish to authenticated repository with name not valid as identity as long as one uses inlined credentials "() {
         given:
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
@@ -380,6 +384,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         module.assertPublishedAsJavaModule()
+        if (GradleContextualExecuter.isConfigCache()) {
+            postBuildOutputContains("Configuration cache entry discarded")
+        }
     }
 
     def "fails at configuration time with helpful error message when username and password provider has no value"() {

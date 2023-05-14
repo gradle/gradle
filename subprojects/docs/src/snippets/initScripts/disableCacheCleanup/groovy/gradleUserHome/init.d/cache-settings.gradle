@@ -1,0 +1,5 @@
+beforeSettings { settings ->
+    settings.caches {
+        cleanup = Cleanup.DISABLED
+    }
+}

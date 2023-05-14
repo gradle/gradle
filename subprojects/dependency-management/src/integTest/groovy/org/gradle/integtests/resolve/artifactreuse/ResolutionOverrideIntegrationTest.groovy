@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 import spock.lang.Shared
 
 class ResolutionOverrideIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -87,7 +88,12 @@ configurations { missing }
 dependencies {
     missing 'org.name:projectA:1.2'
 }
-task showMissing { doLast { println configurations.missing.files } }
+task showMissing {
+    def files = configurations.missing
+    doLast {
+        println files.files
+    }
+}
 """
 
         when:
@@ -199,6 +205,8 @@ task retrieve(type: Sync) {
     }
 
     void "does not attempt to contact server when run with offline flag"() {
+        def resolve = new ResolveFailureTestFixture(buildFile)
+
         given:
         buildFile << """
 repositories {
@@ -207,20 +215,22 @@ repositories {
 configurations { compile }
 dependencies { compile 'org.name:projectA:1.2' }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+        assert files.collect { it.name } == ['projectA-1.2.jar']
     }
 }
 """
+        resolve.prepare()
 
         when:
         executer.withArguments("--offline")
 
         then:
-        fails 'listJars'
+        fails 'checkDeps'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':listJars\'.')
+        resolve.assertFailurePresent(failure)
         failure.assertResolutionFailure(":compile")
             .assertHasCause('No cached version of org.name:projectA:1.2 available for offline mode')
     }

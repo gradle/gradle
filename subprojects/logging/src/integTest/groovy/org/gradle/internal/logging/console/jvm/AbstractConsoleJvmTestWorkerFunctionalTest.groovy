@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console.jvm
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -27,7 +28,6 @@ import spock.lang.IgnoreIf
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.JavaTestClass
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.containsTestExecutionWorkInProgressLine
 import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testClass
-import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.testableJavaProject
 
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
 abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegrationSpec {
@@ -48,8 +48,20 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
 
     def "shows test class execution #description test class name in work-in-progress area of console for single project build"() {
         given:
-        buildFile << testableJavaProject(testDependency(), MAX_WORKERS)
-        buildFile << testFrameworkConfiguration()
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            tasks.withType(Test) {
+                maxParallelForks = $MAX_WORKERS
+            }
+
+            ${testFrameworkConfiguration()}
+        """
+
         file("src/test/java/${testClass1.fileRepresentation}") << testClass(testAnnotationClass(), testClass1.classNameWithoutPackage, SERVER_RESOURCE_1, server)
         file("src/test/java/${testClass2.fileRepresentation}") << testClass(testAnnotationClass(), testClass2.classNameWithoutPackage, SERVER_RESOURCE_2, server)
         def testExecution = server.expectConcurrentAndBlock(2, SERVER_RESOURCE_1, SERVER_RESOURCE_2)
@@ -78,7 +90,14 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
         settingsFile << "include 'project1', 'project2'"
         buildFile << """
             subprojects {
-                ${testableJavaProject(testDependency(), MAX_WORKERS)}
+                apply plugin: 'java-library'
+
+                ${RepoScriptBlockUtil.mavenCentralRepository()}
+
+                tasks.withType(Test) {
+                    maxParallelForks = $MAX_WORKERS
+                }
+
                 ${testFrameworkConfiguration()}
             }
         """
@@ -106,6 +125,5 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     }
 
     abstract String testAnnotationClass()
-    abstract String testDependency()
     abstract String testFrameworkConfiguration()
 }

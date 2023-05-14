@@ -139,6 +139,11 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
             return delegate.isExternalVariant();
         }
 
+        @Override
+        public boolean isEligibleForCaching() {
+            return delegate.isEligibleForCaching();
+        }
+
         private AttributeContainerInternal mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
             return attributesFactory.concat(componentLevelAttributes, variantAttributes.asImmutable());
         }

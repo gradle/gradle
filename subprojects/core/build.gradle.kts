@@ -44,6 +44,7 @@ dependencies {
     implementation(project(":worker-processes"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
+    implementation(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -62,7 +63,7 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation(libs.asm)
+    implementation(libs.asmTree)
     implementation(libs.asmCommons)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
@@ -73,6 +74,10 @@ dependencies {
     implementation(libs.tomlj)
     implementation(libs.javaParser) {
         because("The Groovy compiler inspects the dependencies at compile time")
+    }
+
+    compileOnly(libs.futureKotlin("stdlib")) {
+        because("it needs to forward calls from instrumented code to the Kotlin standard library")
     }
 
     testImplementation(project(":platform-jvm"))
@@ -134,6 +139,7 @@ dependencies {
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.groovyAnt)
+    testFixturesImplementation(libs.asm)
 
     testFixturesRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
@@ -178,10 +184,17 @@ dependencies {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    annotationProcessor(project(":internal-instrumentation-processor"))
+    annotationProcessor(platform(project(":distributions-dependencies")))
+
+    testAnnotationProcessor(project(":internal-instrumentation-processor"))
+    testAnnotationProcessor(platform(project(":distributions-dependencies")))
 }
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
+    ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations
 }
 
 packageCycles {
@@ -192,9 +205,19 @@ tasks.test {
     setForkEvery(200)
 }
 
+// Disable annotation processing for Groovy, as it is not compatible with Groovy IC
+tasks.withType<GroovyCompile>().configureEach {
+    options.compilerArgs.add("-proc:none")
+}
+
 tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

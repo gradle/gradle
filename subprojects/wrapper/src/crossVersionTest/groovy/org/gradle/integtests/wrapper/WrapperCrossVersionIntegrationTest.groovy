@@ -18,14 +18,14 @@ package org.gradle.integtests.wrapper
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
 import org.junit.Assume
-import spock.lang.IgnoreIf
 
 @SuppressWarnings("IntegrationTestFixtures")
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -44,7 +44,10 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         cleanupDaemons(executer, current)
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
+    @Requires(value = [
+        IntegTestPreconditions.NotEmbeddedExecutor,
+        UnitTestPreconditions.NotWindowsJavaBefore11
+    ], reason = "wrapperExecuter requires a real distribution, https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)
@@ -56,7 +59,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         cleanupDaemons(executer, previous)
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current).withJavaHome(jdk.javaHome)
@@ -69,7 +72,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
+    @Requires(IntegTestPreconditions.UnsupportedJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current)
@@ -146,4 +149,3 @@ task hello {
         new DaemonLogsAnalyzer(executer.daemonBaseDir, executionVersion.version.version).killAll()
     }
 }
-

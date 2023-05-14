@@ -15,11 +15,13 @@
  */
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.EntryTaskSelector;
@@ -29,7 +31,6 @@ import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Describables;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -48,13 +49,17 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         // Scheduling tasks for execution
         TaskSchedule,
         ReadyToRun,
+        BuildFinishHooks,
+        ReadyToReset,
         // build has finished and should do no further work
         Finished
     }
 
+    public static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
+
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
-    private final InternalBuildFinishedListener buildFinishedListener;
+    private final BuildModelLifecycleListener buildModelLifecycleListener;
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
     private final BuildToolingModelControllerFactory toolingModelControllerFactory;
@@ -62,13 +67,14 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final StateTransitionController<State> state;
     private final GradleInternal gradle;
     private boolean hasTasks;
+    private boolean hasFiredBeforeModelDiscarded;
 
     public DefaultBuildLifecycleController(
         GradleInternal gradle,
         BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
         BuildListener buildListener,
-        InternalBuildFinishedListener buildFinishedListener,
+        BuildModelLifecycleListener buildModelLifecycleListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
         BuildToolingModelControllerFactory toolingModelControllerFactory,
@@ -80,7 +86,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildListener = buildListener;
         this.workPreparer = workPreparer;
         this.workExecutor = workExecutor;
-        this.buildFinishedListener = buildFinishedListener;
+        this.buildModelLifecycleListener = buildModelLifecycleListener;
         this.toolingModelControllerFactory = toolingModelControllerFactory;
         this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }
@@ -117,8 +123,32 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void resetLifecycle() {
-        state.restart(State.Configure, () -> gradle.resetState());
+    public void resetModel() {
+        state.restart(State.ReadyToReset, State.Configure, () -> {
+            gradle.resetState();
+            for (HoldsProjectState service : gradle.getServices().getAll(HoldsProjectState.class)) {
+                service.discardAll();
+            }
+        });
+    }
+
+    @Override
+    public ExecutionResult<Void> beforeModelReset() {
+        return state.transition(CONFIGURATION_STATES, State.ReadyToReset, failures -> fireBeforeModelDiscarded(false));
+    }
+
+    @Override
+    public ExecutionResult<Void> beforeModelDiscarded(boolean failed) {
+        return state.transition(State.BuildFinishHooks, State.Finished, failures -> fireBeforeModelDiscarded(failed));
+    }
+
+    private ExecutionResult<Void> fireBeforeModelDiscarded(boolean failed) {
+        if (hasFiredBeforeModelDiscarded) {
+            return ExecutionResult.succeeded();
+        } else {
+            hasFiredBeforeModelDiscarded = true;
+            return ExecutionResult.maybeFailing(() -> buildModelLifecycleListener.beforeModelDiscarded(gradle, failed));
+        }
     }
 
     @Override
@@ -187,7 +217,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
-        return state.finish(State.Finished, stageFailures -> {
+        return state.transition(CONFIGURATION_STATES, State.BuildFinishHooks, stageFailures -> {
             // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
             // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
             // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
@@ -197,15 +227,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
                 reportableFailure = exceptionAnalyser.transform(stageFailures.getFailures());
             }
             BuildResult buildResult = new BuildResult(hasTasks ? "Build" : "Configure", gradle, reportableFailure);
-            ExecutionResult<Void> finishResult;
-            try {
-                buildListener.buildFinished(buildResult);
-                buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
-                finishResult = ExecutionResult.succeeded();
-            } catch (Throwable t) {
-                finishResult = ExecutionResult.failed(t);
-            }
-            return finishResult;
+            return ExecutionResult.maybeFailing(() -> buildListener.buildFinished(buildResult));
         });
     }
 

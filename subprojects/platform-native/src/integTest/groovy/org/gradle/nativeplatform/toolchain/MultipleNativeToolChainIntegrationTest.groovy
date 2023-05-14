@@ -23,8 +23,8 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 
 @RequiresInstalledToolChain
@@ -39,7 +39,7 @@ plugins { id 'cpp' }
         helloWorld.writeSources(file("src/main"))
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(ToolChainRequirement.GCC)
     @ToBeFixedForConfigurationCache
     def "can build with multiple tool chains"() {

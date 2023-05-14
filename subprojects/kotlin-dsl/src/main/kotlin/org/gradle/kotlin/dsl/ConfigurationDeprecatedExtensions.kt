@@ -377,6 +377,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.withDependencies(action: De
 /**
  * See [Configuration.all].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().all"), level = DeprecationLevel.HIDDEN)
 val <T : Configuration> NamedDomainObjectProvider<T>.all: Set<Configuration>
     get() = get().all
@@ -493,4 +494,4 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.addToAntBuilder(builder: An
 
 
 private
-const val deprecationMessage = "Scheduled to be removed in Gradle 8.0"
+const val deprecationMessage = "Scheduled to be removed in Gradle 9.0"

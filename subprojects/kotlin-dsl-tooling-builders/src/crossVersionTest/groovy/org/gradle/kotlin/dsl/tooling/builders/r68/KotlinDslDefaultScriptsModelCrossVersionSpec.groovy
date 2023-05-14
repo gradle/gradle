@@ -19,6 +19,9 @@ package org.gradle.kotlin.dsl.tooling.builders.r68
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+
+import static org.gradle.kotlin.dsl.tooling.builders.KotlinScriptModelParameters.setModelParameters
 
 @TargetGradleVersion(">=6.8")
 @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
@@ -31,7 +34,9 @@ class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScri
         def spec = withBuildSrcAndInitScripts()
 
         when:
-        def model = kotlinDslScriptsModelFor()
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+            setModelParameters(it, false)
+        }
 
         then:
         model.scriptModels.keySet() == spec.scripts.values() as Set
@@ -51,7 +56,9 @@ class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScri
         """
 
         when:
-        def model = kotlinDslScriptsModelFor(true)
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+            setModelParameters(it, true)
+        }
 
         then:
         model.scriptModels.keySet() == spec.scripts.values() as Set

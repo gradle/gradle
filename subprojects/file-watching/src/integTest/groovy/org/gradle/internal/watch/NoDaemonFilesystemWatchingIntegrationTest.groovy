@@ -20,11 +20,11 @@ import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 @LocalOnly
-@Requires({ GradleContextualExecuter.noDaemon })
+@Requires(IntegTestPreconditions.NotDaemonExecutor)
 class NoDaemonFilesystemWatchingIntegrationTest extends AbstractIntegrationSpec implements FileSystemWatchingFixture {
 
     def "is disabled by default for --no-daemon"() {

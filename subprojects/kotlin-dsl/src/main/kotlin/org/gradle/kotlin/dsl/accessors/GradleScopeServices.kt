@@ -27,13 +27,13 @@ internal
 object GradleScopeServices {
 
     @Suppress("unused")
-    fun createPluginAccessorClassPathGenerator(
+    fun createStage1BlocksAccessorClassPathGenerator(
         classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
         fileCollectionFactory: FileCollectionFactory,
         executionEngine: ExecutionEngine,
         inputFingerprinter: InputFingerprinter,
         workspaceProvider: KotlinDslWorkspaceProvider
-    ) = PluginAccessorClassPathGenerator(
+    ) = Stage1BlocksAccessorClassPathGenerator(
         classLoaderHierarchyHasher,
         fileCollectionFactory,
         executionEngine,

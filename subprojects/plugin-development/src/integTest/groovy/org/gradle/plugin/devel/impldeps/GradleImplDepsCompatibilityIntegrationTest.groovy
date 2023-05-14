@@ -60,7 +60,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
 
     def "Gradle API dependency does not contain any of TestKit dependency classes and vice versa"() {
         given:
-        def outputDirName = 'build'
+        def outputDirPath = 'build/output'
         buildFile << """
             configurations {
                 gradleApi
@@ -75,7 +75,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             task resolveDependencyArtifacts {
                 doLast {
                     copy {
-                        into '$outputDirName'
+                        into '$outputDirPath'
                         from configurations.gradleApi.resolve().find { it.name.startsWith('gradle-api-') }
                         from configurations.testKit.resolve().find { it.name.startsWith('gradle-test-kit-') }
                     }
@@ -87,13 +87,13 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'resolveDependencyArtifacts'
 
         then:
-        def outputDir = temporaryFolder.testDirectory.file(outputDirName)
+        def outputDir = temporaryFolder.testDirectory.file(outputDirPath)
         def jarFiles = outputDir.listFiles()
         jarFiles.size() == 2
         def gradleApiJar = jarFiles.find { it.name.startsWith('gradle-api-') }
         def testKitJar = jarFiles.find { it.name.startsWith('gradle-test-kit-') }
-        File gradleApiClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirName/gradle-api-classes.txt")
-        File testKitClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirName/testkit-classes.txt")
+        File gradleApiClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirPath/gradle-api-classes.txt")
+        File testKitClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirPath/testkit-classes.txt")
         writeClassesInZipFileToTextFile(gradleApiJar, gradleApiClassNamesTextFile)
         writeClassesInZipFileToTextFile(testKitJar, testKitClassNamesTextFile)
         assert gradleApiClassNamesTextFile.size() > 0

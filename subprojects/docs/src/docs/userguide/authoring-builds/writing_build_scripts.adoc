@@ -102,6 +102,13 @@ The following table lists a few commonly used properties:
 | An `AntBuilder` instance
 |===
 
+[IMPORTANT]
+.Script with other targets
+====
+The _build scripts_ described here target `Project` objects.
+There are also <<organizing_gradle_projects.adoc#sec:settings_file,settings scripts>> and <<init_scripts.adoc#init_scripts,init scripts>> that respectively target link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] and link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] objects.
+====
+
 [[sec:the_script_api]]
 == The Script API
 

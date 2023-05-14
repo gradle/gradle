@@ -30,7 +30,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -71,6 +70,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -80,6 +80,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -98,7 +99,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static com.google.common.base.Preconditions.checkState;
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 /**
@@ -196,7 +196,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
         testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
-        testFramework.finalizeValueOnRead();
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -641,10 +640,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
-        checkState(
-            customExecutable == null || new File(customExecutable).equals(toolchainExecutable),
-            "Toolchain from `executable` property does not match toolchain from `javaLauncher` property"
-        );
+        JavaExecutableUtils.validateExecutable(
+                customExecutable, "Toolchain from `executable` property",
+                toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
     private Set<String> getPreviousFailedTestClasses() {
@@ -672,8 +670,15 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
-        if (!javaVersion.isJava8Compatible() && testFramework.get() instanceof JUnitPlatformTestFramework) {
-            throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
+        if (!javaVersion.isJava8Compatible()) {
+            if (testFramework.get() instanceof JUnitPlatformTestFramework) {
+                throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
+            } else {
+                DeprecationLogger.deprecate("Running tests on Java versions earlier than 8")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "minimum_test_jvm_version")
+                    .nagUser();
+            }
         }
 
         if (getDebug()) {
@@ -951,6 +956,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies that JUnit4 should be used to discover and execute the tests.
      * <p>
+     *
      * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
@@ -1017,6 +1023,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies that TestNG should be used to discover and execute the tests.
      * <p>
+     *
      * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */
     public void useTestNG() {
@@ -1048,16 +1055,20 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         applyOptions(TestNGOptions.class, testFrameworkConfigure);
     }
 
+    /**
+     * Set the framework, only if it is being changed to a new value.
+     *
+     * If we are setting a framework to its existing value, no-op so as not to overwrite existing options here.
+     * We need to allow this especially for the default test task, so that existing builds that configure options and
+     * then call useJunit() don't clear out their options.
+     *
+     * @param testFramework
+     */
     void useTestFramework(TestFramework testFramework) {
-        if (((DefaultProperty<?>) this.testFramework).isFinalized()) {
-            Class<?> currentFramework = this.testFramework.get().getClass();
-            Class<?> newFramework = testFramework.getClass();
-            if (currentFramework == newFramework) {
-                // We are setting a finalized framework to its existing value, no-op so as not to trigger a failure here.
-                // We need to allow this especially for the default test task, so that existing builds that configure options and
-                // then call useJunit() afterwards don't fail
-                return;
-            }
+        Class<?> currentFramework = this.testFramework.get().getClass();
+        Class<?> newFramework = testFramework.getClass();
+        if (currentFramework == newFramework) {
+            return;
         }
 
         this.testFramework.set(testFramework);
@@ -1127,13 +1138,42 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
      * </p>
      *
-     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
+     * @param forkEvery The maximum number of test classes. Use 0 to specify no maximum.
+     * @since 8.1
      */
-    public void setForkEvery(@Nullable Long forkEvery) {
-        if (forkEvery != null && forkEvery < 0) {
+    public void setForkEvery(long forkEvery) {
+        if (forkEvery < 0) {
             throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
         }
-        this.forkEvery = forkEvery == null ? 0 : forkEvery;
+        this.forkEvery = forkEvery;
+    }
+
+    /**
+     * Sets the maximum number of test classes to execute in a forked test process.
+     * <p>
+     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
+     * </p>
+     *
+     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
+     * @deprecated Use {@link #setForkEvery(long)} instead.
+     */
+    @Deprecated
+    public void setForkEvery(@Nullable Long forkEvery) {
+        if (forkEvery == null) {
+            DeprecationLogger.deprecateBehaviour("Setting Test.forkEvery to null.")
+                .withAdvice("Set Test.forkEvery to 0 instead.")
+                .willBecomeAnErrorInGradle9()
+                .withDslReference(Test.class, "forkEvery")
+                .nagUser();
+            setForkEvery(0);
+        } else {
+            DeprecationLogger.deprecateMethod(Test.class, "setForkEvery(Long)")
+                .replaceWith("Test.setForkEvery(long)")
+                .willBeRemovedInGradle9()
+                .withDslReference(Test.class, "forkEvery")
+                .nagUser();
+            setForkEvery(forkEvery.longValue());
+        }
     }
 
     /**

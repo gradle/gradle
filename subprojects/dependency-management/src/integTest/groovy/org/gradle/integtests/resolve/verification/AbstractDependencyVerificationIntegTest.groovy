@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.DependencyVerificationReportWriter
 import org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -91,7 +92,7 @@ abstract class AbstractDependencyVerificationIntegTest extends AbstractHttpDepen
     }
 
     static String getDocsUrl() {
-        new DocumentationRegistry().getDocumentationFor("dependency_verification", "sec:troubleshooting-verification")
+        new DocumentationRegistry().getDocumentationRecommendationFor("on how to do this", "dependency_verification", "sec:troubleshooting-verification")
     }
 
     protected void terseConsoleOutput(boolean terse, String gradlePropertiesDir = ".") {
@@ -101,7 +102,13 @@ abstract class AbstractDependencyVerificationIntegTest extends AbstractHttpDepen
         }
     }
 
-    protected void assertVerificationError(boolean terse, @DelegatesTo(value=VerificationErrorHelper, strategy = Closure.DELEGATE_FIRST) Closure<?> verification) {
+    protected void assertConfigCacheDiscarded() {
+        if (GradleContextualExecuter.isConfigCache()) {
+            failure.assertOutputContains("Configuration cache entry discarded")
+        }
+    }
+
+    protected void assertVerificationError(boolean terse, @DelegatesTo(value = VerificationErrorHelper, strategy = Closure.DELEGATE_FIRST) Closure<?> verification) {
         def helper = new VerificationErrorHelper(terse)
         verification.delegate = helper
         verification.resolveStrategy = Closure.DELEGATE_FIRST

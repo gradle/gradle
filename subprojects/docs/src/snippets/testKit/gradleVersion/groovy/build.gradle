@@ -13,7 +13,7 @@ dependencies {
     }
 }
 
-tasks.withType(Test).configureEach {
+tasks.named('test', Test) {
     useJUnitPlatform()
 }
 

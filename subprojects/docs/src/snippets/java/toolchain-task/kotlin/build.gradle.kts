@@ -1,21 +1,15 @@
 import javax.inject.Inject;
 
-abstract class CustomTaskUsingToolchains : DefaultTask {
+// tag::custom-toolchain-task-with-java[]
+abstract class CustomTaskUsingToolchains : DefaultTask() {
 
     @get:Nested
-    abstract val launcher: Property<JavaLauncher>
+    abstract val launcher: Property<JavaLauncher> // <1>
 
-    @Inject
-    constructor() {
-        // Access the default toolchain
-        val toolchain = project.extensions.getByType<JavaPluginExtension>().toolchain
-
-        // acquire a provider that returns the launcher for the toolchain
-        val service = project.extensions.getByType<JavaToolchainService>()
-        val defaultLauncher = service.launcherFor(toolchain)
-
-        // use it as our default for the property
-        launcher.convention(defaultLauncher);
+    init {
+        val toolchain = project.extensions.getByType<JavaPluginExtension>().toolchain // <2>
+        val defaultLauncher = javaToolchainService.launcherFor(toolchain) // <3>
+        launcher.convention(defaultLauncher) // <4>
     }
 
     @TaskAction
@@ -23,22 +17,28 @@ abstract class CustomTaskUsingToolchains : DefaultTask {
         println(launcher.get().executablePath)
         println(launcher.get().metadata.installationPath)
     }
-}
 
+    @get:Inject
+    protected abstract val javaToolchainService: JavaToolchainService
+}
+// end::custom-toolchain-task-with-java[]
+
+// tag::custom-toolchain-task-with-java-usage[]
 plugins {
     java
 }
 
 java {
-    toolchain {
+    toolchain { // <1>
         languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
 
-tasks.register<CustomTaskUsingToolchains>("showDefaultToolchain")
+tasks.register<CustomTaskUsingToolchains>("showDefaultToolchain") // <2>
 
 tasks.register<CustomTaskUsingToolchains>("showCustomToolchain") {
-    launcher.set(javaToolchains.launcherFor {
+    launcher.set(javaToolchains.launcherFor { // <3>
         languageVersion.set(JavaLanguageVersion.of(17))
     })
 }
+// end::custom-toolchain-task-with-java-usage[]

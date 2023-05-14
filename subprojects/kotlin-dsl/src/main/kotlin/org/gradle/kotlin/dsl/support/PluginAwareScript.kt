@@ -24,7 +24,7 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
 
 
-open class PluginAwareScript(
+open class PluginAwareScript internal constructor(
     private val host: KotlinScriptHost<PluginAware>
 ) : PluginAware {
 

@@ -17,7 +17,6 @@
 package org.gradle.api.cache;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -28,18 +27,10 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface CacheResourceConfiguration {
-    /**
-     * Configures the timestamp before which an unused entry will be removed from the cache.
-     *
-     * See {@link #setRemoveUnusedEntriesAfterDays(int)}.
-     */
-    Property<Long> getRemoveUnusedEntriesOlderThan();
 
     /**
      * Sets the timestamp before which unused entries will be removed to be calculated exactly
      * the given number of days previous to the current time.
-     *
-     * See {@link #getRemoveUnusedEntriesOlderThan()}
      */
     void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays);
 }

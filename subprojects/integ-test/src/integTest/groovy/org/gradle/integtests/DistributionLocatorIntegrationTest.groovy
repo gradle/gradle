@@ -17,13 +17,13 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.util.internal.DistributionLocator
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.DistributionLocator
 import spock.lang.Specification
 
-@Requires(TestPrecondition.ONLINE)
+@Requires(UnitTestPreconditions.Online)
 class DistributionLocatorIntegrationTest extends Specification {
     private static final int CONNECTION_TIMEOUT_SECONDS = 60 * 1000
     private static final int READ_TIMEOUT_SECONDS = 60 * 1000
@@ -38,6 +38,10 @@ class DistributionLocatorIntegrationTest extends Specification {
         urlExist(locator.getDistributionFor(GradleVersion.version("1.12")))
     }
 
+    /**
+     * If this test fails, it means that the snapshot in `released-versions.json` is no longer available.
+     * You need to update that entry with a recent snapshot by hand.
+     */
     def "locates snapshot versions"() {
         expect:
         urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))

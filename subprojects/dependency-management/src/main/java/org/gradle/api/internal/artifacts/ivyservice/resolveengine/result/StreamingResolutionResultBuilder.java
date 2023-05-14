@@ -22,13 +22,11 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
@@ -75,15 +73,16 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     public StreamingResolutionResultBuilder(BinaryStore store,
                                             Store<ResolvedComponentResult> cache,
-                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                             AttributeContainerSerializer attributeContainerSerializer,
                                             AttributeDesugaring desugaring,
                                             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
                                             boolean returnAllVariants) {
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
         ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
-        this.dependencyResultSerializer = new DependencyResultSerializer(resolvedVariantResultSerializer, componentSelectionDescriptorFactory);
-        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, resolvedVariantResultSerializer, componentSelectionDescriptorFactory, componentIdentifierSerializer, returnAllVariants);
+        this.dependencyResultSerializer = new DependencyResultSerializer(componentSelectionDescriptorFactory);
+        ComponentDetailsSerializer componentDetailsSerializer = new ThisBuildOnlyComponentDetailsSerializer();
+        SelectedVariantSerializer selectedVariantSerializer = new ThisBuildOnlySelectedVariantSerializer();
+        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, selectedVariantSerializer, resolvedVariantResultSerializer, componentSelectionDescriptorFactory, returnAllVariants);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
@@ -221,8 +220,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return root;
                         case COMPONENT:
-                            ResolvedGraphComponent component = componentResultSerializer.read(decoder);
-                            builder.visitComponent(component);
+                            componentResultSerializer.readInto(decoder, builder);
                             break;
                         case SELECTOR:
                             Long id = decoder.readSmallLong();
@@ -244,7 +242,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             throw new IOException("Unknown value type read from stream: " + type);
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new RuntimeException("Problems loading the resolution results (" + clock.getElapsed() + "). "
                     + "Read " + valuesRead + " values, last was: " + type, e);
             }

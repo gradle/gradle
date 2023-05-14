@@ -22,12 +22,11 @@ import org.gradle.api.plugins.quality.PmdReports;
 import org.gradle.api.plugins.quality.TargetJdk;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.workers.WorkParameters;
 
 /**
  * Parameters used to configure a {@link PmdAction}.
  */
-public interface PmdActionParameters extends WorkParameters {
+public interface PmdActionParameters extends AntWorkParameters {
 
     ConfigurableFileCollection getPmdClasspath();
 

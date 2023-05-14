@@ -30,8 +30,8 @@ class AbstractTestLoggerTest extends Specification {
     StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
     AbstractTestLogger logger
 
-    def rootDescriptor = new SimpleTestDescriptor(displayName: "Test Run", composite: true)
-    def workerDescriptor = new SimpleTestDescriptor(displayName: "Gradle Worker 2", composite: true, parent: rootDescriptor)
+    def rootDescriptor = new SimpleTestDescriptor(displayName: "Test Run", className: null, composite: true)
+    def workerDescriptor = new SimpleTestDescriptor(displayName: "Gradle Worker 2", className: null, composite: true, parent: rootDescriptor)
     def outerSuiteDescriptor = new SimpleTestDescriptor(name: "com.OuterSuiteClass", displayName: "OuterSuiteClass", composite: true, parent: workerDescriptor)
     def innerSuiteDescriptor = new SimpleTestDescriptor(name: "com.InnerSuiteClass", displayName: "InnerSuiteClass", composite: true, parent: outerSuiteDescriptor)
     def classDescriptor = new SimpleTestDescriptor(name: "foo.bar.TestClass", displayName: "TestClass", composite: true, parent: innerSuiteDescriptor)
@@ -138,15 +138,39 @@ class AbstractTestLoggerTest extends Specification {
         textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}a test {failure}FAILED{normal}${sep}"
     }
 
-    def "logging of atomic test whose parent isn't the test class includes test class name"() {
+    def "logging of atomic test whose ancestors don't have a test class"() {
         createLogger(LogLevel.INFO)
-        methodDescriptor.parent = innerSuiteDescriptor
+        def testSuiteDescriptor = new SimpleTestDescriptor(name: "Tests", displayName: "Tests", className: null, composite: true, parent: workerDescriptor)
+        methodDescriptor.parent = testSuiteDescriptor
 
         when:
         logger.logEvent(methodDescriptor, TestLogEvent.STARTED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}OuterSuiteClass > InnerSuiteClass > foo.bar.TestClass.testMethod STARTED${sep}"
+        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}Tests > foo.bar.TestClass.a test STARTED${sep}"
+    }
+
+    def "logging of atomic test whose parent is a method"() {
+        createLogger(LogLevel.INFO)
+        def dynamicTestGeneratorDescriptor = new SimpleTestDescriptor(name: "streamOfTests()", displayName: "streamOfTests()", className: null, composite: true, parent: outerSuiteDescriptor)
+        methodDescriptor.parent = dynamicTestGeneratorDescriptor
+
+        when:
+        logger.logEvent(methodDescriptor, TestLogEvent.STARTED)
+
+        then:
+        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}OuterSuiteClass > streamOfTests() > a test STARTED${sep}"
+    }
+
+    def "logging of orphan atomic test"() {
+        createLogger(LogLevel.INFO)
+        methodDescriptor.parent = null
+
+        when:
+        logger.logEvent(methodDescriptor, TestLogEvent.STARTED)
+
+        then:
+        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}foo.bar.TestClass.a test STARTED${sep}"
     }
 
     def "logs header just once per batch of events with same type and for same test"() {

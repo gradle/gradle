@@ -17,16 +17,12 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -85,14 +81,15 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
     private void walkChildren(T node, TypeMetadata typeMetadata, @Nullable String parentQualifiedName, V visitor, Map<T, String> nestedNodesOnPath) {
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
-            String childQualifiedName = getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName());
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
-                walkNestedChild(node, childQualifiedName, propertyMetadata, visitor, child -> walkNested(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath, false));
+                walkNestedChild(node, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata, visitor, child -> walkNested(child, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata, visitor, nestedNodesOnPath, false));
             } else {
-                visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata));
+                walkLeaf(node, parentQualifiedName, visitor, propertyMetadata);
             }
         });
     }
+
+    abstract protected void walkLeaf(T node, @Nullable String parentQualifiedName, V visitor, PropertyMetadata propertyMetadata);
 
     abstract protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName);
 
@@ -116,11 +113,6 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         return parentPropertyName == null
             ? childPropertyName
             : parentPropertyName + "." + childPropertyName;
-    }
-
-    private static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
-        ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
-        return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
     }
 
     static class InstanceTypeMetadataWalker extends AbstractTypeMetadataWalker<Object, InstanceMetadataVisitor> implements InstanceMetadataWalker {
@@ -151,13 +143,13 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             );
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         protected void walkNestedMap(Object node, String qualifiedName, BiConsumer<String, Object> handler) {
-            ((Map<String, Object>) node).forEach((key, value) -> {
+            ((Map<?, ?>) node).forEach((key, value) -> {
                 checkNotNull(key, "Null keys in nested map '%s' are not allowed.", qualifiedName);
-                checkNotNullNestedCollectionValue(qualifiedName, key, value);
-                handler.accept(key, value);
+                String stringKey = key.toString();
+                checkNotNullNestedCollectionValue(qualifiedName, stringKey, value);
+                handler.accept(stringKey, value);
             });
         }
 
@@ -199,32 +191,28 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             } else if (isElementOfCollection) {
                 throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(qualifiedName));
             } else {
-                TypeToken<?> getterType = TypeToken.of(propertyMetadata.getGetterMethod().getGenericReturnType());
-                TypeMetadata typeMetadata = getTypeMetadata(unpackType(getterType));
+                TypeToken<?> getterType = propertyMetadata.getDeclaredType();
+                TypeMetadata typeMetadata = getTypeMetadata(unpackType(getterType).getRawType());
                 visitor.visitNested(typeMetadata, qualifiedName, propertyMetadata, null);
             }
         }
 
+        @Override
+        protected void walkLeaf(Object node, @Nullable String parentQualifiedName, InstanceMetadataVisitor visitor, PropertyMetadata propertyMetadata) {
+            visitor.visitLeaf(node, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata);
+        }
+
         @SuppressWarnings("unchecked")
-        private static Class<?> unpackType(TypeToken<?> type) {
+        private static TypeToken<?> unpackType(TypeToken<?> type) {
             while (Provider.class.isAssignableFrom(type.getRawType())) {
-                type = extractNestedType((TypeToken<Provider<?>>) type, Provider.class, 0);
+                type = JavaReflectionUtil.extractNestedType((TypeToken<Provider<?>>) type, Provider.class, 0);
             }
-            return type.getRawType();
+            return type;
         }
 
         @Override
         protected @Nullable Object getChild(Object parent, PropertyMetadata property) {
-            Method method = property.getGetterMethod();
-            try {
-                // TODO: Move method.setAccessible(true) to PropertyMetadata
-                method.setAccessible(true);
-                return method.invoke(parent);
-            } catch (InvocationTargetException e) {
-                throw UncheckedException.throwAsUncheckedException(e.getCause());
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), parent), e);
-            }
+            return property.getPropertyValue(parent);
         }
 
         private static void checkNotNullNestedCollectionValue(@Nullable String parentQualifiedName, String name, @Nullable Object value) {
@@ -256,7 +244,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         @SuppressWarnings("unchecked")
         @Override
         protected void walkNestedProvider(TypeToken<?> node, String qualifiedName, PropertyMetadata propertyMetadata, StaticMetadataVisitor visitor, boolean isElementOfCollection, Consumer<TypeToken<?>> handler) {
-            handler.accept(extractNestedType((TypeToken<Provider<?>>) node, Provider.class, 0));
+            handler.accept(JavaReflectionUtil.extractNestedType((TypeToken<Provider<?>>) node, Provider.class, 0));
         }
 
         @SuppressWarnings("unchecked")
@@ -264,13 +252,13 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         protected void walkNestedMap(TypeToken<?> node, String qualifiedName, BiConsumer<String, TypeToken<?>> handler) {
             handler.accept(
                 "<key>",
-                extractNestedType((TypeToken<Map<?, ?>>) node, Map.class, 1));
+                JavaReflectionUtil.extractNestedType((TypeToken<Map<?, ?>>) node, Map.class, 1));
         }
 
         @SuppressWarnings("unchecked")
         @Override
         protected void walkNestedIterable(TypeToken<?> node, String qualifiedName, BiConsumer<String, TypeToken<?>> handler) {
-            TypeToken<?> nestedType = extractNestedType((TypeToken<? extends Iterable<?>>) node, Iterable.class, 0);
+            TypeToken<?> nestedType = JavaReflectionUtil.extractNestedType((TypeToken<? extends Iterable<?>>) node, Iterable.class, 0);
             handler.accept(determinePropertyName(nestedType), nestedType);
         }
 
@@ -280,8 +268,12 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         }
 
         @Override
+        protected void walkLeaf(TypeToken<?> node, @Nullable String parentQualifiedName, StaticMetadataVisitor visitor, PropertyMetadata propertyMetadata) {
+        }
+
+        @Override
         protected TypeToken<?> getChild(TypeToken<?> parent, PropertyMetadata property) {
-            return TypeToken.of(property.getGetterMethod().getGenericReturnType());
+            return property.getDeclaredType();
         }
 
         private static String determinePropertyName(TypeToken<?> nestedType) {

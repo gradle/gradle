@@ -17,7 +17,12 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import spock.lang.IgnoreIf
+import spock.lang.Issue
+
+import javax.annotation.Nullable
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
@@ -134,4 +139,33 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
         outputContains("${plugin.id} is already applied")
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/24023')
+    @IgnoreIf({ GradleContextualExecuter.notConfigCache })
+    def 'is correctly requested by the configuration cache'() {
+        when:
+        succeeds('t', *firstBuildArgs)
+
+        then:
+        assertRequestedOrNotApplied firstRequest
+
+        when:
+        succeeds('t', *secondBuildArgs)
+
+        then:
+        assertRequestedOrNotApplied secondRequest
+
+        where:
+        firstBuildArgs | firstRequest | secondBuildArgs | secondRequest
+        ['--scan']     | REQUESTED    | []              | null
+        []             | null         | ['--scan']      | REQUESTED
+        ['--scan']     | REQUESTED    | ['--scan']      | REQUESTED
+    }
+
+    void assertRequestedOrNotApplied(@Nullable GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
+        if (buildScanRequest) {
+            plugin.assertBuildScanRequest(output, buildScanRequest)
+        } else {
+            plugin.notApplied(output)
+        }
+    }
 }

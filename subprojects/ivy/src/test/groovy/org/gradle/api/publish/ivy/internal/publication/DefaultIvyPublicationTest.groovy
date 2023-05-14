@@ -414,14 +414,14 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createComponent(def artifacts, def dependencies) {
-        def usage = Stub(UsageContext) {
+        def variant = Stub(UsageContext) {
             getName() >> 'runtime'
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
             getAttributes() >> ImmutableAttributes.EMPTY
         }
         def component = Stub(SoftwareComponentInternal) {
-            getUsages() >> [usage]
+            getUsages() >> [variant]
         }
         return component
     }

@@ -21,6 +21,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.kotlin.dsl.support.loggerFor
 
 
+internal
 class KotlinScriptPlugin(
     private val scriptSource: ScriptSource,
     private val script: (Any) -> Unit

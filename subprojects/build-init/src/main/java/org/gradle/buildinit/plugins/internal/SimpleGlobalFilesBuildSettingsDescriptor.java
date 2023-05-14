@@ -41,14 +41,19 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
 
     private BuildScriptBuilder builder(InitSettings settings) {
         BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "settings", settings.isUseIncubatingAPIs());
-        builder.fileComment(
-                "The settings file is used to specify which projects to include in your build.\n\n"
-                    + "Detailed information about configuring a multi-project build in Gradle can be found\n"
-                    + "in the user manual at " + documentationRegistry.getDocumentationFor("multi_project_builds"));
+        builder.fileComment("The settings file is used to specify which projects to include in your build.\n\n")
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("detailed information on multi-project builds", "building_swift_projects"));
         if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS && settings.isUseIncubatingAPIs()) {
-            builder.block(null, "pluginManagement").methodInvocation(
-                "Include 'plugins build' to define convention plugins.", "includeBuild", PLUGINS_BUILD_LOCATION);
+            builder.includePluginsBuild();
         }
+
+        if (settings.getJavaLanguageVersion().isPresent()) {
+            builder.plugin(
+                "Apply the foojay-resolver plugin to allow automatic download of JDKs",
+                "org.gradle.toolchains.foojay-resolver-convention",
+                "0.4.0");
+        }
+
         builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());
         if (!settings.getSubprojects().isEmpty()) {
             builder.methodInvocation(null, "include", settings.getSubprojects().toArray());

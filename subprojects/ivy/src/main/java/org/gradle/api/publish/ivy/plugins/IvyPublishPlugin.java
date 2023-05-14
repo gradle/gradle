@@ -21,20 +21,21 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
-import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -52,6 +53,7 @@ import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Path;
@@ -66,8 +68,8 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 /**
  * Adds the ability to publish in the Ivy format to Ivy repositories.
  *
- * @since 1.3
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_ivy.html">Ivy Publishing reference</a>
+ * @since 1.3
  */
 public abstract class IvyPublishPlugin implements Plugin<Project> {
     private final static Logger LOGGER = Logging.getLogger(IvyPublishPlugin.class);
@@ -168,31 +170,37 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         publication.setModuleDescriptorGenerator(generatorTask);
     }
 
-    private void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
-        AtomicBoolean didWarn = new AtomicBoolean();
-        Spec<? super Task> checkStandardLayout = task -> {
-            boolean standard = repositories.stream().allMatch(this::hasStandardPattern);
-            if (!standard && !didWarn.getAndSet(true)) {
-                LOGGER.warn("Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout");
-            }
-            return standard;
-        };
-        generateTask.onlyIf("The Ivy repositories follow the standard layout", checkStandardLayout);
+    private static void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
+        Provider<Boolean> standard = new DefaultProvider<>(() -> repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern));
+        generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
     }
 
-    private boolean hasStandardPattern(IvyArtifactRepository ivyArtifactRepository) {
-        DefaultIvyArtifactRepository repo = (DefaultIvyArtifactRepository) ivyArtifactRepository;
-        RepositoryDescriptor descriptor = repo.getDescriptor();
-        if (descriptor instanceof IvyRepositoryDescriptor) {
-            IvyRepositoryDescriptor desc = (IvyRepositoryDescriptor) descriptor;
-            List<String> artifactPatterns = desc.getArtifactPatterns();
-            if (artifactPatterns.size() == 1) {
-                return artifactPatterns.get(0).equals(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN);
-            } else {
-                return false;
-            }
+    private static class CheckStandardLayoutSpec implements Spec<GenerateModuleMetadata> {
+        private final Provider<Boolean> standard;
+        private final AtomicBoolean didWarn = new AtomicBoolean();
+
+        CheckStandardLayoutSpec(Provider<Boolean> standard) {
+            this.standard = standard;
         }
-        return true;
+
+        @Override
+        public boolean isSatisfiedBy(GenerateModuleMetadata element) {
+            if (!standard.get() && !didWarn.getAndSet(true)) {
+                LOGGER.warn("Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout");
+            }
+            return standard.get();
+        }
+    }
+
+    private static boolean hasStandardPattern(ArtifactRepository ivyArtifactRepository) {
+        DefaultIvyArtifactRepository repo = (DefaultIvyArtifactRepository) ivyArtifactRepository;
+        IvyRepositoryDescriptor descriptor = repo.getDescriptor();
+        List<String> artifactPatterns = descriptor.getArtifactPatterns();
+        if (artifactPatterns.size() == 1) {
+            return artifactPatterns.get(0).equals(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN);
+        } else {
+            return false;
+        }
     }
 
     private static class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {
@@ -202,8 +210,9 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         private final FileResolver fileResolver;
         private final TaskDependencyFactory taskDependencyFactory;
 
-        private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
-                                      TaskDependencyFactory taskDependencyFactory
+        private IvyPublicationFactory(
+            DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory
         ) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;

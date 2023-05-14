@@ -16,32 +16,16 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantSelectionResult;
 
-import java.util.Collection;
-import java.util.List;
-
-public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata {
+public class ModuleDependencyMetadataWrapper extends DelegatingDependencyMetadata implements ModuleDependencyMetadata {
     private final DependencyMetadata delegate;
-    private final boolean isTransitive;
 
     public ModuleDependencyMetadataWrapper(DependencyMetadata delegate) {
+        super(delegate);
         this.delegate = delegate;
-        this.isTransitive = delegate.isTransitive();
-    }
-
-    @Override
-    public List<IvyArtifactName> getArtifacts() {
-        return delegate.getArtifacts();
     }
 
     @Override
@@ -65,52 +49,7 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public DependencyMetadata withTarget(ComponentSelector target) {
-        return delegate.withTarget(target);
-    }
-
-    @Override
-    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
-        return delegate.withTargetAndArtifacts(target, artifacts);
-    }
-
-    @Override
     public ModuleComponentSelector getSelector() {
         return (ModuleComponentSelector) delegate.getSelector();
-    }
-
-    @Override
-    public List<ExcludeMetadata> getExcludes() {
-        return delegate.getExcludes();
-    }
-
-    @Override
-    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        return delegate.selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
-    }
-
-    @Override
-    public boolean isChanging() {
-        return delegate.isChanging();
-    }
-
-    @Override
-    public boolean isTransitive() {
-        return isTransitive;
-    }
-
-    @Override
-    public boolean isConstraint() {
-        return delegate.isConstraint();
-    }
-
-    @Override
-    public boolean isEndorsingStrictVersions() {
-        return delegate.isEndorsingStrictVersions();
-    }
-
-    @Override
-    public String getReason() {
-        return delegate.getReason();
     }
 }

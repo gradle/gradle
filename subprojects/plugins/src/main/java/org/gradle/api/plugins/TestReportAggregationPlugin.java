@@ -27,6 +27,8 @@ import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -59,11 +61,10 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.reporting-base");
 
-        final Configuration testAggregation = project.getConfigurations().create(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME);
+        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
+        final Configuration testAggregation = configurations.bucket(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME);
         testAggregation.setDescription("A configuration to collect test execution results");
         testAggregation.setVisible(false);
-        testAggregation.setCanBeConsumed(false);
-        testAggregation.setCanBeResolved(false);
 
         ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
         reporting.getReports().registerBinding(AggregateTestReport.class, DefaultAggregateTestReport.class);
@@ -78,12 +79,10 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         });
 
         // A resolvable configuration to collect test results
-        Configuration testResultsConf = project.getConfigurations().create("aggregateTestReportResults");
+        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults");
         testResultsConf.extendsFrom(testAggregation);
         testResultsConf.setDescription("Graph needed for the aggregated test results report.");
         testResultsConf.setVisible(false);
-        testResultsConf.setCanBeConsumed(false);
-        testResultsConf.setCanBeResolved(true);
 
         // Iterate and configure each user-specified report.
         reporting.getReports().withType(AggregateTestReport.class).all(report -> {

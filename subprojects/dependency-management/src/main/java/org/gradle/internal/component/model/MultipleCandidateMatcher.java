@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
@@ -114,7 +113,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         compatible.set(0, candidates.size());
     }
 
-    public List<T> getMatches() {
+    public int[] getMatches() {
         findCompatibleCandidates();
         if (compatible.cardinality() <= 1) {
             return getCandidates(compatible);
@@ -122,7 +121,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         if (longestMatchIsSuperSetOfAllOthers()) {
             T o = candidates.get(candidateWithLongestMatch);
             explanationBuilder.candidateIsSuperSetOfAllOthers(o);
-            return Collections.singletonList(o);
+            return new int[] {candidateWithLongestMatch};
         }
         return disambiguateCompatibleCandidates();
     }
@@ -218,7 +217,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         return true;
     }
 
-    private List<T> disambiguateCompatibleCandidates() {
+    private int[] disambiguateCompatibleCandidates() {
         remaining = new BitSet(candidates.size());
         remaining.or(compatible);
 
@@ -414,18 +413,20 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
     }
 
-    private List<T> getCandidates(BitSet liveSet) {
+    private int[] getCandidates(BitSet liveSet) {
         if (liveSet.cardinality() == 0) {
-            return Collections.emptyList();
+            return new int[0];
         }
         if (liveSet.cardinality() == 1) {
-            return Collections.singletonList(this.candidates.get(liveSet.nextSetBit(0)));
+            return new int[] {liveSet.nextSetBit(0)};
         }
-        ImmutableList.Builder<T> builder = ImmutableList.builder();
+
+        int i = 0;
+        int[] result = new int[liveSet.cardinality()];
         for (int c = liveSet.nextSetBit(0); c >= 0; c = liveSet.nextSetBit(c + 1)) {
-            builder.add(this.candidates.get(c));
+            result[i++] = c;
         }
-        return builder.build();
+        return result;
     }
 
     @Nullable

@@ -16,18 +16,21 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.SmokeTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
  * Smoke test verifying the external plugins.
  *
  */
-@Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
-})
+@Requires([
+    UnitTestPreconditions.Jdk9OrLater,
+    IntegTestPreconditions.NotConfigCached,
+    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
+])
 class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation, ValidationMessageChecker {
 
     def setup() {
@@ -66,7 +69,11 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.asciidoctor.jvm.convert',
                 'com.gradle.plugin-publish',
                 'kotlin',
-                'com.autonomousapps.dependency-analysis'
+                'com.autonomousapps.dependency-analysis',
+                'dev.adamko.dokkatoo.DokkatooBasePlugin$Inject',
+                'dev.adamko.dokkatoo.adapters.DokkatooJavaAdapter$Inject',
+                'dev.adamko.dokkatoo.adapters.DokkatooKotlinAdapter$Inject',
+                'dev.adamko.dokkatoo.formats.DokkatooHtmlPlugin$Inject',
             ]
         }
 

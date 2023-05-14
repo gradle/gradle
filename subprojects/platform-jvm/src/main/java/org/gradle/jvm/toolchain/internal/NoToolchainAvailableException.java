@@ -17,11 +17,26 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.platform.BuildPlatform;
 
+@Contextual
 public class NoToolchainAvailableException extends GradleException {
 
-    public NoToolchainAvailableException(JavaToolchainSpec specification, boolean autoDetect, boolean autoDownload) {
-        super("No compatible toolchains found for request specification: " + specification.getDisplayName() + " (auto-detect " + autoDetect + ", auto-download " + autoDownload + ").");
+    public NoToolchainAvailableException(
+        JavaToolchainSpec specification,
+        BuildPlatform buildPlatform,
+        ToolchainDownloadFailedException cause
+    ) {
+        super(
+            String.format(
+                "No matching toolchains found for requested specification: %s for %s on %s.",
+                specification.getDisplayName(),
+                buildPlatform.getOperatingSystem(),
+                buildPlatform.getArchitecture().toString().toLowerCase()
+            ),
+            cause
+        );
     }
 }

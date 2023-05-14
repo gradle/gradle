@@ -25,8 +25,8 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
@@ -132,7 +132,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     def "can build Swift static library from xcode"() {
         useXcodebuildTool()
@@ -250,7 +250,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         }
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when Swift application product doesn't have test configured"() {
         useXcodebuildTool()
@@ -294,7 +294,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultRunner.error.contains("Scheme App is not currently configured for the test action.")
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when Swift library doesn't have test configured"() {
         useXcodebuildTool()
@@ -328,7 +328,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultRelease.error.contains("Scheme App is not currently configured for the test action.")
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can configure test only when xctest plugin is applied"() {
@@ -368,7 +368,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultDebugWithXCTest.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can run tests for Swift library from xcode"() {
@@ -399,7 +399,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultTestRunner.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can run tests for Swift application from xcode"() {
@@ -432,7 +432,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultTestRunner.assertHasPostBuildOutput("** TEST SUCCEEDED **")
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can build Swift application from xcode"() {
@@ -477,7 +477,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can build Swift application from xcode with multiple operating systems"() {
@@ -526,7 +526,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     def "produces reasonable message when xcode uses outdated xcode configuration"() {
         useXcodebuildTool()
@@ -550,7 +550,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         result.assertHasDescription("Unknown Xcode target 'App', do you need to re-generate Xcode configuration?")
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can clean from xcode"() {
@@ -583,7 +583,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         file("build").assertDoesNotExist()
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can build Swift library from xcode"() {
@@ -628,7 +628,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can build Swift library from xcode with multiple operating systems"() {

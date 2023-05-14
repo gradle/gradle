@@ -20,6 +20,12 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 class MavenGcsRepoErrorsIntegrationTest extends AbstractGcsDependencyResolutionTest {
 
     String artifactVersion = "1.85"
@@ -101,9 +107,13 @@ repositories {
             """Could not find org.gradle:test:1.85.
 Searched in the following locations:
   - ${module.pom.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
+        failure.assertHasResolutions(repositoryHint("Maven POM"),
+            STACKTRACE_MESSAGE,
+            DEBUG,
+            SCAN,
+            GET_HELP)
     }
 
     @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)

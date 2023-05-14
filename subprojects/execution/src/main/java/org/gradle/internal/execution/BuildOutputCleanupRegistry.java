@@ -49,9 +49,4 @@ public interface BuildOutputCleanupRegistry {
      * Gets the set of registered outputs as file collections.
      */
     Set<FileCollection> getRegisteredOutputs();
-
-    /**
-     * Restarts the lifecycle of this registry, discarding any registered outputs.
-     */
-    void resetLifecycle();
 }

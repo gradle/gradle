@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -46,6 +47,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private final ImmutableSortedSet<InputPropertySpec> inputProperties;
     private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
     private final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties;
+    private final ImmutableSortedSet<ServiceReferenceSpec> serviceReferences;
     private final boolean hasDeclaredOutputs;
     private final ReplayingTypeValidationContext validationProblems;
     private final FileCollection localStateFiles;
@@ -56,6 +58,7 @@ public class DefaultTaskProperties implements TaskProperties {
         String beanName = task.toString();
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
+        GetServiceReferencesVisitor serviceReferencesVisitor = new GetServiceReferencesVisitor();
         ValidationVisitor validationVisitor = new ValidationVisitor();
         OutputFilesCollector outputFilesCollector = new OutputFilesCollector();
         OutputUnpacker outputUnpacker = new OutputUnpacker(
@@ -75,7 +78,8 @@ public class DefaultTaskProperties implements TaskProperties {
                 outputUnpacker,
                 validationVisitor,
                 destroyablesVisitor,
-                localStateVisitor
+                localStateVisitor,
+                serviceReferencesVisitor
             ));
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
@@ -85,6 +89,7 @@ public class DefaultTaskProperties implements TaskProperties {
             inputPropertiesVisitor.getProperties(),
             inputFilesVisitor.getFileProperties(),
             outputFilesCollector.getFileProperties(),
+            serviceReferencesVisitor.getServiceReferences(),
             outputUnpacker.hasDeclaredOutputs(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
@@ -96,6 +101,7 @@ public class DefaultTaskProperties implements TaskProperties {
         ImmutableSortedSet<InputPropertySpec> inputProperties,
         ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
         ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
+        ImmutableSortedSet<ServiceReferenceSpec> serviceReferences,
         boolean hasDeclaredOutputs,
         FileCollection localStateFiles,
         FileCollection destroyableFiles,
@@ -108,6 +114,7 @@ public class DefaultTaskProperties implements TaskProperties {
         this.inputProperties = inputProperties;
         this.inputFileProperties = inputFileProperties;
         this.outputFileProperties = outputFileProperties;
+        this.serviceReferences = serviceReferences;
         this.hasDeclaredOutputs = hasDeclaredOutputs;
         this.localStateFiles = localStateFiles;
         this.destroyableFiles = destroyableFiles;
@@ -126,6 +133,11 @@ public class DefaultTaskProperties implements TaskProperties {
     @Override
     public ImmutableSortedSet<InputFilePropertySpec> getInputFileProperties() {
         return inputFileProperties;
+    }
+
+    @Override
+    public ImmutableSortedSet<ServiceReferenceSpec> getServiceReferences() {
+        return serviceReferences;
     }
 
     @Override
@@ -238,7 +250,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
-        public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
+        public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {
             // Service reference declared via annotation, validate it
             taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
         }

@@ -29,7 +29,7 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
     def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchain"() {
         CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         options.fork = fork
-        options.forkOptions.executable = executable
+        options.forkOptions.executable = executable ? Jvm.current().javacExecutable.absolutePath : null
 
         def javaToolchain = null
         if (toolchain != null) {
@@ -51,16 +51,16 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
 
         where:
         fork  | executable | toolchain | implementsForking | implementsCommandLine
-        false | null       | null      | false             | false
-        false | null       | "current" | false             | false
-        false | null       | "11"      | true              | false
+        false | false      | null      | false             | false
+        false | false      | "current" | false             | false
+        false | false      | "11"      | true              | false
         // Below Java 8 toolchain compiler always runs via command-line
-        false | null       | "7"       | false             | true
+        false | false      | "7"       | false             | true
 
-        true  | null       | null      | true              | false
-        true  | "X"        | null      | false             | true
-        true  | "X"        | "current" | false             | true
-        true  | "X"        | "11"      | false             | true
+        true  | false      | null      | true              | false
+        true  | true       | null      | false             | true
+        true  | true       | "current" | false             | true
+        true  | true       | "11"      | false             | true
     }
 
 }

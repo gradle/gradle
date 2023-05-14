@@ -21,8 +21,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
@@ -30,7 +30,10 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_3
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.junit.Assume.assumeTrue
 
-@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
+@Requires([
+    UnitTestPreconditions.CanInstallExecutable,
+    UnitTestPreconditions.NotMacOs
+])
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample cppLib = sample(testDirectoryProvider, 'cpp-lib')
     @Rule public final Sample cppExe = sample(testDirectoryProvider, 'cpp-exe')

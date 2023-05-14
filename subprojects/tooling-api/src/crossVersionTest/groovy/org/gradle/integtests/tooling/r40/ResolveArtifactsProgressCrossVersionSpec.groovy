@@ -28,6 +28,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=4.0")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
 class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
     private RepositoryHttpServer server
 
@@ -45,7 +46,6 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         getTargetVersion() < GradleVersion.version("6.0") ? "$name.$extension" : "$name-$version.$extension"
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     @LeaksFileHandles
     def "generates event for resolving intrinsic artifacts by iterating the configuration"() {
         given:

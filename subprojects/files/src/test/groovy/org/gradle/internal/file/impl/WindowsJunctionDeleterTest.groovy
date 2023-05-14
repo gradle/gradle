@@ -17,12 +17,12 @@
 package org.gradle.internal.file.impl
 
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsJunction
 
-@Requires(TestPrecondition.WINDOWS)
+@Requires(UnitTestPreconditions.Windows)
 class WindowsJunctionDeleterTest extends AbstractSymlinkDeleterTest {
     @Override
     protected void createSymbolicLink(File link, TestFile target) {

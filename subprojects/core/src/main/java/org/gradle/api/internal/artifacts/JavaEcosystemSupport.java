@@ -31,7 +31,6 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
@@ -92,7 +91,6 @@ public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
-        configureView(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
@@ -100,7 +98,6 @@ public abstract class JavaEcosystemSupport {
         attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
-                CompileView.VIEW_ATTRIBUTE,
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                 Bundling.BUNDLING_ATTRIBUTE,
@@ -159,45 +156,6 @@ public abstract class JavaEcosystemSupport {
             actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         });
     }
-
-    private static void configureView(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<CompileView> viewSchema = attributesSchema.attribute(CompileView.VIEW_ATTRIBUTE);
-        viewSchema.getDisambiguationRules().add(CompileViewDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_API));
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_INTERNAL));
-        });
-    }
-
-    @VisibleForTesting
-    static class CompileViewDisambiguationRules implements AttributeDisambiguationRule<CompileView>, ReusableAction {
-
-        final CompileView javaApi;
-        final CompileView javaInternal;
-
-        @Inject
-        public CompileViewDisambiguationRules(
-                CompileView javaApi,
-                CompileView javaInternal) {
-            this.javaApi = javaApi;
-            this.javaInternal = javaInternal;
-        }
-
-        @Override
-        public void execute(MultipleCandidatesDetails<CompileView> details) {
-            Set<CompileView> candidateValues = details.getCandidateValues();
-            CompileView consumerValue = details.getConsumerValue();
-            if (consumerValue == null) {
-                if (candidateValues.contains(javaApi)) {
-                    // Use the api when nothing has been requested
-                    details.closestMatch(javaApi);
-                }
-            } else if (candidateValues.contains(consumerValue)) {
-                // Use what they requested, if available
-                details.closestMatch(consumerValue);
-            }
-        }
-    }
-
     @VisibleForTesting
     public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;

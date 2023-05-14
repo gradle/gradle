@@ -1,9 +1,0 @@
-# This is used to configure the LGTM.com website's build of Gradle/Gradle
-# This happens passively without any explict configuration against our repository.
-# See: https://lgtm.com/projects/g/gradle/gradle
-
-extraction:
-  java:
-    index:
-      java_version: "11"
-      build_command: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -S -Dorg.gradle.java.home=/usr/lib/jvm/java-11-openjdk-amd64 --max-workers=1 --no-scan testClasses

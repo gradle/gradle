@@ -89,8 +89,17 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
     @Override
     public ResolvedArtifactSet select(ResolvedVariantSet producer, Factory factory) {
+        return selectAndWrapFailures(producer, ignoreWhenNoMatches, factory);
+    }
+
+    @Override
+    public ResolvedArtifactSet maybeSelect(ResolvedVariantSet candidates, Factory factory) {
+        return selectAndWrapFailures(candidates, true, factory);
+    }
+
+    private ResolvedArtifactSet selectAndWrapFailures(ResolvedVariantSet producer, boolean ignoreWhenNoMatches, Factory factory) {
         try {
-            return doSelect(producer, factory, AttributeMatchingExplanationBuilder.logging());
+            return doSelect(producer, ignoreWhenNoMatches, factory, AttributeMatchingExplanationBuilder.logging());
         } catch (VariantSelectionException t) {
             return new BrokenResolvedArtifactSet(t);
         } catch (Exception t) {
@@ -98,7 +107,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
     }
 
-    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, Factory factory, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean ignoreWhenNoMatches, Factory factory, AttributeMatchingExplanationBuilder explanationBuilder) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverriddenAttributes());
         final List<ResolvedVariant> variants;

@@ -20,12 +20,14 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
+import spock.lang.Timeout
+
+import java.util.concurrent.TimeUnit
 
 @IntegrationTestTimeout(300)
 @TargetGradleVersion('>=4.0')
@@ -191,7 +193,9 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         and:
         println events.describeOperationsTree()
 
-        events.operation(applyInitScript(initScript)).with { operation ->
+        def initScripts = events.operations(applyInitScript(initScript))
+        !initScripts.empty // Root build, plus buildSrc for Gradle >=8.0
+        initScripts.each { operation ->
             operation.child applyInitScriptPlugin(scriptPlugin1)
             operation.child applyInitScriptPlugin(scriptPlugin2)
         }
@@ -222,7 +226,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         }
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
+    @Timeout(value = 10, unit = TimeUnit.MINUTES)
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()

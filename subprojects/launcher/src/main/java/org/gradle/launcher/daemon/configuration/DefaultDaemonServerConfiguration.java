@@ -28,8 +28,23 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
     private final boolean singleUse;
     private final DaemonParameters.Priority priority;
     private final List<String> jvmOptions;
+    private final boolean instrumentationAgentAllowed;
 
+    /**
+     * Creates the DefaultDaemonConfiguration that allows the use of the instrumentation agent if the latter is applied.
+     */
     public DefaultDaemonServerConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, boolean singleUse, DaemonParameters.Priority priority, List<String> jvmOptions) {
+        // Using the available agent is correct for the forked daemon processes, because the forking
+        // code takes the desired agent status into account when configuring the daemon command line.
+        // The daemon that shouldn't use the agent won't have the agent applied.
+        this(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, jvmOptions, true);
+    }
+
+    public DefaultDaemonServerConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, boolean singleUse, DaemonParameters.Priority priority, List<String> jvmOptions, boolean instrumentationAgentAllowed) {
+        // There is at least one case when the daemon shouldn't use the available agent: if the foreground
+        // daemon is started with feature flag disabled.
+        // The start script cannot look into the feature flags, so the agent is always applied to the foreground daemon.
+        // The state of the flag has to be communicated to the daemon setup code explicitly, which is what this constructor allows.
         this.daemonUid = daemonUid;
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
@@ -37,6 +52,7 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
         this.singleUse = singleUse;
         this.priority = priority;
         this.jvmOptions = jvmOptions;
+        this.instrumentationAgentAllowed = instrumentationAgentAllowed;
     }
 
     @Override
@@ -72,5 +88,10 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
     @Override
     public boolean isSingleUse() {
         return singleUse;
+    }
+
+    @Override
+    public boolean isInstrumentationAgentAllowed() {
+        return instrumentationAgentAllowed;
     }
 }

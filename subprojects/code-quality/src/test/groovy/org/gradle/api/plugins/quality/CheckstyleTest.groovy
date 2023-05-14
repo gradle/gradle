@@ -38,6 +38,9 @@ class CheckstyleTest extends Specification {
             !reports.html.required.get()
             !reports.html.outputLocation.isPresent()
             reports.html.outputType == Report.OutputType.FILE
+            !reports.sarif.required.get()
+            !reports.sarif.outputLocation.isPresent()
+            reports.sarif.outputType == Report.OutputType.FILE
             !ignoreFailures
             showViolations
             maxErrors == 0

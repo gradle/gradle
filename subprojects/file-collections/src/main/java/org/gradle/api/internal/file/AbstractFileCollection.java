@@ -26,10 +26,10 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.provider.BuildableBackedSetProvider;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -62,7 +62,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @SuppressWarnings("deprecation")
-    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory)  {
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory) {
         this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory());
     }
 

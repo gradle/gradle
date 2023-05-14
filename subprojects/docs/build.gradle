@@ -78,11 +78,11 @@ asciidoctorj {
 tasks.withType(AsciidoctorTask).configureEach { task ->
     if (task.name == "userguideSinglePagePdf") {
         task.asciidoctorj.docExtensions(
-            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions-base:0.13.0"),
+            project.getDependencies().create(project(":docs-asciidoctor-extensions-base")),
         )
     } else {
         task.asciidoctorj.docExtensions(
-            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions:0.13.0"),
+            project.getDependencies().create(project(":docs-asciidoctor-extensions")),
             project.getDependencies().create(project.files("src/main/resources"))
         )
     }
@@ -555,9 +555,11 @@ samples {
     }
 }
 
-// Use the version of Gradle being built, not the version of Gradle used to build
-tasks.named("generateWrapperForSamples") {
+// Use the version of Gradle being built, not the version of Gradle used to build,
+// also don't validate distribution url, since it is just a local distribution
+tasks.named("generateWrapperForSamples", Wrapper) {
     gradleVersion = project.version
+    validateDistributionUrl = false
 }
 
 // TODO: The rich console to plain text is flaky
@@ -571,6 +573,10 @@ tasks.withType(InstallSample).configureEach {
         excludes.add("gradle/wrapper/**")
         excludes.add("README")
     }
+}
+
+tasks.named("quickTest") {
+    dependsOn("checkDeadInternalLinks")
 }
 
 // TODO add some kind of test precondition support in sample test conf
@@ -589,6 +595,8 @@ tasks.named("docsTest") { task ->
     testClassesDirs = sourceSets.docsTest.output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
     systemProperties.clear()
+    // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 
     filter {
         // workaround for https://github.com/gradle/dotcom/issues/5958
@@ -651,6 +659,16 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
         }
+
+        // filter tests which won't run on Groovy 4 without updating the Spock version
+        if (System.getProperty('bundleGroovy4', 'false') == 'true') {
+            excludeTestsMatching 'org.gradle.docs.samples.*.convention-plugins*check.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.convention-plugins*sanityCheck.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.incubating-publishing-convention-plugins*publish.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.publishing-convention-plugins*publish.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-configuration-cache-test-kit*configurationCacheTestKit.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-developing-plugins-testing-plugins*testPlugin.sample'
+        }
     }
 
     filter {
@@ -706,6 +724,8 @@ tasks.named("docsTest") { task ->
                 "snippet-ide-idea-additional-test-sources_kotlin_ideaAdditionalTestSources.sample",
                 "snippet-ide-idea_groovy_projectWithXml.sample",
                 "snippet-ide-idea_kotlin_projectWithXml.sample",
+                "snippet-init-scripts-custom-logger_groovy_customLogger.groovy.sample",
+                "snippet-init-scripts-custom-logger_kotlin_customLogger.kotlin.sample",
                 "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-all.sample",
                 "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-model-task.sample",
                 "snippet-model-rules-configure-as-required_groovy_modelDslConfigureRuleRunWhenRequired.sample",
@@ -741,36 +761,6 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/19725) EAR plugin support
-                "snippet-ear-ear-customized_groovy_earCustomized.sample",
-                "snippet-ear-ear-customized_kotlin_earCustomized.sample",
-                "snippet-ear-ear-with-war_groovy_earWithWar.sample",
-                "snippet-ear-ear-with-war_kotlin_earWithWar.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/13469) Ivy Publish plugin support
-                "snippet-ivy-publish-conditional-publishing_groovy_publishingIvyConditionally.sample",
-                "snippet-ivy-publish-descriptor-customization_groovy_publishingIvyGenerateDescriptor.sample",
-                "snippet-ivy-publish-descriptor-customization_kotlin_publishingIvyGenerateDescriptor.sample",
-                "snippet-ivy-publish-java-multi-project_groovy_publish-multi-project.sample",
-                "snippet-ivy-publish-java-multi-project_kotlin_publish-multi-project.sample",
-                "snippet-ivy-publish-quickstart_groovy_publishingIvyPublishLifecycle.sample",
-                "snippet-ivy-publish-quickstart_groovy_publishingIvyPublishSingle.sample",
-                "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishLifecycle.sample",
-                "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishSingle.sample",
-                "snippet-plugins-publishing_groovy_publishToIvy.sample",
-                "snippet-plugins-publishing_kotlin_publishToIvy.sample",
-                "snippet-tooling-api-custom-model_groovy_sanityCheck.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/13470) Signing plugin support
-                "snippet-signing-configurations_groovy_signingArchivesOutput.sample",
-                "snippet-signing-configurations_kotlin_signingArchivesOutput.sample",
-                "snippet-signing-maven-publish_groovy_publishingMavenSignAndPublish.sample",
-                "snippet-signing-maven-publish_groovy_signingPluginSignPublication.sample",
-                "snippet-signing-maven-publish_kotlin_publishingMavenSignAndPublish.sample",
-                "snippet-signing-maven-publish_kotlin_signingPluginSignPublication.sample",
-                "snippet-signing-tasks_groovy_signingTaskOutput.sample",
-                "snippet-signing-tasks_kotlin_signingTaskOutput.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
                 "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
                 "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
@@ -781,6 +771,12 @@ tasks.named("docsTest") { task ->
             def testsToBeFixedForConfigurationCache = [
                 "snippet-build-cache-configure-task_groovy_configureTask.sample",
                 "snippet-build-cache-configure-task_kotlin_configureTask.sample",
+                // TODO(mlopatkin) These snippets use bintray plugin which is not fully CC-compatible. Remove bintray plugin from samples.
+                "snippet-plugins-buildscript_groovy_sanityCheck.sample",
+                "snippet-plugins-buildscript_kotlin_sanityCheck.sample",
+                "snippet-plugins-dsl_groovy_sanityCheck.sample",
+                "snippet-plugins-dsl_kotlin_sanityCheck.sample",
+                "snippet-kotlin-dsl-interoperability-closure-of_kotlin_sanityCheck.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache

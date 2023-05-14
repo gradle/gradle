@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.kotlin.dsl.execution.ProgramKind
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.execution.templateIdFor
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import java.io.File
 
 
@@ -58,7 +59,7 @@ sealed class CachedScript {
 internal
 fun ExecutionResult.assertOccurrenceCountOf(actionDisplayName: String, stage: CachedScript.CompilationStage, count: Int) {
     val expectedCount = if (stage.enabled) count else 0
-    val logStatement = "${actionDisplayName.capitalize()} ${stage.templateId} from ${stage.source}"
+    val logStatement = "${actionDisplayName.uppercaseFirstChar()} ${stage.templateId} from ${stage.source}"
     val observedCount = output.occurrenceCountOf(logStatement)
     require(observedCount == expectedCount) {
         "Expected $expectedCount but got $observedCount\n" +

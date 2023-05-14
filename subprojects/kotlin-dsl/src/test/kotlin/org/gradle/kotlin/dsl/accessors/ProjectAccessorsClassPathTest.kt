@@ -30,16 +30,15 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.plugins.Convention
 import org.gradle.api.reflect.TypeOf.parameterizedTypeOf
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
@@ -56,6 +55,7 @@ import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.gradle.nativeplatform.BuildType
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -162,7 +162,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // then:
             schema.configurations.forEach { config ->
                 val name = config.target
-                val className = "${name.capitalize()}ConfigurationAccessorsKt"
+                val className = "${name.uppercaseFirstChar()}ConfigurationAccessorsKt"
                 val classFile = File(binaryAccessorsDir, "$className.class")
 
                 require(classFile.exists())
@@ -290,7 +290,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             )
 
         val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()
-        val configurations = mock<ConfigurationContainer> {
+        val configurations = mock<RoleBasedConfigurationContainerInternal> {
             on { named(any<String>(), any<Class<Configuration>>()) } doReturn apiConfiguration
         }
         val sourceSet = mock<NamedDomainObjectProvider<SourceSet>>()
@@ -317,7 +317,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
         val customConvention = mock<CustomConvention>()
-        val convention = mock<Convention> {
+        @Suppress("deprecation")
+        val convention = mock<org.gradle.api.plugins.Convention> {
             on { plugins } doReturn mapOf("customConvention" to customConvention)
         }
         val project = mock<ProjectInternal> {
@@ -443,11 +444,13 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // val i
             @Suppress("deprecation")
             verify(project).convention
+            @Suppress("deprecation")
             verify(convention).plugins
 
             // val j
             @Suppress("deprecation")
             verify(project).convention
+            @Suppress("deprecation")
             verify(convention).plugins
 
             // val k

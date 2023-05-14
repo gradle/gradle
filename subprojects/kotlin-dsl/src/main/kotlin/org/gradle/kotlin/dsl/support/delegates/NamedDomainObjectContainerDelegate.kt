@@ -35,8 +35,6 @@ import java.util.SortedSet
 
 /**
  * Facilitates the implementation of the [NamedDomainObjectContainer] interface by delegation via subclassing.
- *
- * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectContainer<T> {
 

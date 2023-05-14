@@ -35,8 +35,8 @@ abstract class AbstractHttpCrossVersionSpec extends ToolingApiSpecification {
         server.after()
     }
 
-    MavenHttpRepository getMavenHttpRepo() {
-        return new MavenHttpRepository(server, "/repo", mavenRepo)
+    MavenHttpRepository getMavenHttpRepo(String contextPath = "/repo") {
+        return new MavenHttpRepository(server, contextPath, getMavenRepo(contextPath.substring(1)))
     }
 
     MavenFileRepository getMavenRepo(String name = "repo") {
@@ -45,11 +45,15 @@ abstract class AbstractHttpCrossVersionSpec extends ToolingApiSpecification {
 
     Modules setupBuildWithArtifactDownloadDuringConfiguration() {
         Modules modules = setupBuildWithDependencies()
+        addConfigurationClassPathPrintToBuildFile()
+        modules.expectResolved()
+        return modules
+    }
+
+    def addConfigurationClassPathPrintToBuildFile() {
         buildFile << """
             configurations.compileClasspath.each { println it }
         """
-        modules.expectResolved()
-        return modules
     }
 
     Modules setupBuildWithArtifactDownloadDuringTaskExecution() {
@@ -78,6 +82,19 @@ abstract class AbstractHttpCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
+    def initSettingsFile() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'a'
+        """
+    }
+
+    def repositories(MavenHttpRepository... repositories) {
+        """repositories {${
+            repositories.collect { "maven { url '${it.uri}' }" }.join("\n")}
+        }"""
+    }
+
     Modules setupBuildWithDependencies() {
         toolingApi.requireIsolatedUserHome()
 
@@ -86,17 +103,13 @@ abstract class AbstractHttpCrossVersionSpec extends ToolingApiSpecification {
         def projectD = mavenHttpRepo.module('group', 'projectD', '2.0-SNAPSHOT').publish()
         def modules = new Modules(projectB, projectC, projectD)
 
-        settingsFile << """
-            rootProject.name = 'root'
-            include 'a'
-        """
+        initSettingsFile()
+
         buildFile << """
             allprojects {
                 apply plugin:'java-library'
             }
-            repositories {
-               maven { url '${mavenHttpRepo.uri}' }
-            }
+            ${repositories(mavenHttpRepo)}
             dependencies {
                 implementation project(':a')
                 implementation "group:projectB:1.0"
@@ -119,17 +132,15 @@ abstract class AbstractHttpCrossVersionSpec extends ToolingApiSpecification {
         }
 
         def useLargeJars() {
-            def file = new RandomAccessFile(projectB.artifact.file, "rw")
-            try {
+            try (def file = new RandomAccessFile(projectB.artifact.file, "rw")) {
                 file.setLength(100 * 1024) // not that large
-            } finally {
-                file.close()
             }
         }
 
         def expectResolved() {
             projectB.pom.expectGet()
             projectB.artifact.expectGet()
+
             projectC.rootMetaData.expectGet()
             projectC.pom.expectGet()
             projectC.artifact.expectGet()
@@ -141,10 +152,12 @@ abstract class AbstractHttpCrossVersionSpec extends ToolingApiSpecification {
 
         def expectResolveFailure() {
             projectB.pom.allowGetOrHead()
+
             projectC.rootMetaData.expectGet()
             projectC.pom.expectGetBroken()
             projectC.pom.expectGetBroken()
             projectC.pom.expectGetBroken()
+
             projectD.metaData.allowGetOrHead()
             projectD.pom.allowGetOrHead()
         }

@@ -35,7 +35,7 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
     def "produces correct spec type" () {
         CompileOptions options = TestUtil.newInstance(CompileOptions.class, TestUtil.objectFactory())
         options.fork = fork
-        options.forkOptions.executable = executable
+        options.forkOptions.executable = executable ? Jvm.current().javacExecutable.absolutePath : null
         DefaultGroovyJavaJointCompileSpecFactory factory = new DefaultGroovyJavaJointCompileSpecFactory(options, null)
 
         when:
@@ -48,9 +48,9 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
 
         where:
         fork  | executable | implementsForking | implementsCommandLine
-        false | null       | false             | false
-        true  | null       | true              | false
-        true  | "X"        | false             | true
+        false | false      | false             | false
+        true  | false      | true              | false
+        true  | true       | false             | true
     }
 
     def 'produces correct spec type for toolchains'() {

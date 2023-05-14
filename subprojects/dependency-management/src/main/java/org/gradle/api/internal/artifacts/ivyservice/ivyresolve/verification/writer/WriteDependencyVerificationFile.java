@@ -27,14 +27,14 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DefaultKeyServers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.utils.PGPUtils;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
@@ -53,6 +53,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -61,6 +62,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.security.internal.Fingerprint;
+import org.gradle.security.internal.PGPUtils;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
@@ -73,12 +75,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.io.Files.getNameWithoutExtension;
@@ -171,12 +175,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     @Override
-    public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
+    public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
         return new DependencyVerifyingModuleComponentRepository(original, this, generatePgpInfo);
     }
 
     @Override
-    public void buildFinished(Gradle gradle) {
+    public void buildFinished(GradleInternal gradle) {
         ensureOutputDirCreated();
         maybeReadExistingFile();
         // when we generate the verification file, we intentionally ignore if the "use key servers" flag is false
@@ -503,15 +507,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             }
         }
 
-        List<PGPPublicKeyRing> keysSeenInVerifier = builder.build()
+        Stream<PGPPublicKeyRing> keysSeenInVerifier = builder.build()
             .stream()
-            .filter(WriteDependencyVerificationFile::hasAtLeastOnePublicKey)
-            .filter(e -> existingRings.stream().noneMatch(ring -> keyIds(ring).equals(keyIds(e))))
-            .collect(Collectors.toList());
-        ImmutableList<PGPPublicKeyRing> allKeyRings = ImmutableList.<PGPPublicKeyRing>builder()
-            .addAll(existingRings)
-            .addAll(keysSeenInVerifier)
-            .build();
+            .filter(keyring -> PGPUtils.getSize(keyring) != 0);
+
+        Collection<PGPPublicKeyRing> allKeyRings = uniqueKeyRings(Stream.concat(keysSeenInVerifier, existingRings.stream()));
+
         File keyringFile = keyrings.getBinaryKeyringsFile();
         writeBinaryKeyringFile(keyringFile, allKeyRings);
         File asciiArmoredFile = keyrings.getAsciiKeyringsFile();
@@ -519,7 +520,19 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         LOGGER.lifecycle("Exported {} keys to {} and {}", allKeyRings.size(), keyringFile, asciiArmoredFile);
     }
 
-    private void writeAsciiArmoredKeyRingFile(File ascii, ImmutableList<PGPPublicKeyRing> allKeyRings) throws IOException {
+    private static Collection<PGPPublicKeyRing> uniqueKeyRings(Stream<PGPPublicKeyRing> keyRings) {
+        SortedMap<Long, PGPPublicKeyRing> seenKeyIds = new TreeMap<>();
+        keyRings.forEach(keyRing -> {
+            Long keyId = keyRing.getPublicKey().getKeyID();
+            PGPPublicKeyRing current = seenKeyIds.get(keyId);
+            if (current == null || PGPUtils.getSize(current) < PGPUtils.getSize(keyRing)) {
+                seenKeyIds.put(keyId, keyRing);
+            }
+        });
+        return seenKeyIds.values();
+    }
+
+    private void writeAsciiArmoredKeyRingFile(File ascii, Collection<PGPPublicKeyRing> allKeyRings) throws IOException {
         if (ascii.exists()) {
             ascii.delete();
         }
@@ -555,7 +568,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
-    private void writeBinaryKeyringFile(File keyringFile, ImmutableList<PGPPublicKeyRing> allKeyRings) throws IOException {
+    private void writeBinaryKeyringFile(File keyringFile, Collection<PGPPublicKeyRing> allKeyRings) throws IOException {
         try (OutputStream out = new FileOutputStream(keyringFile)) {
             for (PGPPublicKeyRing keyRing : allKeyRings) {
                 keyRing.encode(out, true);
@@ -580,10 +593,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
-    private static boolean hasAtLeastOnePublicKey(PGPPublicKeyRing ring) {
-        return ring.getPublicKeys().hasNext();
-    }
-
     private List<PGPPublicKeyRing> loadExistingKeyRing(BuildTreeDefinedKeys keyrings) throws IOException {
         List<PGPPublicKeyRing> existingRings;
         if (!isDryRun) {
@@ -593,9 +602,5 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             existingRings = Collections.emptyList();
         }
         return existingRings;
-    }
-
-    private static Set<Long> keyIds(PGPPublicKeyRing ring) {
-        return ImmutableList.copyOf(ring.getPublicKeys()).stream().map(PGPPublicKey::getKeyID).collect(Collectors.toSet());
     }
 }

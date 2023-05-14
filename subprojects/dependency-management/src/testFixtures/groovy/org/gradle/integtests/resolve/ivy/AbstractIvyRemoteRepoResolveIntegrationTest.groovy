@@ -170,7 +170,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
     }
 
-    @ToBeFixedForConfigurationCache
     public void "can resolve and cache dependencies from multiple remote Ivy repositories"() {
         given:
         def repo1 = server.getRemoteIvyRepo("/repo1")
@@ -202,8 +201,9 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                 compile 'group:projectA:1.0', 'group:projectB:1.0'
             }
             task listJars {
+                def compileConfig = configurations.compile
                 doLast {
-                    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
+                    assert compileConfig.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
                 }
             }
         """
@@ -229,7 +229,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
-    @ToBeFixedForConfigurationCache
     public void "can resolve and cache dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -250,8 +249,9 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             }
             dependencies { compile 'group:projectA:1.2' }
             task listJars {
+                def compileConfig = configurations.compile
                 doLast {
-                    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+                    assert compileConfig.collect { it.name } == ['projectA-1.2.jar']
                 }
             }
         """
@@ -271,7 +271,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds 'listJars'
     }
 
-    @ToBeFixedForConfigurationCache
     void "can resolve and cache artifact-only dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -292,8 +291,9 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             }
             dependencies { compile 'group:projectA:1.2@jar' }
             task listJars {
+                def compileConfig = configurations.compile
                 doLast {
-                    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+                    assert compileConfig.collect { it.name } == ['projectA-1.2.jar']
                 }
             }
         """
@@ -314,7 +314,6 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve and cache artifact-only dependencies with no descriptor from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -336,8 +335,9 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             }
             dependencies { compile 'group:projectA:1.2@jar' }
             task listJars {
+                def compileConfig = configurations.compile
                 doLast {
-                    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+                    assert compileConfig.collect { it.name } == ['projectA-1.2.jar']
                 }
             }
         """

@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
-class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.java"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.java"
@@ -33,12 +33,12 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    def "defaults to Groovy build scripts"() {
+    def "defaults to Kotlin build scripts"() {
         when:
         run ('init', '--type', 'java-application')
 
         then:
-        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+        dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -76,15 +76,34 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating')
+
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
         subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
         and:
         commonJvmFilesGenerated(scriptDsl)
         dslFixture.assertHasTestSuite("test")
 
         when:
+        run('test')
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
         succeeds('test')
+
         then:
         assertTestPassed("some.thing.AppTest", "appHasAGreeting")
 
@@ -222,6 +241,9 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
                 package org.acme;
 
                 public class SampleMainTest {
+
+                    @org.junit.jupiter.api.Test
+                    public void sampleTest() { }
                 }
         """
         when:

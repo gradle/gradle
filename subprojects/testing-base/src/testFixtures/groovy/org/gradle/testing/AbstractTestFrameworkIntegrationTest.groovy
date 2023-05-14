@@ -89,10 +89,13 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             task verifyTestResultConventions {
+                def junitXmlOutputLocation = provider { ${testTaskName}.reports.junitXml.outputLocation }
+                def htmlOutputLocation = provider { ${testTaskName}.reports.html.outputLocation }
+                def binaryResultsDirectory = provider { ${testTaskName}.binaryResultsDirectory }
                 doLast {
-                    assert ${testTaskName}.reports.junitXml.outputLocation.asFile.get() == file('build/test-results/${testTaskName}')
-                    assert ${testTaskName}.reports.html.outputLocation.asFile.get() == file('build/reports/tests/${testTaskName}')
-                    assert ${testTaskName}.binaryResultsDirectory.asFile.get() == file('build/test-results/${testTaskName}/binary')
+                    assert junitXmlOutputLocation.flatMap { it.asFile }.get() == file('build/test-results/${testTaskName}')
+                    assert htmlOutputLocation.flatMap { it.asFile }.get() == file('build/reports/tests/${testTaskName}')
+                    assert binaryResultsDirectory.flatMap { it.asFile }.get() == file('build/test-results/${testTaskName}/binary')
                 }
             }
         """
@@ -158,6 +161,9 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createEmptyProject()
 
         when:
+        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
         succeeds "check"
 
         then:
