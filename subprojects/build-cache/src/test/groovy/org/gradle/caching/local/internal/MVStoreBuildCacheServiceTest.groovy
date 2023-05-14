@@ -42,6 +42,7 @@ class MVStoreBuildCacheServiceTest extends Specification {
     }
 
     BuildCacheKey key = Mock(BuildCacheKey) {
+        getHashCode() >> "1234abcd"
         toByteArray() >> "1234abcd".bytes
     }
 
