@@ -108,7 +108,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         );
 
         boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifacts);
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifactsToResolve);
 
         if (hasExcludedArtifact) {
             // An ad hoc variant, has no identifier
