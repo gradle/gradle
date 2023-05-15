@@ -93,7 +93,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         if (!transformedArtifacts.isEmpty()) {
-            context.add(new DefaultTransformationDependency(transformedArtifacts));
+            context.add(new DefaultTransformNodeDependency(transformedArtifacts));
         }
     }
 

@@ -30,8 +30,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public class TransformStepNodeDependencyResolver implements DependencyResolver {
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
-        if (node instanceof DefaultTransformationDependency) {
-            DefaultTransformationDependency transformation = (DefaultTransformationDependency) node;
+        if (node instanceof DefaultTransformNodeDependency) {
+            DefaultTransformNodeDependency transformation = (DefaultTransformNodeDependency) node;
             for (TransformStepNode transformStepNode : transformation.getNodes()) {
                 resolveAction.execute(transformStepNode);
             }

@@ -21,10 +21,10 @@ import org.gradle.api.NonNullApi;
 import java.util.Collection;
 
 @NonNullApi
-public class DefaultTransformationDependency implements TransformationDependency {
+public class DefaultTransformNodeDependency implements TransformNodeDependency {
     private final Collection<TransformStepNode> nodes;
 
-    public DefaultTransformationDependency(Collection<TransformStepNode> nodes) {
+    public DefaultTransformNodeDependency(Collection<TransformStepNode> nodes) {
         this.nodes = nodes;
     }
 
