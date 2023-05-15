@@ -32,7 +32,7 @@ public class DefaultVariantDefinition implements VariantDefinition {
     public DefaultVariantDefinition(@Nullable DefaultVariantDefinition previous, ImmutableAttributes attributes, TransformStep transformStep) {
         this.previous = previous;
         this.attributes = attributes;
-        this.transformChain = new TransformChain(previous == null ? null : previous.getTransformationChain(), transformStep);
+        this.transformChain = new TransformChain(previous == null ? null : previous.getTransformChain(), transformStep);
         this.transformStep = transformStep;
     }
 
@@ -42,12 +42,12 @@ public class DefaultVariantDefinition implements VariantDefinition {
     }
 
     @Override
-    public TransformChain getTransformationChain() {
+    public TransformChain getTransformChain() {
         return transformChain;
     }
 
     @Override
-    public TransformStep getTransformationStep() {
+    public TransformStep getTransformStep() {
         return transformStep;
     }
 

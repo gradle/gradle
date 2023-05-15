@@ -24,7 +24,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 public class DefaultTransformUpstreamDependenciesResolverFactory implements TransformUpstreamDependenciesResolverFactory {
-    public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformationStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
+    public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
 
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;

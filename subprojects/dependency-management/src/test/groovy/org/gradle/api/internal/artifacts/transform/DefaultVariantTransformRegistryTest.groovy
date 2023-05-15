@@ -111,8 +111,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.registrations[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformStep.transformer.implementationClass == TestTransform
-        registration.transformStep.transformer.isolatedParameters.supplier.parameterObject instanceof TestTransform.Parameters
+        registration.transformStep.transform.implementationClass == TestTransform
+        registration.transformStep.transform.isolatedParameters.supplier.parameterObject instanceof TestTransform.Parameters
     }
 
     def "creates registration for parameterless action"() {
@@ -127,8 +127,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.registrations[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformStep.transformer.implementationClass == ParameterlessTestTransform
-        registration.transformStep.transformer.isolatedParameters.supplier.parameterObject == null
+        registration.transformStep.transform.implementationClass == ParameterlessTestTransform
+        registration.transformStep.transform.isolatedParameters.supplier.parameterObject == null
     }
 
     def "cannot use TransformParameters as parameter type"() {

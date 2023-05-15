@@ -36,9 +36,9 @@ class TransformStepCodec(
 
     override suspend fun WriteContext.encode(value: TransformStep) {
         encodePreservingSharedIdentityOf(value) {
-            val project = value.owningProject ?: throw UnsupportedOperationException("Transformation must have an owning project to be encoded.")
+            val project = value.owningProject ?: throw UnsupportedOperationException("TransformStep must have an owning project to be encoded.")
             writeString(project.path)
-            write(value.transformer)
+            write(value.transform)
         }
     }
 

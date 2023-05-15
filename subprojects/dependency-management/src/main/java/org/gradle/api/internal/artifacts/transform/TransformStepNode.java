@@ -62,12 +62,12 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     private final ComponentVariantIdentifier targetComponentVariant;
     private final AttributeContainer sourceAttributes;
     protected final TransformUpstreamDependencies upstreamDependencies;
-    private final long transformationNodeId;
+    private final long transformStepNodeId;
 
     private PlannedTransformStepIdentity cachedIdentity;
 
     protected TransformStepNode(
-        long id,
+        long transformStepNodeId,
         ComponentVariantIdentifier targetComponentVariant,
         AttributeContainer sourceAttributes,
         TransformStep transformStep,
@@ -79,11 +79,11 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         this.transformStep = transformStep;
         this.artifact = artifact;
         this.upstreamDependencies = upstreamDependencies;
-        this.transformationNodeId = id;
+        this.transformStepNodeId = transformStepNodeId;
     }
 
-    public long getTransformationNodeId() {
-        return transformationNodeId;
+    public long getTransformStepNodeId() {
+        return transformStepNodeId;
     }
 
     public ComponentVariantIdentifier getTargetComponentVariant() {
@@ -120,7 +120,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             capabilities,
             artifact.getArtifactName().toString(),
             upstreamDependencies.getConfigurationIdentity(),
-            transformationNodeId
+            transformStepNodeId
         );
     }
 
@@ -234,7 +234,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         return transformStep.getDisplayName();
     }
 
-    public TransformStep getTransformationStep() {
+    public TransformStep getTransformStep() {
         return transformStep;
     }
 
@@ -275,7 +275,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         private final CalculatedValueContainer<TransformStepSubject, TransformInitialArtifact> result;
 
         public InitialTransformStepNode(
-            long id,
+            long transformStepNodeId,
             ComponentVariantIdentifier targetComponentVariant,
             AttributeContainer sourceAttributes,
             TransformStep transformStep,
@@ -284,7 +284,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             BuildOperationExecutor buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(id, targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies);
+            super(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies);
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformInitialArtifact(buildOperationExecutor));
         }
 
@@ -341,7 +341,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         private final CalculatedValueContainer<TransformStepSubject, TransformPreviousArtifacts> result;
 
         public ChainedTransformStepNode(
-            long id,
+            long transformStepNodeId,
             ComponentVariantIdentifier targetComponentVariant,
             AttributeContainer sourceAttributes,
             TransformStep transformStep,
@@ -350,12 +350,12 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             BuildOperationExecutor buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(id, targetComponentVariant, sourceAttributes, transformStep, previousTransformStepNode.artifact, upstreamDependencies);
+            super(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStep, previousTransformStepNode.artifact, upstreamDependencies);
             this.previousTransformStepNode = previousTransformStepNode;
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformPreviousArtifacts(buildOperationExecutor));
         }
 
-        public TransformStepNode getPreviousTransformationNode() {
+        public TransformStepNode getPreviousTransformStepNode() {
             return previousTransformStepNode;
         }
 
@@ -415,13 +415,13 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
         @Override
         public final BuildOperationDescriptor.Builder description() {
-            String transformationStepName = transformStep.getDisplayName();
+            String transformStepName = transformStep.getDisplayName();
             String subjectName = describeSubject();
-            String basicName = subjectName + " with " + transformationStepName;
+            String basicName = subjectName + " with " + transformStepName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
                 .metadata(BuildOperationCategory.TRANSFORM)
-                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformStepNode.this, transformationStepName, subjectName));
+                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformStepNode.this, transformStepName, subjectName));
         }
 
         protected abstract String describeSubject();

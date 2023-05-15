@@ -36,7 +36,7 @@ import org.gradle.internal.model.ValueCalculator;
 import java.util.List;
 
 /**
- * Transformed artifact set that performs the transformation itself when visited.
+ * Transformed artifact set that performs the transform itself when visited.
  */
 public abstract class AbstractTransformedArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source {
     private final CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result;
@@ -52,7 +52,7 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
     ) {
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformChain);
         ImmutableList.Builder<BoundTransformStep> builder = ImmutableList.builder();
-        transformChain.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
+        transformChain.visitTransformSteps(step -> builder.add(new BoundTransformStep(step, dependenciesResolver.dependenciesFor(step))));
         ImmutableList<BoundTransformStep> steps = builder.build();
         this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, delegate, targetVariantAttributes, capabilities, steps));
     }
@@ -144,7 +144,7 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
 
         @Override
         public ImmutableList<Artifacts> calculateValue(NodeExecutionContext context) {
-            // Isolate the transformation parameters, if not already done
+            // Isolate the transform parameters, if not already done
             for (BoundTransformStep step : steps) {
                 step.getTransformStep().isolateParametersIfNotAlready();
                 step.getUpstreamDependencies().finalizeIfNotAlready();

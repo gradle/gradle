@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import java.io.File;
 
 /**
- * Subject which is transformed or the result of a transformation.
+ * Transform subject is either an initial artifact for the transform chain or a result of a previous transform step.
  */
 public abstract class TransformStepSubject implements Describable {
 

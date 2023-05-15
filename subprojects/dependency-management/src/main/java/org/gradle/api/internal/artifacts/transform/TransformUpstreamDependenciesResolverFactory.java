@@ -23,10 +23,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  */
 public interface TransformUpstreamDependenciesResolverFactory {
     /**
-     * Creates a {@link TransformUpstreamDependenciesResolver} for the given {@code ComponentIdentifier} and {@code TransformationChain}.
+     * Creates a {@link TransformUpstreamDependenciesResolver} for the given {@code ComponentIdentifier} and {@code TransformChain}.
      *
      * @param componentIdentifier the identifier of the component whose artifacts will be transformed.
-     * @param transformChain the transformation chain that will be applied.
+     * @param transformChain the transform chain that will be applied.
      *
      * @return an {@code ExecutionGraphDependenciesResolver} based on the provided parameters
      */

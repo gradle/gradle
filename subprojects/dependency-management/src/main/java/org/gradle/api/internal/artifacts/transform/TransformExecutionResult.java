@@ -24,10 +24,10 @@ import java.io.File;
 import java.util.function.Consumer;
 
 /**
- * The result of running a transformation.
+ * The result of running a single transform action on a single input artifact.
  *
- * The result of running a transformation is a list of outputs.
- * There are two kinds of outputs for a transformation:
+ * The result of running a transform is a list of outputs.
+ * There are two kinds of outputs for a transform:
  * - Produced outputs in the workspace. Those are absolute paths which do not change depending on the input artifact.
  * - Selected parts of the input artifact. These are relative paths of locations selected in the input artifact.
  */
@@ -140,7 +140,7 @@ public interface TransformExecutionResult {
         }
 
         /**
-         * A single output in a transformation result.
+         * A single output in a transform result.
          *
          * Can be either
          * - the entire input artifact {@link EntireInputArtifact}

@@ -666,7 +666,7 @@ class DependencyManagementBuildScopeServices {
     /**
      * Execution engine for usage above Gradle scope
      *
-     * Currently used for running artifact transformations in buildscript blocks.
+     * Currently used for running artifact transforms in buildscript blocks.
      */
     ExecutionEngine createExecutionEngine(
         BuildOperationExecutor buildOperationExecutor,

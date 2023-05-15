@@ -131,7 +131,7 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
 
     @Override
     public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory, TransformedVariantFactory transformedVariantFactory) {
-        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, variantDefinition.getTargetAttributes(), variantDefinition.getTransformationChain(), dependenciesResolverFactory, calculatedValueContainerFactory);
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, variantDefinition.getTargetAttributes(), variantDefinition.getTransformChain(), dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
     @Override

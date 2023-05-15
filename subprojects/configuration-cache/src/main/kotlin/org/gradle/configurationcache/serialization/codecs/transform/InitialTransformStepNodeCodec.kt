@@ -36,19 +36,19 @@ class InitialTransformStepNodeCodec(
 ) : AbstractTransformStepNodeCodec<TransformStepNode.InitialTransformStepNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformStepNode.InitialTransformStepNode) {
-        writeLong(value.transformationNodeId)
+        writeLong(value.transformStepNodeId)
         write(value.targetComponentVariant)
         write(value.sourceAttributes)
-        write(unpackTransformationStep(value))
+        write(unpackTransformStep(value))
         write(value.inputArtifact)
     }
 
     override suspend fun ReadContext.doDecode(): TransformStepNode.InitialTransformStepNode {
-        val transformationNodeId = readLong()
+        val transformStepNodeId = readLong()
         val targetComponentVariant = readNonNull<ComponentVariantIdentifier>()
         val sourceAttributes = readNonNull<AttributeContainer>()
-        val transformationStep = readNonNull<TransformStepSpec>()
+        val transformStepSpec = readNonNull<TransformStepSpec>()
         val artifacts = readNonNull<ResolvableArtifact>()
-        return transformStepNodeFactory.recreateInitial(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, artifacts, transformationStep.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
+        return transformStepNodeFactory.recreateInitial(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStepSpec.transformStep, artifacts, transformStepSpec.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }

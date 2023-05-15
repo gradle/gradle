@@ -129,7 +129,7 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
             getId() >> new OpaqueComponentArtifactIdentifier(inputArtifact)
         }
         def invocation = invocationFactory.createInvocation(
-            transform.getTransformer(),
+            transform.getTransform(),
             inputArtifact,
             DefaultTransformUpstreamDependenciesResolver.NO_RESULT,
             TransformStepSubject.initial(artifact),

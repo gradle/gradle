@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 /**
- * Empty interface for now to signal a dependency on an artifact transformation.
+ * Marker interface to signal a dependency on an artifact transform.
  */
 public interface TransformNodeDependency {
 }

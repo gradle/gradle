@@ -34,7 +34,7 @@ public interface TransformRegistration {
     ImmutableAttributes getTo();
 
     /**
-     * Transformation step for artifacts of the variant.
+     * Transform step for artifacts of the variant.
      */
     TransformStep getTransformStep();
 }

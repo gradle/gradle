@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts.transform;
 
 /**
  * Companion type to {@link TransformStepNode} that knows how to compute extra dependent nodes aside from the to be transformed artifact.
- * Instances of this type should not be shared beyond a single transformation chain.
+ * Instances of this type should not be shared beyond a single transform chain.
  *
  * @see TransformUpstreamDependenciesResolverFactory
  */
 public interface TransformUpstreamDependenciesResolver {
     /**
-     * Returns the dependencies that should be applied to the given transformation step.
+     * Returns the dependencies that should be applied to the given transform step.
      */
     TransformUpstreamDependencies dependenciesFor(TransformStep transformStep);
 }
