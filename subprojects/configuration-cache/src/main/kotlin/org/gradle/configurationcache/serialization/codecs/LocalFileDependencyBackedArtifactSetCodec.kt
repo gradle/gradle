@@ -36,11 +36,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory
 import org.gradle.api.internal.artifacts.transform.TransformChain
 import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.VariantDefinition
 import org.gradle.api.internal.artifacts.transform.VariantSelector
@@ -224,7 +224,7 @@ class RecordingVariantSet(
     override fun asTransformed(
         sourceVariant: ResolvedVariant,
         variantDefinition: VariantDefinition,
-        dependenciesResolver: ExtraExecutionGraphDependenciesResolverFactory,
+        dependenciesResolverFactory: TransformUpstreamDependenciesResolverFactory,
         transformedVariantFactory: TransformedVariantFactory
     ): ResolvedArtifactSet {
         this.transformChain = variantDefinition.transformationChain
@@ -321,7 +321,7 @@ class FixedFileMetadata(
 
 
 private
-class EmptyDependenciesResolverFactory : ExtraExecutionGraphDependenciesResolverFactory, TransformUpstreamDependenciesResolver, TransformUpstreamDependencies {
+class EmptyDependenciesResolverFactory : TransformUpstreamDependenciesResolverFactory, TransformUpstreamDependenciesResolver, TransformUpstreamDependencies {
 
     override fun getConfigurationIdentity(): ConfigurationIdentity? {
         return null
@@ -358,7 +358,7 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
         componentIdentifier: ComponentIdentifier,
         sourceVariant: ResolvedVariant,
         variantDefinition: VariantDefinition,
-        dependenciesResolverFactory: ExtraExecutionGraphDependenciesResolverFactory
+        dependenciesResolverFactory: TransformUpstreamDependenciesResolverFactory
     ): ResolvedArtifactSet {
         throw UnsupportedOperationException("Should not be called")
     }
@@ -367,7 +367,7 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
         componentIdentifier: ComponentIdentifier,
         sourceVariant: ResolvedVariant,
         variantDefinition: VariantDefinition,
-        dependenciesResolverFactory: ExtraExecutionGraphDependenciesResolverFactory
+        dependenciesResolverFactory: TransformUpstreamDependenciesResolverFactory
     ): ResolvedArtifactSet {
         throw UnsupportedOperationException("Should not be called")
     }

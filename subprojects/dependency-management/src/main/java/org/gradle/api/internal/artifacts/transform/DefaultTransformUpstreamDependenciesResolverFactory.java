@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
-public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
+public class DefaultTransformUpstreamDependenciesResolverFactory implements TransformUpstreamDependenciesResolverFactory {
     public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformationStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
 
     private final DomainObjectContext owner;
@@ -32,7 +32,7 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     private final ConfigurationIdentity configurationIdentity;
     private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
 
-    public DefaultExtraExecutionGraphDependenciesResolverFactory(
+    public DefaultTransformUpstreamDependenciesResolverFactory(
         ConfigurationIdentity configurationIdentity, ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
         DomainObjectContext owner,
         CalculatedValueContainerFactory calculatedValueContainerFactory,

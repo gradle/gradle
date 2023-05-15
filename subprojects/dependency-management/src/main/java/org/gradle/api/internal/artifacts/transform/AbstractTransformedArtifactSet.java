@@ -47,7 +47,7 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
         ImmutableAttributes targetVariantAttributes,
         List<? extends Capability> capabilities,
         TransformChain transformChain,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
+        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformChain);

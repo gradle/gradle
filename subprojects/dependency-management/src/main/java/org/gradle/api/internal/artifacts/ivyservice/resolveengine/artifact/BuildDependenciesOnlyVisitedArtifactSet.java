@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -32,18 +32,23 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final VisitedArtifactsResults artifactsResults;
     private final ArtifactTransforms artifactTransforms;
-    private final ExtraExecutionGraphDependenciesResolverFactory resolverFactory;
+    private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
 
-    public BuildDependenciesOnlyVisitedArtifactSet(Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactsResults, ArtifactTransforms artifactTransforms, ExtraExecutionGraphDependenciesResolverFactory resolverFactory) {
+    public BuildDependenciesOnlyVisitedArtifactSet(
+        Set<UnresolvedDependency> unresolvedDependencies,
+        VisitedArtifactsResults artifactsResults,
+        ArtifactTransforms artifactTransforms,
+        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
+    ) {
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactsResults = artifactsResults;
         this.artifactTransforms = artifactTransforms;
-        this.resolverFactory = resolverFactory;
+        this.dependenciesResolverFactory = dependenciesResolverFactory;
     }
 
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants) {
-        VariantSelector variantSelector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariant, selectFromAllVariants, resolverFactory);
+        VariantSelector variantSelector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariant, selectFromAllVariants, dependenciesResolverFactory);
         ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector).getArtifacts();
         return new BuildDependenciesOnlySelectedArtifactSet(unresolvedDependencies, selectedArtifacts);
     }

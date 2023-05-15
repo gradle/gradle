@@ -48,16 +48,16 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     @Override
-    public ResolvedArtifactSet transformedExternalArtifacts(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+    public ResolvedArtifactSet transformedExternalArtifacts(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
         return locateOrCreate(externalFactory, componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
     }
 
     @Override
-    public ResolvedArtifactSet transformedProjectArtifacts(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+    public ResolvedArtifactSet transformedProjectArtifacts(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
         return locateOrCreate(projectFactory, componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
     }
 
-    private ResolvedArtifactSet locateOrCreate(Factory factory, ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+    private ResolvedArtifactSet locateOrCreate(Factory factory, ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
         ImmutableAttributes target = variantDefinition.getTargetAttributes();
         TransformChain transformChain = variantDefinition.getTransformationChain();
         VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
@@ -84,11 +84,11 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         return result;
     }
 
-    private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+    private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
         return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransformationChain(), dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
-    private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+    private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
         AttributeContainer sourceAttributes;
         ResolvedArtifactSet sourceArtifacts;
         VariantDefinition previous = variantDefinition.getPrevious();
@@ -109,7 +109,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         AttributeContainer sourceAttributes,
         ComponentVariantIdentifier targetComponentVariant,
         VariantDefinition variantDefinition,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory
+        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
     ) {
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(targetComponentVariant.getComponentId(), variantDefinition.getTransformationChain());
         TransformStep transformStep = variantDefinition.getTransformationStep();
@@ -134,7 +134,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private interface Factory {
-        ResolvedArtifactSet create(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
+        ResolvedArtifactSet create(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory);
     }
 
     private static class VariantKey {
@@ -165,16 +165,16 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private static class VariantWithUpstreamDependenciesKey extends VariantKey {
-        private final ExtraExecutionGraphDependenciesResolverFactory dependencies;
+        private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
 
-        public VariantWithUpstreamDependenciesKey(VariantResolveMetadata.Identifier sourceVariant, ImmutableAttributes target, ExtraExecutionGraphDependenciesResolverFactory dependencies) {
+        public VariantWithUpstreamDependenciesKey(VariantResolveMetadata.Identifier sourceVariant, ImmutableAttributes target, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
             super(sourceVariant, target);
-            this.dependencies = dependencies;
+            this.dependenciesResolverFactory = dependenciesResolverFactory;
         }
 
         @Override
         public int hashCode() {
-            return super.hashCode() ^ dependencies.hashCode();
+            return super.hashCode() ^ dependenciesResolverFactory.hashCode();
         }
 
         @Override
@@ -183,7 +183,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
                 return false;
             }
             VariantWithUpstreamDependenciesKey other = (VariantWithUpstreamDependenciesKey) obj;
-            return dependencies == other.dependencies;
+            return dependenciesResolverFactory == other.dependenciesResolverFactory;
         }
     }
 }

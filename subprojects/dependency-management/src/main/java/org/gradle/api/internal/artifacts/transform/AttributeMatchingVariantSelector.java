@@ -55,7 +55,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
     private final boolean selectFromAllVariants;
-    private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
+    private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -65,7 +65,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ImmutableAttributes requested,
         boolean ignoreWhenNoMatches,
         boolean selectFromAllVariants,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
+        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
@@ -74,7 +74,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.requested = requested;
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.selectFromAllVariants = selectFromAllVariants;
-        this.dependenciesResolver = dependenciesResolver;
+        this.dependenciesResolverFactory = dependenciesResolverFactory;
     }
 
     @Override
@@ -140,7 +140,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            return factory.asTransformed(result.getRoot(), result.getVariantChain(), dependenciesResolver, transformedVariantFactory);
+            return factory.asTransformed(result.getRoot(), result.getVariantChain(), dependenciesResolverFactory, transformedVariantFactory);
         }
 
         if (!transformedVariants.isEmpty()) {
