@@ -102,7 +102,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     public Deferrable<Try<ImmutableList<File>>> createInvocation(
         Transform transform,
         File inputArtifact,
-        ArtifactTransformDependencies dependencies,
+        TransformDependencies dependencies,
         TransformStepSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
@@ -169,7 +169,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         public ImmutableTransformExecution(
             Transform transform,
             File inputArtifact,
-            ArtifactTransformDependencies dependencies,
+            TransformDependencies dependencies,
             TransformStepSubject subject,
 
             TransformExecutionListener transformExecutionListener,
@@ -210,7 +210,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         public MutableTransformExecution(
             Transform transform,
             File inputArtifact,
-            ArtifactTransformDependencies dependencies,
+            TransformDependencies dependencies,
             TransformStepSubject subject,
 
             TransformExecutionListener transformExecutionListener,
@@ -238,7 +238,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private abstract static class AbstractTransformExecution implements UnitOfWork {
         protected final Transform transform;
         protected final File inputArtifact;
-        private final ArtifactTransformDependencies dependencies;
+        private final TransformDependencies dependencies;
         private final TransformStepSubject subject;
 
         private final TransformExecutionListener transformExecutionListener;
@@ -252,7 +252,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         public AbstractTransformExecution(
             Transform transform,
             File inputArtifact,
-            ArtifactTransformDependencies dependencies,
+            TransformDependencies dependencies,
             TransformStepSubject subject,
 
             TransformExecutionListener transformExecutionListener,

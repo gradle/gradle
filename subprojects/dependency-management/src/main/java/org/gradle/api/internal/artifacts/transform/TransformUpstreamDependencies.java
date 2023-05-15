@@ -36,7 +36,7 @@ public interface TransformUpstreamDependencies extends TaskDependencyContainer {
     /**
      * Computes the finalized dependency artifacts for the given transformation step.
      */
-    Try<ArtifactTransformDependencies> computeArtifacts();
+    Try<TransformDependencies> computeArtifacts();
 
     void finalizeIfNotAlready();
 }

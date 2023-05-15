@@ -34,9 +34,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
+import org.gradle.api.internal.artifacts.transform.DefaultTransformDependencies
 import org.gradle.api.internal.artifacts.transform.TransformChain
+import org.gradle.api.internal.artifacts.transform.TransformDependencies
 import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
@@ -346,8 +346,8 @@ class EmptyDependenciesResolverFactory : TransformUpstreamDependenciesResolverFa
     override fun finalizeIfNotAlready() {
     }
 
-    override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
-        return Try.successful(DefaultArtifactTransformDependencies(FileCollectionFactory.empty()))
+    override fun computeArtifacts(): Try<TransformDependencies> {
+        return Try.successful(DefaultTransformDependencies(FileCollectionFactory.empty()))
     }
 }
 

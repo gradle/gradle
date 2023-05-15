@@ -267,7 +267,7 @@ public class DefaultTransform implements Transform {
     }
 
     @Override
-    public TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+    public TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, @Nullable InputChanges inputChanges) {
         TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
         DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
         transformAction.transform(transformOutputs);
@@ -393,10 +393,10 @@ public class DefaultTransform implements Transform {
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
-    private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
+    private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
         ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices);
-        services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? artifactTransformDependencies : null, inputChanges, services);
+        services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
         return instanceFactory.newInstance(services);
     }
 
@@ -431,12 +431,12 @@ public class DefaultTransform implements Transform {
         private final ImmutableList<InjectionPoint> injectionPoints;
         private final ServiceLookup delegate;
 
-        public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
+        public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformDependencies transformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
-            if (artifactTransformDependencies != null) {
-                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles().orElseThrow(() -> new IllegalStateException("Transform does not use artifact dependencies."))));
+            if (transformDependencies != null) {
+                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> transformDependencies.getFiles().orElseThrow(() -> new IllegalStateException("Transform does not use artifact dependencies."))));
             }
             if (inputChanges != null) {
                 builder.add(InjectionPoint.injectedByType(InputChanges.class, () -> inputChanges));

@@ -17,10 +17,10 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.BoundTransformStep
-import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
+import org.gradle.api.internal.artifacts.transform.DefaultTransformDependencies
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
+import org.gradle.api.internal.artifacts.transform.TransformDependencies
 import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
@@ -44,7 +44,7 @@ sealed class TransformStepSpec(val transformation: TransformStep) {
 
     class FileDependencies(transformation: TransformStep, val files: FileCollection, val configurationIdentity: ConfigurationIdentity) : TransformStepSpec(transformation) {
         override fun recreateDependencies(): TransformUpstreamDependencies {
-            return FixedUpstreamDependencies(DefaultArtifactTransformDependencies(files), configurationIdentity)
+            return FixedUpstreamDependencies(DefaultTransformDependencies(files), configurationIdentity)
         }
     }
 }
@@ -92,7 +92,7 @@ fun unpackTransformationStep(transformStep: TransformStep, upstreamDependencies:
 }
 
 
-class FixedUpstreamDependencies(private val dependencies: ArtifactTransformDependencies, private val configurationIdentity: ConfigurationIdentity) : TransformUpstreamDependencies {
+class FixedUpstreamDependencies(private val dependencies: TransformDependencies, private val configurationIdentity: ConfigurationIdentity) : TransformUpstreamDependencies {
 
     override fun getConfigurationIdentity(): ConfigurationIdentity {
         return configurationIdentity
@@ -109,7 +109,7 @@ class FixedUpstreamDependencies(private val dependencies: ArtifactTransformDepen
     override fun finalizeIfNotAlready() {
     }
 
-    override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
+    override fun computeArtifacts(): Try<TransformDependencies> {
         return Try.successful(dependencies)
     }
 }

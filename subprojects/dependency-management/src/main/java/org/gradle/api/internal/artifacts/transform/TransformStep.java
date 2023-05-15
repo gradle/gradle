@@ -70,7 +70,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
 
         InputFingerprinter inputFingerprinter = context != null ? context.getService(InputFingerprinter.class) : globalInputFingerprinter;
 
-        Try<ArtifactTransformDependencies> resolvedDependencies = upstreamDependencies.computeArtifacts();
+        Try<TransformDependencies> resolvedDependencies = upstreamDependencies.computeArtifacts();
         return resolvedDependencies
             .map(dependencies -> {
                 ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
@@ -89,7 +89,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
             .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)));
     }
 
-    private Try<TransformStepSubject> doTransform(TransformStepSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
+    private Try<TransformStepSubject> doTransform(TransformStepSubject subjectToTransform, InputFingerprinter inputFingerprinter, TransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File inputArtifact : inputArtifacts) {
             Try<ImmutableList<File>> result = transformInvocationFactory
