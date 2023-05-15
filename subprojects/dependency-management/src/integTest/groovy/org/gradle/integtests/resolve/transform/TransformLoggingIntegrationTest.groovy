@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
+class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
     private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
@@ -152,7 +152,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         when:
         succeeds(":util:resolveGreen")
         then:
-        result.groupedOutput.transformationCount == 0
+        result.groupedOutput.transformCount == 0
 
         where:
         type << TESTED_CONSOLE_TYPES
@@ -164,7 +164,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         when:
         succeeds(":util:resolveGreen", "-DshowOutput")
         then:
-        result.groupedOutput.transformationCount == 2
+        result.groupedOutput.transformCount == 2
 
         result.groupedOutput.transform("GreenMultiplier", "lib1.jar (project :lib)")
             .assertOutputContains("Creating multiplier")
@@ -243,7 +243,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         when:
         succeeds(":util:resolveBlue", "-DshowOutput")
         then:
-        result.groupedOutput.transformationCount == 4
+        result.groupedOutput.transformCount == 4
         def initialSubjects = ["lib1.jar (project :lib)", "lib2.jar (project :lib)"] as Set
         result.groupedOutput.subjectsFor('GreenMultiplier') == initialSubjects
         result.groupedOutput.subjectsFor('BlueMultiplier') == initialSubjects
