@@ -29,11 +29,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 
 @NotThreadSafe
-public class ImmutableTransformationWorkspaceServices implements TransformationWorkspaceServices, Closeable {
+public class ImmutableTransformWorkspaceServices implements TransformWorkspaceServices, Closeable {
     private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache;
     private final DefaultImmutableWorkspaceProvider workspaceProvider;
 
-    public ImmutableTransformationWorkspaceServices(
+    public ImmutableTransformWorkspaceServices(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,

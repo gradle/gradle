@@ -84,8 +84,8 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFac
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
-import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.MutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
@@ -209,14 +209,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return attributesSchema;
         }
 
-        MutableTransformationWorkspaceServices createTransformerWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
-            return new MutableTransformationWorkspaceServices(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
+        MutableTransformWorkspaceServices createTransformWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
+            return new MutableTransformWorkspaceServices(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
         }
 
         TransformInvocationFactory createTransformInvocationFactory(
                 ExecutionEngine executionEngine,
                 FileSystemAccess fileSystemAccess,
-                ImmutableTransformationWorkspaceServices transformationWorkspaceServices,
+                ImmutableTransformWorkspaceServices transformationWorkspaceServices,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
