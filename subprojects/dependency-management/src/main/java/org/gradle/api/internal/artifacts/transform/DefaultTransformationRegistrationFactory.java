@@ -156,18 +156,18 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             internalServices,
             documentationRegistry);
 
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
     }
 
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {
         private final ImmutableAttributes from;
         private final ImmutableAttributes to;
-        private final TransformationStep transformationStep;
+        private final TransformStep transformStep;
 
-        public DefaultArtifactTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
+        public DefaultArtifactTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformStep transformStep) {
             this.from = from;
             this.to = to;
-            this.transformationStep = transformationStep;
+            this.transformStep = transformStep;
         }
 
         @Override
@@ -181,13 +181,13 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
 
         @Override
-        public TransformationStep getTransformationStep() {
-            return transformationStep;
+        public TransformStep getTransformationStep() {
+            return transformStep;
         }
 
         @Override
         public String toString() {
-            return transformationStep + " transform from " + from + " to " + to;
+            return transformStep + " transform from " + from + " to " + to;
         }
     }
 

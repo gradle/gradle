@@ -21,18 +21,18 @@ import org.gradle.api.Action;
 import javax.annotation.Nullable;
 
 /**
- * A series of {@link TransformationStep}s.
+ * A series of {@link TransformStep}s.
  */
-public class TransformationChain {
+public class TransformChain {
 
-    private final TransformationChain init;
-    private final TransformationStep last;
+    private final TransformChain init;
+    private final TransformStep last;
 
     /**
      * @param init The initial steps of this chain, or null if this chain only contains one step.
      * @param last The last step of this chain.
      */
-    public TransformationChain(@Nullable TransformationChain init, TransformationStep last) {
+    public TransformChain(@Nullable TransformChain init, TransformStep last) {
         this.init = init;
         this.last = last;
     }
@@ -41,14 +41,14 @@ public class TransformationChain {
      * @return The initial steps of this chain, or null if this chain only contains one step.
      */
     @Nullable
-    public TransformationChain getInit() {
+    public TransformChain getInit() {
         return init;
     }
 
     /**
      * @return The last step of this chain.
      */
-    public TransformationStep getLast() {
+    public TransformStep getLast() {
         return last;
     }
 
@@ -63,7 +63,7 @@ public class TransformationChain {
             : init.getDisplayName() + " -> " + lastDisplayName;
     }
 
-    public void visitTransformationSteps(Action<? super TransformationStep> action) {
+    public void visitTransformationSteps(Action<? super TransformStep> action) {
         if (init != null) {
             init.visitTransformationSteps(action);
         }

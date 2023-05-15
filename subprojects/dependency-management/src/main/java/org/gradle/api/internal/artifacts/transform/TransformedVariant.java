@@ -43,7 +43,7 @@ public class TransformedVariant implements HasAttributes {
     /**
      * @return The transformation chain to apply to the root producer variant.
      */
-    public TransformationChain getTransformationChain() {
+    public TransformChain getTransformationChain() {
         return chain.getTransformationChain();
     }
 

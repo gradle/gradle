@@ -162,7 +162,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     private List<TransformedVariant> transformedVariants(List<ResolvedVariant> variants) {
         variants.collect {
             new TransformedVariant(it, Mock(VariantDefinition) {
-                transformationChain >> Mock(TransformationChain)
+                transformationChain >> Mock(TransformChain)
                 targetAttributes >> ImmutableAttributes.EMPTY
             })
         }

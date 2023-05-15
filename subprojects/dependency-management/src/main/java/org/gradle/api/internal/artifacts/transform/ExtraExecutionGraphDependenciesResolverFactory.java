@@ -26,9 +26,9 @@ public interface ExtraExecutionGraphDependenciesResolverFactory {
      * Creates a {@link TransformUpstreamDependenciesResolver} for the given {@code ComponentIdentifier} and {@code TransformationChain}.
      *
      * @param componentIdentifier the identifier of the component whose artifacts will be transformed.
-     * @param transformationChain the transformation chain that will be applied.
+     * @param transformChain the transformation chain that will be applied.
      *
      * @return an {@code ExecutionGraphDependenciesResolver} based on the provided parameters
      */
-    TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, TransformationChain transformationChain);
+    TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, TransformChain transformChain);
 }

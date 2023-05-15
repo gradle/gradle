@@ -30,7 +30,7 @@ import org.gradle.internal.operations.BuildOperationQueue
 import spock.lang.Specification
 
 class TransformingAsyncArtifactListenerTest extends Specification {
-    def transformation = Mock(TransformationStep)
+    def transformation = Mock(TransformStep)
     def targetAttributes = Mock(ImmutableAttributes)
     def result = ImmutableList.<ResolvedArtifactSet.Artifacts>builder()
     def invocation = Mock(Deferrable<TransformationSubject>)

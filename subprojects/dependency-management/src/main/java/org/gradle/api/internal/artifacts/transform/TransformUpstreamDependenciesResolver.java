@@ -26,5 +26,5 @@ public interface TransformUpstreamDependenciesResolver {
     /**
      * Returns the dependencies that should be applied to the given transformation step.
      */
-    TransformUpstreamDependencies dependenciesFor(TransformationStep transformationStep);
+    TransformUpstreamDependencies dependenciesFor(TransformStep transformStep);
 }

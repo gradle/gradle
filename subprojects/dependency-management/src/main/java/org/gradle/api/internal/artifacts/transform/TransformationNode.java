@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 
 public abstract class TransformationNode extends CreationOrderedNode implements SelfExecutingNode {
 
-    protected final TransformationStep transformationStep;
+    protected final TransformStep transformStep;
     protected final ResolvableArtifact artifact;
     private final ComponentVariantIdentifier targetComponentVariant;
     private final AttributeContainer sourceAttributes;
@@ -70,13 +70,13 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         long id,
         ComponentVariantIdentifier targetComponentVariant,
         AttributeContainer sourceAttributes,
-        TransformationStep transformationStep,
+        TransformStep transformStep,
         ResolvableArtifact artifact,
         TransformUpstreamDependencies upstreamDependencies
     ) {
         this.targetComponentVariant = targetComponentVariant;
         this.sourceAttributes = sourceAttributes;
-        this.transformationStep = transformationStep;
+        this.transformStep = transformStep;
         this.artifact = artifact;
         this.upstreamDependencies = upstreamDependencies;
         this.transformationNodeId = id;
@@ -102,8 +102,8 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     }
 
     private PlannedTransformStepIdentity createIdentity() {
-        String consumerBuildPath = transformationStep.getOwningProject().getBuildPath().toString();
-        String consumerProjectPath = transformationStep.getOwningProject().getProjectPath().toString();
+        String consumerBuildPath = transformStep.getOwningProject().getBuildPath().toString();
+        String consumerProjectPath = transformStep.getOwningProject().getProjectPath().toString();
         ComponentIdentifier componentId = getComponentIdentifier(targetComponentVariant.getComponentId());
         Map<String, String> sourceAttributes = AttributesToMapConverter.convertToMap(this.sourceAttributes);
         Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());
@@ -221,7 +221,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     @Nullable
     @Override
     public ProjectInternal getOwningProject() {
-        return transformationStep.getOwningProject();
+        return transformStep.getOwningProject();
     }
 
     @Override
@@ -231,11 +231,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
     @Override
     public String toString() {
-        return transformationStep.getDisplayName();
+        return transformStep.getDisplayName();
     }
 
-    public TransformationStep getTransformationStep() {
-        return transformationStep;
+    public TransformStep getTransformationStep() {
+        return transformStep;
     }
 
     public Try<TransformationSubject> getTransformedSubject() {
@@ -248,7 +248,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     }
 
     public void executeIfNotAlready() {
-        transformationStep.isolateParametersIfNotAlready();
+        transformStep.isolateParametersIfNotAlready();
         upstreamDependencies.finalizeIfNotAlready();
         getTransformedArtifacts().finalizeIfNotAlready();
     }
@@ -278,13 +278,13 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             long id,
             ComponentVariantIdentifier targetComponentVariant,
             AttributeContainer sourceAttributes,
-            TransformationStep transformationStep,
+            TransformStep transformStep,
             ResolvableArtifact artifact,
             TransformUpstreamDependencies upstreamDependencies,
             BuildOperationExecutor buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(id, targetComponentVariant, sourceAttributes, transformationStep, artifact, upstreamDependencies);
+            super(id, targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies);
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformInitialArtifact(buildOperationExecutor));
         }
 
@@ -302,7 +302,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(transformationStep);
+                context.add(transformStep);
                 context.add(upstreamDependencies);
                 context.add(artifact);
             }
@@ -318,10 +318,10 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                         } catch (ResolveException e) {
                             throw e;
                         } catch (RuntimeException e) {
-                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e));
+                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformStep.getDisplayName(), "artifact transform", Collections.singleton(e));
                         }
 
-                        return transformationStep
+                        return transformStep
                             .createInvocation(initialArtifactTransformationSubject, upstreamDependencies, context)
                             .completeAndGet()
                             .get();
@@ -344,13 +344,13 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             long id,
             ComponentVariantIdentifier targetComponentVariant,
             AttributeContainer sourceAttributes,
-            TransformationStep transformationStep,
+            TransformStep transformStep,
             TransformationNode previousTransformationNode,
             TransformUpstreamDependencies upstreamDependencies,
             BuildOperationExecutor buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(id, targetComponentVariant, sourceAttributes, transformationStep, previousTransformationNode.artifact, upstreamDependencies);
+            super(id, targetComponentVariant, sourceAttributes, transformStep, previousTransformationNode.artifact, upstreamDependencies);
             this.previousTransformationNode = previousTransformationNode;
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformPreviousArtifacts(buildOperationExecutor));
         }
@@ -380,7 +380,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(transformationStep);
+                context.add(transformStep);
                 context.add(upstreamDependencies);
                 context.add(new DefaultTransformationDependency(Collections.singletonList(previousTransformationNode)));
             }
@@ -391,7 +391,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                     @Override
                     protected TransformationSubject transform() {
                         return previousTransformationNode.getTransformedSubject()
-                            .flatMap(transformedSubject -> transformationStep
+                            .flatMap(transformedSubject -> transformStep
                                 .createInvocation(transformedSubject, upstreamDependencies, context)
                                 .completeAndGet())
                             .get();
@@ -415,7 +415,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
         @Override
         public final BuildOperationDescriptor.Builder description() {
-            String transformationStepName = transformationStep.getDisplayName();
+            String transformationStepName = transformStep.getDisplayName();
             String subjectName = describeSubject();
             String basicName = subjectName + " with " + transformationStepName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)

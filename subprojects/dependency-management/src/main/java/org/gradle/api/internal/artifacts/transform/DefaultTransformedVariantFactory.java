@@ -59,14 +59,14 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
 
     private ResolvedArtifactSet locateOrCreate(Factory factory, ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
         ImmutableAttributes target = variantDefinition.getTargetAttributes();
-        TransformationChain transformationChain = variantDefinition.getTransformationChain();
+        TransformChain transformChain = variantDefinition.getTransformationChain();
         VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
         if (identifier == null) {
             // An ad hoc variant, do not cache the result
             return factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
         }
         VariantKey variantKey;
-        if (transformationChain.requiresDependencies()) {
+        if (transformChain.requiresDependencies()) {
             variantKey = new VariantWithUpstreamDependenciesKey(identifier, target, dependenciesResolverFactory);
         } else {
             variantKey = new VariantKey(identifier, target);
@@ -112,21 +112,21 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory
     ) {
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(targetComponentVariant.getComponentId(), variantDefinition.getTransformationChain());
-        TransformationStep transformationStep = variantDefinition.getTransformationStep();
+        TransformStep transformStep = variantDefinition.getTransformationStep();
 
         ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         sourceArtifacts.visitTransformSources(new ResolvedArtifactSet.TransformSourceVisitor() {
             @Override
             public void visitArtifact(ResolvableArtifact artifact) {
-                TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                TransformationNode transformationNode = transformationNodeFactory.createInitial(targetComponentVariant, sourceAttributes, transformationStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformStep);
+                TransformationNode transformationNode = transformationNodeFactory.createInitial(targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
                 builder.add(transformationNode);
             }
 
             @Override
             public void visitTransform(TransformationNode source) {
-                TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                TransformationNode transformationNode = transformationNodeFactory.createChained(targetComponentVariant, sourceAttributes, transformationStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformStep);
+                TransformationNode transformationNode = transformationNodeFactory.createChained(targetComponentVariant, sourceAttributes, transformStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
                 builder.add(transformationNode);
             }
         });
