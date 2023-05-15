@@ -20,24 +20,19 @@ import com.google.common.util.concurrent.Striped;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.DefaultBuildCacheKey;
-import org.gradle.caching.local.internal.mvstore.MVStoreStreamStore.GBlobMetadata;
+import org.gradle.caching.local.internal.mvstore.ValueWithTimestamp.ValueWithTimestampType;
 import org.gradle.internal.hash.HashCode;
-import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.StreamStore;
-import org.h2.mvstore.WriteBuffer;
-import org.h2.mvstore.tx.TransactionStore;
-import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.ByteArrayDataType;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
@@ -53,17 +48,19 @@ public class MVStoreLruStreamMap {
 
     private static final int MINIMUM_LOCKS = 512;
     private final Striped<Lock> locks;
-    private final MVMap<ValueWithTimestamp, byte[]> lruBuildCacheKeyToBlobId;
-    private final MVMap<byte[], GBlobMetadata> buildCacheKeyToBlobMetadata;
+    private final MVMap<ValueWithTimestamp, byte[]> lruBuildCacheKeyToBlobIds;
+    private final MVMap<byte[], ValueWithTimestamp> buildCacheKeyToBlobLastUsed;
     private final StreamStore streamStore;
+    private final MVStore mvStore;
 
     public MVStoreLruStreamMap(MVStore mvStore, int maxConcurrency) {
-        this.lruBuildCacheKeyToBlobId = mvStore.openMap("lruBuildCacheKeyToDataReference", new MVMap.Builder<ValueWithTimestamp, byte[]>()
+        this.mvStore = mvStore;
+        this.lruBuildCacheKeyToBlobIds = mvStore.openMap("lruBuildCacheKeyToBlobIds", new MVMap.Builder<ValueWithTimestamp, byte[]>()
             .keyType(ValueWithTimestampType.INSTANCE)
             .valueType(ByteArrayDataType.INSTANCE)
         );
-        this.buildCacheKeyToBlobMetadata = mvStore.openMap("buildCacheKeyToDataReference", new MVMap.Builder<byte[], ValueWithTimestamp>()
-            .keyType(ComparableByteArray.INSTANCE)
+        this.buildCacheKeyToBlobLastUsed = mvStore.openMap("buildCacheKeyToBlobLastUsed", new MVMap.Builder<byte[], ValueWithTimestamp>()
+            .keyType(ComparableByteArrayType.INSTANCE)
             .valueType(ValueWithTimestampType.INSTANCE)
         );
         streamStore = getStreamStore(mvStore);
@@ -83,34 +80,36 @@ public class MVStoreLruStreamMap {
 
     public void putIfAbsent(BuildCacheKey key, Supplier<InputStream> inputStreamSupplier) {
         byte[] keyAsBytes = key.toByteArray();
-        if (buildCacheKeyToBlobMetadata.containsKey(keyAsBytes)) {
+        if (buildCacheKeyToBlobLastUsed.containsKey(keyAsBytes)) {
             return;
         }
-        lockAndRun(key, () -> buildCacheKeyToBlobMetadata.computeIfAbsent(keyAsBytes, k -> {
-            byte[] blobId = null;
+        lockAndRun(key, () -> buildCacheKeyToBlobLastUsed.computeIfAbsent(keyAsBytes, k -> {
+
+            Optional<byte[]> blobId = Optional.empty();
+            MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
             try (InputStream input = inputStreamSupplier.get()) {
                 long timestamp = System.currentTimeMillis();
-                blobId = streamStore.put(input);
-                lruBuildCacheKeyToBlobId.put(new ValueWithTimestamp(timestamp, keyAsBytes), blobId);
-                return blobId;
+                blobId = Optional.of(streamStore.put(input));
+                lruBuildCacheKeyToBlobIds.put(new ValueWithTimestamp(timestamp, keyAsBytes), blobId.get());
+                return new ValueWithTimestamp(timestamp, blobId.get());
             } catch (IOException | MVStoreException e) {
-                if (blobId != null) {
-                    // If lruKeyToIndex.put throws exception, remove data entry
-                    streamStore.remove(blobId);
-                }
+                // If lruKeyToIndex.put throws exception, remove data entry
+                blobId.ifPresent(streamStore::remove);
                 throw new BuildCacheException("storing " + key, e);
+            } finally {
+                mvStore.deregisterVersionUsage(txCounter);
             }
         }));
     }
 
     public boolean containsKey(BuildCacheKey key) {
-        return buildCacheKeyToBlobMetadata.containsKey(key.toByteArray());
+        return buildCacheKeyToBlobLastUsed.containsKey(key.toByteArray());
     }
 
     @Nullable
     public InputStream get(BuildCacheKey key) {
         byte[] keyAsBytes = key.toByteArray();
-        GBlobMetadata dataReference = buildCacheKeyToBlobMetadata.get(keyAsBytes);
+        ValueWithTimestamp dataReference = buildCacheKeyToBlobLastUsed.get(keyAsBytes);
         if (dataReference == null) {
             return null;
         }
@@ -132,56 +131,67 @@ public class MVStoreLruStreamMap {
      */
     private void tryUpdateTimestamp(BuildCacheKey key, byte[] keyAsBytes) {
         tryLockAndRun(key, () -> {
-            ValueWithTimestamp dataReference = buildCacheKeyToBlobMetadata.get(keyAsBytes);
-            if (dataReference == null) {
+            ValueWithTimestamp blobLastUsedData = buildCacheKeyToBlobLastUsed.get(keyAsBytes);
+            if (blobLastUsedData == null) {
                 // If deletion happened just before lock was acquired
                 return;
             }
             long currentTimestamp = System.currentTimeMillis();
-            lruBuildCacheKeyToBlobId.put(new ValueWithTimestamp(currentTimestamp, keyAsBytes), dataReference.get());
-            buildCacheKeyToBlobMetadata.put(keyAsBytes, new ValueWithTimestamp(currentTimestamp, dataReference.get()));
-            // Since we do a cleanup by LRU order, delete previous LRU map entry last
-            lruBuildCacheKeyToBlobId.remove(new ValueWithTimestamp(dataReference.getTimestamp(), keyAsBytes));
+            lruBuildCacheKeyToBlobIds.put(new ValueWithTimestamp(currentTimestamp, keyAsBytes), blobLastUsedData.get());
+            buildCacheKeyToBlobLastUsed.put(keyAsBytes, new ValueWithTimestamp(currentTimestamp, blobLastUsedData.get()));
+            // Remove previous LRU entry last, so data can be cleaned up even if something explodes before
+            lruBuildCacheKeyToBlobIds.remove(new ValueWithTimestamp(blobLastUsedData.getTimestamp(), keyAsBytes));
         });
     }
 
     public void delete(BuildCacheKey key) {
         byte[] keyAsBytes = key.toByteArray();
-        if (!buildCacheKeyToBlobMetadata.containsKey(keyAsBytes)) {
+        if (!buildCacheKeyToBlobLastUsed.containsKey(keyAsBytes)) {
             return;
         }
         lockAndRun(key, () -> {
-            GBlobMetadata blobMetadata = buildCacheKeyToBlobMetadata.get(keyAsBytes);
-            if (blobMetadata == null) {
+            ValueWithTimestamp blobLastUsedData = buildCacheKeyToBlobLastUsed.get(keyAsBytes);
+            if (blobLastUsedData == null) {
                 // If deletion happened just before lock was acquired
                 return;
             }
-            // Remove key to data index first, so that contains works always properly, even if delete operations after fails
-            buildCacheKeyToBlobMetadata.remove(keyAsBytes);
-            streamStore.removeIfMatches(keyAsBytes, blobMetadata.getBlobId());
-            // Remove LRU entry last, so data can be cleaned up even if keyToDataIndex doesn't exist anymore
-            lruBuildCacheKeyToBlobId.remove(new ValueWithTimestamp(blobMetadata.getTimestamp(), keyAsBytes));
+            // Remove key to blob metadata first, so that contains and get works always properly, even if delete operations after fail
+            buildCacheKeyToBlobLastUsed.remove(keyAsBytes);
+            streamStore.remove(blobLastUsedData.get());
+            // Remove LRU entry last, so data can be cleaned up even if something explodes before
+            lruBuildCacheKeyToBlobIds.remove(new ValueWithTimestamp(blobLastUsedData.getTimestamp(), keyAsBytes));
         });
     }
 
+    /**
+     * Cleanup entries in LRU order
+     */
     public void cleanup(long removeUnusedEntriesOlderThan) {
-        Iterator<ValueWithTimestamp> iterator = lruBuildCacheKeyToBlobId.keyIterator(null);
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        try {
+            cleanup(removeUnusedEntriesOlderThan, lruBuildCacheKeyToBlobIds.keyIterator(null));
+        } finally {
+            mvStore.deregisterVersionUsage(txCounter);
+        }
+    }
+
+    private void cleanup(long removeUnusedEntriesOlderThan, Iterator<ValueWithTimestamp> iterator) {
         while (iterator.hasNext()) {
-            ValueWithTimestamp buildCacheKey = iterator.next();
-            if (buildCacheKey.getTimestamp() > removeUnusedEntriesOlderThan) {
+            ValueWithTimestamp buildCacheKeyWithTimestamp = iterator.next();
+            if (buildCacheKeyWithTimestamp.getTimestamp() > removeUnusedEntriesOlderThan) {
                 break;
             }
-            lockAndRun(new DefaultBuildCacheKey(HashCode.fromBytes(buildCacheKey.get())), () -> {
-                GBlobMetadata blobMetadata = buildCacheKeyToBlobMetadata.get(buildCacheKey.get());
-                byte[] blobId = lruBuildCacheKeyToBlobId.get(buildCacheKey);
-                if (blobMetadata != null && buildCacheKey.getTimestamp() == blobMetadata.getTimestamp()) {
-                    buildCacheKeyToBlobMetadata.remove(buildCacheKey.get());
-                    streamStore.removeIfMatches(buildCacheKey.get(), blobId);
-                    lruBuildCacheKeyToBlobId.remove(buildCacheKey);
-                } else if (blobMetadata == null || buildCacheKey.getTimestamp() != blobMetadata.getTimestamp() && !Arrays.equals(blobId, blobMetadata.getBlobId())) {
-                    streamStore.removeIfMatches(buildCacheKey.get(), blobId);
-                    lruBuildCacheKeyToBlobId.remove(buildCacheKey);
+            lockAndRun(new DefaultBuildCacheKey(HashCode.fromBytes(buildCacheKeyWithTimestamp.get())), () -> {
+                ValueWithTimestamp blobLastUsedData = buildCacheKeyToBlobLastUsed.get(buildCacheKeyWithTimestamp.get());
+                byte[] blobId = lruBuildCacheKeyToBlobIds.get(buildCacheKeyWithTimestamp);
+                if (blobLastUsedData != null && buildCacheKeyWithTimestamp.getTimestamp() == blobLastUsedData.getTimestamp()) {
+                    // Remove key to blob metadata first, so that contains and get works always properly, even if delete operations after fail.
+                    // We do that only if blob last used timestamp matches lru key timestamp.
+                    this.buildCacheKeyToBlobLastUsed.remove(buildCacheKeyWithTimestamp.get());
                 }
+                streamStore.remove(blobId);
+                // Remove LRU entry last, so data can be cleaned up even if something explodes before
+                lruBuildCacheKeyToBlobIds.remove(buildCacheKeyWithTimestamp);
             });
         }
     }
@@ -204,102 +214,6 @@ public class MVStoreLruStreamMap {
             runnable.run();
         } finally {
             lock.unlock();
-        }
-    }
-
-    private static class ValueWithTimestamp implements Comparable<ValueWithTimestamp> {
-        private final long timestamp;
-        private final byte[] value;
-
-        private ValueWithTimestamp(long timestamp, byte[] value) {
-            this.timestamp = timestamp;
-            this.value = value;
-        }
-
-        @Override
-        public int compareTo(ValueWithTimestamp o) {
-            int result = Long.compare(timestamp, o.timestamp);
-            if (result != 0) {
-                return result;
-            }
-            return HashCode.compareBytes(value, o.value);
-        }
-
-        public byte[] get() {
-            return value;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
-    }
-
-    private static class ComparableByteArray extends BasicDataType<byte[]> {
-
-        private static final ComparableByteArray INSTANCE = new ComparableByteArray();
-
-        @Override
-        public int compare(byte[] a, byte[] b) {
-            return HashCode.compareBytes(a, b);
-        }
-
-        @Override
-        public int getMemory(byte[] data) {
-            return data.length;
-        }
-
-        @Override
-        public void write(WriteBuffer buff, byte[] data) {
-            buff.putVarInt(data.length);
-            buff.put(data);
-        }
-
-        @Override
-        public byte[] read(ByteBuffer buff) {
-            int size = DataUtils.readVarInt(buff);
-            byte[] data = new byte[size];
-            buff.get(data);
-            return data;
-        }
-
-        @Override
-        public byte[][] createStorage(int size) {
-            return new byte[size][];
-        }
-    }
-
-    private static class ValueWithTimestampType extends BasicDataType<ValueWithTimestamp> {
-        private static final ValueWithTimestampType INSTANCE = new ValueWithTimestampType();
-
-        @Override
-        public int getMemory(ValueWithTimestamp obj) {
-            return Long.BYTES + obj.value.length;
-        }
-
-        @Override
-        public void write(WriteBuffer buff, ValueWithTimestamp obj) {
-            buff.putLong(obj.timestamp);
-            buff.putVarInt(obj.value.length);
-            buff.put(obj.value);
-        }
-
-        @Override
-        public ValueWithTimestamp read(ByteBuffer buff) {
-            long timestamp = buff.getLong();
-            int size = DataUtils.readVarInt(buff);
-            byte[] key = new byte[size];
-            buff.get(key);
-            return new ValueWithTimestamp(timestamp, key);
-        }
-
-        @Override
-        public ValueWithTimestamp[] createStorage(int size) {
-            return new ValueWithTimestamp[size];
-        }
-
-        @Override
-        public int compare(ValueWithTimestamp a, ValueWithTimestamp b) {
-            return a.compareTo(b);
         }
     }
 }

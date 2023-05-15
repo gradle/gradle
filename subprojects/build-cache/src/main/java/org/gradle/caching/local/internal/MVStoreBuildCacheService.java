@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal;
 
+import com.google.common.math.IntMath;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
@@ -45,7 +46,7 @@ public class MVStoreBuildCacheService implements StatefulNextGenBuildCacheServic
             .fileName(dbPath.resolve("filestore.mvstore.db").toString())
             .autoCompactFillRate(0)
             // 16 is default concurrency level
-            .cacheConcurrency(Math.max(maxConcurrency, 16))
+            .cacheConcurrency(Math.max(IntMath.ceilingPowerOfTwo(maxConcurrency), 16))
             .open();
         lruStreamMap = new MVStoreLruStreamMap(mvStore, maxConcurrency);
     }
