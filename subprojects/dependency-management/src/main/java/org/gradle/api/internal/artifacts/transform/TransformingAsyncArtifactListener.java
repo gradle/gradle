@@ -89,8 +89,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
         private final List<BoundTransformationStep> transformationSteps;
-        private Try<TransformationSubject> transformedSubject;
-        private Deferrable<Try<TransformationSubject>> invocation;
+        private Try<TransformStepSubject> transformedSubject;
+        private Deferrable<Try<TransformStepSubject>> invocation;
 
         public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformationStep> transformationSteps) {
             this.variantName = variantName;
@@ -169,7 +169,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 }
             }
 
-            Deferrable<Try<TransformationSubject>> invocation = createInvocation();
+            Deferrable<Try<TransformStepSubject>> invocation = createInvocation();
             synchronized (this) {
                 this.invocation = invocation;
                 if (invocation.getCompleted().isPresent()) {
@@ -183,7 +183,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             }
         }
 
-        private Try<TransformationSubject> finalizeValue() {
+        private Try<TransformStepSubject> finalizeValue() {
             synchronized (this) {
                 if (transformedSubject != null) {
                     return transformedSubject;
@@ -198,7 +198,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 }
             }
 
-            Deferrable<Try<TransformationSubject>> invocation;
+            Deferrable<Try<TransformStepSubject>> invocation;
             synchronized (this) {
                 invocation = this.invocation;
             }
@@ -206,17 +206,17 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             if (invocation == null) {
                 invocation = createInvocation();
             }
-            Try<TransformationSubject> result = invocation.completeAndGet();
+            Try<TransformStepSubject> result = invocation.completeAndGet();
             synchronized (this) {
                 transformedSubject = result;
                 return result;
             }
         }
 
-        private Deferrable<Try<TransformationSubject>> createInvocation() {
-            TransformationSubject initialSubject = TransformationSubject.initial(artifact);
+        private Deferrable<Try<TransformStepSubject>> createInvocation() {
+            TransformStepSubject initialSubject = TransformStepSubject.initial(artifact);
             BoundTransformationStep initialStep = transformationSteps.get(0);
-            Deferrable<Try<TransformationSubject>> invocation = initialStep.getTransformation()
+            Deferrable<Try<TransformStepSubject>> invocation = initialStep.getTransformation()
                 .createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
             for (int i = 1; i < transformationSteps.size(); i++) {
                 BoundTransformationStep nextStep = transformationSteps.get(i);
@@ -231,7 +231,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            Try<TransformationSubject> transformedSubject = finalizeValue();
+            Try<TransformStepSubject> transformedSubject = finalizeValue();
             transformedSubject.ifSuccessfulOrElse(
                 subject -> {
                     for (File output : subject.getFiles()) {

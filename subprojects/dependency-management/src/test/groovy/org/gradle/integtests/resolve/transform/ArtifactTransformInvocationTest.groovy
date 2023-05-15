@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory
 import org.gradle.api.internal.artifacts.transform.TransformStep
-import org.gradle.api.internal.artifacts.transform.TransformationSubject
+import org.gradle.api.internal.artifacts.transform.TransformStepSubject
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.internal.Try
@@ -132,7 +132,7 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
             transform.getTransformer(),
             inputArtifact,
             DefaultTransformUpstreamDependenciesResolver.NO_RESULT,
-            TransformationSubject.initial(artifact),
+            TransformStepSubject.initial(artifact),
             inputFingerprinter
         )
         invocation.completeAndGet()

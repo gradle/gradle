@@ -26,10 +26,10 @@ import java.io.File;
 /**
  * Subject which is transformed or the result of a transformation.
  */
-public abstract class TransformationSubject implements Describable {
+public abstract class TransformStepSubject implements Describable {
 
-    public static TransformationSubject initial(ResolvableArtifact artifact) {
-        return new InitialArtifactTransformationSubject(artifact);
+    public static TransformStepSubject initial(ResolvableArtifact artifact) {
+        return new Initial(artifact);
     }
 
     /**
@@ -45,14 +45,14 @@ public abstract class TransformationSubject implements Describable {
     /**
      * Creates a subsequent subject by having transformed this subject.
      */
-    public TransformationSubject createSubjectFromResult(ImmutableList<File> result) {
-        return new SubsequentTransformationSubject(this, result);
+    public TransformStepSubject createSubjectFromResult(ImmutableList<File> result) {
+        return new Transformed(this, result);
     }
 
-    private static class InitialArtifactTransformationSubject extends TransformationSubject {
+    private static class Initial extends TransformStepSubject {
         private final ResolvableArtifact artifact;
 
-        public InitialArtifactTransformationSubject(ResolvableArtifact artifact) {
+        public Initial(ResolvableArtifact artifact) {
             this.artifact = artifact;
         }
 
@@ -72,11 +72,11 @@ public abstract class TransformationSubject implements Describable {
         }
     }
 
-    private static class SubsequentTransformationSubject extends TransformationSubject {
-        private final TransformationSubject previous;
+    private static class Transformed extends TransformStepSubject {
+        private final TransformStepSubject previous;
         private final ImmutableList<File> files;
 
-        public SubsequentTransformationSubject(TransformationSubject previous, ImmutableList<File> files) {
+        public Transformed(TransformStepSubject previous, ImmutableList<File> files) {
             this.previous = previous;
             this.files = files;
         }

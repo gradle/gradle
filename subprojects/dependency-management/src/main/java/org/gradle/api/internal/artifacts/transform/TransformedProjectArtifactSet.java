@@ -77,7 +77,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
         DisplayName displayName = Describables.of(targetVariant.getComponentId());
         for (TransformStepNode node : transformedArtifacts) {
             node.executeIfNotAlready();
-            Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
+            Try<TransformStepSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
                 for (File file : transformedSubject.get().getFiles()) {
                     visitor.visitArtifact(displayName, targetVariant.getAttributes(), targetVariant.getCapabilities(), node.getInputArtifact().transformedTo(file));

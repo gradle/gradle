@@ -103,7 +103,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         Transform transform,
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
-        TransformationSubject subject,
+        TransformStepSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
@@ -154,7 +154,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     }
 
     @Nullable
-    private ProjectInternal determineProducerProject(TransformationSubject subject) {
+    private ProjectInternal determineProducerProject(TransformStepSubject subject) {
         ComponentIdentifier componentIdentifier = subject.getInitialComponentIdentifier();
         if (componentIdentifier instanceof ProjectComponentIdentifier) {
             return projectStateRegistry.stateFor((ProjectComponentIdentifier) componentIdentifier).getMutableModel();
@@ -170,7 +170,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             Transform transform,
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
-            TransformationSubject subject,
+            TransformStepSubject subject,
 
             ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,
@@ -211,7 +211,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             Transform transform,
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
-            TransformationSubject subject,
+            TransformStepSubject subject,
 
             ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,
@@ -239,7 +239,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         protected final Transform transform;
         protected final File inputArtifact;
         private final ArtifactTransformDependencies dependencies;
-        private final TransformationSubject subject;
+        private final TransformStepSubject subject;
 
         private final ArtifactTransformListener artifactTransformListener;
         private final BuildOperationExecutor buildOperationExecutor;
@@ -253,7 +253,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             Transform transform,
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
-            TransformationSubject subject,
+            TransformStepSubject subject,
 
             ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,

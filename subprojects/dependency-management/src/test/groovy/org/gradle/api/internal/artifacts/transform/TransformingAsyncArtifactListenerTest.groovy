@@ -33,7 +33,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(TransformStep)
     def targetAttributes = Mock(ImmutableAttributes)
     def result = ImmutableList.<ResolvedArtifactSet.Artifacts>builder()
-    def invocation = Mock(Deferrable<TransformationSubject>)
+    def invocation = Mock(Deferrable<TransformStepSubject>)
     def operationQueue = Mock(BuildOperationQueue)
     def listener = new TransformingAsyncArtifactListener([new BoundTransformationStep(transformation, Stub(TransformUpstreamDependencies))], targetAttributes, [], result)
     def file = new File("foo")
@@ -84,7 +84,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
-        2 * invocation.getCompleted() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
+        2 * invocation.getCompleted() >> Optional.of(Try.successful(TransformStepSubject.initial(artifact)))
         0 * operationQueue._
     }
 }
