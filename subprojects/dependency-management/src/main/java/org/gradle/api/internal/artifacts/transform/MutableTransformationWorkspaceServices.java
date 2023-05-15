@@ -33,7 +33,7 @@ import java.io.File;
 @NotThreadSafe
 public class MutableTransformationWorkspaceServices implements TransformationWorkspaceServices, ReservedFileSystemLocation {
 
-    private final Cache<UnitOfWork.Identity, Try<TransformationResult>> identityCache = new ManualEvictionInMemoryCache<>();
+    private final Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
     private final Provider<Directory> baseDirectory;
     private final WorkspaceProvider workspaceProvider;
     private final ExecutionHistoryStore executionHistoryStore;
@@ -50,7 +50,7 @@ public class MutableTransformationWorkspaceServices implements TransformationWor
     }
 
     @Override
-    public Cache<UnitOfWork.Identity, Try<TransformationResult>> getIdentityCache() {
+    public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
         return identityCache;
     }
 

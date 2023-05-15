@@ -207,8 +207,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
-            def builder = TransformationResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
+        TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
+            def builder = TransformExecutionResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
             transformationAction.apply(inputArtifactProvider.get().asFile, outputDir).each {
                 builder.addOutput(it) {}
             }

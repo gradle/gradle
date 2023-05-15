@@ -30,14 +30,14 @@ import java.io.Closeable;
 
 @NotThreadSafe
 public class ImmutableTransformationWorkspaceServices implements TransformationWorkspaceServices, Closeable {
-    private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformationResult>> identityCache;
+    private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache;
     private final DefaultImmutableWorkspaceProvider workspaceProvider;
 
     public ImmutableTransformationWorkspaceServices(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformationResult>> identityCache,
+        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache,
         CacheConfigurationsInternal cacheConfigurations
     ) {
         this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations);
@@ -50,7 +50,7 @@ public class ImmutableTransformationWorkspaceServices implements TransformationW
     }
 
     @Override
-    public CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformationResult>> getIdentityCache() {
+    public CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
         return identityCache;
     }
 

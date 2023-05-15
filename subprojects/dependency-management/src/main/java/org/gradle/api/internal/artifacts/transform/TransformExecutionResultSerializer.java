@@ -29,21 +29,21 @@ import java.util.List;
 
 import static org.gradle.internal.UncheckedException.unchecked;
 
-public class TransformationResultSerializer {
+public class TransformExecutionResultSerializer {
     private static final String INPUT_FILE_PATH_PREFIX = "i/";
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final File outputDir;
 
-    public TransformationResultSerializer(File outputDir) {
+    public TransformExecutionResultSerializer(File outputDir) {
         this.outputDir = outputDir;
     }
 
-    public void writeToFile(File target, TransformationResult result) {
+    public void writeToFile(File target, TransformExecutionResult result) {
         String outputDirPrefix = outputDir.getPath() + File.separator;
         List<String> resultFileContents = new ArrayList<>(result.size());
 
-        result.visitOutputs(new TransformationResult.TransformationOutputVisitor() {
+        result.visitOutputs(new TransformExecutionResult.TransformationOutputVisitor() {
             @Override
             public void visitEntireInputArtifact() {
                 resultFileContents.add(INPUT_FILE_PATH_PREFIX);
@@ -68,10 +68,10 @@ public class TransformationResultSerializer {
         unchecked(() -> Files.write(target.toPath(), resultFileContents));
     }
 
-    public TransformationResult readResultsFile(File resultsFile) {
+    public TransformExecutionResult readResultsFile(File resultsFile) {
         Path transformerResultsPath = resultsFile.toPath();
         try {
-            TransformationResult.Builder builder = TransformationResult.builder();
+            TransformExecutionResult.Builder builder = TransformExecutionResult.builder();
             List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
             for (String path : paths) {
                 if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {

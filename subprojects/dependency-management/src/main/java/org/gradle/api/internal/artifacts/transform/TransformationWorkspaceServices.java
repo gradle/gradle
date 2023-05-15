@@ -23,5 +23,5 @@ import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 public interface TransformationWorkspaceServices {
     WorkspaceProvider getWorkspaceProvider();
-    Cache<UnitOfWork.Identity, Try<TransformationResult>> getIdentityCache();
+    Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache();
 }

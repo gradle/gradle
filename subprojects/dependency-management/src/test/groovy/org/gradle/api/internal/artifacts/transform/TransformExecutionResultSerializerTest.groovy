@@ -24,14 +24,14 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
-class TransformationResultSerializerTest extends Specification {
+class TransformExecutionResultSerializerTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def inputArtifact = file("inputArtifact").createDir()
     def outputDir = file("outputDir")
     def resultFile = file("results.txt")
-    def serializer = new TransformationResultSerializer(outputDir)
+    def serializer = new TransformExecutionResultSerializer(outputDir)
 
     def "reads and writes transformation results"() {
         expect:
@@ -79,7 +79,7 @@ class TransformationResultSerializerTest extends Specification {
         )
 
         when:
-        def initialResults = buildTransformationResult(resultFiles)
+        def initialResults = buildTransformExecutionResult(resultFiles)
         serializer.writeToFile(resultFile, initialResults)
         then:
         resultFile.exists()
@@ -108,14 +108,14 @@ class TransformationResultSerializerTest extends Specification {
         )
 
         when:
-        def initialResults = buildTransformationResult(resultFiles)
+        def initialResults = buildTransformExecutionResult(resultFiles)
         serializer.writeToFile(resultFile, initialResults)
         then:
         resultFile.exists()
         initialResults.resolveOutputsForInputArtifact(inputArtifact) == resultFiles
 
         when:
-        def serializerWithNewOutputDir = new TransformationResultSerializer(newOutputDir)
+        def serializerWithNewOutputDir = new TransformExecutionResultSerializer(newOutputDir)
         def loadedResults = serializerWithNewOutputDir.readResultsFile(resultFile)
         then:
         loadedResults.resolveOutputsForInputArtifact(inputArtifact) == resultInNewOutputDir
@@ -123,7 +123,7 @@ class TransformationResultSerializerTest extends Specification {
 
     private void assertCanWriteAndReadResult(File... files) {
         ImmutableList<File> resultFiles = ImmutableList.<File>builder().add(files).build()
-        def initialResults = buildTransformationResult(resultFiles)
+        def initialResults = buildTransformExecutionResult(resultFiles)
         assert initialResults.resolveOutputsForInputArtifact(inputArtifact) == resultFiles
 
         serializer.writeToFile(resultFile, initialResults)
@@ -131,8 +131,8 @@ class TransformationResultSerializerTest extends Specification {
         assert serializer.readResultsFile(resultFile).resolveOutputsForInputArtifact(inputArtifact) == resultFiles
     }
 
-    private TransformationResult buildTransformationResult(Collection<File> files) {
-        def builder = TransformationResult.builderFor(inputArtifact, outputDir)
+    private TransformExecutionResult buildTransformExecutionResult(Collection<File> files) {
+        def builder = TransformExecutionResult.builderFor(inputArtifact, outputDir)
         for (File file in files) {
             builder.addOutput(file) {}
         }
