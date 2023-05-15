@@ -197,7 +197,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return new ImmutableTransformationWorkspaceIdentity(
+            return new ImmutableTransformWorkspaceIdentity(
                 identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
                 identityInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
@@ -227,7 +227,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return new MutableTransformationWorkspaceIdentity(
+            return new MutableTransformWorkspaceIdentity(
                 inputArtifact.getAbsolutePath(),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
                 identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
@@ -417,13 +417,13 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         }
     }
 
-    private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
+    private static class ImmutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
         private final ValueSnapshot inputArtifactPath;
         private final ValueSnapshot inputArtifactSnapshot;
         private final ValueSnapshot secondaryInputSnapshot;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformationWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+        public ImmutableTransformWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
             this.inputArtifactPath = inputArtifactPath;
             this.inputArtifactSnapshot = inputArtifactSnapshot;
             this.secondaryInputSnapshot = secondaryInputSnapshot;
@@ -449,7 +449,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 return false;
             }
 
-            ImmutableTransformationWorkspaceIdentity that = (ImmutableTransformationWorkspaceIdentity) o;
+            ImmutableTransformWorkspaceIdentity that = (ImmutableTransformWorkspaceIdentity) o;
 
             if (!inputArtifactPath.equals(that.inputArtifactPath)) {
                 return false;
@@ -473,12 +473,12 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         }
     }
 
-    public static class MutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
+    public static class MutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
         private final String inputArtifactAbsolutePath;
         private final ValueSnapshot secondaryInputsSnapshot;
         private final HashCode dependenciesHash;
 
-        public MutableTransformationWorkspaceIdentity(String inputArtifactAbsolutePath, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
+        public MutableTransformWorkspaceIdentity(String inputArtifactAbsolutePath, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
             this.inputArtifactAbsolutePath = inputArtifactAbsolutePath;
             this.secondaryInputsSnapshot = secondaryInputsSnapshot;
             this.dependenciesHash = dependenciesHash;
@@ -502,7 +502,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 return false;
             }
 
-            MutableTransformationWorkspaceIdentity that = (MutableTransformationWorkspaceIdentity) o;
+            MutableTransformWorkspaceIdentity that = (MutableTransformWorkspaceIdentity) o;
 
             if (!secondaryInputsSnapshot.equals(that.secondaryInputsSnapshot)) {
                 return false;

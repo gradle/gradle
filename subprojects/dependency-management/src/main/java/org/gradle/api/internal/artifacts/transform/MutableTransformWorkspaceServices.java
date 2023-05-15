@@ -40,7 +40,7 @@ public class MutableTransformWorkspaceServices implements TransformWorkspaceServ
 
     public MutableTransformWorkspaceServices(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
         this.baseDirectory = baseDirectory;
-        this.workspaceProvider = new MutableTransformationWorkspaceProvider();
+        this.workspaceProvider = new MutableTransformWorkspaceProvider();
         this.executionHistoryStore = executionHistoryStore;
     }
 
@@ -59,7 +59,7 @@ public class MutableTransformWorkspaceServices implements TransformWorkspaceServ
         return baseDirectory;
     }
 
-    private class MutableTransformationWorkspaceProvider implements WorkspaceProvider {
+    private class MutableTransformWorkspaceProvider implements WorkspaceProvider {
         @Override
         public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
             File workspaceDir = new File(baseDirectory.get().getAsFile(), path);
