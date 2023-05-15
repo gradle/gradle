@@ -267,7 +267,7 @@ public class DefaultTransform implements Transform {
     }
 
     @Override
-    public TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+    public TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
         TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
         DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
         transformAction.transform(transformOutputs);

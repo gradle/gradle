@@ -96,14 +96,14 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
         selectedFile2.text = "Hello"
 
         when:
-        def transformationResult1 = invokeTransform(transform, inputArtifact1).get()
-        def transformationResult2 = invokeTransform(transform, inputArtifact2).get()
+        def transformResult1 = invokeTransform(transform, inputArtifact1).get()
+        def transformResult2 = invokeTransform(transform, inputArtifact2).get()
         then:
-        transformationResult1.size() == 4
-        transformationResult2.size() == 4
-        transformationResult1[0, 2] == [selectedFile1, inputArtifact1]
-        transformationResult2[0, 2] == [selectedFile2, inputArtifact2]
-        transformationResult1[1, 3] == transformationResult2[1, 3]
+        transformResult1.size() == 4
+        transformResult2.size() == 4
+        transformResult1[0, 2] == [selectedFile1, inputArtifact1]
+        transformResult2[0, 2] == [selectedFile2, inputArtifact2]
+        transformResult1[1, 3] == transformResult2[1, 3]
         INVOCATION_COUNT.get() == 1
     }
 

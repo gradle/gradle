@@ -46,7 +46,7 @@ public class TestTransformationWorkspaceServices implements TransformationWorksp
     }
 
     @Override
-    public Cache<UnitOfWork.Identity, Try<TransformationResult>> getIdentityCache() {
+    public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
         return new ManualEvictionInMemoryCache<>();
     }
 }

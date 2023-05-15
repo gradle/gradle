@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * - Produced outputs in the workspace. Those are absolute paths which do not change depending on the input artifact.
  * - Selected parts of the input artifact. These are relative paths of locations selected in the input artifact.
  */
-public interface TransformationResult {
+public interface TransformExecutionResult {
     /**
      * Resolves location of the outputs of this result for a given input artifact.
      *
@@ -70,11 +70,11 @@ public interface TransformationResult {
             builder.add(new ProducedOutput(outputLocation));
         }
 
-        public TransformationResult build() {
+        public TransformExecutionResult build() {
             ImmutableList<TransformationOutput> transformationOutputs = builder.build();
             return onlyProducedOutputs
-                ? new ProducedOutputOnlyTransformationResult(convertToProducedOutputLocations(transformationOutputs))
-                : new FilteredTransformationResult(transformationOutputs);
+                ? new ProducedOutputOnlyResult(convertToProducedOutputLocations(transformationOutputs))
+                : new FilteredResult(transformationOutputs);
         }
 
         private static ImmutableList<File> convertToProducedOutputLocations(ImmutableList<TransformationOutput> transformationOutputs) {
@@ -87,10 +87,10 @@ public interface TransformationResult {
          * Optimized variant for a transform whose results are all produced by the transform,
          * and don't include any of its input artifact.
          */
-        private static class ProducedOutputOnlyTransformationResult implements TransformationResult {
+        private static class ProducedOutputOnlyResult implements TransformExecutionResult {
             private final ImmutableList<File> producedOutputLocations;
 
-            public ProducedOutputOnlyTransformationResult(ImmutableList<File> producedOutputLocations) {
+            public ProducedOutputOnlyResult(ImmutableList<File> producedOutputLocations) {
                 this.producedOutputLocations = producedOutputLocations;
             }
 
@@ -114,10 +114,10 @@ public interface TransformationResult {
          * Results of a transform that includes parts or the whole of its input artifact.
          * It might also include outputs produced by the transform.
          */
-        private static class FilteredTransformationResult implements TransformationResult {
+        private static class FilteredResult implements TransformExecutionResult {
             private final ImmutableList<TransformationOutput> transformationOutputs;
 
-            public FilteredTransformationResult(ImmutableList<TransformationOutput> transformationOutputs) {
+            public FilteredResult(ImmutableList<TransformationOutput> transformationOutputs) {
                 this.transformationOutputs = transformationOutputs;
             }
 
@@ -232,7 +232,7 @@ public interface TransformationResult {
     }
 
     /**
-     * A {@link TransformationResult} builder which accepts absolute locations of results.
+     * A {@link TransformExecutionResult} builder which accepts absolute locations of results.
      * <p>
      * The builder then infers if the result is (in) the input artifact or a produced output in the workspace.
      */
@@ -241,7 +241,7 @@ public interface TransformationResult {
         private final File workspaceDir;
         private final String inputArtifactPrefix;
         private final String workspaceDirPrefix;
-        private final Builder delegate = TransformationResult.builder();
+        private final Builder delegate = TransformExecutionResult.builder();
 
         public OutputTypeInferringBuilder(File inputArtifact, File workspaceDir) {
             this.inputArtifact = inputArtifact;
@@ -269,7 +269,7 @@ public interface TransformationResult {
             }
         }
 
-        public TransformationResult build() {
+        public TransformExecutionResult build() {
             return delegate.build();
         }
     }

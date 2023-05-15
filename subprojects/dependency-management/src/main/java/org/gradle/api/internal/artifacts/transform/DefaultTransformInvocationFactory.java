@@ -285,13 +285,13 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         }
 
         private WorkOutput executeWithinTransformerListener(ExecutionRequest executionRequest) {
-            TransformationResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformationResult>() {
+            TransformExecutionResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformExecutionResult>() {
                 @Override
-                public TransformationResult call(BuildOperationContext context) {
+                public TransformExecutionResult call(BuildOperationContext context) {
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
-                    TransformationResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
+                    TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
+                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
                     resultSerializer.writeToFile(getResultsFile(workspace), result);
                     return result;
                 }
@@ -320,7 +320,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         @Override
         public Object loadAlreadyProducedOutput(File workspace) {
-            TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
+            TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
             return resultSerializer.readResultsFile(getResultsFile(workspace));
         }
 
