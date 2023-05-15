@@ -63,7 +63,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() apply`() {
         assertStaticInterpretationOf(
@@ -72,7 +71,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() apply()`() {
         assertStaticInterpretationOf(
@@ -81,7 +79,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() dot apply()`() {
         assertStaticInterpretationOf(
@@ -90,7 +87,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() version apply`() {
         assertStaticInterpretationOf(
@@ -99,7 +95,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() dot version() dot apply()`() {
         assertStaticInterpretationOf(
@@ -118,16 +113,14 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - kotlin()`() {
         assertStaticInterpretationOf(
-            """kotlin("jvm")""",
-            PluginRequestSpec("org.jetbrains.kotlin.jvm")
+            """kotlin("js")""",
+            PluginRequestSpec("org.jetbrains.kotlin.js")
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - kotlin() version apply false`() {
         assertStaticInterpretationOf(
@@ -160,7 +153,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `multiple plugins - id() version apply mixed syntax`() {
         assertStaticInterpretationOf(

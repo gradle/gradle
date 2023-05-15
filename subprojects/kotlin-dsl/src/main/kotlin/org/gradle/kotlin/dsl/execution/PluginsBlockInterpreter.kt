@@ -17,8 +17,10 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
+import org.jetbrains.kotlin.lexer.KtTokens.FALSE_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
+import org.jetbrains.kotlin.lexer.KtTokens.TRUE_KEYWORD
 
 
 internal
@@ -56,21 +58,47 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
 private
 val pluginsBlockParser = run {
 
-    val parenString = parens(stringLiteral())
+    val parenString = paren(stringLiteral())
 
-    val pluginId = symbol("id") * parenString
+    val kotlinPluginId = symbol("kotlin") * parenString.map { "org.jetbrains.kotlin.$it" }
+
+    val pluginId = (symbol("id") * parenString + kotlinPluginId) * ws()
 
     val dot = token(DOT)
 
-    val versionParser: Parser<String> = run {
-        val version = symbol("version")
-        val versionMethod = dot * ws() * version * parenString
-        val versionOperator = version * (parenString + (ws() * stringLiteral()))
-        versionMethod + versionOperator
-    }
+    val version = symbol("version")
 
-    val pluginSpec = (pluginId * optional(ws() * versionParser)).map { (id, v) ->
-        ResidualProgram.PluginRequestSpec(id, version = v)
+    val dotVersion = dot * ws() * version * parenString
+
+    val infixVersion = version * ws() * (parenString + stringLiteral())
+
+    val apply = symbol("apply")
+
+    val bool = token(TRUE_KEYWORD) { true } + token(FALSE_KEYWORD) { false }
+
+    val parenBool = paren(bool)
+
+    val dotApply = dot * ws() * apply * parenBool
+
+    val infixApply = apply * ws() * (parenBool + bool)
+
+    val infixVersionApply = infixVersion * optional(ws() * infixApply)
+
+    val dotVersionApply = dotVersion * optional(ws() * dotApply)
+
+    val infixApplyVersion = flip(infixApply, optional(ws() * infixVersion))
+
+    val dotApplyVersion = flip(dotApply, optional(ws() * dotVersion))
+
+    val optionalVersionAndApply = optional(infixVersionApply + dotVersionApply + infixApplyVersion + dotApplyVersion)
+
+    val pluginSpec = zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
+        when (versionAndApply) {
+            null -> ResidualProgram.PluginRequestSpec(id)
+            else -> versionAndApply.let { (v, a) ->
+                ResidualProgram.PluginRequestSpec(id, version = v, apply = a ?: true)
+            }
+        }
     }
 
     token(LBRACE) * wsOrNewLine() *

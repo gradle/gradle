@@ -103,7 +103,7 @@ inline operator fun <T> Parser<Unit>.times(crossinline suffix: Parser<T>): Parse
 @JvmName("timesUnitUnit")
 internal
 inline operator fun Parser<Unit>.times(crossinline suffix: Parser<Unit>): Parser<Unit> =
-    zip(this, suffix) { _, _ -> }
+    zipM(this, suffix) { _, _ -> unitSuccess }
 
 
 @JvmName("timesTUnit")
@@ -117,16 +117,41 @@ inline operator fun <T> Parser<T>.plus(crossinline alternative: Parser<T>): Pars
     either(this, alternative, { it }, { it })
 
 
-private
+internal
+inline fun <T, U> flip(
+    crossinline t: Parser<T>,
+    crossinline u: Parser<U>,
+): Parser<Pair<U, T>> =
+    zip(t, u) { tr, ur -> ur to tr }
+
+
+internal
 inline fun <T, U, R> zip(
-    crossinline prefix: Parser<T>,
-    crossinline suffix: Parser<U>,
+    crossinline t: Parser<T>,
+    crossinline u: Parser<U>,
     crossinline f: (T, U) -> R
 ): Parser<R> = {
-    when (val r = prefix()) {
-        is ParserResult.Failure -> r
-        is ParserResult.Success -> suffix().map {
-            f(r.result, it)
+    when (val tr = t()) {
+        is ParserResult.Failure -> tr
+        is ParserResult.Success -> when (val ur = u()) {
+            is ParserResult.Failure -> ur
+            is ParserResult.Success -> ParserResult.Success(f(tr.result, ur.result))
+        }
+    }
+}
+
+
+internal
+inline fun <T, U, R> zipM(
+    crossinline t: Parser<T>,
+    crossinline u: Parser<U>,
+    crossinline f: (T, U) -> ParserResult<R>
+): Parser<R> = {
+    when (val tr = t()) {
+        is ParserResult.Failure -> tr
+        is ParserResult.Success -> when (val ur = u()) {
+            is ParserResult.Failure -> ur
+            is ParserResult.Success -> f(tr.result, ur.result)
         }
     }
 }
@@ -227,7 +252,7 @@ val wsOrNewLine_: Parser<Unit> = {
 
 
 internal
-inline fun <T> parens(crossinline parser: Parser<T>): Parser<T> =
+inline fun <T> paren(crossinline parser: Parser<T>): Parser<T> =
     lpar * ws() * parser * ws() * rpar
 
 
