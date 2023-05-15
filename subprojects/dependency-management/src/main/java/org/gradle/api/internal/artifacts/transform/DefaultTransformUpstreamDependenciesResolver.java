@@ -118,11 +118,11 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     @Override
-    public TransformUpstreamDependencies dependenciesFor(TransformationStep transformationStep) {
-        if (!transformationStep.requiresDependencies()) {
+    public TransformUpstreamDependencies dependenciesFor(TransformStep transformStep) {
+        if (!transformStep.requiresDependencies()) {
             return NO_DEPENDENCIES;
         }
-        return new TransformUpstreamDependenciesImpl(configurationIdentity, transformationStep, calculatedValueContainerFactory);
+        return new TransformUpstreamDependenciesImpl(configurationIdentity, transformStep, calculatedValueContainerFactory);
     }
 
     private FileCollectionInternal selectedArtifactsFor(ImmutableAttributes fromAttributes) {
@@ -299,11 +299,11 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         private final CalculatedValueContainer<ArtifactTransformDependencies, FinalizeTransformDependencies> transformDependencies;
         private final ImmutableAttributes fromAttributes;
 
-        public TransformUpstreamDependenciesImpl(ConfigurationIdentity configurationIdentity, TransformationStep transformationStep, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        public TransformUpstreamDependenciesImpl(ConfigurationIdentity configurationIdentity, TransformStep transformStep, CalculatedValueContainerFactory calculatedValueContainerFactory) {
             this.configurationIdentity = configurationIdentity;
-            this.fromAttributes = transformationStep.getFromAttributes();
+            this.fromAttributes = transformStep.getFromAttributes();
             transformDependencies = calculatedValueContainerFactory.create(Describables.of("dependencies for", componentIdentifier, fromAttributes),
-                new FinalizeTransformDependenciesFromSelectedArtifacts(transformationStep.getFromAttributes()));
+                new FinalizeTransformDependenciesFromSelectedArtifacts(transformStep.getFromAttributes()));
         }
 
         @Override

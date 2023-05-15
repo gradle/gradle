@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.artifacts.transform.TransformationStep
+import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory
 import org.gradle.configurationcache.serialization.Codec
@@ -30,11 +30,11 @@ import org.gradle.internal.execution.InputFingerprinter
 
 
 internal
-class TransformationStepCodec(
+class TransformStepCodec(
     private val inputFingerprinter: InputFingerprinter
-) : Codec<TransformationStep> {
+) : Codec<TransformStep> {
 
-    override suspend fun WriteContext.encode(value: TransformationStep) {
+    override suspend fun WriteContext.encode(value: TransformStep) {
         encodePreservingSharedIdentityOf(value) {
             val project = value.owningProject ?: throw UnsupportedOperationException("Transformation must have an owning project to be encoded.")
             writeString(project.path)
@@ -42,17 +42,17 @@ class TransformationStepCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): TransformationStep {
+    override suspend fun ReadContext.decode(): TransformStep {
         return decodePreservingSharedIdentity {
             val path = readString()
             val transformer = readNonNull<Transformer>()
             val project = getProject(path)
             val services = project.services
-            TransformationStep(
-                transformer,
-                services[TransformerInvocationFactory::class.java],
-                services[DomainObjectContext::class.java],
-                inputFingerprinter
+            TransformStep(
+                    transformer,
+                    services[TransformerInvocationFactory::class.java],
+                    services[DomainObjectContext::class.java],
+                    inputFingerprinter
             )
         }
     }

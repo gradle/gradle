@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.transform.TransformationStep;
+import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
@@ -36,5 +36,5 @@ public interface ArtifactTransformRegistration {
     /**
      * Transformation step for artifacts of the variant.
      */
-    TransformationStep getTransformationStep();
+    TransformStep getTransformationStep();
 }

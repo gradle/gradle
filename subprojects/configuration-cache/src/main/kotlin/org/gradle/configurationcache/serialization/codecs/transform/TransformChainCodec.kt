@@ -16,23 +16,23 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
-import org.gradle.api.internal.artifacts.transform.TransformationChain
-import org.gradle.api.internal.artifacts.transform.TransformationStep
+import org.gradle.api.internal.artifacts.transform.TransformChain
+import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 
 
-class TransformationChainCodec : Codec<TransformationChain> {
-    override suspend fun WriteContext.encode(value: TransformationChain) {
+class TransformChainCodec : Codec<TransformChain> {
+    override suspend fun WriteContext.encode(value: TransformChain) {
         write(value.init)
         write(value.last)
     }
 
-    override suspend fun ReadContext.decode(): TransformationChain {
-        val init = read() as TransformationChain?
-        val last = readNonNull<TransformationStep>()
-        return TransformationChain(init, last)
+    override suspend fun ReadContext.decode(): TransformChain {
+        val init = read() as TransformChain?
+        val last = readNonNull<TransformStep>()
+        return TransformChain(init, last)
     }
 }

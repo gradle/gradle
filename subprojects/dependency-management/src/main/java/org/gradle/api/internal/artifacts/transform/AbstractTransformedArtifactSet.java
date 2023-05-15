@@ -46,13 +46,13 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
         ResolvedArtifactSet delegate,
         ImmutableAttributes targetVariantAttributes,
         List<? extends Capability> capabilities,
-        TransformationChain transformationChain,
+        TransformChain transformChain,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformationChain);
+        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformChain);
         ImmutableList.Builder<BoundTransformationStep> builder = ImmutableList.builder();
-        transformationChain.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformationStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
+        transformChain.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformationStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
         ImmutableList<BoundTransformationStep> steps = builder.build();
         this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, delegate, targetVariantAttributes, capabilities, steps));
     }

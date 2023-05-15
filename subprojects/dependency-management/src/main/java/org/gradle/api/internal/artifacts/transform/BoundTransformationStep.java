@@ -22,15 +22,15 @@ package org.gradle.api.internal.artifacts.transform;
  * as a parameter.
  */
 public class BoundTransformationStep {
-    private final TransformationStep transformation;
+    private final TransformStep transformation;
     private final TransformUpstreamDependencies upstreamDependencies;
 
-    public BoundTransformationStep(TransformationStep transformation, TransformUpstreamDependencies upstreamDependencies) {
+    public BoundTransformationStep(TransformStep transformation, TransformUpstreamDependencies upstreamDependencies) {
         this.transformation = transformation;
         this.upstreamDependencies = upstreamDependencies;
     }
 
-    public TransformationStep getTransformation() {
+    public TransformStep getTransformation() {
         return transformation;
     }
 

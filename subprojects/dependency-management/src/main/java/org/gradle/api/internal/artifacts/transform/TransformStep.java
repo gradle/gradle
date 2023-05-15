@@ -39,15 +39,15 @@ import java.io.File;
  *
  * Transforms a subject by invoking a transformer on each of the subjects files.
  */
-public class TransformationStep implements TaskDependencyContainer, Describable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
+public class TransformStep implements TaskDependencyContainer, Describable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformStep.class);
 
     private final Transformer transformer;
     private final TransformerInvocationFactory transformerInvocationFactory;
     private final ProjectInternal owningProject;
     private final InputFingerprinter globalInputFingerprinter;
 
-    public TransformationStep(Transformer transformer, TransformerInvocationFactory transformerInvocationFactory, DomainObjectContext owner, InputFingerprinter globalInputFingerprinter) {
+    public TransformStep(Transformer transformer, TransformerInvocationFactory transformerInvocationFactory, DomainObjectContext owner, InputFingerprinter globalInputFingerprinter) {
         this.transformer = transformer;
         this.transformerInvocationFactory = transformerInvocationFactory;
         this.globalInputFingerprinter = globalInputFingerprinter;

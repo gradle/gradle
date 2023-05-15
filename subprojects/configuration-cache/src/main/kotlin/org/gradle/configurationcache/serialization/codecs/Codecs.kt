@@ -49,9 +49,9 @@ import org.gradle.configurationcache.serialization.codecs.transform.DefaultTrans
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.TransformChainCodec
+import org.gradle.configurationcache.serialization.codecs.transform.TransformStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformStepSpecCodec
-import org.gradle.configurationcache.serialization.codecs.transform.TransformationChainCodec
-import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedArtifactCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
@@ -154,8 +154,8 @@ class Codecs(
             bind(ComponentVariantIdentifierCodec)
             bind(InitialTransformationNodeCodec(transformationNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
             bind(ChainedTransformationNodeCodec(transformationNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
-            bind(TransformationStepCodec(inputFingerprinter))
-            bind(TransformationChainCodec())
+            bind(TransformStepCodec(inputFingerprinter))
+            bind(TransformChainCodec())
             bind(DefaultTransformerCodec(fileLookup, actionScheme))
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)

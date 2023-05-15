@@ -37,10 +37,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory
+import org.gradle.api.internal.artifacts.transform.TransformChain
+import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
-import org.gradle.api.internal.artifacts.transform.TransformationChain
-import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.VariantDefinition
 import org.gradle.api.internal.artifacts.transform.VariantSelector
@@ -114,7 +114,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
                 } else if (recordingSet.targetAttributes != null) {
-                    mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformationChain!!)
+                    mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformChain!!)
                 } else {
                     mappings[sourceAttributes] = IdentityMapping
                 }
@@ -167,7 +167,7 @@ class RecordingVariantSet(
     private val attributes: ImmutableAttributes
 ) : ResolvedVariantSet, ResolvedVariant, VariantSelector.Factory, ResolvedArtifactSet {
     var targetAttributes: ImmutableAttributes? = null
-    var transformationChain: TransformationChain? = null
+    var transformChain: TransformChain? = null
 
     override fun asDescribable(): DisplayName {
         return Describables.of(source)
@@ -227,7 +227,7 @@ class RecordingVariantSet(
         dependenciesResolver: ExtraExecutionGraphDependenciesResolverFactory,
         transformedVariantFactory: TransformedVariantFactory
     ): ResolvedArtifactSet {
-        this.transformationChain = variantDefinition.transformationChain
+        this.transformChain = variantDefinition.transformationChain
         this.targetAttributes = variantDefinition.targetAttributes
         return sourceVariant.artifacts
     }
@@ -239,16 +239,16 @@ sealed class MappingSpec
 
 
 private
-class TransformMapping(private val targetAttributes: ImmutableAttributes, private val transformationChain: TransformationChain) : MappingSpec(), VariantDefinition {
+class TransformMapping(private val targetAttributes: ImmutableAttributes, private val transformChain: TransformChain) : MappingSpec(), VariantDefinition {
     override fun getTargetAttributes(): ImmutableAttributes {
         return targetAttributes
     }
 
-    override fun getTransformationChain(): TransformationChain {
-        return transformationChain
+    override fun getTransformationChain(): TransformChain {
+        return transformChain
     }
 
-    override fun getTransformationStep(): TransformationStep {
+    override fun getTransformationStep(): TransformStep {
         throw UnsupportedOperationException()
     }
 
@@ -327,11 +327,11 @@ class EmptyDependenciesResolverFactory : ExtraExecutionGraphDependenciesResolver
         return null
     }
 
-    override fun create(componentIdentifier: ComponentIdentifier, transformationChain: TransformationChain): TransformUpstreamDependenciesResolver {
+    override fun create(componentIdentifier: ComponentIdentifier, transformChain: TransformChain): TransformUpstreamDependenciesResolver {
         return this
     }
 
-    override fun dependenciesFor(transformationStep: TransformationStep): TransformUpstreamDependencies {
+    override fun dependenciesFor(transformStep: TransformStep): TransformUpstreamDependencies {
         return this
     }
 

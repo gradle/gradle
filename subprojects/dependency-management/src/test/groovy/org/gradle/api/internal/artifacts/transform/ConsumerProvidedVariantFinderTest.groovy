@@ -500,7 +500,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     private ArtifactTransformRegistration registration(AttributeContainer from, AttributeContainer to) {
-        def transformationStep = Stub(TransformationStep)
+        def transformationStep = Stub(TransformStep)
         _ * transformationStep.visitTransformationSteps(_) >> { Action action -> action.execute(transformationStep) }
         _ * transformationStep.stepsCount() >> 1
 
