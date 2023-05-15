@@ -49,10 +49,10 @@ class TransformStepCodec(
             val project = getProject(path)
             val services = project.services
             TransformStep(
-                    transformer,
-                    services[TransformerInvocationFactory::class.java],
-                    services[DomainObjectContext::class.java],
-                    inputFingerprinter
+                transformer,
+                services[TransformerInvocationFactory::class.java],
+                services[DomainObjectContext::class.java],
+                inputFingerprinter
             )
         }
     }
