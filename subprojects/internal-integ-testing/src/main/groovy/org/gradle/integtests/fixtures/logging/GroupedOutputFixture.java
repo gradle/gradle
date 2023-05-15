@@ -143,7 +143,7 @@ public class GroupedOutputFixture {
     }
 
     /**
-     * Returns grouped output for the given transformer type and transformation subject.
+     * Returns grouped output for the given transformer type and transform subject.
      */
     public GroupedTransformOutputFixture transform(String transformer, String subject) {
         List<GroupedTransformOutputFixture> foundTransforms = transforms.values().stream()
