@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.transform.TransformAction;
-import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
+import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import javax.annotation.Nullable;
+/**
+ * Registration of an artifact transform.
+ */
+public interface TransformRegistration {
+    /**
+     * Attributes that match the variant that is consumed.
+     */
+    ImmutableAttributes getFrom();
 
-public interface TransformationRegistrationFactory {
-    ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
+    /**
+     * Attributes that match the variant that is produced.
+     */
+    ImmutableAttributes getTo();
+
+    /**
+     * Transformation step for artifacts of the variant.
+     */
+    TransformStep getTransformStep();
 }

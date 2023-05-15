@@ -32,5 +32,5 @@ public interface VariantTransformRegistry {
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
-    List<ArtifactTransformRegistration> getTransforms();
+    List<TransformRegistration> getRegistrations();
 }
