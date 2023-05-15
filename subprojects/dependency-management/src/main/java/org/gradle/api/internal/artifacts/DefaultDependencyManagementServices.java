@@ -76,7 +76,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
@@ -86,6 +85,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFact
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.MutableTransformWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
@@ -175,14 +175,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
     private static class ArtifactTransformResolutionGradleUserHomeServices {
 
-        ArtifactTransformListener createArtifactTransformListener() {
-            return new ArtifactTransformListener() {
+        TransformExecutionListener createTransformExecutionListener() {
+            return new TransformExecutionListener() {
                 @Override
-                public void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                public void beforeTransformExecution(Describable transform, Describable subject) {
                 }
 
                 @Override
-                public void afterTransformerInvocation(Describable transformer, Describable subject) {
+                public void afterTransformExecution(Describable transform, Describable subject) {
                 }
             };
         }
@@ -217,7 +217,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ExecutionEngine executionEngine,
                 FileSystemAccess fileSystemAccess,
                 ImmutableTransformWorkspaceServices transformationWorkspaceServices,
-                ArtifactTransformListener artifactTransformListener,
+                TransformExecutionListener transformExecutionListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
                 BuildOperationExecutor buildOperationExecutor
@@ -225,7 +225,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultTransformInvocationFactory(
                 executionEngine,
                 fileSystemAccess,
-                artifactTransformListener,
+                transformExecutionListener,
                 transformationWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,

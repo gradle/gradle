@@ -21,15 +21,15 @@ import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
 @EventScope(Scopes.Build.class)
-public interface ArtifactTransformListener {
+public interface TransformExecutionListener {
 
     /**
-     * This method is called immediately before a transformer is invoked.
+     * This method is called immediately before a transform is executed.
      */
-    void beforeTransformerInvocation(Describable transformer, Describable subject);
+    void beforeTransformExecution(Describable transform, Describable subject);
 
     /**
-     * This method is call immediately after a transformer has been invoked.
+     * This method is call immediately after a transform has been executed.
      */
-    void afterTransformerInvocation(Describable transformer, Describable subject);
+    void afterTransformExecution(Describable transform, Describable subject);
 }

@@ -74,7 +74,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;
-    private final ArtifactTransformListener artifactTransformListener;
+    private final TransformExecutionListener transformExecutionListener;
     private final TransformWorkspaceServices immutableWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
@@ -83,7 +83,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     public DefaultTransformInvocationFactory(
         ExecutionEngine executionEngine,
         FileSystemAccess fileSystemAccess,
-        ArtifactTransformListener artifactTransformListener,
+        TransformExecutionListener transformExecutionListener,
         TransformWorkspaceServices immutableWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
@@ -91,7 +91,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         this.executionEngine = executionEngine;
         this.fileSystemAccess = fileSystemAccess;
-        this.artifactTransformListener = artifactTransformListener;
+        this.transformExecutionListener = transformExecutionListener;
         this.immutableWorkspaceProvider = immutableWorkspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectStateRegistry = projectStateRegistry;
@@ -117,7 +117,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 dependencies,
                 subject,
 
-                artifactTransformListener,
+                transformExecutionListener,
                 buildOperationExecutor,
                 fileCollectionFactory,
                 inputFingerprinter,
@@ -131,7 +131,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 dependencies,
                 subject,
 
-                artifactTransformListener,
+                transformExecutionListener,
                 buildOperationExecutor,
                 fileCollectionFactory,
                 inputFingerprinter,
@@ -172,7 +172,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             ArtifactTransformDependencies dependencies,
             TransformStepSubject subject,
 
-            ArtifactTransformListener artifactTransformListener,
+            TransformExecutionListener transformExecutionListener,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
@@ -181,7 +181,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         ) {
             super(
                 transform, inputArtifact, dependencies, subject,
-                artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
+                transformExecutionListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
             );
             this.fileSystemAccess = fileSystemAccess;
         }
@@ -213,7 +213,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             ArtifactTransformDependencies dependencies,
             TransformStepSubject subject,
 
-            ArtifactTransformListener artifactTransformListener,
+            TransformExecutionListener transformExecutionListener,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
@@ -221,7 +221,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         ) {
             super(
                 transform, inputArtifact, dependencies, subject,
-                artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
+                transformExecutionListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
             );
         }
 
@@ -241,7 +241,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         private final ArtifactTransformDependencies dependencies;
         private final TransformStepSubject subject;
 
-        private final ArtifactTransformListener artifactTransformListener;
+        private final TransformExecutionListener transformExecutionListener;
         private final BuildOperationExecutor buildOperationExecutor;
         private final FileCollectionFactory fileCollectionFactory;
 
@@ -255,7 +255,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             ArtifactTransformDependencies dependencies,
             TransformStepSubject subject,
 
-            ArtifactTransformListener artifactTransformListener,
+            TransformExecutionListener transformExecutionListener,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
@@ -266,7 +266,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             this.dependencies = dependencies;
             this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
             this.subject = subject;
-            this.artifactTransformListener = artifactTransformListener;
+            this.transformExecutionListener = transformExecutionListener;
 
             this.buildOperationExecutor = buildOperationExecutor;
             this.fileCollectionFactory = fileCollectionFactory;
@@ -276,11 +276,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         @Override
         public WorkOutput execute(ExecutionRequest executionRequest) {
-            artifactTransformListener.beforeTransformerInvocation(transform, subject);
+            transformExecutionListener.beforeTransformExecution(transform, subject);
             try {
                 return executeWithinTransformerListener(executionRequest);
             } finally {
-                artifactTransformListener.afterTransformerInvocation(transform, subject);
+                transformExecutionListener.afterTransformExecution(transform, subject);
             }
         }
 

@@ -93,7 +93,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     def transformWorkspaceServices = new TestTransformWorkspaceServices(immutableTransformsStoreDirectory, executionHistoryStore)
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
-    def artifactTransformListener = Mock(ArtifactTransformListener)
+    def artifactTransformListener = Mock(TransformExecutionListener)
 
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def fileCollectionFingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, dependencyFingerprinter)])
@@ -306,8 +306,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         transformInvocations == 1
-        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
-        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+        1 * artifactTransformListener.beforeTransformExecution(_, _)
+        1 * artifactTransformListener.afterTransformExecution(_, _)
 
         when:
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
@@ -337,8 +337,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         transformInvocations == 1
-        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
-        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+        1 * artifactTransformListener.beforeTransformExecution(_, _)
+        1 * artifactTransformListener.afterTransformExecution(_, _)
         def wrappedFailure = result.failure.get()
         wrappedFailure.cause == failure
 
@@ -346,8 +346,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
         transformInvocations == 2
-        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
-        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+        1 * artifactTransformListener.beforeTransformExecution(_, _)
+        1 * artifactTransformListener.afterTransformExecution(_, _)
     }
 
     def "re-runs transform when output has been modified"() {
