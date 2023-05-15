@@ -56,9 +56,9 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
 
 private
 fun pluginId() =
-    symbol("id") +
-        token(LPAR) + ws() +
-        stringLiteral() + ws() +
+    symbol("id") *
+        token(LPAR) * ws() *
+        stringLiteral() + ws() *
         token(RPAR)
 
 
@@ -70,7 +70,7 @@ val pluginSpec = pluginId().map {
 
 private
 val pluginsBlockParser =
-    token(LBRACE) + wsOrNewLine() +
-        many(pluginSpec + statementSeparator()) +
-        optional(pluginSpec + wsOrNewLine()) +
+    token(LBRACE) * wsOrNewLine() *
+        many(pluginSpec * statementSeparator()) *
+        optional(pluginSpec * wsOrNewLine()) *
         token(RBRACE)

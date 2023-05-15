@@ -86,28 +86,33 @@ fun <T> KotlinLexer.manyImpl(parser: Parser<T>): ParserResult<List<T>> {
 }
 
 
-@JvmName("plusTU")
+@JvmName("timesTU")
 internal
-inline operator fun <T, U> Parser<T>.plus(crossinline suffix: Parser<U>): Parser<Pair<T, U>> =
+inline operator fun <T, U> Parser<T>.times(crossinline suffix: Parser<U>): Parser<Pair<T, U>> =
     zip(this, suffix) { p, s -> p to s }
 
 
-@JvmName("plusUnitT")
+@JvmName("timesUnitT")
 internal
-inline operator fun <T> Parser<Unit>.plus(crossinline suffix: Parser<T>): Parser<T> =
+inline operator fun <T> Parser<Unit>.times(crossinline suffix: Parser<T>): Parser<T> =
     zip(this, suffix) { _, s -> s }
 
 
-@JvmName("plusUnitUnit")
+@JvmName("timesUnitUnit")
 internal
-inline operator fun Parser<Unit>.plus(crossinline suffix: Parser<Unit>): Parser<Unit> =
+inline operator fun Parser<Unit>.times(crossinline suffix: Parser<Unit>): Parser<Unit> =
     zip(this, suffix) { _, _ -> }
 
 
-@JvmName("plusTUnit")
+@JvmName("timesTUnit")
 internal
-inline operator fun <T> Parser<T>.plus(crossinline suffix: Parser<Unit>): Parser<T> =
+inline operator fun <T> Parser<T>.times(crossinline suffix: Parser<Unit>): Parser<T> =
     zip(this, suffix) { p, _ -> p }
+
+
+internal
+inline operator fun <T> Parser<T>.plus(crossinline alternative: Parser<T>): Parser<T> =
+    either(this, alternative, { it }, { it })
 
 
 private
@@ -120,6 +125,27 @@ inline fun <T, U, R> zip(
         is ParserResult.Failure -> r
         is ParserResult.Success -> suffix().map {
             f(r.result, it)
+        }
+    }
+}
+
+
+private
+inline fun <L, R, T> either(
+    crossinline left: Parser<L>,
+    crossinline right: Parser<R>,
+    crossinline l: (L) -> T,
+    crossinline r: (R) -> T,
+): Parser<T> = {
+    val mark = currentPosition
+    when (val lr = left()) {
+        is ParserResult.Failure -> {
+            restore(mark)
+            right().map(r)
+        }
+
+        is ParserResult.Success -> {
+            lr.map(l)
         }
     }
 }
@@ -144,6 +170,8 @@ internal
 fun stringLiteral(): Parser<String> =
     token(OPEN_QUOTE) +
         token(REGULAR_STRING_PART) { tokenText } +
+    token(OPEN_QUOTE) *
+        token(REGULAR_STRING_PART) { tokenText } *
         token(CLOSING_QUOTE)
 
 
