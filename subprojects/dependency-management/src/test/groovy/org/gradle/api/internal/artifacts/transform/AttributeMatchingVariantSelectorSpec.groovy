@@ -33,7 +33,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
 
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def dependenciesResolverFactory = Mock(ExtraExecutionGraphDependenciesResolverFactory)
+    def dependenciesResolverFactory = Mock(TransformUpstreamDependenciesResolverFactory)
     def attributeMatcher = Mock(AttributeMatcher)
     def attributesSchema = Mock(AttributesSchemaInternal) {
         withProducer(_) >> attributeMatcher

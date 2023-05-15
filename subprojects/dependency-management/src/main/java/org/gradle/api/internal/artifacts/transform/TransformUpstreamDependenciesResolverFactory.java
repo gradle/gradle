@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 /**
  * Factory for {@link TransformUpstreamDependenciesResolver} that relies on the information provided to its {@code create} method.
  */
-public interface ExtraExecutionGraphDependenciesResolverFactory {
+public interface TransformUpstreamDependenciesResolverFactory {
     /**
      * Creates a {@link TransformUpstreamDependenciesResolver} for the given {@code ComponentIdentifier} and {@code TransformationChain}.
      *

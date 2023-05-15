@@ -44,7 +44,7 @@ class DefaultArtifactTransformsTest extends Specification {
     }
     def attributeMatcher = Mock(AttributeMatcher)
     def factory = Mock(VariantSelector.Factory)
-    def dependenciesResolver = Stub(ExtraExecutionGraphDependenciesResolverFactory)
+    def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
     def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory)
 
@@ -66,7 +66,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, false, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, false, dependenciesResolverFactory).select(set, factory)
         result == variant1Artifacts
     }
 
@@ -90,7 +90,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.isMatching(_, _, _) >> true
 
         when:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, false, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, false, dependenciesResolverFactory).select(set, factory)
         visit(result)
 
         then:
@@ -122,7 +122,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(transformedVariants, _, _) >> transformedVariants
         matchingCache.findTransformedVariants(_, _) >> transformedVariants
 
-        def selector = transforms.variantSelector(requested, true, false, dependenciesResolver)
+        def selector = transforms.variantSelector(requested, true, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(set, factory)
@@ -161,7 +161,7 @@ Found the following transforms:
         matchingCache.findTransformedVariants(_, _) >> []
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("dll"), true, false, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("dll"), true, false, dependenciesResolverFactory).select(set, factory)
         result == ResolvedArtifactSet.EMPTY
     }
 
@@ -186,7 +186,7 @@ Found the following transforms:
         matchingCache.findTransformedVariants(_, _) >> []
 
         when:
-        def result = transforms.variantSelector(typeAttributes("dll"), false, false, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("dll"), false, false, dependenciesResolverFactory).select(set, factory)
         visit(result)
 
         then:
