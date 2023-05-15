@@ -21,16 +21,16 @@ package org.gradle.api.internal.artifacts.transform;
  * object specified when the transformation is registered and may also take the upstream dependencies of the source artifact
  * as a parameter.
  */
-public class BoundTransformationStep {
+public class BoundTransformStep {
     private final TransformStep transformation;
     private final TransformUpstreamDependencies upstreamDependencies;
 
-    public BoundTransformationStep(TransformStep transformation, TransformUpstreamDependencies upstreamDependencies) {
+    public BoundTransformStep(TransformStep transformation, TransformUpstreamDependencies upstreamDependencies) {
         this.transformation = transformation;
         this.upstreamDependencies = upstreamDependencies;
     }
 
-    public TransformStep getTransformation() {
+    public TransformStep getTransformStep() {
         return transformation;
     }
 
