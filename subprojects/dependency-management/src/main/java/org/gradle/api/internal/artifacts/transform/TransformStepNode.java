@@ -382,7 +382,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             public void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(transformStep);
                 context.add(upstreamDependencies);
-                context.add(new DefaultTransformationDependency(Collections.singletonList(previousTransformStepNode)));
+                context.add(new DefaultTransformNodeDependency(Collections.singletonList(previousTransformStepNode)));
             }
 
             @Override
