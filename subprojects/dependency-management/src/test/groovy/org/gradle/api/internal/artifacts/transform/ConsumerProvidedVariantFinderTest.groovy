@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import org.gradle.api.Action
+
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.TransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
@@ -500,14 +500,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     private TransformRegistration registration(AttributeContainer from, AttributeContainer to) {
-        def transformationStep = Stub(TransformStep)
-        _ * transformationStep.visitTransformationSteps(_) >> { Action action -> action.execute(transformationStep) }
-        _ * transformationStep.stepsCount() >> 1
-
         return Mock(TransformRegistration) {
             getFrom() >> from
             getTo() >> to
-            getTransformStep() >> transformationStep
+            getTransformStep() >> Stub(TransformStep)
         }
     }
 
