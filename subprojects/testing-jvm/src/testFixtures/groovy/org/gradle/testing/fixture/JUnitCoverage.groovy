@@ -33,6 +33,7 @@ class JUnitCoverage {
     final static List<String> JUNIT4_ASSUMPTIONS = [LATEST_JUNIT4_VERSION, '4.5']
     final static List<String> JUNIT4_CATEGORIES = [LATEST_JUNIT4_VERSION, '4.8']
     final static List<String> JUNIT4_SUPPORTS_JUNIT3_SUITES = [LATEST_JUNIT4_VERSION, '4.3']
+    final static List<String> JUNIT4_REVERSE_TEST_ORDER = [LATEST_JUNIT4_VERSION, '4.11']
     final static List<String> FILTER_JUNIT3_TESTS = [LATEST_JUNIT4_VERSION, LATEST_JUNIT3_VERSION, '4.6']
     final static List<String> JUNIT_4 = [LATEST_JUNIT4_VERSION, '4.0']
     final static List<String> JUNIT_VINTAGE = [LATEST_VINTAGE_VERSION, '5.7.2']
