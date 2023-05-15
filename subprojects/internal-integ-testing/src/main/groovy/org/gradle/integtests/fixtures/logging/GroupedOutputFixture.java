@@ -134,9 +134,9 @@ public class GroupedOutputFixture {
             .collect(Collectors.toList());
 
         if (foundTransforms.size() == 0) {
-            throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' could not be found.%nOutput:%n%s", transformer, originalOutput));
+            throw new AssertionError(String.format("The grouped output for transform '%s' could not be found.%nOutput:%n%s", transformer, originalOutput));
         } else if (foundTransforms.size() > 1) {
-            throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' were found. Consider specifying a subject.%nOutput:%n%s", transformer, originalOutput));
+            throw new AssertionError(String.format("Multiple grouped outputs for transform '%s' were found. Consider specifying a subject.%nOutput:%n%s", transformer, originalOutput));
         }
 
         return foundTransforms.get(0);
@@ -151,9 +151,9 @@ public class GroupedOutputFixture {
             .collect(Collectors.toList());
 
         if (foundTransforms.size() == 0) {
-            throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' and subject '%s' could not be found.%nOutput:%n%s", transformer, subject, originalOutput));
+            throw new AssertionError(String.format("The grouped output for transform '%s' and subject '%s' could not be found.%nOutput:%n%s", transformer, subject, originalOutput));
         } else if (foundTransforms.size() > 1) {
-            throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' and subject '%s' were found.%nOutput:%n%s", transformer, subject, originalOutput));
+            throw new AssertionError(String.format("Multiple grouped outputs for transform '%s' and subject '%s' were found.%nOutput:%n%s", transformer, subject, originalOutput));
         }
 
         return foundTransforms.get(0);
