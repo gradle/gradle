@@ -43,7 +43,7 @@ public class TransformExecutionResultSerializer {
         String outputDirPrefix = outputDir.getPath() + File.separator;
         List<String> resultFileContents = new ArrayList<>(result.size());
 
-        result.visitOutputs(new TransformExecutionResult.TransformationOutputVisitor() {
+        result.visitOutputs(new TransformExecutionResult.OutputVisitor() {
             @Override
             public void visitEntireInputArtifact() {
                 resultFileContents.add(INPUT_FILE_PATH_PREFIX);

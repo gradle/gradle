@@ -45,7 +45,7 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
     @Override
     public TransformExecutionResult getRegisteredOutputs() {
         TransformExecutionResult result = resultBuilder.build();
-        result.visitOutputs(new TransformExecutionResult.TransformationOutputVisitor() {
+        result.visitOutputs(new TransformExecutionResult.OutputVisitor() {
             @Override
             public void visitEntireInputArtifact() {
                 validate(inputArtifact);
