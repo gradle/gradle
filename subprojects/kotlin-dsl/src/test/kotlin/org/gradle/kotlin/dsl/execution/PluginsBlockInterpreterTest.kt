@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.kotlin.dsl.execution.ResidualProgram.PluginRequestSpec
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.instanceOf
@@ -126,6 +127,14 @@ class PluginsBlockInterpreterTest {
         assertStaticInterpretationOf(
             """kotlin("jvm") version "1.0" apply false""",
             PluginRequestSpec("org.jetbrains.kotlin.jvm", version = "1.0", apply = false)
+        )
+    }
+
+    @Test
+    fun `single plugin - kotlin-dsl`() {
+        assertStaticInterpretationOf(
+            """`kotlin-dsl`""",
+            PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion)
         )
     }
 

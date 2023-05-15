@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
 import org.jetbrains.kotlin.lexer.KtTokens.FALSE_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
@@ -92,7 +93,7 @@ val pluginsBlockParser = run {
 
     val optionalVersionAndApply = optional(infixVersionApply + dotVersionApply + infixApplyVersion + dotApplyVersion)
 
-    val pluginSpec = zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
+    val pluginIdSpec = zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
         when (versionAndApply) {
             null -> ResidualProgram.PluginRequestSpec(id)
             else -> versionAndApply.let { (v, a) ->
@@ -100,6 +101,12 @@ val pluginsBlockParser = run {
             }
         }
     }
+
+    val kotlinDslSpec = symbol("`kotlin-dsl`").map {
+        ResidualProgram.PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", expectedKotlinDslPluginsVersion)
+    }
+
+    val pluginSpec = pluginIdSpec + kotlinDslSpec
 
     token(LBRACE) * wsOrNewLine() *
         many(pluginSpec * statementSeparator()) *
