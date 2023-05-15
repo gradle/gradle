@@ -52,6 +52,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void canDefineJavaHomeUsingEnvironmentVariable() {
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
@@ -74,6 +75,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     void usesJavaCommandFromPathWhenJavaHomeNotSpecified() {
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
