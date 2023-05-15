@@ -18,8 +18,8 @@ package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.DefaultTransform
+import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.configurationcache.extensions.uncheckedCast
@@ -32,7 +32,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 
 
 class IsolateTransformParametersCodec(
-    val parameterScheme: ArtifactTransformParameterScheme,
+    val parameterScheme: TransformParameterScheme,
     val isolatableFactory: IsolatableFactory,
     val buildOperationExecutor: BuildOperationExecutor,
     val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
