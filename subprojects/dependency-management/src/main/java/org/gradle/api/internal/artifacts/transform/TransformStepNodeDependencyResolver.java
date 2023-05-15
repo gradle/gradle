@@ -24,16 +24,16 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Resolves dependencies to {@link TransformationNode} objects.
+ * Resolves dependencies to {@link TransformStepNode} objects.
  */
 @ServiceScope(Scopes.Build.class)
-public class TransformationNodeDependencyResolver implements DependencyResolver {
+public class TransformStepNodeDependencyResolver implements DependencyResolver {
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
         if (node instanceof DefaultTransformationDependency) {
             DefaultTransformationDependency transformation = (DefaultTransformationDependency) node;
-            for (TransformationNode transformationNode : transformation.getNodes()) {
-                resolveAction.execute(transformationNode);
+            for (TransformStepNode transformStepNode : transformation.getNodes()) {
+                resolveAction.execute(transformStepNode);
             }
             return true;
         }

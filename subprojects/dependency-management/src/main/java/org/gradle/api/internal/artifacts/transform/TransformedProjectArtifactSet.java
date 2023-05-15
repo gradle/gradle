@@ -39,11 +39,11 @@ import java.util.Collection;
 public class TransformedProjectArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
 
     private final ComponentVariantIdentifier targetVariant;
-    private final Collection<TransformationNode> transformedArtifacts;
+    private final Collection<TransformStepNode> transformedArtifacts;
 
     public TransformedProjectArtifactSet(
         ComponentVariantIdentifier targetVariant,
-        Collection<TransformationNode> transformedArtifacts
+        Collection<TransformStepNode> transformedArtifacts
     ) {
         this.targetVariant = targetVariant;
         this.transformedArtifacts = transformedArtifacts;
@@ -53,7 +53,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
         return targetVariant;
     }
 
-    public Collection<TransformationNode> getTransformedArtifacts() {
+    public Collection<TransformStepNode> getTransformedArtifacts() {
         return transformedArtifacts;
     }
 
@@ -75,7 +75,7 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
     @Override
     public void visit(ArtifactVisitor visitor) {
         DisplayName displayName = Describables.of(targetVariant.getComponentId());
-        for (TransformationNode node : transformedArtifacts) {
+        for (TransformStepNode node : transformedArtifacts) {
             node.executeIfNotAlready();
             Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
@@ -99,8 +99,8 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
 
     @Override
     public void visitTransformSources(TransformSourceVisitor visitor) {
-        for (TransformationNode transformationNode : transformedArtifacts) {
-            visitor.visitTransform(transformationNode);
+        for (TransformStepNode transformStepNode : transformedArtifacts) {
+            visitor.visitTransform(transformStepNode);
         }
     }
 

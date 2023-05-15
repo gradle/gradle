@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.artifacts.transform.ExecutePlannedTransformStepBuildOperationDetails;
-import org.gradle.api.internal.artifacts.transform.TransformationNode;
+import org.gradle.api.internal.artifacts.transform.TransformStepNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
@@ -45,7 +45,7 @@ import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildO
  * @since 5.1
  */
 class TransformOperationMapper implements BuildOperationMapper<ExecutePlannedTransformStepBuildOperationDetails, DefaultTransformDescriptor>, OperationDependencyLookup {
-    private final Map<TransformationNode, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
+    private final Map<TransformStepNode, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationDependenciesResolver operationDependenciesResolver;
 
     TransformOperationMapper(OperationDependenciesResolver operationDependenciesResolver) {
@@ -64,7 +64,7 @@ class TransformOperationMapper implements BuildOperationMapper<ExecutePlannedTra
 
     @Override
     public InternalOperationDescriptor lookupExistingOperationDescriptor(Node node) {
-        if (node instanceof TransformationNode) {
+        if (node instanceof TransformStepNode) {
             return descriptors.get(node);
         }
         return null;

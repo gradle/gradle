@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.TransformStep
+import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
-import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -78,7 +78,7 @@ fun unpackTransformationSteps(steps: List<BoundTransformationStep>): List<Transf
 }
 
 
-fun unpackTransformationStep(node: TransformationNode): TransformStepSpec {
+fun unpackTransformationStep(node: TransformStepNode): TransformStepSpec {
     return unpackTransformationStep(node.transformationStep, node.upstreamDependencies)
 }
 

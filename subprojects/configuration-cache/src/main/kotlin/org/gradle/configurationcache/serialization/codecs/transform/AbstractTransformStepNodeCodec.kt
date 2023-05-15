@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
-import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -25,7 +25,7 @@ import org.gradle.configurationcache.serialization.encodePreservingSharedIdentit
 
 
 internal
-abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T> {
+abstract class AbstractTransformStepNodeCodec<T : TransformStepNode> : Codec<T> {
 
     override suspend fun WriteContext.encode(value: T) {
         encodePreservingSharedIdentityOf(value) { doEncode(value) }

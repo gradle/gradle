@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 /**
- * Companion type to {@link TransformationNode} that knows how to compute extra dependent nodes aside from the to be transformed artifact.
+ * Companion type to {@link TransformStepNode} that knows how to compute extra dependent nodes aside from the to be transformed artifact.
  * Instances of this type should not be shared beyond a single transformation chain.
  *
  * @see ExtraExecutionGraphDependenciesResolverFactory
