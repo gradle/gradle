@@ -170,8 +170,11 @@ fun symbol(s: String): Parser<Unit> {
 
 internal
 fun stringLiteral(): Parser<String> =
-    token(OPEN_QUOTE) +
-        token(REGULAR_STRING_PART) { tokenText } +
+    stringLiteral_
+
+
+private
+val stringLiteral_: Parser<String> =
     token(OPEN_QUOTE) *
         token(REGULAR_STRING_PART) { tokenText } *
         token(CLOSING_QUOTE)
@@ -183,7 +186,7 @@ fun token(ktToken: KtToken): Parser<Unit> =
 
 
 internal
-fun <T> token(token: KtToken, f: KotlinLexer.() -> T): Parser<T> {
+inline fun <T> token(token: KtToken, crossinline f: KotlinLexer.() -> T): Parser<T> {
     val failure = failure("Expecting token '$token'")
     return {
         when (tokenType) {
@@ -202,14 +205,22 @@ fun <T> token(token: KtToken, f: KotlinLexer.() -> T): Parser<T> {
 
 
 internal
-fun ws(): Parser<Unit> = {
+fun ws(): Parser<Unit> = ws_
+
+
+private
+val ws_: Parser<Unit> = {
     skipWhitespace(false)
     unitSuccess
 }
 
 
 internal
-fun wsOrNewLine(): Parser<Unit> = {
+fun wsOrNewLine(): Parser<Unit> = wsOrNewLine_
+
+
+private
+val wsOrNewLine_: Parser<Unit> = {
     skipWhitespace(true)
     unitSuccess
 }
@@ -263,13 +274,11 @@ fun KotlinLexer.skipWhitespace(acceptNewLines: Boolean) {
 
 
 internal
-fun statementSeparator(): Parser<Unit> = {
-    statementSeparatorImpl()
-}
+fun statementSeparator(): Parser<Unit> = statementSeparator_
 
 
 private
-fun KotlinLexer.statementSeparatorImpl(): ParserResult<Unit> {
+val statementSeparator_: Parser<Unit> = {
     var seenSeparator = false
     while (tokenType != null) {
         when (tokenType) {
@@ -294,7 +303,7 @@ fun KotlinLexer.statementSeparatorImpl(): ParserResult<Unit> {
             }
         }
     }
-    return if (seenSeparator) unitSuccess
+    if (seenSeparator) unitSuccess
     else statementSeparatorFailure
 }
 

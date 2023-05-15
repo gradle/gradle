@@ -43,7 +43,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
         is ParserResult.Failure -> PluginsBlockInterpretation.Dynamic(r.reason)
         is ParserResult.Success -> PluginsBlockInterpretation.Static(
             r.result.let { (specs, spec) ->
-                buildList {
+                buildList(specs.size + (if (spec != null) 1 else 0)) {
                     addAll(specs)
                     spec?.let { add(it) }
                 }
