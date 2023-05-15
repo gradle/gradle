@@ -50,7 +50,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
         // We use MODE=MySQL so we can use INSERT IGNORE
-        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;MODE=MySQL;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve("filestore"));
+        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;MODE=MySQL;AUTO_COMPACT_FILL_RATE=0;COMPRESS=false;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve("filestore"));
         hikariConfig.setJdbcUrl(h2JdbcUrl);
         hikariConfig.setDriverClassName(Driver.class.getName());
         hikariConfig.setUsername("sa");
@@ -87,6 +87,8 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
                         try (InputStream binaryStream = content.getBinaryStream()) {
                             reader.readFrom(binaryStream);
                         }
+                        // TODO - update last accessed time only once per day?
+                        updateLastAccessed(key, conn);
                         return true;
                     }
                     return false;
@@ -97,14 +99,23 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
         }
     }
 
+    private static void updateLastAccessed(BuildCacheKey key, Connection conn) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement("update filestore.catalog set entry_last_accessed = ? where entry_key = ?")) {
+            stmt.setLong(1, System.currentTimeMillis());
+            stmt.setString(2, key.getHashCode());
+            stmt.executeUpdate();
+        }
+    }
+
     @Override
     public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement("insert ignore into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
+            try (PreparedStatement stmt = conn.prepareStatement("insert ignore into filestore.catalog(entry_key, entry_size, entry_last_accessed, entry_content) values (?, ?, ?, ?)")) {
                 try (InputStream input = writer.openStream()) {
                     stmt.setString(1, key.getHashCode());
                     stmt.setLong(2, writer.getSize());
-                    stmt.setBinaryStream(3, input);
+                    stmt.setLong(3, System.currentTimeMillis());
+                    stmt.setBinaryStream(4, input);
                     stmt.executeUpdate();
                 }
             }
