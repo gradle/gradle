@@ -127,9 +127,9 @@ public class ProfileEventAdapter implements InternalBuildListener, ProjectEvalua
     @Override
     public void beforeTransformExecution(Describable transform, Describable subject) {
         long now = clock.getCurrentTime();
-        String transformationDescription = subject.getDisplayName() + " with " + transform.getDisplayName();
-        FragmentedOperation transformationProfile = buildProfile.getTransformationProfile(transformationDescription);
-        currentTransform.set(transformationProfile.start(now));
+        String transformDescription = subject.getDisplayName() + " with " + transform.getDisplayName();
+        FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription);
+        currentTransform.set(transformProfile.start(now));
     }
 
     @Override
