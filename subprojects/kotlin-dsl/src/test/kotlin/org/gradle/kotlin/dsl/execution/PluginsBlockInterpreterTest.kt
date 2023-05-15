@@ -21,7 +21,6 @@ import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.instanceOf
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -105,11 +104,14 @@ class PluginsBlockInterpreterTest {
     }
 
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() mixed version apply`() {
         assertStaticInterpretationOf(
-            """id("plugin-id").version("1.0").apply(true) version "3.0" apply false""",
+            """
+                id("plugin-id").version("1.0") apply false
+                id("plugin-id").apply(false) version "3.0"
+            """.trimIndent(),
+            PluginRequestSpec("plugin-id", version = "1.0", apply = false),
             PluginRequestSpec("plugin-id", version = "3.0", apply = false)
         )
     }
@@ -134,7 +136,15 @@ class PluginsBlockInterpreterTest {
     fun `single plugin - kotlin-dsl`() {
         assertStaticInterpretationOf(
             """`kotlin-dsl`""",
-            PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion)
+            PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion, apply = true)
+        )
+    }
+
+    @Test
+    fun `single plugin - kotlin-dsl apply`() {
+        assertStaticInterpretationOf(
+            """`kotlin-dsl` apply false""",
+            PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion, apply = false)
         )
     }
 
@@ -178,7 +188,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `multiple plugins - multiline statement`() {
         assertStaticInterpretationOf(
@@ -186,11 +195,11 @@ class PluginsBlockInterpreterTest {
                 id("plugin-id-1")
                     .version("1.0")
                     .apply(false)
-                    .version("2.0") ; kotlin("plugin-id-2")
+                    ; kotlin("plugin-id-2")
                     .version("1.0") apply false
                 id("plugin-id-3")
             """,
-            PluginRequestSpec("plugin-id-1", version = "2.0", apply = false),
+            PluginRequestSpec("plugin-id-1", version = "1.0", apply = false),
             PluginRequestSpec("org.jetbrains.kotlin.plugin-id-2", version = "1.0", apply = false),
             PluginRequestSpec("plugin-id-3"),
         )

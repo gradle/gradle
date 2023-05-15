@@ -65,13 +65,9 @@ val pluginsBlockParser = run {
 
     val pluginId = (symbol("id") * parenString + kotlinPluginId) * ws()
 
-    val dot = token(DOT)
+    val dot = wsOrNewLine() * token(DOT) * wsOrNewLine()
 
     val version = symbol("version")
-
-    val dotVersion = dot * ws() * version * parenString
-
-    val infixVersion = version * ws() * (parenString + stringLiteral())
 
     val apply = symbol("apply")
 
@@ -79,19 +75,25 @@ val pluginsBlockParser = run {
 
     val parenBool = paren(bool)
 
-    val dotApply = dot * ws() * apply * parenBool
+    val dotVersion = dot * version * parenString * ws()
 
-    val infixApply = apply * ws() * (parenBool + bool)
+    val dotApply = dot * apply * parenBool * ws()
 
-    val infixVersionApply = infixVersion * optional(ws() * infixApply)
+    val infixVersion = version * (parenString + stringLiteral()) * ws()
 
-    val dotVersionApply = dotVersion * optional(ws() * dotApply)
+    val infixApply = apply * (parenBool + bool) * ws()
 
-    val infixApplyVersion = flip(infixApply, optional(ws() * infixVersion))
+    val infixVersionApply = infixVersion * optional(infixApply)
 
-    val dotApplyVersion = flip(dotApply, optional(ws() * dotVersion))
+    val infixApplyVersion = flip(infixApply, optional(infixVersion))
 
-    val optionalVersionAndApply = optional(infixVersionApply + dotVersionApply + infixApplyVersion + dotApplyVersion)
+    val optionalApply = optional(dotApply + infixApply)
+
+    val dotVersionApply = dotVersion * optionalApply
+
+    val dotApplyVersion = flip(dotApply, optional(dotVersion + infixVersion))
+
+    val optionalVersionAndApply = optional(infixVersionApply + infixApplyVersion + dotVersionApply + dotApplyVersion)
 
     val pluginIdSpec = zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
         when (versionAndApply) {
@@ -102,8 +104,12 @@ val pluginsBlockParser = run {
         }
     }
 
-    val kotlinDslSpec = symbol("`kotlin-dsl`").map {
-        ResidualProgram.PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", expectedKotlinDslPluginsVersion)
+    val kotlinDslSpec = zip(symbol("`kotlin-dsl`"), optionalApply) { _, a ->
+        ResidualProgram.PluginRequestSpec(
+            "org.gradle.kotlin.kotlin-dsl",
+            expectedKotlinDslPluginsVersion,
+            apply = a ?: true
+        )
     }
 
     val pluginSpec = pluginIdSpec + kotlinDslSpec
