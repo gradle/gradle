@@ -21,8 +21,10 @@ import org.jetbrains.kotlin.lexer.KtToken
 import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
 import org.jetbrains.kotlin.lexer.KtTokens.COMMENTS
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
+import org.jetbrains.kotlin.lexer.KtTokens.LPAR
 import org.jetbrains.kotlin.lexer.KtTokens.OPEN_QUOTE
 import org.jetbrains.kotlin.lexer.KtTokens.REGULAR_STRING_PART
+import org.jetbrains.kotlin.lexer.KtTokens.RPAR
 import org.jetbrains.kotlin.lexer.KtTokens.SEMICOLON
 import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE
 
@@ -211,6 +213,19 @@ fun wsOrNewLine(): Parser<Unit> = {
     skipWhitespace(true)
     unitSuccess
 }
+
+
+internal
+inline fun <T> parens(crossinline parser: Parser<T>): Parser<T> =
+    lpar * ws() * parser * ws() * rpar
+
+
+private
+val lpar = token(LPAR)
+
+
+private
+val rpar = token(RPAR)
 
 
 internal

@@ -39,7 +39,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() version`() {
         assertStaticInterpretationOf(
@@ -48,7 +47,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() version()`() {
         assertStaticInterpretationOf(
@@ -57,7 +55,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `single plugin - id() dot version()`() {
         assertStaticInterpretationOf(
@@ -256,7 +253,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `id version - comment - block inline`() {
         assertStaticInterpretationOf(
@@ -309,7 +305,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `id version - comment - block multiline`() {
         assertStaticInterpretationOf(
@@ -340,6 +335,7 @@ class PluginsBlockInterpreterTest {
             PluginRequestSpec("plugin-id-8", version = "1.0"),
             PluginRequestSpec("plugin-id-9", version = "1.0"),
             PluginRequestSpec("plugin-id-10", version = "1.0"),
+            PluginRequestSpec("plugin-id-11"),
         )
     }
 
@@ -381,7 +377,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `id version - comment - kdoc inline`() {
         assertStaticInterpretationOf(
@@ -398,7 +393,6 @@ class PluginsBlockInterpreterTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `id - comment - kdoc multiline`() {
         assertStaticInterpretationOf(

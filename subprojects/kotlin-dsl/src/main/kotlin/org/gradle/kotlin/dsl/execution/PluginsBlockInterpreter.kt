@@ -16,10 +16,9 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.jetbrains.kotlin.lexer.KtTokens.DOT
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
-import org.jetbrains.kotlin.lexer.KtTokens.LPAR
 import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
-import org.jetbrains.kotlin.lexer.KtTokens.RPAR
 
 
 internal
@@ -55,22 +54,27 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
 
 
 private
-fun pluginId() =
-    symbol("id") *
-        token(LPAR) * ws() *
-        stringLiteral() + ws() *
-        token(RPAR)
+val pluginsBlockParser = run {
 
+    val parenString = parens(stringLiteral())
 
-private
-val pluginSpec = pluginId().map {
-    ResidualProgram.PluginRequestSpec(it)
-}
+    val pluginId = symbol("id") * parenString
 
+    val dot = token(DOT)
 
-private
-val pluginsBlockParser =
+    val versionParser: Parser<String> = run {
+        val version = symbol("version")
+        val versionMethod = dot * ws() * version * parenString
+        val versionOperator = version * (parenString + (ws() * stringLiteral()))
+        versionMethod + versionOperator
+    }
+
+    val pluginSpec = (pluginId * optional(ws() * versionParser)).map { (id, v) ->
+        ResidualProgram.PluginRequestSpec(id, version = v)
+    }
+
     token(LBRACE) * wsOrNewLine() *
         many(pluginSpec * statementSeparator()) *
         optional(pluginSpec * wsOrNewLine()) *
         token(RBRACE)
+}
