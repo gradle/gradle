@@ -17,8 +17,8 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.artifacts.transform.TransformAction
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.DefaultTransform
+import org.gradle.api.internal.artifacts.transform.TransformActionScheme
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.configurationcache.serialization.Codec
@@ -40,7 +40,7 @@ import org.gradle.internal.service.ServiceRegistry
 internal
 class DefaultTransformCodec(
     private val fileLookup: FileLookup,
-    private val actionScheme: ArtifactTransformActionScheme
+    private val actionScheme: TransformActionScheme
 ) : Codec<DefaultTransform> {
 
     override suspend fun WriteContext.encode(value: DefaultTransform) {

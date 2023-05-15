@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 
-public class ArtifactTransformActionScheme implements TypeScheme {
+public class TransformParameterScheme implements TypeScheme {
     private final InstantiationScheme instantiationScheme;
     private final InspectionScheme inspectionScheme;
 
-    public ArtifactTransformActionScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
+    public TransformParameterScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
         this.instantiationScheme = instantiationScheme;
         this.inspectionScheme = inspectionScheme;
     }
@@ -38,16 +38,14 @@ public class ArtifactTransformActionScheme implements TypeScheme {
 
     @Override
     public boolean appliesTo(Class<?> type) {
-        return TransformAction.class.isAssignableFrom(type);
-    }
-
-    public InspectionScheme getInspectionScheme() {
-        return inspectionScheme;
+        return TransformParameters.class.isAssignableFrom(type);
     }
 
     public InstantiationScheme getInstantiationScheme() {
         return instantiationScheme;
     }
+
+    public InspectionScheme getInspectionScheme() {
+        return inspectionScheme;
+    }
 }
-
-

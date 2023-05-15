@@ -22,8 +22,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.TransformActionScheme
+import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
@@ -105,8 +105,8 @@ class Codecs(
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
     managedFactoryRegistry: ManagedFactoryRegistry,
-    parameterScheme: ArtifactTransformParameterScheme,
-    actionScheme: ArtifactTransformActionScheme,
+    parameterScheme: TransformParameterScheme,
+    actionScheme: TransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,

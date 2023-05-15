@@ -80,11 +80,11 @@ class DefaultVariantTransformRegistryTest extends Specification {
         inputFingerprinter,
         calculatedValueContainerFactory,
         domainObjectContext,
-        new ArtifactTransformParameterScheme(
+        new TransformParameterScheme(
             instantiatorFactory.injectScheme(),
             inspectionScheme
         ),
-        new ArtifactTransformActionScheme(
+        new TransformActionScheme(
             instantiatorFactory.injectScheme(
                 ImmutableSet.of(InputArtifact, InputArtifactDependencies)
             ),

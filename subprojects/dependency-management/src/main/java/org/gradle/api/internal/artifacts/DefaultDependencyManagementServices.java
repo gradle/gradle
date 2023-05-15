@@ -75,8 +75,6 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformRegistrationFactory;
@@ -85,8 +83,10 @@ import org.gradle.api.internal.artifacts.transform.DefaultVariantSelectorFactory
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.MutableTransformWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.TransformActionScheme;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
+import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -163,7 +163,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         services.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
         services.add(ProjectFinder.class, projectFinder);
         services.add(DomainObjectContext.class, domainObjectContext);
-        services.addProvider(new ArtifactTransformResolutionGradleUserHomeServices());
+        services.addProvider(new TransformGradleUserHomeServices());
         services.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
         return services.get(DependencyResolutionServices.class);
     }
@@ -173,7 +173,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         registration.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
     }
 
-    private static class ArtifactTransformResolutionGradleUserHomeServices {
+    private static class TransformGradleUserHomeServices {
 
         TransformExecutionListener createTransformExecutionListener() {
             return new TransformExecutionListener() {
@@ -239,8 +239,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                 TransformInvocationFactory transformInvocationFactory,
                 DomainObjectContext domainObjectContext,
-                ArtifactTransformParameterScheme parameterScheme,
-                ArtifactTransformActionScheme actionScheme,
+                TransformParameterScheme parameterScheme,
+                TransformActionScheme actionScheme,
                 InputFingerprinter inputFingerprinter,
                 CalculatedValueContainerFactory calculatedValueContainerFactory,
                 FileCollectionFactory fileCollectionFactory,
@@ -265,7 +265,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             );
         }
 
-        VariantTransformRegistry createVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, ArtifactTransformParameterScheme parameterScheme) {
+        VariantTransformRegistry createVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, TransformParameterScheme parameterScheme) {
             return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme());
         }
 

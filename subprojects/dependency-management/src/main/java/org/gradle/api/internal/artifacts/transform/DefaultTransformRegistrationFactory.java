@@ -78,8 +78,8 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         InputFingerprinter inputFingerprinter,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DomainObjectContext owner,
-        ArtifactTransformParameterScheme parameterScheme,
-        ArtifactTransformActionScheme actionScheme,
+        TransformParameterScheme parameterScheme,
+        TransformActionScheme actionScheme,
         ServiceLookup internalServices,
         DocumentationRegistry documentationRegistry
     ) {
