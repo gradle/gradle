@@ -22,13 +22,13 @@ import java.util.Collection;
 
 @NonNullApi
 public class DefaultTransformationDependency implements TransformationDependency {
-    private final Collection<TransformationNode> nodes;
+    private final Collection<TransformStepNode> nodes;
 
-    public DefaultTransformationDependency(Collection<TransformationNode> nodes) {
+    public DefaultTransformationDependency(Collection<TransformStepNode> nodes) {
         this.nodes = nodes;
     }
 
-    public Collection<TransformationNode> getNodes() {
+    public Collection<TransformStepNode> getNodes() {
         return nodes;
     }
 }

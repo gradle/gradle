@@ -36,15 +36,15 @@ import java.util.concurrent.ConcurrentMap;
 public class DefaultTransformedVariantFactory implements TransformedVariantFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final TransformationNodeFactory transformationNodeFactory;
+    private final TransformStepNodeFactory transformStepNodeFactory;
     private final ConcurrentMap<VariantKey, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
     private final Factory externalFactory = this::doCreateExternal;
     private final Factory projectFactory = this::doCreateProject;
 
-    public DefaultTransformedVariantFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory, TransformationNodeFactory transformationNodeFactory) {
+    public DefaultTransformedVariantFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory, TransformStepNodeFactory transformStepNodeFactory) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        this.transformationNodeFactory = transformationNodeFactory;
+        this.transformStepNodeFactory = transformStepNodeFactory;
     }
 
     @Override
@@ -100,11 +100,11 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
             sourceArtifacts = sourceVariant.getArtifacts();
         }
         ComponentVariantIdentifier targetComponentVariant = new ComponentVariantIdentifier(componentIdentifier, variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities());
-        List<TransformationNode> transformationNodes = createTransformationNodes(sourceArtifacts, sourceAttributes, targetComponentVariant, variantDefinition, dependenciesResolverFactory);
-        return new TransformedProjectArtifactSet(targetComponentVariant, transformationNodes);
+        List<TransformStepNode> transformStepNodes = createTransformationNodes(sourceArtifacts, sourceAttributes, targetComponentVariant, variantDefinition, dependenciesResolverFactory);
+        return new TransformedProjectArtifactSet(targetComponentVariant, transformStepNodes);
     }
 
-    private List<TransformationNode> createTransformationNodes(
+    private List<TransformStepNode> createTransformationNodes(
         ResolvedArtifactSet sourceArtifacts,
         AttributeContainer sourceAttributes,
         ComponentVariantIdentifier targetComponentVariant,
@@ -114,20 +114,20 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(targetComponentVariant.getComponentId(), variantDefinition.getTransformationChain());
         TransformStep transformStep = variantDefinition.getTransformationStep();
 
-        ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
+        ImmutableList.Builder<TransformStepNode> builder = ImmutableList.builder();
         sourceArtifacts.visitTransformSources(new ResolvedArtifactSet.TransformSourceVisitor() {
             @Override
             public void visitArtifact(ResolvableArtifact artifact) {
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformStep);
-                TransformationNode transformationNode = transformationNodeFactory.createInitial(targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-                builder.add(transformationNode);
+                TransformStepNode transformStepNode = transformStepNodeFactory.createInitial(targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                builder.add(transformStepNode);
             }
 
             @Override
-            public void visitTransform(TransformationNode source) {
+            public void visitTransform(TransformStepNode source) {
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformStep);
-                TransformationNode transformationNode = transformationNodeFactory.createChained(targetComponentVariant, sourceAttributes, transformStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-                builder.add(transformationNode);
+                TransformStepNode transformStepNode = transformStepNodeFactory.createChained(targetComponentVariant, sourceAttributes, transformStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                builder.add(transformStepNode);
             }
         });
         return builder.build();

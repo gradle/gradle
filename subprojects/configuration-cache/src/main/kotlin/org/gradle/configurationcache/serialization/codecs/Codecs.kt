@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildId
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
-import org.gradle.api.internal.artifacts.transform.TransformationNode
-import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory
+import org.gradle.api.internal.artifacts.transform.TransformStepNode
+import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -43,11 +43,11 @@ import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
-import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformStepNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ComponentVariantIdentifierCodec
 import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
-import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformStepNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformChainCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformStepCodec
@@ -118,7 +118,7 @@ class Codecs(
     documentationRegistry: DocumentationRegistry,
     javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
-    transformationNodeFactory: TransformationNodeFactory,
+    transformStepNodeFactory: TransformStepNodeFactory,
 ) {
     private
     val userTypesBindings: Bindings
@@ -152,8 +152,8 @@ class Codecs(
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ComponentVariantIdentifierCodec)
-            bind(InitialTransformationNodeCodec(transformationNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
-            bind(ChainedTransformationNodeCodec(transformationNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
+            bind(InitialTransformStepNodeCodec(transformStepNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
+            bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
             bind(TransformStepCodec(inputFingerprinter))
             bind(TransformChainCodec())
             bind(DefaultTransformerCodec(fileLookup, actionScheme))
@@ -259,7 +259,7 @@ class Codecs(
         val userTypesCodec = userTypesCodec()
 
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
-        bind(DelegatingCodec<TransformationNode>(userTypesCodec))
+        bind(DelegatingCodec<TransformStepNode>(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
         bind(OrdinalNodeCodec(ordinalGroupFactory))
 

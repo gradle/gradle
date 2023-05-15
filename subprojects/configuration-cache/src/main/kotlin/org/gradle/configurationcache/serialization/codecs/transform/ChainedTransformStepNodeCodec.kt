@@ -18,8 +18,8 @@ package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
-import org.gradle.api.internal.artifacts.transform.TransformationNode
-import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory
+import org.gradle.api.internal.artifacts.transform.TransformStepNode
+import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
@@ -28,13 +28,13 @@ import org.gradle.internal.operations.BuildOperationExecutor
 
 
 internal
-class ChainedTransformationNodeCodec(
-    private val transformationNodeFactory: TransformationNodeFactory,
+class ChainedTransformStepNodeCodec(
+    private val transformStepNodeFactory: TransformStepNodeFactory,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
-) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
+) : AbstractTransformStepNodeCodec<TransformStepNode.ChainedTransformStepNode>() {
 
-    override suspend fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
+    override suspend fun WriteContext.doEncode(value: TransformStepNode.ChainedTransformStepNode) {
         writeLong(value.transformationNodeId)
         write(value.targetComponentVariant)
         write(value.sourceAttributes)
@@ -42,12 +42,12 @@ class ChainedTransformationNodeCodec(
         write(value.previousTransformationNode)
     }
 
-    override suspend fun ReadContext.doDecode(): TransformationNode.ChainedTransformationNode {
+    override suspend fun ReadContext.doDecode(): TransformStepNode.ChainedTransformStepNode {
         val transformationNodeId = readLong()
         val targetComponentVariant = readNonNull<ComponentVariantIdentifier>()
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformationStep = readNonNull<TransformStepSpec>()
-        val previousStep = readNonNull<TransformationNode>()
-        return transformationNodeFactory.recreateChained(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, previousStep, transformationStep.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
+        val previousStep = readNonNull<TransformStepNode>()
+        return transformStepNodeFactory.recreateChained(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, previousStep, transformationStep.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }
