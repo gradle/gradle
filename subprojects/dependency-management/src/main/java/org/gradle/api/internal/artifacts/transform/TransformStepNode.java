@@ -238,7 +238,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         return transformStep;
     }
 
-    public Try<TransformationSubject> getTransformedSubject() {
+    public Try<TransformStepSubject> getTransformedSubject() {
         return getTransformedArtifacts().getValue();
     }
 
@@ -253,7 +253,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         getTransformedArtifacts().finalizeIfNotAlready();
     }
 
-    protected abstract CalculatedValueContainer<TransformationSubject, ?> getTransformedArtifacts();
+    protected abstract CalculatedValueContainer<TransformStepSubject, ?> getTransformedArtifacts();
 
     @Override
     public Throwable getNodeFailure() {
@@ -272,7 +272,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     }
 
     public static class InitialTransformStepNode extends TransformStepNode {
-        private final CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> result;
+        private final CalculatedValueContainer<TransformStepSubject, TransformInitialArtifact> result;
 
         public InitialTransformStepNode(
             long id,
@@ -289,11 +289,11 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         }
 
         @Override
-        protected CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> getTransformedArtifacts() {
+        protected CalculatedValueContainer<TransformStepSubject, TransformInitialArtifact> getTransformedArtifacts() {
             return result;
         }
 
-        private class TransformInitialArtifact implements ValueCalculator<TransformationSubject> {
+        private class TransformInitialArtifact implements ValueCalculator<TransformStepSubject> {
             private final BuildOperationExecutor buildOperationExecutor;
 
             public TransformInitialArtifact(BuildOperationExecutor buildOperationExecutor) {
@@ -308,13 +308,13 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             }
 
             @Override
-            public TransformationSubject calculateValue(NodeExecutionContext context) {
+            public TransformStepSubject calculateValue(NodeExecutionContext context) {
                 return buildOperationExecutor.call(new TransformStepBuildOperation() {
                     @Override
-                    protected TransformationSubject transform() {
-                        TransformationSubject initialArtifactTransformationSubject;
+                    protected TransformStepSubject transform() {
+                        TransformStepSubject initialSubject;
                         try {
-                            initialArtifactTransformationSubject = TransformationSubject.initial(artifact);
+                            initialSubject = TransformStepSubject.initial(artifact);
                         } catch (ResolveException e) {
                             throw e;
                         } catch (RuntimeException e) {
@@ -322,7 +322,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                         }
 
                         return transformStep
-                            .createInvocation(initialArtifactTransformationSubject, upstreamDependencies, context)
+                            .createInvocation(initialSubject, upstreamDependencies, context)
                             .completeAndGet()
                             .get();
                     }
@@ -338,7 +338,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
     public static class ChainedTransformStepNode extends TransformStepNode {
         private final TransformStepNode previousTransformStepNode;
-        private final CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> result;
+        private final CalculatedValueContainer<TransformStepSubject, TransformPreviousArtifacts> result;
 
         public ChainedTransformStepNode(
             long id,
@@ -360,7 +360,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         }
 
         @Override
-        protected CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> getTransformedArtifacts() {
+        protected CalculatedValueContainer<TransformStepSubject, TransformPreviousArtifacts> getTransformedArtifacts() {
             return result;
         }
 
@@ -371,7 +371,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             super.executeIfNotAlready();
         }
 
-        private class TransformPreviousArtifacts implements ValueCalculator<TransformationSubject> {
+        private class TransformPreviousArtifacts implements ValueCalculator<TransformStepSubject> {
             private final BuildOperationExecutor buildOperationExecutor;
 
             public TransformPreviousArtifacts(BuildOperationExecutor buildOperationExecutor) {
@@ -386,10 +386,10 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             }
 
             @Override
-            public TransformationSubject calculateValue(NodeExecutionContext context) {
+            public TransformStepSubject calculateValue(NodeExecutionContext context) {
                 return buildOperationExecutor.call(new TransformStepBuildOperation() {
                     @Override
-                    protected TransformationSubject transform() {
+                    protected TransformStepSubject transform() {
                         return previousTransformStepNode.getTransformedSubject()
                             .flatMap(transformedSubject -> transformStep
                                 .createInvocation(transformedSubject, upstreamDependencies, context)
@@ -408,7 +408,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         }
     }
 
-    private abstract class TransformStepBuildOperation implements CallableBuildOperation<TransformationSubject> {
+    private abstract class TransformStepBuildOperation implements CallableBuildOperation<TransformStepSubject> {
 
         @UsedByScanPlugin("The string is used for filtering out artifact transform logs in Gradle Enterprise")
         private static final String TRANSFORMING_PROGRESS_PREFIX = "Transforming ";
@@ -427,12 +427,12 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         protected abstract String describeSubject();
 
         @Override
-        public TransformationSubject call(BuildOperationContext context) {
+        public TransformStepSubject call(BuildOperationContext context) {
             context.setResult(RESULT);
             return transform();
         }
 
-        protected abstract TransformationSubject transform();
+        protected abstract TransformStepSubject transform();
     }
 
     private static final ExecutePlannedTransformStepBuildOperationType.Result RESULT = new ExecutePlannedTransformStepBuildOperationType.Result() {

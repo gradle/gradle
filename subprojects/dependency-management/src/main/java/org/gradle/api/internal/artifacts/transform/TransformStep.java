@@ -63,7 +63,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         return owningProject;
     }
 
-    public Deferrable<Try<TransformationSubject>> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
+    public Deferrable<Try<TransformStepSubject>> createInvocation(TransformStepSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transform.getDisplayName());
         }
@@ -89,7 +89,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
             .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)));
     }
 
-    private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
+    private Try<TransformStepSubject> doTransform(TransformStepSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File inputArtifact : inputArtifacts) {
             Try<ImmutableList<File>> result = transformInvocationFactory

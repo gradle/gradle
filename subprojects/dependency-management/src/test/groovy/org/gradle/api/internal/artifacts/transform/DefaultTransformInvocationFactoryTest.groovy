@@ -495,11 +495,11 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         return type == TransformationType.MUTABLE ? mutableTransformsStoreDirectory : immutableTransformsStoreDirectory
     }
 
-    private TransformationSubject immutableDependency(File file) {
-        return TransformationSubject.initial(artifact(Stub(ComponentArtifactIdentifier), file))
+    private TransformStepSubject immutableDependency(File file) {
+        return TransformStepSubject.initial(artifact(Stub(ComponentArtifactIdentifier), file))
     }
 
-    private TransformationSubject mutableDependency(File file) {
+    private TransformStepSubject mutableDependency(File file) {
         def artifactIdentifier = new ComponentFileArtifactIdentifier(
             new DefaultProjectComponentIdentifier(
                 DefaultBuildIdentifier.ROOT,
@@ -507,7 +507,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
                 Path.path(":child"),
                 "child"
             ), file.getName())
-        return TransformationSubject.initial(artifact(artifactIdentifier, file))
+        return TransformStepSubject.initial(artifact(artifactIdentifier, file))
     }
 
     private ResolvableArtifact artifact(ComponentArtifactIdentifier id, File file) {
@@ -520,7 +520,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         Transform transformer,
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
-        TransformationSubject subject,
+        TransformStepSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
         return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).completeAndGet()
