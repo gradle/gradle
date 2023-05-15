@@ -696,7 +696,7 @@ public class DefaultTransform implements Transform {
                     @Override
                     public BuildOperationDescriptor.Builder description() {
                         return BuildOperationDescriptor
-                            .displayName("Fingerprint transformation inputs")
+                            .displayName("Fingerprint transform inputs")
                             .details(FingerprintTransformInputsOperation.Details.INSTANCE);
                     }
                 });
