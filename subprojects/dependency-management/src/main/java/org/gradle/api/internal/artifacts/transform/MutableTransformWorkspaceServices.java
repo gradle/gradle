@@ -31,14 +31,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 
 @NotThreadSafe
-public class MutableTransformationWorkspaceServices implements TransformationWorkspaceServices, ReservedFileSystemLocation {
+public class MutableTransformWorkspaceServices implements TransformWorkspaceServices, ReservedFileSystemLocation {
 
     private final Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
     private final Provider<Directory> baseDirectory;
     private final WorkspaceProvider workspaceProvider;
     private final ExecutionHistoryStore executionHistoryStore;
 
-    public MutableTransformationWorkspaceServices(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
+    public MutableTransformWorkspaceServices(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
         this.baseDirectory = baseDirectory;
         this.workspaceProvider = new MutableTransformationWorkspaceProvider();
         this.executionHistoryStore = executionHistoryStore;

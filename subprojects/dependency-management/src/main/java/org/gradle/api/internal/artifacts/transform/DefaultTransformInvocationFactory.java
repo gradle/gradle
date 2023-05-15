@@ -75,7 +75,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;
     private final ArtifactTransformListener artifactTransformListener;
-    private final TransformationWorkspaceServices immutableWorkspaceProvider;
+    private final TransformWorkspaceServices immutableWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -84,7 +84,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         ExecutionEngine executionEngine,
         FileSystemAccess fileSystemAccess,
         ArtifactTransformListener artifactTransformListener,
-        TransformationWorkspaceServices immutableWorkspaceProvider,
+        TransformWorkspaceServices immutableWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
         BuildOperationExecutor buildOperationExecutor
@@ -107,7 +107,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
-        TransformationWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
+        TransformWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
 
         UnitOfWork execution;
         if (producerProject == null) {
@@ -146,11 +146,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
     }
 
-    private TransformationWorkspaceServices determineWorkspaceServices(@Nullable ProjectInternal producerProject) {
+    private TransformWorkspaceServices determineWorkspaceServices(@Nullable ProjectInternal producerProject) {
         if (producerProject == null) {
             return immutableWorkspaceProvider;
         }
-        return producerProject.getServices().get(TransformationWorkspaceServices.class);
+        return producerProject.getServices().get(TransformWorkspaceServices.class);
     }
 
     @Nullable
@@ -177,7 +177,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             FileSystemAccess fileSystemAccess,
-            TransformationWorkspaceServices workspaceServices
+            TransformWorkspaceServices workspaceServices
         ) {
             super(
                 transform, inputArtifact, dependencies, subject,
@@ -217,7 +217,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
-            TransformationWorkspaceServices workspaceServices
+            TransformWorkspaceServices workspaceServices
         ) {
             super(
                 transform, inputArtifact, dependencies, subject,
@@ -247,7 +247,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         private final Provider<FileSystemLocation> inputArtifactProvider;
         protected final InputFingerprinter inputFingerprinter;
-        private final TransformationWorkspaceServices workspaceServices;
+        private final TransformWorkspaceServices workspaceServices;
 
         public AbstractTransformExecution(
             Transform transform,
@@ -259,7 +259,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
-            TransformationWorkspaceServices workspaceServices
+            TransformWorkspaceServices workspaceServices
         ) {
             this.transform = transform;
             this.inputArtifact = inputArtifact;
