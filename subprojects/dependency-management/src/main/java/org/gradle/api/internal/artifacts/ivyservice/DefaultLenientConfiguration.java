@@ -110,7 +110,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.selectLenient(Specs.satisfyAll(), variantSelectorFactory.create(implicitAttributes, false, selectFromAllVariants, resolveContext.getDependenciesResolver()));
+            artifactsForThisConfiguration = artifactResults.selectLenient(Specs.satisfyAll(), variantSelectorFactory.create(implicitAttributes, false, selectFromAllVariants, resolveContext.getDependenciesResolverFactory()));
         }
         return artifactsForThisConfiguration;
     }
@@ -125,7 +125,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        VariantSelector selector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariants, selectFromAllVariants, resolveContext.getDependenciesResolver());
+        VariantSelector selector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariants, selectFromAllVariants, resolveContext.getDependenciesResolverFactory());
         SelectedArtifactResults artifactResults = this.artifactResults.selectLenient(componentSpec, selector);
 
         return new SelectedArtifactSet() {
