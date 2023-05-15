@@ -27,7 +27,7 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.capabilities.CapabilitiesMetadata
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
+import org.gradle.api.internal.artifacts.TransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -380,7 +380,7 @@ object EmptyVariantTransformRegistry : VariantTransformRegistry {
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun getTransforms(): MutableList<ArtifactTransformRegistration> {
+    override fun getRegistrations(): MutableList<TransformRegistration> {
         throw UnsupportedOperationException("Should not be called")
     }
 }

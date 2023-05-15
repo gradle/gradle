@@ -81,13 +81,13 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterSch
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.MutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
-import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
+import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
@@ -233,7 +233,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             );
         }
 
-        TransformationRegistrationFactory createTransformationRegistrationFactory(
+        TransformRegistrationFactory createTransformRegistrationFactory(
                 BuildOperationExecutor buildOperationExecutor,
                 IsolatableFactory isolatableFactory,
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -248,7 +248,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ServiceRegistry internalServices,
                 DocumentationRegistry documentationRegistry
         ) {
-            return new DefaultTransformationRegistrationFactory(
+            return new DefaultTransformRegistrationFactory(
                 buildOperationExecutor,
                 isolatableFactory,
                 classLoaderHierarchyHasher,
@@ -265,8 +265,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             );
         }
 
-        VariantTransformRegistry createArtifactTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformationRegistrationFactory transformationRegistrationFactory, ArtifactTransformParameterScheme parameterScheme) {
-            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformationRegistrationFactory, parameterScheme.getInstantiationScheme());
+        VariantTransformRegistry createVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, ArtifactTransformParameterScheme parameterScheme) {
+            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme());
         }
 
         DefaultUrlArtifactRepository.Factory createDefaultUrlArtifactRepositoryFactory(FileResolver fileResolver) {
@@ -414,7 +414,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                   ComponentModuleMetadataHandler componentModuleMetadataHandler,
                                                   ArtifactResolutionQueryFactory resolutionQueryFactory,
                                                   AttributesSchema attributesSchema,
-                                                  VariantTransformRegistry artifactTransformRegistrations,
+                                                  VariantTransformRegistry variantTransformRegistry,
                                                   ArtifactTypeRegistry artifactTypeRegistry,
                                                   ObjectFactory objects,
                                                   PlatformSupport platformSupport) {
@@ -427,7 +427,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 componentModuleMetadataHandler,
                 resolutionQueryFactory,
                 attributesSchema,
-                artifactTransformRegistrations,
+                variantTransformRegistry,
                 artifactTypeRegistry,
                 objects,
                 platformSupport);

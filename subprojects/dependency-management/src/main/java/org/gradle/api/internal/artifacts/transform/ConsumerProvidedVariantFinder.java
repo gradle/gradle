@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
+import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -77,8 +77,8 @@ public class ConsumerProvidedVariantFinder {
      */
     private static class ChainNode {
         final ChainNode next;
-        final ArtifactTransformRegistration transform;
-        public ChainNode(@Nullable ChainNode next, ArtifactTransformRegistration transform) {
+        final TransformRegistration transform;
+        public ChainNode(@Nullable ChainNode next, TransformRegistration transform) {
             this.next = next;
             this.transform = transform;
         }
@@ -91,7 +91,7 @@ public class ConsumerProvidedVariantFinder {
     private static class ChainState {
         final ChainNode chain;
         final ImmutableAttributes requested;
-        final ImmutableFilteredList<ArtifactTransformRegistration> transforms;
+        final ImmutableFilteredList<TransformRegistration> transforms;
 
         /**
          * @param chain The candidate transformation chain.
@@ -99,7 +99,7 @@ public class ConsumerProvidedVariantFinder {
          *      original user-requested attribute set after {@code chain} is applied to that previous variant.
          * @param transforms The remaining transforms which may be prepended to {@code chain} to produce a solution.
          */
-        public ChainState(@Nullable ChainNode chain, ImmutableAttributes requested, ImmutableFilteredList<ArtifactTransformRegistration> transforms) {
+        public ChainState(@Nullable ChainNode chain, ImmutableAttributes requested, ImmutableFilteredList<TransformRegistration> transforms) {
             this.chain = chain;
             this.requested = requested;
             this.transforms = transforms;
@@ -130,23 +130,23 @@ public class ConsumerProvidedVariantFinder {
     private List<CachedVariant> doFindTransformedVariants(List<ImmutableAttributes> sources, ImmutableAttributes requested) {
         List<ChainState> toProcess = new ArrayList<>();
         List<ChainState> nextDepth = new ArrayList<>();
-        toProcess.add(new ChainState(null, requested, ImmutableFilteredList.allOf(variantTransforms.getTransforms())));
+        toProcess.add(new ChainState(null, requested, ImmutableFilteredList.allOf(variantTransforms.getRegistrations())));
 
         List<CachedVariant> results = new ArrayList<>(1);
         while (results.isEmpty() && !toProcess.isEmpty()) {
             for (ChainState state : toProcess) {
                 // The set of transforms which could potentially produce a variant compatible with `requested`.
-                ImmutableFilteredList<ArtifactTransformRegistration> candidates =
+                ImmutableFilteredList<TransformRegistration> candidates =
                     state.transforms.matching(transform -> matcher.isMatching(transform.getTo(), state.requested));
 
                 // For each candidate, attempt to find a source variant that the transformation can use as its root.
-                for (ArtifactTransformRegistration candidate : candidates) {
+                for (TransformRegistration candidate : candidates) {
                     for (int i = 0; i < sources.size(); i++) {
                         ImmutableAttributes sourceAttrs = sources.get(i);
                         if (matcher.isMatching(sourceAttrs, candidate.getFrom())) {
                             ImmutableAttributes rootAttrs = attributesFactory.concat(sourceAttrs, candidate.getTo());
                             if (matcher.isMatching(rootAttrs, state.requested)) {
-                                DefaultVariantDefinition rootTransformedVariant = new DefaultVariantDefinition(null, rootAttrs, candidate.getTransformationStep());
+                                DefaultVariantDefinition rootTransformedVariant = new DefaultVariantDefinition(null, rootAttrs, candidate.getTransformStep());
                                 VariantDefinition variantChain = createVariantChain(state.chain, rootTransformedVariant);
                                 results.add(new CachedVariant(i, variantChain));
                             }
@@ -161,7 +161,7 @@ public class ConsumerProvidedVariantFinder {
 
                 // Construct new states for processing at the next depth in case we can't find any solutions at this depth.
                 for (int i = 0; i < candidates.size(); i++) {
-                    ArtifactTransformRegistration candidate = candidates.get(i);
+                    TransformRegistration candidate = candidates.get(i);
                     nextDepth.add(new ChainState(
                         new ChainNode(state.chain, candidate),
                         attributesFactory.concat(state.requested, candidate.getFrom()),
@@ -195,7 +195,7 @@ public class ConsumerProvidedVariantFinder {
             last = new DefaultVariantDefinition(
                 last,
                 attributesFactory.concat(last.getTargetAttributes(), node.transform.getTo()),
-                node.transform.getTransformationStep()
+                node.transform.getTransformStep()
             );
             node = node.next;
         }
