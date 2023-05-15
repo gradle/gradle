@@ -57,7 +57,7 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
      * called on a configuration that does not permit this usage.
      */
-    TransformUpstreamDependenciesResolverFactory getDependenciesResolver();
+    TransformUpstreamDependenciesResolverFactory getDependenciesResolverFactory();
 
     /**
      * Returns the synthetic dependencies for this context. These dependencies are generated

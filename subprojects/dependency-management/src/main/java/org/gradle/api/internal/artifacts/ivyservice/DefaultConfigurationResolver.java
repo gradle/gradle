@@ -152,7 +152,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
         resolver.resolve(resolveContext, ImmutableList.of(), metadataHandler, IS_LOCAL_EDGE, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, projectDependencyResolver, false);
 
-        VisitedArtifactSet artifacts = new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), variantSelectorFactory, resolveContext.getDependenciesResolver());
+        VisitedArtifactSet artifacts = new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), variantSelectorFactory, resolveContext.getDependenciesResolverFactory());
         return DefaultResolverResults.buildDependenciesResolved(resolutionResultBuilder.getResolutionResult(), localComponentsVisitor, artifacts);
     }
 
@@ -213,7 +213,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<UnresolvedDependency> failures = failureCollector.complete(extraFailures);
 
         ArtifactResolveState artifactResolveState = new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, failures, oldTransientModelBuilder);
-        VisitedArtifactSet visitedArtifactSet = new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, variantSelectorFactory, resolveContext.getDependenciesResolver());
+        VisitedArtifactSet visitedArtifactSet = new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, variantSelectorFactory, resolveContext.getDependenciesResolverFactory());
         ResolverResults results = DefaultResolverResults.graphResolved(newModelBuilder.complete(extraFailures), localComponentsVisitor, visitedArtifactSet, artifactResolveState);
 
         // TODO: Attach these failures to the resolution result instead of the ResolverResults.
