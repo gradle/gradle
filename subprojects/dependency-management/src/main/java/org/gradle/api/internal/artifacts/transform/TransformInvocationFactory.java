@@ -32,7 +32,7 @@ public interface TransformInvocationFactory {
     Deferrable<Try<ImmutableList<File>>> createInvocation(
         Transform transform,
         File inputArtifact,
-        ArtifactTransformDependencies dependencies,
+        TransformDependencies dependencies,
         TransformStepSubject subject,
         InputFingerprinter inputFingerprinter);
 }

@@ -20,15 +20,10 @@ import org.gradle.api.file.FileCollection;
 
 import java.util.Optional;
 
-public class DefaultArtifactTransformDependencies implements ArtifactTransformDependencies {
-    private final FileCollection files;
-
-    public DefaultArtifactTransformDependencies(FileCollection files) {
-        this.files = files;
-    }
-
-    @Override
-    public Optional<FileCollection> getFiles() {
-        return Optional.of(files);
-    }
+public interface TransformDependencies {
+    /**
+     * Returns the dependency artifacts of the artifact being transformed.
+     * The order of the files match that of the dependencies in the source artifact view.
+     */
+    Optional<FileCollection> getFiles();
 }

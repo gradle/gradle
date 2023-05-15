@@ -55,7 +55,7 @@ import java.util.Set;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 public class DefaultTransformUpstreamDependenciesResolver implements TransformUpstreamDependenciesResolver {
-    public static final ArtifactTransformDependencies NO_RESULT = new ArtifactTransformDependencies() {
+    public static final TransformDependencies NO_RESULT = new TransformDependencies() {
         @Override
         public Optional<FileCollection> getFiles() {
             return Optional.empty();
@@ -79,7 +79,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
 
         @Override
-        public Try<ArtifactTransformDependencies> computeArtifacts() {
+        public Try<TransformDependencies> computeArtifacts() {
             return Try.successful(NO_RESULT);
         }
 
@@ -187,15 +187,15 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
      * This is a separate node so that this work can access project state to do the resolution and to discover additional dependencies for the transform
      * during resolution of upstream dependencies. It also allows the work of resolution to be attributed separately to the work of the transform.
      */
-    public static abstract class FinalizeTransformDependencies implements ValueCalculator<ArtifactTransformDependencies> {
+    public static abstract class FinalizeTransformDependencies implements ValueCalculator<TransformDependencies> {
         public abstract FileCollection selectedArtifacts();
 
         @Override
-        public ArtifactTransformDependencies calculateValue(NodeExecutionContext context) {
+        public TransformDependencies calculateValue(NodeExecutionContext context) {
             FileCollection files = selectedArtifacts();
             // Trigger resolution, including any failures
             files.getFiles();
-            return new DefaultArtifactTransformDependencies(files);
+            return new DefaultTransformDependencies(files);
         }
     }
 
@@ -296,7 +296,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
     private class TransformUpstreamDependenciesImpl implements TransformUpstreamDependencies {
         private final ConfigurationIdentity configurationIdentity;
-        private final CalculatedValueContainer<ArtifactTransformDependencies, FinalizeTransformDependencies> transformDependencies;
+        private final CalculatedValueContainer<TransformDependencies, FinalizeTransformDependencies> transformDependencies;
         private final ImmutableAttributes fromAttributes;
 
         public TransformUpstreamDependenciesImpl(ConfigurationIdentity configurationIdentity, TransformStep transformStep, CalculatedValueContainerFactory calculatedValueContainerFactory) {
@@ -317,7 +317,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
 
         @Override
-        public Try<ArtifactTransformDependencies> computeArtifacts() {
+        public Try<TransformDependencies> computeArtifacts() {
             return transformDependencies.getValue();
         }
 
