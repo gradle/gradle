@@ -44,7 +44,7 @@ public class ConsumerProvidedVariantFinder {
     private final VariantTransformRegistry variantTransforms;
     private final ImmutableAttributesFactory attributesFactory;
     private final CachingAttributeMatcher matcher;
-    private final TransformationCache transformationCache;
+    private final TransformCache transformCache;
 
     public ConsumerProvidedVariantFinder(
         VariantTransformRegistry variantTransforms,
@@ -54,7 +54,7 @@ public class ConsumerProvidedVariantFinder {
         this.variantTransforms = variantTransforms;
         this.attributesFactory = attributesFactory;
         this.matcher = new CachingAttributeMatcher(schema.matcher());
-        this.transformationCache = new TransformationCache(this::doFindTransformedVariants);
+        this.transformCache = new TransformCache(this::doFindTransformedVariants);
     }
 
     /**
@@ -69,7 +69,7 @@ public class ConsumerProvidedVariantFinder {
      *      variant compatible with the requested attributes.
      */
     public List<TransformedVariant> findTransformedVariants(List<ResolvedVariant> sources, ImmutableAttributes requested) {
-        return transformationCache.query(sources, requested);
+        return transformCache.query(sources, requested);
     }
 
     /**
@@ -208,11 +208,11 @@ public class ConsumerProvidedVariantFinder {
      * This way, if multiple calls are made with different variants but those variants have the same
      * attributes, the cached results may be used.
      */
-    private static class TransformationCache {
+    private static class TransformCache {
         private final ConcurrentHashMap<CacheKey, List<CachedVariant>> cache = new ConcurrentHashMap<>();
         private final BiFunction<List<ImmutableAttributes>, ImmutableAttributes, List<CachedVariant>> action;
 
-        public TransformationCache(BiFunction<List<ImmutableAttributes>, ImmutableAttributes, List<CachedVariant>> action) {
+        public TransformCache(BiFunction<List<ImmutableAttributes>, ImmutableAttributes, List<CachedVariant>> action) {
             this.action = action;
         }
 
