@@ -19,7 +19,7 @@ package org.gradle.configurationcache.serialization.codecs.transform
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
-import org.gradle.api.internal.artifacts.transform.DefaultTransformer
+import org.gradle.api.internal.artifacts.transform.DefaultTransform
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.configurationcache.extensions.uncheckedCast
@@ -31,26 +31,26 @@ import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 
 
-class IsolateTransformerParametersNodeCodec(
+class IsolateTransformParametersCodec(
     val parameterScheme: ArtifactTransformParameterScheme,
     val isolatableFactory: IsolatableFactory,
     val buildOperationExecutor: BuildOperationExecutor,
     val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     val fileCollectionFactory: FileCollectionFactory,
     val documentationRegistry: DocumentationRegistry
-) : Codec<DefaultTransformer.IsolateTransformerParameters> {
-    override suspend fun WriteContext.encode(value: DefaultTransformer.IsolateTransformerParameters) {
+) : Codec<DefaultTransform.IsolateTransformParameters> {
+    override suspend fun WriteContext.encode(value: DefaultTransform.IsolateTransformParameters) {
         write(value.parameterObject)
         writeClass(value.implementationClass)
         writeBoolean(value.isCacheable)
     }
 
-    override suspend fun ReadContext.decode(): DefaultTransformer.IsolateTransformerParameters? {
+    override suspend fun ReadContext.decode(): DefaultTransform.IsolateTransformParameters? {
         val parameterObject: TransformParameters? = read()?.uncheckedCast()
         val implementationClass = readClass()
         val cacheable = readBoolean()
 
-        return DefaultTransformer.IsolateTransformerParameters(
+        return DefaultTransform.IsolateTransformParameters(
             parameterObject,
             implementationClass,
             cacheable,

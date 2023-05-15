@@ -74,7 +74,7 @@ import org.gradle.work.InputChanges
 
 import java.util.function.BiFunction
 
-class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec {
+class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     private DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     def immutableTransformsStoreDirectory = temporaryFolder.file("output")
@@ -153,7 +153,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         documentationRegistry
     )
 
-    def invoker = new DefaultTransformerInvocationFactory(
+    def invoker = new DefaultTransformInvocationFactory(
         executionEngine,
         fileSystemAccess,
         artifactTransformListener,
@@ -163,15 +163,15 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         buildOperationExecutor
     )
 
-    private static class TestTransformer implements Transformer {
+    private static class TestTransform implements Transform {
         private final HashCode secondaryInputsHash
         private final BiFunction<File, File, List<File>> transformationAction
 
-        static TestTransformer create(HashCode secondaryInputsHash = TestHashCodes.hashCodeFrom(1234), BiFunction<File, File, List<File>> transformationAction) {
-            return new TestTransformer(secondaryInputsHash, transformationAction)
+        static TestTransform create(HashCode secondaryInputsHash = TestHashCodes.hashCodeFrom(1234), BiFunction<File, File, List<File>> transformationAction) {
+            return new TestTransform(secondaryInputsHash, transformationAction)
         }
 
-        TestTransformer(HashCode secondaryInputsHash, BiFunction<File, File, List<File>> transformationAction) {
+        TestTransform(HashCode secondaryInputsHash, BiFunction<File, File, List<File>> transformationAction) {
             this.transformationAction = transformationAction
             this.secondaryInputsHash = secondaryInputsHash
         }
@@ -272,7 +272,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def "executes transformations in workspace (#transformationType)"(TransformationType transformationType) {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
-        def transformer = TestTransformer.create { input, outputDir ->
+        def transformer = TestTransform.create { input, outputDir ->
             def outputFile = new File(outputDir, input.name)
             outputFile.text = input.text + "transformed"
             return [outputFile]
@@ -293,9 +293,9 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def "up-to-date on second run"() {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
-        int transformerInvocations = 0
-        def transformer = TestTransformer.create { input, outputDir ->
-            transformerInvocations++
+        int transformInvocations = 0
+        def transformer = TestTransform.create { input, outputDir ->
+            transformInvocations++
             def outputFile = new File(outputDir, input.name)
             outputFile.text = input.text + "transformed"
             return [outputFile]
@@ -305,14 +305,14 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
 
         then:
-        transformerInvocations == 1
+        transformInvocations == 1
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
 
         when:
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
-        transformerInvocations == 1
+        transformInvocations == 1
         0 * _
     }
 
@@ -320,13 +320,13 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
         def failure = new RuntimeException("broken")
-        int transformerInvocations = 0
-        def transformer = TestTransformer.create { input, outputDir ->
-            transformerInvocations++
+        int transformInvocations = 0
+        def transformer = TestTransform.create { input, outputDir ->
+            transformInvocations++
             def outputFile = new File(outputDir, input.name)
             assert !outputFile.exists()
             outputFile.text = input.text + "transformed"
-            if (transformerInvocations == 1) {
+            if (transformInvocations == 1) {
                 throw failure
             }
             return [outputFile]
@@ -336,7 +336,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         def result = invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
 
         then:
-        transformerInvocations == 1
+        transformInvocations == 1
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
         def wrappedFailure = result.failure.get()
@@ -345,7 +345,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         when:
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
-        transformerInvocations == 2
+        transformInvocations == 2
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
     }
@@ -354,9 +354,9 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
         File outputFile = null
-        int transformerInvocations = 0
-        def transformer = TestTransformer.create { input, outputDir ->
-            transformerInvocations++
+        int transformInvocations = 0
+        def transformer = TestTransform.create { input, outputDir ->
+            transformInvocations++
             outputFile = new File(outputDir, input.name)
             assert !outputFile.exists()
             outputFile.text = input.text + " transformed"
@@ -366,7 +366,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         when:
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
-        transformerInvocations == 1
+        transformInvocations == 1
         outputFile?.isFile()
 
         when:
@@ -374,7 +374,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
-        transformerInvocations == 2
+        transformInvocations == 2
     }
 
     def "different workspace for different secondary inputs (#transformationType)"(TransformationType transformationType) {
@@ -387,8 +387,8 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer1 = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
-        def transformer2 = TestTransformer.create(TestHashCodes.hashCodeFrom(4321), transformationAction)
+        def transformer1 = TestTransform.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
+        def transformer2 = TestTransform.create(TestHashCodes.hashCodeFrom(4321), transformationAction)
 
         def subject = dependency(transformationType, inputArtifact)
         when:
@@ -414,7 +414,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
+        def transformer = TestTransform.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         when:
         invoke(transformer, inputArtifact1, dependencies, dependency(transformationType, inputArtifact1), inputFingerprinter)
         then:
@@ -441,7 +441,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
+        def transformer = TestTransform.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         def subject = immutableDependency(inputArtifact)
 
         when:
@@ -467,7 +467,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
+        def transformer = TestTransform.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         def subject = mutableDependency(inputArtifact)
 
         when:
@@ -517,7 +517,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     }
 
     private Try<ImmutableList<File>> invoke(
-        Transformer transformer,
+        Transform transformer,
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
         TransformationSubject subject,

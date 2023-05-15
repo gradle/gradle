@@ -95,7 +95,7 @@ import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
 
-public class DefaultTransformer implements Transformer {
+public class DefaultTransform implements Transform {
 
     private final Class<? extends TransformAction<?>> implementationClass;
     private final ImmutableAttributes fromAttributes;
@@ -108,13 +108,13 @@ public class DefaultTransformer implements Transformer {
     private final boolean requiresInputChanges;
     private final InstanceFactory<? extends TransformAction<?>> instanceFactory;
     private final boolean cacheable;
-    private final CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters;
+    private final CalculatedValueContainer<IsolatedParameters, IsolateTransformParameters> isolatedParameters;
     private final DirectorySensitivity artifactDirectorySensitivity;
     private final DirectorySensitivity dependenciesDirectorySensitivity;
     private final LineEndingSensitivity artifactLineEndingSensitivity;
     private final LineEndingSensitivity dependenciesLineEndingSensitivity;
 
-    public DefaultTransformer(
+    public DefaultTransform(
         Class<? extends TransformAction<?>> implementationClass,
         @Nullable TransformParameters parameterObject,
         ImmutableAttributes fromAttributes,
@@ -154,16 +154,16 @@ public class DefaultTransformer implements Transformer {
         this.artifactLineEndingSensitivity = artifactLineEndingSensitivity;
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
-            new IsolateTransformerParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
+            new IsolateTransformParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
                 fileCollectionFactory, documentationRegistry));
     }
 
     /**
      * Used to recreate a transformer from the configuration cache.
      */
-    public DefaultTransformer(
+    public DefaultTransform(
         Class<? extends TransformAction<?>> implementationClass,
-        CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters,
+        CalculatedValueContainer<IsolatedParameters, IsolateTransformParameters> isolatedParameters,
         ImmutableAttributes fromAttributes,
         ImmutableAttributes toAttributes,
         FileNormalizer inputArtifactNormalizer,
@@ -400,7 +400,7 @@ public class DefaultTransformer implements Transformer {
         return instanceFactory.newInstance(services);
     }
 
-    public CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> getIsolatedParameters() {
+    public CalculatedValueContainer<IsolatedParameters, IsolateTransformParameters> getIsolatedParameters() {
         return isolatedParameters;
     }
 
@@ -547,7 +547,7 @@ public class DefaultTransformer implements Transformer {
         }
     }
 
-    public static class IsolateTransformerParameters implements ValueCalculator<IsolatedParameters> {
+    public static class IsolateTransformParameters implements ValueCalculator<IsolatedParameters> {
         private final TransformParameters parameterObject;
         private final DomainObjectContext owner;
         private final IsolatableFactory isolatableFactory;
@@ -559,7 +559,7 @@ public class DefaultTransformer implements Transformer {
         private final boolean cacheable;
         private final Class<?> implementationClass;
 
-        public IsolateTransformerParameters(
+        public IsolateTransformParameters(
             @Nullable TransformParameters parameterObject,
             Class<?> implementationClass,
             boolean cacheable,

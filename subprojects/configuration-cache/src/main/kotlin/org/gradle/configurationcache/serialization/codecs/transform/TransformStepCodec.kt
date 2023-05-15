@@ -17,9 +17,9 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.internal.DomainObjectContext
+import org.gradle.api.internal.artifacts.transform.Transform
+import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory
 import org.gradle.api.internal.artifacts.transform.TransformStep
-import org.gradle.api.internal.artifacts.transform.Transformer
-import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -45,12 +45,12 @@ class TransformStepCodec(
     override suspend fun ReadContext.decode(): TransformStep {
         return decodePreservingSharedIdentity {
             val path = readString()
-            val transformer = readNonNull<Transformer>()
+            val transform = readNonNull<Transform>()
             val project = getProject(path)
             val services = project.services
             TransformStep(
-                transformer,
-                services[TransformerInvocationFactory::class.java],
+                transform,
+                services[TransformInvocationFactory::class.java],
                 services[DomainObjectContext::class.java],
                 inputFingerprinter
             )

@@ -80,15 +80,15 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
-import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -213,7 +213,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableTransformationWorkspaceServices(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
         }
 
-        TransformerInvocationFactory createTransformerInvocationFactory(
+        TransformInvocationFactory createTransformInvocationFactory(
                 ExecutionEngine executionEngine,
                 FileSystemAccess fileSystemAccess,
                 ImmutableTransformationWorkspaceServices transformationWorkspaceServices,
@@ -222,7 +222,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ProjectStateRegistry projectStateRegistry,
                 BuildOperationExecutor buildOperationExecutor
         ) {
-            return new DefaultTransformerInvocationFactory(
+            return new DefaultTransformInvocationFactory(
                 executionEngine,
                 fileSystemAccess,
                 artifactTransformListener,
@@ -237,7 +237,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 BuildOperationExecutor buildOperationExecutor,
                 IsolatableFactory isolatableFactory,
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                TransformerInvocationFactory transformerInvocationFactory,
+                TransformInvocationFactory transformInvocationFactory,
                 DomainObjectContext domainObjectContext,
                 ArtifactTransformParameterScheme parameterScheme,
                 ArtifactTransformActionScheme actionScheme,
@@ -252,7 +252,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 buildOperationExecutor,
                 isolatableFactory,
                 classLoaderHierarchyHasher,
-                transformerInvocationFactory,
+                transformInvocationFactory,
                 fileCollectionFactory,
                 fileLookup,
                 inputFingerprinter,

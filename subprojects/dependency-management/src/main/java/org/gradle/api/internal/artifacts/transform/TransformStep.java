@@ -42,20 +42,20 @@ import java.io.File;
 public class TransformStep implements TaskDependencyContainer, Describable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformStep.class);
 
-    private final Transformer transformer;
-    private final TransformerInvocationFactory transformerInvocationFactory;
+    private final Transform transform;
+    private final TransformInvocationFactory transformInvocationFactory;
     private final ProjectInternal owningProject;
     private final InputFingerprinter globalInputFingerprinter;
 
-    public TransformStep(Transformer transformer, TransformerInvocationFactory transformerInvocationFactory, DomainObjectContext owner, InputFingerprinter globalInputFingerprinter) {
-        this.transformer = transformer;
-        this.transformerInvocationFactory = transformerInvocationFactory;
+    public TransformStep(Transform transform, TransformInvocationFactory transformInvocationFactory, DomainObjectContext owner, InputFingerprinter globalInputFingerprinter) {
+        this.transform = transform;
+        this.transformInvocationFactory = transformInvocationFactory;
         this.globalInputFingerprinter = globalInputFingerprinter;
         this.owningProject = owner.getProject();
     }
 
-    public Transformer getTransformer() {
-        return transformer;
+    public Transform getTransformer() {
+        return transform;
     }
 
     @Nullable
@@ -65,7 +65,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
 
     public Deferrable<Try<TransformationSubject>> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
+            LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transform.getDisplayName());
         }
 
         InputFingerprinter inputFingerprinter = context != null ? context.getService(InputFingerprinter.class) : globalInputFingerprinter;
@@ -82,7 +82,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
                     );
                 } else {
                     File inputArtifact = inputArtifacts.get(0);
-                    return transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
+                    return transformInvocationFactory.createInvocation(transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
                         .map(result -> result.map(subjectToTransform::createSubjectFromResult));
                 }
             })
@@ -92,8 +92,8 @@ public class TransformStep implements TaskDependencyContainer, Describable {
     private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File inputArtifact : inputArtifacts) {
-            Try<ImmutableList<File>> result = transformerInvocationFactory
-                .createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
+            Try<ImmutableList<File>> result = transformInvocationFactory
+                .createInvocation(transform, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
                 .completeAndGet();
 
             if (result.getFailure().isPresent()) {
@@ -105,29 +105,29 @@ public class TransformStep implements TaskDependencyContainer, Describable {
     }
 
     public void isolateParametersIfNotAlready() {
-        transformer.isolateParametersIfNotAlready();
+        transform.isolateParametersIfNotAlready();
     }
 
     public boolean requiresDependencies() {
-        return transformer.requiresDependencies();
+        return transform.requiresDependencies();
     }
 
     @Override
     public String getDisplayName() {
-        return transformer.getDisplayName();
+        return transform.getDisplayName();
     }
 
     public ImmutableAttributes getFromAttributes() {
-        return transformer.getFromAttributes();
+        return transform.getFromAttributes();
     }
 
     @Override
     public String toString() {
-        return transformer.getDisplayName();
+        return transform.getDisplayName();
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        transformer.visitDependencies(context);
+        transform.visitDependencies(context);
     }
 }

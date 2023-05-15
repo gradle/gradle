@@ -56,7 +56,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final BuildOperationExecutor buildOperationExecutor;
     private final IsolatableFactory isolatableFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final TransformerInvocationFactory transformerInvocationFactory;
+    private final TransformInvocationFactory transformInvocationFactory;
     private final PropertyWalker parametersPropertyWalker;
     private final ServiceLookup internalServices;
     private final TypeMetadataStore actionMetadataStore;
@@ -72,7 +72,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         BuildOperationExecutor buildOperationExecutor,
         IsolatableFactory isolatableFactory,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        TransformerInvocationFactory transformerInvocationFactory,
+        TransformInvocationFactory transformInvocationFactory,
         FileCollectionFactory fileCollectionFactory,
         FileLookup fileLookup,
         InputFingerprinter inputFingerprinter,
@@ -86,7 +86,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.buildOperationExecutor = buildOperationExecutor;
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.transformerInvocationFactory = transformerInvocationFactory;
+        this.transformInvocationFactory = transformInvocationFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileLookup = fileLookup;
         this.inputFingerprinter = inputFingerprinter;
@@ -122,17 +122,17 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
                 artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
-                DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
+                DefaultTransform.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;
-                DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
+                DefaultTransform.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
             }
         }
         DefaultTypeValidationContext.throwOnProblemsOf(implementation, validationContext.getProblems());
-        Transformer transformer = new DefaultTransformer(
+        Transform transform = new DefaultTransform(
             implementation,
             parameterObject,
             from,
@@ -156,7 +156,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             internalServices,
             documentationRegistry);
 
-        return new DefaultArtifactTransformRegistration(from, to, new TransformStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformStep(transform, transformInvocationFactory, owner, inputFingerprinter));
     }
 
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {
