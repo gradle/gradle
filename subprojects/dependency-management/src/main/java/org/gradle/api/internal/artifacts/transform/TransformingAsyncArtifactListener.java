@@ -39,13 +39,13 @@ import java.io.File;
 import java.util.List;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
-    private final List<BoundTransformationStep> transformationSteps;
+    private final List<BoundTransformStep> transformationSteps;
     private final ImmutableAttributes target;
     private final List<? extends Capability> capabilities;
     private final ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result;
 
     public TransformingAsyncArtifactListener(
-        List<BoundTransformationStep> transformationSteps,
+        List<BoundTransformStep> transformationSteps,
         ImmutableAttributes target,
         List<? extends Capability> capabilities,
         ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result
@@ -88,11 +88,11 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final List<? extends Capability> capabilities;
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
-        private final List<BoundTransformationStep> transformationSteps;
+        private final List<BoundTransformStep> transformationSteps;
         private Try<TransformStepSubject> transformedSubject;
         private Deferrable<Try<TransformStepSubject>> invocation;
 
-        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformationStep> transformationSteps) {
+        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformStep> transformationSteps) {
             this.variantName = variantName;
             this.artifact = artifact;
             this.target = target;
@@ -116,7 +116,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             return capabilities;
         }
 
-        public List<BoundTransformationStep> getTransformationSteps() {
+        public List<BoundTransformStep> getTransformationSteps() {
             return transformationSteps;
         }
 
@@ -125,8 +125,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             // The parameters of the transforms should already be isolated prior to visiting this set.
             // However, in certain cases, the transform's parameters may not be isolated (eg https://github.com/gradle/gradle/issues/23116), so do this now
             // Those cases should be improved so that the parameters are always isolated, for example by always using work nodes to do this work
-            for (BoundTransformationStep step : transformationSteps) {
-                step.getTransformation().isolateParametersIfNotAlready();
+            for (BoundTransformStep step : transformationSteps) {
+                step.getTransformStep().isolateParametersIfNotAlready();
             }
         }
 
@@ -215,14 +215,14 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         private Deferrable<Try<TransformStepSubject>> createInvocation() {
             TransformStepSubject initialSubject = TransformStepSubject.initial(artifact);
-            BoundTransformationStep initialStep = transformationSteps.get(0);
-            Deferrable<Try<TransformStepSubject>> invocation = initialStep.getTransformation()
+            BoundTransformStep initialStep = transformationSteps.get(0);
+            Deferrable<Try<TransformStepSubject>> invocation = initialStep.getTransformStep()
                 .createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
             for (int i = 1; i < transformationSteps.size(); i++) {
-                BoundTransformationStep nextStep = transformationSteps.get(i);
+                BoundTransformStep nextStep = transformationSteps.get(i);
                 invocation = invocation
                     .flatMap(intermediateResult -> intermediateResult
-                        .map(intermediateSubject -> nextStep.getTransformation()
+                        .map(intermediateSubject -> nextStep.getTransformStep()
                             .createInvocation(intermediateSubject, nextStep.getUpstreamDependencies(), null))
                         .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure))));
             }

@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet
-import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
+import org.gradle.api.internal.artifacts.transform.BoundTransformStep
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -65,7 +65,7 @@ class CalculateArtifactsCodec(
         val capabilities: List<Capability> = readList().uncheckedCast()
         val files = readNonNull<List<Artifact>>()
         val steps: List<TransformStepSpec> = readList().uncheckedCast()
-        return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, capabilities, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreateDependencies()) }))
+        return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, capabilities, ImmutableList.copyOf(steps.map { BoundTransformStep(it.transformation, it.recreateDependencies()) }))
     }
 
     private

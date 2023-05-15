@@ -18,7 +18,7 @@ package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
+import org.gradle.api.internal.artifacts.transform.BoundTransformStep
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.TransformStep
@@ -73,8 +73,8 @@ object TransformStepSpecCodec : Codec<TransformStepSpec> {
 }
 
 
-fun unpackTransformationSteps(steps: List<BoundTransformationStep>): List<TransformStepSpec> {
-    return steps.map { unpackTransformationStep(it.transformation, it.upstreamDependencies) }
+fun unpackTransformationSteps(steps: List<BoundTransformStep>): List<TransformStepSpec> {
+    return steps.map { unpackTransformationStep(it.transformStep, it.upstreamDependencies) }
 }
 
 

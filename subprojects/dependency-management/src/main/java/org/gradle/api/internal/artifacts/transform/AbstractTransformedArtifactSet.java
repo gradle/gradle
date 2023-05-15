@@ -51,9 +51,9 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, transformChain);
-        ImmutableList.Builder<BoundTransformationStep> builder = ImmutableList.builder();
-        transformChain.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformationStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
-        ImmutableList<BoundTransformationStep> steps = builder.build();
+        ImmutableList.Builder<BoundTransformStep> builder = ImmutableList.builder();
+        transformChain.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
+        ImmutableList<BoundTransformStep> steps = builder.build();
         this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, delegate, targetVariantAttributes, capabilities, steps));
     }
 
@@ -103,11 +103,11 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
     public static class CalculateArtifacts implements ValueCalculator<ImmutableList<Artifacts>> {
         private final ComponentIdentifier ownerId;
         private final ResolvedArtifactSet delegate;
-        private final ImmutableList<BoundTransformationStep> steps;
+        private final ImmutableList<BoundTransformStep> steps;
         private final ImmutableAttributes targetVariantAttributes;
         private final List<? extends Capability> capabilities;
 
-        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, List<? extends Capability> capabilities, ImmutableList<BoundTransformationStep> steps) {
+        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, List<? extends Capability> capabilities, ImmutableList<BoundTransformStep> steps) {
             this.ownerId = ownerId;
             this.delegate = delegate;
             this.steps = steps;
@@ -123,7 +123,7 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
             return delegate;
         }
 
-        public ImmutableList<BoundTransformationStep> getSteps() {
+        public ImmutableList<BoundTransformStep> getSteps() {
             return steps;
         }
 
@@ -137,7 +137,7 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            for (BoundTransformationStep step : steps) {
+            for (BoundTransformStep step : steps) {
                 context.add(step.getUpstreamDependencies());
             }
         }
@@ -145,8 +145,8 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
         @Override
         public ImmutableList<Artifacts> calculateValue(NodeExecutionContext context) {
             // Isolate the transformation parameters, if not already done
-            for (BoundTransformationStep step : steps) {
-                step.getTransformation().isolateParametersIfNotAlready();
+            for (BoundTransformStep step : steps) {
+                step.getTransformStep().isolateParametersIfNotAlready();
                 step.getUpstreamDependencies().finalizeIfNotAlready();
             }
 
