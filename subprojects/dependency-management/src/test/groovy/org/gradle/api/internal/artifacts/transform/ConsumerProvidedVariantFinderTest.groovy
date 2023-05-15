@@ -492,7 +492,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         assert chain.root == source
         assert chain.attributes == finalAttributes
         def actualSteps = []
-        chain.transformationChain.visitTransformationSteps {
+        chain.transformChain.visitTransformSteps {
             actualSteps << it
         }
         def expectedSteps = steps*.transformStep

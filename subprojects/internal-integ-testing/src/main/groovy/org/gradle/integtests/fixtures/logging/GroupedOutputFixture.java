@@ -160,7 +160,7 @@ public class GroupedOutputFixture {
     }
 
     /**
-     * Returns transformation subjects for the given transformer type.
+     * Returns transform subjects for the given transformer type.
      */
     public Set<String> subjectsFor(String transformer) {
         return transforms.values().stream()

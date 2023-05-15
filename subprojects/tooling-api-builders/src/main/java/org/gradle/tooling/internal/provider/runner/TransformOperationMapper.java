@@ -76,9 +76,9 @@ class TransformOperationMapper implements BuildOperationMapper<ExecutePlannedTra
         String displayName = buildOperation.getDisplayName();
         String transformerName = details.getTransformerName();
         String subjectName = details.getSubjectName();
-        Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTransformationNode());
+        Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTransformStepNode());
         DefaultTransformDescriptor descriptor = new DefaultTransformDescriptor(id, displayName, parent, transformerName, subjectName, dependencies);
-        descriptors.put(details.getTransformationNode(), descriptor);
+        descriptors.put(details.getTransformStepNode(), descriptor);
         return descriptor;
     }
 

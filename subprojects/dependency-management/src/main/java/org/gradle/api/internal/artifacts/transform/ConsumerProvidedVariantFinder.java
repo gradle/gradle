@@ -34,7 +34,7 @@ import java.util.function.BiFunction;
 
 /**
  * Finds all the variants that can be created from a given set of producer variants using
- * the consumer's variant transformations. Transformations can be chained. If multiple
+ * the consumer's variant transforms. Transforms can be chained. If multiple
  * chains can lead to the same outcome, the shortest paths are selected.
  *
  * Caches the results, as often the same request is made for many components in a
@@ -58,8 +58,8 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * Executes the transformation chain detection algorithm given a set of producer variants and the requested
-     * attributes. Only the transform chains of the shortest transformation depth are returned, and all results are
+     * Executes the transform chain detection algorithm given a set of producer variants and the requested
+     * attributes. Only the transform chains of the shortest depth are returned, and all results are
      * guaranteed to have the same depth.
      *
      * @param sources The set of producer variants.
@@ -73,7 +73,7 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * A node in a chain of artifact transformations.
+     * A node in a chain of artifact transforms.
      */
     private static class ChainNode {
         final ChainNode next;
@@ -85,7 +85,7 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * Represents the intermediate state of a potential transformation solution. Many instances of this state may simultaneously exist
+     * Represents the intermediate state of a potential transform solution. Many instances of this state may simultaneously exist
      * for different potential solutions.
      */
     private static class ChainState {
@@ -94,7 +94,7 @@ public class ConsumerProvidedVariantFinder {
         final ImmutableFilteredList<TransformRegistration> transforms;
 
         /**
-         * @param chain The candidate transformation chain.
+         * @param chain The candidate transform chain.
          * @param requested The attribute set which must be produced by any previous variant in order to achieve the
          *      original user-requested attribute set after {@code chain} is applied to that previous variant.
          * @param transforms The remaining transforms which may be prepended to {@code chain} to produce a solution.
@@ -107,7 +107,7 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * A cached result of the transformation chain detection algorithm. References an index within the source variant
+     * A cached result of the transform chain detection algorithm. References an index within the source variant
      * list instead of an actual variant itself, so that this result can be cached and used for distinct variant sets
      * that otherwise share the same attributes.
      */
@@ -121,9 +121,9 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * The algorithm itself. Performs a breadth-first search on the set of potential transformation solutions in order to find
-     * all solutions at a given transformation depth. The search begins at the final node of the chain. At each depth, a candidate
-     * transformation is applied to the beginning of the chain. Then, if a source variant can be used as a root of that chain,
+     * The algorithm itself. Performs a breadth-first search on the set of potential transform solutions in order to find
+     * all solutions at a given transform chain depth. The search begins at the final node of the chain. At each depth, a candidate
+     * transform is applied to the beginning of the chain. Then, if a source variant can be used as a root of that chain,
      * we have found a solution. Otherwise, if no solutions are found at this depth, we run the search at the next depth, with all
      * candidate transforms linked to the previous level's chains.
      */
@@ -139,7 +139,7 @@ public class ConsumerProvidedVariantFinder {
                 ImmutableFilteredList<TransformRegistration> candidates =
                     state.transforms.matching(transform -> matcher.isMatching(transform.getTo(), state.requested));
 
-                // For each candidate, attempt to find a source variant that the transformation can use as its root.
+                // For each candidate, attempt to find a source variant that the transform can use as its root.
                 for (TransformRegistration candidate : candidates) {
                     for (int i = 0; i < sources.size(); i++) {
                         ImmutableAttributes sourceAttrs = sources.get(i);
@@ -183,7 +183,7 @@ public class ConsumerProvidedVariantFinder {
      * Constructs a complete cacheable variant chain given a root transformed variant and the chain of variants
      * to apply to that root variant.
      *
-     * @param stateChain The transformation chain from the search state to apply to the root transformed variant.
+     * @param stateChain The transform chain from the search state to apply to the root transformed variant.
      * @param root The root variant to apply the chain to.
      *
      * @return A variant chain representing the final transformed variant.
@@ -203,7 +203,7 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * Caches calls to the transformation chain selection algorithm. The cached results are stored in
+     * Caches calls to the transform chain selection algorithm. The cached results are stored in
      * a variant-independent manner, such that only the attributes of the input variants are cached.
      * This way, if multiple calls are made with different variants but those variants have the same
      * attributes, the cached results may be used.

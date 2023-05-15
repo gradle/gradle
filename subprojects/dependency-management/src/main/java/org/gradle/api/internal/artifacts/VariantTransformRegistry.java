@@ -26,7 +26,7 @@ import java.util.List;
 public interface VariantTransformRegistry {
 
     /**
-     * Register an artifact transformation.
+     * Register an artifact transform.
      *
      * @see TransformAction
      */

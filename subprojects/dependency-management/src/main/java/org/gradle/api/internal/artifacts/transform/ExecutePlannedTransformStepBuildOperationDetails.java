@@ -33,7 +33,7 @@ public class ExecutePlannedTransformStepBuildOperationDetails implements Execute
         this.subjectName = subjectName;
     }
 
-    public TransformStepNode getTransformationNode() {
+    public TransformStepNode getTransformStepNode() {
         return transformStepNode;
     }
 
@@ -44,7 +44,7 @@ public class ExecutePlannedTransformStepBuildOperationDetails implements Execute
 
     @Override
     public Class<?> getTransformActionClass() {
-        return transformStepNode.getTransformationStep().getTransformer().getImplementationClass();
+        return transformStepNode.getTransformStep().getTransform().getImplementationClass();
     }
 
     @Override

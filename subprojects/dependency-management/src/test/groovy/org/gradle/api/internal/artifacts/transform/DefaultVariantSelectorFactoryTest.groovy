@@ -228,7 +228,7 @@ Found the following transforms:
             getDisplayName() >> ""
         }
         VariantDefinition definition = Mock(VariantDefinition) {
-            getTransformationChain() >> new TransformChain(null, step)
+            getTransformChain() >> new TransformChain(null, step)
             getTargetAttributes() >> attrs
         }
         return new TransformedVariant(root, definition)

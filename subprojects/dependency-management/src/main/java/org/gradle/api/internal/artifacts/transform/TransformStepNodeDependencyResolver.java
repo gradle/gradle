@@ -31,8 +31,8 @@ public class TransformStepNodeDependencyResolver implements DependencyResolver {
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
         if (node instanceof DefaultTransformNodeDependency) {
-            DefaultTransformNodeDependency transformation = (DefaultTransformNodeDependency) node;
-            for (TransformStepNode transformStepNode : transformation.getNodes()) {
+            DefaultTransformNodeDependency transformNodeDependency = (DefaultTransformNodeDependency) node;
+            for (TransformStepNode transformStepNode : transformNodeDependency.getNodes()) {
                 resolveAction.execute(transformStepNode);
             }
             return true;

@@ -33,16 +33,16 @@ import org.gradle.internal.Try
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity
 
 
-sealed class TransformStepSpec(val transformation: TransformStep) {
+sealed class TransformStepSpec(val transformStep: TransformStep) {
     abstract fun recreateDependencies(): TransformUpstreamDependencies
 
-    class NoDependencies(transformation: TransformStep) : TransformStepSpec(transformation) {
+    class NoDependencies(transformStep: TransformStep) : TransformStepSpec(transformStep) {
         override fun recreateDependencies(): TransformUpstreamDependencies {
             return DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES
         }
     }
 
-    class FileDependencies(transformation: TransformStep, val files: FileCollection, val configurationIdentity: ConfigurationIdentity) : TransformStepSpec(transformation) {
+    class FileDependencies(transformStep: TransformStep, val files: FileCollection, val configurationIdentity: ConfigurationIdentity) : TransformStepSpec(transformStep) {
         override fun recreateDependencies(): TransformUpstreamDependencies {
             return FixedUpstreamDependencies(DefaultTransformDependencies(files), configurationIdentity)
         }
@@ -52,7 +52,7 @@ sealed class TransformStepSpec(val transformation: TransformStep) {
 
 object TransformStepSpecCodec : Codec<TransformStepSpec> {
     override suspend fun WriteContext.encode(value: TransformStepSpec) {
-        write(value.transformation)
+        write(value.transformStep)
         if (value is TransformStepSpec.FileDependencies) {
             writeBoolean(true)
             write(value.files)
@@ -63,27 +63,27 @@ object TransformStepSpecCodec : Codec<TransformStepSpec> {
     }
 
     override suspend fun ReadContext.decode(): TransformStepSpec {
-        val transformation = readNonNull<TransformStep>()
+        val transformStep = readNonNull<TransformStep>()
         return if (readBoolean()) {
-            return TransformStepSpec.FileDependencies(transformation, read() as FileCollection, read() as ConfigurationIdentity)
+            return TransformStepSpec.FileDependencies(transformStep, read() as FileCollection, read() as ConfigurationIdentity)
         } else {
-            TransformStepSpec.NoDependencies(transformation)
+            TransformStepSpec.NoDependencies(transformStep)
         }
     }
 }
 
 
-fun unpackTransformationSteps(steps: List<BoundTransformStep>): List<TransformStepSpec> {
-    return steps.map { unpackTransformationStep(it.transformStep, it.upstreamDependencies) }
+fun unpackTransformSteps(steps: List<BoundTransformStep>): List<TransformStepSpec> {
+    return steps.map { unpackTransformStep(it.transformStep, it.upstreamDependencies) }
 }
 
 
-fun unpackTransformationStep(node: TransformStepNode): TransformStepSpec {
-    return unpackTransformationStep(node.transformationStep, node.upstreamDependencies)
+fun unpackTransformStep(node: TransformStepNode): TransformStepSpec {
+    return unpackTransformStep(node.transformStep, node.upstreamDependencies)
 }
 
 
-fun unpackTransformationStep(transformStep: TransformStep, upstreamDependencies: TransformUpstreamDependencies): TransformStepSpec {
+fun unpackTransformStep(transformStep: TransformStep, upstreamDependencies: TransformUpstreamDependencies): TransformStepSpec {
     return if (transformStep.requiresDependencies()) {
         TransformStepSpec.FileDependencies(transformStep, upstreamDependencies.selectedArtifacts(), upstreamDependencies.configurationIdentity!!)
     } else {

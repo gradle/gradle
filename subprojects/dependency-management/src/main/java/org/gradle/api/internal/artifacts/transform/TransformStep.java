@@ -35,9 +35,11 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 /**
- * A single transformation step.
+ * A single transform step in a transform chain.
+ * <p>
+ * Transforms a subject by invoking a transform on each of the subjects files.
  *
- * Transforms a subject by invoking a transformer on each of the subjects files.
+ * @see TransformChain
  */
 public class TransformStep implements TaskDependencyContainer, Describable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformStep.class);
@@ -54,7 +56,7 @@ public class TransformStep implements TaskDependencyContainer, Describable {
         this.owningProject = owner.getProject();
     }
 
-    public Transform getTransformer() {
+    public Transform getTransform() {
         return transform;
     }
 

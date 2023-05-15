@@ -17,21 +17,22 @@
 package org.gradle.api.internal.artifacts.transform;
 
 /**
- * A transformation with all of its parameters bound to their providers. A transformer may take parameters from a parameters
- * object specified when the transformation is registered and may also take the upstream dependencies of the source artifact
- * as a parameter.
+ * A transform step with all of its parameters bound to their providers.
+ * <p>
+ * A transform step may take parameters from a parameters object specified when the transform is registered
+ * and may also take the upstream dependencies of the source artifact as a parameter.
  */
 public class BoundTransformStep {
-    private final TransformStep transformation;
+    private final TransformStep transformStep;
     private final TransformUpstreamDependencies upstreamDependencies;
 
-    public BoundTransformStep(TransformStep transformation, TransformUpstreamDependencies upstreamDependencies) {
-        this.transformation = transformation;
+    public BoundTransformStep(TransformStep transformStep, TransformUpstreamDependencies upstreamDependencies) {
+        this.transformStep = transformStep;
         this.upstreamDependencies = upstreamDependencies;
     }
 
     public TransformStep getTransformStep() {
-        return transformation;
+        return transformStep;
     }
 
     public TransformUpstreamDependencies getUpstreamDependencies() {

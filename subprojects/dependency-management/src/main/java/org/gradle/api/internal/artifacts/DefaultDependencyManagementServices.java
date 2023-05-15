@@ -216,7 +216,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         TransformInvocationFactory createTransformInvocationFactory(
                 ExecutionEngine executionEngine,
                 FileSystemAccess fileSystemAccess,
-                ImmutableTransformWorkspaceServices transformationWorkspaceServices,
+                ImmutableTransformWorkspaceServices transformWorkspaceServices,
                 TransformExecutionListener transformExecutionListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
@@ -226,7 +226,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 executionEngine,
                 fileSystemAccess,
                 transformExecutionListener,
-                transformationWorkspaceServices,
+                transformWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,
                 buildOperationExecutor

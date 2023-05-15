@@ -63,9 +63,9 @@ public class TransformChain {
             : init.getDisplayName() + " -> " + lastDisplayName;
     }
 
-    public void visitTransformationSteps(Action<? super TransformStep> action) {
+    public void visitTransformSteps(Action<? super TransformStep> action) {
         if (init != null) {
-            init.visitTransformationSteps(action);
+            init.visitTransformSteps(action);
         }
         action.execute(last);
     }

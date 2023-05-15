@@ -39,18 +39,18 @@ import java.io.File;
 import java.util.List;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
-    private final List<BoundTransformStep> transformationSteps;
+    private final List<BoundTransformStep> transformSteps;
     private final ImmutableAttributes target;
     private final List<? extends Capability> capabilities;
     private final ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result;
 
     public TransformingAsyncArtifactListener(
-        List<BoundTransformStep> transformationSteps,
+        List<BoundTransformStep> transformSteps,
         ImmutableAttributes target,
         List<? extends Capability> capabilities,
         ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result
     ) {
-        this.transformationSteps = transformationSteps;
+        this.transformSteps = transformSteps;
         this.target = target;
         this.capabilities = capabilities;
         this.result = result;
@@ -61,7 +61,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         artifacts.visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> variantCapabilities, ResolvableArtifact artifact) {
-                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformationSteps);
+                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformSteps);
                 result.add(transformedArtifact);
             }
 
@@ -88,16 +88,16 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final List<? extends Capability> capabilities;
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
-        private final List<BoundTransformStep> transformationSteps;
+        private final List<BoundTransformStep> transformSteps;
         private Try<TransformStepSubject> transformedSubject;
         private Deferrable<Try<TransformStepSubject>> invocation;
 
-        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformStep> transformationSteps) {
+        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformStep> transformSteps) {
             this.variantName = variantName;
             this.artifact = artifact;
             this.target = target;
             this.capabilities = capabilities;
-            this.transformationSteps = transformationSteps;
+            this.transformSteps = transformSteps;
         }
 
         public DisplayName getVariantName() {
@@ -116,8 +116,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             return capabilities;
         }
 
-        public List<BoundTransformStep> getTransformationSteps() {
-            return transformationSteps;
+        public List<BoundTransformStep> getTransformSteps() {
+            return transformSteps;
         }
 
         @Override
@@ -125,7 +125,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             // The parameters of the transforms should already be isolated prior to visiting this set.
             // However, in certain cases, the transform's parameters may not be isolated (eg https://github.com/gradle/gradle/issues/23116), so do this now
             // Those cases should be improved so that the parameters are always isolated, for example by always using work nodes to do this work
-            for (BoundTransformStep step : transformationSteps) {
+            for (BoundTransformStep step : transformSteps) {
                 step.getTransformStep().isolateParametersIfNotAlready();
             }
         }
@@ -215,11 +215,11 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         private Deferrable<Try<TransformStepSubject>> createInvocation() {
             TransformStepSubject initialSubject = TransformStepSubject.initial(artifact);
-            BoundTransformStep initialStep = transformationSteps.get(0);
+            BoundTransformStep initialStep = transformSteps.get(0);
             Deferrable<Try<TransformStepSubject>> invocation = initialStep.getTransformStep()
                 .createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
-            for (int i = 1; i < transformationSteps.size(); i++) {
-                BoundTransformStep nextStep = transformationSteps.get(i);
+            for (int i = 1; i < transformSteps.size(); i++) {
+                BoundTransformStep nextStep = transformSteps.get(i);
                 invocation = invocation
                     .flatMap(intermediateResult -> intermediateResult
                         .map(intermediateSubject -> nextStep.getTransformStep()

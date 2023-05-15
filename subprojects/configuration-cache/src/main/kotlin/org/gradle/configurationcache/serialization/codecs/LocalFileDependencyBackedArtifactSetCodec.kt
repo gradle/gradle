@@ -100,7 +100,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
         }
 
         if (requestedAttributes) {
-            // Write the file extension -> transformation mappings
+            // Write the file extension -> transform mappings
             // This currently uses a dummy set of variants to calculate the mappings.
             // Do not write this if it will not be used
             // TODO - simplify extracting the mappings
@@ -227,7 +227,7 @@ class RecordingVariantSet(
         dependenciesResolverFactory: TransformUpstreamDependenciesResolverFactory,
         transformedVariantFactory: TransformedVariantFactory
     ): ResolvedArtifactSet {
-        this.transformChain = variantDefinition.transformationChain
+        this.transformChain = variantDefinition.transformChain
         this.targetAttributes = variantDefinition.targetAttributes
         return sourceVariant.artifacts
     }
@@ -244,11 +244,11 @@ class TransformMapping(private val targetAttributes: ImmutableAttributes, privat
         return targetAttributes
     }
 
-    override fun getTransformationChain(): TransformChain {
+    override fun getTransformChain(): TransformChain {
         return transformChain
     }
 
-    override fun getTransformationStep(): TransformStep {
+    override fun getTransformStep(): TransformStep {
         throw UnsupportedOperationException()
     }
 
