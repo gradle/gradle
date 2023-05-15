@@ -44,6 +44,8 @@ public class MVStoreBuildCacheService implements StatefulNextGenBuildCacheServic
         mvStore = new MVStore.Builder()
             .fileName(dbPath.resolve("filestore.mvstore.db").toString())
             .autoCompactFillRate(0)
+            // 16 is default concurrency level
+            .cacheConcurrency(Math.max(maxConcurrency, 16))
             .open();
         lruStreamMap = new MVStoreLruStreamMap(mvStore, maxConcurrency);
     }

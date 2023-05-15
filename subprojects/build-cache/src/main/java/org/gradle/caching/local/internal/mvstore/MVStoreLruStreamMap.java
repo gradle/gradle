@@ -19,6 +19,7 @@ package org.gradle.caching.local.internal.mvstore;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.internal.hash.HashCode;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -33,6 +34,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
@@ -48,40 +50,44 @@ public class MVStoreLruStreamMap {
 
     private static final int MINIMUM_LOCKS = 512;
     private final Striped<Lock> locks;
-    private final MVMap<ValueWithTimestamp, byte[]> lruKeyToDataIndex;
-    private final MVMap<byte[], ValueWithTimestamp> keyToDataIndex;
+    private final MVMap<ValueWithTimestamp, byte[]> lruBuildCacheKeyToDataReference;
+    private final MVMap<byte[], ValueWithTimestamp> buildCacheKeyToDataReference;
+    private final MVMap<byte[], byte[]> dataIndexToBuildCacheKey;
     private final StreamStore data;
 
     public MVStoreLruStreamMap(MVStore mvStore, int maxConcurrency) {
-        this.lruKeyToDataIndex = mvStore.openMap("lruKeyToDataIndex", new MVMap.Builder<ValueWithTimestamp, byte[]>()
+        this.lruBuildCacheKeyToDataReference = mvStore.openMap("lruBuildCacheKeyToDataReference", new MVMap.Builder<ValueWithTimestamp, byte[]>()
             .keyType(ValueWithTimestampType.INSTANCE)
             .valueType(ByteArrayDataType.INSTANCE)
         );
-        this.keyToDataIndex = mvStore.openMap("keyToDataIndex", new MVMap.Builder<byte[], ValueWithTimestamp>()
+        this.buildCacheKeyToDataReference = mvStore.openMap("buildCacheKeyToDataReference", new MVMap.Builder<byte[], ValueWithTimestamp>()
             .keyType(ComparableByteArray.INSTANCE)
             .valueType(ValueWithTimestampType.INSTANCE)
         );
         this.data = new StreamStore(mvStore.openMap("data"));
+        this.dataIndexToBuildCacheKey = mvStore.openMap("dataIndexToBuildCacheKey");
         int maxConcurrencyTimesTwo = (Integer.MAX_VALUE / 2) <= maxConcurrency ? Integer.MAX_VALUE : (maxConcurrency * 2);
         this.locks = Striped.lazyWeakLock(Math.max(maxConcurrencyTimesTwo, MINIMUM_LOCKS));
     }
 
     public void putIfAbsent(BuildCacheKey key, Supplier<InputStream> inputStreamSupplier) {
         byte[] keyAsBytes = key.toByteArray();
-        if (keyToDataIndex.containsKey(keyAsBytes)) {
+        if (buildCacheKeyToDataReference.containsKey(keyAsBytes)) {
             return;
         }
-        lockAndRun(key, () -> keyToDataIndex.computeIfAbsent(keyAsBytes, k -> {
+        lockAndRun(key, () -> buildCacheKeyToDataReference.computeIfAbsent(keyAsBytes, k -> {
             byte[] id = null;
             try (InputStream input = inputStreamSupplier.get()) {
                 id = data.put(input);
+                dataIndexToBuildCacheKey.put(id, keyAsBytes);
                 long timestamp = System.currentTimeMillis();
-                lruKeyToDataIndex.put(new ValueWithTimestamp(timestamp, keyAsBytes), id);
+                lruBuildCacheKeyToDataReference.put(new ValueWithTimestamp(timestamp, keyAsBytes), id);
                 return new ValueWithTimestamp(timestamp, id);
             } catch (IOException | MVStoreException e) {
                 if (id != null) {
                     // If lruKeyToIndex.put throws exception, remove data entry
                     data.remove(id);
+                    dataIndexToBuildCacheKey.remove(id);
                 }
                 throw new BuildCacheException("storing " + key, e);
             }
@@ -89,20 +95,21 @@ public class MVStoreLruStreamMap {
     }
 
     public boolean containsKey(BuildCacheKey key) {
-        return keyToDataIndex.containsKey(key.toByteArray());
+        return buildCacheKeyToDataReference.containsKey(key.toByteArray());
     }
 
     @Nullable
     public InputStream get(BuildCacheKey key) {
         byte[] keyAsBytes = key.toByteArray();
-        ValueWithTimestamp index = keyToDataIndex.get(keyAsBytes);
-        if (index == null) {
+        ValueWithTimestamp dataReference = buildCacheKeyToDataReference.get(keyAsBytes);
+        if (dataReference == null) {
             return null;
         }
-        InputStream inputStream = data.get(index.getValue());
+        InputStream inputStream = data.get(dataReference.get());
         if (inputStream == null) {
             return null;
         }
+        // TODO update timestamp only if some time has passed, e.g. 1 day?
         tryUpdateTimestamp(key, keyAsBytes);
         return inputStream;
     }
@@ -115,25 +122,75 @@ public class MVStoreLruStreamMap {
      * And if another get is in progress, timestamp will be updated anyway.
      */
     private void tryUpdateTimestamp(BuildCacheKey key, byte[] keyAsBytes) {
-        tryLockAndRun(key, () -> keyToDataIndex.computeIfPresent(keyAsBytes, (newKey, index) -> {
+        tryLockAndRun(key, () -> {
+            ValueWithTimestamp dataReference = buildCacheKeyToDataReference.get(keyAsBytes);
+            if (dataReference == null) {
+                // If deletion happened just before lock was acquired
+                return;
+            }
             long currentTimestamp = System.currentTimeMillis();
-            lruKeyToDataIndex.put(new ValueWithTimestamp(currentTimestamp, newKey), index.getValue());
-            lruKeyToDataIndex.remove(new ValueWithTimestamp(index.getTimestamp(), newKey));
-            return new ValueWithTimestamp(currentTimestamp, index.getValue());
-        }));
+            lruBuildCacheKeyToDataReference.put(new ValueWithTimestamp(currentTimestamp, keyAsBytes), dataReference.get());
+            buildCacheKeyToDataReference.put(keyAsBytes, new ValueWithTimestamp(currentTimestamp, dataReference.get()));
+            // Since we do a cleanup by LRU order, delete previous LRU map entry last
+            lruBuildCacheKeyToDataReference.remove(new ValueWithTimestamp(dataReference.getTimestamp(), keyAsBytes));
+        });
     }
 
     public void delete(BuildCacheKey key) {
         byte[] keyAsBytes = key.toByteArray();
-        if (!keyToDataIndex.containsKey(keyAsBytes)) {
+        if (!buildCacheKeyToDataReference.containsKey(keyAsBytes)) {
             return;
         }
-        lockAndRun(key, () -> keyToDataIndex.computeIfPresent(keyAsBytes, (newKey, index) -> {
-//                Long timestamp = keyToTimestamp.remove(keyAsBytes);
-//                lruKeyToIndex.remove(timestamp);
-//                data.remove(id);
-            return null;
-        }));
+        lockAndRun(key, () -> {
+            ValueWithTimestamp dataReference = buildCacheKeyToDataReference.get(keyAsBytes);
+            if (dataReference == null) {
+                // If deletion happened just before lock was acquired
+                return;
+            }
+            // Remove key to data index first, so that contains works always properly, even if delete operations after fails
+            buildCacheKeyToDataReference.remove(keyAsBytes);
+            data.remove(dataReference.get());
+            dataIndexToBuildCacheKey.remove(dataReference.get());
+            // Remove LRU entry last, so data can be cleaned up even if keyToDataIndex doesn't exist anymore
+            lruBuildCacheKeyToDataReference.remove(new ValueWithTimestamp(dataReference.getTimestamp(), keyAsBytes));
+        });
+    }
+
+    public void cleanup(long removeUnusedEntriesOlderThan) {
+        Iterator<ValueWithTimestamp> iterator = lruBuildCacheKeyToDataReference.keyIterator(null);
+        while (iterator.hasNext()) {
+            ValueWithTimestamp buildCacheKey = iterator.next();
+            if (buildCacheKey.getTimestamp() > removeUnusedEntriesOlderThan) {
+                break;
+            }
+            lockAndRun(new DefaultBuildCacheKey(HashCode.fromBytes(buildCacheKey.get())), () -> {
+                ValueWithTimestamp dataReference = buildCacheKeyToDataReference.get(buildCacheKey.get());
+                byte[] dataIndex = lruBuildCacheKeyToDataReference.get(buildCacheKey);
+                if (dataReference != null && buildCacheKey.getTimestamp() == dataReference.getTimestamp()) {
+                    buildCacheKeyToDataReference.remove(buildCacheKey.get());
+                    data.remove(dataReference.get());
+                    dataIndexToBuildCacheKey.remove(dataReference.get());
+                    lruBuildCacheKeyToDataReference.remove(buildCacheKey);
+                } else if (dataIndex != null) {
+                    // Handle corner cases that can happen if some delete or put was interrupted for some reason
+                    byte[] dataBuildCacheKey = dataIndexToBuildCacheKey.get(dataIndex);
+                    if (dataReference == null) {
+                        // Case when buildCacheKeyToDataReference was cleaned, but data wasn't
+                        if (dataBuildCacheKey != null && HashCode.compareBytes(buildCacheKey.get(), dataBuildCacheKey) == 0) {
+                            data.remove(buildCacheKey.get());
+                            dataIndexToBuildCacheKey.remove(dataIndex);
+                            lruBuildCacheKeyToDataReference.remove(buildCacheKey);
+                        }
+                    } else if (buildCacheKey.getTimestamp() < dataReference.getTimestamp()) {
+                        if (HashCode.compareBytes(dataIndex, dataReference.get()) != 0) {
+                            data.remove(buildCacheKey.get());
+                            dataIndexToBuildCacheKey.remove(dataIndex);
+                            lruBuildCacheKeyToDataReference.remove(buildCacheKey);
+                        }
+                    }
+                }
+            });
+        }
     }
 
     private void tryLockAndRun(BuildCacheKey key, Runnable runnable) {
@@ -175,7 +232,7 @@ public class MVStoreLruStreamMap {
             return HashCode.compareBytes(value, o.value);
         }
 
-        public byte[] getValue() {
+        public byte[] get() {
             return value;
         }
 
