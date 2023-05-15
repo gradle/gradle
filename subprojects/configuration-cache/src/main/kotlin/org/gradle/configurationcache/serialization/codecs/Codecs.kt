@@ -45,10 +45,10 @@ import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationE
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformStepNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ComponentVariantIdentifierCodec
-import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
+import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformCodec
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformStepNodeCodec
-import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformParametersCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformChainCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformStepSpecCodec
@@ -156,7 +156,7 @@ class Codecs(
             bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
             bind(TransformStepCodec(inputFingerprinter))
             bind(TransformChainCodec())
-            bind(DefaultTransformerCodec(fileLookup, actionScheme))
+            bind(DefaultTransformCodec(fileLookup, actionScheme))
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)
             bind(PublishArtifactLocalArtifactMetadataCodec)
@@ -166,7 +166,7 @@ class Codecs(
             bind(TransformedArtifactCodec(calculatedValueContainerFactory))
             bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
             bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-            bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
+            bind(IsolateTransformParametersCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
             bind(FinalizeTransformDependenciesNodeCodec())
             bind(ResolveArtifactNodeCodec)
             bind(WorkNodeActionCodec)

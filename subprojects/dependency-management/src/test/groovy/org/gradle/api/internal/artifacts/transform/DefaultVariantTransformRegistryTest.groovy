@@ -55,7 +55,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def instantiatorFactory = TestUtil.instantiatorFactory()
-    def transformerInvocationFactory = Mock(TransformerInvocationFactory)
+    def transformInvocationFactory = Mock(TransformInvocationFactory)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionFactory = Mock(FileCollectionFactory)
     def propertyWalker = Mock(PropertyWalker)
@@ -74,7 +74,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         new TestBuildOperationExecutor(),
         isolatableFactory,
         classLoaderHierarchyHasher,
-        transformerInvocationFactory,
+        transformInvocationFactory,
         fileCollectionFactory,
         Mock(FileLookup),
         inputFingerprinter,

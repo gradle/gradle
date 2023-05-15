@@ -18,7 +18,7 @@ package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
-import org.gradle.api.internal.artifacts.transform.DefaultTransformer
+import org.gradle.api.internal.artifacts.transform.DefaultTransform
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.configurationcache.serialization.Codec
@@ -38,12 +38,12 @@ import org.gradle.internal.service.ServiceRegistry
 
 
 internal
-class DefaultTransformerCodec(
+class DefaultTransformCodec(
     private val fileLookup: FileLookup,
     private val actionScheme: ArtifactTransformActionScheme
-) : Codec<DefaultTransformer> {
+) : Codec<DefaultTransform> {
 
-    override suspend fun WriteContext.encode(value: DefaultTransformer) {
+    override suspend fun WriteContext.encode(value: DefaultTransform) {
         encodePreservingSharedIdentityOf(value) {
             writeClass(value.implementationClass)
             write(value.fromAttributes)
@@ -60,7 +60,7 @@ class DefaultTransformerCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): DefaultTransformer {
+    override suspend fun ReadContext.decode(): DefaultTransform {
         return decodePreservingSharedIdentity {
             val implementationClass = readClassOf<TransformAction<*>>()
             val fromAttributes = readNonNull<ImmutableAttributes>()
@@ -72,8 +72,8 @@ class DefaultTransformerCodec(
             val inputArtifactDependenciesDirectorySensitivity = readEnum<DirectorySensitivity>()
             val inputArtifactLineEndingNormalization = readEnum<LineEndingSensitivity>()
             val inputArtifactDependenciesLineEndingNormalization = readEnum<LineEndingSensitivity>()
-            val isolatedParameters = readNonNull<CalculatedValueContainer<DefaultTransformer.IsolatedParameters, DefaultTransformer.IsolateTransformerParameters>>()
-            DefaultTransformer(
+            val isolatedParameters = readNonNull<CalculatedValueContainer<DefaultTransform.IsolatedParameters, DefaultTransform.IsolateTransformParameters>>()
+            DefaultTransform(
                 implementationClass,
                 isolatedParameters,
                 fromAttributes,

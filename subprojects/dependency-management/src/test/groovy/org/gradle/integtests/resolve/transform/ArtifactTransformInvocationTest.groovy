@@ -26,9 +26,9 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
+import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory
 import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.api.internal.artifacts.transform.TransformationSubject
-import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.internal.Try
@@ -123,7 +123,7 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
 
     private Try<ImmutableList<File>> invokeTransform(TransformStep transform, File inputArtifact) {
         transform.isolateParametersIfNotAlready()
-        def invocationFactory = project.services.get(TransformerInvocationFactory)
+        def invocationFactory = project.services.get(TransformInvocationFactory)
         def inputFingerprinter = project.services.get(InputFingerprinter)
         def artifact = Stub(ResolvableArtifact) {
             getId() >> new OpaqueComponentArtifactIdentifier(inputArtifact)

@@ -25,12 +25,12 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 
 @ThreadSafe
-public interface TransformerInvocationFactory {
+public interface TransformInvocationFactory {
     /**
      * Returns an invocation which allows invoking the actual transformer.
      */
     Deferrable<Try<ImmutableList<File>>> createInvocation(
-        Transformer transformer,
+        Transform transform,
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
         TransformationSubject subject,

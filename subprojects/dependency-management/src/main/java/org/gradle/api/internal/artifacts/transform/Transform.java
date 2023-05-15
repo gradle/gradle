@@ -35,7 +35,7 @@ import java.io.File;
  *
  * This encapsulates the public interface {@link org.gradle.api.artifacts.transform.TransformAction} into an internal type.
  */
-public interface Transformer extends Describable, TaskDependencyContainer {
+public interface Transform extends Describable, TaskDependencyContainer {
     Class<?> getImplementationClass();
 
     ImmutableAttributes getFromAttributes();
