@@ -51,7 +51,7 @@ class DeprecatedTLSVersionTest extends Specification {
         given:
         HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
         // Only support older TLS versions
-        server.configure(keyStore) { it -> DEPRECATED_TLS_VERSIONS.contains(it) }
+        server.configure(keyStore, false) { it -> DEPRECATED_TLS_VERSIONS.contains(it) }
         server.start()
         // The server '/test' endpoint will never get called because the SSL exception will trip first.
         // Thus, we don't need to add the `expect('/test')` to the server for this test to work correctly.
@@ -75,7 +75,7 @@ class DeprecatedTLSVersionTest extends Specification {
         given:
         HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
         // Only support modern TLS versions
-        server.configure(keyStore) { it -> MODERN_TLS_VERSIONS.contains(it) }
+        server.configure(keyStore, false) { it -> MODERN_TLS_VERSIONS.contains(it) }
         server.start()
         server.expect('/test')
         when:

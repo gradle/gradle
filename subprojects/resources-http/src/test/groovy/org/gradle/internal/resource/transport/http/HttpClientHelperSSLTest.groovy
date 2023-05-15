@@ -16,17 +16,24 @@
 
 package org.gradle.internal.resource.transport.http
 
-
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
+import javax.net.ssl.SSLHandshakeException
+import java.security.InvalidAlgorithmParameterException
+import java.security.KeyStore
 import java.security.Security
+import java.security.UnrecoverableKeyException
 
 class HttpClientHelperSSLTest extends Specification {
     @Rule
@@ -51,7 +58,7 @@ class HttpClientHelperSSLTest extends Specification {
         setupSystemProperties()
 
         when:
-        performRequest()
+        performAuthenticatedRequest()
 
         then:
         noExceptionThrown()
@@ -59,12 +66,12 @@ class HttpClientHelperSSLTest extends Specification {
 
     def "custom provider"() {
         given:
-        Security.addProvider(new FakeKeyStore.Provider());
+        Security.addProvider(new FakeKeyStore.Provider())
         keyStore = TestKeyStore.init(resources.dir, FakeKeyStore.Provider.algorithm)
         setupSystemProperties()
 
         when:
-        performRequest()
+        performAuthenticatedRequest()
 
         then:
         noExceptionThrown()
@@ -73,6 +80,210 @@ class HttpClientHelperSSLTest extends Specification {
         Security.removeProvider(FakeKeyStore.Provider.name)
     }
 
+    def "non-existent truststore file"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+        System.properties["javax.net.ssl.trustStore"] = "will-not-exist"
+
+        when:
+        performAuthenticatedRequest(false)
+
+        then:
+        Exception exception = thrown()
+        // exact exception depends on JDK version
+        TestUtil.isOrIsCausedBy(exception, UnrecoverableKeyException.class) or(
+            TestUtil.isOrIsCausedBy(exception, SSLHandshakeException.class) or(
+                TestUtil.isOrIsCausedBy(exception, IOException.class)))
+    }
+
+    def "valid truststore file without specifying password"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+        System.clearProperty("javax.net.ssl.trustStorePassword")
+
+        when:
+        performAuthenticatedRequest(false)
+
+        then:
+        Exception exception = thrown()
+        TestUtil.isOrIsCausedBy(exception, InvalidAlgorithmParameterException.class)
+    }
+
+    def "valid truststore file with incorrect password"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+        System.properties["javax.net.ssl.trustStorePassword"] = "totally-wrong"
+
+        when:
+        performAuthenticatedRequest(false)
+
+        then:
+        Exception exception = thrown()
+        TestUtil.isOrIsCausedBy(exception, UnrecoverableKeyException.class)
+    }
+
+    def "non-existent keystore file"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+        System.setProperty("javax.net.ssl.keyStore", "will-not-exist")
+
+        when:
+        performAuthenticatedRequest(false)
+
+        then:
+        Exception exception = thrown()
+        TestUtil.getRootCause(exception) instanceof FileNotFoundException
+    }
+
+    def "non-existent keystore without auth"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+        System.setProperty("javax.net.ssl.keyStore", "will-not-exist")
+
+        when:
+        performRequest(false)
+
+        then:
+        Exception exception = thrown()
+        TestUtil.getRootCause(exception) instanceof FileNotFoundException
+    }
+
+    @Issue("gradle/gradle#7546")
+    def "keystore type without keystore file"() {
+        given:
+        System.properties["javax.net.ssl.keyStoreType"] = KeyStore.defaultType
+
+        when:
+        performExternalRequest()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "keystore type with NONE keystore file"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir, "JKS")
+        setupSystemProperties()
+        System.properties["javax.net.ssl.keyStore"] = "NONE"
+
+        when:
+        performAuthenticatedRequest(false)
+
+        then:
+        Exception exception = thrown()
+        TestUtil.isOrIsCausedBy(exception, HttpRequestException.class)
+    }
+
+    def "keystore type with NONE keystore file without auth"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir, "JKS")
+        setupSystemProperties()
+        System.properties["javax.net.ssl.keyStore"] = "NONE"
+
+        when:
+        performRequest()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "valid keystore file without specifying password"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+        System.clearProperty("javax.net.ssl.keyStorePassword")
+
+        when:
+        performAuthenticatedRequest(false)
+
+        // NOTE: This should fail, as the private keys password must match
+        //       the keystore password, so a password is necessary
+        then:
+        Exception exception = thrown()
+        TestUtil.isOrIsCausedBy(exception, UnrecoverableKeyException.class)
+    }
+
+    def "valid keystore file without specifying password and without auth"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+        System.clearProperty("javax.net.ssl.keyStorePassword")
+
+        when:
+        performRequest(false)
+
+        then:
+        Exception exception = thrown()
+        TestUtil.isOrIsCausedBy(exception, UnrecoverableKeyException.class)
+    }
+
+    def "valid keystore file with incorrect password and without auth"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+        System.properties["javax.net.ssl.keyStorePassword"] = "totally-wrong"
+
+        when:
+        performRequest(false)
+
+        then:
+        Exception trustException = thrown()
+        TestUtil.isOrIsCausedBy(trustException, UnrecoverableKeyException.class)
+    }
+
+    def "multiple different SSL contexts can coexist"() {
+        given:
+        keyStore = TestKeyStore.init(resources.dir)
+        setupSystemProperties()
+
+        when:
+        performAuthenticatedRequest()
+
+        then:
+        noExceptionThrown()
+
+        when:
+        client.close()
+        System.properties["javax.net.ssl.trustStore"] = "will-not-exist"
+        createClient()
+        client.performGet("${server.getUri()}/test", false)
+
+        then:
+        thrown(Exception)
+
+        when:
+        client.close()
+        System.properties["javax.net.ssl.keyStore"] = "will-not-exist"
+        createClient()
+        client.performGet("${server.getUri()}/test", false)
+
+        then:
+        Exception keyStoreException = thrown()
+        TestUtil.isOrIsCausedBy(keyStoreException, FileNotFoundException.class)
+    }
+
+    /**
+     * Note that this is a smoke test
+     * An actual test would require to make changes to the windows trust store,
+     * E.g. by adding a certificate from internal-integ-testing/src/main/resources/test-key-store/trustStore
+     * and changing performExternalRequest() to performRequest()
+     **/
+    @Requires(UnitTestPreconditions.Windows)
+    def "can use windows-root trust store"() {
+        given:
+        System.properties["javax.net.ssl.trustStoreType"] = "Windows-ROOT"
+
+        when:
+        performExternalRequest()
+
+        then:
+        noExceptionThrown()
+    }
 
     private def setupSystemProperties() {
         keyStore.getServerAndClientCertSettings().each {
@@ -80,7 +291,7 @@ class HttpClientHelperSSLTest extends Specification {
         }
     }
 
-    private def performRequest(Boolean expectSuccess = true) {
+    private def createClient() {
         SslContextFactory factory = new DefaultSslContextFactory()
 
         HttpSettings settings = DefaultHttpSettings.builder()
@@ -90,14 +301,28 @@ class HttpClientHelperSSLTest extends Specification {
             .build()
 
         client = new HttpClientHelper(new DocumentationRegistry(), settings)
+    }
 
-        server.configure(keyStore)
+    private def performRequest(boolean expectSuccess = true, boolean needClientAuth = false) {
+        createClient()
+
+        server.configure(keyStore, needClientAuth)
         server.start()
         if (expectSuccess) {
-            server.expect('/test')
+            server.expect("/test")
         }
 
         client.performGet("${server.getUri()}/test", false)
+    }
+
+    private def performAuthenticatedRequest(boolean expectSuccess = true) {
+        performRequest(expectSuccess, true)
+    }
+
+    private def performExternalRequest() {
+        createClient()
+
+        client.performGet("https://gradle.org", false)
     }
 
 }
