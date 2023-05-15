@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.Striped;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.DefaultBuildCacheKey;
+import org.gradle.caching.local.internal.mvstore.MVStoreStreamStore.GBlobMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -27,6 +28,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.ByteArrayDataType;
 
@@ -34,6 +36,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
@@ -50,44 +53,50 @@ public class MVStoreLruStreamMap {
 
     private static final int MINIMUM_LOCKS = 512;
     private final Striped<Lock> locks;
-    private final MVMap<ValueWithTimestamp, byte[]> lruBuildCacheKeyToDataReference;
-    private final MVMap<byte[], ValueWithTimestamp> buildCacheKeyToDataReference;
-    private final MVMap<byte[], byte[]> dataIndexToBuildCacheKey;
-    private final StreamStore data;
+    private final MVMap<ValueWithTimestamp, byte[]> lruBuildCacheKeyToBlobId;
+    private final MVMap<byte[], GBlobMetadata> buildCacheKeyToBlobMetadata;
+    private final StreamStore streamStore;
 
     public MVStoreLruStreamMap(MVStore mvStore, int maxConcurrency) {
-        this.lruBuildCacheKeyToDataReference = mvStore.openMap("lruBuildCacheKeyToDataReference", new MVMap.Builder<ValueWithTimestamp, byte[]>()
+        this.lruBuildCacheKeyToBlobId = mvStore.openMap("lruBuildCacheKeyToDataReference", new MVMap.Builder<ValueWithTimestamp, byte[]>()
             .keyType(ValueWithTimestampType.INSTANCE)
             .valueType(ByteArrayDataType.INSTANCE)
         );
-        this.buildCacheKeyToDataReference = mvStore.openMap("buildCacheKeyToDataReference", new MVMap.Builder<byte[], ValueWithTimestamp>()
+        this.buildCacheKeyToBlobMetadata = mvStore.openMap("buildCacheKeyToDataReference", new MVMap.Builder<byte[], ValueWithTimestamp>()
             .keyType(ComparableByteArray.INSTANCE)
             .valueType(ValueWithTimestampType.INSTANCE)
         );
-        this.data = new StreamStore(mvStore.openMap("data"));
-        this.dataIndexToBuildCacheKey = mvStore.openMap("dataIndexToBuildCacheKey");
+        streamStore = getStreamStore(mvStore);
         int maxConcurrencyTimesTwo = (Integer.MAX_VALUE / 2) <= maxConcurrency ? Integer.MAX_VALUE : (maxConcurrency * 2);
         this.locks = Striped.lazyWeakLock(Math.max(maxConcurrencyTimesTwo, MINIMUM_LOCKS));
     }
 
+    private static StreamStore getStreamStore(MVStore mvStore) {
+        MVMap<Long, byte[]> map = mvStore.openMap("data");
+        StreamStore streamStore = new StreamStore(map);
+        if (map.lastKey() != null) {
+            // Don't use already used keys
+            streamStore.setNextKey(map.lastKey() + 1);
+        }
+        return streamStore;
+    }
+
     public void putIfAbsent(BuildCacheKey key, Supplier<InputStream> inputStreamSupplier) {
         byte[] keyAsBytes = key.toByteArray();
-        if (buildCacheKeyToDataReference.containsKey(keyAsBytes)) {
+        if (buildCacheKeyToBlobMetadata.containsKey(keyAsBytes)) {
             return;
         }
-        lockAndRun(key, () -> buildCacheKeyToDataReference.computeIfAbsent(keyAsBytes, k -> {
-            byte[] id = null;
+        lockAndRun(key, () -> buildCacheKeyToBlobMetadata.computeIfAbsent(keyAsBytes, k -> {
+            byte[] blobId = null;
             try (InputStream input = inputStreamSupplier.get()) {
-                id = data.put(input);
-                dataIndexToBuildCacheKey.put(id, keyAsBytes);
                 long timestamp = System.currentTimeMillis();
-                lruBuildCacheKeyToDataReference.put(new ValueWithTimestamp(timestamp, keyAsBytes), id);
-                return new ValueWithTimestamp(timestamp, id);
+                blobId = streamStore.put(input);
+                lruBuildCacheKeyToBlobId.put(new ValueWithTimestamp(timestamp, keyAsBytes), blobId);
+                return blobId;
             } catch (IOException | MVStoreException e) {
-                if (id != null) {
+                if (blobId != null) {
                     // If lruKeyToIndex.put throws exception, remove data entry
-                    data.remove(id);
-                    dataIndexToBuildCacheKey.remove(id);
+                    streamStore.remove(blobId);
                 }
                 throw new BuildCacheException("storing " + key, e);
             }
@@ -95,17 +104,17 @@ public class MVStoreLruStreamMap {
     }
 
     public boolean containsKey(BuildCacheKey key) {
-        return buildCacheKeyToDataReference.containsKey(key.toByteArray());
+        return buildCacheKeyToBlobMetadata.containsKey(key.toByteArray());
     }
 
     @Nullable
     public InputStream get(BuildCacheKey key) {
         byte[] keyAsBytes = key.toByteArray();
-        ValueWithTimestamp dataReference = buildCacheKeyToDataReference.get(keyAsBytes);
+        GBlobMetadata dataReference = buildCacheKeyToBlobMetadata.get(keyAsBytes);
         if (dataReference == null) {
             return null;
         }
-        InputStream inputStream = data.get(dataReference.get());
+        InputStream inputStream = streamStore.get(dataReference.get());
         if (inputStream == null) {
             return null;
         }
@@ -123,71 +132,55 @@ public class MVStoreLruStreamMap {
      */
     private void tryUpdateTimestamp(BuildCacheKey key, byte[] keyAsBytes) {
         tryLockAndRun(key, () -> {
-            ValueWithTimestamp dataReference = buildCacheKeyToDataReference.get(keyAsBytes);
+            ValueWithTimestamp dataReference = buildCacheKeyToBlobMetadata.get(keyAsBytes);
             if (dataReference == null) {
                 // If deletion happened just before lock was acquired
                 return;
             }
             long currentTimestamp = System.currentTimeMillis();
-            lruBuildCacheKeyToDataReference.put(new ValueWithTimestamp(currentTimestamp, keyAsBytes), dataReference.get());
-            buildCacheKeyToDataReference.put(keyAsBytes, new ValueWithTimestamp(currentTimestamp, dataReference.get()));
+            lruBuildCacheKeyToBlobId.put(new ValueWithTimestamp(currentTimestamp, keyAsBytes), dataReference.get());
+            buildCacheKeyToBlobMetadata.put(keyAsBytes, new ValueWithTimestamp(currentTimestamp, dataReference.get()));
             // Since we do a cleanup by LRU order, delete previous LRU map entry last
-            lruBuildCacheKeyToDataReference.remove(new ValueWithTimestamp(dataReference.getTimestamp(), keyAsBytes));
+            lruBuildCacheKeyToBlobId.remove(new ValueWithTimestamp(dataReference.getTimestamp(), keyAsBytes));
         });
     }
 
     public void delete(BuildCacheKey key) {
         byte[] keyAsBytes = key.toByteArray();
-        if (!buildCacheKeyToDataReference.containsKey(keyAsBytes)) {
+        if (!buildCacheKeyToBlobMetadata.containsKey(keyAsBytes)) {
             return;
         }
         lockAndRun(key, () -> {
-            ValueWithTimestamp dataReference = buildCacheKeyToDataReference.get(keyAsBytes);
-            if (dataReference == null) {
+            GBlobMetadata blobMetadata = buildCacheKeyToBlobMetadata.get(keyAsBytes);
+            if (blobMetadata == null) {
                 // If deletion happened just before lock was acquired
                 return;
             }
             // Remove key to data index first, so that contains works always properly, even if delete operations after fails
-            buildCacheKeyToDataReference.remove(keyAsBytes);
-            data.remove(dataReference.get());
-            dataIndexToBuildCacheKey.remove(dataReference.get());
+            buildCacheKeyToBlobMetadata.remove(keyAsBytes);
+            streamStore.removeIfMatches(keyAsBytes, blobMetadata.getBlobId());
             // Remove LRU entry last, so data can be cleaned up even if keyToDataIndex doesn't exist anymore
-            lruBuildCacheKeyToDataReference.remove(new ValueWithTimestamp(dataReference.getTimestamp(), keyAsBytes));
+            lruBuildCacheKeyToBlobId.remove(new ValueWithTimestamp(blobMetadata.getTimestamp(), keyAsBytes));
         });
     }
 
     public void cleanup(long removeUnusedEntriesOlderThan) {
-        Iterator<ValueWithTimestamp> iterator = lruBuildCacheKeyToDataReference.keyIterator(null);
+        Iterator<ValueWithTimestamp> iterator = lruBuildCacheKeyToBlobId.keyIterator(null);
         while (iterator.hasNext()) {
             ValueWithTimestamp buildCacheKey = iterator.next();
             if (buildCacheKey.getTimestamp() > removeUnusedEntriesOlderThan) {
                 break;
             }
             lockAndRun(new DefaultBuildCacheKey(HashCode.fromBytes(buildCacheKey.get())), () -> {
-                ValueWithTimestamp dataReference = buildCacheKeyToDataReference.get(buildCacheKey.get());
-                byte[] dataIndex = lruBuildCacheKeyToDataReference.get(buildCacheKey);
-                if (dataReference != null && buildCacheKey.getTimestamp() == dataReference.getTimestamp()) {
-                    buildCacheKeyToDataReference.remove(buildCacheKey.get());
-                    data.remove(dataReference.get());
-                    dataIndexToBuildCacheKey.remove(dataReference.get());
-                    lruBuildCacheKeyToDataReference.remove(buildCacheKey);
-                } else if (dataIndex != null) {
-                    // Handle corner cases that can happen if some delete or put was interrupted for some reason
-                    byte[] dataBuildCacheKey = dataIndexToBuildCacheKey.get(dataIndex);
-                    if (dataReference == null) {
-                        // Case when buildCacheKeyToDataReference was cleaned, but data wasn't
-                        if (dataBuildCacheKey != null && HashCode.compareBytes(buildCacheKey.get(), dataBuildCacheKey) == 0) {
-                            data.remove(buildCacheKey.get());
-                            dataIndexToBuildCacheKey.remove(dataIndex);
-                            lruBuildCacheKeyToDataReference.remove(buildCacheKey);
-                        }
-                    } else if (buildCacheKey.getTimestamp() < dataReference.getTimestamp()) {
-                        if (HashCode.compareBytes(dataIndex, dataReference.get()) != 0) {
-                            data.remove(buildCacheKey.get());
-                            dataIndexToBuildCacheKey.remove(dataIndex);
-                            lruBuildCacheKeyToDataReference.remove(buildCacheKey);
-                        }
-                    }
+                GBlobMetadata blobMetadata = buildCacheKeyToBlobMetadata.get(buildCacheKey.get());
+                byte[] blobId = lruBuildCacheKeyToBlobId.get(buildCacheKey);
+                if (blobMetadata != null && buildCacheKey.getTimestamp() == blobMetadata.getTimestamp()) {
+                    buildCacheKeyToBlobMetadata.remove(buildCacheKey.get());
+                    streamStore.removeIfMatches(buildCacheKey.get(), blobId);
+                    lruBuildCacheKeyToBlobId.remove(buildCacheKey);
+                } else if (blobMetadata == null || buildCacheKey.getTimestamp() != blobMetadata.getTimestamp() && !Arrays.equals(blobId, blobMetadata.getBlobId())) {
+                    streamStore.removeIfMatches(buildCacheKey.get(), blobId);
+                    lruBuildCacheKeyToBlobId.remove(buildCacheKey);
                 }
             });
         }
