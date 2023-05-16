@@ -16,8 +16,11 @@
 
 package gradlebuild.kotlindsl.codegen
 
+import org.gradle.api.Incubating
+import org.gradle.api.file.RelativePath
 import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.kotlin.dsl.internal.shared.codegen.generateKotlinDslApiExtensionsSourceTo
+import org.objectweb.asm.Type
 import java.io.File
 
 
@@ -35,7 +38,11 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Colle
         "GradleApiKotlinDslExtensions",
         gradleApiJars,
         gradleJars - gradleApiJars.toSet(),
-        gradleApiMetadata.spec,
+        { sourceName ->
+            val relativeSourcePath = relativeSourcePathOf(sourceName)
+            gradleApiMetadata.spec.test(relativeSourcePath.segments, relativeSourcePath.isFile)
+        },
+        Type.getDescriptor(Incubating::class.java),
         gradleApiMetadata.parameterNamesSupplier
     )
 }
@@ -44,3 +51,8 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Colle
 private
 fun gradleApiJarsFrom(gradleJars: Collection<File>) =
     gradleJars.filter { it.name.startsWith("gradle-") && !it.name.contains("gradle-kotlin-") }
+
+
+private
+fun relativeSourcePathOf(sourceName: String) =
+    RelativePath.parse(true, sourceName.replace(".", File.separator))

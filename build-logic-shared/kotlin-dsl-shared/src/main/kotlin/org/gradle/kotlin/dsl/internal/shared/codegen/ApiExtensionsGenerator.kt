@@ -17,13 +17,13 @@
 package org.gradle.kotlin.dsl.internal.shared.codegen
 
 
-import org.gradle.api.Incubating
-import org.gradle.api.file.RelativePath
-import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
-import org.objectweb.asm.Type
 import java.io.File
 
+
+fun interface ApiSpec {
+    fun isApi(sourceName: String): Boolean
+}
 
 /**
  * Generate source file with Kotlin extensions enhancing the given api for the Gradle Kotlin DSL.
@@ -45,15 +45,15 @@ fun generateKotlinDslApiExtensionsSourceTo(
     sourceFilesBaseName: String,
     classPath: List<File>,
     classPathDependencies: List<File>,
-    apiSpec: PatternMatcher,
+    apiSpec: ApiSpec,
+    incubatingAnnotationTypeDescriptor: String,
     parameterNamesSupplier: ParameterNamesSupplier
 ): List<File> =
-
     apiTypeProviderFor(
         asmLevel,
         classPath,
         classPathDependencies,
-        Type.getDescriptor(Incubating::class.java),
+        incubatingAnnotationTypeDescriptor,
         parameterNamesSupplier
     ).use { api ->
 
@@ -102,21 +102,15 @@ fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<Ko
 private
 fun kotlinDslApiExtensionsDeclarationsFor(
     api: ApiTypeProvider,
-    apiSpec: PatternMatcher
+    apiSpec: ApiSpec
 ): Sequence<KotlinExtensionFunction> =
 
     api.allTypes()
         .filter { type ->
-            val relativeSourcePath = relativeSourcePathOf(type)
-            type.isPublic && apiSpec.test(relativeSourcePath.segments, relativeSourcePath.isFile)
+            type.isPublic && apiSpec.isApi(type.sourceName)
         }
         .flatMap { type -> kotlinExtensionFunctionsFor(type) }
         .distinctBy(::signatureKey)
-
-
-private
-fun relativeSourcePathOf(type: ApiType) =
-    RelativePath.parse(true, type.sourceName.replace(".", File.separator))
 
 
 private

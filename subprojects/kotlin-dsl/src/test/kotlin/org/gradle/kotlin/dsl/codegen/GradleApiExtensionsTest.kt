@@ -21,7 +21,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import org.gradle.api.internal.file.pattern.PatternMatcher
+import org.gradle.api.Incubating
 import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
@@ -36,6 +36,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.objectweb.asm.Type
 import org.slf4j.Logger
 import java.io.File
 import java.util.Properties
@@ -301,7 +302,8 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             "SourceBaseName",
             apiJars,
             emptyList(),
-            PatternMatcher.MATCH_ALL,
+            { true },
+            Type.getDescriptor(Incubating::class.java),
             fixtureParameterNamesSupplier
         )
 
