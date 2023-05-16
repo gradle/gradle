@@ -226,6 +226,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             return Providers.notDefined();
         }
 
+        // TODO: This breaks the provider chain.
         return new DefaultProviderWithValue<>(() ->
             compileTasks.stream()
                 .map(task -> getMajorVersion(task.get()))

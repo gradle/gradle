@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.DefaultProviderWithValue;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -189,7 +190,11 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             })
             .map(value -> objectFactory.named(LibraryElements.class, value));
 
-        compileClasspath.getAttributes().attributeProvider(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, libraryElements);
+        compileClasspath.getAttributes().attributeProvider(
+            LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+            // TODO: This breaks the provider chain.
+            new DefaultProviderWithValue<>(libraryElements::get)
+        );
     }
 
     private void configureTargetPlatform(TaskProvider<JavaCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
