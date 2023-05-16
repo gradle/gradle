@@ -19,4 +19,6 @@ dependencies {
     implementation(project(":testing-jvm-infrastructure"))
 
     implementation(libs.junitPlatform)
+
+    testImplementation(libs.openTest4j)
 }

@@ -124,7 +124,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         resultProcessor.failure(getId(testIdentifier), testFailure);
     }
 
-    private static TestFailure createFailure(Throwable failure) {
+    static TestFailure createFailure(Throwable failure) {
         // According to https://ota4j-team.github.io/opentest4j/docs/current/api/overview-tree.html, JUnit assertion failures can be expressed with the following exceptions:
         // - java.lang.AssertionError: general assertion errors, i.e. test code contains assert statements
         // - org.opentest4j.AssertionFailedError: when an assertEquals fails

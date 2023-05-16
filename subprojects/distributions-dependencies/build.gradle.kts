@@ -180,6 +180,7 @@ dependencies {
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
+        api(libs.openTest4j)            { version { strictly("1.2.0") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
