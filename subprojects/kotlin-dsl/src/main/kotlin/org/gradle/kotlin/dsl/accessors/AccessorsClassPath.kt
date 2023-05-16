@@ -43,6 +43,7 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.internal.shared.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.shared.codegen.kotlinDslPackageName
+import org.gradle.kotlin.dsl.internal.shared.codegen.primitiveKotlinTypeNames
 import org.gradle.kotlin.dsl.internal.shared.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.internal.shared.support.useToRun

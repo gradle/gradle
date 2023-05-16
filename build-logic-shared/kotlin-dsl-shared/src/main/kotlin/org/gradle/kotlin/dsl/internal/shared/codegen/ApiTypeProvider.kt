@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.internal.shared.codegen
 
 import org.gradle.kotlin.dsl.internal.shared.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.internal.shared.support.primitiveTypeStrings
 import org.gradle.kotlin.dsl.internal.shared.support.unsafeLazy
 import java.io.Closeable
 import java.io.File
