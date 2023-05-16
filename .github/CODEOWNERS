@@ -6,11 +6,11 @@ subprojects/build-cache-base/               @gradle/bt-execution
 subprojects/build-cache-http/               @gradle/bt-execution
 subprojects/build-cache-packaging/          @gradle/bt-execution
 subprojects/build-operations/               @gradle/bt-execution
+subprojects/build-profile/                  @gradle/bt-execution
 subprojects/execution/                      @gradle/bt-execution
 subprojects/file-watching/                  @gradle/bt-execution
 subprojects/files/                          @gradle/bt-execution
 subprojects/hashing/                        @gradle/bt-execution
-subprojects/normalization-java/             @gradle/bt-execution
 subprojects/snapshots/                      @gradle/bt-execution
 
 # Configuration cache
