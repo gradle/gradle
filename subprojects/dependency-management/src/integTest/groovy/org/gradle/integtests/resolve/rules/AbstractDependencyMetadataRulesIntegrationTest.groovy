@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 
 import static org.gradle.util.internal.GUtil.toCamelCase
 
-class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
+abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     @Override
     String getTestConfiguration() { variantToTest }
 

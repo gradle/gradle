@@ -48,12 +48,12 @@ public class SerializableLambdas {
         return transformer;
     }
 
-    public static <R, T, U> SerializableBiFunction<R, T, U> combiner(SerializableBiFunction<R, T, U> combiner) {
-        return combiner;
-    }
-
     public static <T> Callable<T> callable(SerializableCallable<T> callable) {
         return callable;
+    }
+
+    public static <T, U, R> BiFunction<T, U, R> bifunction(SerializableBiFunction<T, U, R> f) {
+        return f;
     }
 
     /**
@@ -83,7 +83,7 @@ public class SerializableLambdas {
     /**
      * A {@link Serializable} version of {@link BiFunction}.
      */
-    public interface SerializableBiFunction<R, T, U> extends BiFunction<T, U, R>, Serializable {
+    public interface SerializableBiFunction<T, U, R> extends BiFunction<T, U, R>, Serializable {
     }
 
     /**

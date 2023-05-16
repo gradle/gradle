@@ -22,6 +22,7 @@ import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
+import org.gradle.caching.internal.StatefulNextGenBuildCacheService;
 import org.h2.Driver;
 
 import java.io.IOException;
@@ -33,15 +34,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class H2BuildCacheService implements NextGenBuildCacheService {
+public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNextGenBuildCacheService {
 
-    private final HikariDataSource dataSource;
+    private HikariDataSource dataSource;
+    private final Path dbPath;
+    private final int maxPoolSize;
 
     public H2BuildCacheService(Path dbPath, int maxPoolSize) {
-        this.dataSource = createHikariDataSource(dbPath, maxPoolSize);
+        this.dbPath = dbPath;
+        this.maxPoolSize = maxPoolSize;
     }
 
-    private static HikariDataSource createHikariDataSource(Path dbPath, int maxPoolSize) {
+    @Override
+    public void open() {
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
         // We use MODE=MySQL so we can use INSERT IGNORE
@@ -54,7 +59,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService {
         hikariConfig.setPoolName("filestore-pool");
         hikariConfig.setMaximumPoolSize(maxPoolSize);
         hikariConfig.setConnectionInitSql("select 1;");
-        return new HikariDataSource(hikariConfig);
+        this.dataSource = new HikariDataSource(hikariConfig);
     }
 
     @Override
@@ -109,7 +114,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         dataSource.close();
     }
 }

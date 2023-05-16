@@ -51,6 +51,7 @@ import org.gradle.api.attributes.CompatibilityRuleChain
 import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
@@ -82,6 +83,7 @@ import org.gradle.api.internal.attributes.DefaultCompatibilityRuleChain
 import org.gradle.api.internal.attributes.DefaultDisambiguationRuleChain
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSet
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.internal.tasks.DefaultTaskContainer
@@ -95,6 +97,7 @@ import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler.Script
 import org.gradle.initialization.DefaultSettings
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
+import spock.lang.Shared
 
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
@@ -103,6 +106,9 @@ import java.util.concurrent.ThreadFactory
 
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Shared
+    private def disallowedServiceTypesAtExecution = [Project, ProjectInternal, Gradle, GradleInternal]
 
     def "reports in task when injected service of #serviceType accessed at execution time"() {
         given:
@@ -133,7 +139,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         }
 
         where:
-        serviceType << [Project, Gradle]
+        serviceType << disallowedServiceTypesAtExecution
     }
 
     def "reports in plugin when service of #serviceType accessed at execution time"() {
@@ -172,7 +178,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         }
 
         where:
-        serviceType << [Project, Gradle]
+        serviceType << disallowedServiceTypesAtExecution
     }
 
 

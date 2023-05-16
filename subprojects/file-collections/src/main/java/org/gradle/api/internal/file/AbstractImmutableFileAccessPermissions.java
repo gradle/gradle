@@ -31,8 +31,8 @@ public abstract class AbstractImmutableFileAccessPermissions implements Immutabl
         boolean hasTaskDependencies = user.hasTaskDependencies() || group.hasTaskDependencies() || other.hasTaskDependencies();
         if (hasTaskDependencies) {
             return user.toUnixNumeric().map(SerializableLambdas.transformer(u -> 64 * u))
-                .zip(group.toUnixNumeric().map(SerializableLambdas.transformer(g -> 8 * g)), SerializableLambdas.combiner(Integer::sum))
-                .zip(other.toUnixNumeric(), SerializableLambdas.combiner(Integer::sum));
+                .zip(group.toUnixNumeric().map(SerializableLambdas.transformer(g -> 8 * g)), SerializableLambdas.bifunction(Integer::sum))
+                .zip(other.toUnixNumeric(), SerializableLambdas.bifunction(Integer::sum));
         } else {
             return Providers.of(64 * user.toUnixNumeric().get() + 8 * group.toUnixNumeric().get() + other.toUnixNumeric().get());
         }
