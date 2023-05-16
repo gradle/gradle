@@ -16,18 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform
 
-import org.gradle.api.tasks.testing.TestFailureDetails
+
 import org.opentest4j.AssertionFailedError
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestExecutionListener.createFailure
 
-
 class JUnitPlatformTestExecutionListenerSpec extends Specification {
     def "create failure with Strings"() {
         when:
         def failure = createFailure(new AssertionFailedError("foo", "expected", "actual"))
-
 
         then:
         def details = failure.details

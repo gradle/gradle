@@ -779,7 +779,7 @@
   {
     "dirName": "testing-junit-platform",
     "name": "testing-junit-platform",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

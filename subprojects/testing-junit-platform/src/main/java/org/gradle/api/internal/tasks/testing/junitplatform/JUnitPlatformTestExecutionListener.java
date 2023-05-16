@@ -37,7 +37,6 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -45,8 +44,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
 import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
@@ -133,28 +133,55 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         // Also, openTest4j classes are not on the worker compile classpath so we need to resort to using reflection.
         if (failure instanceof AssertionError) {
             List<Throwable> causes = getFailureListFromMultipleFailuresError(failure);
-            List<TestFailure> causeFailures = causes == null ? Collections.emptyList() : causes.stream().map(f -> createFailure(f)).collect(Collectors.toList());
-            String expected = reflectivelyReadExpected(failure);
-            String actual = reflectivelyReadActual(failure);
+            List<TestFailure> causeFailures = causes == null ? emptyList() :
+                causes.stream()
+                    .map(JUnitPlatformTestExecutionListener::createFailure)
+                    .collect(toList());
+
+            Object expectedValue = invoke(failure, "getExpected");
+//            if(expectedValue != null && isDerivedFrom(expectedValue.getClass(), "org.opentest4j.FileInfo")) {
+//                expectedValue = reflectivelyReadExpected(failure);
+//            }
+            String expected = getStringRepresentation(failure, expectedValue);
+            Object actualValue = invoke(failure, "getActual");
+            String actual = getStringRepresentation(failure, actualValue);
+
             return TestFailure.fromTestAssertionFailure(failure, expected, actual, causeFailures);
         } else {
             return TestFailure.fromTestFrameworkFailure(failure);
         }
     }
 
-    private static String reflectivelyReadExpected(Throwable failure) {
+    static String reflectivelyReadExpected(Throwable failure) {
         return reflectivelyRead(failure, "getExpected");
     }
 
-    private static String reflectivelyReadActual(Throwable failure) {
+    static String reflectivelyReadActual(Throwable failure) {
         return reflectivelyRead(failure, "getActual");
     }
 
-    private static String reflectivelyRead(Object target, String methodName) {
-        String toStringMethod = isAssertionFailedErrorOrSubclass(target.getClass()) ? "getStringRepresentation" : "toString";
+    static String reflectivelyRead(Object target, String methodName) {
+        Object value = invoke(target, methodName);
+        return getStringRepresentation(target, value);
+    }
+
+    static Object invoke(Object target, String methodName) {
         try {
-            Object value = target.getClass().getMethod(methodName).invoke(target);
-            return value == null ? null : (String) value.getClass().getMethod(toStringMethod).invoke(value);
+            return target.getClass().getMethod(methodName).invoke(target);
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
+    static String getStringRepresentation(Object target, Object value) {
+        try {
+            if (value == null) {
+                return null;
+            }
+            if(isAssertionFailedErrorOrSubclass(target.getClass())){
+                return (String) value.getClass().getMethod("getStringRepresentation").invoke(value);
+            }
+            return value.toString();
         } catch (Exception ignore) {
             return null;
         }
@@ -181,10 +208,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     // if not multiple failures or reflection fails then return null;
 
     private static boolean isAssertionFailedErrorOrSubclass(Class<?> cls) {
-        if (cls.getCanonicalName().equals("org.opentest4j.AssertionFailedError")) {
+        return isDerivedFrom(cls, "org.opentest4j.AssertionFailedError");
+    }
+
+    private static boolean isDerivedFrom(Class<?> cls, String clazzName) {
+        if (cls.getCanonicalName().equals(clazzName)) {
             return true;
         } else if (cls.getSuperclass() != null) {
-            return isAssertionFailedErrorOrSubclass(cls.getSuperclass());
+            return isDerivedFrom(cls.getSuperclass(), clazzName);
         } else {
             return false;
         }
@@ -235,7 +266,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private boolean wasStarted(TestIdentifier testIdentifier) {
         return descriptorsByUniqueId.containsKey(testIdentifier.getUniqueId());
-}
+    }
 
     private boolean createDescriptorIfAbsent(TestIdentifier node) {
         MutableBoolean wasCreated = new MutableBoolean(false);
@@ -317,7 +348,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return hasClassSource(testIdentifier) && hasDifferentSourceThanAncestor(testIdentifier);
     }
 
-    private String className(TestIdentifier testClassIdentifier) {
+    private static String className(TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             Optional<ClassSource> classSource = getClassSource(testClassIdentifier);
             if (classSource.isPresent()) {
@@ -327,7 +358,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return JUnitSupport.UNKNOWN_CLASS;
     }
 
-    private String classDisplayName(TestIdentifier testClassIdentifier) {
+    private static String classDisplayName(TestIdentifier testClassIdentifier) {
         if (testClassIdentifier != null) {
             return testClassIdentifier.getDisplayName();
         }
