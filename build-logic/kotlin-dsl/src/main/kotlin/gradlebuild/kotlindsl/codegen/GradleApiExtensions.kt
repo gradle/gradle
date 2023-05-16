@@ -16,6 +16,7 @@
 
 package gradlebuild.kotlindsl.codegen
 
+import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.kotlin.dsl.internal.shared.codegen.generateKotlinDslApiExtensionsSourceTo
 import java.io.File
 
@@ -29,6 +30,7 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Colle
 
     return generateKotlinDslApiExtensionsSourceTo(
         outputDirectory,
+        AsmConstants.ASM_LEVEL,
         "org.gradle.kotlin.dsl",
         "GradleApiKotlinDslExtensions",
         gradleApiJars,

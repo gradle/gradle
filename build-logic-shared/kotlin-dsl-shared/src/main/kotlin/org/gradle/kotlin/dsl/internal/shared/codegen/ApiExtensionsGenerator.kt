@@ -20,7 +20,6 @@ package org.gradle.kotlin.dsl.internal.shared.codegen
 import org.gradle.api.Incubating
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.pattern.PatternMatcher
-import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
 import org.objectweb.asm.Type
 import java.io.File
@@ -41,6 +40,7 @@ import java.io.File
  */
 fun generateKotlinDslApiExtensionsSourceTo(
     outputDirectory: File,
+    asmLevel: Int,
     packageName: String,
     sourceFilesBaseName: String,
     classPath: List<File>,
@@ -50,7 +50,7 @@ fun generateKotlinDslApiExtensionsSourceTo(
 ): List<File> =
 
     apiTypeProviderFor(
-        AsmConstants.ASM_LEVEL,
+        asmLevel,
         classPath,
         classPathDependencies,
         Type.getDescriptor(Incubating::class.java),

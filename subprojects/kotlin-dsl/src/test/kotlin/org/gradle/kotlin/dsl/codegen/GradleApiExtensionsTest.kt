@@ -22,6 +22,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import org.gradle.api.internal.file.pattern.PatternMatcher
+import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
@@ -295,6 +296,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
         generatedSourceFiles = generateKotlinDslApiExtensionsSourceTo(
             file("src").also { it.mkdirs() },
+            AsmConstants.ASM_LEVEL,
             "org.gradle.kotlin.dsl",
             "SourceBaseName",
             apiJars,
