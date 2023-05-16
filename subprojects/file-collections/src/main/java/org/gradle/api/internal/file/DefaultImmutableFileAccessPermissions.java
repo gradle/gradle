@@ -16,34 +16,34 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.ImmutableFileAccessPermission;
+import org.gradle.api.file.ImmutableUserClassFilePermissions;
 
 public class DefaultImmutableFileAccessPermissions extends AbstractImmutableFileAccessPermissions {
 
-    private final ImmutableFileAccessPermission user;
+    private final ImmutableUserClassFilePermissions user;
 
-    private final ImmutableFileAccessPermission group;
+    private final ImmutableUserClassFilePermissions group;
 
-    private final ImmutableFileAccessPermission other;
+    private final ImmutableUserClassFilePermissions other;
 
     public DefaultImmutableFileAccessPermissions(int unixNumeric) {
-        user = new DefaultImmutableFileAccessPermission(getUserPartOf(unixNumeric));
-        group = new DefaultImmutableFileAccessPermission(getGroupPartOf(unixNumeric));
-        other = new DefaultImmutableFileAccessPermission(getOtherPartOf(unixNumeric));
+        user = new DefaultImmutableUserClassFilePermissions(getUserPartOf(unixNumeric));
+        group = new DefaultImmutableUserClassFilePermissions(getGroupPartOf(unixNumeric));
+        other = new DefaultImmutableUserClassFilePermissions(getOtherPartOf(unixNumeric));
     }
 
     @Override
-    public ImmutableFileAccessPermission getUser() {
+    public ImmutableUserClassFilePermissions getUser() {
         return user;
     }
 
     @Override
-    public ImmutableFileAccessPermission getGroup() {
+    public ImmutableUserClassFilePermissions getGroup() {
         return group;
     }
 
     @Override
-    public ImmutableFileAccessPermission getOther() {
+    public ImmutableUserClassFilePermissions getOther() {
         return other;
     }
 }

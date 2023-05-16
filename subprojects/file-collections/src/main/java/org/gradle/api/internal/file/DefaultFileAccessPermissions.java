@@ -18,7 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileAccessPermission;
+import org.gradle.api.file.UserClassFilePermissions;
 import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
@@ -35,46 +35,46 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
         return isDirectory ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
     }
 
-    private final FileAccessPermissionInternal user;
+    private final UserClassFilePermissionsInternal user;
 
-    private final FileAccessPermissionInternal group;
+    private final UserClassFilePermissionsInternal group;
 
-    private final FileAccessPermissionInternal other;
+    private final UserClassFilePermissionsInternal other;
 
     @Inject
     public DefaultFileAccessPermissions(ObjectFactory objectFactory, int unixNumeric) {
-        this.user = objectFactory.newInstance(DefaultFileAccessPermission.class, getUserPartOf(unixNumeric));
-        this.group = objectFactory.newInstance(DefaultFileAccessPermission.class, getGroupPartOf(unixNumeric));
-        this.other = objectFactory.newInstance(DefaultFileAccessPermission.class, getOtherPartOf(unixNumeric));
+        this.user = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getUserPartOf(unixNumeric));
+        this.group = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getGroupPartOf(unixNumeric));
+        this.other = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getOtherPartOf(unixNumeric));
     }
 
     @Override
-    public FileAccessPermission getUser() {
+    public UserClassFilePermissions getUser() {
         return user;
     }
 
     @Override
-    public void user(Action<? super FileAccessPermission> configureAction) {
+    public void user(Action<? super UserClassFilePermissions> configureAction) {
         configureAction.execute(user);
     }
 
     @Override
-    public FileAccessPermission getGroup() {
+    public UserClassFilePermissions getGroup() {
         return group;
     }
 
     @Override
-    public void group(Action<? super FileAccessPermission> configureAction) {
+    public void group(Action<? super UserClassFilePermissions> configureAction) {
         configureAction.execute(group);
     }
 
     @Override
-    public FileAccessPermission getOther() {
+    public UserClassFilePermissions getOther() {
         return other;
     }
 
     @Override
-    public void other(Action<? super FileAccessPermission> configureAction) {
+    public void other(Action<? super UserClassFilePermissions> configureAction) {
         configureAction.execute(other);
     }
 

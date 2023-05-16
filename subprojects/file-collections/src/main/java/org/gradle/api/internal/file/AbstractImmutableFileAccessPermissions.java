@@ -25,9 +25,9 @@ public abstract class AbstractImmutableFileAccessPermissions implements Immutabl
 
     @Override
     public Provider<Integer> toUnixNumeric() {
-        AbstractImmutableFileAccessPermission user = (AbstractImmutableFileAccessPermission) getUser();
-        AbstractImmutableFileAccessPermission group = (AbstractImmutableFileAccessPermission) getGroup();
-        AbstractImmutableFileAccessPermission other = (AbstractImmutableFileAccessPermission) getOther();
+        AbstractImmutableUserClassFilePermissions user = (AbstractImmutableUserClassFilePermissions) getUser();
+        AbstractImmutableUserClassFilePermissions group = (AbstractImmutableUserClassFilePermissions) getGroup();
+        AbstractImmutableUserClassFilePermissions other = (AbstractImmutableUserClassFilePermissions) getOther();
         boolean hasTaskDependencies = user.hasTaskDependencies() || group.hasTaskDependencies() || other.hasTaskDependencies();
         if (hasTaskDependencies) {
             return user.toUnixNumeric().map(SerializableLambdas.transformer(u -> 64 * u))

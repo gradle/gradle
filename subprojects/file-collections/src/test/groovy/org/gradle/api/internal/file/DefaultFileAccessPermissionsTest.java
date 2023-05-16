@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileAccessPermission;
+import org.gradle.api.file.UserClassFilePermissions;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
@@ -117,7 +117,7 @@ public class DefaultFileAccessPermissionsTest {
         return new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultUnixNumeric(isDirectory));
     }
 
-    private static void assertPermissions(FileAccessPermission permission, boolean read, boolean write, boolean execute) {
+    private static void assertPermissions(UserClassFilePermissions permission, boolean read, boolean write, boolean execute) {
         assertEquals("READ permission incorrect", read, permission.getRead().get());
         assertEquals("WRITE permission incorrect", write, permission.getWrite().get());
         assertEquals("EXECUTE permission incorrect", execute, permission.getExecute().get());

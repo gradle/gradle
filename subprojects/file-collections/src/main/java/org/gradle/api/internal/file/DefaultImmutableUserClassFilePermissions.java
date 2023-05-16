@@ -19,13 +19,13 @@ package org.gradle.api.internal.file;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
-public class DefaultImmutableFileAccessPermission extends AbstractImmutableFileAccessPermission {
+public class DefaultImmutableUserClassFilePermissions extends AbstractImmutableUserClassFilePermissions {
 
     private final Provider<Boolean> read;
     private final Provider<Boolean> write;
     private final Provider<Boolean> execute;
 
-    public DefaultImmutableFileAccessPermission(int unixNumeric) {
+    public DefaultImmutableUserClassFilePermissions(int unixNumeric) {
         read = Providers.of(isRead(unixNumeric));
         write = Providers.of(isWrite(unixNumeric));
         execute = Providers.of(isExecute(unixNumeric));

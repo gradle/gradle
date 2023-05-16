@@ -17,12 +17,12 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileAccessPermissions;
-import org.gradle.api.file.ImmutableFileAccessPermission;
+import org.gradle.api.file.ImmutableUserClassFilePermissions;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
-public abstract class AbstractImmutableFileAccessPermission implements ImmutableFileAccessPermission {
+public abstract class AbstractImmutableUserClassFilePermissions implements ImmutableUserClassFilePermissions {
 
     /**
      * Converts the user permission to a numeric Unix permission.

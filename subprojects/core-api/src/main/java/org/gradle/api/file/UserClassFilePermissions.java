@@ -21,7 +21,7 @@ import org.gradle.api.provider.Property;
 
 /**
  * Provides the means of specifying file and directory access permissions
- * for a certain group of users (see {@link FileAccessPermissions}).
+ * for a certain class of users (see {@link FileAccessPermissions}).
  * Permissions consist of:
  * <ul>
  *     <li>READ access: grants the capability to view the contents of a file, or to list the contents of a directory
@@ -33,7 +33,7 @@ import org.gradle.api.provider.Property;
  * @since 8.3
  */
 @Incubating
-public interface FileAccessPermission extends ImmutableFileAccessPermission {
+public interface UserClassFilePermissions extends ImmutableUserClassFilePermissions {
 
     @Override
     Property<Boolean> getRead();

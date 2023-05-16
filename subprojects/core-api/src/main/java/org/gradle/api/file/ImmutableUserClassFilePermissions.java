@@ -20,13 +20,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 /**
- * Describes file and directory access permissions for a certain user group.
- * Immutable version of {@link FileAccessPermission}.
+ * Describes file and directory access permissions for a certain class of users.
+ * Immutable version of {@link UserClassFilePermissions}.
  *
  * @since 8.3
  */
 @Incubating
-public interface ImmutableFileAccessPermission {
+public interface ImmutableUserClassFilePermissions {
 
     Provider<Boolean> getRead();
 

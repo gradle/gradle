@@ -24,14 +24,14 @@ import org.gradle.api.provider.Provider;
  * Provides the means of specifying file and directory access permissions.
  * Follows the style of Unix file permissions, based on the concept of file ownership.
  * <p>
- * Permissions are grouped into 3 distinct categories:
+ * Permissions are grouped into 3 distinct categories (representing different classes of users):
  * <ul>
  *     <li>OWNER (user) permissions: what actions the owner of the file can perform on the file/directory</li>
  *     <li>GROUP permissions: what actions a user, who is a member of the group that a file belongs to, can perform on the file/directory</li>
  *     <li>OTHER (world) permissions: what actions all other users (non-owner, non-group) can perform on the file/directory</li>
  * </ul>
  * <p>
- * For each category the permissions consist of:
+ * For each class of users the permissions consist of:
  * <ul>
  *     <li>READ access: grants the capability to view the contents of a file, or to list the contents of a directory
  *     <li>WRITE access: grants the capability to modify or remove the contents of a file, or to add or remove files to/from a directory</li>
@@ -51,19 +51,19 @@ import org.gradle.api.provider.Provider;
 public interface FileAccessPermissions extends ImmutableFileAccessPermissions {
 
     @Override
-    FileAccessPermission getUser();
+    UserClassFilePermissions getUser();
 
-    void user(Action<? super FileAccessPermission> configureAction);
-
-    @Override
-    FileAccessPermission getGroup();
-
-    void group(Action<? super FileAccessPermission> configureAction);
+    void user(Action<? super UserClassFilePermissions> configureAction);
 
     @Override
-    FileAccessPermission getOther();
+    UserClassFilePermissions getGroup();
 
-    void other(Action<? super FileAccessPermission> configureAction);
+    void group(Action<? super UserClassFilePermissions> configureAction);
+
+    @Override
+    UserClassFilePermissions getOther();
+
+    void other(Action<? super UserClassFilePermissions> configureAction);
 
     /**
      * Sets Unix style permissions. Accept values in two styles of notation:

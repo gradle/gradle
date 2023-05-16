@@ -28,10 +28,10 @@ import org.gradle.api.provider.Provider;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-public abstract class DefaultFileAccessPermission extends AbstractImmutableFileAccessPermission implements FileAccessPermissionInternal {
+public abstract class DefaultUserClassFilePermissions extends AbstractImmutableUserClassFilePermissions implements UserClassFilePermissionsInternal {
 
     @Inject
-    public DefaultFileAccessPermission(int unixNumeric) {
+    public DefaultUserClassFilePermissions(int unixNumeric) {
         getRead().value(isRead(unixNumeric)).finalizeValueOnRead();
         getWrite().value(isWrite(unixNumeric)).finalizeValueOnRead();
         getExecute().value(isExecute(unixNumeric)).finalizeValueOnRead();
@@ -54,16 +54,16 @@ public abstract class DefaultFileAccessPermission extends AbstractImmutableFileA
 
     @Override
     public void unix(String permission, int index) {
-        getRead().set(decode(permission, index, DefaultFileAccessPermission::isRead, DefaultFileAccessPermission::isRead));
-        getWrite().set(decode(permission, index, DefaultFileAccessPermission::isWrite, DefaultFileAccessPermission::isWrite));
-        getExecute().set(decode(permission, index, DefaultFileAccessPermission::isExecute, DefaultFileAccessPermission::isExecute));
+        getRead().set(decode(permission, index, DefaultUserClassFilePermissions::isRead, DefaultUserClassFilePermissions::isRead));
+        getWrite().set(decode(permission, index, DefaultUserClassFilePermissions::isWrite, DefaultUserClassFilePermissions::isWrite));
+        getExecute().set(decode(permission, index, DefaultUserClassFilePermissions::isExecute, DefaultUserClassFilePermissions::isExecute));
     }
 
     @Override
     public void unix(Provider<String> permission, int index) {
-        getRead().set(decode(permission, index, DefaultFileAccessPermission::isRead, DefaultFileAccessPermission::isRead));
-        getWrite().set(decode(permission, index, DefaultFileAccessPermission::isWrite, DefaultFileAccessPermission::isWrite));
-        getExecute().set(decode(permission, index, DefaultFileAccessPermission::isExecute, DefaultFileAccessPermission::isExecute));
+        getRead().set(decode(permission, index, DefaultUserClassFilePermissions::isRead, DefaultUserClassFilePermissions::isRead));
+        getWrite().set(decode(permission, index, DefaultUserClassFilePermissions::isWrite, DefaultUserClassFilePermissions::isWrite));
+        getExecute().set(decode(permission, index, DefaultUserClassFilePermissions::isExecute, DefaultUserClassFilePermissions::isExecute));
     }
 
     private static Provider<Boolean> decode(

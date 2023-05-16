@@ -29,11 +29,11 @@ import org.gradle.api.provider.Provider;
 @Incubating
 public interface ImmutableFileAccessPermissions {
 
-    ImmutableFileAccessPermission getUser();
+    ImmutableUserClassFilePermissions getUser();
 
-    ImmutableFileAccessPermission getGroup();
+    ImmutableUserClassFilePermissions getGroup();
 
-    ImmutableFileAccessPermission getOther();
+    ImmutableUserClassFilePermissions getOther();
 
     /**
      * Converts the permissions for the various user groups to a numeric Unix permission.
