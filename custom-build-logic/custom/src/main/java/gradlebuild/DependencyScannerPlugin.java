@@ -16,13 +16,21 @@
 
 package gradlebuild;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.TaskProvider;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
@@ -71,27 +79,27 @@ public abstract class DependencyScannerPlugin extends AbstractScannerPlugin {
         });
 
 
-//        TaskProvider<D3GraphWriterTask> d3 = project.getTasks().register("renderD3Json", D3GraphWriterTask.class, task -> {
-//            task.getAnalyzedClasspath().set(dependencyAnalysisClasspath);
-//        });
-//
-//        TaskProvider<Task> html = project.getTasks().register("generateD3Html", task -> {
-//
-//            Provider<RegularFile> outputFile = project.getLayout().getBuildDirectory().file("force-graph.html");
-//            task.getOutputs().file(outputFile);
-//
-//            task.dependsOn(d3.get());
-//
-//            task.doLast(t -> {
-//                try(InputStream input = DependencyScannerPlugin.class.getResource("force-graph.html").openStream()) {
-//                    try (OutputStream output = Files.newOutputStream(outputFile.get().getAsFile().toPath())) {
-//                        input.transferTo(output);
-//                    }
-//                } catch (IOException e) {
-//                    throw new GradleException("Failed to write HTML", e);
-//                }
-//            });
-//        });
+        TaskProvider<D3GraphWriterTask> d3 = project.getTasks().register("renderD3Json", D3GraphWriterTask.class, task -> {
+            task.getAnalyzedClasspath().set(dependencyAnalysisClasspath);
+        });
+
+        TaskProvider<Task> html = project.getTasks().register("generateD3Html", task -> {
+
+            Provider<RegularFile> outputFile = project.getLayout().getBuildDirectory().file("force-graph.html");
+            task.getOutputs().file(outputFile);
+
+            task.dependsOn(d3.get());
+
+            task.doLast(t -> {
+                try(InputStream input = DependencyScannerPlugin.class.getResource("force-graph.html").openStream()) {
+                    try (OutputStream output = Files.newOutputStream(outputFile.get().getAsFile().toPath())) {
+                        input.transferTo(output);
+                    }
+                } catch (IOException e) {
+                    throw new GradleException("Failed to write HTML", e);
+                }
+            });
+        });
 //
 //        setupDygraph(project, dependencyAnalysisClasspath);
     }
