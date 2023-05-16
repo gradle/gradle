@@ -26,7 +26,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginCollection
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.AbstractCopyTask
-import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.codegen.GenericsVariance
@@ -48,6 +48,9 @@ import org.objectweb.asm.Type
 
 class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
 
+    private
+    val incubatingTypeDesc = Type.getDescriptor(Incubating::class.java)
+
     @Test
     fun `provides a source code generation oriented model over a classpath`() {
 
@@ -60,7 +63,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
             )
         )
 
-        apiTypeProviderFor(asmLevel = AsmConstants.ASM_LEVEL, jars, incubatingAnnotationTypeDescriptor = Type.getDescriptor(Incubating::class.java)).use { api ->
+        apiTypeProviderFor(ASM_LEVEL, incubatingTypeDesc, jars).use { api ->
 
             assertThat(api.typeOrNull<Test>(), nullValue())
 
@@ -115,7 +118,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
 
         val jars = listOf(withClassJar("some.jar", ContentFilterable::class.java))
 
-        apiTypeProviderFor(asmLevel = AsmConstants.ASM_LEVEL, jars, incubatingAnnotationTypeDescriptor = Type.getDescriptor(Incubating::class.java)).use { api ->
+        apiTypeProviderFor(ASM_LEVEL, incubatingTypeDesc, jars).use { api ->
 
             api.type<ContentFilterable>().functions.single { it.name == "expand" && it.parameters.size == 1 }.apply {
                 assertTrue(typeParameters.isEmpty())
@@ -133,7 +136,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
     fun `includes function overrides that change signature, excludes overrides that don't`() {
         val jars = listOf(withClassJar("some.jar", AbstractCopyTask::class.java, CopySpecSource::class.java))
 
-        apiTypeProviderFor(asmLevel = AsmConstants.ASM_LEVEL, jars, incubatingAnnotationTypeDescriptor = Type.getDescriptor(Incubating::class.java)).use { api ->
+        apiTypeProviderFor(ASM_LEVEL, incubatingTypeDesc, jars).use { api ->
             val type = api.type<AbstractCopyTask>()
 
             assertThat(type.functions.filter { it.name == "filter" }.size, equalTo(4))
@@ -150,7 +153,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
 
         val jars = listOf(withClassJar("some.jar", GenericsVariance::class.java))
 
-        apiTypeProviderFor(asmLevel = AsmConstants.ASM_LEVEL, jars, incubatingAnnotationTypeDescriptor = Type.getDescriptor(Incubating::class.java)).use { api ->
+        apiTypeProviderFor(ASM_LEVEL, incubatingTypeDesc, jars).use { api ->
             api.type<GenericsVariance>().functions.forEach { function ->
                 when (function.name) {
                     "invariant" -> function.parameters.single().assertSingleTypeArgumentWithVariance(Variance.INVARIANT)
@@ -175,7 +178,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
             )
         )
 
-        apiTypeProviderFor(asmLevel = AsmConstants.ASM_LEVEL, jars, incubatingAnnotationTypeDescriptor = Type.getDescriptor(Incubating::class.java)).use { api ->
+        apiTypeProviderFor(ASM_LEVEL, incubatingTypeDesc, jars).use { api ->
 
             assertTrue(api.type<Action<*>>().isSAM)
             assertTrue(api.type<NamedDomainObjectFactory<*>>().isSAM)

@@ -51,9 +51,9 @@ fun generateKotlinDslApiExtensionsSourceTo(
 ): List<File> =
     apiTypeProviderFor(
         asmLevel,
+        incubatingAnnotationTypeDescriptor,
         classPath,
         classPathDependencies,
-        incubatingAnnotationTypeDescriptor,
         parameterNamesSupplier
     ).use { api ->
 

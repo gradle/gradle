@@ -44,9 +44,9 @@ import org.objectweb.asm.tree.MethodNode
 
 fun apiTypeProviderFor(
     asmLevel: Int,
+    incubatingAnnotationTypeDescriptor: String,
     classPath: List<File>,
     classPathDependencies: List<File> = emptyList(),
-    incubatingAnnotationTypeDescriptor: String,
     parameterNamesSupplier: ParameterNamesSupplier = { null }
 ): ApiTypeProvider =
 
