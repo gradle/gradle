@@ -76,8 +76,8 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         RepositoryTransport transport = getTransport(rootUri.getScheme());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), getResourcesFileStore());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, getInstantiatorFactory(), rootUri, getResourcesFileStore());
-        MavenResolver resolver = new MavenResolver(
-            getName(),
+        return new MavenResolver(
+            getDescriptor(),
             rootUri,
             transport,
             getLocallyAvailableResourceFinder(),
@@ -89,10 +89,6 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             null,
             injector,
             checksumService);
-        for (URI repoUrl : getArtifactUrls()) {
-            resolver.addArtifactLocation(repoUrl);
-        }
-        return resolver;
     }
 
     @Override

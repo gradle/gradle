@@ -17,9 +17,9 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-abstract class AbstractJUnitAbortedTestClassIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitAbortedTestClassIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
     // Note: there're some behavior changes in 4.13:
     // https://github.com/junit-team/junit4/issues/1066

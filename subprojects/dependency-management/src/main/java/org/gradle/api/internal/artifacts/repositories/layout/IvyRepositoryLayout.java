@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
+import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 
+import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.Set;
 
 /**
  * A Repository Layout that applies the following patterns:
@@ -30,24 +29,13 @@ import java.util.Set;
  * </ul>
  */
 public class IvyRepositoryLayout extends AbstractRepositoryLayout {
-
     @Override
-    public void apply(URI baseUri, PatternBasedResolver resolver) {
-        if (baseUri == null) {
-            return;
-        }
-
-        resolver.addArtifactLocation(baseUri, IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
-        resolver.addDescriptorLocation(baseUri, IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
-    }
-
-    @Override
-    public Set<String> getIvyPatterns() {
-        return ImmutableSet.of(IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
-    }
-
-    @Override
-    public Set<String> getArtifactPatterns() {
-        return ImmutableSet.of(IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
+    public void apply(@Nullable URI baseUri, IvyRepositoryDescriptor.Builder builder) {
+        builder.setLayoutType("Ivy");
+        builder.setM2Compatible(false);
+        builder.addIvyPattern(IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
+        builder.addIvyResource(baseUri, IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
+        builder.addArtifactPattern(IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
+        builder.addArtifactResource(baseUri, IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
     }
 }

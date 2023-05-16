@@ -55,6 +55,8 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 /**
  * Tests {@link DefaultLocalComponentMetadata}.
  *
@@ -76,6 +78,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     def configurationsProvider = Mock(ConfigurationsProvider) {
         size() >> { this.configurations.size() }
         getAll() >> { this.configurations.values() }
+        visitAll(_) >> { Consumer<ConfigurationInternal> visitor -> this.configurations.values().forEach {visitor.accept(it) } }
         findByName(_) >> { String name -> this.configurations.get(name) }
     }
 

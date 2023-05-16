@@ -28,6 +28,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
@@ -394,6 +395,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21368")
+    @IgnoreIf({GradleContextualExecuter.embedded})
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 

@@ -29,9 +29,9 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -87,7 +87,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testedComponent.orNull == project.application
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
+    @Requires(UnitTestPreconditions.MacOs)
     def "registers a test bundle for the test suite on macOS"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
@@ -107,7 +107,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testBinary.get() == binaries.first()
     }
 
-    @Requires(TestPrecondition.NOT_MAC_OS_X)
+    @Requires(UnitTestPreconditions.NotMacOs)
     def "registers a test executable for the test suite"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
@@ -127,7 +127,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testBinary.get() == binaries.first()
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
+    @Requires(UnitTestPreconditions.MacOs)
     def "adds compile, link and install tasks on macOS"() {
         given:
         def src = projectDir.file("src/test/swift/test.swift").createFile()
@@ -159,7 +159,7 @@ class XCTestConventionPluginTest extends Specification {
         test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
 
-    @Requires(TestPrecondition.NOT_MAC_OS_X)
+    @Requires(UnitTestPreconditions.NotMacOs)
     def "adds compile, link and install tasks"() {
         given:
         def src = projectDir.file("src/test/swift/test.swift").createFile()

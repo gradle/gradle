@@ -38,7 +38,7 @@ import java.util.List;
  * It also means that we're going to pay a small price if Gradle metadata is present: we would fetch
  * a POM file and parse it, then fetch Gradle metadata and parse it (doing twice the work).
  */
-public class RedirectingGradleMetadataModuleMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
+public class RedirectingGradleMetadataModuleMetadataSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
     private final MetadataSource<?> delegate;
     private final MetadataSource<MutableModuleComponentResolveMetadata> gradleModuleMetadataSource;
 

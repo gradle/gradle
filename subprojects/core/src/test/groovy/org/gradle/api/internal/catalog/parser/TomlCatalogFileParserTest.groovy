@@ -350,7 +350,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "On library declaration 'guava' expected to find any of 'group', 'module', 'name' or 'version' but found unexpected ${error}."
+        ex.message == "On library declaration 'guava' expected to find any of 'group', 'module', 'name', or 'version' but found unexpected ${error}."
 
         where:
         i | error
@@ -365,7 +365,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == "On version declaration of alias 'guava' expected to find any of 'prefer', 'ref', 'reject', 'rejectAll', 'require' or 'strictly' but found unexpected ${error}."
+        ex.message == "On version declaration of alias 'guava' expected to find any of 'prefer', 'ref', 'reject', 'rejectAll', 'require', or 'strictly' but found unexpected ${error}."
 
         where:
         i | error

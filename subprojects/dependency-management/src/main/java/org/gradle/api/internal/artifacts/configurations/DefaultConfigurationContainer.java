@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
@@ -39,17 +40,17 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
@@ -98,7 +99,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Set<? extends ConfigurationInternal> getAll() {
-        return stream().map(ConfigurationInternal.class::cast).collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<? extends ConfigurationInternal> set = Cast.uncheckedCast(this);
+        return ImmutableSet.copyOf(set);
+    }
+
+    @Override
+    public void visitAll(Consumer<ConfigurationInternal> visitor) {
+        for (Configuration configuration : this) {
+            visitor.accept((ConfigurationInternal) configuration);
+        }
     }
 
     @Override

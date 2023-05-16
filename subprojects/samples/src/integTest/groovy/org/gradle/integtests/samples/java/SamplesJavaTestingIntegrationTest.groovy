@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
@@ -30,7 +30,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     @UsesSample("java/basic")
     def "can execute simple Java tests with #dsl dsl"() {
         given:
@@ -308,7 +308,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     @UsesSample("java/basic")
     def "can run simple Java integration tests with #dsl dsl"() {
         given:
@@ -331,7 +331,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     @UsesSample("java/basic")
     def "can skip the tests with an `onlyIf` condition with #dsl dsl"() {
         given:

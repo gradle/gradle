@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.fixtures.timeout
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
 class JavaProcessStackTracesMonitorSpec extends Specification {
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def 'can extract process info from unix ps()'() {
         given:
         def output = '''
@@ -50,7 +50,7 @@ class JavaProcessStackTracesMonitorSpec extends Specification {
         ]
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def 'can extract process info from windows wmic'() {
         given:
         def output = '''
@@ -81,7 +81,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
         ]
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def 'can locate jstack on Unix'() {
         expect:
         new JavaProcessStackTracesMonitor.JavaProcessInfo('0', javaCommand).jstackCommand == jstackCommand
@@ -93,7 +93,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
         '/opt/jdk/oracle-jdk-8/jre/bin/java'                       | '/opt/jdk/oracle-jdk-8/bin/jstack'
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def 'can locate jstack on Windows'() {
         expect:
         new JavaProcessStackTracesMonitor.JavaProcessInfo('0', javaCommand).jstackCommand == jstackCommand
