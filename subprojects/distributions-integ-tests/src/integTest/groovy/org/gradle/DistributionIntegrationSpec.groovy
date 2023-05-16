@@ -50,14 +50,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        46
+        45
     }
 
     /**
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        47
+        48
     }
 
     /**
@@ -179,6 +179,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
         assert toolingApiJar.length() < 500 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+
+        // Kotlin DSL
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-extensions-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-shared-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-tooling-models-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-kotlin-dsl-provider-plugins-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-kotlin-dsl-tooling-builders-${baseVersion}.jar"))
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${baseVersion}.jar"))
