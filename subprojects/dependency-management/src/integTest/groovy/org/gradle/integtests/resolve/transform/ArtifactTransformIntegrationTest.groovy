@@ -2598,17 +2598,17 @@ Found the following transforms:
 
         given:
         buildFile << """
-            import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+            import org.gradle.api.internal.artifacts.transform.TransformExecutionListener
             import org.gradle.internal.event.ListenerManager
 
-            project.services.get(ListenerManager).addListener(new ArtifactTransformListener() {
+            project.services.get(ListenerManager).addListener(new TransformExecutionListener() {
                 @Override
-                void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                void beforeTransformExecution(Describable transformer, Describable subject) {
                     println "Before transformer \${transformer.displayName} on \${subject.displayName}"
                 }
 
                 @Override
-                void afterTransformerInvocation(Describable transformer, Describable subject) {
+                void afterTransformExecution(Describable transformer, Describable subject) {
                     println "After transformer \${transformer.displayName} on \${subject.displayName}"
                 }
             })
@@ -2665,17 +2665,17 @@ Found the following transforms:
 
         given:
         buildFile << """
-            import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+            import org.gradle.api.internal.artifacts.transform.TransformExecutionListener
             import org.gradle.internal.event.ListenerManager
 
-            project.services.get(ListenerManager).addListener(new ArtifactTransformListener() {
+            project.services.get(ListenerManager).addListener(new TransformExecutionListener() {
                 @Override
-                void beforeTransformerInvocation(Describable transformer, Describable subject) {
+                void beforeTransformExecution(Describable transformer, Describable subject) {
                     println "Before transformer \${transformer.displayName} on \${subject.displayName}"
                 }
 
                 @Override
-                void afterTransformerInvocation(Describable transformer, Describable subject) {
+                void afterTransformExecution(Describable transformer, Describable subject) {
                     println "After transformer \${transformer.displayName} on \${subject.displayName}"
                 }
             })
