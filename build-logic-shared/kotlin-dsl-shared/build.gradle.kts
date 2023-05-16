@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.jar.Attributes
 
 plugins {
     kotlin("jvm") version embeddedKotlinVersion
@@ -31,6 +32,15 @@ dependencies {
     compileOnly("org.ow2.asm:asm-tree:9.4")
     compileOnly("com.google.code.findbugs:jsr305:3.0.2")
     compileOnly("org.jetbrains:annotations:24.0.0")
+}
+
+tasks.jar {
+    manifest.attributes(
+        mapOf(
+            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
+            Attributes.Name.IMPLEMENTATION_VERSION.toString() to project.version
+        )
+    )
 }
 
 // TODO this is a workaround for making the configuration cache work
