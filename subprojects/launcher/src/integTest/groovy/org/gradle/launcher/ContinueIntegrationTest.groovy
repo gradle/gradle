@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ContinueIntegrationTest extends AbstractIntegrationSpec {
 
-    def "--continue flag"() {
+    def "--continue flag PRESENT"() {
         given:
         buildScript()
 
@@ -31,6 +31,11 @@ class ContinueIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("2 actionable tasks: 2 executed")
+    }
+
+    def "--continue flag MISSING"() {
+        given:
+        buildScript()
 
         when:
         fails(":failTask", ":successTask")
@@ -39,7 +44,7 @@ class ContinueIntegrationTest extends AbstractIntegrationSpec {
         output.contains("1 actionable task: 1 executed")
     }
 
-    def "-Dorg.gradle.continue property"() {
+    def "-Dorg.gradle.continue property TRUE"() {
         given:
         buildScript()
 
@@ -49,6 +54,11 @@ class ContinueIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("2 actionable tasks: 2 executed")
+    }
+
+    def "-Dorg.gradle.continue property FALSE"() {
+        given:
+        buildScript()
 
         when:
         args("-Dorg.gradle.continue=false")
@@ -62,7 +72,7 @@ class ContinueIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             tasks.register("failTask") {
                 doFirst {
-                    throw RuntimeException("failTask failed")
+                    throw new RuntimeException("failTask failed")
                 }
             }
 
