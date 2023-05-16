@@ -17,25 +17,13 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 class ContinueIntegrationTest extends AbstractIntegrationSpec {
 
-    def "execute all tasks when property org.gradle.continue if true"() {
-
+    def "--continue flag"() {
         given:
-        buildScript """
-            tasks.register("failTask") {
-                doFirst {
-                    throw RuntimeException("failTask failed")
-                }
-            }
-
-            tasks.register("successTask") {
-                doFirst {
-                    println("successTask success")
-                }
-            }
-        """
+        buildScript()
 
         when:
         args("--continue")
@@ -49,6 +37,11 @@ class ContinueIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("1 actionable task: 1 executed")
+    }
+
+    def "-Dorg.gradle.continue property"() {
+        given:
+        buildScript()
 
         when:
         args("-Dorg.gradle.continue=true")
@@ -63,5 +56,21 @@ class ContinueIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("1 actionable task: 1 executed")
+    }
+
+    private TestFile buildScript() {
+        buildScript """
+            tasks.register("failTask") {
+                doFirst {
+                    throw RuntimeException("failTask failed")
+                }
+            }
+
+            tasks.register("successTask") {
+                doFirst {
+                    println("successTask success")
+                }
+            }
+        """
     }
 }
