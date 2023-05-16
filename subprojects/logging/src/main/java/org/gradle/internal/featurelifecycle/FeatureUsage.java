@@ -33,7 +33,8 @@ public abstract class FeatureUsage {
     private List<StackTraceElement> stack;
 
     protected FeatureUsage(String summary, Class<?> calledFrom) {
-        this(summary, calledFrom, new Exception());
+        this(summary, calledFrom, null);
+        stack = calculateStackFromCurrentThread(calledFrom);
     }
 
     @VisibleForTesting
@@ -65,6 +66,33 @@ public abstract class FeatureUsage {
 
     private static List<StackTraceElement> calculateStack(Class<?> calledFrom, Exception traceRoot) {
         StackTraceElement[] originalStack = traceRoot.getStackTrace();
+        List<StackTraceElement> result = new ArrayList<StackTraceElement>();
+        final String calledFromName = calledFrom.getName();
+        boolean calledFromFound = false;
+        int caller;
+        for (caller = 0; caller < originalStack.length; caller++) {
+            StackTraceElement current = originalStack[caller];
+            if (!calledFromFound) {
+                if (current.getClassName().startsWith(calledFromName)) {
+                    calledFromFound = true;
+                }
+            } else {
+                if (!current.getClassName().startsWith(calledFromName)) {
+                    break;
+                }
+            }
+        }
+        for (; caller < originalStack.length; caller++) {
+            StackTraceElement stackTraceElement = originalStack[caller];
+            if (!isSystemStackFrame(stackTraceElement.getClassName())) {
+                result.add(stackTraceElement);
+            }
+        }
+        return result;
+    }
+
+    private static List<StackTraceElement> calculateStackFromCurrentThread(Class<?> calledFrom) {
+        StackTraceElement[] originalStack = Thread.currentThread().getStackTrace();
         List<StackTraceElement> result = new ArrayList<StackTraceElement>();
         final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
