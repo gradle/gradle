@@ -19,7 +19,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -53,27 +53,27 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     }
 
     @Override
-    public FileAccessPermissions filePermissions(Action<? super FileAccessPermissions> configureAction) {
+    public FilePermissions filePermissions(Action<? super FilePermissions> configureAction) {
         return permissions(false, configureAction);
     }
 
     @Override
-    public FileAccessPermissions directoryPermissions(Action<? super FileAccessPermissions> configureAction) {
+    public FilePermissions directoryPermissions(Action<? super FilePermissions> configureAction) {
         return permissions(true, configureAction);
     }
 
     @Override
-    public FileAccessPermissions permissions(String permissions) {
-        return permissions(false, fileAccessPermissions -> fileAccessPermissions.unix(permissions));
+    public FilePermissions permissions(String permissions) {
+        return permissions(false, filePermissions -> filePermissions.unix(permissions));
     }
 
     @Override
-    public FileAccessPermissions permissions(Provider<String> permissions) {
-        return permissions(false, fileAccessPermissions -> fileAccessPermissions.unix(permissions));
+    public FilePermissions permissions(Provider<String> permissions) {
+        return permissions(false, filePermissions -> filePermissions.unix(permissions));
     }
 
-    private FileAccessPermissions permissions(boolean directory, Action<? super FileAccessPermissions> configureAction) {
-        FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultUnixNumeric(directory));
+    private FilePermissions permissions(boolean directory, Action<? super FilePermissions> configureAction) {
+        FilePermissions permissions = objectFactory.newInstance(DefaultFilePermissions.class, objectFactory, DefaultFilePermissions.getDefaultUnixNumeric(directory));
         configureAction.execute(permissions);
         return permissions;
     }

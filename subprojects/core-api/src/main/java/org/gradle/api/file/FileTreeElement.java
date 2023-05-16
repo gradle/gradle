@@ -104,10 +104,10 @@ public interface FileTreeElement {
 
     /**
      * Provides a read-only view of access permissions of this file.
-     * For details see {@link ImmutableFileAccessPermissions}.
+     * For details see {@link ImmutableFilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    Provider<ImmutableFileAccessPermissions> getImmutablePermissions();
+    Provider<ImmutableFilePermissions> getImmutablePermissions();
 }

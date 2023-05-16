@@ -23,7 +23,7 @@ import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
-import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.provider.Property;
@@ -247,12 +247,12 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public Property<FileAccessPermissions> getFilePermissions() {
+    public Property<FilePermissions> getFilePermissions() {
         return getDelegateCopySpec().getFilePermissions();
     }
 
     @Override
-    public CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction) {
+    public CopyProcessingSpec filePermissions(Action<? super FilePermissions> configureAction) {
         return getDelegateCopySpec().filePermissions(configureAction);
     }
 
@@ -267,12 +267,12 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public Property<FileAccessPermissions> getDirPermissions() {
+    public Property<FilePermissions> getDirPermissions() {
         return getDelegateCopySpec().getDirPermissions();
     }
 
     @Override
-    public CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction) {
+    public CopyProcessingSpec dirPermissions(Action<? super FilePermissions> configureAction) {
         return getDelegateCopySpec().dirPermissions(configureAction);
     }
 

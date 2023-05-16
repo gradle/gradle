@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
-public abstract class AbstractImmutableFileAccessPermissions implements ImmutableFileAccessPermissions {
+public abstract class AbstractImmutableFilePermissions implements ImmutableFilePermissions {
 
     @Override
     public Provider<Integer> toUnixNumeric() {

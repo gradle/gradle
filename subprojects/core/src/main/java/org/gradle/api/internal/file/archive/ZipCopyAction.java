@@ -22,7 +22,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
@@ -118,7 +118,7 @@ public class ZipCopyAction implements CopyAction {
             try {
                 ZipArchiveEntry archiveEntry = new ZipArchiveEntry(fileDetails.getRelativePath().getPathString());
                 archiveEntry.setTime(getArchiveTimeFor(fileDetails));
-                archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get());
+                archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getImmutablePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric).get());
                 zipOutStr.putArchiveEntry(archiveEntry);
                 fileDetails.copyTo(zipOutStr);
                 zipOutStr.closeArchiveEntry();
@@ -132,7 +132,7 @@ public class ZipCopyAction implements CopyAction {
                 // Trailing slash in name indicates that entry is a directory
                 ZipArchiveEntry archiveEntry = new ZipArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
                 archiveEntry.setTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get());
+                archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getImmutablePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric).get());
                 zipOutStr.putArchiveEntry(archiveEntry);
                 zipOutStr.closeArchiveEntry();
             } catch (Exception e) {

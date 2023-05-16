@@ -19,7 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.exceptions.Contextual;
@@ -85,7 +85,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
                 GFileUtils.mkdirs(target.getParentFile());
                 copyFile(target);
             }
-            chmod.chmod(target, getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get());
+            chmod.chmod(target, getImmutablePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric).get());
             return true;
         } catch (Exception e) {
             throw new CopyFileElementException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
@@ -110,13 +110,13 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
 
     @Override
     public int getMode() {
-        return getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get();
+        return getImmutablePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric).get();
     }
 
     @Override
-    public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
+    public Provider<ImmutableFilePermissions> getImmutablePermissions() {
         int unixNumeric = isDirectory() ? FileSystem.DEFAULT_DIR_MODE : FileSystem.DEFAULT_FILE_MODE;
-        return Providers.of(new DefaultImmutableFileAccessPermissions(unixNumeric));
+        return Providers.of(new DefaultImmutableFilePermissions(unixNumeric));
     }
 
     @Contextual

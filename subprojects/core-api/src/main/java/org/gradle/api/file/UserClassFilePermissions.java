@@ -21,7 +21,7 @@ import org.gradle.api.provider.Property;
 
 /**
  * Provides the means of specifying file and directory access permissions
- * for a certain class of users (see {@link FileAccessPermissions}).
+ * for a certain class of users (see {@link FilePermissions}).
  * Permissions consist of:
  * <ul>
  *     <li>READ access: grants the capability to view the contents of a file, or to list the contents of a directory

@@ -20,7 +20,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
-import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions
+import org.gradle.api.internal.file.DefaultImmutableFilePermissions
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.DefaultZipCompressor
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
@@ -159,7 +159,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> false
-        mock.getImmutablePermissions() >> Providers.of(new DefaultImmutableFileAccessPermissions(1))
+        mock.getImmutablePermissions() >> Providers.of(new DefaultImmutableFilePermissions(1))
         mock.copyTo(_ as OutputStream) >> { OutputStream out ->
             out << "contents of $path"
         }
@@ -171,7 +171,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> true
-        mock.getImmutablePermissions() >> Providers.of(new DefaultImmutableFileAccessPermissions(2))
+        mock.getImmutablePermissions() >> Providers.of(new DefaultImmutableFilePermissions(2))
         mock
     }
 
@@ -180,7 +180,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> false
-        mock.getImmutablePermissions() >> Providers.of(new DefaultImmutableFileAccessPermissions(1))
+        mock.getImmutablePermissions() >> Providers.of(new DefaultImmutableFilePermissions(1))
         mock.copyTo(_ as OutputStream) >> { OutputStream out ->
             failure.fillInStackTrace()
             throw failure

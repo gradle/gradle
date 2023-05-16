@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.UserClassFilePermissions;
-import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.provider.Provider;
 
 public interface UserClassFilePermissionsInternal extends UserClassFilePermissions {
 
     /**
      * Sets the permission for a specific user from a complete Unix-style permission.
-     * See {@link FileAccessPermissions#unix(String)} for details.
+     * See {@link FilePermissions#unix(String)} for details.
      *
      * @param permission complete Unix-style permission for all users
      * @param index index of the part specific to this user group (so 0 for user, 1 for group, 2 for others)

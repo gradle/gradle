@@ -24,12 +24,12 @@ import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
-import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
@@ -92,9 +92,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
-            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().flatMap(ImmutableFilePermissions::toUnixNumeric))
                 .optional(true);
-            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric))
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });
@@ -574,7 +574,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Override
     @Internal
-    public Property<FileAccessPermissions> getFilePermissions() {
+    public Property<FilePermissions> getFilePermissions() {
         return getMainSpec().getFilePermissions();
     }
 
@@ -582,7 +582,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction) {
+    public CopyProcessingSpec filePermissions(Action<? super FilePermissions> configureAction) {
         return getMainSpec().filePermissions(configureAction);
     }
 
@@ -591,7 +591,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Override
     @Internal
-    public Property<FileAccessPermissions> getDirPermissions() {
+    public Property<FilePermissions> getDirPermissions() {
         return getMainSpec().getDirPermissions();
     }
 
@@ -599,7 +599,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction) {
+    public CopyProcessingSpec dirPermissions(Action<? super FilePermissions> configureAction) {
         return getMainSpec().dirPermissions(configureAction);
     }
 

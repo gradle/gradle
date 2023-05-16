@@ -19,7 +19,7 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.TextUtil
 
-class FileAccessPermissionsIntegrationTest extends AbstractIntegrationSpec {
+class FilePermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "can be used as task input"() {
         given:

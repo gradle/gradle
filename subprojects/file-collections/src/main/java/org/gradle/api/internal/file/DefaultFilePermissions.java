@@ -18,8 +18,8 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.UserClassFilePermissions;
-import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -29,7 +29,7 @@ import javax.inject.Inject;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_DIR_MODE;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_FILE_MODE;
 
-public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPermissions implements FileAccessPermissions {
+public class DefaultFilePermissions extends AbstractImmutableFilePermissions implements FilePermissions {
 
     public static int getDefaultUnixNumeric(boolean isDirectory) {
         return isDirectory ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
@@ -42,7 +42,7 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
     private final UserClassFilePermissionsInternal other;
 
     @Inject
-    public DefaultFileAccessPermissions(ObjectFactory objectFactory, int unixNumeric) {
+    public DefaultFilePermissions(ObjectFactory objectFactory, int unixNumeric) {
         this.user = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getUserPartOf(unixNumeric));
         this.group = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getGroupPartOf(unixNumeric));
         this.other = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getOtherPartOf(unixNumeric));
@@ -95,7 +95,7 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
     }
 
     private static Provider<String> normalizeUnixPermissions(Provider<String> permissions) {
-        return permissions.map(SerializableLambdas.transformer(DefaultFileAccessPermissions::normalizeUnixPermissions));
+        return permissions.map(SerializableLambdas.transformer(DefaultFilePermissions::normalizeUnixPermissions));
     }
 
     private static String normalizeUnixPermissions(String p) {

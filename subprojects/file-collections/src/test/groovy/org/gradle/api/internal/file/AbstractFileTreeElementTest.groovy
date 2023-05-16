@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.api.file.ImmutableFileAccessPermissions
+
+import org.gradle.api.file.ImmutableFilePermissions
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Provider
@@ -123,11 +124,11 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
             return GFileUtils.openInputStream(file)
         }
 
-        Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
+        Provider<ImmutableFilePermissions> getImmutablePermissions() {
             if (mode == null) {
                 return super.getImmutablePermissions();
             }
-            return Providers.of(new DefaultImmutableFileAccessPermissions(mode));
+            return Providers.of(new DefaultImmutableFilePermissions(mode));
         }
     }
 }

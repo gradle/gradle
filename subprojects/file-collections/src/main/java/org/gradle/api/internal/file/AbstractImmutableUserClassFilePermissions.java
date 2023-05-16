@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.ImmutableUserClassFilePermissions;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.Providers;
@@ -26,7 +26,7 @@ public abstract class AbstractImmutableUserClassFilePermissions implements Immut
 
     /**
      * Converts the user permission to a numeric Unix permission.
-     * See {@link FileAccessPermissions#unix(String)} for details,
+     * See {@link FilePermissions#unix(String)} for details,
      * returned value is equivalent to one of the three octal digits.
      */
     protected Provider<Integer> toUnixNumeric() {

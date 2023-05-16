@@ -17,9 +17,9 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions;
+import org.gradle.api.internal.file.DefaultImmutableFilePermissions;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -128,13 +128,13 @@ public class SingleFileTreeElementMatcher {
 
         @Override
         public int getMode() {
-            return getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get();
+            return getImmutablePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric).get();
         }
 
         @Override
-        public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
+        public Provider<ImmutableFilePermissions> getImmutablePermissions() {
             int unixNumeric = stat.getUnixMode(file);
-            return Providers.of(new DefaultImmutableFileAccessPermissions(unixNumeric));
+            return Providers.of(new DefaultImmutableFilePermissions(unixNumeric));
         }
     }
 }

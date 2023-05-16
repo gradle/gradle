@@ -112,7 +112,7 @@ class FileVisitorUtil {
     static void assertVisitsPermissions(FileTree tree, Map<String, Integer> filesWithPermissions) {
         def visited = [:]
         tree.visit {
-            visited[it.name] = it.immutablePermissions.flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get()
+            visited[it.name] = it.immutablePermissions.flatMap(ImmutableFilePermissions::toUnixNumeric).get()
         }
         assertThat(visited, equalTo(filesWithPermissions))
     }

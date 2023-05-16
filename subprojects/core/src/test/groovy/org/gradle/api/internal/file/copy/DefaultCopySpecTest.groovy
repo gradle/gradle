@@ -24,9 +24,9 @@ import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ImmutableUserClassFilePermissions
-import org.gradle.api.file.ImmutableFileAccessPermissions
+import org.gradle.api.file.ImmutableFilePermissions
 import org.gradle.api.file.RelativePath
-import org.gradle.api.internal.file.DefaultFileAccessPermissions
+import org.gradle.api.internal.file.DefaultFilePermissions
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.api.model.ObjectFactory
@@ -417,8 +417,8 @@ class DefaultCopySpecTest extends Specification {
             spec.dirMode = 0655
         }
         "property"              | { DefaultCopySpec spec, ObjectFactory objectFactory ->
-            spec.filePermissions.value(new DefaultFileAccessPermissions(objectFactory, 0444))
-            spec.dirPermissions.value(new DefaultFileAccessPermissions(objectFactory, 0655))
+            spec.filePermissions.value(new DefaultFilePermissions(objectFactory, 0444))
+            spec.dirPermissions.value(new DefaultFilePermissions(objectFactory, 0655))
         }
         "configuration block"   | { DefaultCopySpec spec, ObjectFactory objectFactory ->
             spec.filePermissions {
@@ -511,7 +511,7 @@ class DefaultCopySpecTest extends Specification {
         RelativePath.parse(true, segments)
     }
 
-    static String toPermissionString(ImmutableFileAccessPermissions permissions) {
+    static String toPermissionString(ImmutableFilePermissions permissions) {
         def user = toPermissionString(permissions.user)
         def group = toPermissionString(permissions.group)
         def other = toPermissionString(permissions.other)

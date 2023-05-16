@@ -48,7 +48,7 @@ import org.gradle.api.provider.Provider;
  * @since 8.3
  */
 @Incubating
-public interface FileAccessPermissions extends ImmutableFileAccessPermissions {
+public interface FilePermissions extends ImmutableFilePermissions {
 
     @Override
     UserClassFilePermissions getUser();

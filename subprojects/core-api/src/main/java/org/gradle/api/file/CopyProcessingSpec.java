@@ -126,39 +126,39 @@ public interface CopyProcessingSpec extends ContentFilterable {
 
     /**
      * Property for configuring file access permissions.
-     * For details see {@link FileAccessPermissions}.
+     * For details see {@link FilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    Property<FileAccessPermissions> getFilePermissions();
+    Property<FilePermissions> getFilePermissions();
 
     /**
      * Configuration action for specifying file access permissions.
-     * For details see {@link FileAccessPermissions}.
+     * For details see {@link FilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction);
+    CopyProcessingSpec filePermissions(Action<? super FilePermissions> configureAction);
 
     /**
      * Property for configuring directory access permissions.
-     * For details see {@link FileAccessPermissions}.
+     * For details see {@link FilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    Property<FileAccessPermissions> getDirPermissions();
+    Property<FilePermissions> getDirPermissions();
 
     /**
      * Configuration action for specifying directory access permissions.
-     * For details see {@link FileAccessPermissions}.
+     * For details see {@link FilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction);
+    CopyProcessingSpec dirPermissions(Action<? super FilePermissions> configureAction);
 
     /**
      * Adds an action to be applied to each file as it is about to be copied into its destination. The action can change

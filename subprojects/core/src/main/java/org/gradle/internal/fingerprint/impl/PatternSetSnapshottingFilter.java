@@ -19,9 +19,9 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.ImmutableFileAccessPermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions;
+import org.gradle.api.internal.file.DefaultImmutableFilePermissions;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -147,13 +147,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get();
+            return getImmutablePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric).get();
         }
 
         @Override
-        public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
+        public Provider<ImmutableFilePermissions> getImmutablePermissions() {
             int unixNumeric = stat.getUnixMode(getFile());
-            return Providers.of(new DefaultImmutableFileAccessPermissions(unixNumeric));
+            return Providers.of(new DefaultImmutableFilePermissions(unixNumeric));
         }
     }
 
@@ -228,13 +228,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return getImmutablePermissions().flatMap(ImmutableFileAccessPermissions::toUnixNumeric).get();
+            return getImmutablePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric).get();
         }
 
         @Override
-        public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
+        public Provider<ImmutableFilePermissions> getImmutablePermissions() {
             int unixNumeric = stat.getUnixMode(path.toFile());
-            return Providers.of(new DefaultImmutableFileAccessPermissions(unixNumeric));
+            return Providers.of(new DefaultImmutableFilePermissions(unixNumeric));
         }
     }
 }

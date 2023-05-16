@@ -72,21 +72,21 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
 
     /**
      * Configuration action for specifying file and directory access permissions.
-     * For details see {@link FileAccessPermissions}.
+     * For details see {@link FilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    void permissions(Action<? super FileAccessPermissions> configureAction);
+    void permissions(Action<? super FilePermissions> configureAction);
 
     /**
      * Property for configuring file and directory access permissions.
-     * For details see {@link FileAccessPermissions}.
+     * For details see {@link FilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    Property<FileAccessPermissions> getPermissions();
+    Property<FilePermissions> getPermissions();
 
     /**
      * The strategy to use if there is already a file at this file's destination.

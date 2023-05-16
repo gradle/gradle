@@ -24,11 +24,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @SuppressWarnings("OctalInteger")
-public class DefaultFileAccessPermissionsTest {
+public class DefaultFilePermissionsTest {
 
     @Test
     public void directoryInitializedWithSensibleDefaults() {
-        DefaultFileAccessPermissions permissions = newPermission(true);
+        DefaultFilePermissions permissions = newPermission(true);
         assertPermissions(permissions.getUser(), true, true, true);
         assertPermissions(permissions.getGroup(), true, false, true);
         assertPermissions(permissions.getOther(), true, false, true);
@@ -37,7 +37,7 @@ public class DefaultFileAccessPermissionsTest {
 
     @Test
     public void fileInitializedWithSensibleDefaults() {
-        DefaultFileAccessPermissions permissions = newPermission(false);
+        DefaultFilePermissions permissions = newPermission(false);
         assertPermissions(permissions.getUser(), true, true, false);
         assertPermissions(permissions.getGroup(), true, false, false);
         assertPermissions(permissions.getOther(), true, false, false);
@@ -107,14 +107,14 @@ public class DefaultFileAccessPermissionsTest {
         assertInvalidUnixPermission("rwxrw xrwx", "'rwxrw xrwx' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
     }
 
-    private static DefaultFileAccessPermissions newUnixPermission(String unixPermission) {
-        DefaultFileAccessPermissions permissions = newPermission(false);
+    private static DefaultFilePermissions newUnixPermission(String unixPermission) {
+        DefaultFilePermissions permissions = newPermission(false);
         permissions.unix(unixPermission);
         return permissions;
     }
 
-    private static DefaultFileAccessPermissions newPermission(boolean isDirectory) {
-        return new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultUnixNumeric(isDirectory));
+    private static DefaultFilePermissions newPermission(boolean isDirectory) {
+        return new DefaultFilePermissions(TestUtil.objectFactory(), DefaultFilePermissions.getDefaultUnixNumeric(isDirectory));
     }
 
     private static void assertPermissions(UserClassFilePermissions permission, boolean read, boolean write, boolean execute) {

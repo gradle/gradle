@@ -25,7 +25,7 @@ import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
-import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SyncSpec;
@@ -293,12 +293,12 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public Property<FileAccessPermissions> getFilePermissions() {
+    public Property<FilePermissions> getFilePermissions() {
         return delegate.getFilePermissions();
     }
 
     @Override
-    public CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction) {
+    public CopyProcessingSpec filePermissions(Action<? super FilePermissions> configureAction) {
         return delegate.filePermissions(configureAction);
     }
 
@@ -314,12 +314,12 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public Property<FileAccessPermissions> getDirPermissions() {
+    public Property<FilePermissions> getDirPermissions() {
         return delegate.getDirPermissions();
     }
 
     @Override
-    public CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction) {
+    public CopyProcessingSpec dirPermissions(Action<? super FilePermissions> configureAction) {
         return delegate.dirPermissions(configureAction);
     }
 

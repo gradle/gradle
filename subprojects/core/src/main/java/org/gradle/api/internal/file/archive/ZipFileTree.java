@@ -21,8 +21,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.ImmutableFileAccessPermissions;
-import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
+import org.gradle.api.internal.file.DefaultImmutableFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.Providers;
@@ -168,10 +168,10 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
+        public Provider<ImmutableFilePermissions> getImmutablePermissions() {
             int unixMode = entry.getUnixMode() & 0777;
             if (unixMode != 0) {
-                return Providers.of(new DefaultImmutableFileAccessPermissions(unixMode));
+                return Providers.of(new DefaultImmutableFilePermissions(unixMode));
             }
 
             return super.getImmutablePermissions();

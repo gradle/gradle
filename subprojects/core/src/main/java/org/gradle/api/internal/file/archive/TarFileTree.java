@@ -21,8 +21,8 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.ImmutableFileAccessPermissions;
-import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
+import org.gradle.api.internal.file.DefaultImmutableFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.Providers;
@@ -214,8 +214,8 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
-            return Providers.of(new DefaultImmutableFileAccessPermissions(entry.getMode()));
+        public Provider<ImmutableFilePermissions> getImmutablePermissions() {
+            return Providers.of(new DefaultImmutableFilePermissions(entry.getMode()));
         }
 
         @Override
