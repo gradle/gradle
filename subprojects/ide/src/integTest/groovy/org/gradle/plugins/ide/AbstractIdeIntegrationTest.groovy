@@ -42,7 +42,7 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         return executer.withTasks(taskName).run()
     }
 
-    protected File getFile(Map options, String filename) {
+    protected TestFile getFile(Map options, String filename) {
         def file = options?.project ? file(options.project, filename) : file(filename)
         if (options?.print) { println file.text }
         file
@@ -53,7 +53,7 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         new XmlSlurper().parse(file)
     }
 
-    protected void createJavaSourceDirs(TestFile buildFile) {
+    protected static void createJavaSourceDirs(TestFile buildFile) {
         buildFile.parentFile.file("src/main/java").createDir()
         buildFile.parentFile.file("src/main/resources").createDir()
     }

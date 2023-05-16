@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
@@ -68,7 +68,7 @@ public class WtpComponentFactory {
         component.configure(wtp.getDeployName(), wtp.getContextPath(), entries);
     }
 
-    private Set<Configuration> configOrEmptySet(Set<Configuration> configuration) {
+    private static Set<Configuration> configOrEmptySet(Set<Configuration> configuration) {
         if (configuration == null) {
             return Collections.emptySet();
         } else {
@@ -76,7 +76,7 @@ public class WtpComponentFactory {
         }
     }
 
-    private List<WbResource> getEntriesFromSourceDirs(EclipseWtpComponent wtp) {
+    private static List<WbResource> getEntriesFromSourceDirs(EclipseWtpComponent wtp) {
         List<WbResource> result = Lists.newArrayList();
         if (wtp.getSourceDirs() != null) {
             for (File dir : wtp.getSourceDirs()) {
@@ -135,7 +135,7 @@ public class WtpComponentFactory {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (!projectId.equals(currentProjectId)) {
                 String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);
-                PublishArtifactLocalArtifactMetadata identifier = (PublishArtifactLocalArtifactMetadata) artifact.getId();
+                ComponentArtifactMetadata identifier = (ComponentArtifactMetadata) artifact.getId();
                 projectEntries.add(new WbDependentModule(identifier.getName().toString(), deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
             }
         }
