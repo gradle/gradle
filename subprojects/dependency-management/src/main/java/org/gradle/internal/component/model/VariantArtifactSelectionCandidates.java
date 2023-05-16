@@ -21,13 +21,18 @@ import org.gradle.api.artifacts.ArtifactView;
 import java.util.Set;
 
 /**
- * Metadata used to select the artifacts for a particular variant selected during graph resolution.
+ * Metadata used to select the artifacts given a particular variant selected during graph resolution.
  */
-public interface VariantArtifactSelectionMetadata {
+public interface VariantArtifactSelectionCandidates {
     /**
      * The variants available for artifact selection when {@link ArtifactView.ViewConfiguration#withVariantReselection()} is enabled.
+     * Generally contains all variants of the target component.
      */
     Set<? extends VariantResolveMetadata> getAllVariants();
 
+    /**
+     * The variants available for artifact selection when variant reselection is not enabled.
+     * Generally contains the target variant, plus any 'sub-variants'.
+     */
     Set<? extends VariantResolveMetadata> getLegacyVariants();
 }
