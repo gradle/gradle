@@ -20,8 +20,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -96,7 +96,7 @@ class DirectorySnapshotterStatisticsTest extends Specification {
         0 * _
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "can visit broken symlink"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -115,7 +115,7 @@ class DirectorySnapshotterStatisticsTest extends Specification {
         0 * _
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "can visit symlinked hierarchy"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -136,7 +136,7 @@ class DirectorySnapshotterStatisticsTest extends Specification {
         0 * _
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "can visit unreadable #type"() {
         given:
         def rootDir = tmpDir.createDir("root")

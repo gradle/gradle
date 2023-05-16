@@ -80,7 +80,7 @@ abstract class MessageBuilderHelper {
 
     @Nullable
     private static String variantDetails(EdgeState e) {
-        ResolvedVariantResult selectedVariant = e.hasSelectedVariant() ? e.getSelectedVariant() : null;
+        ResolvedVariantResult selectedVariant = e.hasSelectedVariant() ? e.getSelectedNode().getResolveState().getVariantResult(null) : null;
         if (selectedVariant != null) {
             return " (" + selectedVariant.getDisplayName() + ")";
         }

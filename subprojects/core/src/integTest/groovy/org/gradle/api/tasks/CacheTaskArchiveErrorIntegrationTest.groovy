@@ -19,8 +19,8 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import java.util.function.Consumer
@@ -204,7 +204,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheFailedFiles().size() == 1
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     @Issue("https://github.com/gradle/gradle/issues/9906")
     def "don't cache if task produces broken symlink"() {
         def link = file('root/link')

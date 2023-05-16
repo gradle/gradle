@@ -20,6 +20,8 @@ val smokeTestImplementation: Configuration by configurations
 val smokeTestDistributionRuntimeOnly: Configuration by configurations
 
 dependencies {
+    testFixturesImplementation(project(":internal-integ-testing"))
+
     smokeTestImplementation(project(":base-services"))
     smokeTestImplementation(project(":core-api"))
     smokeTestImplementation(project(":test-kit"))

@@ -84,7 +84,8 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * Should the build be split into multiple subprojects?
      *
-     * This property can be set via command-line option '--split-project'.
+     * This property can be set via the command-line options '--split-project'
+     * and '--no-split-project'.
      *
      * @since 6.7
      */

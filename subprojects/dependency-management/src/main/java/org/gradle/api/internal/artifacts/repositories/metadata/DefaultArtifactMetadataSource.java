@@ -43,7 +43,7 @@ import java.util.List;
  * A metadata source which simply verifies the existence of a given artifact and does not
  * attempt to fetch any further metadata from other external sources.
  */
-public class DefaultArtifactMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
+public class DefaultArtifactMetadataSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
 

@@ -41,6 +41,22 @@ abstract class FileContentGenerator {
         this.config = config
     }
 
+    String generateVersionCatalog() {
+        return """
+        [libraries]
+        groovy = "org.codehaus.groovy:groovy:2.5.22"
+        testng = "org.testng:testng:6.4"
+        junit = "junit:junit:4.13"
+
+        ${config.externalApiDependencies
+            .collect { "${it.key} = \"${it.value}\"" }
+            .join("\n        ")}
+        ${config.externalImplementationDependencies
+            .collect { "${it.key} = \"${it.value}\"" }
+            .join("\n        ")}
+        """
+    }
+
     String generateBuildGradle(Language language, Integer subProjectNumber, DependencyTree dependencyTree) {
         def isRoot = subProjectNumber == null
         if (isRoot && config.subProjects > 0) {
@@ -68,7 +84,7 @@ abstract class FileContentGenerator {
 
         dependencies{
         ${
-            language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.22') : ""
+            language == Language.GROOVY ? versionCatalogDependencyDeclaration('implementation', 'groovy') : ""
         }
         }
 
@@ -201,8 +217,8 @@ abstract class FileContentGenerator {
             }
             body += """
             <dependencies>
-                ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join("")}
-                ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join("")}
+                ${config.externalApiDependencies.values().collect { convertToPomDependency(it) }.join("")}
+                ${config.externalImplementationDependencies.values().collect { convertToPomDependency(it) }.join("")}
                 ${convertToPomDependency('junit:junit:4.13', 'test')}
                 ${subProjectDependencies}
             </dependencies>
@@ -424,9 +440,9 @@ abstract class FileContentGenerator {
             }.join("\n            ")
         }
         def block = """
-                    ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
-                    ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
-                    ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.13')}
+                    ${config.externalApiDependencies.keySet().collect { versionCatalogDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
+                    ${config.externalImplementationDependencies.keySet().collect { versionCatalogDependencyDeclaration(implementation, it) }.join("\n            ")}
+                    ${versionCatalogDependencyDeclaration(testImplementation, config.useTestNG ? 'testng' : 'junit')}
 
                     $subProjectDependencies
         """
@@ -459,7 +475,7 @@ abstract class FileContentGenerator {
     protected abstract String createTaskThatDependsOnAllIncludedBuildsTaskWithSameName(String taskName)
 
 
-    protected abstract String directDependencyDeclaration(String configuration, String notation)
+    protected abstract String versionCatalogDependencyDeclaration(String configuration, String alias)
 
     protected abstract String projectDependencyDeclaration(String configuration, int projectNumber)
 

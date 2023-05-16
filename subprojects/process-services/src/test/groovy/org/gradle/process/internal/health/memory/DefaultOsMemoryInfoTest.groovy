@@ -18,8 +18,8 @@
 package org.gradle.process.internal.health.memory
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class DefaultOsMemoryInfoTest extends Specification {
     }
 
     // We only use MX Bean methods on Windows
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "getFreePhysicalMemory only throws when memory management methods are unavailable"() {
         expect:
         memTest({ new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory() })

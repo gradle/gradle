@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver
+import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -35,7 +35,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
     final taskState = Mock(TaskStateInternal)
     final taskContext = Mock(TaskExecutionContext)
     final repository = Mock(TaskExecutionModeResolver)
-    final executionMode = TaskExecutionMode.INCREMENTAL
+    final executionMode = DefaultTaskExecutionMode.incremental()
 
     final executer = new ResolveTaskExecutionModeExecuter(repository, delegate)
 

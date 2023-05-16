@@ -19,10 +19,11 @@ package org.gradle.testkit.runner
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestKitPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.DistributionLocator
 import spock.lang.Retry
 import spock.lang.Shared
@@ -30,7 +31,10 @@ import spock.lang.Shared
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 
 @NonCrossVersion
-@Requires(value = TestPrecondition.ONLINE, adhoc = { BaseGradleRunnerIntegrationTest.findLowestMajorGradleVersion() != null })
+@Requires([
+    UnitTestPreconditions.Online,
+    TestKitPreconditions.LowestMajorGradleIsAvailable
+])
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, count = 2)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @Shared
@@ -70,10 +74,10 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         killDaemons(version)
 
         where:
-        type         | version                         | configurer
-        "embedded"   | buildContext.version.version    | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
-        "locator"    | lowestMajorGradleVersion | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(lowestMajorGradleVersion))) }
-        "production" | lowestMajorGradleVersion | { it.withGradleVersion(lowestMajorGradleVersion) }
+        type         | version                      | configurer
+        "embedded"   | buildContext.version.version | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
+        "locator"    | lowestMajorGradleVersion     | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(lowestMajorGradleVersion))) }
+        "production" | lowestMajorGradleVersion     | { it.withGradleVersion(lowestMajorGradleVersion) }
     }
 
     def "distributions are not stored in the test kit dir"() {
