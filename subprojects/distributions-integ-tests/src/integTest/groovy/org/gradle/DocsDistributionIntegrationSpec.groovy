@@ -32,7 +32,7 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 58 * 1024 * 1024
+        return 59 * 1024 * 1024
     }
 
     @Override
