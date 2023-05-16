@@ -17,22 +17,22 @@ package org.gradle.internal.component;
 
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import java.util.Collection;
 import java.util.List;
 
 public class NoMatchingCapabilitiesException extends RuntimeException {
-    public NoMatchingCapabilitiesException(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveMetadata> candidates) {
+    public NoMatchingCapabilitiesException(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
         super(buildMessage(targetComponent, requestedCapabilities, candidates));
     }
 
-    private static String buildMessage(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveMetadata> candidates) {
+    private static String buildMessage(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
         StringBuilder sb = new StringBuilder("Unable to find a variant of ");
         sb.append(targetComponent.getId()).append(" providing the requested ");
         sb.append(CapabilitiesSupport.prettifyCapabilities(targetComponent, requestedCapabilities));
         sb.append(":\n");
-        for (VariantGraphResolveMetadata candidate : candidates) {
+        for (VariantGraphResolveState candidate : candidates) {
             sb.append("   - Variant ").append(candidate.getName()).append(" provides ");
             sb.append(CapabilitiesSupport.sortedCapabilityList(targetComponent, candidate.getCapabilities().getCapabilities())).append("\n");
         }

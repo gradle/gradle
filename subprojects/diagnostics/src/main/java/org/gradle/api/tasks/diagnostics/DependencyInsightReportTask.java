@@ -25,7 +25,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -37,6 +36,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesIn
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.provider.Property;
@@ -159,7 +159,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             zConfigurationAttributes = getProject().provider(configuration::getAttributes);
 
             ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
-            ResolutionResult result = incoming.getResolutionResult(errorHandler);
+            ResolutionResultInternal result = (ResolutionResultInternal) incoming.getLenientResolutionResult();
+            errorHandler.addErrorProvider(result.getNonFatalFailure());
             rootComponentProperty.set(result.getRootComponent());
         }
         return rootComponentProperty;

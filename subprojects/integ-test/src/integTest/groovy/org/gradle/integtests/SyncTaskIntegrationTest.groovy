@@ -18,8 +18,8 @@ package org.gradle.integtests
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -406,7 +406,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/extra.txt').exists()
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "sync fails when unable to clean-up files"() {
         given:
@@ -437,7 +437,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         ins.close()
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "sync fails when the output contains unreadable files"() {
         given:
         def input = file("readableFile.txt").createFile()

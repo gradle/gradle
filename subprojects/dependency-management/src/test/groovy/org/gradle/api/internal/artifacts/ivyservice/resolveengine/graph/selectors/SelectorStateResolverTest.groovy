@@ -57,10 +57,12 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.RANG
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_EMPTY
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
-import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER_BATCH1
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER_BATCH2
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_SINGLE
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
-import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES_BATCH1
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES_BATCH2
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
 
 /**
@@ -90,7 +92,7 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_SINGLE
     }
 
-    def "resolve pair #permutation"() {
+    def "resolve pair #permutation (batch 1)"() {
         given:
         def candidates = permutation.candidates
         def expected = permutation.expectedSingle
@@ -99,7 +101,19 @@ class SelectorStateResolverTest extends Specification {
         resolver(permutation.conflicts).resolve(candidates) == expected
 
         where:
-        permutation << SCENARIOS_TWO_DEPENDENCIES
+        permutation << SCENARIOS_TWO_DEPENDENCIES_BATCH1
+    }
+
+    def "resolve pair #permutation (batch 2)"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expectedSingle
+
+        expect:
+        resolver(permutation.conflicts).resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_TWO_DEPENDENCIES_BATCH2
     }
 
     def "resolve empty pair #permutation"() {
@@ -114,7 +128,7 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_EMPTY
     }
 
-    def "resolve prefer pair #permutation"() {
+    def "resolve prefer pair #permutation (batch 1)"() {
         given:
         def candidates = permutation.candidates
         def expected = permutation.expectedSingle
@@ -123,7 +137,19 @@ class SelectorStateResolverTest extends Specification {
         resolver(permutation.conflicts).resolve(candidates) == expected
 
         where:
-        permutation << SCENARIOS_PREFER
+        permutation << SCENARIOS_PREFER_BATCH1
+    }
+
+    def "resolve prefer pair #permutation (batch 2)"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expectedSingle
+
+        expect:
+        resolver(permutation.conflicts).resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_PREFER_BATCH2
     }
 
     def "resolve reject pair #permutation"() {

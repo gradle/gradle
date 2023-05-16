@@ -40,11 +40,13 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         }
     }
 
+    private final boolean isFluentSetter;
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
     private final UpgradedPropertyType upgradedPropertyType;
 
-    public PropertyUpgradeRequestExtra(String implementationClassName, String interceptedPropertyAccessorName, UpgradedPropertyType upgradedPropertyType) {
+    public PropertyUpgradeRequestExtra(boolean isFluentSetter, String implementationClassName, String interceptedPropertyAccessorName, UpgradedPropertyType upgradedPropertyType) {
+        this.isFluentSetter = isFluentSetter;
         this.implementationClassName = implementationClassName;
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
         this.upgradedPropertyType = upgradedPropertyType;
@@ -60,5 +62,9 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
     public UpgradedPropertyType getUpgradedPropertyType() {
         return upgradedPropertyType;
+    }
+
+    public boolean isFluentSetter() {
+        return isFluentSetter;
     }
 }

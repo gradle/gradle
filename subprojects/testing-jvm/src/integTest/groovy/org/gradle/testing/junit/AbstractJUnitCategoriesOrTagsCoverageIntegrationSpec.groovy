@@ -17,9 +17,9 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends AbstractTestingMultiVersionIntegrationTest {
     TestSourceFixture testSources = new TestSourceFixture()
 
     abstract TestSourceGenerator getTestSourceGenerator()
@@ -236,6 +236,9 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
         run('test')
 
         then:
@@ -274,8 +277,8 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         /**
          * Add a new simple test class to the sources.
          */
-        TestClass testClass(String name) {
-            TestClass testClass = new TestClass(name)
+        TestClass testClass(String name, String sourceSet = 'test') {
+            TestClass testClass = new TestClass(name, sourceSet)
             testClasses << testClass
             return testClass
         }
@@ -283,8 +286,8 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         /**
          * Add a JUnit4 category class to the sources.  Note that these are not used by JUnit5 test generators.
          */
-        Category testCategory(String name) {
-            Category category = new Category(name)
+        Category testCategory(String name, String sourceSet = 'test') {
+            Category category = new Category(name, sourceSet)
             categories << category
             return category
         }
@@ -292,8 +295,8 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         /**
          * Add an arbitrary test source file to the sources.  This can be used to add supplementary classes or complex test classes to the sources.
          */
-        TestSource sourceFile(String relativePath) {
-            TestSource source = new TestSource(relativePath)
+        TestSource sourceFile(String relativePath, String sourceSet = 'test') {
+            TestSource source = new TestSource(relativePath, sourceSet)
             sources << source
             return source
         }
@@ -307,13 +310,15 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
     class TestClass {
         final String name
         final String packageName
+        final String sourceSet
 
         List<String> categoriesOrTags = []
         List<TestMethod> methods = []
 
-        TestClass(name) {
+        TestClass(String name, String sourceSet) {
             this.name = name.substring(name.lastIndexOf('.') + 1)
             this.packageName = name.contains('.') ? name.substring(0, name.lastIndexOf('.')) : ''
+            this.sourceSet = sourceSet
         }
 
         TestClass withCategoryOrTag(String name) {
@@ -368,12 +373,14 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
     class Category {
         final String name
         final String packageName
+        final String sourceSet
         List<String> extendsCategories = []
 
-        Category(String name) {
+        Category(String name, String sourceSet) {
             this.name = name.substring(name.lastIndexOf('.') + 1)
             this.packageName = name.contains('.') ? name.substring(0, name.lastIndexOf('.')) : ''
             this.extendsCategories = extendsCategories
+            this.sourceSet = sourceSet
         }
 
         Category extendsCategory(String name) {
@@ -387,11 +394,13 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
      */
     class TestSource {
         final String relativePath
+        final String sourceSet
         String source
 
-        TestSource(String relativePath) {
+        TestSource(String relativePath, String sourceSet) {
             this.relativePath = relativePath
             this.source = source
+            this.sourceSet = sourceSet
         }
 
         TestSource withSource(String source) {

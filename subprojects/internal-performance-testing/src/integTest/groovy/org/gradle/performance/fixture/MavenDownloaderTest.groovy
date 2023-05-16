@@ -19,8 +19,8 @@ package org.gradle.performance.fixture
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.gradle.api.JavaVersion
 import org.gradle.api.UncheckedIOException
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import org.junit.AssumptionViolatedException
 import spock.lang.Specification
@@ -28,7 +28,7 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 
-@Requires([TestPrecondition.ONLINE])
+@Requires(UnitTestPreconditions.Online)
 class MavenDownloaderTest extends Specification {
 
     @TempDir

@@ -18,13 +18,14 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.api.JavaVersion.VERSION_1_8
 import static org.gradle.api.JavaVersion.VERSION_1_9
 
-@Requires(adhoc = { AvailableJavaHomes.getAvailableJdks(VERSION_1_8).size() > 1 && AvailableJavaHomes.getJdk(VERSION_1_9) })
+@Requires([IntegTestPreconditions.MoreThanOneJava8HomeAvailable, IntegTestPreconditions.Java9HomeAvailable ])
 class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {

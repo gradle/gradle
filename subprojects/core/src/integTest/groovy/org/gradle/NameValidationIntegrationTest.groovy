@@ -17,8 +17,8 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -99,7 +99,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
             " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE) // all forbidden characters are illegal on Windows
+    @Requires(UnitTestPreconditions.UnixDerivative) // all forbidden characters are illegal on Windows
     def "does not fail when project name overrides an invalid folder name"() {
         given:
         def buildFolder = file(".folder: name")
@@ -114,7 +114,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         output.contains("customName")
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE) // all forbidden characters are illegal on Windows
+    @Requires(UnitTestPreconditions.UnixDerivative) // all forbidden characters are illegal on Windows
     def "does not assign an invalid project name from folder names"() {
         given:
         def buildFolder = file(".folder: name.")

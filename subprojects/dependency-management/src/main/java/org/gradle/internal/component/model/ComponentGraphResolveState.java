@@ -36,10 +36,27 @@ import java.util.List;
  * <p>This interface says nothing about thread safety, however some subtypes may be required to be thread safe.</p>
  */
 public interface ComponentGraphResolveState {
+    /**
+     * A unique id for this component within the current build tree. Note that this id is not stable across Gradle invocations.
+     */
+    long getInstanceId();
+
+    /**
+     * The component identifier for this component. This identifier is stable but may not be unique.
+     */
     ComponentIdentifier getId();
 
+    /**
+     * Information about the origin of this component.
+     */
     ModuleSources getSources();
 
+    @Nullable
+    String getRepositoryId();
+
+    /**
+     * The immutable metadata for this component.
+     */
     ComponentGraphResolveMetadata getMetadata();
 
     /**
@@ -48,28 +65,21 @@ public interface ComponentGraphResolveState {
     List<ResolvedVariantResult> getAllSelectableVariantResults();
 
     /**
-     * Returns the public view for the given variant of this component.
-     */
-    ResolvedVariantResult getVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant);
-
-    /**
      * Returns the candidates for variant selection during graph resolution.
      */
     GraphSelectionCandidates getCandidatesForGraphVariantSelection();
+
+    /**
+     * Returns the configuration with the given name. A component does not necessarily define any configurations.
+     */
+    @Nullable
+    ConfigurationGraphResolveState getConfiguration(String configurationName);
 
     /**
      * When this component is a lenient platform, create a copy with the given ids. Otherwise, returns {@code null}.
      */
     @Nullable
     ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
-
-    /**
-     * Determines the set of artifacts for the given variant of this component, if required during graph resolution.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be used only when
-     * required.
-     */
-    VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
 
     /**
      * Creates the state that can be used for artifact resolution for this component instance.

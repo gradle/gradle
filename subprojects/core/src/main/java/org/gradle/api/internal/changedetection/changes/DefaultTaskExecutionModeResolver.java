@@ -39,7 +39,7 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
     @Override
     public TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties properties) {
         if (task.getReasonNotToTrackState().isPresent()) {
-            return TaskExecutionMode.UNTRACKED;
+            return DefaultTaskExecutionMode.untracked(task.getReasonNotToTrackState().get());
         }
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
@@ -47,19 +47,19 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
             if (requiresInputChanges(task)) {
                 throw new InvalidUserCodeException("You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API");
             } else {
-                return TaskExecutionMode.NO_OUTPUTS;
+                return DefaultTaskExecutionMode.noOutputs();
             }
         }
 
         if (startParameter.isRerunTasks()) {
-            return TaskExecutionMode.RERUN_TASKS_ENABLED;
+            return DefaultTaskExecutionMode.rerunTasksEnabled();
         }
 
         if (!upToDateSpec.isSatisfiedBy(task)) {
-            return TaskExecutionMode.UP_TO_DATE_WHEN_FALSE;
+            return DefaultTaskExecutionMode.upToDateWhenFalse();
         }
 
-        return TaskExecutionMode.INCREMENTAL;
+        return DefaultTaskExecutionMode.incremental();
     }
 
     private static boolean requiresInputChanges(TaskInternal task) {
