@@ -20,19 +20,22 @@ import com.google.common.util.concurrent.Striped;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.DefaultBuildCacheKey;
-import org.gradle.caching.local.internal.mvstore.ValueWithTimestamp.ValueWithTimestampType;
+import org.gradle.caching.local.internal.mvstore.BlobId.BlobIdType;
+import org.gradle.caching.local.internal.mvstore.LruEntry.LruEntryType;
 import org.gradle.internal.hash.HashCode;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.StreamStore;
-import org.h2.mvstore.type.ByteArrayDataType;
+import org.h2.mvstore.type.LongDataType;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
@@ -48,20 +51,23 @@ public class MVStoreLruStreamMap {
 
     private static final int MINIMUM_LOCKS = 512;
     private final Striped<Lock> locks;
-    private final MVMap<ValueWithTimestamp, byte[]> lruBuildCacheKeyToBlobIds;
-    private final MVMap<byte[], ValueWithTimestamp> buildCacheKeyToBlobLastUsed;
+    private final AtomicLong lruCounter;
+    private final MVMap<Long, LruEntry> lruEntries;
+    private final MVMap<byte[], BlobId> blobIds;
     private final StreamStore streamStore;
     private final MVStore mvStore;
 
     public MVStoreLruStreamMap(MVStore mvStore, int maxConcurrency) {
         this.mvStore = mvStore;
-        this.lruBuildCacheKeyToBlobIds = mvStore.openMap("lruBuildCacheKeyToBlobIds", new MVMap.Builder<ValueWithTimestamp, byte[]>()
-            .keyType(ValueWithTimestampType.INSTANCE)
-            .valueType(ByteArrayDataType.INSTANCE)
+        this.lruEntries = mvStore.openMap("lruEntries", new MVMap.Builder<Long, LruEntry>()
+            .keyType(LongDataType.INSTANCE)
+            .valueType(LruEntryType.INSTANCE)
         );
-        this.buildCacheKeyToBlobLastUsed = mvStore.openMap("buildCacheKeyToBlobLastUsed", new MVMap.Builder<byte[], ValueWithTimestamp>()
+        // Don't use already used keys
+        lruCounter = lruEntries.lastKey() == null ? new AtomicLong() : new AtomicLong(lruEntries.lastKey() + 1);
+        this.blobIds = mvStore.openMap("blobIds", new MVMap.Builder<byte[], BlobId>()
             .keyType(ComparableByteArrayType.INSTANCE)
-            .valueType(ValueWithTimestampType.INSTANCE)
+            .valueType(BlobIdType.INSTANCE)
         );
         streamStore = getStreamStore(mvStore);
         int maxConcurrencyTimesTwo = (Integer.MAX_VALUE / 2) <= maxConcurrency ? Integer.MAX_VALUE : (maxConcurrency * 2);
@@ -71,27 +77,26 @@ public class MVStoreLruStreamMap {
     private static StreamStore getStreamStore(MVStore mvStore) {
         MVMap<Long, byte[]> map = mvStore.openMap("data");
         StreamStore streamStore = new StreamStore(map);
-        if (map.lastKey() != null) {
-            // Don't use already used keys
-            streamStore.setNextKey(map.lastKey() + 1);
-        }
+        // Don't use already used keys
+        streamStore.setNextKey(map.lastKey() == null ? 0 : map.lastKey() + 1);
         return streamStore;
     }
 
     public void putIfAbsent(BuildCacheKey key, Supplier<InputStream> inputStreamSupplier) {
         byte[] keyAsBytes = key.toByteArray();
-        if (buildCacheKeyToBlobLastUsed.containsKey(keyAsBytes)) {
+        if (blobIds.containsKey(keyAsBytes)) {
             return;
         }
-        lockAndRun(key, () -> buildCacheKeyToBlobLastUsed.computeIfAbsent(keyAsBytes, k -> {
-
+        lockAndRun(key, () -> blobIds.computeIfAbsent(keyAsBytes, k -> {
             Optional<byte[]> blobId = Optional.empty();
             MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+
             try (InputStream input = inputStreamSupplier.get()) {
                 long timestamp = System.currentTimeMillis();
                 blobId = Optional.of(streamStore.put(input));
-                lruBuildCacheKeyToBlobIds.put(new ValueWithTimestamp(timestamp, keyAsBytes), blobId.get());
-                return new ValueWithTimestamp(timestamp, blobId.get());
+                long lruKey = lruCounter.getAndIncrement();
+                lruEntries.put(lruKey, new LruEntry(keyAsBytes, blobId.get(), timestamp));
+                return new BlobId(lruKey, blobId.get(), timestamp);
             } catch (IOException | MVStoreException e) {
                 // If lruKeyToIndex.put throws exception, remove data entry
                 blobId.ifPresent(streamStore::remove);
@@ -103,17 +108,17 @@ public class MVStoreLruStreamMap {
     }
 
     public boolean containsKey(BuildCacheKey key) {
-        return buildCacheKeyToBlobLastUsed.containsKey(key.toByteArray());
+        return blobIds.containsKey(key.toByteArray());
     }
 
     @Nullable
     public InputStream get(BuildCacheKey key) {
         byte[] keyAsBytes = key.toByteArray();
-        ValueWithTimestamp dataReference = buildCacheKeyToBlobLastUsed.get(keyAsBytes);
-        if (dataReference == null) {
+        BlobId blobId = blobIds.get(keyAsBytes);
+        if (blobId == null) {
             return null;
         }
-        InputStream inputStream = streamStore.get(dataReference.get());
+        InputStream inputStream = streamStore.get(blobId.getBlobId());
         if (inputStream == null) {
             return null;
         }
@@ -131,35 +136,36 @@ public class MVStoreLruStreamMap {
      */
     private void tryUpdateTimestamp(BuildCacheKey key, byte[] keyAsBytes) {
         tryLockAndRun(key, () -> {
-            ValueWithTimestamp blobLastUsedData = buildCacheKeyToBlobLastUsed.get(keyAsBytes);
-            if (blobLastUsedData == null) {
+            BlobId blobId = blobIds.get(keyAsBytes);
+            if (blobId == null) {
                 // If deletion happened just before lock was acquired
                 return;
             }
             long currentTimestamp = System.currentTimeMillis();
-            lruBuildCacheKeyToBlobIds.put(new ValueWithTimestamp(currentTimestamp, keyAsBytes), blobLastUsedData.get());
-            buildCacheKeyToBlobLastUsed.put(keyAsBytes, new ValueWithTimestamp(currentTimestamp, blobLastUsedData.get()));
+            long lruKey = lruCounter.getAndIncrement();
+            lruEntries.put(lruKey, new LruEntry(keyAsBytes, blobId.getBlobId(), currentTimestamp));
+            blobIds.put(keyAsBytes, new BlobId(lruKey, blobId.getBlobId(), currentTimestamp));
             // Remove previous LRU entry last, so data can be cleaned up even if something explodes before
-            lruBuildCacheKeyToBlobIds.remove(new ValueWithTimestamp(blobLastUsedData.getTimestamp(), keyAsBytes));
+            lruEntries.remove(blobId.getLruKey());
         });
     }
 
     public void delete(BuildCacheKey key) {
         byte[] keyAsBytes = key.toByteArray();
-        if (!buildCacheKeyToBlobLastUsed.containsKey(keyAsBytes)) {
+        if (!blobIds.containsKey(keyAsBytes)) {
             return;
         }
         lockAndRun(key, () -> {
-            ValueWithTimestamp blobLastUsedData = buildCacheKeyToBlobLastUsed.get(keyAsBytes);
-            if (blobLastUsedData == null) {
+            BlobId blobId = blobIds.get(keyAsBytes);
+            if (blobId == null) {
                 // If deletion happened just before lock was acquired
                 return;
             }
             // Remove key to blob metadata first, so that contains and get works always properly, even if delete operations after fail
-            buildCacheKeyToBlobLastUsed.remove(keyAsBytes);
-            streamStore.remove(blobLastUsedData.get());
+            blobIds.remove(keyAsBytes);
+            streamStore.remove(blobId.getBlobId());
             // Remove LRU entry last, so data can be cleaned up even if something explodes before
-            lruBuildCacheKeyToBlobIds.remove(new ValueWithTimestamp(blobLastUsedData.getTimestamp(), keyAsBytes));
+            lruEntries.remove(blobId.getLruKey());
         });
     }
 
@@ -169,29 +175,32 @@ public class MVStoreLruStreamMap {
     public void cleanup(long removeUnusedEntriesOlderThan) {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            cleanup(removeUnusedEntriesOlderThan, lruBuildCacheKeyToBlobIds.keyIterator(null));
+            cleanup(removeUnusedEntriesOlderThan, lruEntries.keyIterator(null));
         } finally {
             mvStore.deregisterVersionUsage(txCounter);
         }
     }
 
-    private void cleanup(long removeUnusedEntriesOlderThan, Iterator<ValueWithTimestamp> iterator) {
+    private void cleanup(long removeUnusedEntriesOlderThan, Iterator<Long> iterator) {
         while (iterator.hasNext()) {
-            ValueWithTimestamp buildCacheKeyWithTimestamp = iterator.next();
-            if (buildCacheKeyWithTimestamp.getTimestamp() > removeUnusedEntriesOlderThan) {
+            long lruKey = iterator.next();
+            LruEntry lruEntry = lruEntries.get(lruKey);
+            if (lruEntry.getLastAccessTime() > removeUnusedEntriesOlderThan) {
                 break;
             }
-            lockAndRun(new DefaultBuildCacheKey(HashCode.fromBytes(buildCacheKeyWithTimestamp.get())), () -> {
-                ValueWithTimestamp blobLastUsedData = buildCacheKeyToBlobLastUsed.get(buildCacheKeyWithTimestamp.get());
-                byte[] blobId = lruBuildCacheKeyToBlobIds.get(buildCacheKeyWithTimestamp);
-                if (blobLastUsedData != null && buildCacheKeyWithTimestamp.getTimestamp() == blobLastUsedData.getTimestamp()) {
+            lockAndRun(new DefaultBuildCacheKey(HashCode.fromBytes(lruEntry.getBuildCacheKey())), () -> {
+                BlobId blobId = blobIds.get(lruEntry.getBuildCacheKey());
+                if (blobId != null && blobId.getLruKey() == lruKey) {
+                    // Remove blob id only if it matches lru key, otherwise it means we are reading old lru entry
                     // Remove key to blob metadata first, so that contains and get works always properly, even if delete operations after fail.
-                    // We do that only if blob last used timestamp matches lru key timestamp.
-                    this.buildCacheKeyToBlobLastUsed.remove(buildCacheKeyWithTimestamp.get());
+                    blobIds.remove(lruEntry.getBuildCacheKey());
+                    streamStore.remove(lruEntry.getBlobId());
+                } else if (blobId == null || blobId.getLruKey() != lruKey && !Arrays.equals(blobId.getBlobId(), lruEntry.getBlobId())) {
+                    // If we don't have any reference to a blob referenced by a lru key in the blobIds map
+                    streamStore.remove(lruEntry.getBlobId());
                 }
-                streamStore.remove(blobId);
                 // Remove LRU entry last, so data can be cleaned up even if something explodes before
-                lruBuildCacheKeyToBlobIds.remove(buildCacheKeyWithTimestamp);
+                lruEntries.remove(lruKey);
             });
         }
     }
