@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
@@ -62,6 +63,7 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(ModuleComponentGraphResolveStateFactory.class);
         registration.add(ThisBuildOnlyComponentDetailsSerializer.class);
         registration.add(ThisBuildOnlySelectedVariantSerializer .class);
+        registration.add(ConnectionFailureRepositoryDisabler.class);
     }
 
     BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
