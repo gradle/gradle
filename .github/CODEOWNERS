@@ -108,3 +108,10 @@ subprojects/*/build.gradle*  @gradle/bt-developer-productivity
 subprojects/ide/                  @gradle/bt-ide-experience
 subprojects/tooling-api/          @gradle/bt-ide-experience
 subprojects/tooling-api-builders/ @gradle/bt-ide-experience
+
+# Release coordination
+subprojects/distributions-dependencies/ @gradle/bt-support
+subprojects/distributions-full/         @gradle/bt-support
+subprojects/performance/                @gradle/bt-support
+subprojects/smoke-test/                 @gradle/bt-support
+subprojects/soak/                       @gradle/bt-support
