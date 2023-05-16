@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.internal.shared.codegen
+package gradlebuild.kotlindsl.codegen
 
+import org.gradle.kotlin.dsl.internal.shared.codegen.fileHeader
+import org.gradle.kotlin.dsl.internal.shared.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.internal.shared.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.internal.shared.support.useToRun
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -23,6 +25,7 @@ import org.gradle.plugin.use.PluginDependencySpec
 import java.io.File
 
 
+internal
 fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
     file.bufferedWriter().useToRun {
         appendReproducibleNewLine(fileHeader)

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.internal.shared.codegen
+package gradlebuild.kotlindsl.codegen
 
-import org.gradle.kotlin.dsl.internal.shared.support.gradleApiMetadataFrom
+import org.gradle.kotlin.dsl.internal.shared.codegen.generateKotlinDslApiExtensionsSourceTo
 import java.io.File
 
 
+internal
 fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>, gradleApiMetadataJar: File): List<File> {
 
     val gradleApiJars = gradleApiJarsFrom(gradleJars)

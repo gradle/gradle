@@ -24,8 +24,6 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.internal.shared.codegen.kotlinDslPackagePath
-import org.gradle.kotlin.dsl.internal.shared.codegen.writeBuiltinPluginIdExtensionsTo
-import org.gradle.kotlin.dsl.internal.shared.codegen.writeGradleApiKotlinDslExtensionsTo
 import java.io.File
 
 
