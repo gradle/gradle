@@ -118,6 +118,11 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
      */
+    GradleExecuter withJavaHome(String userHomeDir);
+
+    /**
+     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
+     */
     GradleExecuter withJavaHome(File userHomeDir);
 
     /**

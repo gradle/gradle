@@ -21,14 +21,14 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "resource files are ignored on unsupported platforms"() {
         given:
@@ -60,7 +60,7 @@ model {
         notExecuted(":compileMainExecutableMainRc")
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
     def "reasonable error message when attempting to compile resource files with unsupported tool chain"() {
         given:

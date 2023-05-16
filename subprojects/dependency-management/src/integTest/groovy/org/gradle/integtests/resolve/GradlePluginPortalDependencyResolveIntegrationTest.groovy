@@ -16,10 +16,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(TestPrecondition.ONLINE)
+@Requires(UnitTestPreconditions.Online)
 class GradlePluginPortalDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def gradlePluginPortalRepository = """

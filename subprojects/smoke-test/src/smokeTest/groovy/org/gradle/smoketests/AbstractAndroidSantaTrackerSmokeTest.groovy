@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 /**
@@ -71,7 +70,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                expectBuildScanProjectComponentSelectorBuildNameDeprecation()
             }
         }.build()
     }
@@ -83,7 +81,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
-                expectBuildScanBuildIdentifierAndProjectComponentSelectorName()
+                expectBuildIdentifierNameDeprecation()
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             } else {
                 expectBuildIdentifierNameDeprecation()
@@ -93,7 +91,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 }
                 // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
                 if (!agpVersion.startsWith("7.3")) {
-                    expectBuildScanProjectComponentSelectorBuildNameDeprecation()
                     expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 }
             }
@@ -109,7 +106,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                expectBuildScanBuildIdentifierAndProjectComponentSelectorName()
+                expectBuildIdentifierNameDeprecation()
             }.build()
     }
 
@@ -132,7 +129,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectBuildIdentifierNameDeprecation()
                 if (!agpVersion.startsWith("7.3")) {
                     // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
-                    expectBuildScanProjectComponentSelectorBuildNameDeprecation()
                     expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 }
             }.build()
@@ -142,31 +138,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         SantaTrackerDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
         }
-
-        void expectBuildScanBuildIdentifierAndProjectComponentSelectorName() {
-            expectBuildScanBuildIdentifierNameDeprecation()
-            expectBuildScanProjectComponentSelectorBuildNameDeprecation()
-        }
-
-        void expectBuildScanBuildIdentifierNameDeprecation() {
-            runner.expectDeprecationWarning(
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-                "https://issuetracker.google.com/issues/279306626"
-            )
-        }
-
-        void expectBuildScanProjectComponentSelectorBuildNameDeprecation() {
-            runner.expectDeprecationWarning(
-                "The ProjectComponentSelector.getBuildName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-                "Build Scan plugin 3.13.1"
-            )
-        }
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {
@@ -175,7 +146,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
             expectConfigUtilDeprecationWarning(agpVersion)
-            expectBuildIdentifierNameDeprecation()
         }.build()
     }
 

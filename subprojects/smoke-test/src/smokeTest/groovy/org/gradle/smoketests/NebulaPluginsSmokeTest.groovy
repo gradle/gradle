@@ -18,8 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -202,7 +202,7 @@ testImplementation('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules')
-    @Requires(TestPrecondition.JDK11_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk11OrEarlier)
     def 'nebula resolution rules plugin'() {
         when:
         file('rules.json') << """

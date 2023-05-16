@@ -154,7 +154,7 @@ Required by:
                 assert components[0].build.name == 'buildSrc'
                 assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
-                assert components[0].projectName == 'buildSrc'
+                assert components[0].projectName == '$rootProjectName'
                 assert components[1].build.buildPath == ':buildB:buildSrc'
                 assert components[1].build.name == 'buildSrc'
                 assert components[1].build.currentBuild
@@ -180,9 +180,9 @@ Required by:
         execute(buildA, ":assemble")
 
         where:
-        settings                     | display
-        ""                           | "default root project name"
-        "rootProject.name='someLib'" | "configured root project name"
+        settings                     | rootProjectName | display
+        ""                           | "buildSrc"      | "default root project name"
+        "rootProject.name='someLib'" | "someLib"       | "configured root project name"
     }
 }
 

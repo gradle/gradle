@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve.maven;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class MavenDependencyManagementImportOrderTest extends AbstractIntegrationSpec {
 	@Issue("https://github.com/gradle/gradle/issues/2212")
-    @Requires(TestPrecondition.ONLINE)
+    @Requires(UnitTestPreconditions.Online)
 	def "Verify that gradle resolves org.wildfly.swarm:undertow the same as maven"() {
 		when:
 		buildFile.text = """
