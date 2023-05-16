@@ -869,7 +869,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public TransformUpstreamDependenciesResolverFactory getDependenciesResolverFactory() {
-        warnOnInvalidInternalAPIUsage("getDependenciesResolver()", ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("getDependenciesResolverFactory()", ProperMethodUsage.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
             dependenciesResolverFactory = new DefaultTransformUpstreamDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
