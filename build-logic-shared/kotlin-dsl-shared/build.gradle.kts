@@ -28,8 +28,9 @@ tasks.withType(KotlinCompile::class).configureEach {
 }
 
 dependencies {
-    compileOnly(gradleApi())
     compileOnly("org.ow2.asm:asm-tree:9.4")
+    compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+    compileOnly("org.jetbrains:annotations:24.0.0")
 }
 
 // TODO this is a workaround for making the configuration cache work
