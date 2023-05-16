@@ -18,15 +18,15 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 
-abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getStandaloneTestClass()
     abstract String testClass(String className)
 
@@ -78,7 +78,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
         result.assertTaskSkipped(":test")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compiles and executes a Java 9 test suite"() {
         given:
         buildFile << java9Build()
@@ -96,7 +96,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
 
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compiles and executes a Java 9 test suite even if a module descriptor is on classpath"() {
         given:
         buildFile << java9Build()
@@ -150,7 +150,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
         Runtime.runtime.availableProcessors() + 1 | _
     }
 
-    @Requires(TestPrecondition.ONLINE)
+    @Requires(UnitTestPreconditions.Online)
     def "re-runs tests when resources are renamed in a jar"() {
         given:
         buildFile << """
@@ -188,7 +188,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersion
         fails 'test'
     }
 
-    @Requires(TestPrecondition.ONLINE)
+    @Requires(UnitTestPreconditions.Online)
     def "re-runs tests when resources are renamed"() {
         given:
         file("src/test/java/MyTest.java") << """

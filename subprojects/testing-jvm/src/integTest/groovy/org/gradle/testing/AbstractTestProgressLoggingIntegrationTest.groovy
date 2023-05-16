@@ -17,10 +17,10 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.junit.Rule
 
-abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     @Rule ProgressLoggingFixture events = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def setup() {

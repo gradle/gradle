@@ -19,13 +19,12 @@ package org.gradle.testing
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     abstract boolean isEmitsTestClassOperations()
-    abstract String testMethodName(String testMethod)
     abstract void writeTestSources()
 
     def "emits build operations for junit tests"() {
@@ -93,7 +92,7 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
 
     void checkForTestOperations(Iterator<BuildOperationRecord> iterator, String className, String methodName) {
         with(iterator.next()) {
-            details.testDescriptor.name == testMethodName(methodName)
+            details.testDescriptor.name == maybeParentheses(methodName)
             details.testDescriptor.className == className
             details.testDescriptor.composite == false
         }

@@ -19,10 +19,10 @@ package org.gradle.api.internal.artifacts.result;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
@@ -35,7 +35,7 @@ import java.util.Set;
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 @SuppressWarnings("rawtypes")
-public class DefaultResolutionResult implements ResolutionResult {
+public class DefaultResolutionResult implements ResolutionResultInternal {
 
     private final Factory<ResolvedComponentResult> rootSource;
     private final AttributeContainer requestedAttributes;
@@ -54,6 +54,11 @@ public class DefaultResolutionResult implements ResolutionResult {
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
         return new DefaultProvider<>(this::getRoot);
+    }
+
+    @Override
+    public Provider<Throwable> getNonFatalFailure() {
+        return Providers.notDefined();
     }
 
     @Override

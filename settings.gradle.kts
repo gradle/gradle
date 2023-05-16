@@ -23,7 +23,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.13") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.13.2") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
@@ -144,6 +144,7 @@ include("enterprise-workers")
 include("build-operations")
 include("problems")
 include("instrumentation-agent")
+include("instrumentation-declarations")
 
 // Plugin portal projects
 include("kotlin-dsl-plugins")

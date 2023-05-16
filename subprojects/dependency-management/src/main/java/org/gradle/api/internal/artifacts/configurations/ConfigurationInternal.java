@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -94,14 +93,6 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     ConfigurationInternal getConsistentResolutionSource();
 
     /**
-     * Decorates a resolve exception with more context. This can be used
-     * to give hints to the user when a resolution error happens.
-     * @param e a resolve exception
-     * @return a decorated resolve exception, or the same exception
-     */
-    ResolveException maybeAddContext(ResolveException e);
-
-    /**
      * Test if this configuration can either be declared against or extends another
      * configuration which can be declared against.
      *
@@ -115,17 +106,6 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      * Returns the role used to create this configuration and set its initial allowed usage.
      */
     ConfigurationRole getRoleAtCreation();
-
-    /**
-     * Check if a configuration has any dependencies declared against it, without triggering
-     * the improper usage checks on {@link #getDependencies()}.
-     *
-     * This method is meant to double-check that calling this method would return an empty collection,
-     * and thus skipping that call is safe.  It will be unnecessary once configuration usage is locked
-     * upon creation, as the {@link #isCanBeDeclared()} check will be sufficient then.
-     */
-    @Deprecated
-    void assertHasNoDeclarations();
 
     /**
      * Test if the given configuration can either be declared against or extends another

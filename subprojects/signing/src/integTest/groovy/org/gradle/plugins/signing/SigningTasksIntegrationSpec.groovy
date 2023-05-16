@@ -19,7 +19,8 @@ package org.gradle.plugins.signing
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.SigningTestPreconditions
 
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.GPG_CMD
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.OPEN_GPG
@@ -83,7 +84,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signJar", ":signJavadocJar", ":signSourcesJar")
     }
 
-    @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
+    @Requires(SigningTestPreconditions.GpgAvailable)
     def "out-of-date when signatory changes"() {
         given:
         def originalSignMethod = signMethod

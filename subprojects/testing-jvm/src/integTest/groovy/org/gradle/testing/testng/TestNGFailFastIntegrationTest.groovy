@@ -17,28 +17,13 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
+import org.gradle.testing.fixture.TestNGCoverage
 import org.hamcrest.CoreMatchers
 
-class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
-    @Override
-    String testAnnotationClass() {
-        'org.testng.annotations.Test'
-    }
-
-    @Override
-    String testDependencies() {
-        "testImplementation 'org.testng:testng:6.9.13.6'"
-    }
-
-    @Override
-    String testFrameworkConfiguration() {
-        """
-            tasks.withType(Test) {
-                useTestNG()
-            }
-        """
-    }
+@TargetCoverage({ [TestNGCoverage.NEWEST] })
+class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements TestNGMultiVersionTest {
 
     def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
         given:

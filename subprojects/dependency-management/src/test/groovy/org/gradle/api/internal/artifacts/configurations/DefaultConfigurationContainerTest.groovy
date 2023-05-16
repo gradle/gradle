@@ -21,12 +21,12 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
@@ -61,7 +61,6 @@ class DefaultConfigurationContainerTest extends Specification {
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
-    private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
         decorate(_ as Action) >> { it[0] }
     }
@@ -99,7 +98,7 @@ class DefaultConfigurationContainerTest extends Specification {
                 TestFiles.taskDependencyFactory(),
         ),
         immutableAttributesFactory,
-        documentationRegistry,
+        Stub(ResolveExceptionContextualizer),
         userCodeApplicationContext,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),

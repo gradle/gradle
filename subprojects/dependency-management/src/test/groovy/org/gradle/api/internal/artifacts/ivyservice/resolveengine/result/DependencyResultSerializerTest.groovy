@@ -26,17 +26,13 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
-import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DependencyResultSerializerTest extends Specification {
 
-    def serializer = new DependencyResultSerializer(new ResolvedVariantResultSerializer(
-        new ComponentIdentifierSerializer(),
-        new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())), DependencyManagementTestUtil.componentSelectionDescriptorFactory())
+    def serializer = new DependencyResultSerializer(DependencyManagementTestUtil.componentSelectionDescriptorFactory())
 
     def "serializes successful dependency result"() {
         def requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org", "foo"), new DefaultMutableVersionConstraint("1.0"))
@@ -45,8 +41,10 @@ class DependencyResultSerializerTest extends Specification {
                 getResultId() >> 4L
                 getRequested() >> requested
             }
+            getFromVariant() >> 55L
             getFailure() >> null
             getSelected() >> 12L
+            getSelectedVariant() >> 123L
             getReason() >> ComponentSelectionReasons.requested()
         }
 
@@ -60,7 +58,9 @@ class DependencyResultSerializerTest extends Specification {
         then:
         out.requested == requested
         out.failure == null
+        out.fromVariant == 55L
         out.selected == 12L
+        out.selectedVariant == 123L
     }
 
     def "serializes failed dependency result"() {
@@ -73,8 +73,8 @@ class DependencyResultSerializerTest extends Specification {
                 getResultId() >> 4L
                 getRequested() >> requested
             }
+            getFromVariant() >> 55L
             getFailure() >> failure
-            getSelected() >> null
             getReason() >> ComponentSelectionReasons.of(ComponentSelectionReasons.CONFLICT_RESOLUTION)
         }
 
@@ -90,7 +90,9 @@ class DependencyResultSerializerTest extends Specification {
         then:
         out.requested == requested
         out.failure.cause.message == "Boo!"
+        out.fromVariant == 55L
         out.selected == null
+        out.selectedVariant == null
         out.reason.conflictResolution
     }
 }

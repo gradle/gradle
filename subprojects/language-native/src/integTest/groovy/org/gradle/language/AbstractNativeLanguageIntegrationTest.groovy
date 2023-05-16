@@ -20,8 +20,8 @@ package org.gradle.language
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -109,7 +109,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "install and run executable with dependencies"() {
         given:
@@ -143,7 +143,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         install.exec().out == helloWorldApp.englishOutput
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "install and run executable with dependencies and customized installation"() {
         given:
@@ -177,7 +177,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         install.exec().out == helloWorldApp.englishOutput
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "build shared library and link into executable"() {
         given:
@@ -211,7 +211,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         install.exec().out == helloWorldApp.englishOutput
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "build static library and link into executable"() {
         given:

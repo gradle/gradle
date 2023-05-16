@@ -20,8 +20,8 @@ import org.apache.commons.io.IOUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.util.GradleVersion
-import org.gradle.util.PreconditionVerifier
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Shared
@@ -50,7 +50,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        44
+        45
     }
 
     /**

@@ -138,6 +138,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.event.ListenerManager;
@@ -558,7 +559,8 @@ class DependencyManagementBuildScopeServices {
                                                                 ResolvedVariantCache resolvedVariantCache,
                                                                 AttributeDesugaring attributeDesugaring,
                                                                 LocalComponentGraphResolveStateFactory localResolveStateFactory,
-                                                                ModuleComponentGraphResolveStateFactory moduleResolveStateFactory) {
+                                                                ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
+                                                                ComponentIdGenerator idGenerator) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -577,7 +579,8 @@ class DependencyManagementBuildScopeServices {
             resolvedVariantCache,
             attributeDesugaring,
             localResolveStateFactory,
-            moduleResolveStateFactory);
+            moduleResolveStateFactory,
+            idGenerator);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {

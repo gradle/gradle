@@ -371,6 +371,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "instrumentation-declarations",
+    "name": "instrumentation-declarations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "integ-test",
     "name": "integ-test",
     "unitTests": false,
