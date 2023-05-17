@@ -17,8 +17,8 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -27,7 +27,7 @@ import java.nio.file.Paths
 class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles when module info changes"() {
         given:
         source("""
@@ -56,7 +56,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles when module info is added"() {
         given:
         source("""
@@ -80,7 +80,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     @Issue("https://github.com/gradle/gradle/issues/9202")
     def "source mapping file works with symlinks"() {
         given:
@@ -121,7 +121,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         outputs.recompiledClasses('MyClass', 'Other')
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles all when constant used by annotation on module-info is changed"() {
         given:
         source("""

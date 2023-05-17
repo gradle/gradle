@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.mvnsettings
 import org.apache.maven.settings.io.SettingsParseException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -208,7 +208,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         'env.unknown.ENV_VAR' |   "environment variable"
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     @Issue('https://github.com/gradle/gradle/issues/2843')
     def "handle the case of absolute path on Windows"() {
         when:

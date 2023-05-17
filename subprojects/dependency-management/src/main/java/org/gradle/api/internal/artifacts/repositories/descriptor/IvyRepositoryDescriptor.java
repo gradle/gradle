@@ -18,10 +18,16 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -36,32 +42,57 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
         M2_COMPATIBLE
     }
 
-    public final ImmutableList<String> ivyPatterns;
-    public final ImmutableList<String> artifactPatterns;
-    public final String layoutType;
-    public final boolean m2Compatible;
+    private final ImmutableList<String> ivyPatterns;
+    private final ImmutableList<ResourcePattern> ivyResources;
+    private final ImmutableList<String> artifactPatterns;
+    private final ImmutableList<ResourcePattern> artifactResources;
+    private final String layoutType;
+    private final boolean m2Compatible;
 
     private IvyRepositoryDescriptor(
+        String id,
         String name,
         URI url,
         ImmutableList<String> metadataSources,
         boolean authenticated,
         ImmutableList<String> authenticationSchemes,
         ImmutableList<String> ivyPatterns,
+        ImmutableList<ResourcePattern> ivyResources,
         ImmutableList<String> artifactPatterns,
+        ImmutableList<ResourcePattern> artifactResources,
         String layoutType,
         boolean m2Compatible
     ) {
-        super(name, url, metadataSources, authenticated, authenticationSchemes);
+        super(id, name, url, metadataSources, authenticated, authenticationSchemes);
         this.ivyPatterns = ivyPatterns;
+        this.ivyResources = ivyResources;
         this.artifactPatterns = artifactPatterns;
+        this.artifactResources = artifactResources;
         this.layoutType = layoutType;
         this.m2Compatible = m2Compatible;
     }
 
     @Override
+    public ImmutableList<ResourcePattern> getMetadataResources() {
+        return ivyResources;
+    }
+
+    @Override
+    public ImmutableList<ResourcePattern> getArtifactResources() {
+        return artifactResources;
+    }
+
+    @Override
     public Type getType() {
         return Type.IVY;
+    }
+
+    public List<String> getArtifactPatterns() {
+        return artifactPatterns;
+    }
+
+    public boolean isM2Compatible() {
+        return m2Compatible;
     }
 
     @Override
@@ -73,33 +104,48 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
         builder.put(Property.M2_COMPATIBLE.name(), m2Compatible);
     }
 
-    public List<String> getIvyPatterns() {
-        return ivyPatterns;
-    }
+    @NonNullApi
+    private static class Resource {
+        final URI baseUri;
+        final String pattern;
 
-    public List<String> getArtifactPatterns() {
-        return artifactPatterns;
+        public Resource(URI baseUri, String pattern) {
+            this.baseUri = baseUri;
+            this.pattern = pattern;
+        }
     }
 
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {
-
-        private ImmutableList<String> ivyPatterns;
-        private ImmutableList<String> artifactPatterns;
+        private final List<String> ivyPatterns = new ArrayList<>();
+        private final List<String> artifactPatterns = new ArrayList<>();
         private String layoutType;
         private Boolean m2Compatible;
+        // Artifact resources derived from other configuration
+        private final List<Resource> ivyResources = new ArrayList<>();
+        private final List<Resource> artifactResources = new ArrayList<>();
 
         public Builder(String name, URI url) {
             super(name, url);
         }
 
-        public Builder setIvyPatterns(Collection<String> ivyPatterns) {
-            this.ivyPatterns = ImmutableList.copyOf(ivyPatterns);
-            return this;
+        public void addIvyPattern(String declaredPattern) {
+            ivyPatterns.add(declaredPattern);
         }
 
-        public Builder setArtifactPatterns(Collection<String> artifactPatterns) {
-            this.artifactPatterns = ImmutableList.copyOf(artifactPatterns);
-            return this;
+        public void addIvyResource(@Nullable URI baseUri, String pattern) {
+            if (baseUri != null) {
+                ivyResources.add(new Resource(baseUri, pattern));
+            }
+        }
+
+        public void addArtifactPattern(String declaredPattern) {
+            artifactPatterns.add(declaredPattern);
+        }
+
+        public void addArtifactResource(@Nullable URI rootUri, String pattern) {
+            if (rootUri != null) {
+                artifactResources.add(new Resource(rootUri, pattern));
+            }
         }
 
         public Builder setLayoutType(String layoutType) {
@@ -113,17 +159,41 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
         }
 
         public IvyRepositoryDescriptor create() {
+            checkNotNull(m2Compatible);
+            checkNotNull(metadataSources);
+
+            ImmutableList.Builder<ResourcePattern> ivyResourcesBuilder = ImmutableList.builderWithExpectedSize(ivyPatterns.size());
+            for (Resource resource : ivyResources) {
+                ivyResourcesBuilder.add(toResourcePattern(resource.baseUri, resource.pattern));
+            }
+            ImmutableList.Builder<ResourcePattern> artifactResourcesBuilder = ImmutableList.builderWithExpectedSize(artifactPatterns.size() + artifactResources.size());
+            for (Resource resource : artifactResources) {
+                artifactResourcesBuilder.add(toResourcePattern(resource.baseUri, resource.pattern));
+            }
+
+            ImmutableList<ResourcePattern> effectiveIvyResources = ivyResourcesBuilder.build();
+            ImmutableList<ResourcePattern> effectiveArtifactResources = artifactResourcesBuilder.build();
+
+            String id = calculateId(IvyResolver.class, effectiveIvyResources, effectiveArtifactResources, metadataSources, hasher -> hasher.putBoolean(m2Compatible));
+
             return new IvyRepositoryDescriptor(
+                id,
                 checkNotNull(name),
                 url,
-                checkNotNull(metadataSources),
+                metadataSources,
                 checkNotNull(authenticated),
                 checkNotNull(authenticationSchemes),
-                checkNotNull(ivyPatterns),
-                checkNotNull(artifactPatterns),
+                ImmutableList.copyOf(ivyPatterns),
+                effectiveIvyResources,
+                ImmutableList.copyOf(artifactPatterns),
+                effectiveArtifactResources,
                 checkNotNull(layoutType),
-                checkNotNull(m2Compatible)
+                m2Compatible
             );
+        }
+
+        private ResourcePattern toResourcePattern(URI baseUri, String pattern) {
+            return m2Compatible ? new M2ResourcePattern(baseUri, pattern) : new IvyResourcePattern(baseUri, pattern);
         }
     }
 }

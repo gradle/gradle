@@ -22,8 +22,8 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import javax.annotation.Nullable
 
@@ -61,6 +61,13 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
             @DisableCachingByDefault(because = 'do-not-cache-by-default reason')
             class NotCacheableByDefaultWithReason extends UnspecifiedCacheabilityTask {}
+
+            @UntrackedTask(because = 'untracked-task reason')
+            class UntrackedTrackWithReason extends UnspecifiedCacheabilityTask {}
+
+            @UntrackedTask(because = 'untracked-task-with-cacheable reason')
+            @CacheableTask
+            class UntrackedTrackWithReasonWithCacheable extends UnspecifiedCacheabilityTask {}
 
             @CacheableTask
             class Cacheable extends UnspecifiedCacheabilityTask {}
@@ -156,6 +163,41 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         then:
         assertCachingDisabledFor NO_OUTPUTS_DECLARED, "No outputs declared"
     }
+
+
+    def "cacheability for a untracked task via API is NOT_ENABLED_FOR_TASK with message"() {
+        buildFile """
+            task untrackedTrackWithReason(type: UnspecifiedCacheabilityTask) {
+                doNotTrackState("Untracked for testing from API")
+            }
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReason"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: Untracked for testing from API"
+    }
+
+
+    def "cacheability for a untracked task is NOT_ENABLED_FOR_TASK with message"() {
+        buildFile """
+            task untrackedTrackWithReason(type: UntrackedTrackWithReason) {}
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReason"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: untracked-task reason"
+    }
+
+    def "cacheability for a untracked task is NOT_ENABLED_FOR_TASK with message when marked cacheable"() {
+        buildFile """
+            task untrackedTrackWithReasonWithCacheable(type: UntrackedTrackWithReasonWithCacheable) {}
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReasonWithCacheable"
+        then:
+        assertCachingDisabledFor DO_NOT_CACHE_IF_SPEC_SATISFIED, "Task is untracked because: untracked-task-with-cacheable reason"
+    }
+
 
     def "cacheability for a task with no outputs is NOT_ENABLED_FOR_TASK"() {
         buildFile """
@@ -344,7 +386,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     // This test only works in embedded mode because of the use of validation test fixtures
-    @Requires({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     def "cacheability for task with disabled optimizations is VALIDATION_FAILURE"() {
         when:
         executer.noDeprecationChecks()

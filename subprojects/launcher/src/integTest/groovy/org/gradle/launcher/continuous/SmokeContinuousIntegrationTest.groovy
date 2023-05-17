@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -563,7 +563,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         executedAndNotSkipped(":a")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "exit hint does not mention enter when not on windows"() {
         when:
         file("a").touch()
@@ -574,7 +574,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         output.endsWith("(ctrl-d to exit)\n")
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "exit hint mentions enter when on windows"() {
         when:
         file("a").touch()

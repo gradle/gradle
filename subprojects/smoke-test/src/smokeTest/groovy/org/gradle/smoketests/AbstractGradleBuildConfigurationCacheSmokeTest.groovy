@@ -21,18 +21,21 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.SmokeTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
  *
  * gradle/gradle requires Java >=9 and <=11 to build, see {@link AbstractGradleceptionSmokeTest.GradleBuildJvmSpec}.
  */
-@Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
-})
+@Requires([
+    UnitTestPreconditions.Jdk9OrLater,
+    IntegTestPreconditions.NotConfigCached,
+    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
+])
 abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
     def setup() {
         // Generate Kotlin DSL sources once so they are included as :kotlin-dsl:compileKotlin inputs.

@@ -254,7 +254,7 @@ This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies
 
 By default, `outgoingVariants` prints information about all variants.
 It offers the optional parameter `--variant <variantName>` to select a single variant to display.
-It also accepts the `--all` flag to include information about legacy and deprecated configurations.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations, or `--no-all` to exclude this information.
 
 Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
 
@@ -397,8 +397,9 @@ By default, `resolvableConfigurations` prints information about all purely resol
 These are configurations that are marked resolvable but *not* marked consumable.
 Though some resolvable configurations are also marked consumable, these are legacy configurations that should *not* have dependencies added in build scripts.
 This report offers the optional parameter `--configuration <configurationName>` to select a single configuration to display.
-It also accepts the `--all` flag to include information about legacy and deprecated configurations.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations, or `--no-all` to exclude this information.
 Finally, it accepts the `--recursive` flag to list in the extended configurations section those configurations which are extended _transitively_ rather than directly.
+Alternatively, `--no-recursive` can be used to exclude this information.
 
 Here is the output of the `resolvableConfigurations` task on a freshly generated `java-library` project:
 

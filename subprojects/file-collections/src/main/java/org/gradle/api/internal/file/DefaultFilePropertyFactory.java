@@ -41,6 +41,7 @@ import org.gradle.internal.state.Managed;
 import javax.annotation.Nullable;
 import java.io.File;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 @ServiceScope(Scope.Global.class)
@@ -348,7 +349,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
-            return new BiProvider<>(Directory.class, this, path, (dir, relativePath) -> dir.dir(relativePath.toString()));
+            return new BiProvider<>(Directory.class, this, path, bifunction((dir, relativePath) -> dir.dir(relativePath.toString())));
         }
 
         @Override
@@ -358,7 +359,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
-            return new BiProvider<>(RegularFile.class, this, path, (dir, relativePath) -> dir.file(relativePath.toString()));
+            return new BiProvider<>(RegularFile.class, this, path, bifunction((dir, relativePath) -> dir.file(relativePath.toString())));
         }
 
         @Override

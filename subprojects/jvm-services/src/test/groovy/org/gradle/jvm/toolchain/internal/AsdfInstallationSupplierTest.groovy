@@ -19,8 +19,8 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -136,7 +136,7 @@ class AsdfInstallationSupplierTest extends Specification {
         directories*.source == ["asdf-vm", "asdf-vm", "asdf-vm"]
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "supplies installations with symlinked candidate"() {
         given:
         def otherLocation = temporaryFolder.createDir("other")

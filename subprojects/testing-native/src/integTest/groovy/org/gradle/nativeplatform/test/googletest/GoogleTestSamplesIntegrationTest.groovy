@@ -17,19 +17,20 @@
 
 package org.gradle.nativeplatform.test.googletest
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
-import static org.junit.Assume.*
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+import static org.junit.Assume.assumeTrue
+
+@Requires(UnitTestPreconditions.CanInstallExecutable)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample googleTest = sample(temporaryFolder, 'google-test')

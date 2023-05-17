@@ -27,7 +27,6 @@ import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.InputTrackingState
-import org.gradle.configurationcache.InstrumentedExecutionAccessListener
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
@@ -41,8 +40,6 @@ import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildoption.FeatureFlags
-import org.gradle.internal.classpath.InstrumentedExecutionAccess
-import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
@@ -60,17 +57,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val workExecutionTracker: WorkExecutionTracker,
     private val featureFlags: FeatureFlags,
-    private val inputTrackingState: InputTrackingState,
-    instrumentedExecutionAccessListener: InstrumentedExecutionAccessListener,
-) : ConfigurationCacheProblemsListener, Stoppable {
-
-    init {
-        InstrumentedExecutionAccess.setListener(instrumentedExecutionAccessListener)
-    }
-
-    override fun stop() {
-        InstrumentedExecutionAccess.discardListener()
-    }
+    private val inputTrackingState: InputTrackingState
+) : ConfigurationCacheProblemsListener {
 
     override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
         problems.onProblem(
