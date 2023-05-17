@@ -2193,12 +2193,14 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         private ArtifactView createArtifactView(ArtifactViewConfiguration config) {
-            AttributeContainerInternal viewAttributes = config.configurationAttributes;
+            // As this runs after the action used to configure the ArtifactView has run, the config might already have viewAttributes present
+            // which the user added.  If so, continue to use those attributes, otherwise use the attributes from the creating configuration.
+            AttributeContainerInternal viewAttributes = (config.viewAttributes == null) ? config.configurationAttributes : config.viewAttributes;
+
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
-            ArtifactView view;
-            view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
-            return view;
+
+            return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
         }
 
         private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
