@@ -593,21 +593,6 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.isCompatibleWith(other)
     }
 
-    def "is compatible with JAVA_MAIN_CLASS when running on Apple JVMs"() {
-        given:
-        def oldOsName = System.properties['os.name']
-        System.properties['os.name'] = 'Mac OS X'
-
-        when:
-        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, new DefaultJavaDebugOptions())
-
-        then:
-        other.getEnvironment().findAll { it.key.startsWith("JAVA_MAIN_CLASS") }.size() == 0
-
-        cleanup:
-        System.properties['os.name'] = oldOsName
-    }
-
     def "is not compatible with super set of environment variables"() {
         def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, new DefaultJavaDebugOptions())
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.jvm;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Jvm implements JavaInfo {
@@ -42,7 +43,7 @@ public class Jvm implements JavaInfo {
     private final boolean userSupplied;
     private final String implementationJavaVersion;
     private final JavaVersion javaVersion;
-    private static final AtomicReference<JvmImplementation> CURRENT = new AtomicReference<JvmImplementation>();
+    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
 
     // Cached resolved executables
     private File javaExecutable;
@@ -54,22 +55,10 @@ public class Jvm implements JavaInfo {
     public static Jvm current() {
         Jvm jvm = CURRENT.get();
         if (jvm == null) {
-            CURRENT.compareAndSet(null, createCurrent());
+            CURRENT.compareAndSet(null, new Jvm(OperatingSystem.current()));
             jvm = CURRENT.get();
         }
         return jvm;
-    }
-
-    @VisibleForTesting
-    static JvmImplementation createCurrent() {
-        String vendor = System.getProperty("java.vm.vendor");
-        if (vendor.toLowerCase().startsWith("apple inc.") || OperatingSystem.current().isMacOsX()) {
-            return new AppleJvm(OperatingSystem.current());
-        }
-        if (vendor.toLowerCase().startsWith("ibm corporation")) {
-            return new IbmJvm(OperatingSystem.current());
-        }
-        return new JvmImplementation(OperatingSystem.current());
     }
 
     private static Jvm create(File javaBase, @Nullable String implementationJavaVersion, @Nullable JavaVersion javaVersion) {
@@ -320,11 +309,7 @@ public class Jvm implements JavaInfo {
         if (standaloneJre != null) {
             return standaloneJre;
         }
-        File embeddedJre = getEmbeddedJre();
-        if (embeddedJre != null) {
-            return embeddedJre;
-        }
-        return null;
+        return getEmbeddedJre();
     }
 
     private File findToolsJar(File javaHome) {
@@ -354,65 +339,26 @@ public class Jvm implements JavaInfo {
         return null;
     }
 
-    public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-        return envVars;
+    public static Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
+        Map<String, Object> vars = new HashMap<String, Object>();
+        for (Map.Entry<String, ?> entry : envVars.entrySet()) {
+            if (entry.getKey().matches("APP_NAME_\\d+") || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")) {
+                continue;
+            }
+            vars.put(entry.getKey(), entry.getValue());
+        }
+        return vars;
     }
 
     public boolean isIbmJvm() {
-        String vendor = System.getProperty("java.vm.vendor");
-        return vendor.toLowerCase().startsWith("ibm corporation");
-    }
-
-    /**
-     * Details about a known JVM implementation.
-     */
-    static class JvmImplementation extends Jvm {
-        JvmImplementation(OperatingSystem os) {
-            super(os);
-        }
-    }
-
-    static class IbmJvm extends JvmImplementation {
-        IbmJvm(OperatingSystem os) {
-            super(os);
-        }
-
-        @Override
-        public boolean isIbmJvm() {
-            return true;
-        }
-    }
-
-    /**
-     * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE, but this is likely an over-simplification.
-     */
-    static class AppleJvm extends JvmImplementation {
-        AppleJvm(OperatingSystem os) {
-            super(os);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public File getToolsJar() {
-            return null;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-            Map<String, Object> vars = new HashMap<String, Object>();
-            for (Map.Entry<String, ?> entry : envVars.entrySet()) {
-                if (entry.getKey().matches("APP_NAME_\\d+") || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")) {
-                    continue;
-                }
-                vars.put(entry.getKey(), entry.getValue());
+        Set<String> vendorProperties = Sets.newHashSet("java.vendor", "java.vm.vendor");
+        for (String vendorProperty : vendorProperties) {
+            if (System.getProperties().containsKey(vendorProperty)
+                && System.getProperty(vendorProperty).toLowerCase().startsWith("ibm corporation")) {
+                return true;
             }
-            return vars;
         }
+        return false;
     }
 
 }

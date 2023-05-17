@@ -343,45 +343,11 @@ class JvmTest extends Specification {
         jvm.is(current)
     }
 
-    def "uses system property to determine if Sun/Oracle JVM"() {
-        when:
-        System.properties['java.vm.vendor'] = 'Sun'
-        def jvm = Jvm.createCurrent()
-
-        then:
-        jvm.getClass() == Jvm.JvmImplementation
-    }
-
-    def "uses system property to determine if Apple JVM"() {
-        when:
-        System.properties['java.vm.vendor'] = 'Apple Inc.'
-        def jvm = Jvm.createCurrent()
-
-        then:
-        jvm.getClass() == Jvm.AppleJvm
-
-        when:
-        System.properties['java.vm.vendor'] = 'Sun'
-        jvm = Jvm.createCurrent()
-
-        then:
-        jvm.getClass() == Jvm.JvmImplementation
-    }
-
-    def "uses OS name to determine if Apple JVM"() {
-        when:
-        System.properties['os.name'] = 'Mac OS X'
-        def jvm = Jvm.createCurrent()
-
-        then:
-        jvm.getClass() == Jvm.AppleJvm
-    }
-
     def "JAVA_CLASS_NAME_* env is not inherited on Mac OS"() {
         when:
         System.properties['os.name'] = 'Mac OS X'
 
-        def jvm = Jvm.createCurrent()
+        def jvm = Jvm.current()
 
         then:
         jvm.getInheritableEnvironmentVariables(["JAVA_MAIN_CLASS_1234": "com.foo.Main"]).isEmpty()
@@ -389,11 +355,14 @@ class JvmTest extends Specification {
 
     def "uses system property to determine if IBM JVM"() {
         when:
-        System.properties['java.vm.vendor'] = 'IBM Corporation'
-        def jvm = Jvm.createCurrent()
+        System.properties[vendorProperty] = 'IBM Corporation'
+        def jvm = Jvm.current()
 
         then:
         jvm.isIbmJvm()
+
+        where:
+        vendorProperty << ['java.vendor', 'java.vm.vendor']
     }
 
     def "finds executable for java home supplied"() {
@@ -546,5 +515,13 @@ class JvmTest extends Specification {
         java9Vm.jre == null
         java9Vm.toolsJar == null
         java9Vm.standaloneJre == null
+    }
+
+    def "filters environment variables"() {
+        def env = ['APP_NAME_1234': 'App', 'JAVA_MAIN_CLASS_1234': 'MainClass', 'OTHER': 'value']
+        def jvm = Jvm.current()
+
+        expect:
+        jvm.getInheritableEnvironmentVariables(env) == ['OTHER': 'value']
     }
 }
