@@ -41,7 +41,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private final TaskDependencyFactory taskDependencyFactory;
     private PublishArtifactInternal delegate;
 
-    public LazyPublishArtifact(Provider<? extends AbstractArchiveTask> archiveTask, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public LazyPublishArtifact(Provider<?> archiveTask, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
         this(archiveTask, null, fileResolver, taskDependencyFactory);
     }
 
