@@ -28,12 +28,9 @@ import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFilePermissions;
-import org.gradle.api.internal.file.DefaultImmutableFilePermissions;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Cast;
 import org.gradle.internal.file.Chmod;
 
 import javax.inject.Inject;
@@ -53,7 +50,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private RelativePath relativePath;
     private boolean excluded;
 
-    private Property<FilePermissions> permissions;
+    private DefaultFilePermissions permissions;
     private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
@@ -142,7 +139,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     private void adaptPermissions(File target) {
-        int specMode = getImmutablePermissions().map(ImmutableFilePermissions::toUnixNumeric).get();
+        int specMode = getImmutablePermissions().toUnixNumeric();
         getChmod().chmod(target, specMode);
     }
 
@@ -156,18 +153,17 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public Provider<ImmutableFilePermissions> getImmutablePermissions() {
+    public ImmutableFilePermissions getImmutablePermissions() {
         if (permissions != null) {
-            permissions.finalizeValue();
-            return permissions.map(ImmutableFilePermissions::toUnixNumeric).map(DefaultImmutableFilePermissions::new);
+            return permissions;
         }
 
         Provider<ImmutableFilePermissions> specMode = getSpecMode();
         if (specMode.isPresent()) {
-            return specMode;
+            return specMode.get();
         }
 
-        return fileDetails.getImmutablePermissions().map(ImmutableFilePermissions::toUnixNumeric).map(DefaultImmutableFilePermissions::new);
+        return fileDetails.getImmutablePermissions();
     }
 
     private Provider<ImmutableFilePermissions> getSpecMode() {
@@ -200,23 +196,24 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public void setMode(int mode) {
-        FilePermissions permissions = objectFactory.newInstance(DefaultFilePermissions.class, objectFactory, mode);
-        getPermissions().set(permissions);
+        getPermissions().unix(mode);
     }
 
     @Override
     public void permissions(Action<? super FilePermissions> configureAction) {
-        FilePermissions permissions = objectFactory.newInstance(DefaultFilePermissions.class, objectFactory, DefaultFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
-        configureAction.execute(permissions);
-        getPermissions().set(permissions);
+        configureAction.execute(getPermissions());
     }
 
     @Override
-    public Property<FilePermissions> getPermissions() {
+    public void setPermissions(ImmutableFilePermissions permissions) {
+        getPermissions().unix(permissions.toUnixNumeric());
+    }
+
+    private DefaultFilePermissions getPermissions() {
         if (permissions == null) {
-            permissions = objectFactory.property(FilePermissions.class);
+            permissions = objectFactory.newInstance(DefaultFilePermissions.class, objectFactory, DefaultFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
         }
-        return Cast.uncheckedCast(permissions);
+        return permissions;
     }
 
     @Override

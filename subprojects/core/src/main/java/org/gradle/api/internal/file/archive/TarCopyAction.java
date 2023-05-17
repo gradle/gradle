@@ -20,7 +20,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.CopyAction;
@@ -105,7 +104,7 @@ public class TarCopyAction implements CopyAction {
                 TarArchiveEntry archiveEntry = new TarArchiveEntry(fileDetails.getRelativePath().getPathString());
                 archiveEntry.setModTime(getArchiveTimeFor(fileDetails));
                 archiveEntry.setSize(fileDetails.getSize());
-                archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getImmutablePermissions().map(ImmutableFilePermissions::toUnixNumeric).get());
+                archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getImmutablePermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
                 fileDetails.copyTo(tarOutStr);
                 tarOutStr.closeArchiveEntry();
@@ -119,7 +118,7 @@ public class TarCopyAction implements CopyAction {
                 // Trailing slash on name indicates entry is a directory
                 TarArchiveEntry archiveEntry = new TarArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
                 archiveEntry.setModTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getImmutablePermissions().map(ImmutableFilePermissions::toUnixNumeric).get());
+                archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getImmutablePermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
                 tarOutStr.closeArchiveEntry();
             } catch (Exception e) {

@@ -19,7 +19,6 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.provider.Provider;
 
 import java.io.File;
 import java.io.InputStream;
@@ -94,7 +93,7 @@ public class UnauthorizedFileVisitDetails implements FileVisitDetails {
     }
 
     @Override
-    public Provider<ImmutableFilePermissions> getImmutablePermissions() {
+    public ImmutableFilePermissions getImmutablePermissions() {
         throw new UnsupportedOperationException();
     }
 }

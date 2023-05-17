@@ -16,7 +16,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
 
 import java.io.File;
 import java.io.InputStream;
@@ -109,5 +108,5 @@ public interface FileTreeElement {
      * @since 8.3
      */
     @Incubating
-    Provider<ImmutableFilePermissions> getImmutablePermissions();
+    ImmutableFilePermissions getImmutablePermissions();
 }

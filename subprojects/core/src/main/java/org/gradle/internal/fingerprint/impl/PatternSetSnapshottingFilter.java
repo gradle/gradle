@@ -22,8 +22,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultImmutableFilePermissions;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
@@ -147,13 +145,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return getImmutablePermissions().map(ImmutableFilePermissions::toUnixNumeric).get();
+            return getImmutablePermissions().toUnixNumeric();
         }
 
         @Override
-        public Provider<ImmutableFilePermissions> getImmutablePermissions() {
+        public ImmutableFilePermissions getImmutablePermissions() {
             int unixNumeric = stat.getUnixMode(getFile());
-            return Providers.of(new DefaultImmutableFilePermissions(unixNumeric));
+            return new DefaultImmutableFilePermissions(unixNumeric);
         }
     }
 
@@ -228,13 +226,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return getImmutablePermissions().map(ImmutableFilePermissions::toUnixNumeric).get();
+            return getImmutablePermissions().toUnixNumeric();
         }
 
         @Override
-        public Provider<ImmutableFilePermissions> getImmutablePermissions() {
+        public ImmutableFilePermissions getImmutablePermissions() {
             int unixNumeric = stat.getUnixMode(path.toFile());
-            return Providers.of(new DefaultImmutableFilePermissions(unixNumeric));
+            return new DefaultImmutableFilePermissions(unixNumeric);
         }
     }
 }

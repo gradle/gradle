@@ -37,6 +37,13 @@ public abstract class DefaultUserClassFilePermissions extends AbstractImmutableU
         setExecute(decode(permission, index, DefaultUserClassFilePermissions::isExecute, DefaultUserClassFilePermissions::isExecute));
     }
 
+    @Override
+    public void unix(int unixNumeric) {
+        setRead(isRead(unixNumeric));
+        setWrite(isWrite(unixNumeric));
+        setExecute(isExecute(unixNumeric));
+    }
+
     private static boolean decode(
         String permission,
         int index,

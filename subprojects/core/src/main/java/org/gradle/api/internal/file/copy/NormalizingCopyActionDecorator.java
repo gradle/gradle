@@ -24,10 +24,10 @@ import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Chmod;
 
@@ -186,7 +186,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         @Override
-        public Property<FilePermissions> getPermissions() {
+        public void setPermissions(ImmutableFilePermissions permissions) {
             throw new UnsupportedOperationException();
         }
 

@@ -84,6 +84,12 @@ public class DefaultFilePermissions extends AbstractImmutableFilePermissions imp
         other.unix(normalizedPermissions, 2);
     }
 
+    public void unix(int unixNumeric) {
+        user.unix(getUserPartOf(unixNumeric));
+        group.unix(getGroupPartOf(unixNumeric));
+        other.unix(getOtherPartOf(unixNumeric));
+    }
+
     private static String normalizeUnixPermissions(String p) {
         String trimmed = p.trim();
         if (trimmed.length() == 4 && trimmed.startsWith("0")) {

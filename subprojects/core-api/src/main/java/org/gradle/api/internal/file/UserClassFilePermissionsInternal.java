@@ -22,12 +22,21 @@ import org.gradle.api.file.UserClassFilePermissions;
 public interface UserClassFilePermissionsInternal extends UserClassFilePermissions {
 
     /**
-     * Sets the permission for a specific user from a complete Unix-style permission.
+     * Sets the permission for a specific class of users from a complete Unix-style permission.
      * See {@link FilePermissions#unix(String)} for details.
      *
      * @param permission complete Unix-style permission for all users
      * @param index index of the part specific to this user group (so 0 for user, 1 for group, 2 for others)
      */
     void unix(String permission, int index);
+
+    /**
+     * Sets the permission for a specific class of users based on a partial Unix-style mode
+     * (i.e. a number between 0 and 7).
+     * See {@link FilePermissions#unix(String)} for details.
+     *
+     * @param unixNumeric partial Unix-style numeric permission for a specific class of users
+     */
+    void unix(int unixNumeric);
 
 }

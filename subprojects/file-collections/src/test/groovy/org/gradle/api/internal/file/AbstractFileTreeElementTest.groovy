@@ -15,11 +15,8 @@
  */
 package org.gradle.api.internal.file
 
-
 import org.gradle.api.file.ImmutableFilePermissions
 import org.gradle.api.file.RelativePath
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.Provider
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -72,8 +69,8 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
         def file = new TestFileTreeElement(temporaryFolder.file("someFile"), chmod)
 
         expect:
-        dir.getImmutablePermissions().map {it.toUnixNumeric()}.get() == FileSystem.DEFAULT_DIR_MODE
-        file.getImmutablePermissions().map { it.toUnixNumeric()}.get() == FileSystem.DEFAULT_FILE_MODE
+        dir.getImmutablePermissions().toUnixNumeric() == FileSystem.DEFAULT_DIR_MODE
+        file.getImmutablePermissions().toUnixNumeric() == FileSystem.DEFAULT_FILE_MODE
     }
 
     private TestFile writeToFile(String name, String content) {
@@ -124,11 +121,11 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
             return GFileUtils.openInputStream(file)
         }
 
-        Provider<ImmutableFilePermissions> getImmutablePermissions() {
+        ImmutableFilePermissions getImmutablePermissions() {
             if (mode == null) {
-                return super.getImmutablePermissions();
+                return super.getImmutablePermissions()
             }
-            return Providers.of(new DefaultImmutableFilePermissions(mode));
+            return new DefaultImmutableFilePermissions(mode)
         }
     }
 }

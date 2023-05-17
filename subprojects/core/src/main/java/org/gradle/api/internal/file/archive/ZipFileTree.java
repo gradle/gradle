@@ -25,7 +25,6 @@ import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.internal.file.DefaultImmutableFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.internal.file.Chmod;
@@ -168,10 +167,10 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public Provider<ImmutableFilePermissions> getImmutablePermissions() {
+        public ImmutableFilePermissions getImmutablePermissions() {
             int unixMode = entry.getUnixMode() & 0777;
             if (unixMode != 0) {
-                return Providers.of(new DefaultImmutableFilePermissions(unixMode));
+                return new DefaultImmutableFilePermissions(unixMode);
             }
 
             return super.getImmutablePermissions();
