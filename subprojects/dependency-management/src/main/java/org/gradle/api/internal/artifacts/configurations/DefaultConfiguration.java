@@ -2234,7 +2234,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
             @Override
             public AttributeContainer getAttributes() {
-                return viewAttributes;
+                return viewAttributes.asImmutable();
             }
 
             @Override
