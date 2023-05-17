@@ -77,27 +77,6 @@ subprojects/kotlin-dsl-plugins/                                                 
 subprojects/kotlin-dsl-provider-plugins/                                                @eskatos @jbartok
 subprojects/kotlin-dsl-tooling-builders/                                                @eskatos @jbartok
 subprojects/kotlin-dsl-tooling-models/                                                  @eskatos @jbartok
-subprojects/docs/src/snippets/kotlinDsl/                                                @eskatos @jbartok @lkasso
-subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @eskatos @jbartok @lkasso
-subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @eskatos @jbartok @lkasso
-
-# Documentation
-subprojects/docs/src/docs/userguide/                                              @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm @lkasso
-subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm @lkasso
 
 # Dev-prod team
 .teamcity/                                  @gradle/bt-developer-productivity
@@ -126,3 +105,29 @@ subprojects/internal-testing/               @gradle/bt-developer-productivity
 subprojects/ide/                  @gradle/bt-ide-experience
 subprojects/tooling-api/          @gradle/bt-ide-experience
 subprojects/tooling-api-builders/ @gradle/bt-ide-experience
+
+# Documentation
+subprojects/docs/src/docs/                                                        @gradle/bt-devrel-education
+subprojects/docs/src/samples/                                                     @gradle/bt-devrel-education
+subprojects/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-devrel-education
+subprojects/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-devrel-education
+
+subprojects/docs/src/snippets/kotlinDsl/                                                @eskatos @jbartok @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @eskatos @jbartok @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @eskatos @jbartok @gradle/bt-devrel-education
+
+subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm @gradle/bt-devrel-education
