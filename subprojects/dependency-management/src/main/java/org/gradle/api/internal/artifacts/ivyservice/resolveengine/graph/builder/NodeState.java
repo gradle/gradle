@@ -53,6 +53,7 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -603,7 +604,7 @@ public class NodeState implements DependencyGraphNode {
         if (state == null) {
             // the platform doesn't exist, so we're building a lenient one
             state = LenientPlatformGraphResolveState.of(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
-            potentialEdge.component.setState(state);
+            potentialEdge.component.setState(state, ComponentGraphSpecificResolveState.EMPTY_STATE);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
         }

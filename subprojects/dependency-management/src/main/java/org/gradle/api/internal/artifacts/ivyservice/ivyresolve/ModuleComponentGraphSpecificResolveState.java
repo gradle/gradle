@@ -21,7 +21,9 @@ import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 class ModuleComponentGraphSpecificResolveState implements ComponentGraphSpecificResolveState {
     private final String repositoryName;
 
-    public ModuleComponentGraphSpecificResolveState(String repositoryName) {this.repositoryName = repositoryName;}
+    public ModuleComponentGraphSpecificResolveState(String repositoryName) {
+        this.repositoryName = repositoryName;
+    }
 
     @Override
     public String getRepositoryName() {
