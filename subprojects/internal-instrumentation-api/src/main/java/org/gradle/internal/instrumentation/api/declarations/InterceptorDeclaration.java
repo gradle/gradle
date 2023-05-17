@@ -16,12 +16,6 @@
 
 package org.gradle.internal.instrumentation.api.declarations;
 
-import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind;
-import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
