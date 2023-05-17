@@ -104,6 +104,9 @@ subprojects/*/build.gradle*  @gradle/bt-developer-productivity
 .cm/                                @tresat
 .github/workflows/gitstream.yml     @tresat
 
+# Architecture council
+.github/CODEOWNERS @gradle/bt-architecture-council
+
 # IDE Experience team
 subprojects/ide/                  @gradle/bt-ide-experience
 subprojects/tooling-api/          @gradle/bt-ide-experience
