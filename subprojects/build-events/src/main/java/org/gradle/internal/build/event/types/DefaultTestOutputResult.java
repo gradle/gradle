@@ -25,7 +25,7 @@ public class DefaultTestOutputResult extends AbstractResult implements InternalO
     private final String message;
 
     public DefaultTestOutputResult(long startTime, long endTime, int destination, String message) {
-        super(startTime, endTime, "succeeded");
+        super(startTime, endTime, "succeeded", null);
         this.destination = destination;
         this.message = message;
     }

@@ -19,6 +19,6 @@ import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 
 public class DefaultSuccessResult extends AbstractOperationResult implements InternalSuccessResult {
     public DefaultSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime, "succeeded");
+        super(startTime, endTime, "succeeded", null);
     }
 }

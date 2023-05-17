@@ -66,7 +66,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                         worker.execute(buildOperation, context);
                     } catch (Throwable t) {
                         if (context.getFailure() == null) {
-                            context.failed(t);
+                            if (t instanceof GradleExceptionWithContext) {
+                                context.setAdditionalFailureContext(((GradleExceptionWithContext)t).getAdditionalContext());
+                            }
+                            context.failed(t.getCause());
+
                         }
                         failure = t;
                     }
@@ -269,6 +273,10 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
         @Override
         void setStatus(@Nullable String status);
+
+        void setAdditionalFailureContext(Object additionalContext);
+
+        Object getAdditionalFailureContext();
     }
 
     public interface BuildOperationExecutionListener {
@@ -316,6 +324,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         private Object result;
         private String status;
 
+        private Object additionalContext;
+
         public DefaultBuildOperationContext(BuildOperationDescriptor descriptor, BuildOperationExecutionListener listener) {
             this.descriptor = descriptor;
             this.listener = listener;
@@ -352,6 +362,16 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         public void setStatus(@Nullable String status) {
             this.status = status;
+        }
+
+        @Override
+        public void setAdditionalFailureContext(Object additionalContext) {
+            this.additionalContext = additionalContext;
+        }
+
+        @Override
+        public Object getAdditionalFailureContext() {
+            return additionalContext;
         }
 
         @Override

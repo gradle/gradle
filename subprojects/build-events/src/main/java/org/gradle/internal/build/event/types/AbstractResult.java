@@ -25,11 +25,13 @@ public abstract class AbstractResult implements Serializable {
     private final long startTime;
     private final long endTime;
     private final String outcomeDescription;
+    private final Object additionalFailureContext;
 
-    public AbstractResult(long startTime, long endTime, String outcomeDescription) {
+    public AbstractResult(long startTime, long endTime, String outcomeDescription, Object additionalFailureContext) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.outcomeDescription = outcomeDescription;
+        this.additionalFailureContext = additionalFailureContext;
     }
 
     public long getStartTime() {
@@ -46,5 +48,9 @@ public abstract class AbstractResult implements Serializable {
 
     public List<? extends InternalFailure> getFailures() {
         return Collections.emptyList();
+    }
+
+    public Object getAdditionalFailureContext() {
+        return additionalFailureContext;
     }
 }

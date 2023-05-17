@@ -23,9 +23,12 @@ import java.util.List;
 
 public class DefaultFailureResult extends AbstractOperationResult implements InternalFailureResult {
     private final List<InternalFailure> failures;
-
     public DefaultFailureResult(long startTime, long endTime, List<InternalFailure> failures) {
-        super(startTime, endTime, "failed");
+        this(startTime, endTime, failures, null);
+    }
+
+    public DefaultFailureResult(long startTime, long endTime, List<InternalFailure> failures, Object additionalFailureContext) {
+        super(startTime, endTime, "failed", additionalFailureContext);
         this.failures = failures;
     }
 

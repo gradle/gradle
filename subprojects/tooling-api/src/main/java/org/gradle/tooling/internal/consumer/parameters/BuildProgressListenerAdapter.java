@@ -389,7 +389,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         OperationResult result;
         if (event.getResult() instanceof InternalFailureResult) {
             InternalFailureResult internalResult = (InternalFailureResult) event.getResult();
-            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()));
+            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()), internalResult.getAdditionalFailureContext());
         } else {
             result = new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime());
         }
@@ -742,7 +742,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()));
+            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()), result.getAdditionalFailureContext());
         } else {
             return null;
         }
@@ -785,7 +785,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), ((InternalFailureResult)result).getAdditionalFailureContext());
         } else {
             return null;
         }

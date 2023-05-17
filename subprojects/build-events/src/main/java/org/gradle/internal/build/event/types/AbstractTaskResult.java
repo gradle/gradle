@@ -26,7 +26,10 @@ public abstract class AbstractTaskResult extends AbstractResult implements Inter
     private final List<String> executionReasons;
 
     protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons) {
-        super(startTime, endTime, outcomeDescription);
+        this(startTime, endTime, outcomeDescription, incremental, executionReasons, null);
+    }
+    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons, Object additionalFailureContext) {
+        super(startTime, endTime, outcomeDescription, additionalFailureContext);
         this.incremental = incremental;
         this.executionReasons = executionReasons;
     }
@@ -40,5 +43,4 @@ public abstract class AbstractTaskResult extends AbstractResult implements Inter
     public List<String> getExecutionReasons() {
         return executionReasons;
     }
-
 }

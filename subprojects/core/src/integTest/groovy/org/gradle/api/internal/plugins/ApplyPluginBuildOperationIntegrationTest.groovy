@@ -168,6 +168,9 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             apply plugin: PluginB
+
+            task bar {}
+            task baz {}
         """
         buildFile """
             class PluginRoot implements Plugin {
@@ -178,7 +181,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
             apply plugin: PluginRoot
         """
-        succeeds("help")
+        fails(":b:ba")
 
         then:
         def ops = operations.all(ApplyPluginBuildOperationType) {

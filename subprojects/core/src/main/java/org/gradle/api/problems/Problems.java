@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build.event.types;
+package org.gradle.api.problems;
 
-import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
+import org.gradle.internal.operations.GradleExceptionWithContext;
 
-public class DefaultTestSuccessResult extends AbstractTestResult implements InternalTestSuccessResult {
-    public DefaultTestSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime, "succeeded", null);
+public class Problems {
+
+    public static void reportFailure(Object failureContext, Throwable cause) {
+        throw new GradleExceptionWithContext(failureContext, cause);
     }
 }

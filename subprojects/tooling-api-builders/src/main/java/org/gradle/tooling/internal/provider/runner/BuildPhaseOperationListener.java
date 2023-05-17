@@ -102,7 +102,7 @@ public class BuildPhaseOperationListener implements BuildOperationListener {
         long startTime = finishEvent.getStartTime();
         long endTime = finishEvent.getEndTime();
         if (finishEvent.getFailure() != null) {
-            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(finishEvent.getFailure())));
+            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(finishEvent.getFailure())), finishEvent.getAdditionalFailureContext());
         } else {
             return new DefaultSuccessResult(startTime, endTime);
         }

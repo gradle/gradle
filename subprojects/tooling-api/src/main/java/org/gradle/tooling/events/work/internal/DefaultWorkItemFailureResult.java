@@ -25,7 +25,7 @@ import java.util.List;
 public class DefaultWorkItemFailureResult extends DefaultOperationFailureResult implements WorkItemFailureResult {
 
     public DefaultWorkItemFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
-        super(startTime, endTime, failures);
+        super(startTime, endTime, failures, null);
     }
 
 }

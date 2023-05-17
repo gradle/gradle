@@ -22,7 +22,7 @@ public class DefaultTaskSkippedResult extends AbstractTaskResult implements Inte
     private final String skipMessage;
 
     public DefaultTaskSkippedResult(long startTime, long endTime, String skipMessage, boolean incremental) {
-        super(startTime, endTime, "skipped", incremental, null);
+        super(startTime, endTime, "skipped", incremental, null, null);
         this.skipMessage = skipMessage;
     }
 

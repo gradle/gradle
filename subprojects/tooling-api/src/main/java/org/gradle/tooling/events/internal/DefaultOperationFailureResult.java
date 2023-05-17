@@ -29,11 +29,17 @@ public class DefaultOperationFailureResult implements FailureResult {
     private final long startTime;
     private final long endTime;
     private final List<? extends Failure> failures;
+    private final Object additionalFailureContext;
 
     public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
+        this(startTime, endTime, failures, null);
+     }
+
+    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures, Object additionalFailureContext) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failures = failures;
+        this.additionalFailureContext = additionalFailureContext;
     }
 
     @Override
@@ -51,4 +57,8 @@ public class DefaultOperationFailureResult implements FailureResult {
         return failures;
     }
 
+    @Override
+    public Object getAdditionalFailureContext() {
+        return additionalFailureContext;
+    }
 }

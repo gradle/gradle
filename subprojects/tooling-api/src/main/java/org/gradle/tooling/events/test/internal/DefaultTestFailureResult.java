@@ -28,7 +28,7 @@ import java.util.List;
 public final class DefaultTestFailureResult extends DefaultOperationFailureResult implements TestFailureResult {
 
     public DefaultTestFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
-        super(startTime, endTime, failures);
+        super(startTime, endTime, failures, null);
     }
 
 }

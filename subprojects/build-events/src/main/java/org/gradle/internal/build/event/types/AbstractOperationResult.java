@@ -19,7 +19,8 @@ package org.gradle.internal.build.event.types;
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 
 public abstract class AbstractOperationResult extends AbstractResult implements InternalOperationResult {
-    protected AbstractOperationResult(long startTime, long endTime, String outcomeDescription) {
-        super(startTime, endTime, outcomeDescription);
+
+    protected AbstractOperationResult(long startTime, long endTime, String outcomeDescription, Object additionalFailureContext) {
+        super(startTime, endTime, outcomeDescription, additionalFailureContext);
     }
 }

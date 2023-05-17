@@ -21,10 +21,14 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r24.BuildEnvironmentCrossVersionSpec
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.TestAssertionFailure
 import org.gradle.tooling.TestFrameworkFailure
+import org.gradle.tooling.events.FailureResult
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.TestFailureResult
@@ -498,6 +502,45 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         frameworkFailures[1].causes.empty
         frameworkFailures[1].className == 'java.lang.RuntimeException'
         frameworkFailures[1].stacktrace == frameworkFailures[1].description
+    }
+
+    class MyProgressListener implements  ProgressListener {
+
+        def context
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            if (event instanceof FinishEvent) {
+                OperationResult result = ((FinishEvent) event).getResult();
+
+                if (result instanceof FailureResult) {
+                    def context = ((FailureResult) result).getAdditionalFailureContext()
+                    if (this.context == null) {
+                        this.context = context
+                    }
+                }
+            }
+        }
+    }
+
+    def "Test failure context"() {
+        setup:
+        buildFile << """
+            task bar {}
+            task baz {}
+        """
+
+
+        when:
+        def listener = new MyProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks(":ba").addProgressListener(listener).run()
+        }
+
+        then:
+        def e = thrown(BuildException)
+        e.cause.message.contains "Cannot locate tasks that match"
+        listener.context == "Should not happen"
     }
 
     List<Failure> getFailures() {

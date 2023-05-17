@@ -80,7 +80,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     @Override
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTestDescriptor descriptor, ExecuteTestBuildOperationType.Details details, OperationFinishEvent finishEvent) {
         TestResult testResult = ((ExecuteTestBuildOperationType.Result) finishEvent.getResult()).getResult();
-        return new DefaultTestFinishedProgressEvent(testResult.getEndTime(), descriptor, adapt(testResult));
+        return new DefaultTestFinishedProgressEvent(testResult.getEndTime(), descriptor, adapt(testResult, finishEvent));
     }
 
     private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal suite) {
@@ -117,7 +117,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         return displayName;
     }
 
-    private static AbstractTestResult adapt(TestResult result) {
+    private static AbstractTestResult adapt(TestResult result, OperationFinishEvent finishEvent) {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
@@ -125,7 +125,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             case SKIPPED:
                 return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:
-                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getFailures()));
+                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getFailures()), finishEvent.getAdditionalFailureContext());
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }

@@ -25,7 +25,7 @@ import java.util.List;
 public class DefaultTransformFailureResult extends DefaultOperationFailureResult implements TransformFailureResult {
 
     public DefaultTransformFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
-        super(startTime, endTime, failures);
+        super(startTime, endTime, failures, null);
     }
 
 }

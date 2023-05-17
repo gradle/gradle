@@ -72,7 +72,7 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();
         if (failure != null) {
-            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), result.getAdditionalFailureContext());
         }
         return new DefaultSuccessResult(startTime, endTime);
     }

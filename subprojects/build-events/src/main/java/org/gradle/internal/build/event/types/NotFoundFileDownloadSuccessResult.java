@@ -24,7 +24,7 @@ import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
  */
 public class NotFoundFileDownloadSuccessResult extends AbstractOperationResult implements InternalSuccessResult, InternalNotFoundFileDownloadResult {
     public NotFoundFileDownloadSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime, "not found");
+        super(startTime, endTime, "not found", null);
     }
 
     @Override
