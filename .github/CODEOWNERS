@@ -21,6 +21,7 @@ subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/g
 subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/bt-build-scan @gradle/ge-testing
 subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt-build-scan
 subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
+subprojects/build-scan-performance/         @gradle/bt-build-scan
 
 # JVM platform
 subprojects/code-quality/                   @gradle/bt-jvm
