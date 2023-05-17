@@ -27,10 +27,10 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
-import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
@@ -60,7 +60,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Streami
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -87,7 +87,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ResolutionResultsStoreFactory storeFactory;
     private final boolean buildProjectDependencies;
     private final AttributesSchemaInternal attributesSchema;
-    private final ArtifactTransforms artifactTransforms;
+    private final VariantSelectorFactory variantSelectorFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ArtifactTypeRegistry artifactTypeRegistry;
@@ -108,7 +108,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolutionResultsStoreFactory storeFactory,
         boolean buildProjectDependencies,
         AttributesSchemaInternal attributesSchema,
-        ArtifactTransforms artifactTransforms,
+        VariantSelectorFactory variantSelectorFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         BuildOperationExecutor buildOperationExecutor,
         ArtifactTypeRegistry artifactTypeRegistry,
@@ -127,7 +127,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.storeFactory = storeFactory;
         this.buildProjectDependencies = buildProjectDependencies;
         this.attributesSchema = attributesSchema;
-        this.artifactTransforms = artifactTransforms;
+        this.variantSelectorFactory = variantSelectorFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.artifactTypeRegistry = artifactTypeRegistry;
@@ -152,7 +152,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
         resolver.resolve(resolveContext, ImmutableList.of(), metadataHandler, IS_LOCAL_EDGE, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, projectDependencyResolver, false);
 
-        VisitedArtifactSet artifacts = new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), artifactTransforms, resolveContext.getDependenciesResolver());
+        VisitedArtifactSet artifacts = new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), variantSelectorFactory, resolveContext.getDependenciesResolverFactory());
         return DefaultResolverResults.buildDependenciesResolved(resolutionResultBuilder.getResolutionResult(), localComponentsVisitor, artifacts);
     }
 
@@ -213,7 +213,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<UnresolvedDependency> failures = failureCollector.complete(extraFailures);
 
         ArtifactResolveState artifactResolveState = new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, failures, oldTransientModelBuilder);
-        VisitedArtifactSet visitedArtifactSet = new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, artifactTransforms, resolveContext.getDependenciesResolver());
+        VisitedArtifactSet visitedArtifactSet = new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, variantSelectorFactory, resolveContext.getDependenciesResolverFactory());
         ResolverResults results = DefaultResolverResults.graphResolved(newModelBuilder.complete(extraFailures), localComponentsVisitor, visitedArtifactSet, artifactResolveState);
 
         // TODO: Attach these failures to the resolution result instead of the ResolverResults.
@@ -242,7 +242,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, resolveState.graphResults);
 
         boolean selectFromAllVariants = false;
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(resolveContext, selectFromAllVariants, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, artifactTransforms, buildOperationExecutor, dependencyVerificationOverride, workerLeaseService);
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(resolveContext, selectFromAllVariants, resolveState.failures, artifactResults, resolveState.fileDependencyResults, transientConfigurationResultsFactory, variantSelectorFactory, buildOperationExecutor, dependencyVerificationOverride, workerLeaseService);
 
         return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), new DefaultResolvedConfiguration(result), result);
     }
