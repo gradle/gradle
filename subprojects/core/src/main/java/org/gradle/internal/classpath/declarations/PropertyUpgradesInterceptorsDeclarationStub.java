@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.property.upgrades;
+package org.gradle.internal.classpath.declarations;
 
 import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
@@ -29,10 +29,10 @@ import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclarati
 @SuppressWarnings("unused")
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES)
 @SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES)
-public class PropertyUpgradesInterceptorStub {
+public class PropertyUpgradesInterceptorsDeclarationStub {
 
     @InterceptCalls
-    @CallableKind.StaticMethod(ofClass = PropertyUpgradesInterceptorStub.class)
+    @CallableKind.StaticMethod(ofClass = PropertyUpgradesInterceptorsDeclarationStub.class)
     @CallableDefinition.Name("emptyStubToEnsureClassGeneration")
     public static void stub() {
     }
