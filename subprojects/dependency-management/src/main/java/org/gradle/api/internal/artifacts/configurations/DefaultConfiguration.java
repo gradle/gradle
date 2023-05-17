@@ -2193,7 +2193,7 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         private ArtifactView createArtifactView(ArtifactViewConfiguration config) {
-            ImmutableAttributes viewAttributes = config.lockViewAttributes();
+            AttributeContainerInternal viewAttributes = config.configurationAttributes;
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
             ArtifactView view;
@@ -2216,13 +2216,13 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         private class ConfigurationArtifactView implements ArtifactView {
-            private final ImmutableAttributes viewAttributes;
+            private final AttributeContainerInternal viewAttributes;
             private final Spec<? super ComponentIdentifier> componentFilter;
             private final boolean lenient;
             private final boolean allowNoMatchingVariants;
             private final boolean selectFromAllVariants;
 
-            ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
+            ConfigurationArtifactView(AttributeContainerInternal viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
                 this.viewAttributes = viewAttributes;
                 this.componentFilter = componentFilter;
                 this.lenient = lenient;
@@ -2436,15 +2436,6 @@ since users cannot create non-legacy configurations and there is no current publ
                 componentFilter = Specs.satisfyAll();
             }
             return componentFilter;
-        }
-
-        private ImmutableAttributes lockViewAttributes() {
-            if (viewAttributes == null) {
-                viewAttributes = configurationAttributes.asImmutable();
-            } else {
-                viewAttributes = viewAttributes.asImmutable();
-            }
-            return viewAttributes.asImmutable();
         }
     }
 
