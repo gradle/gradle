@@ -19,7 +19,6 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import spock.lang.IgnoreIf
@@ -86,11 +85,14 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.12.4",
         "3.12.5",
         "3.12.6",
-        "3.13"
+        "3.13",
+        "3.13.1",
+        "3.13.2"
     ]
 
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
+    private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
 
     @IgnoreIf({ !GradleContextualExecuter.configCache })
     def "can use plugin #version with Gradle 8 configuration cache"() {
@@ -102,14 +104,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         usePluginVersion version
 
         then:
-        scanRunner()
-            .expectDeprecationWarning(
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-                "Build Scan plugin 3.13.1"
-            ).build().output.contains("Build scan written to")
+        scanRunner().build().output.contains("Build scan written to")
 
         where:
         version << SUPPORTED
@@ -125,15 +120,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         usePluginVersion version
 
         then:
-        scanRunner()
-            .expectDeprecationWarning(
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-                "Build Scan plugin 3.13.1"
-            )
-            .build().output.contains("Build scan written to")
+        scanRunner().build().output.contains("Build scan written to")
 
         where:
         version << SUPPORTED

@@ -19,6 +19,7 @@ package org.gradle.caching
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
 class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -257,6 +258,54 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implement
 
         runWithCacheNG ":adHocTask"
         skipped ":adHocTask"
+    }
+
+    def "cache can be accessed concurrently"() {
+        given:
+        BlockingHttpServer server = new BlockingHttpServer()
+        server.start()
+
+        buildScript("""
+            @CacheableTask
+            abstract class CustomTask extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute() {
+                    outputFile.asFile.get().text = "Some text"
+                }
+            }
+
+            tasks.register("block") {
+                doLast {
+                    ${server.callFromTaskAction("block")}
+                }
+            }
+
+            tasks.register("a", CustomTask) {
+                finalizedBy("block")
+                outputFile = layout.buildDirectory.file("outputA.txt")
+            }
+
+            tasks.register("b", CustomTask) {
+                outputFile = layout.buildDirectory.file("outputB.txt")
+            }
+        """)
+
+        when:
+        def block = server.expectAndBlock("block")
+        withBuildCacheNg()
+        executer.withTasks("a").start()
+        block.waitForAllPendingCalls()
+
+        runWithCacheNG("b")
+        block.releaseAll()
+
+        then:
+        skipped(":b")
+
+        cleanup:
+        server.stop()
     }
 
     private runWithCacheNG(String... tasks) {

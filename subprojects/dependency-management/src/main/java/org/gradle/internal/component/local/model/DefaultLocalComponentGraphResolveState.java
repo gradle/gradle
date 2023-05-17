@@ -116,6 +116,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
+    public ModuleSources getSources() {
+        return getMetadata().getSources();
+    }
+
+    @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
         return selectableVariantResults.get();
     }

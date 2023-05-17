@@ -39,6 +39,8 @@ public @interface UpgradedProperty {
      */
     Class<?> originalType() default DefaultValue.class;
 
+    boolean fluentSetter() default false;
+
     interface DefaultValue {
     }
 }

@@ -15,14 +15,15 @@
  */
 
 package org.gradle.integtests
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import spock.lang.IgnoreIf
 
-@Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
-@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.GradleVersion
+
+@Requires(
+    value = [IntegTestPreconditions.UnsupportedJavaHomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor],
+    reason = "wrapperExecuter requires a real distribution")
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
