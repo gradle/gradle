@@ -24,6 +24,7 @@ import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedVersion;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -64,6 +65,13 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     public ComponentGraphResolveState getState() {
         assertResolved();
         return state;
+    }
+
+    @Nullable
+    @Override
+    public ComponentGraphSpecificResolveState getGraphState() {
+        assertResolved();
+        return graphState;
     }
 
     @Override

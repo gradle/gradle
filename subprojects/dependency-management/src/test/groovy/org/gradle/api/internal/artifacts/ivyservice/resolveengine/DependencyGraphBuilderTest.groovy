@@ -57,6 +57,7 @@ import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetada
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -1063,7 +1064,7 @@ class DependencyGraphBuilderTest extends Specification {
         println "Traverse $from to ${to.id}"
         1 * metaDataResolver.resolve(to.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             println "Called ${to.id}"
-            result.resolved(resolveStateFactory.stateFor(to))
+            result.resolved(resolveStateFactory.stateFor(to), Stub(ComponentGraphSpecificResolveState))
         }
     }
 
