@@ -414,12 +414,12 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
                eachFile {
                     permissions {
                         user {
-                            write.set(false)
+                            write = false
                         }
-                        user.execute.set(true)
-                        group.execute.set(true)
+                        user.execute = true
+                        group.execute = true
                         other {
-                            write.set(true)
+                            write = true
                         }
                     }
                }
@@ -469,7 +469,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
                                     permissions.set(p)
                                 }
                               """
-        "file mode"         | "fileMode = p.toUnixNumeric().get()"
+        "file mode"         | "fileMode = p.toUnixNumeric()"
         "file permissions"  | "filePermissions.set(p)"
     }
 

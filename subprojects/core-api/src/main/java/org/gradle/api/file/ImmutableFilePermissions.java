@@ -18,7 +18,6 @@ package org.gradle.api.file;
 
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
 
 /**
  * Describes file and directory access permissions. Immutable version of
@@ -39,6 +38,6 @@ public interface ImmutableFilePermissions {
      * Converts the permissions for the various user groups to a numeric Unix permission.
      * See {@link FilePermissions#unix(String)} for details.
      */
-    Provider<Integer> toUnixNumeric();
+    int toUnixNumeric();
 
 }

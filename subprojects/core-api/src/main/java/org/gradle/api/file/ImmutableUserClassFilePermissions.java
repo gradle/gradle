@@ -17,7 +17,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
 
 /**
  * Describes file and directory access permissions for a certain class of users.
@@ -28,10 +27,10 @@ import org.gradle.api.provider.Provider;
 @Incubating
 public interface ImmutableUserClassFilePermissions {
 
-    Provider<Boolean> getRead();
+    boolean getRead();
 
-    Provider<Boolean> getWrite();
+    boolean getWrite();
 
-    Provider<Boolean> getExecute();
+    boolean getExecute();
 
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
 
 /**
  * Provides the means of specifying file and directory access permissions
@@ -35,13 +34,16 @@ import org.gradle.api.provider.Property;
 @Incubating
 public interface UserClassFilePermissions extends ImmutableUserClassFilePermissions {
 
-    @Override
-    Property<Boolean> getRead();
+    boolean getRead();
 
-    @Override
-    Property<Boolean> getWrite();
+    void setRead(boolean read);
 
-    @Override
-    Property<Boolean> getExecute();
+    boolean getWrite();
+
+    void setWrite(boolean write);
+
+    boolean getExecute();
+
+    void setExecute(boolean execute);
 
 }

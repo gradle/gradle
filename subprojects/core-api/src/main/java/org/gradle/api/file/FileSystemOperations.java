@@ -104,5 +104,5 @@ public interface FileSystemOperations {
      * @since 8.3
      */
     @Incubating
-    FilePermissions permissions(Provider<String> permissions);
+    Provider<FilePermissions> permissions(Provider<String> permissions);
 }

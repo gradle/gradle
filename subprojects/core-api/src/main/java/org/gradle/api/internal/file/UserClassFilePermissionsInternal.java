@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.UserClassFilePermissions;
-import org.gradle.api.provider.Provider;
 
 public interface UserClassFilePermissionsInternal extends UserClassFilePermissions {
 
@@ -30,10 +29,5 @@ public interface UserClassFilePermissionsInternal extends UserClassFilePermissio
      * @param index index of the part specific to this user group (so 0 for user, 1 for group, 2 for others)
      */
     void unix(String permission, int index);
-
-    /**
-     * Provider based version of {@link #unix(String, int)}.
-     */
-    void unix(Provider<String> permission, int index);
 
 }

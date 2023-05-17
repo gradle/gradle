@@ -17,25 +17,15 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ImmutableFilePermissions;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.provider.Provider;
 
 public abstract class AbstractImmutableFilePermissions implements ImmutableFilePermissions {
 
     @Override
-    public Provider<Integer> toUnixNumeric() {
+    public int toUnixNumeric() {
         AbstractImmutableUserClassFilePermissions user = (AbstractImmutableUserClassFilePermissions) getUser();
         AbstractImmutableUserClassFilePermissions group = (AbstractImmutableUserClassFilePermissions) getGroup();
         AbstractImmutableUserClassFilePermissions other = (AbstractImmutableUserClassFilePermissions) getOther();
-        boolean hasTaskDependencies = user.hasTaskDependencies() || group.hasTaskDependencies() || other.hasTaskDependencies();
-        if (hasTaskDependencies) {
-            return user.toUnixNumeric().map(SerializableLambdas.transformer(u -> 64 * u))
-                .zip(group.toUnixNumeric().map(SerializableLambdas.transformer(g -> 8 * g)), SerializableLambdas.bifunction(Integer::sum))
-                .zip(other.toUnixNumeric(), SerializableLambdas.bifunction(Integer::sum));
-        } else {
-            return Providers.of(64 * user.toUnixNumeric().get() + 8 * group.toUnixNumeric().get() + other.toUnixNumeric().get());
-        }
+        return 64 * user.toUnixNumeric() + 8 * group.toUnixNumeric() + other.toUnixNumeric();
     }
 
     @SuppressWarnings("OctalInteger")

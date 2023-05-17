@@ -55,8 +55,8 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
                 assert element.name == elementFromFileWalker.name
                 assert element.path == elementFromFileWalker.path
                 assert element.relativePath == elementFromFileWalker.relativePath
-                assert element.getImmutablePermissions().flatMap {it.toUnixNumeric()}.get() ==
-                    elementFromFileWalker.getImmutablePermissions().flatMap {it.toUnixNumeric()}.get()
+                assert element.getImmutablePermissions().map {it.toUnixNumeric()}.get() ==
+                    elementFromFileWalker.getImmutablePermissions().map {it.toUnixNumeric()}.get()
                 visitedWithJdk7Walker.remove(elementFromFileWalker)
                 return true
             }

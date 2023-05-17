@@ -92,9 +92,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
-            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().flatMap(ImmutableFilePermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(ImmutableFilePermissions::toUnixNumeric))
                 .optional(true);
-            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().flatMap(ImmutableFilePermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(ImmutableFilePermissions::toUnixNumeric))
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });

@@ -21,6 +21,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
@@ -68,8 +69,8 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     }
 
     @Override
-    public FilePermissions permissions(Provider<String> permissions) {
-        return permissions(false, filePermissions -> filePermissions.unix(permissions));
+    public Provider<FilePermissions> permissions(Provider<String> permissions) {
+        return permissions.map(SerializableLambdas.transformer(this::permissions));
     }
 
     private FilePermissions permissions(boolean directory, Action<? super FilePermissions> configureAction) {

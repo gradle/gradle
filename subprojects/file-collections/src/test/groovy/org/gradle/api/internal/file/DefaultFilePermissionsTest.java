@@ -32,7 +32,7 @@ public class DefaultFilePermissionsTest {
         assertPermissions(permissions.getUser(), true, true, true);
         assertPermissions(permissions.getGroup(), true, false, true);
         assertPermissions(permissions.getOther(), true, false, true);
-        assertEquals(0755, permissions.toUnixNumeric().get().intValue());
+        assertEquals(0755, permissions.toUnixNumeric());
     }
 
     @Test
@@ -41,7 +41,7 @@ public class DefaultFilePermissionsTest {
         assertPermissions(permissions.getUser(), true, true, false);
         assertPermissions(permissions.getGroup(), true, false, false);
         assertPermissions(permissions.getOther(), true, false, false);
-        assertEquals(0644, permissions.toUnixNumeric().get().intValue());
+        assertEquals(0644, permissions.toUnixNumeric());
     }
 
     @Test
@@ -51,7 +51,7 @@ public class DefaultFilePermissionsTest {
                 for (int o = 0; o <= 7; o++) {
                     String numericNotation = String.format("%d%d%d", u, g, o);
                     int mode = u * 64 + g * 8 + o;
-                    assertEquals(mode, newUnixPermission(numericNotation).toUnixNumeric().get().intValue());
+                    assertEquals(mode, newUnixPermission(numericNotation).toUnixNumeric());
                 }
             }
         }
@@ -59,12 +59,12 @@ public class DefaultFilePermissionsTest {
 
     @Test
     public void unixPermissionInNumericNotation_whitespaceIsTrimmed() {
-        assertEquals(0754, newUnixPermission("  754   ").toUnixNumeric().get().intValue());
+        assertEquals(0754, newUnixPermission("  754   ").toUnixNumeric());
     }
 
     @Test
     public void unixPermissionInNumericNotation_octalLiteralIsAccepted() {
-        assertEquals(0754, newUnixPermission("0754").toUnixNumeric().get().intValue());
+        assertEquals(0754, newUnixPermission("0754").toUnixNumeric());
     }
 
     @Test
@@ -74,7 +74,7 @@ public class DefaultFilePermissionsTest {
                 for (int o = 0; o <= 7; o++) {
                     String symbolicNotation = String.format("%s%s%s", toUnixSymbolic(u), toUnixSymbolic(g), toUnixSymbolic(o));
                     int mode = u * 64 + g * 8 + o;
-                    assertEquals(mode, newUnixPermission(symbolicNotation).toUnixNumeric().get().intValue());
+                    assertEquals(mode, newUnixPermission(symbolicNotation).toUnixNumeric());
                 }
             }
         }
@@ -82,7 +82,7 @@ public class DefaultFilePermissionsTest {
 
     @Test
     public void unixPermissionInSymbolicNotation_whitespaceIsTrimmed() {
-        assertEquals(0754, newUnixPermission("  rwxr-xr--   ").toUnixNumeric().get().intValue());
+        assertEquals(0754, newUnixPermission("  rwxr-xr--   ").toUnixNumeric());
     }
 
     @Test
@@ -118,14 +118,14 @@ public class DefaultFilePermissionsTest {
     }
 
     private static void assertPermissions(UserClassFilePermissions permission, boolean read, boolean write, boolean execute) {
-        assertEquals("READ permission incorrect", read, permission.getRead().get());
-        assertEquals("WRITE permission incorrect", write, permission.getWrite().get());
-        assertEquals("EXECUTE permission incorrect", execute, permission.getExecute().get());
+        assertEquals("READ permission incorrect", read, permission.getRead());
+        assertEquals("WRITE permission incorrect", write, permission.getWrite());
+        assertEquals("EXECUTE permission incorrect", execute, permission.getExecute());
     }
 
     private static void assertInvalidUnixPermission(String unixPermission, String errorMessage) {
         try {
-            newUnixPermission(unixPermission).toUnixNumeric().get();
+            newUnixPermission(unixPermission).toUnixNumeric();
             fail("Expected exception not thrown!");
         } catch (Exception e) {
             assertEquals(errorMessage, e.getMessage());

@@ -769,7 +769,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Nullable
         private Integer getMode(Provider<ImmutableFilePermissions> permissions) {
-            return permissions.flatMap(ImmutableFilePermissions::toUnixNumeric).getOrNull();
+            return permissions.map(ImmutableFilePermissions::toUnixNumeric).getOrNull();
         }
 
         @Override

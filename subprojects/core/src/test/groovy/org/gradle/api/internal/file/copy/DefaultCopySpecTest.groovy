@@ -422,10 +422,10 @@ class DefaultCopySpecTest extends Specification {
         }
         "configuration block"   | { DefaultCopySpec spec, ObjectFactory objectFactory ->
             spec.filePermissions {
-                it.user.write.set(false)
+                it.user.write = false
             }
             spec.dirPermissions {
-                it.user.execute.set(false)
+                it.user.execute = false
             }
         }
     }
@@ -519,9 +519,9 @@ class DefaultCopySpecTest extends Specification {
     }
 
     static String toPermissionString(ImmutableUserClassFilePermissions permission) {
-        def read = permission.read.get() ? "r" : "-"
-        def write = permission.write.get() ? "w" : "-"
-        def execute = permission.execute.get() ? "x" : "-"
+        def read = permission.read ? "r" : "-"
+        def write = permission.write ? "w" : "-"
+        def execute = permission.execute ? "x" : "-"
         return read + write + execute
     }
 

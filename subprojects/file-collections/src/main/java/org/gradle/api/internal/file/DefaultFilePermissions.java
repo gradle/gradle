@@ -20,9 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.UserClassFilePermissions;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
 
 import javax.inject.Inject;
 
@@ -84,18 +82,6 @@ public class DefaultFilePermissions extends AbstractImmutableFilePermissions imp
         user.unix(normalizedPermissions, 0);
         group.unix(normalizedPermissions, 1);
         other.unix(normalizedPermissions, 2);
-    }
-
-    @Override
-    public void unix(Provider<String> permissions) {
-        Provider<String> normalizedPermissions = normalizeUnixPermissions(permissions);
-        user.unix(normalizedPermissions, 0);
-        group.unix(normalizedPermissions, 1);
-        other.unix(normalizedPermissions, 2);
-    }
-
-    private static Provider<String> normalizeUnixPermissions(Provider<String> permissions) {
-        return permissions.map(SerializableLambdas.transformer(DefaultFilePermissions::normalizeUnixPermissions));
     }
 
     private static String normalizeUnixPermissions(String p) {

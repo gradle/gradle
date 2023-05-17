@@ -96,7 +96,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
     /**
      * The strategy to use if there is already a file at this file's destination.
      * <p>
-     * The value can be set with a case insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
+     * The value can be set with a case-insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
      *
      * @see DuplicatesStrategy
      * @return the strategy to use for this file.

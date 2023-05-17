@@ -60,10 +60,7 @@ class FilePermissionsIntegrationTest extends AbstractIntegrationSpec {
             val consumer = tasks.register<Consumer>("consumer")
 
             consumer {
-                message.set(
-                    //fsOps.permissions(producer.flatMap { it.outputFile.asFile }.map { it.readText() }).toUnixNumeric() //TODO: https://github.com/gradle/gradle/issues/19252
-                    fsOps.permissions(producer.flatMap { it.outputFile }.map { it.asFile.readText() }).toUnixNumeric()
-                )
+                message.set($wiring)
                 outputFile.set(File("${TextUtil.normaliseFileSeparators(outputFile.absolutePath)}"))
             }
 
@@ -93,6 +90,12 @@ class FilePermissionsIntegrationTest extends AbstractIntegrationSpec {
         then: "both producer and consumer get executed"
         executedAndNotSkipped(":producer", ":consumer")
         outputFile.text == "Permission: 755"
+
+        where:
+        wiring << [
+            //"fsOps.permissions(producer.flatMap { it.outputFile.asFile }.map { it.readText() }).map { it.toUnixNumeric() }", //TODO: https://github.com/gradle/gradle/issues/19252
+            "fsOps.permissions(producer.flatMap { it.outputFile }.map { it.asFile.readText() }).map { it.toUnixNumeric() }"
+        ]
     }
 
 }

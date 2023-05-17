@@ -16,39 +16,30 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.provider.Provider;
-
 public class DefaultImmutableUserClassFilePermissions extends AbstractImmutableUserClassFilePermissions {
 
-    private final Provider<Boolean> read;
-    private final Provider<Boolean> write;
-    private final Provider<Boolean> execute;
+    private final boolean read;
+    private final boolean write;
+    private final boolean execute;
 
     public DefaultImmutableUserClassFilePermissions(int unixNumeric) {
-        read = Providers.of(isRead(unixNumeric));
-        write = Providers.of(isWrite(unixNumeric));
-        execute = Providers.of(isExecute(unixNumeric));
+        read = isRead(unixNumeric);
+        write = isWrite(unixNumeric);
+        execute = isExecute(unixNumeric);
     }
 
     @Override
-    protected boolean hasTaskDependencies() {
-        return false; //fixed values, no task dependency information to worry about
-    }
-
-    @Override
-    public Provider<Boolean> getRead() {
+    public boolean getRead() {
         return read;
     }
 
     @Override
-    public Provider<Boolean> getWrite() {
+    public boolean getWrite() {
         return write;
     }
 
     @Override
-    public Provider<Boolean> getExecute() {
+    public boolean getExecute() {
         return execute;
     }
-
 }
