@@ -30,10 +30,11 @@ import spock.lang.Ignore
  * variant.
  */
 class ArtifactViewAttributesIntegrationTest extends AbstractIntegrationSpec {
-    private static declareIncomingFiles = "def incomingFiles = configurations.compileClasspath.incoming.files\n"
-    private static declareIncomingArtifacts = "def incomingArtifacts = configurations.compileClasspath.incoming.artifacts\n"
-    private static declareArtifactViewFiles = "def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files\n"
-    private static declareArtifactViewArtifacts = "def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView { }.artifacts\n"
+    private static declareIncomingFiles = "def incomingFiles = configurations.compileClasspath.incoming.files"
+    private static declareIncomingArtifacts = "def incomingArtifacts = configurations.compileClasspath.incoming.artifacts"
+    private static declareArtifactViewFiles = "def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files"
+    private static declareArtifactViewArtifacts = "def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView { }.artifacts"
+
     private static iterateIncomingFiles = """logger.warn 'Incoming Files:'
 incomingFiles.each {
     logger.warn 'Name: ' + it.name
@@ -85,7 +86,7 @@ logger.warn ''
         """
     }
 
-    def "incoming files first, with iteration"() {
+    def "declare and iterate incoming files, then declare and iterate artifact view files"() {
         buildFile << """
             $declareIncomingFiles
             $iterateIncomingFiles
@@ -100,7 +101,7 @@ logger.warn ''
         run ':help'
     }
 
-    def "artifactView files first, with iteration"() {
+    def "declare and iterate artifact view files, then declare and iterate incoming files"() {
         buildFile << """
             $declareArtifactViewFiles
             $iterateArtifactViewFiles
@@ -115,11 +116,13 @@ logger.warn ''
         run ':help'
     }
 
-    def "incoming files first, without iteration"() {
+    def "declare incoming files, then declare artifact view files, then iterate both"() {
         buildFile << """
             $declareIncomingFiles
-
             $declareArtifactViewFiles
+
+            $iterateIncomingFiles
+            $iterateArtifactViewFiles
 
             $filesComparison
         """
@@ -128,20 +131,7 @@ logger.warn ''
         run ':help'
     }
 
-    def "artifactView files first, without iteration"() {
-        buildFile << """
-            $declareArtifactViewFiles
-
-            $declareIncomingFiles
-
-            $filesComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "incoming artifacts first, with iteration"() {
+    def "declare and iterate incoming artifacts, then declare and iterate artifact view artifacts"() {
         buildFile << """
             $declareIncomingArtifacts
             $iterateIncomingArtifacts
@@ -156,7 +146,7 @@ logger.warn ''
         run ':help'
     }
 
-    def "artifactView artifacts first, with iteration"() {
+    def "declare and iterate artifact view artifacts, then declare and iterate incoming artifacts"() {
         buildFile << """
             $declareArtifactViewArtifacts
             $iterateArtifactViewArtifacts
@@ -171,24 +161,13 @@ logger.warn ''
         run ':help'
     }
 
-    def "incoming artifacts first, without iteration"() {
+    def "declare incoming artifacts, then declare artifact view artifacts, then iterate both"() {
         buildFile << """
             $declareIncomingArtifacts
-
             $declareArtifactViewArtifacts
 
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "artifactView artifacts first, without iteration"() {
-        buildFile << """
-            $declareArtifactViewArtifacts
-
-            $declareIncomingArtifacts
+            $iterateIncomingArtifacts
+            $iterateArtifactViewArtifacts
 
             $artifactComparison
         """
@@ -198,7 +177,7 @@ logger.warn ''
     }
 
     @Ignore
-    def "mixer"() {
+    def "test all permutations of declaration and iteration of files and artifacts (10,000s of these)"() {
         buildFile << """
             logger.warn '******************'
             logger.warn '***** Script *****'
