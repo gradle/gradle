@@ -20,8 +20,8 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
@@ -122,7 +122,7 @@ model {
         executable("build/exe/main/main").exec().out == helloWorldApp.frenchOutput
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "executable with build type depends on library with matching build type"() {
         when:

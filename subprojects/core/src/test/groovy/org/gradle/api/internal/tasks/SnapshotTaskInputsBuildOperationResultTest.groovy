@@ -47,8 +47,8 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.TestSnapshotFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_ABSOLUTE_PATH
@@ -103,7 +103,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         def t = thrown(IllegalStateException)
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "properly visits structure when ignoring directories"() {
         given:
         def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
@@ -168,7 +168,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         0 * visitor._
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "properly visits structure when ignoring only the root directory"() {
         given:
         def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
@@ -220,7 +220,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         0 * visitor._
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "properly visits structure when not ignoring directories"() {
         given:
         def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)

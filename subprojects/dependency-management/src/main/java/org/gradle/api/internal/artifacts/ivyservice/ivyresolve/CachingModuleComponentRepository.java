@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
@@ -92,6 +93,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ChangingValueDependencyResolutionListener listener;
     private final LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
+    private final ProducerGuard<ModuleComponentIdentifier> metadataGuard = ProducerGuard.adaptive();
 
     public CachingModuleComponentRepository(
         ModuleComponentRepository<ModuleComponentResolveMetadata> delegate,
@@ -199,7 +201,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
 
-            resolveComponentMetaDataFromCache(moduleComponentIdentifier, requestMetaData, result);
+            metadataGuard.guardByKey(moduleComponentIdentifier, () -> {
+                resolveComponentMetaDataFromCache(moduleComponentIdentifier, requestMetaData, result);
+                return null;
+            });
         }
 
         private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
@@ -388,6 +393,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+            metadataGuard.guardByKey(moduleComponentIdentifier, () -> {
+                resolveComponentMetaDataAndCache(moduleComponentIdentifier, requestMetaData, result);
+                return null;
+            });
+        }
+
+        private void resolveComponentMetaDataAndCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             ComponentOverrideMetadata forced = requestMetaData.withChanging();
             DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
             delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, localResult);

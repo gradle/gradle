@@ -23,15 +23,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.work.ChangeType.ADDED
 import static org.gradle.work.ChangeType.REMOVED
 
-@Requires(TestPrecondition.SYMLINKS)
+@Requires(UnitTestPreconditions.Symlinks)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()

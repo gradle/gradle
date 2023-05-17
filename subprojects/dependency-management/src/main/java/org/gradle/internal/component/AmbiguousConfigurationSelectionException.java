@@ -26,6 +26,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -39,16 +40,16 @@ import java.util.TreeMap;
 public class AmbiguousConfigurationSelectionException extends StyledException {
     public AmbiguousConfigurationSelectionException(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
-                                                    List<? extends VariantGraphResolveMetadata> matches,
+                                                    List<? extends VariantGraphResolveState> matches,
                                                     ComponentGraphResolveMetadata targetComponent,
                                                     boolean variantAware,
-                                                    Set<VariantGraphResolveMetadata> discarded) {
+                                                    Set<VariantGraphResolveState> discarded) {
         super(generateMessage(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, discarded, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveMetadata> matches, Set<VariantGraphResolveMetadata> discarded, ComponentGraphResolveMetadata targetComponent, boolean variantAware) {
-        Map<String, VariantGraphResolveMetadata> ambiguousVariants = new TreeMap<>();
-        for (VariantGraphResolveMetadata match : matches) {
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches, Set<VariantGraphResolveState> discarded, ComponentGraphResolveMetadata targetComponent, boolean variantAware) {
+        Map<String, VariantGraphResolveState> ambiguousVariants = new TreeMap<>();
+        for (VariantGraphResolveState match : matches) {
             ambiguousVariants.put(match.getName(), match);
         }
         TreeFormatter formatter = new TreeFormatter();
@@ -68,16 +69,16 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
         // We're sorting the names of the variants and later attributes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
-        for (VariantGraphResolveMetadata ambiguousVariant : ambiguousVariants.values()) {
-            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousVariant, variantAware, true, describer);
+        for (VariantGraphResolveState ambiguousVariant : ambiguousVariants.values()) {
+            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousVariant.getMetadata(), variantAware, true, describer);
         }
         formatter.endChildren();
         if (!discarded.isEmpty()) {
             formatter.node("The following " + configTerm + " were also considered but didn't match the requested attributes:");
             formatter.startChildren();
             discarded.stream()
-                .sorted(Comparator.comparing(VariantGraphResolveMetadata::getName))
-                .forEach(discardedConf -> formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf, variantAware, false, describer));
+                .sorted(Comparator.comparing(VariantGraphResolveState::getName))
+                .forEach(discardedConf -> formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf.getMetadata(), variantAware, false, describer));
             formatter.endChildren();
         }
 

@@ -24,8 +24,8 @@ import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
 import static org.gradle.nativeplatform.MachineArchitecture.X86
@@ -466,7 +466,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     }
 
     // macOS can only build 64-bit under 10.14+
-    @Requires(TestPrecondition.NOT_MAC_OS_X)
+    @Requires(UnitTestPreconditions.NotMacOs)
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
