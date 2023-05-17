@@ -153,6 +153,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
             this.sourceNotationParser = sourceNotationParser;
         }
 
+        @SuppressWarnings("unused")
         protected IvyArtifact parseMap(@MapKey("source") Object source) {
             return sourceNotationParser.parseNotation(source);
         }
