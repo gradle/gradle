@@ -29,6 +29,7 @@ public class ForeignBuildIdentifier extends DefaultBuildIdentifier {
 
     @Override
     public boolean isCurrentBuild() {
+        nagAboutDeprecatedIsCurrentBuild();
         return false;
     }
 }
