@@ -16,7 +16,6 @@
 
 package org.gradle.internal.instrumentation.api.declarations;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,11 +24,11 @@ public class InterceptorDeclaration {
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE = "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheGroovyInterceptors";
 
     /**
-     * Not yet used in production
+     * Not yet used in production. Disabled for now since it causes some performance regressions.
      */
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode";
     /**
-     * Not yet used in production
+     * Not yet used in production. Disabled for now since it causes some performance regressions.
      */
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesGroovyInterceptors";
 
