@@ -146,7 +146,9 @@ includeSubproject("instrumentation-agent")
 includeSubproject("instrumentation-declarations")
 
 // JVM Platform
-includePlatform("ear", "jvm")
+platform("jvm") {
+    subproject("ear")
+}
 
 // Plugin portal projects
 includeSubproject("kotlin-dsl-plugins")
@@ -174,16 +176,6 @@ includeSubproject("build-scan-performance")
 
 rootProject.name = "gradle"
 
-fun includeSubproject(projectName: String) {
-    include(projectName)
-    project(":$projectName").projectDir = file("subprojects/$projectName")
-}
-
-fun includePlatform(projectName: String, platformName: String) {
-    include(projectName)
-    project(":$projectName").projectDir = file("platforms/$platformName/$projectName")
-}
-
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive) {
         enableFeaturePreview(feature.name)
@@ -203,3 +195,25 @@ gradle.settingsEvaluated {
         throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }
+
+// region platform include DSL
+
+fun includeSubproject(projectName: String) =
+    includeAt(projectName, file("subprojects/$projectName"))
+
+fun platform(platformName: String, platformConfiguration: PlatformScope.() -> Unit) =
+    PlatformScope(platformName).platformConfiguration()
+
+class PlatformScope(
+    private val platformName: String
+) {
+    fun subproject(projectName: String) =
+        includeAt(projectName, file("platforms/$platformName/$projectName"))
+}
+
+fun includeAt(projectName: String, projectDir: File) {
+    include(projectName)
+    project(":$projectName").projectDir = projectDir
+}
+
+// endregion
