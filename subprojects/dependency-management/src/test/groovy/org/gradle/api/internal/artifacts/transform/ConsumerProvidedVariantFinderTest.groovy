@@ -488,14 +488,14 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * attributeMatcher._
     }
 
-    private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, TransformRegistration... steps) {
+    private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, TransformRegistration... registrations) {
         assert chain.root == source
         assert chain.attributes == finalAttributes
         def actualSteps = []
         chain.transformChain.visitTransformSteps {
             actualSteps << it
         }
-        def expectedSteps = steps*.transformStep
+        def expectedSteps = registrations*.transformStep
         assert actualSteps == expectedSteps
     }
 
