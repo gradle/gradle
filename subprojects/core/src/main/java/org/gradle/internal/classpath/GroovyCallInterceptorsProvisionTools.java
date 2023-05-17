@@ -42,7 +42,7 @@ public class GroovyCallInterceptorsProvisionTools {
         try {
             return getInterceptorsFromClass(Class.forName(className));
         } catch (ClassNotFoundException e) {
-            return Collections.emptyList();
+            throw new RuntimeException(e);
         }
     }
 

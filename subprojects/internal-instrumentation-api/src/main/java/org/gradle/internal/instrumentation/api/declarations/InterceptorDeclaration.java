@@ -16,27 +16,29 @@
 
 package org.gradle.internal.instrumentation.api.declarations;
 
+import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
+import org.gradle.internal.instrumentation.api.annotations.CallableKind;
+import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class InterceptorDeclaration {
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE = "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheJvmBytecode";
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE = "org.gradle.internal.classpath.generated.InterceptorDeclaration_ConfigCacheGroovyInterceptors";
-
-    /**
-     * Not yet used in production. Disabled for now since it causes some performance regressions.
-     */
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode";
-    /**
-     * Not yet used in production. Disabled for now since it causes some performance regressions.
-     */
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = "org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesGroovyInterceptors";
 
-    public static final List<String> JVM_BYTECODE_GENERATED_CLASS_NAMES = Collections.singletonList(
-        JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE
-    );
+    public static final List<String> JVM_BYTECODE_GENERATED_CLASS_NAMES = Collections.unmodifiableList(Arrays.asList(
+        JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE,
+        JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
+    ));
 
-    public static final List<String> GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES = Collections.singletonList(
-        GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE
-    );
+    public static final List<String> GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES = Collections.unmodifiableList(Arrays.asList(
+        GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE,
+        GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
+    ));
 }
