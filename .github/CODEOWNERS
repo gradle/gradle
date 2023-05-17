@@ -42,9 +42,9 @@ subprojects/testing-jvm/                    @gradle/bt-jvm @gradle/ge-testing
 subprojects/testing-jvm-infrastructure/     @gradle/bt-jvm @gradle/ge-testing
 
 # Software platform
+subprojects/antlr/                          @gradle/bt-jvm
 subprojects/build-init/                     @gradle/bt-jvm
 subprojects/dependency-management/          @gradle/bt-jvm
-subprojects/diagnostics/                    @gradle/bt-jvm
 subprojects/ivy/                            @gradle/bt-jvm
 subprojects/maven/                          @gradle/bt-jvm
 subprojects/platform-base/                  @gradle/bt-jvm
@@ -52,12 +52,16 @@ subprojects/publish/                        @gradle/bt-jvm
 subprojects/reporting/                      @gradle/bt-jvm
 subprojects/resources/                      @gradle/bt-jvm
 subprojects/resources-gcs/                  @gradle/bt-jvm
+subprojects/resources-http/                 @gradle/bt-jvm
 subprojects/resources-s3/                   @gradle/bt-jvm
 subprojects/resources-sftp/                 @gradle/bt-jvm
 subprojects/security/                       @gradle/bt-jvm
 subprojects/signing/                        @gradle/bt-jvm
 subprojects/testing-base/                   @gradle/bt-jvm
 subprojects/version-control/                @gradle/bt-jvm
+
+# Mixed
+subprojects/diagnostics/                    @gradle/bt-jvm @gradle/bt-configuration-cache @gradle/bt-execution
 
 # Kotlin DSL
 build-logic/kotlin-dsl/                                                                 @eskatos @jbartok
