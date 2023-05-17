@@ -85,94 +85,63 @@ logger.warn ''
         """
     }
 
-    def "incoming declarations first during configuration phase"() {
+    def "incoming files first, with iteration"() {
         buildFile << """
-            def incomingFiles = configurations.compileClasspath.incoming.files
-            def incomingArtifacts = configurations.compileClasspath.incoming.artifacts
-            def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files
-            def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView { }.artifacts
+            $declareIncomingFiles
+            $iterateIncomingFiles
 
-            assert incomingFiles*.name == artifactViewFiles*.name
-            assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name
+            $declareArtifactViewFiles
+            $iterateArtifactViewFiles
+
+            $filesComparison
         """
 
         expect:
         run ':help'
     }
 
-    def "incoming declarations first during configuration phase, iteration during execution phase"() {
+    def "artifactView files first, with iteration"() {
         buildFile << """
-            tasks.register('verifySameFilesAndArtifacts') {
-                def incomingFiles = configurations.compileClasspath.incoming.files
-                def incomingArtifacts = configurations.compileClasspath.incoming.artifacts
-                def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files
-                def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView { }.artifacts
+            $declareArtifactViewFiles
+            $iterateArtifactViewFiles
 
-                doLast {
-                    assert incomingFiles*.name == artifactViewFiles*.name
-                    assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name
-                }
-            }
-        """
+            $declareIncomingFiles
+            $iterateIncomingFiles
 
-        expect:
-        run ':verifySameFilesAndArtifacts'
-    }
-
-    def "incoming declarations first during execution phase"() {
-        buildFile << """
-            tasks.register('verifySameFilesAndArtifacts') {
-                doLast {
-                    def incomingFiles = configurations.compileClasspath.incoming.files
-                    def incomingArtifacts = configurations.compileClasspath.incoming.artifacts
-                    def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files
-                    def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView { }.artifacts
-
-                    assert incomingFiles*.name == artifactViewFiles*.name
-                    assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name
-                }
-            }
-        """
-
-        expect:
-        run ':verifySameFilesAndArtifacts'
-    }
-
-    def "artifact view declarations first"() {
-        buildFile << """
-            def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files
-            def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView { }.artifacts
-            def incomingFiles = configurations.compileClasspath.incoming.files
-            def incomingArtifacts = configurations.compileClasspath.incoming.artifacts
-
-            assert incomingFiles*.name == artifactViewFiles*.name
-            assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name
+            $filesComparison
         """
 
         expect:
         run ':help'
     }
 
-    def "incoming declarations first, then iteration to force resolution"() {
+    def "incoming files first, without iteration"() {
         buildFile << """
-            def incomingFiles = configurations.compileClasspath.incoming.files
-            def incomingArtifacts = configurations.compileClasspath.incoming.artifacts
+            $declareIncomingFiles
 
-            incomingFiles.size()
-            incomingArtifacts.size()
+            $declareArtifactViewFiles
 
-            def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files
-            def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView { }.artifacts
-
-            assert incomingFiles*.name == artifactViewFiles*.name
-            assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name
+            $filesComparison
         """
 
         expect:
         run ':help'
     }
 
-    def "incoming artifacts first"() {
+    def "artifactView files first, without iteration"() {
+        buildFile << """
+            $declareArtifactViewFiles
+
+            $declareIncomingFiles
+
+            $filesComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+    def "incoming artifacts first, with iteration"() {
         buildFile << """
             $declareIncomingArtifacts
             $iterateIncomingArtifacts
@@ -187,13 +156,39 @@ logger.warn ''
         run ':help'
     }
 
-    def "artifactView artifacts first"() {
+    def "artifactView artifacts first, with iteration"() {
         buildFile << """
             $declareArtifactViewArtifacts
             $iterateArtifactViewArtifacts
 
             $declareIncomingArtifacts
             $iterateIncomingArtifacts
+
+            $artifactComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+    def "incoming artifacts first, without iteration"() {
+        buildFile << """
+            $declareIncomingArtifacts
+
+            $declareArtifactViewArtifacts
+
+            $artifactComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+    def "artifactView artifacts first, without iteration"() {
+        buildFile << """
+            $declareArtifactViewArtifacts
+
+            $declareIncomingArtifacts
 
             $artifactComparison
         """
