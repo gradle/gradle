@@ -20,9 +20,14 @@ CREATE TABLE IF NOT EXISTS filestore.catalog
 (
     entry_key     VARCHAR(32)         NOT NULL PRIMARY KEY,
     entry_size    BIGINT              NOT NULL,
-    entry_accessed    BIGINT          NOT NULL,
     entry_content BINARY LARGE OBJECT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS filestore.lru
+(
+    entry_key     VARCHAR(32)         NOT NULL PRIMARY KEY,
+    entry_accessed    BIGINT          NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS entry_accessed
-ON filestore.catalog (entry_accessed);
+ON filestore.lru (entry_accessed);

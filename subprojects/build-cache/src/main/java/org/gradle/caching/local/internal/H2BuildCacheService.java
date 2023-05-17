@@ -83,7 +83,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
                 "select entry_content from filestore.catalog where entry_key = ?;" +
-                    "update filestore.catalog set entry_accessed = ? where entry_key = ?;"
+                    "update filestore.lru set entry_accessed = ? where entry_key = ?;"
             )) {
                 stmt.setString(1, key.getHashCode());
                 stmt.setLong(2, System.currentTimeMillis());
@@ -107,12 +107,16 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
     @Override
     public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement("insert ignore into filestore.catalog(entry_key, entry_size, entry_accessed, entry_content) values (?, ?, ?, ?)")) {
+            try (PreparedStatement stmt = conn.prepareStatement(
+                "insert ignore into filestore.lru(entry_key, entry_accessed) values (?, ?);" +
+                    "insert ignore into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?);"
+            )) {
                 try (InputStream input = writer.openStream()) {
                     stmt.setString(1, key.getHashCode());
-                    stmt.setLong(2, writer.getSize());
-                    stmt.setLong(3, System.currentTimeMillis());
-                    stmt.setBinaryStream(4, input);
+                    stmt.setLong(2, System.currentTimeMillis());
+                    stmt.setString(3, key.getHashCode());
+                    stmt.setLong(4, writer.getSize());
+                    stmt.setBinaryStream(5, input);
                     stmt.executeUpdate();
                 }
             }
