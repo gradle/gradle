@@ -45,8 +45,8 @@ class ProfileReportRendererTest extends Specification {
         model.getDependencySetProfile("runtime").start = time(12, 24, 0)
         model.getDependencySetProfile("runtime").finish = time(12, 24, 30)
 
-        model.getTransformationProfile("some transform").start(time(12, 22, 0)).setFinish(time(12, 22, 12))
-        model.getTransformationProfile("some other transform").start(time(12, 23, 0)).setFinish(time(12, 23, 19))
+        model.getTransformProfile("some transform").start(time(12, 22, 0)).setFinish(time(12, 22, 12))
+        model.getTransformProfile("some other transform").start(time(12, 23, 0)).setFinish(time(12, 23, 19))
 
         model.getProjectProfile("a").configurationOperation.start = time(12, 20, 7)
         model.getProjectProfile("a").configurationOperation.finish = time(12, 20, 10)
