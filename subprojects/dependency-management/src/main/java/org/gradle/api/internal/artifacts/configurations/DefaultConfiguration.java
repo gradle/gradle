@@ -1317,7 +1317,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.declarationAlternatives = declarationAlternatives;
         copiedConfiguration.resolutionAlternatives = resolutionAlternatives;
 
-        copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
+        DeprecationLogger.whileDisabled(() -> copiedConfiguration.getArtifacts().addAll(getAllArtifacts()));
 
         if (!configurationAttributes.isEmpty()) {
             for (Attribute<?> attribute : configurationAttributes.keySet()) {
@@ -1524,6 +1524,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     .nagUser();
             }
             // TODO: Enable this once KMP stops adding artifacts to non-consumable configurations
+            // See: https://github.com/JetBrains/kotlin/blob/37402336d5afbbdeae8d4921549abfc7b8d6e639/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/plugin/mpp/AbstractKotlinTarget.kt#L213-L216
 //            else if (!canBeConsumed) {
 //                DeprecationLogger.deprecate("Adding artifacts to non-consumable configurations")
 //                    .willBecomeAnErrorInGradle9()

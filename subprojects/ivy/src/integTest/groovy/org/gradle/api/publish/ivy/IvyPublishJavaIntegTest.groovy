@@ -144,9 +144,14 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 archiveBaseName = "publishTest-extra"
             }
 
+            configurations {
+                conf {
+                    canBeResolved = false
+                }
+            }
+
             artifacts {
-                implementation extraJar
-                archives extraJar
+                conf extraJar
                 it."default" extraJar
             }
 
