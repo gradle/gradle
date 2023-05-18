@@ -19,6 +19,7 @@ package org.gradle.caching.local.internal
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.service.StoreTarget
+import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,7 +33,7 @@ class H2BuildCacheServiceTest extends Specification {
     H2BuildCacheService service
 
     def setup() {
-        service = new H2BuildCacheService(dbDir.toPath(), 20)
+        service = new H2BuildCacheService(dbDir.toPath(), 20, 7, Time.clock())
         service.open()
     }
 
@@ -78,7 +79,7 @@ class H2BuildCacheServiceTest extends Specification {
         service.close()
 
         expect:
-        def newService = new H2BuildCacheService(dbDir.toPath(), 20)
+        def newService = new H2BuildCacheService(dbDir.toPath(), 20, 7, Time.clock())
         newService.open()
         newService.load(key, new BuildCacheEntryReader() {
             @Override

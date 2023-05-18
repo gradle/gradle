@@ -24,6 +24,7 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.time.Time;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -66,7 +67,7 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
         describer.type(H2_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath());
 
-        H2BuildCacheService h2Service = new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount());
+        H2BuildCacheService h2Service = new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount(), removeUnusedEntriesAfterDays, Time.clock());
         return new LockOnDemandCrossProcessBuildCacheService("build-cache-2", target, lockManager, h2Service);
     }
 
