@@ -2105,7 +2105,7 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        ImmutableAttributes viewAttributes = attributes.asImmutable();
+        AttributeContainerInternal viewAttributes = attributes;
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
         ResolutionBackedFileCollection files = new ResolutionBackedFileCollection(
             new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
