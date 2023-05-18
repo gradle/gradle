@@ -176,21 +176,146 @@ logger.warn ''
         run ':help'
     }
 
-    @Ignore
-    def "test all permutations of declaration and iteration of files and artifacts (10,000s of these)"() {
+    def "declare artifacts (incoming, then artifact view) and files (incoming, then artifact view) , then iterate artifacts (incoming, then artifact view), then files (incoming, then artifact view) "() {
+        buildFile << """
+            $declareIncomingArtifacts
+            $declareArtifactViewArtifacts
+            $declareIncomingFiles
+            $declareArtifactViewFiles
+
+            $iterateIncomingArtifacts
+            $iterateArtifactViewArtifacts
+            $iterateIncomingFiles
+            $iterateArtifactViewFiles
+
+            $filesComparison
+            $artifactComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+    def "declare artifacts (artifact view, then incoming) and files (artifact view, then incoming) , then iterate artifacts (incoming, then artifact view), then files (incoming, then artifact view) "() {
+        buildFile << """
+            $declareArtifactViewArtifacts
+            $declareIncomingArtifacts
+            $declareArtifactViewFiles
+            $declareIncomingFiles
+
+            $iterateIncomingArtifacts
+            $iterateArtifactViewArtifacts
+            $iterateIncomingFiles
+            $iterateArtifactViewFiles
+
+            $filesComparison
+            $artifactComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+    def "declare artifacts (incoming, then artifact view) and files (incoming, then artifact view) , then iterate artifacts (artifact view then incoming), then files (artifact view, then incoming) "() {
+        buildFile << """
+            $declareIncomingArtifacts
+            $declareArtifactViewArtifacts
+            $declareIncomingFiles
+            $declareArtifactViewFiles
+
+            $iterateArtifactViewArtifacts
+            $iterateIncomingArtifacts
+            $iterateArtifactViewFiles
+            $iterateIncomingFiles
+
+            $filesComparison
+            $artifactComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+    def "declare artifacts (artifact view, then incoming) and files (artifact view, then incoming) , then iterate artifacts (artifact view then incoming), then files (artifact view, then incoming)"() {
+        buildFile << """
+            $declareArtifactViewArtifacts
+            $declareIncomingArtifacts
+            $declareArtifactViewFiles
+            $declareIncomingFiles
+
+            $iterateArtifactViewArtifacts
+            $iterateIncomingArtifacts
+            $iterateArtifactViewFiles
+            $iterateIncomingFiles
+
+            $filesComparison
+            $artifactComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+    def "declare and iterate artifact view files, then artifact view artifacts, then incoming files, then incoming artifacts"() {
+        buildFile << """
+            $declareArtifactViewFiles
+            $iterateArtifactViewFiles
+
+            $declareArtifactViewArtifacts
+            $iterateArtifactViewArtifacts
+
+            $declareIncomingFiles
+            $iterateIncomingFiles
+
+            $declareIncomingArtifacts
+            $iterateIncomingArtifacts
+
+            $filesComparison
+            $artifactComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+
+    def "declare and iterate incoming files, then incoming artifacts, then artifact view files, then artifact view artifacts"() {
+        buildFile << """
+            $declareIncomingFiles
+            $iterateIncomingFiles
+
+            $declareIncomingArtifacts
+            $iterateIncomingArtifacts
+
+            $declareArtifactViewFiles
+            $iterateArtifactViewFiles
+
+            $declareArtifactViewArtifacts
+            $iterateArtifactViewArtifacts
+
+            $filesComparison
+            $artifactComparison
+        """
+
+        expect:
+        run ':help'
+    }
+
+    @Ignore("There are 10,000s of these, so it takes some time, but is the ultimate sanity check")
+    def "test all valid permutations of declaration and iteration order of files and artifacts on incoming vs. artifact view"() {
         buildFile << """
             logger.warn '******************'
             logger.warn '***** Script *****'
             logger.warn '******************'
             logger.warn ''
-            logger.warn '''$codeBlock'''
+            logger.warn '''$code'''
             logger.warn ''
 
             logger.warn '******************'
             logger.warn '***** Output *****'
             logger.warn '******************'
             logger.warn ''
-            $codeBlock
+            $code
 
             assert incomingFiles*.name == artifactViewFiles*.name
             assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name
@@ -200,7 +325,7 @@ logger.warn ''
         run ':help'
 
         where:
-        codeBlock << [
+        code << [
             declareIncomingFiles,
             declareIncomingArtifacts,
             declareArtifactViewFiles,
@@ -209,10 +334,10 @@ logger.warn ''
             iterateIncomingArtifacts,
             iterateArtifactViewFiles,
             iterateArtifactViewArtifacts
-        ].permutations().findAll { isValid(it) }.collect { it.join('\n') }
+        ].permutations().findAll { declarationOccursPriorToRelevantIteration(it) }.collect { it.join('\n') }
     }
 
-    private boolean isValid(List<String> code) {
+    private boolean declarationOccursPriorToRelevantIteration(List<String> code) {
         return code.indexOf(declareIncomingFiles) < code.indexOf(iterateIncomingFiles) &&
             code.indexOf(declareIncomingArtifacts) < code.indexOf(iterateIncomingArtifacts) &&
             code.indexOf(declareArtifactViewFiles) < code.indexOf(iterateArtifactViewFiles) &&
