@@ -19,6 +19,7 @@ package org.gradle.jvm.component.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
@@ -27,7 +28,6 @@ import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -91,8 +91,8 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         createSourceElements(configurations, providerFactory, objectFactory, mainFeature);
 
         // Build the main jar when running `assemble`.
-        extensions.getByType(DefaultArtifactPublicationSet.class)
-            .addCandidate(mainFeature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
+            .add(mainFeature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
 
         configurePublishing(plugins, extensions, sourceSet);
 

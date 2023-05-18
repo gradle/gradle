@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
@@ -95,15 +94,15 @@ public abstract class BasePlugin implements Plugin<Project> {
         final Configuration defaultConfiguration = configurations.maybeCreateWithRole(Dependency.DEFAULT_CONFIGURATION, ConfigurationRoles.CONSUMABLE, false, false).
             setDescription("Configuration for default artifacts.");
 
-        final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
-            "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
-        );
+        @SuppressWarnings("deprecation")
+        Class<org.gradle.api.internal.plugins.DefaultArtifactPublicationSet> defaultArtifactsClass = org.gradle.api.internal.plugins.DefaultArtifactPublicationSet.class;
+        project.getExtensions().create("defaultArtifacts", defaultArtifactsClass, archivesConfiguration.getArtifacts());
 
         configurations.all(configuration -> {
             if (!configuration.equals(archivesConfiguration)) {
                 configuration.getArtifacts().configureEach(artifact -> {
                     if (configuration.isVisible()) {
-                        defaultArtifacts.addCandidate(artifact);
+                        archivesConfiguration.getArtifacts().add(artifact);
                     }
                 });
             }

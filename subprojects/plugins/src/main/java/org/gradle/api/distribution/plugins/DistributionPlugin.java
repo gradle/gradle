@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
@@ -29,7 +30,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.provider.Provider;
@@ -130,7 +130,7 @@ public abstract class DistributionPlugin implements Plugin<Project> {
         });
 
         PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(archiveArtifact);
     }
 
     private void addInstallTask(final Project project, final String taskName, final Distribution distribution) {
