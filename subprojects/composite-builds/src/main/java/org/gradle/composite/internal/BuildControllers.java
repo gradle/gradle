@@ -15,12 +15,10 @@
  */
 package org.gradle.composite.internal;
 
-import org.gradle.api.Task;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 
 import java.io.Closeable;
-import java.util.function.Consumer;
 
 interface BuildControllers extends Closeable {
     /**
@@ -38,8 +36,6 @@ interface BuildControllers extends Closeable {
      * Locates the controller for a given build, adding it if not present.
      */
     BuildController getBuildController(BuildState build);
-
-    void withTasks(Consumer<? super Task> visitTask);
 
     @Override
     void close();

@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
@@ -147,12 +148,17 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
         @Override
         public void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-            owner.controllers.getBuildController(target).populateWorkGraph(action);
+            buildControllerOf(target).populateWorkGraph(action);
         }
 
         @Override
         public void addFilter(BuildState target, Spec<Task> filter) {
-            owner.controllers.getBuildController(target).addFilter(filter);
+            buildControllerOf(target).addFilter(filter);
+        }
+
+        @Override
+        public void addFinalization(BuildState target, Consumer<ExecutionPlan> finalization) {
+            buildControllerOf(target).addFinalization(finalization);
         }
 
         @Override
@@ -165,6 +171,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 }
                 locateTask(identifier).queueForExecution();
             }
+        }
+
+        private BuildController buildControllerOf(BuildState target) {
+            return owner.controllers.getBuildController(target);
         }
     }
 
@@ -211,8 +221,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             return this;
         }
 
-
-
         @Override
         public ExecutionResult<Void> runWork() {
             assertIsOwner();
@@ -224,12 +232,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 state = State.Finished;
             }
         }
-
-        @Override
-        public void withTasks(Consumer<? super Task> visitTask) {
-            controllers.withTasks(visitTask);
-        }
-
 
         @Override
         public void close() {

@@ -29,10 +29,10 @@ import org.gradle.execution.EntryTaskSelector
 import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
@@ -108,22 +108,22 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         _ * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
         _ * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
         _ * testExecutionRequest.getTaskAndTests() >> tasksAndTests
-        def graph = Mock(BuildTreeWorkGraph.FinalizedGraph) {
-            withTasks(_) >> { args ->
-                args[0].accept(testTask)
-            }
+        def executionPlanContents = Mock(QueryableExecutionPlan) {
+            getTasks() >> [testTask]
         }
 
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
         when:
         buildConfigurationAction.applyTasksTo(context, executionPlan)
-        buildConfigurationAction.postProcessExecutionPlan(graph)
+        buildConfigurationAction.postProcessExecutionPlan(executionPlan)
+
         then:
         1 * testFilter.includeTest(expectedClassFilter, expectedMethodFilter)
 
         1 * testTask.setIgnoreFailures(true)
         1 * testFilter.setFailOnNoMatchingTests(false)
         1 * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
+        1 * executionPlan.getContents() >> executionPlanContents
 
         where:
         requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter | tasksAndTests

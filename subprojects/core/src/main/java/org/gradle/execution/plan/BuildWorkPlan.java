@@ -30,5 +30,5 @@ public interface BuildWorkPlan extends Stoppable {
 
     void addFilter(Spec<Task> filter);
 
-    void withTasks(Consumer<? super Task> visitTask);
+    void addFinalization(Consumer<ExecutionPlan> finalization);
 }

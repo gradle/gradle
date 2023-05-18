@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -80,6 +81,12 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
+    public void addFinalization(Consumer<ExecutionPlan> finalization) {
+        assertInState(State.DiscoveringTasks);
+        workGraph.addFinalization(finalization);
+    }
+
+    @Override
     public boolean scheduleQueuedTasks() {
         assertInState(State.DiscoveringTasks);
 
@@ -118,11 +125,6 @@ class DefaultBuildController implements BuildController {
         assertInState(State.ReadyToRun);
         executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get(), completionHandler));
         state = State.RunningTasks;
-    }
-
-    @Override
-    public void withTasks(Consumer<? super Task> visitTask) {
-        workGraph.withTasks(visitTask);
     }
 
     @Override
