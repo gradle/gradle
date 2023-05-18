@@ -31,7 +31,7 @@ It has a rich community plugin ecosystem.
 * Gradle can automate a wide range of software build scenarios using either its built-in functionality, third-party plugins, or custom build logic.
 * Gradle provides a high-level, declarative, and expressive build language that makes it easy to read and write build logic.
 * Gradle is fast, scalable, and can build projects of any size and complexity.
-* Gradle produces dependable results while effortlessly benefiting from optimizations such as incremental builds, build caching, and parallel execution.
+* Gradle produces dependable results while benefiting from optimizations such as incremental builds, build caching, and parallel execution.
 
 All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
