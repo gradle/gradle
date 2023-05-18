@@ -211,7 +211,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                 statusProgressLogger.completed();
             }
             progressLogger.completed(context.getStatus(), context.getFailure() != null);
-            buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.getFailure(), context.getResult(), context.getAdditionalFailureContext()));
+            buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.getFailure(), context.getResult(), context.getProblems()));
         }
 
         @Override

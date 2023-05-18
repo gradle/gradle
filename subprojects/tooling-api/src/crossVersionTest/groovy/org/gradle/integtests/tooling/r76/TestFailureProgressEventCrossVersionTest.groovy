@@ -526,6 +526,10 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Test failure context"() {
         setup:
         buildFile << """
+            plugins {
+              id 'java-library'
+            }
+            repositories.jcenter()
             task bar {}
             task baz {}
         """
@@ -538,9 +542,11 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        def e = thrown(BuildException)
-        e.cause.message.contains "Cannot locate tasks that match"
-        listener.context == ["Should not happen"]
+        thrown(BuildException)
+        List<Object> problems = listener.context
+        (problems[0]['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
+        (problems[0]['severity'] as String).contains('WARNING')
+        problems[1] == "Should not happen"
     }
 
     List<Failure> getFailures() {

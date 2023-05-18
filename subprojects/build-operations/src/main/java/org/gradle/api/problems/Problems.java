@@ -18,9 +18,36 @@ package org.gradle.api.problems;
 
 import org.gradle.internal.operations.GradleExceptionWithContext;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Problems {
 
+    private static final ThreadLocal<List<Object>> problems = new ThreadLocal<List<Object>>();
+    public static List<Object> removeAllProblems() {
+        return problems.get();
+    }
+
+    public static void reportWarning(String message) {
+        Map<String, String> warning = new HashMap<String, String>();
+        warning.put("severity", "WARNING");
+        warning.put("message", message);
+        addProblem(warning);
+    }
+
     public static void reportFailure(Object failureContext, Throwable cause) {
+        addProblem(failureContext);
         throw new GradleExceptionWithContext(failureContext, cause);
+    }
+
+    private static void addProblem(Object problem) {
+        List<Object> problemList = problems.get();
+        if (problemList == null) {
+            problemList = new ArrayList<Object>();
+        }
+        problemList.add(problem);
+        problems.set(problemList);
     }
 }

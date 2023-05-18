@@ -19,6 +19,7 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -64,8 +65,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     @Override
     public void featureUsed(DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
+        String featureMessage = usage.formattedMessage();
         if (warningMode.shouldDisplayMessages()) {
-            String featureMessage = usage.formattedMessage();
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);
             if (message.length() > 0) {
@@ -74,6 +75,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             message.append(featureMessage);
             displayDeprecationIfSameMessageNotDisplayedBefore(message, usage.getStack());
         }
+        Problems.reportWarning(featureMessage);
         fireDeprecatedUsageBuildOperationProgress(usage);
     }
 
