@@ -28,6 +28,9 @@ import java.io.File
 abstract class SubprojectsInfo : DefaultTask() {
 
     private
+    val rootPath = project.layout.projectDirectory.asFile.toPath()
+
+    private
     val platformsFolder = project.layout.projectDirectory.dir("platforms")
 
     private
@@ -66,7 +69,7 @@ abstract class SubprojectsInfo : DefaultTask() {
     fun generateSubproject(subprojectDir: File): GradleSubproject {
         return GradleSubproject(
             subprojectDir.name,
-            subprojectDir.name,
+            rootPath.relativize(subprojectDir.toPath()).toString(),
             subprojectDir.hasDescendantDir("src/test"),
             subprojectDir.hasDescendantDir("src/integTest"),
             subprojectDir.hasDescendantDir("src/crossVersionTest")
