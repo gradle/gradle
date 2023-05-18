@@ -183,6 +183,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
         @Override
         public boolean canLoad() {
+            // TODO Perhaps remove this since it will always be true
             return true;
         }
 
