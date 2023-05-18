@@ -30,10 +30,6 @@
 
    ./gradlew -i -write-verification-metadata sha256,pgp -export-keys resolveAllDependencies
 
-   (Note: '-write-verification-metadata' and '-export-keys' should both start with double hyphens,
-   for example 'dash-dash-export-keys', but due to an XML constraint double hyphens are forbidden
-   in comments.)
-
    Then check the diff, remove the unnecessary entries (for old dependencies) and make sure
    the new ones are correct. You also need to delete the verification-keyring.gpg file as we use the
    text based keyring.
@@ -531,16 +527,6 @@
             <pgp value="fc2c31fc25fede4e7ad0d18c2bfd7825a8984fbe"/>
          </artifact>
       </component>
-      <component group="com.github.mwiede" name="jsch" version="0.2.0">
-         <artifact name="jsch-0.2.0.jar">
-            <pgp value="d4d4dec73685b1a135e45e5c47933d17f199636b"/>
-         </artifact>
-      </component>
-      <component group="com.github.mwiede" name="jsch" version="0.2.1">
-         <artifact name="jsch-0.2.1.jar">
-            <pgp value="d4d4dec73685b1a135e45e5c47933d17f199636b"/>
-         </artifact>
-      </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.15.7">
          <artifact name="japicmp-0.15.7.jar">
             <pgp value="fffd810fffde203d5fa27263beabcfbee059e4e5"/>
@@ -622,11 +608,6 @@
       <component group="com.googlecode.jatl" name="jatl" version="0.2.3">
          <artifact name="jatl-0.2.3.jar">
             <pgp value="4922c79af3339c8941c3e7af80662f8192d749a0"/>
-         </artifact>
-      </component>
-      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.13">
-         <artifact name="JavaEWAH-1.1.13.jar">
-            <pgp value="015479e1055341431b4545ab72475fd306b9cab7"/>
          </artifact>
       </component>
       <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.6">
@@ -966,11 +947,6 @@
             <pgp value="f42b96b8648b5c4a1c43a62fbb2914c1fa0811c3"/>
          </artifact>
       </component>
-      <component group="net.i2p.crypto" name="eddsa" version="0.3.0">
-         <artifact name="eddsa-0.3.0.jar">
-            <pgp value="43c79b4bbd131821e17d2ca77b2f0491728b8e02"/>
-         </artifact>
-      </component>
       <component group="net.jcip" name="jcip-annotations" version="1.0">
          <artifact name="jcip-annotations-1.0.jar">
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Verified" reason="Artifact is not signed"/>
@@ -1109,11 +1085,6 @@
       <component group="org.apache.mina" name="mina-core" version="2.0.17">
          <artifact name="mina-core-2.0.17.jar">
             <pgp value="4d2db2916149baa9d0c92f3731474e5e7c6b7034"/>
-         </artifact>
-      </component>
-      <component group="org.apache.sshd" name="sshd-osgi" version="2.8.0">
-         <artifact name="sshd-osgi-2.8.0.jar">
-            <pgp value="dc98224c6421a7a5bb87f346ed2378cd09a08cde"/>
          </artifact>
       </component>
       <component group="org.apache.velocity" name="velocity" version="1.7">
@@ -1259,11 +1230,6 @@
       </component>
       <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.8.0.202006091008-r">
          <artifact name="org.eclipse.jgit-5.8.0.202006091008-r.jar">
-            <pgp value="7c669810892cbd3148fa92995b05ccde140c2876"/>
-         </artifact>
-      </component>
-      <component group="org.eclipse.jgit" name="org.eclipse.jgit.ssh.apache" version="6.1.0.202203080745-r">
-         <artifact name="org.eclipse.jgit.ssh.apache-6.1.0.202203080745-r.jar">
             <pgp value="7c669810892cbd3148fa92995b05ccde140c2876"/>
          </artifact>
       </component>
