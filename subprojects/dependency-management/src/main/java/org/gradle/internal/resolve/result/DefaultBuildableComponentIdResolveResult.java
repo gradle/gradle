@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedVersion;
 
@@ -29,6 +30,7 @@ import java.util.Collections;
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
     private ModuleVersionResolveException failure;
     private ComponentGraphResolveState state;
+    private ComponentGraphSpecificResolveState graphState;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private boolean rejected;
@@ -83,9 +85,10 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
-    public void resolved(ComponentGraphResolveState state) {
+    public void resolved(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
         resolved(state.getId(), state.getMetadata().getModuleVersionId());
         this.state = state;
+        this.graphState = graphState;
     }
 
     @Override
