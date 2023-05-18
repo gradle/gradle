@@ -28,7 +28,7 @@ public abstract class AbstractTaskResult extends AbstractResult implements Inter
     protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons) {
         this(startTime, endTime, outcomeDescription, incremental, executionReasons, null);
     }
-    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons, Object additionalFailureContext) {
+    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons, List<Object> additionalFailureContext) {
         super(startTime, endTime, outcomeDescription, additionalFailureContext);
         this.incremental = incremental;
         this.executionReasons = executionReasons;

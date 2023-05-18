@@ -27,7 +27,7 @@ public class DefaultFailureResult extends AbstractOperationResult implements Int
         this(startTime, endTime, failures, null);
     }
 
-    public DefaultFailureResult(long startTime, long endTime, List<InternalFailure> failures, Object additionalFailureContext) {
+    public DefaultFailureResult(long startTime, long endTime, List<InternalFailure> failures, List<Object> additionalFailureContext) {
         super(startTime, endTime, "failed", additionalFailureContext);
         this.failures = failures;
     }

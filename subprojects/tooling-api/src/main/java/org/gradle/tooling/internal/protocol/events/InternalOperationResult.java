@@ -48,5 +48,5 @@ public interface InternalOperationResult extends InternalProtocolInterface {
      */
     List<? extends InternalFailure> getFailures();
 
-    Object getAdditionalFailureContext();
+    List<Object> getAdditionalFailureContext();
 }

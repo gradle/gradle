@@ -24,7 +24,7 @@ public abstract class AbstractProjectConfigurationResult extends AbstractOperati
 
     private final List<? extends InternalPluginApplicationResult> pluginApplicationResults;
 
-    public AbstractProjectConfigurationResult(long startTime, long endTime, String outcomeDescription, List<? extends InternalPluginApplicationResult> pluginApplicationResults, Object additionalFailureContext) {
+    public AbstractProjectConfigurationResult(long startTime, long endTime, String outcomeDescription, List<? extends InternalPluginApplicationResult> pluginApplicationResults, List<Object> additionalFailureContext) {
         super(startTime, endTime, outcomeDescription, additionalFailureContext);
         this.pluginApplicationResults = pluginApplicationResults;
     }

@@ -540,7 +540,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         def e = thrown(BuildException)
         e.cause.message.contains "Cannot locate tasks that match"
-        listener.context == "Should not happen"
+        listener.context == ["Should not happen"]
     }
 
     List<Failure> getFailures() {

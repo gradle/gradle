@@ -24,7 +24,7 @@ import java.util.List;
 public class DefaultTestFailureResult extends AbstractTestResult implements InternalTestFailureResult {
     private final List<InternalFailure> failures;
 
-    public DefaultTestFailureResult(long startTime, long endTime, List<InternalFailure> failures, Object additionalFailureContext) {
+    public DefaultTestFailureResult(long startTime, long endTime, List<InternalFailure> failures, List<Object> additionalFailureContext) {
         super(startTime, endTime, "failed", additionalFailureContext);
         this.failures = failures;
     }

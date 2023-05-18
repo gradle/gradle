@@ -17,15 +17,16 @@
 package org.gradle.internal.operations;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public final class OperationFinishEvent {
     private final long startTime;
     private final long endTime;
     private final Throwable failure;
     private final Object result;
-    private final Object additionalFailureContext;
+    private final List<Object> additionalFailureContext;
 
-    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result, @Nullable Object additionalFailureContext) {
+    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result, @Nullable List<Object> additionalFailureContext) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failure = failure;
@@ -51,7 +52,7 @@ public final class OperationFinishEvent {
         return result;
     }
 
-    public Object getAdditionalFailureContext() {
+    public List<Object> getAdditionalFailureContext() {
         return additionalFailureContext;
     }
 

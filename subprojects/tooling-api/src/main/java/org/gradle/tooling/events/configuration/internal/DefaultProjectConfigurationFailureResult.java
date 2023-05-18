@@ -25,9 +25,9 @@ import java.util.List;
 public class DefaultProjectConfigurationFailureResult extends DefaultOperationFailureResult implements ProjectConfigurationFailureResult {
 
     private final List<? extends PluginApplicationResult> pluginApplicationResults;
-    private final Object additionalFailureContext;
+    private final List<Object> additionalFailureContext;
 
-    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends PluginApplicationResult> pluginApplicationResults, Object additionalFailureContext) {
+    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends PluginApplicationResult> pluginApplicationResults, List<Object> additionalFailureContext) {
         super(startTime, endTime, failures, null);
         this.pluginApplicationResults = pluginApplicationResults;
         this.additionalFailureContext = additionalFailureContext;
@@ -40,7 +40,7 @@ public class DefaultProjectConfigurationFailureResult extends DefaultOperationFa
 
 
     @Override
-    public Object getAdditionalFailureContext() {
+    public List<Object> getAdditionalFailureContext() {
         return additionalFailureContext;
     }
 }
