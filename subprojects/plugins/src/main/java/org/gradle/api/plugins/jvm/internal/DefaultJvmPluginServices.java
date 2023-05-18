@@ -206,33 +206,31 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     private <COMPILE extends AbstractCompile & HasCompileOptions> Provider<Integer> getDefaultTargetPlatformProperty(ConfigurationInternal configuration, Set<TaskProvider<COMPILE>> compileTasks) {
-        boolean alwaysEnabled = configuration.isCanBeConsumed();
-        JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-        Provider<Boolean> targetJvmEnabled = providerFactory.provider(() ->
-            alwaysEnabled || javaPluginExtension == null || !javaPluginExtension.getAutoTargetJvmDisabled()
-        );
+        assert configuration.isCanBeConsumed() || configuration.isCanBeResolved();
 
-        return targetJvmEnabled.flatMap(enabled -> {
-            if (enabled) {
-                return getMaxMajorVersion(compileTasks);
-            } else {
+        if (configuration.isCanBeConsumed()) {
+            return providerFactory.provider(() -> getMaxMajorVersion(compileTasks));
+        }
+
+        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+        Provider<Boolean> targetJvmDisabled = providerFactory.provider(() -> javaPluginExtension.getAutoTargetJvmDisabled());
+
+        return targetJvmDisabled.flatMap(disabled -> {
+            if (disabled) {
                 return Providers.notDefined();
+            } else {
+                return new DefaultProviderWithValue<>(() -> getMaxMajorVersion(compileTasks));
             }
         });
     }
 
-    private <COMPILE extends AbstractCompile & HasCompileOptions> Provider<Integer> getMaxMajorVersion(Set<TaskProvider<COMPILE>> compileTasks) {
-        if (compileTasks.isEmpty()) {
-            return Providers.notDefined();
-        }
+    private <COMPILE extends AbstractCompile & HasCompileOptions> int getMaxMajorVersion(Set<TaskProvider<COMPILE>> compileTasks) {
+        assert !compileTasks.isEmpty();
 
-        // TODO: This breaks the provider chain.
-        return new DefaultProviderWithValue<>(() ->
-            compileTasks.stream()
-                .map(task -> getMajorVersion(task.get()))
-                .max(Comparator.naturalOrder())
-                .get()
-        );
+        return compileTasks.stream()
+            .map(task -> getMajorVersion(task.get()))
+            .max(Comparator.naturalOrder())
+            .get();
     }
 
     private static <COMPILE extends AbstractCompile & HasCompileOptions> int getMajorVersion(COMPILE compileTask) {
