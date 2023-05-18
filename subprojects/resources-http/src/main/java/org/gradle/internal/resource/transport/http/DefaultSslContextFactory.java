@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.http.ssl.SSLInitializationException;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.SystemProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.util.Map;
@@ -80,16 +82,19 @@ public class DefaultSslContextFactory implements SslContextFactory {
              * https://github.com/gradle/gradle/issues/7842
              * https://github.com/gradle/gradle/issues/2588
              */
-            return SystemProperties.getInstance().withSystemProperties(props, SslContextLoader::load);
+            return SystemProperties.getInstance().withSystemProperties(props, () -> SslContextLoader.load(props));
         }
     }
 
     @NonNullApi
     private static class SslContextLoader {
-        public static SSLContext load() {
+        private static final Logger LOGGER = LoggerFactory.getLogger(SslContextLoader.class);
+
+        public static SSLContext load(Map<String, String> props) {
             try {
                 return SystemDefaultSSLContextFactory.create();
             } catch (Exception e) {
+                LOGGER.error("Could not initialize SSL context. Used properties: {}", props);
                 throw new SSLInitializationException(e.getMessage(), e);
             }
         }

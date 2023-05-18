@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManager;
@@ -39,6 +41,8 @@ import java.security.KeyStore;
 public class SystemDefaultSSLContextFactory {
     private static final String NONE = "NONE";
     private static final String P11KEYSTORE = "PKCS11";
+
+    private static final Logger LOGGER = Logging.getLogger(SystemDefaultSSLContextFactory.class);
 
     static SSLContext create() throws Exception {
         SSLContext context = SSLContext.getInstance("TLS");
@@ -139,6 +143,8 @@ public class SystemDefaultSSLContextFactory {
                 if (candidate.isFile() && candidate.canRead()) {
                     storePath = fileName;
                     break;
+                } else if (!fileName.equals(getDefaultJsseTrustStore())) {
+                    LOGGER.warn("Trust store file {} does not exist or is not readable. This may lead to SSL connection failures.", fileName);
                 }
             }
 

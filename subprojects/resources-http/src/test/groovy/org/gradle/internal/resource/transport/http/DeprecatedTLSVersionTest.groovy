@@ -28,7 +28,6 @@ import spock.lang.Specification
 import javax.net.ssl.SSLHandshakeException
 
 class DeprecatedTLSVersionTest extends Specification {
-    private static final String SUPPORTED_TLS_VERSION_STRING = String.join(", ", HttpClientConfigurer.supportedTlsVersions())
     private static final List<String> DEPRECATED_TLS_VERSIONS = ["TLSv1", "TLSv1.1"]
     private static final List<String> MODERN_TLS_VERSIONS = ["TLSv1.2", "TLSv1.3"]
     @Rule
@@ -43,6 +42,8 @@ class DeprecatedTLSVersionTest extends Specification {
         .withSslContextFactory(new DefaultSslContextFactory())
         .withRedirectVerifier({})
         .build()
+
+    private final String supportedTlsVersionsString = String.join(", ", new HttpClientConfigurer(settings).supportedTlsVersions())
 
     @Rule
     SetSystemProperties properties = new SetSystemProperties(keyStore.getServerAndClientCertSettings())
@@ -63,7 +64,7 @@ class DeprecatedTLSVersionTest extends Specification {
         and:
         HttpRequestException humanReadableException = exception.cause as HttpRequestException
         humanReadableException.message.startsWith(
-            "The server may not support the client's requested TLS protocol versions: ($SUPPORTED_TLS_VERSION_STRING). You may need to configure the client to allow other protocols to be used. "
+            "The server may not support the client's requested TLS protocol versions: ($supportedTlsVersionsString). You may need to configure the client to allow other protocols to be used. "
                 + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "build_environment", "sec:gradle_system_properties"))
         and:
         humanReadableException.cause instanceof SSLHandshakeException
