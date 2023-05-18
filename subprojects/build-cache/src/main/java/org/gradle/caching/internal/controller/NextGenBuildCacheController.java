@@ -40,6 +40,9 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
+import org.gradle.caching.internal.controller.operations.LoadOperationDetails;
+import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
+import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
 import org.gradle.caching.internal.controller.operations.PackOperationDetails;
 import org.gradle.caching.internal.controller.operations.PackOperationResult;
 import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
@@ -47,6 +50,7 @@ import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.impl.RelativePathParser;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
@@ -70,6 +74,7 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -85,8 +90,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -165,27 +173,89 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     @Override
     public Optional<BuildCacheLoadResult> load(BuildCacheKey manifestCacheKey, CacheableEntity cacheableEntity) {
-        // TODO Make load() return T
-        AtomicReference<CacheManifest> manifestRef = new AtomicReference<>();
-        AtomicLong manifestSize = new AtomicLong(-1L);
-        cacheAccess.load(Collections.singletonMap(manifestCacheKey, null), (manifestStream, __) -> {
-            CountingInputStream counterStream = new CountingInputStream(manifestStream);
-            manifestRef.set(gson.fromJson(new InputStreamReader(counterStream), CacheManifest.class));
-            manifestSize.set(counterStream.getCount());
-        });
-        CacheManifest manifest = manifestRef.get();
-        if (manifest == null) {
-            return Optional.empty();
-        }
+        try (OperationFiringLoadHandlerFactory handlerFactory = new OperationFiringLoadHandlerFactory()) {
+            // TODO Make load() return T
+            AtomicReference<CacheManifest> manifestRef = new AtomicReference<>();
+            AtomicLong manifestSize = new AtomicLong(-1L);
+            cacheAccess.load(Collections.singletonMap(manifestCacheKey, null), handlerFactory.create((manifestStream, __) -> {
+                CountingInputStream counterStream = new CountingInputStream(manifestStream);
+                manifestRef.set(gson.fromJson(new InputStreamReader(counterStream), CacheManifest.class));
+                manifestSize.set(counterStream.getCount());
+            }));
+            CacheManifest manifest = manifestRef.get();
+            if (manifest == null) {
+                return Optional.empty();
+            }
 
-        return Optional.of(loadInOperation(manifestCacheKey, cacheableEntity, manifest, manifestSize.get()));
+            return Optional.of(loadInUnpackOperation(manifestCacheKey, cacheableEntity, manifest, manifestSize.get(), handlerFactory));
+        }
     }
 
-    private BuildCacheLoadResult loadInOperation(BuildCacheKey manifestCacheKey, CacheableEntity cacheableEntity, CacheManifest manifest, long manifestSize) {
+    private class OperationFiringLoadHandlerFactory implements Closeable {
+        private volatile BuildOperationContext remoteBuildOp;
+        private final AtomicLong totalSize = new AtomicLong(0L);
+        private final AtomicBoolean missEncountered = new AtomicBoolean(false);
+        private final List<Throwable> errors = new CopyOnWriteArrayList<>();
+
+        public <T> NextGenBuildCacheAccess.LoadHandler<T> create(BiConsumer<InputStream, T> delegate) {
+            return new NextGenBuildCacheAccess.LoadHandler<T>() {
+                @Override
+                public void handle(InputStream input, T payload) {
+                    delegate.accept(input, payload);
+                }
+
+                @Override
+                public void startRemoteDownload(BuildCacheKey key) {
+                    if (remoteBuildOp == null) {
+                        synchronized (OperationFiringLoadHandlerFactory.this) {
+                            if (remoteBuildOp == null) {
+                                remoteBuildOp = buildOperationExecutor.start(
+                                    BuildOperationDescriptor.displayName("Load entry " + key.getDisplayName() + " from remote build cache")
+                                        .details(new LoadOperationDetails(key))
+                                        .progressDisplayName("Requesting from remote build cache"));
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void recordRemoteHit(BuildCacheKey key, long size) {
+                    totalSize.addAndGet(size);
+                }
+
+                @Override
+                public void recordRemoteMiss(BuildCacheKey key) {
+                    missEncountered.set(true);
+                }
+
+                @Override
+                public void recordRemoteFailure(BuildCacheKey key, Throwable failure) {
+                    errors.add(failure);
+                }
+            };
+        }
+
+        @Override
+        public void close() {
+            if (remoteBuildOp != null) {
+                if (!errors.isEmpty()) {
+                    DefaultMultiCauseException failure = new DefaultMultiCauseException("Errors encountered while loading entries from remote cache", errors);
+                    remoteBuildOp.failed(failure);
+                    throw failure;
+                } else if (missEncountered.get()) {
+                    remoteBuildOp.setResult(LoadOperationMissResult.INSTANCE);
+                } else {
+                    remoteBuildOp.setResult(new LoadOperationHitResult(totalSize.get()));
+                }
+            }
+        }
+    }
+
+    private BuildCacheLoadResult loadInUnpackOperation(BuildCacheKey manifestCacheKey, CacheableEntity cacheableEntity, CacheManifest manifest, long manifestSize, OperationFiringLoadHandlerFactory handlerFactory) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheLoadResult>() {
             @Override
             public BuildCacheLoadResult call(BuildOperationContext context) {
-                BuildCacheLoadResult result = loadInner(cacheableEntity, manifest);
+                BuildCacheLoadResult result = loadInner(cacheableEntity, manifest, handlerFactory);
                 context.setResult(new UnpackOperationResult(result.getArtifactEntryCount()));
                 return result;
             }
@@ -204,7 +274,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
     }
 
-    private BuildCacheLoadResult loadInner(CacheableEntity cacheableEntity, CacheManifest manifest) {
+    private BuildCacheLoadResult loadInner(CacheableEntity cacheableEntity, CacheManifest manifest, OperationFiringLoadHandlerFactory handlerFactory) {
         // We already loaded the manifest, so that's 1
         AtomicLong loadedEntryCount = new AtomicLong(1L);
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> snapshots = ImmutableSortedMap.naturalOrder();
@@ -243,7 +313,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
             });
 
             // TODO Filter out entries that are already in the right place in the output directory
-            cacheAccess.load(filesBuilder.build().asMap(), (input, filesForHash) -> {
+            cacheAccess.load(filesBuilder.build().asMap(), handlerFactory.create((input, filesForHash) -> {
                 loadedEntryCount.addAndGet(filesForHash.size());
 
                 try (Closer closer = Closer.create()) {
@@ -263,7 +333,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
                 }
-            });
+            }));
 
             createSnapshot(type, root, manifestEntries)
                 .ifPresent(snapshot -> {

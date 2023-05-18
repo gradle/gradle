@@ -41,11 +41,14 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
     @Override
     public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
-        delegate.load(entries, (inputStream, payload) -> {
-            try (GZIPInputStream zipInput = new GZIPInputStream(inputStream)) {
-                handler.handle(zipInput, payload);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+        delegate.load(entries, new DelegatingLoadHandler<T>(handler) {
+            @Override
+            public void handle(InputStream inputStream, T payload) {
+                try (GZIPInputStream zipInput = new GZIPInputStream(inputStream)) {
+                    handler.handle(zipInput, payload);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         });
     }

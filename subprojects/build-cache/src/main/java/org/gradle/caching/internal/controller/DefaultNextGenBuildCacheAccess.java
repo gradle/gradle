@@ -21,9 +21,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
-import org.gradle.caching.internal.controller.operations.LoadOperationDetails;
-import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
-import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -180,24 +177,18 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
         @Override
         public void run() {
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    long size = load();
-                    context.setResult(
-                        size >= 0
-                            ? new LoadOperationHitResult(size)
-                            : LoadOperationMissResult.INSTANCE
-                    );
+            handler.startRemoteDownload(key);
+            try {
+                long size = load();
+                if (size >= 0) {
+                    handler.recordRemoteHit(key, size);
+                } else {
+                    handler.recordRemoteMiss(key);
                 }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Load entry " + key.getDisplayName() + " from remote build cache")
-                        .details(new LoadOperationDetails(key))
-                        .progressDisplayName("Requesting from remote build cache");
-                }
-            });
+            } catch (RuntimeException e) {
+                handler.recordRemoteFailure(key, e);
+                throw e;
+            }
         }
 
         private long load() {
