@@ -166,26 +166,36 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
 
         @Override
         public void cleanup() {
-            Path tempDatabase = copyDatabase();
-            replaceDatabaseAndOpen(tempDatabase);
+            String newDatabaseName = "filestore.new";
+            deleteLeftovers(newDatabaseName);
+            Path newDatabase = copyDatabase(newDatabaseName);
+            replaceDatabaseAndOpen(newDatabase);
         }
 
-        private Path copyDatabase() {
-            String newDatabaseName = "filestore.new";
+        private void deleteLeftovers(String newDatabaseName) {
+            FileUtils.deleteQuietly(dbPath.resolve(newDatabaseName + ".mv.db").toFile());
+        }
+
+        private Path copyDatabase(String newDatabaseName) {
             open(newDatabaseName).close();
+            Path newDatabasePath = dbPath.resolve(newDatabaseName);
+            long time = clock.getCurrentTime() - TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays);
             try (Connection conn = dataSource.getConnection()) {
                 try (PreparedStatement stmt = conn.prepareStatement(
-                    "insert into newFilestore.catalog(entry_key, entry_size, entry_content)" +
-                        "   select entry_key, entry_size, entry_content from filestore.catalog" +
-                        "   where entry_key in (select entry_key from filestore.lru where entry_accessed > ?);" +
-                        "insert into newFilestore.lru(entry_key, entry_accessed)" +
-                        "   select entry_key, entry_accessed from filestore.lru" +
-                        "   where entry_key in (select entry_key from filestore.catalog);"
+                    String.format("create linked table newFilestoreCatalog('%s', 'jdbc:h2:file:%s', 'sa', '', 'filestore.catalog');" +
+                        "create linked table newFilestoreLru('%s', 'jdbc:h2:file:%s', 'sa', '', 'filestore.lru');" +
+                        "insert into newFilestoreCatalog(entry_key, entry_size, entry_content)" +
+                        "   select entry_key, entry_size, entry_content FROM filestore.catalog" +
+                        "   where entry_key in (select entry_key FROM filestore.lru where entry_accessed > %s);" +
+                        "insert into newFilestoreLru(entry_key, entry_accessed)" +
+                        "   select entry_key, entry_accessed FROM filestore.lru" +
+                        "   where entry_key in (select entry_key FROM filestore.catalog);" +
+                        "drop table newFilestoreCatalog;" +
+                        "drop table newFilestoreLru;", newDatabaseName, newDatabasePath, newDatabaseName, newDatabasePath, time)
                 )) {
-                    stmt.setLong(1, clock.getCurrentTime() - TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays));
                     stmt.executeUpdate();
                 }
-                return dbPath.resolve(newDatabaseName);
+                return dbPath.resolve(newDatabaseName + ".mv.db");
             } catch (SQLException e) {
                 FileUtils.deleteQuietly(dbPath.resolve(newDatabaseName).toFile());
                 throw new RuntimeException("H2 cleanup failed", e);
@@ -193,8 +203,8 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
         }
 
         private void replaceDatabaseAndOpen(Path newDatabasePath) {
-            Path databasePath = dbPath.resolve("filestore");
-            Path tempDatabasePath = dbPath.resolve("filestore.temp");
+            Path databasePath = dbPath.resolve("filestore.mv.db");
+            Path tempDatabasePath = dbPath.resolve("filestore.temp.mv.db");
             dataSource.close();
             try {
                 Files.move(databasePath, tempDatabasePath);
