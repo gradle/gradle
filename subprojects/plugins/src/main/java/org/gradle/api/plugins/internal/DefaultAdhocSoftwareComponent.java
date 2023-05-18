@@ -51,12 +51,14 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
+        // TODO: Verify outgoingConfiguration is consumable
         checkNotFinalized();
         variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
     }
 
     @Override
     public void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+        // TODO: Verify outgoingConfiguration is consumable
         checkNotFinalized();
         if (!variants.containsKey(outgoingConfiguration)) {
             throw new InvalidUserDataException("Variant for configuration " + outgoingConfiguration.getName() + " does not exist in component " + componentName);

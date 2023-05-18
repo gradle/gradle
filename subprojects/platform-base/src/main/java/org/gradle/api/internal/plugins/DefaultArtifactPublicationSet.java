@@ -42,6 +42,7 @@ public abstract class DefaultArtifactPublicationSet {
     }
 
     public void addCandidate(PublishArtifact artifact) {
+        // We add a deprecation warning here even though it is internal since it's used by KMP and some other plugins.
         DeprecationLogger.deprecate("DefaultArtifactPublicationSet")
             .withAdvice("This class is internal and is not meant for public usage. To build artifacts during the assemble lifecycle phase, use task dependencies.")
             .willBeRemovedInGradle9()
