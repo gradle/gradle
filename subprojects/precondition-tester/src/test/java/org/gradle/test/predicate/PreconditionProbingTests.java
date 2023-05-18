@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * This class executes a test, checking all the allowed precondition combinations.
+ * This class executes a special test suite, checking all the allowed precondition combinations.
  *
  * <p>
  * Each combination can have three outcomes:
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  *     <li><b>Successful:</b> the precondition combination could be satisfied.</li>
  *     <li>
  *         <b>Skipped:</b> the precondition combination could <i>not</i> be satisfied.
- *         This is normal, and simply signifies that the predicate is not satisfied on the current system
+ *         This is normal, and simply signifies that the precondition is not satisfied on the current system
  *     </li>
  *     <li>
  *         <b>Failed:</b> there was an error meanwhile checking the combination.
@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  *     </li>
  * </ul>
  */
-class PredicateProbingTests {
+class PreconditionProbingTests {
 
     private static List<Class<?>> loadClasses(Set<String> classNames) {
         return classNames
@@ -66,7 +66,7 @@ class PredicateProbingTests {
     private static Stream<Arguments> validPreconditionCombinationClassSource() {
         return PredicatesFile.DEFAULT_ACCEPTED_COMBINATIONS
             .stream()
-            .map(PredicateProbingTests::loadClasses)
+            .map(PreconditionProbingTests::loadClasses)
             .map(Arguments::of);
     }
 
@@ -82,7 +82,6 @@ class PredicateProbingTests {
         }
 
         assumeTrue(satisfied);
-
     }
 
 }
