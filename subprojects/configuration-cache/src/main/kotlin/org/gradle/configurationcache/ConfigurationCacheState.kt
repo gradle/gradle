@@ -642,14 +642,14 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeFileSystemDefaultExcludes(gradle: GradleInternal) {
+    fun DefaultWriteContext.writeFileSystemDefaultExcludes(gradle: GradleInternal) {
         val fileSystemDefaultExcludesProvider = gradle.serviceOf<FileSystemDefaultExcludesProvider>()
         val currentDefaultExcludes = fileSystemDefaultExcludesProvider.currentDefaultExcludes
         writeStrings(currentDefaultExcludes.toList())
     }
 
     private
-    suspend fun DefaultReadContext.readFileSystemDefaultExcludes(gradle: GradleInternal) {
+    fun DefaultReadContext.readFileSystemDefaultExcludes(gradle: GradleInternal) {
         val defaultExcludes = readStrings()
         gradle.serviceOf<FileSystemDefaultExcludesProvider>().updateCurrentDefaultExcludes(defaultExcludes)
     }
