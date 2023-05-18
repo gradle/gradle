@@ -64,14 +64,14 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         task instanceof War
-        dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
+        task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
 
         when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
 
         then:
-        dependsOn(WarPlugin.WAR_TASK_NAME).matches(task)
+        task dependsOn(WarPlugin.WAR_TASK_NAME, JvmConstants.JAR_TASK_NAME)
     }
 
     def "depends on runtime config"() {
@@ -126,15 +126,14 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 
-    def "replaces jar as publication"() {
+    def "adds war artifact to archives configuration"() {
         given:
         project.pluginManager.apply(WarPlugin)
 
         when:
-        def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
+        def archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
 
         then:
-        archiveConfiguration.getAllArtifacts().size() == 1
-        archiveConfiguration.getAllArtifacts()[0].type == "war"
+        archivesConfiguration.getAllArtifacts()*.type == ["jar", "war"]
     }
 }

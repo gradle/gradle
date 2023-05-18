@@ -37,7 +37,7 @@ project(':ear') {
 
     dependencies {
         deploy project(':java')
-        deploy project(path: ':web', configuration: 'archives')
+        deploy project(path: ':web', configuration: 'war')
     }
 }
 project(':web') {
@@ -46,6 +46,14 @@ project(':web') {
     dependencies {
         providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
         testImplementation "junit:junit:4.13"
+    }
+
+    configurations {
+        war {
+            outgoing {
+                artifact(tasks.war)
+            }
+        }
     }
 }
 project(':java') {
@@ -97,7 +105,7 @@ project(':java') {
         def earComponent = wtpComponent('ear')
         earComponent.deployName == 'ear'
         earComponent.resources.isEmpty()
-        earComponent.modules.size() == 2
+        earComponent.modules*.node*.attributes()*.archiveName == ["java.jar", "web.war"]
         earComponent.project('java').assertDeployedAt('/')
         earComponent.project('web').assertDeployedAt('/')
     }

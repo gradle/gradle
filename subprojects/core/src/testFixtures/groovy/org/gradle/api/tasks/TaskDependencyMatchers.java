@@ -44,10 +44,10 @@ public class TaskDependencyMatchers {
 
     private static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher, final boolean matchOnPaths) {
         return new BaseMatcher<Task>() {
+            private final Set<String> names = new HashSet<>();
             @Override
             public boolean matches(Object o) {
                 Task task = (Task) o;
-                Set<String> names = new HashSet<String>();
                 Set<? extends Task> depTasks = task.getTaskDependencies().getDependencies(task);
                 for (Task depTask : depTasks) {
                     names.add(matchOnPaths ? depTask.getPath() : depTask.getName());
@@ -56,7 +56,6 @@ public class TaskDependencyMatchers {
                 if (!matches) {
                     StringDescription description = new StringDescription();
                     matcher.describeTo(description);
-                    System.out.println(String.format("expected %s, got %s.", description.toString(), names));
                 }
                 return matches;
             }
@@ -64,6 +63,11 @@ public class TaskDependencyMatchers {
             @Override
             public void describeTo(Description description) {
                 description.appendText("a Task that depends on ").appendDescriptionOf(matcher);
+            }
+
+            @Override
+            public void describeMismatch(Object item, Description description) {
+                description.appendText("was ").appendValue(names);
             }
         };
     }
