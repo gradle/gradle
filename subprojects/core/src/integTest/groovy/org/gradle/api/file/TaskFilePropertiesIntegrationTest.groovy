@@ -150,40 +150,52 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "task dependencies are inferred from contents of input FileCollection"() {
         // Include a configuration with transitive dep on a Jar and an unmanaged Jar.
         file('settings.gradle') << 'include "a", "b"'
-        file('a/build.gradle') << '''
-configurations { compile }
-dependencies { compile project(path: ':b', configuration: 'archives') }
+        file('a/build.gradle') << """
+            configurations {
+                compile
+            }
+            dependencies {
+                compile project(path: ':b', configuration: 'conf')
+            }
 
-task doStuff(type: InputTask) {
-    src = configurations.compile + fileTree('src/java')
-}
+            task doStuff(type: InputTask) {
+                src = configurations.compile + fileTree('src/java')
+            }
 
-class InputTask extends DefaultTask {
-    @InputFiles
-    def FileCollection src
-}
-'''
-        file('b/build.gradle') << '''
-apply plugin: 'base'
-task jar {
-    doLast {
-        file('b.jar').text = 'some jar'
-    }
-}
+            class InputTask extends DefaultTask {
+                @InputFiles
+                def FileCollection src
+            }
+        """
 
-task otherJar(type: Jar) {
-    destinationDirectory = buildDir
-}
+        file('b/build.gradle') << """
+            configurations {
+                deps
+                conf {
+                    extendsFrom deps
+                }
+            }
 
-configurations {
-    deps
-    archives {
-        extendsFrom deps
-    }
-}
-dependencies { deps files('b.jar') { builtBy jar } }
-artifacts { archives otherJar }
-'''
+            task jar {
+                doLast {
+                    file('b.jar').text = 'some jar'
+                }
+            }
+
+            dependencies {
+                deps files('b.jar') {
+                    builtBy jar
+                }
+            }
+
+            task otherJar(type: Jar) {
+                destinationDirectory = buildDir
+            }
+
+            artifacts {
+                conf otherJar
+            }
+        """
 
         when:
         run("doStuff")
