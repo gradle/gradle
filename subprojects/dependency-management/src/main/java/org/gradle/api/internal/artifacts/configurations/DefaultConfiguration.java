@@ -1517,17 +1517,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void preventIllegalMutation(MutationType type) {
         if (type == MutationType.ARTIFACTS) {
-            if (!canBeConsumed) {
-                DeprecationLogger.deprecate("Adding artifacts to non-consumable configurations")
-                    .willBecomeAnErrorInGradle9()
-                    .withUpgradeGuideSection(8, "adding_artifacts_to_consumable_configurations")
-                    .nagUser();
-            } else if (isDeprecatedForConsumption()) {
+            if (isDeprecatedForConsumption()) {
                 DeprecationLogger.deprecateConfiguration(name).forArtifactDeclaration()
                     .willBecomeAnErrorInGradle9()
                     .withUpgradeGuideSection(8, "deprecated_configuration_usage")
                     .nagUser();
             }
+            // TODO: Enable this once KMP stops adding artifacts to non-consumable configurations
+//            else if (!canBeConsumed) {
+//                DeprecationLogger.deprecate("Adding artifacts to non-consumable configurations")
+//                    .willBecomeAnErrorInGradle9()
+//                    .withUpgradeGuideSection(8, "adding_artifacts_to_consumable_configurations")
+//                    .nagUser();
+//            }
         }
 
         // TODO: Deprecate and eventually prevent these mutations when already resolved
