@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCo
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
@@ -488,10 +487,6 @@ class DependencyManagementBuildScopeServices {
             fileResourceRepository,
             checksumService
         ));
-    }
-
-    RepositoryDisabler createRepositoryDisabler() {
-        return new ConnectionFailureRepositoryDisabler();
     }
 
     DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride,

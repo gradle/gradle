@@ -31,21 +31,14 @@ import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class ComponentResultSerializerTest extends Specification {
-
-    private ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer()
     def serializer = new ComponentResultSerializer(
         new ThisBuildOnlyComponentDetailsSerializer(),
         new ThisBuildOnlySelectedVariantSerializer(),
-        new ResolvedVariantResultSerializer(
-            componentIdentifierSerializer,
-            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
-        ),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
     )
