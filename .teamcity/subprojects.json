@@ -651,6 +651,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "precondition-tester",
+    "name": "precondition-tester",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "problems",
     "name": "problems",
     "unitTests": true,
