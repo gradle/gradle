@@ -107,7 +107,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Nullable
     @Override
-    public String getRepositoryId() {
+    public String getRepositoryName() {
         return graphResolveState.getRepositoryName();
     }
 

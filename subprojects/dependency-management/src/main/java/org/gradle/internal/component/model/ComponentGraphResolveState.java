@@ -56,9 +56,6 @@ public interface ComponentGraphResolveState {
      */
     ModuleSources getSources();
 
-    @Nullable
-    String getRepositoryId();
-
     /**
      * The immutable metadata for this component.
      */
