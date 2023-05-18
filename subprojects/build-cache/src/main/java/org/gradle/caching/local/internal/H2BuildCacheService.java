@@ -31,6 +31,7 @@ import org.h2.Driver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Blob;
@@ -40,10 +41,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 /**
  * TODO: Extract H2 specific code to a generic "H2Cache" class
  */
 public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNextGenBuildCacheService {
+
+    private static final String DATABASE_NAME = "filestore";
 
     private final int removeUnusedEntriesAfterDays;
     private HikariDataSource dataSource;
@@ -60,7 +65,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
 
     @Override
     public void open() {
-        this.dataSource = open("filestore");
+        this.dataSource = open(DATABASE_NAME);
     }
 
     private HikariDataSource open(String databaseName) {
@@ -154,6 +159,9 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
 
     private class H2Janitor implements HasCleanupAction {
 
+        private static final String NEW_DATABASE_NAME = "filestore.new";
+        private static final String TEMP_DATABASE_NAME = "filestore.temp";
+
         private final Clock clock;
         private final int removeUnusedEntriesAfterDays;
         private final Path dbPath;
@@ -166,51 +174,70 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
 
         @Override
         public void cleanup() {
-            String newDatabaseName = "filestore.new";
-            deleteLeftovers(newDatabaseName);
-            Path newDatabase = copyDatabase(newDatabaseName);
-            replaceDatabaseAndOpen(newDatabase);
+            deleteLeftovers();
+            copyDatabase();
+            replaceDatabaseAndOpen();
         }
 
-        private void deleteLeftovers(String newDatabaseName) {
-            FileUtils.deleteQuietly(dbPath.resolve(newDatabaseName + ".mv.db").toFile());
+        /**
+         * Delete leftovers in case previous cleanup failed for some reason.
+         */
+        private void deleteLeftovers() {
+            FileUtils.deleteQuietly(dbPath.resolve(NEW_DATABASE_NAME + ".mv.db").toFile());
+            FileUtils.deleteQuietly(dbPath.resolve(TEMP_DATABASE_NAME + ".mv.db").toFile());
         }
 
-        private Path copyDatabase(String newDatabaseName) {
-            open(newDatabaseName).close();
-            Path newDatabasePath = dbPath.resolve(newDatabaseName);
-            long time = clock.getCurrentTime() - TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays);
+        /**
+         * Copies entries that are not too old to a new database returns the path to the new file of new database.
+         */
+        private void copyDatabase() {
             try (Connection conn = dataSource.getConnection()) {
+                // Drop linked tables if they exist, to avoid "table already exists" error
+                // in case a previous cleanup failed for some reason during the copy
+                try (PreparedStatement stmt = conn.prepareStatement("drop table if exists filestore.newCatalog, filestore.newLru;")) {
+                    stmt.execute();
+                }
+
+                open(NEW_DATABASE_NAME).close();
+                Path newDatabasePath = dbPath.resolve(NEW_DATABASE_NAME);
+                long deleteThresholdMillis = clock.getCurrentTime() - TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays);
                 try (PreparedStatement stmt = conn.prepareStatement(
-                    String.format("create linked table newFilestoreCatalog('%s', 'jdbc:h2:file:%s', 'sa', '', 'filestore.catalog');" +
-                        "create linked table newFilestoreLru('%s', 'jdbc:h2:file:%s', 'sa', '', 'filestore.lru');" +
-                        "insert into newFilestoreCatalog(entry_key, entry_size, entry_content)" +
+                    String.format(
+                        // Create linked tables to the new database that are located in the new file
+                        "create linked table filestore.newCatalog('%s', 'jdbc:h2:file:%s', 'sa', '', 'filestore.catalog');" +
+                        "create linked table filestore.newLru('%s', 'jdbc:h2:file:%s', 'sa', '', 'filestore.lru');" +
+
+                        // Copy from the old database to the new database
+                        "insert into filestore.newCatalog(entry_key, entry_size, entry_content)" +
                         "   select entry_key, entry_size, entry_content FROM filestore.catalog" +
                         "   where entry_key in (select entry_key FROM filestore.lru where entry_accessed > %s);" +
-                        "insert into newFilestoreLru(entry_key, entry_accessed)" +
+                        "insert into filestore.newLru(entry_key, entry_accessed)" +
                         "   select entry_key, entry_accessed FROM filestore.lru" +
-                        "   where entry_key in (select entry_key FROM filestore.catalog);" +
-                        "drop table newFilestoreCatalog;" +
-                        "drop table newFilestoreLru;", newDatabaseName, newDatabasePath, newDatabaseName, newDatabasePath, time)
+                        "   where entry_key in (select entry_key FROM filestore.newCatalog);",
+                        Driver.class.getName(), newDatabasePath, Driver.class.getName(), newDatabasePath, deleteThresholdMillis
+                    )
                 )) {
-                    stmt.executeUpdate();
+                    stmt.execute();
                 }
-                return dbPath.resolve(newDatabaseName + ".mv.db");
             } catch (SQLException e) {
-                FileUtils.deleteQuietly(dbPath.resolve(newDatabaseName).toFile());
+                FileUtils.deleteQuietly(dbPath.resolve(NEW_DATABASE_NAME + ".mv.db").toFile());
                 throw new RuntimeException("H2 cleanup failed", e);
             }
         }
 
-        private void replaceDatabaseAndOpen(Path newDatabasePath) {
-            Path databasePath = dbPath.resolve("filestore.mv.db");
-            Path tempDatabasePath = dbPath.resolve("filestore.temp.mv.db");
+        private void replaceDatabaseAndOpen() {
+            Path newDatabasePath = dbPath.resolve(NEW_DATABASE_NAME + ".mv.db");
+            Path databasePath = dbPath.resolve(DATABASE_NAME + ".mv.db");
+            Path tempDatabasePath = dbPath.resolve(TEMP_DATABASE_NAME + ".mv.db");
             dataSource.close();
             try {
                 Files.move(databasePath, tempDatabasePath);
                 Files.move(newDatabasePath, databasePath);
                 Files.delete(tempDatabasePath);
             } catch (IOException e) {
+                if (Files.exists(tempDatabasePath)) {
+                    moveQuietly(tempDatabasePath, databasePath, REPLACE_EXISTING);
+                }
                 FileUtils.deleteQuietly(newDatabasePath.toFile());
                 FileUtils.deleteQuietly(tempDatabasePath.toFile());
                 throw new UncheckedIOException(e);
@@ -218,6 +245,13 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
                 open();
             }
         }
-    }
 
+        private void moveQuietly(Path source, Path target, CopyOption... copyOptions) {
+            try {
+                Files.move(source, target, copyOptions);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+    }
 }
