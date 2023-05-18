@@ -52,39 +52,22 @@ operator fun <T> Parser<T>.invoke(input: String) =
 
 internal
 fun <T> many(parser: Parser<T>): Parser<List<T>> = {
-    manyImpl(parser)
-}
-
-
-private
-fun <T> KotlinLexer.manyImpl(parser: Parser<T>): ParserResult<List<T>> {
     var lazyResult: MutableList<T>? = null
-    while (true) {
+    while (tokenType != null) {
         val mark = currentPosition
         when (val r = parser()) {
             is ParserResult.Failure -> {
                 restore(mark)
-                return ParserResult.Success(lazyResult ?: emptyList())
+                break
             }
 
             is ParserResult.Success -> {
-                val result: MutableList<T> =
-                    when (val result = lazyResult) {
-                        null -> {
-                            mutableListOf<T>().also {
-                                lazyResult = it
-                            }
-                        }
-
-                        else -> result
-                    }
-                when (tokenType) {
-                    null -> return ParserResult.Success(result.apply { add(r.result) })
-                    else -> result.add(r.result)
-                }
+                (lazyResult ?: mutableListOf<T>().also { lazyResult = it })
+                    .add(r.result)
             }
         }
     }
+    ParserResult.Success(lazyResult ?: emptyList())
 }
 
 
