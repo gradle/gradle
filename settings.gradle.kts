@@ -169,6 +169,7 @@ include("soak")
 include("smoke-test")
 include("performance")
 include("build-scan-performance")
+include("precondition-tester")
 
 rootProject.name = "gradle"
 
