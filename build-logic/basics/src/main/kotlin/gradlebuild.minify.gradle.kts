@@ -59,7 +59,7 @@ plugins.withId("java-base") {
             attributes.attribute(minified, java.lang.Boolean.FALSE)
         }
         /*
-         * This transform exists solely to shrink the size of the fastutil jar from 25MB to 1.5MB.
+         * This transform exists solely to shrink the size of the fastutil jar from 25MB to 1.7MB.
          * The keys to the map parameter are used as the names of the files to which to apply the transform - there is only one entry.
          * It would perhaps be better to do this more selectively instead of applying this transform so broadly and having
          * it just no-op in most cases.
