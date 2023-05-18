@@ -549,6 +549,32 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[1] == "Should not happen"
     }
 
+    def "Test line number"() {
+        setup:
+        buildFile << """
+            plugins {
+                repositories.mavenCentral()
+            }
+        """
+
+
+        when:
+        def listener = new MyProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks(":help").addProgressListener(listener).run()
+        }
+
+        then:
+        def e = thrown(BuildException)
+        List<Object> problems = listener.context
+        problems.size() == 1
+        problems[0]['severity'] == 'error'
+        (problems[0]['file'] as String).endsWith('build.gradle')
+        (problems[0]['category'] as String) == 'script compilation'
+        problems[0]['line'] == 3
+        problems[0]['column'] == 17
+    }
+
     List<Failure> getFailures() {
         progressEventCollector.failures
     }

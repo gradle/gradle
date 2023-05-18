@@ -33,6 +33,7 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.problems.Problems;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -69,6 +70,7 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -197,7 +199,14 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
-        throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source, lineNumber);
+        Integer column = syntaxError == null ? null : syntaxError.getStartColumn();
+        Map<String, Object> failureContext = new HashMap<>();
+        failureContext.put("severity", "error");
+        failureContext.put("category", "script compilation");
+        failureContext.put("file", source.getFileName());
+        failureContext.put("line", lineNumber);
+        failureContext.put("column", column);
+        Problems.reportFailure(failureContext, new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source, lineNumber));
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
