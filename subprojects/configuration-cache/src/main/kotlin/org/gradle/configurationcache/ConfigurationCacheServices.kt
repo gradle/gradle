@@ -27,8 +27,11 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
+import org.gradle.execution.ExecutionAccessChecker
+import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
@@ -51,6 +54,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
+            add(DefaultEncryptionService::class.java)
             add(ConfigurationCacheKey::class.java)
             add(ConfigurationCacheReport::class.java)
             add(DeprecatedFeaturesListener::class.java)
@@ -59,8 +63,10 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheRepository::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
+            add(InstrumentedExecutionAccessListener::class.java)
             add(ConfigurationCacheFingerprintController::class.java)
             addProvider(RemoteScriptUpToDateCheckerProvider)
+            addProvider(ExecutionAccessCheckerProvider)
         }
     }
 
@@ -106,19 +112,37 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     }
 
     private
+    object ExecutionAccessCheckerProvider {
+
+        fun createExecutionAccessChecker(
+            listenerManager: ListenerManager,
+            modelParameters: BuildModelParameters,
+            configurationTimeBarrier: ConfigurationTimeBarrier
+        ): ExecutionAccessChecker = when {
+            modelParameters.isConfigurationCache -> {
+                val broadcaster = listenerManager.getBroadcaster(ExecutionAccessListener::class.java)
+                ConfigurationTimeBarrierBasedExecutionAccessChecker(configurationTimeBarrier, broadcaster)
+            }
+
+            else -> DefaultExecutionAccessChecker()
+        }
+    }
+
+    private
     object TaskExecutionAccessCheckerProvider {
         fun createTaskExecutionAccessChecker(
             configurationTimeBarrier: ConfigurationTimeBarrier,
             modelParameters: BuildModelParameters,
             /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
             configurationCacheStartParameter: List<ConfigurationCacheStartParameter>,
-            listenerManager: ListenerManager
+            listenerManager: ListenerManager,
+            workExecutionTracker: WorkExecutionTracker,
         ): TaskExecutionAccessChecker {
             val broadcast = listenerManager.getBroadcaster(TaskExecutionAccessListener::class.java)
             return when {
-                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(broadcast)
-                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(broadcast)
-                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, broadcast)
+                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(broadcast, workExecutionTracker)
+                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(broadcast, workExecutionTracker)
+                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, broadcast, workExecutionTracker)
             }
         }
     }

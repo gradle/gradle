@@ -162,13 +162,33 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                             Thread.sleep(1000)
                         }
                     }
+                    ${mavenCentralRepository()}
+                    testing.suites.test.useJUnitJupiter()
                 }
                 tasks.build.dependsOn(subprojects.tasks.build)
                 tasks.clean.dependsOn(subprojects.tasks.clean)
             """
-            file("src/test/java/Test.java") << """class Test {}"""
-            file("first/src/test/java/Test.java") << """class TestFirst {}"""
-            file("second/src/test/java/Test.java") << """class TestSecond {}"""
+            file("src/test/java/Test.java") <<
+                """
+                class Test {
+                    @org.junit.jupiter.api.Test
+                    public void test() {}
+                }
+                """
+            file("first/src/test/java/TestFirst.java") <<
+                """
+                class TestFirst {
+                    @org.junit.jupiter.api.Test
+                    public void test() {}
+                }
+                """
+            file("second/src/test/java/TestSecond.java") <<
+                """
+                class TestSecond {
+                    @org.junit.jupiter.api.Test
+                    public void test() {}
+                }
+                """
         }
 
         settingsFile << localCache.localCacheConfiguration() << """

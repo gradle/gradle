@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.NEWEST
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 
 @IntegrationTestTimeout(240)
 class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -36,7 +36,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation localGroovy()
-                testImplementation "junit:junit:${NEWEST}"
+                testImplementation "junit:junit:${LATEST_JUNIT4_VERSION}"
             }
         """.stripIndent()
 
@@ -112,7 +112,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
                 plugins { id "java" }
                 ${mavenCentralRepository()}
                 dependencies {
-                    testImplementation "junit:junit:${NEWEST}"
+                    testImplementation "junit:junit:${LATEST_JUNIT4_VERSION}"
                 }
                 test.maxParallelForks = 2
             """
@@ -138,7 +138,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             testing.suites {
                 all {
-                    useJUnit("$NEWEST")
+                    useJUnit("$LATEST_JUNIT4_VERSION")
                     targets.all {
                         testTask.configure {
                             maxParallelForks = 2

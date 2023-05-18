@@ -34,7 +34,7 @@ public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(gradle.getStartParameter()));
-        gradlePropertiesController.loadGradlePropertiesFrom(settingsLocation.getSettingsDir());
+        gradlePropertiesController.loadGradlePropertiesFrom(settingsLocation.getSettingsDir(), true);
         return delegate.findAndLoadSettings(gradle);
     }
 }

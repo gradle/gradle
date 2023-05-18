@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -70,6 +71,8 @@ abstract class AbstractIntegrationSpec extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     private TestFile testDirOverride = null
+
+    protected DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
@@ -159,6 +162,10 @@ abstract class AbstractIntegrationSpec extends Specification {
         testDirectory.file(getDefaultBuildFileName())
     }
 
+    String getTestJunitCoordinates() {
+        return "junit:junit:4.13"
+    }
+
     void buildFile(@GroovyBuildScriptLanguage String script) {
         groovyFile(buildFile, script)
     }
@@ -180,7 +187,7 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
     TestFile getBuildKotlinFile() {
-        testDirectory.file(getDefaultBuildKotlinFileName())
+        testDirectory.file(defaultBuildKotlinFileName)
     }
 
     protected String getDefaultBuildFileName() {
@@ -390,6 +397,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     AbstractIntegrationSpec withBuildCache() {
         executer.withBuildCacheEnabled()
+        this
+    }
+
+    AbstractIntegrationSpec withBuildCacheNg() {
+        executer.withBuildCacheNgEnabled()
         this
     }
 

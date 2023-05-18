@@ -36,15 +36,14 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
+import org.gradle.test.precondition.Requires;
+import org.gradle.test.precondition.TestPrecondition;
 import org.gradle.util.EmptyStatement;
 import org.gradle.util.Matchers;
-import org.gradle.util.PreconditionVerifier;
-import org.gradle.util.Requires;
 import org.gradle.util.SetSystemProperties;
 import org.gradle.util.TestClassLoader;
-import org.gradle.util.TestPrecondition;
-import org.gradle.util.TestPreconditionExtension;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 
@@ -74,9 +73,11 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
-    DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(
-            resideOutsideOfPackages("org.gradle.configurationcache..", "org.gradle.kotlin.."))
-            .as("API written in Java");
+    DescribedPredicate<JavaClass> classes_not_written_in_kotlin = resideOutsideOfPackages("org.gradle.configurationcache..", "org.gradle.kotlin..")
+        .as("classes written in Java or Groovy");
+
+    DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(classes_not_written_in_kotlin)
+        .as("written in Java or Groovy");
 
     DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
         .and(not(not_written_in_kotlin))
@@ -101,6 +102,22 @@ public interface ArchUnitFixture {
         return resideInAnyPackage("org.gradle..")
             .and(not(gradlePublicApi()))
             .as("Gradle Internal API");
+    }
+
+    static DescribedPredicate<JavaClass> inGradlePublicApiPackages() {
+        return new InGradlePublicApiPackages();
+    }
+
+    static DescribedPredicate<JavaClass> inTestFixturePackages() {
+        return resideInAnyPackage("org.gradle.test.fixtures..", "org.gradle.integtests.fixtures..", "org.gradle.architecture.test..")
+            .as("in test fixture packages");
+    }
+
+    static DescribedPredicate<JavaClass> inGradleInternalApiPackages() {
+        return resideInAnyPackage("org.gradle..")
+            .and(not(inGradlePublicApiPackages()))
+            .and(not(inTestFixturePackages()))
+            .as("in Gradle internal API packages");
     }
 
     DescribedPredicate<JavaClass> primitive = new DescribedPredicate<JavaClass>("primitive") {
@@ -188,6 +205,17 @@ public interface ArchUnitFixture {
         return new AnnotatedMaybeInSupertypePredicate(predicate);
     }
 
+    static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
+    }
+
+    /**
+     * Either the class is directly annotated with the given annotation type or the class is in a package that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new AnnotatedOrInPackageAnnotatedPredicate(annotationType);
+    }
+
     class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
         private final DescribedPredicate<JavaClass> types;
 
@@ -250,10 +278,30 @@ public interface ArchUnitFixture {
         }
     }
 
-    class GradlePublicApi extends DescribedPredicate<JavaClass> {
+    class InGradlePublicApiPackages extends DescribedPredicate<JavaClass> {
         private static final PackageMatchers INCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.includes")));
         private static final PackageMatchers EXCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.excludes")));
-        private static final DescribedPredicate<JavaClass> TEST_FIXTURES = JavaClass.Predicates.belongToAnyOf(EmptyStatement.class, Matchers.class, PreconditionVerifier.class, Requires.class, SetSystemProperties.class, TestClassLoader.class, TestPrecondition.class, TestPreconditionExtension.class, UsesNativeServices.class, UsesNativeServicesExtension.class);
+
+        public InGradlePublicApiPackages() {
+            super("in Gradle public API packages");
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName());
+        }
+
+        private static Set<String> parsePackageMatcher(String packageList) {
+            return Arrays.stream(packageList.split(":"))
+                .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
+                .collect(toSet());
+        }
+    }
+
+    class GradlePublicApi extends DescribedPredicate<JavaClass> {
+        private static final DescribedPredicate<JavaClass> TEST_FIXTURES = JavaClass.Predicates.belongToAnyOf(EmptyStatement.class, Matchers.class, Requires.class, SetSystemProperties.class, TestClassLoader.class, TestPrecondition.class, UsesNativeServices.class, UsesNativeServicesExtension.class);
+
+        private final InGradlePublicApiPackages packages = new InGradlePublicApiPackages();
 
         public GradlePublicApi() {
             super("Gradle public API");
@@ -261,13 +309,7 @@ public interface ArchUnitFixture {
 
         @Override
         public boolean test(JavaClass input) {
-            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName()) && !TEST_FIXTURES.test(input) && input.getModifiers().contains(JavaModifier.PUBLIC);
-        }
-
-        private static Set<String> parsePackageMatcher(String packageList) {
-            return Arrays.stream(packageList.split(":"))
-                .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
-                .collect(toSet());
+            return packages.test(input) && !TEST_FIXTURES.test(input) && input.getModifiers().contains(JavaModifier.PUBLIC);
         }
     }
 
@@ -339,6 +381,20 @@ public interface ArchUnitFixture {
             } else {
                 return Optional.empty();
             }
+        }
+    }
+
+    class AnnotatedOrInPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final Class<? extends Annotation> annotationType;
+
+        AnnotatedOrInPackageAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated (directly or via its package) with @" + annotationType.getName());
+            this.annotationType = annotationType;
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
         }
     }
 }

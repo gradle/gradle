@@ -21,12 +21,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.opentest4j.TestAbortedException
 
-import static org.gradle.util.TestPrecondition.NOT_MAC_OS_X_M1
-
-@Requires(NOT_MAC_OS_X_M1)
+@Requires(UnitTestPreconditions.NotMacOsM1)
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

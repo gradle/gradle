@@ -41,6 +41,10 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet",
         "it.unimi.dsi.fastutil.objects.ObjectOpenHashSet",
         "it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap",
+        // For dependency management
+        "it.unimi.dsi.fastutil.longs.Long2ObjectMap",
+        "it.unimi.dsi.fastutil.longs.Long2ObjectMaps",
+        "it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap",
         // For the configuration cache module
         "it.unimi.dsi.fastutil.objects.ReferenceArrayList",
         "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
@@ -55,7 +59,7 @@ plugins.withId("java-base") {
             attributes.attribute(minified, java.lang.Boolean.FALSE)
         }
         /*
-         * This transform exists solely to shrink the size of the fastutil jar from 25MB to 1.5MB.
+         * This transform exists solely to shrink the size of the fastutil jar from 25MB to 1.7MB.
          * The keys to the map parameter are used as the names of the files to which to apply the transform - there is only one entry.
          * It would perhaps be better to do this more selectively instead of applying this transform so broadly and having
          * it just no-op in most cases.

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
@@ -39,20 +40,21 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
-public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
-    implements RoleBasedConfigurationContainerInternal, ConfigurationsProvider {
+public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
+    private static final Pattern RESERVED_NAMES_FOR_DETACHED_CONFS = Pattern.compile(DETACHED_CONFIGURATION_DEFAULT_NAME + "\\d*");
 
     @SuppressWarnings("deprecation")
     private static final ConfigurationRole DEFAULT_ROLE_TO_CREATE = ConfigurationRoles.LEGACY;
@@ -86,6 +88,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         };
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
+        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
+        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
 
     @Override
@@ -95,7 +99,20 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Set<? extends ConfigurationInternal> getAll() {
-        return stream().map(ConfigurationInternal.class::cast).collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<? extends ConfigurationInternal> set = Cast.uncheckedCast(this);
+        return ImmutableSet.copyOf(set);
+    }
+
+    @Override
+    public void visitAll(Consumer<ConfigurationInternal> visitor) {
+        for (Configuration configuration : this) {
+            visitor.accept((ConfigurationInternal) configuration);
+        }
+    }
+
+    @Override
+    public ConfigurationInternal findByName(String name) {
+        return (ConfigurationInternal) super.findByName(name);
     }
 
     @Override
@@ -118,7 +135,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         @SuppressWarnings("deprecation")
-        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRoles.LEGACY, false);
+        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET, false);
         copyAllTo(detachedConfiguration, dependencies);
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
@@ -143,23 +160,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder, role, lockUsage);
     }
 
-    /**
-     * Build a formatted representation of all Configurations in this ConfigurationContainer. Configuration(s) being toStringed are likely derivations of DefaultConfiguration.
-     */
-    public String dump() {
-        StringBuilder reply = new StringBuilder();
-
-        reply.append("Configuration of type: ").append(getTypeDisplayName());
-        Collection<? extends Configuration> configs = getAll();
-        for (Configuration c : configs) {
-            reply.append("\n  ").append(c.toString());
-        }
-
-        return reply.toString();
-    }
-
     @Override
-    public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super ConfigurationInternal> configureAction) {
+    public Configuration createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super Configuration> configureAction) {
         assertMutable("createWithRole(String, ConfigurationRole, boolean, Action)");
         assertCanAdd(name);
         ConfigurationInternal object = doCreate(name, role, lockUsage);
@@ -169,8 +171,19 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     private ConfigurationInternal doCreate(String name, ConfigurationRole role, boolean lockUsage) {
+        validateNameIsAllowed(name);
         DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, role, lockUsage);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
+    }
+
+    private void validateNameIsAllowed(String name) {
+        if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
+            DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
+                    .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "reserved_configuration_names")
+                    .nagUser();
+        }
     }
 }

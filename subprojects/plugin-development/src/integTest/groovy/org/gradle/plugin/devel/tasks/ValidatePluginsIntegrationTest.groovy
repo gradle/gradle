@@ -23,7 +23,9 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
+import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assume.assumeNotNull
 
@@ -59,12 +61,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         report.verify(messages.collectEntries {
             def fullMessage = it.message
             if (!it.defaultDocLink) {
-                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}."
+                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}"
             }
             [(fullMessage): it.severity]
         })
 
-        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${messages.size() > 1 ? 's' : ''}"
+        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"
         messages.forEach { problem ->
             String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
             failure.assertThatCause(containsString("$problem.severity: $indentedMessage"))
@@ -795,6 +797,106 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
                 error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
                 error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+        ])
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23045")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    def "nested map with #supportedType key is validated without deprecation warning"() {
+        def gStringValue = "foo"
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public Map<String, Options> getMapWithGStringKey() {
+                    return Collections.singletonMap("$gStringValue", new Options());
+                }
+
+                @Nested
+                public Map<$supportedType, Options> getMapWithSupportedKey() {
+                    return Collections.singletonMap($value, new Options());
+                }
+
+                @Nested
+                public Map<$supportedType, Options> getMapEmpty() {
+                    return Collections.emptyMap();
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+
+            enum Letter { A, B, C }
+        """
+
+        expect:
+        assertValidationSucceeds()
+
+        where:
+        supportedType | value
+        'Integer'     | 'Integer.valueOf(0)'
+        'String'      | '"foo"'
+        'Enum'        | 'Letter.A'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23045")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    def "nested map with unsupported key type is validated with deprecation warning"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public Map<Boolean, Options> getMapWithUnsupportedKey() {
+                    return Collections.singletonMap(true, new Options());
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=1")
+        assertValidationFailsWith([
+            warning(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
         ])
     }
 

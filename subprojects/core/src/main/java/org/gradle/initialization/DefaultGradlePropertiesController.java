@@ -17,6 +17,9 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.initialization.properties.MutableGradleProperties;
+import org.gradle.initialization.properties.ProjectPropertiesLoader;
+import org.gradle.initialization.properties.SystemPropertiesInstaller;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -27,9 +30,13 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     private State state = new NotLoaded();
     private final GradleProperties sharedGradleProperties = new SharedGradleProperties();
     private final IGradlePropertiesLoader propertiesLoader;
+    private final SystemPropertiesInstaller systemPropertiesInstaller;
+    private final ProjectPropertiesLoader projectPropertiesLoader;
 
-    public DefaultGradlePropertiesController(IGradlePropertiesLoader propertiesLoader) {
+    public DefaultGradlePropertiesController(IGradlePropertiesLoader propertiesLoader, SystemPropertiesInstaller systemPropertiesInstaller, ProjectPropertiesLoader projectPropertiesLoader) {
         this.propertiesLoader = propertiesLoader;
+        this.systemPropertiesInstaller = systemPropertiesInstaller;
+        this.projectPropertiesLoader = projectPropertiesLoader;
     }
 
     @Override
@@ -38,13 +45,13 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     }
 
     @Override
-    public void loadGradlePropertiesFrom(File settingsDir) {
-        state = state.loadGradlePropertiesFrom(settingsDir);
+    public void loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties) {
+        state = state.loadGradlePropertiesFrom(settingsDir, setSystemProperties);
     }
 
     @Override
     public void unloadGradleProperties() {
-       state = new NotLoaded();
+        state = new NotLoaded();
     }
 
     public void overrideWith(GradleProperties gradleProperties) {
@@ -64,6 +71,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             return gradleProperties().mergeProperties(properties);
         }
 
+        @Override
+        public Map<String, Object> getProperties() {
+            return gradleProperties().getProperties();
+        }
+
         private GradleProperties gradleProperties() {
             return state.gradleProperties();
         }
@@ -73,7 +85,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
         GradleProperties gradleProperties();
 
-        State loadGradlePropertiesFrom(File settingsDir);
+        State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties);
 
         State overrideWith(GradleProperties gradleProperties);
     }
@@ -86,11 +98,16 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
-        public State loadGradlePropertiesFrom(File settingsDir) {
-            return new Loaded(
-                propertiesLoader.loadGradleProperties(settingsDir),
-                settingsDir
-            );
+        public State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties) {
+            MutableGradleProperties loadedProperties = propertiesLoader.loadGradleProperties(settingsDir);
+
+            if (setSystemProperties) {
+                systemPropertiesInstaller.setSystemPropertiesFrom(loadedProperties);
+            }
+
+            Map<String, Object> projectProperties = projectPropertiesLoader.loadProjectProperties();
+            loadedProperties.updateOverrideProperties(projectProperties);
+            return new Loaded(loadedProperties, settingsDir);
         }
 
         @Override
@@ -104,7 +121,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         private final GradleProperties gradleProperties;
         private final File propertiesDir;
 
-        public Loaded(GradleProperties gradleProperties, File propertiesDir) {
+        public Loaded(MutableGradleProperties gradleProperties, File propertiesDir) {
             this.gradleProperties = gradleProperties;
             this.propertiesDir = propertiesDir;
         }
@@ -115,7 +132,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
-        public State loadGradlePropertiesFrom(File settingsDir) {
+        public State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties) {
             if (!propertiesDir.equals(settingsDir)) {
                 throw new IllegalStateException(
                     String.format(
@@ -147,7 +164,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
-        public State loadGradlePropertiesFrom(File settingsDir) {
+        public State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties) {
             throw new IllegalStateException();
         }
 

@@ -25,6 +25,8 @@ class UndeclaredBuildInputsDynamicGroovyBuildScriptBlockIntegrationTest extends 
     @Override
     void buildLogicApplication(BuildInputRead read) {
         buildFile << """
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
             buildscript {
                 println("apply = " + ${read.groovyExpression})
             }

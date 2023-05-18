@@ -27,7 +27,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -168,8 +167,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         } catch (DaemonInitialConnectException e) {
             // This means we could not connect to the daemon we just started.  fail and don't try again
             throw new NoUsableDaemonFoundException("A new daemon was started but could not be connected to: " +
-                "pid=" + connection.getDaemon() + ", address= " + connection.getDaemon().getAddress() + ". " +
-                Documentation.userManual("troubleshooting", "network_connection").consultDocumentationMessage(),
+                "pid=" + connection.getDaemon() + ", address= " + connection.getDaemon().getAddress() + ".",
                 accumulatedExceptions);
         } finally {
             connection.stop();

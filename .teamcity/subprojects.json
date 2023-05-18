@@ -367,7 +367,14 @@
     "dirName": "instrumentation-agent",
     "name": "instrumentation-agent",
     "unitTests": false,
-    "functionalTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "instrumentation-declarations",
+    "name": "instrumentation-declarations",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -388,6 +395,20 @@
     "dirName": "internal-build-reports",
     "name": "internal-build-reports",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-instrumentation-api",
+    "name": "internal-instrumentation-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-instrumentation-processor",
+    "name": "internal-instrumentation-processor",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -472,7 +493,7 @@
     "dirName": "kotlin-dsl-tooling-builders",
     "name": "kotlin-dsl-tooling-builders",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": true
   },
   {

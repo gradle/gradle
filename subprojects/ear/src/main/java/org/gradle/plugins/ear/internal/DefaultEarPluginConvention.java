@@ -21,6 +21,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.util.internal.ConfigureUtil;
@@ -56,11 +57,13 @@ public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.
 
     @Override
     public String getAppDirName() {
+        logDeprecation();
         return appDirName;
     }
 
     @Override
     public void setAppDirName(String appDirName) {
+        logDeprecation();
         this.appDirName = appDirName;
         if (deploymentDescriptor != null) {
             deploymentDescriptor.readFrom(new File(appDirName, "META-INF/" + deploymentDescriptor.getFileName()));
@@ -69,55 +72,72 @@ public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.
 
     @Override
     public void appDirName(String appDirName) {
+        logDeprecation();
         this.setAppDirName(appDirName);
     }
 
     @Override
     public String getLibDirName() {
+        logDeprecation();
         return libDirName;
     }
 
     @Override
     public void setLibDirName(String libDirName) {
+        logDeprecation();
         this.libDirName = libDirName;
     }
 
     @Override
     public void libDirName(String libDirName) {
+        logDeprecation();
         this.libDirName = libDirName;
     }
 
     @Override
     public Property<Boolean> getGenerateDeploymentDescriptor() {
+        logDeprecation();
         return generateDeploymentDescriptor;
     }
 
     @Override
     public DeploymentDescriptor getDeploymentDescriptor() {
+        logDeprecation();
         return deploymentDescriptor;
     }
 
     @Override
     public void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor) {
+        logDeprecation();
         this.deploymentDescriptor = deploymentDescriptor;
     }
 
     @Override
     public DefaultEarPluginConvention deploymentDescriptor(Closure configureClosure) {
+        logDeprecation();
         ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
         return this;
     }
 
     @Override
     public DefaultEarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
+        logDeprecation();
         configureAction.execute(forceDeploymentDescriptor());
         return this;
     }
 
     private DeploymentDescriptor forceDeploymentDescriptor() {
+        logDeprecation();
         if (deploymentDescriptor == null) {
             deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
         }
         return deploymentDescriptor;
+    }
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(org.gradle.plugins.ear.EarPluginConvention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "ear_convention_deprecation")
+            .nagUser();
     }
 }

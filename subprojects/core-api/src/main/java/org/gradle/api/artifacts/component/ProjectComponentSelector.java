@@ -25,10 +25,19 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 @UsedByScanPlugin
 public interface ProjectComponentSelector extends ComponentSelector {
     /**
+     * Absolute build path of the build within the Gradle invocation to select a project from.
+     *
+     * @since 8.2
+     */
+    String getBuildPath();
+
+    /**
      * The name of the build to select a project from.
      *
      * @return The build name
+     * @deprecated Use {@link #getBuildPath()} instead.
      */
+    @Deprecated
     String getBuildName();
 
     /**

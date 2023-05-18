@@ -42,6 +42,7 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
 
     def "wrapper gets bad archive on 1 attempt"() {
         given:
+        server.expect(server.head(GRADLE_BIN_ZIP))
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(badArchive))
         server.expect(server.get(GRADLE_BIN_HASH).missing())
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(distribution.binDistribution))
@@ -62,6 +63,7 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
 
     def "wrapper gets bad archive on 2 attempts"() {
         given:
+        server.expect(server.head(GRADLE_BIN_ZIP))
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(badArchive))
         server.expect(server.get(GRADLE_BIN_HASH).missing())
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(badArchive))
@@ -83,6 +85,7 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
 
     def "wrapper gets bad archive on 3 attempts"() {
         given:
+        server.expect(server.head(GRADLE_BIN_ZIP))
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(badArchive))
         server.expect(server.get(GRADLE_BIN_HASH).missing())
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(badArchive))
@@ -102,6 +105,7 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
 
     def "wrapper gets bad archive on 1 attempt and good hash"() {
         given:
+        server.expect(server.head(GRADLE_BIN_ZIP))
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(badArchive))
         server.expect(server.get(GRADLE_BIN_HASH).send(getDistributionHash(distribution)))
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(distribution.binDistribution))

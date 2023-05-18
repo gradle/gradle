@@ -20,15 +20,23 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlyComponentDetailsSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlySelectedVariantSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
+import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
@@ -48,6 +56,14 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(ProjectArtifactResolver.class);
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
+        registration.add(TransformStepNodeFactory.class);
+        registration.add(AttributeDesugaring.class);
+        registration.add(ComponentIdGenerator.class);
+        registration.add(LocalComponentGraphResolveStateFactory.class);
+        registration.add(ModuleComponentGraphResolveStateFactory.class);
+        registration.add(ThisBuildOnlyComponentDetailsSerializer.class);
+        registration.add(ThisBuildOnlySelectedVariantSerializer .class);
+        registration.add(ConnectionFailureRepositoryDisabler.class);
     }
 
     BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {

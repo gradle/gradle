@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization
 
+import org.gradle.api.internal.TaskInternal
 import java.lang.reflect.Field
 
 
@@ -51,10 +52,29 @@ object Workarounds {
             isBuildScanPlugin(from)
         }
 
+    fun canAccessProjectAtExecutionTime(task: TaskInternal) =
+        withWorkaroundsFor("task-project") {
+            val className = task.javaClass.name
+            className.startsWith("com.android.build.gradle.tasks.ShaderCompile") ||
+                className.startsWith("com.android.build.gradle.tasks.MapSourceSetPathsTask") ||
+                className.startsWith("com.android.build.gradle.tasks.MergeResources")
+        }
+
+    fun canAccessConventions(from: String, area: String) =
+        withWorkaroundsFor(area) {
+            from.startsWith("com.android.build.gradle.tasks.factory.AndroidUnitTest") || callStackHasElement {
+                isBuildScanPlugin(className)
+            }
+        }
+
+    private
+    inline fun callStackHasElement(stackElementMatcher: StackTraceElement.() -> Boolean) = Thread.currentThread().stackTrace.any(stackElementMatcher)
+
     private
     fun isBuildScanPlugin(from: String): Boolean = from.run {
         startsWith("com.gradle.scan.plugin.internal.")
             || startsWith("com.gradle.enterprise.agent.")
+            || startsWith("com.gradle.enterprise.gradleplugin.testacceleration.")
     }
 
     // TODO(https://github.com/gradle/gradle-org-conventions-plugin/issues/18) Remove the workaround when our conventions plugin is compatible.

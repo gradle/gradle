@@ -13,7 +13,7 @@ val groovyVersion = GroovySystem.getVersion()
 val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
 val spockVersion = if (isGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
-val asmVersion = "9.2"
+val asmVersion = "9.4"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
@@ -22,7 +22,7 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.21")
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.12.3") // Sync with `settings.gradle.kts`
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.13.2") // Sync with `settings.gradle.kts`
         api("com.gradle.publish:plugin-publish-plugin:1.1.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
@@ -58,6 +58,8 @@ dependencies {
         api("org.spockframework:spock-junit4:$spockVersion")
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
+        api("dev.adamko.dokkatoo:dokkatoo-plugin:1.3.0")
+        api("org.jetbrains.dokka:dokka-core:1.8.10")
         api("com.beust:jcommander:1.78")
         api("org.codehaus.groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4

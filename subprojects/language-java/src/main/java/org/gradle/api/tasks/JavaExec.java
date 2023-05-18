@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -51,6 +52,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Executes a Java application in a child process.
@@ -111,12 +114,14 @@ import java.util.Map;
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
+
     private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
     private final Property<JavaLauncher> javaLauncher;
+    private final ListProperty<String> jvmArguments;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -124,8 +129,12 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         mainClass = objectFactory.property(String.class);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
-
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
+
+        Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
+
+        jvmArguments = objectFactory.listProperty(String.class).convention(jvmArgumentsConvention);
+
         javaExecSpec.getMainClass().convention(mainClass);
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
@@ -142,7 +151,12 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @TaskAction
     public void exec() {
         validateExecutableMatchesToolchain();
-        setJvmArgs(getJvmArgs()); // convention mapping for 'jvmArgs'
+
+        List<String> jvmArgs = jvmArguments.getOrNull();
+        if (jvmArgs != null) {
+            javaExecSpec.setExtraJvmArgs(jvmArgs);
+        }
+
         JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();
         javaExecSpec.copyTo(javaExecAction);
         String effectiveExecutable = getJavaLauncher().get().getExecutablePath().toString();
@@ -155,8 +169,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-                customExecutable, "Toolchain from `executable` property",
-                toolchainExecutable, "toolchain from `javaLauncher` property");
+            customExecutable, "Toolchain from `executable` property",
+            toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
     /**
@@ -188,7 +202,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public List<String> getJvmArgs() {
-        return javaExecSpec.getJvmArgs();
+        return jvmArguments.getOrNull();
     }
 
     /**
@@ -196,7 +210,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(List<String> arguments) {
-        javaExecSpec.setJvmArgs(arguments);
+        jvmArguments.empty();
+        jvmArgs(arguments);
     }
 
     /**
@@ -204,7 +219,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(Iterable<?> arguments) {
-        javaExecSpec.setJvmArgs(arguments);
+        jvmArguments.empty();
+        jvmArgs(arguments);
     }
 
     /**
@@ -212,8 +228,15 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Iterable<?> arguments) {
-        javaExecSpec.jvmArgs(arguments);
+        addJvmArguments(arguments);
+        javaExecSpec.checkDebugConfiguration(arguments);
         return this;
+    }
+
+    private void addJvmArguments(Iterable<?> arguments) {
+        for (Object arg : arguments) {
+            jvmArguments.add(arg.toString());
+        }
     }
 
     /**
@@ -221,7 +244,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Object... arguments) {
-        javaExecSpec.jvmArgs(arguments);
+        jvmArgs(Arrays.asList(arguments));
         return this;
     }
 
@@ -728,6 +751,14 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ListProperty<String> getJvmArguments() {
+        return jvmArguments;
+    }
+
+    /**
      * Returns the result for the command run by this task. The provider has no value if this task has not been executed yet.
      *
      * @return A provider of the result.
@@ -766,5 +797,10 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Inject
     protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    private Iterable<String> jvmArgsConventionValue() {
+        Iterable<String> jvmArgs = getConventionMapping().getConventionValue(null, "jvmArgs", false);
+        return jvmArgs != null ? jvmArgs : emptyList();
     }
 }
