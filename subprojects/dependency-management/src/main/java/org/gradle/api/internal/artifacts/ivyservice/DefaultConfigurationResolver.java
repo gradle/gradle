@@ -54,8 +54,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDependencyCollectingGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.SelectedVariantSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
@@ -100,6 +102,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final WorkerLeaseService workerLeaseService;
     private final ProjectDependencyResolver projectDependencyResolver;
     private final ResolveExceptionContextualizer exceptionContextualizer;
+    private final ComponentDetailsSerializer componentDetailsSerializer;
+    private final SelectedVariantSerializer selectedVariantSerializer;
 
     public DefaultConfigurationResolver(
         ArtifactDependencyResolver resolver,
@@ -119,7 +123,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ProjectDependencyResolver projectDependencyResolver,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
         WorkerLeaseService workerLeaseService,
-        ResolveExceptionContextualizer exceptionContextualizer
+        ResolveExceptionContextualizer exceptionContextualizer,
+        ComponentDetailsSerializer componentDetailsSerializer,
+        SelectedVariantSerializer selectedVariantSerializer
     ) {
         this.resolver = resolver;
         this.repositoriesSupplier = repositoriesSupplier;
@@ -140,6 +146,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
         this.workerLeaseService = workerLeaseService;
         this.exceptionContextualizer = exceptionContextualizer;
+        this.componentDetailsSerializer = componentDetailsSerializer;
+        this.selectedVariantSerializer = selectedVariantSerializer;
     }
 
     @Override
@@ -170,7 +178,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         BinaryStore newModelStore = stores.nextBinaryStore();
         Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, attributeDesugaring, componentSelectionDescriptorFactory, resolutionStrategy.getReturnAllVariants());
+        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, componentDetailsSerializer, selectedVariantSerializer, attributeDesugaring, componentSelectionDescriptorFactory, resolutionStrategy.getReturnAllVariants());
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
 

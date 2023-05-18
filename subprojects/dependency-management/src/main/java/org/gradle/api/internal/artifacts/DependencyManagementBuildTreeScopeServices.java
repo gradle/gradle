@@ -20,9 +20,12 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlyComponentDetailsSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlySelectedVariantSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -58,6 +61,9 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(ComponentIdGenerator.class);
         registration.add(LocalComponentGraphResolveStateFactory.class);
         registration.add(ModuleComponentGraphResolveStateFactory.class);
+        registration.add(ThisBuildOnlyComponentDetailsSerializer.class);
+        registration.add(ThisBuildOnlySelectedVariantSerializer .class);
+        registration.add(ConnectionFailureRepositoryDisabler.class);
     }
 
     BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
