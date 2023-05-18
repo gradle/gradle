@@ -244,6 +244,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         builder.visitComponentDetails(moduleVersion.componentId, moduleVersion.moduleVersion, "repo")
         builder.visitSelectedVariant(moduleVersion.resultId, Stub(ResolvedVariantResult))
         builder.visitComponentVariants([])
+        builder.endVisitComponent()
     }
 
     private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
@@ -278,7 +279,6 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
         List<ResolvedVariantResult> selectedVariants = []
-        List<ResolvedVariantResult> availableVariants = []
 
         @Override
         ComponentGraphResolveState getResolveState() {

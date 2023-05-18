@@ -90,6 +90,11 @@ The new behavior correctly implements the expectation that an `ArtifactView` wit
 
 A new method `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#useAttributeSnapshotsToSelectVariantForArtifacts--[useAttributeSnapshotsToSelectVariantForArtifacts()]` has been added to the `Configuration` API to restore the legacy behavior for those who need it.
 
+[[kotlin_1_8.20]]
+==== Upgrade to Kotlin 1.8.21
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
