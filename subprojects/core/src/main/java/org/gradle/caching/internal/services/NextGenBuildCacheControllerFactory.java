@@ -90,10 +90,12 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
             fileSystemAccess,
             bufferProvider,
             stringInterner,
+            buildOperationExecutor,
             new GZipNextGenBuildCacheAccess(
                 new DefaultNextGenBuildCacheAccess(
                     local,
                     remote,
+                    buildOperationExecutor,
                     bufferProvider,
                     executorFactory
                 ),
