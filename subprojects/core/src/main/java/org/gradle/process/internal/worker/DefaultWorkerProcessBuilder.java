@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
@@ -60,16 +61,17 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final Set<File> applicationModulePath = new LinkedHashSet<>();
 
     private final MemoryManager memoryManager;
+    private final JvmVersionDetector jvmVersionDetector;
+
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private String baseName = "Gradle Worker";
-    private File gradleUserHomeDir;
     private int connectTimeoutSeconds;
     private List<URL> implementationClassPath;
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
 
-    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager) {
+    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager, JvmVersionDetector jvmVersionDetector) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.javaCommand.setExecutable(Jvm.current().getJavaExecutable());
         this.server = server;
@@ -77,6 +79,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.workerImplementationFactory = workerImplementationFactory;
         this.outputEventListener = outputEventListener;
         this.memoryManager = memoryManager;
+        this.jvmVersionDetector = jvmVersionDetector;
     }
 
     public int getConnectTimeoutSeconds() {
@@ -174,14 +177,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         return this;
     }
 
-    public File getGradleUserHomeDir() {
-        return gradleUserHomeDir;
-    }
-
-    public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
-    }
-
     @Override
     public void setImplementationClasspath(List<URL> implementationClassPath) {
         this.implementationClassPath = implementationClassPath;
@@ -234,7 +229,8 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         JavaExecHandleBuilder javaCommand = getJavaCommand();
         javaCommand.setDisplayName(displayName);
 
-        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo);
+        boolean java9Compatible = jvmVersionDetector.getJavaVersion(javaCommand.getExecutable()).isJava9Compatible();
+        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
         javaCommand.args("'" + displayName + "'");
         if (javaCommand.getMaxHeapSize() == null) {
@@ -244,7 +240,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
         workerProcess.setExecHandle(execHandle);
 
-        return new MemoryRequestingWorkerProcess(workerProcess, memoryManager, MemoryAmount.parseNotation(javaCommand.getMinHeapSize()));
+        return new MemoryRequestingWorkerProcess(workerProcess, memoryManager, MemoryAmount.parseNotation(javaCommand.getMaxHeapSize()));
     }
 
     private static class MemoryRequestingWorkerProcess implements WorkerProcess {

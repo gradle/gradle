@@ -65,11 +65,6 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
     public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
         tree.visitStructure(new MinimalFileTreeStructureVisitor() {
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitor.visitGenericFileTree(owner, FilteredMinimalFileTree.this);
-            }
-
-            @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 PatternSet intersect = patterns.intersect();
                 intersect.copyFrom(FilteredMinimalFileTree.this.patterns);

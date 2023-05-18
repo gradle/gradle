@@ -33,16 +33,6 @@ import java.util.Optional;
  */
 @NonNullApi
 public interface VersionCatalog extends Named {
-    /**
-     * Returns the dependency provider for the corresponding library alias.
-     * <p>
-     * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
-     * </p>
-     * @param alias the alias of the dependency
-     * @deprecated For consistency, this has been renamed to {@link #findLibrary(String)}.
-     */
-    @Deprecated
-    Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias);
 
     /**
      * Returns the dependency provider for the corresponding library alias.
@@ -82,19 +72,6 @@ public interface VersionCatalog extends Named {
      * @since 7.2
      */
     Optional<Provider<PluginDependency>> findPlugin(String alias);
-
-    /**
-     * Returns the list of aliases defined in this version catalog.
-     * <p>
-     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
-     * </p>
-     * @return the list of dependency aliases
-     *
-     * @since 7.1
-     * @deprecated For consistency, this has been renamed to {@link #getLibraryAliases()}.
-     */
-    @Deprecated
-    List<String> getDependencyAliases();
 
     /**
      * Returns the list of aliases defined in this version catalog.

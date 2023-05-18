@@ -25,6 +25,7 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
+import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -199,7 +200,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
         assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
@@ -228,15 +228,39 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 kotlinOptions.suppressWarnings = true
             }
 
-            task("print-kotlin-version") {
+            tasks.register("print-kotlin-version") {
+                val kotlinCompilerVersion = KotlinCompilerVersion.VERSION
+                val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
+                    it.name + "=" + it.kotlinOptions.suppressWarnings
+                }
                 doLast {
-                    val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
-                        it.name + "=" + it.kotlinOptions.suppressWarnings
-                    }
-                    println(KotlinCompilerVersion.VERSION + compileOptions)
+                    println(kotlinCompilerVersion + compileOptions)
                 }
             }
             """
+        )
+
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.util.WrapUtil type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+        )
+        executer.expectDocumentedDeprecationWarning(
+            "The Project.getConvention() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
         )
 
         assertThat(
@@ -246,7 +270,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can apply base plugin via plugins block`() {
 
         withBuildScript(
@@ -256,8 +279,9 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             task("plugins") {
+                val appliedPlugins = plugins.map { "*" + it::class.simpleName + "*" }
                 doLast {
-                    println(plugins.map { "*" + it::class.simpleName + "*" })
+                    println(appliedPlugins)
                 }
             }
             """
@@ -265,12 +289,12 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             build("plugins").output,
-            containsString("*BasePlugin*")
+            containsString("*BasePlugin\$Inject*")
         )
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     fun `can use Closure only APIs`() {
 
         withBuildScript(
@@ -288,7 +312,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `given an exception thrown during buildscript block execution, its stack trace should contain correct file and line info`() {
-
+        executer.withStacktraceEnabled()
         withBuildScript(
             """ // line 1
             // line 2
@@ -362,7 +386,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             buildFailureOutput("tasks"),
-            containsString("e: $buildFile:3:44: Unresolved reference: fooBarVersion")
+            containsString("e: ${clickableUrlFor(buildFile)}:3:44: Unresolved reference: fooBarVersion")
         )
     }
 
@@ -643,18 +667,10 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     """
                     |  Line 01: println(foo)
                     |                   ^ Unresolved reference: foo
-                    """.trimMargin()
-                ),
-
-                containsString(
-                    """
+                    |
                     |  Line 06: println("foo").bar.bazar
                     |                          ^ Unresolved reference: bar
-                    """.trimMargin()
-                ),
-
-                containsString(
-                    """
+                    |
                     |  Line 10: println(cathedral)
                     |                   ^ Unresolved reference: cathedral
                     """.trimMargin()

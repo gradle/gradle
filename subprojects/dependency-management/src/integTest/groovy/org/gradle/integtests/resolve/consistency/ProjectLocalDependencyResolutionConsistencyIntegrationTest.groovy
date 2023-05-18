@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
@@ -58,13 +57,13 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
             root(':', ':test:') {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConsistentResolution('other')
+                    byConflictResolution('between versions 1.1 and 1.0')
                 }
                 constraint("org:foo:{strictly 1.1}", "org:foo:1.1")
             }
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "dependency resolution errors are not supported by the CC")
     def "fails if there's a conflict between a first level dependency version and a strict version from consistency"() {
         repository {
             'org:foo:1.0'()
@@ -205,8 +204,12 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                     byConsistentResolution('compileClasspath')
                     module('org:fooA:1.0') {
                         byConsistentResolution('compileClasspath')
+                        byAncestor()
+                        notRequested()
                         module("org:transitive:1.0") {
                             byConsistentResolution('compileClasspath')
+                            byAncestor()
+                            notRequested()
                         }
                     }
                 }
@@ -225,7 +228,6 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
-    @ToBeFixedForConfigurationCache(because="exception doesn't seem to be recognized by configuration cache")
     def "detects cycles in consistency"() {
         repository {
             'org:foo:1.0'()
@@ -292,6 +294,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
             root(':', ':test:') {
                 edge('org:foo:1.1', 'org:foo:1.2') {
                     selectedByRule()
+                    byConsistentResolution('other')
                 }
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.2")
             }
@@ -330,6 +333,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
             root(':', ':test:') {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConsistentResolution('other')
+                    byConflictResolution('between versions 1.1 and 1.0')
                 }
                 constraint("org:foo:{strictly 1.1}", "org:foo:1.1")
             }

@@ -52,6 +52,14 @@
                 <td>distributionType</td>
                 <td><literal>DistributionType.BIN</literal></td>
             </tr>
+            <tr>
+                <td>networkTimeout</td>
+                <td><literal>10000</literal>ms</td>
+            </tr>
+            <tr>
+                <td>validateDistributionUrl</td>
+                <td><literal>true</literal></td>
+            </tr>
         </table>
     </section>
     <section>

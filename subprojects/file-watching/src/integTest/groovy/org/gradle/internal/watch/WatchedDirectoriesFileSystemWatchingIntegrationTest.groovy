@@ -17,6 +17,7 @@
 package org.gradle.internal.watch
 
 import com.google.common.collect.ImmutableSet
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -25,12 +26,13 @@ import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
+@LocalOnly
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
@@ -349,7 +351,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executer.beforeExecute {
             inDirectory(consumer)
         }
-        file("consumer/gradle.properties") << "systemProp.${VirtualFileSystemServices.MAX_HIERARCHIES_TO_WATCH_PROPERTY}=1"
+        file("consumer/gradle.properties") << "systemProp.${VirtualFileSystemServices.MAX_HIERARCHIES_TO_WATCH_PROPERTY.systemPropertyName}=1"
 
         when:
         withWatchFs().run "assemble", "--info"
@@ -380,7 +382,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         result.assertNotPostBuildOutput("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching.")
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "does not start watching on unsupported file system"() {
         def testDirectoryProviderOnUnsupportedDrive = TestNameTestDirectoryProvider.forFatDrive(getClass())
         def projectDir = testDirectoryProviderOnUnsupportedDrive.createDir("project")

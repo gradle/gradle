@@ -35,7 +35,7 @@ public interface BuildOperationNotificationListenerRegistrar {
 
     /**
      * The registered listener will receive notification for all build operations for the
-     * current build execution, including those those operations that started before the
+     * current build execution, including those operations that started before the
      * listener was registered.
      *
      * @since 4.4

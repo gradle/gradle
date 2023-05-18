@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.zip.ZipEntry
+
 class ClasspathBuilderTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(ClasspathBuilderTest)
@@ -87,5 +89,22 @@ class ClasspathBuilderTest extends Specification {
         def zip = new ZipTestFixture(file)
         zip.hasDescendants("a.txt", "a.txt", "dir/b.txt", "dir/b.txt")
         zip.hasDirs("dir")
+    }
+
+    def "can construct jar with explicitly specified compression method for entries"() {
+        def file = tmpDir.file("thing.zip")
+
+        when:
+        builder.jar(file) {
+            it.put("store.txt", "bytes".bytes, ClasspathEntryVisitor.Entry.CompressionMethod.STORED)
+            it.put("undefined.txt", "bytes".bytes, ClasspathEntryVisitor.Entry.CompressionMethod.UNDEFINED)
+            it.put("dir/deflated.txt", "bytes".bytes, ClasspathEntryVisitor.Entry.CompressionMethod.DEFLATED)
+        }
+
+        then:
+        def zip = new ZipTestFixture(file)
+        zip.hasCompression("store.txt", ZipEntry.STORED)
+        zip.hasCompression("undefined.txt", ZipEntry.DEFLATED)
+        zip.hasCompression("dir/deflated.txt", ZipEntry.DEFLATED)
     }
 }

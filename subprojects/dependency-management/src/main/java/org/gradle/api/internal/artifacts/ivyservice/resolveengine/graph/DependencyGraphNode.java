@@ -16,25 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import java.util.Collection;
 import java.util.Set;
 
 /**
- * A node in the dependency graph. Represents a configuration.
+ * A node in the dependency graph. Represents a variant.
  */
-public interface DependencyGraphNode {
-    /**
-     * Returns a simple id for this node, unique across all nodes in the same graph.
-     * This id cannot be used across graphs.
-     */
-    Long getNodeId();
-
+public interface DependencyGraphNode extends ResolvedGraphVariant {
     boolean isRoot();
 
     ResolvedConfigurationIdentifier getResolvedConfigurationId();
@@ -50,11 +43,9 @@ public interface DependencyGraphNode {
      */
     Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges();
 
-    ConfigurationMetadata getMetadata();
+    VariantGraphResolveMetadata getMetadata();
 
     boolean isSelected();
 
     ComponentResolutionState getComponent();
-
-    ResolvedVariantResult getResolvedVariant();
 }

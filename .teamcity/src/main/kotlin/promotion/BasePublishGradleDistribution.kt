@@ -16,12 +16,17 @@
 
 package promotion
 
+import common.gradleWrapper
+import common.promotionBuildParameters
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
 abstract class BasePublishGradleDistribution(
     // The branch to be promoted
     val promotedBranch: String,
+    val prepTask: String,
     val triggerName: String,
     val gitUserName: String = "bot-teamcity",
     val gitUserEmail: String = "bot-teamcity@gradle.com",
@@ -43,7 +48,28 @@ abstract class BasePublishGradleDistribution(
         dependencies {
             snapshot(RelativeId("Check_Stage_${this@BasePublishGradleDistribution.triggerName}_Trigger")) {
                 synchronizeRevisions = false
+                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyCancel = FailureAction.FAIL_TO_START
             }
         }
+
+        steps {
+            buildStep(
+                this@BasePublishGradleDistribution.extraParameters,
+                this@BasePublishGradleDistribution.gitUserName,
+                this@BasePublishGradleDistribution.gitUserEmail,
+                this@BasePublishGradleDistribution.triggerName,
+                this@BasePublishGradleDistribution.prepTask,
+                "checkNeedToPromote"
+            )
+        }
+    }
+}
+
+fun BuildSteps.buildStep(extraParameters: String, gitUserName: String, gitUserEmail: String, triggerName: String, prepTask: String, stepTask: String) {
+    gradleWrapper {
+        name = "Promote"
+        tasks = "$prepTask $stepTask"
+        gradleParams = promotionBuildParameters(RelativeId("Check_Stage_${triggerName}_Trigger"), extraParameters, gitUserName, gitUserEmail)
     }
 }

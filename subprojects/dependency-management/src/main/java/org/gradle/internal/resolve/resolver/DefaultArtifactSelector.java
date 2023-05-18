@@ -16,40 +16,51 @@
 
 package org.gradle.internal.resolve.resolver;
 
-import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
+import org.gradle.internal.component.model.VariantArtifactSelectionCandidates;
+import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.component.model.VariantWithOverloadAttributes;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
-    private static final ExcludeSpec EXCLUDE_NONE = new DefaultExcludeFactory().nothing();
-
-    private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = Maps.newHashMap();
     private final List<OriginArtifactSelector> selectors;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public DefaultArtifactSelector(List<OriginArtifactSelector> selectors, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    private final ResolvedVariantCache resolvedVariantCache;
+
+    public DefaultArtifactSelector(List<OriginArtifactSelector> selectors, ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory, ResolvedVariantCache resolvedVariantCache) {
         this.selectors = selectors;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.resolvedVariantCache = resolvedVariantCache;
     }
 
     @Override
@@ -58,22 +69,91 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-        ArtifactSet artifacts = null;
+    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+        ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(component, variant.getLegacyVariants(), exclusions);
+        ComponentArtifactResolveVariantState allResolvedVariants = new MemoizingComponentArtifactResolveVariantState(component, variant, exclusions);
+
         for (OriginArtifactSelector selector : selectors) {
-            artifacts = selector.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusions, overriddenAttributes);
+            ArtifactSet artifacts = selector.resolveArtifacts(component, allResolvedVariants, legacyResolvedVariants, exclusions, overriddenAttributes);
             if (artifacts != null) {
-                break;
+                return artifacts;
             }
         }
-        if (artifacts == null) {
-            throw new IllegalStateException("No artifacts selected.");
+        throw new IllegalStateException("No artifacts selected.");
+    }
+
+    private ImmutableSet<ResolvedVariant> buildResolvedVariants(ComponentArtifactResolveMetadata component, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions) {
+        ImmutableSet.Builder<ResolvedVariant> resolvedVariantBuilder = ImmutableSet.builder();
+        for (VariantResolveMetadata variant : allVariants) {
+            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), withImplicitCapability(variant.getCapabilities(), component.getModuleVersionId()), exclusions, component, resolvedVariantCache, variant.isEligibleForCaching());
+            resolvedVariantBuilder.add(resolvedVariant);
         }
-        return artifacts;
+        return resolvedVariantBuilder.build();
+    }
+
+    private ResolvedVariant toResolvedVariant(
+        VariantResolveMetadata.Identifier identifier,
+        DisplayName displayName,
+        ImmutableAttributes variantAttributes,
+        ImmutableList<? extends ComponentArtifactMetadata> artifacts,
+        ImmutableCapabilities capabilities,
+        ExcludeSpec exclusions,
+        ComponentArtifactResolveMetadata component,
+        ResolvedVariantCache resolvedVariantCache,
+        boolean eligibleForCaching
+    ) {
+        // artifactsToResolve are those not excluded by their owning module
+        List<? extends ComponentArtifactMetadata> artifactsToResolve = CollectionUtils.filter(artifacts,
+            artifact -> !exclusions.excludesArtifact(component.getModuleVersionId().getModule(), artifact.getName())
+        );
+
+        boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifactsToResolve);
+
+        if (hasExcludedArtifact) {
+            // An ad hoc variant, has no identifier
+            return ArtifactSetFactory.toResolvedVariant(null, displayName, attributes, artifactsToResolve, capabilities, component, artifactResolver);
+        } else if (!eligibleForCaching) {
+            return ArtifactSetFactory.toResolvedVariant(identifier, displayName, attributes, artifactsToResolve, capabilities, component, artifactResolver);
+        } else {
+            // This is a bit of a hack because we allow the artifactType registry to be different in every resolution scope.
+            // This means it's not safe to assume a variant resolved in one consumer can be reused in another consumer with the same key.
+            // Most of the time the artifactType registry has the same effect on the variant's attributes, but this isn't guaranteed.
+            // It might be better to tighten this up by either requiring a single artifactType registry for the entire build or eliminating this feature
+            // entirely.
+            VariantWithOverloadAttributes key = new VariantWithOverloadAttributes(identifier, attributes);
+            return resolvedVariantCache.computeIfAbsent(key, id -> ArtifactSetFactory.toResolvedVariant(identifier, displayName, attributes, artifactsToResolve, capabilities, component, artifactResolver));
+        }
+    }
+
+    private static ImmutableCapabilities withImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, ModuleVersionIdentifier moduleVersionId) {
+        // TODO: This doesn't seem right. We should know the capability of the variant before we get here instead of assuming that it's the same as the owner
+        if (capabilitiesMetadata.getCapabilities().isEmpty()) {
+            return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(moduleVersionId));
+        } else if (capabilitiesMetadata instanceof ImmutableCapabilities) {
+            return (ImmutableCapabilities) capabilitiesMetadata;
+        } else {
+            return ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities());
+        }
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return DefaultArtifactSet.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, component.getAttributes(), overriddenAttributes, calculatedValueContainerFactory);
+    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(component.getAttributes(), artifacts);
+        return ArtifactSetFactory.adHocVariant(component, artifacts, component.getAttributesSchema(), artifactResolver, attributes, overriddenAttributes);
+    }
+
+    @NonNullApi
+    private class MemoizingComponentArtifactResolveVariantState implements ComponentArtifactResolveVariantState {
+        private final Lazy<Set<ResolvedVariant>> variants;
+
+        public MemoizingComponentArtifactResolveVariantState(ComponentArtifactResolveMetadata component, VariantArtifactSelectionCandidates variant, ExcludeSpec exclusions) {
+            variants = Lazy.locking().of(() -> buildResolvedVariants(component, variant.getAllVariants(), exclusions));
+        }
+
+        @Override
+        public Set<ResolvedVariant> getAllVariants() {
+            return variants.get();
+        }
     }
 }

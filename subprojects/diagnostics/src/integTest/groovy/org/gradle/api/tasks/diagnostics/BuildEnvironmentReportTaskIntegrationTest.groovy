@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -25,7 +24,6 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @LeaksFileHandles("Putting an generated Jar on the classpath of the buildscript")
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     def "reports external dependency name and version change"() {
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()

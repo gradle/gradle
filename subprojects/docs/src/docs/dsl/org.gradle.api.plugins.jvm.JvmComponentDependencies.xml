@@ -1,0 +1,34 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>implementation</td>
+            </tr>
+            <tr>
+                <td>compileOnly</td>
+            </tr>
+            <tr>
+                <td>runtimeOnly</td>
+            </tr>
+            <tr>
+                <td>annotationProcessor</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

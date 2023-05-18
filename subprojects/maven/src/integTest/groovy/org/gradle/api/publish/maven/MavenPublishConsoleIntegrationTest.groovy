@@ -18,7 +18,6 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.RichConsoleStyling
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -32,7 +31,6 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
         server.start()
     }
 
-    @ToBeFixedForConfigurationCache
     def "shows work-in-progress during publication"() {
         def m1 = mavenRepo.module("org.test", "test", "1.2")
 

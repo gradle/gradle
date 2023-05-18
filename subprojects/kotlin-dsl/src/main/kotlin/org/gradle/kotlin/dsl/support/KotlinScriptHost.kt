@@ -17,34 +17,42 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Action
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
+import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
 
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.service.ServiceRegistry
 
-import org.gradle.kotlin.dsl.fileOperationsFor
 import org.gradle.kotlin.dsl.invoke
 
 import org.gradle.util.internal.ConfigureUtil.configureByMap
+import java.io.File
 
 
-class KotlinScriptHost<out T : Any>(
+class KotlinScriptHost<out T : Any> internal constructor(
     val target: T,
     val scriptSource: ScriptSource,
-    val scriptHandler: ScriptHandler,
-    val targetScope: ClassLoaderScope,
-    val baseScope: ClassLoaderScope,
+    internal val scriptHandler: ScriptHandler,
+    internal val targetScope: ClassLoaderScope,
+    private val baseScope: ClassLoaderScope,
     private val serviceRegistry: ServiceRegistry
 ) {
 
+    internal
     val fileName = scriptSource.fileName!!
 
     internal
@@ -54,14 +62,19 @@ class KotlinScriptHost<out T : Any>(
 
     internal
     val processOperations: ProcessOperations by unsafeLazy {
-        serviceRegistry.get<ProcessOperations>()
+        serviceRegistry.get()
+    }
+
+    internal
+    val objectFactory: ObjectFactory by unsafeLazy {
+        serviceRegistry.get()
     }
 
     internal
     val temporaryFileProvider: TemporaryFileProvider by unsafeLazy {
         // GradleUserHomeTemporaryFileProvider must be used instead of the TemporaryFileProvider.
         // In this scope the TemporaryFileProvider would be provided by the ProjectScopeServices.
-        // That would generate this temporary directory inside of the project build directory.
+        // That would generate this temporary directory inside the project build directory.
         serviceRegistry.get<GradleUserHomeTemporaryFileProvider>()
     }
 
@@ -90,4 +103,27 @@ class KotlinScriptHost<out T : Any>(
             serviceRegistry.get(),
             target
         )
+}
+
+
+internal
+fun fileOperationsFor(settings: Settings): FileOperations =
+    fileOperationsFor(settings.gradle, settings.rootDir)
+
+
+internal
+fun fileOperationsFor(gradle: Gradle, baseDir: File?): FileOperations =
+    fileOperationsFor((gradle as GradleInternal).services, baseDir)
+
+
+internal
+fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
+    val fileLookup = services.get<FileLookup>()
+    val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
+    val fileCollectionFactory = services.get<FileCollectionFactory>().withResolver(fileResolver)
+    return DefaultFileOperations.createSimple(
+        fileResolver,
+        fileCollectionFactory,
+        services
+    )
 }

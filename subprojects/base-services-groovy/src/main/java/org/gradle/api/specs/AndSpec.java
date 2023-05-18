@@ -17,8 +17,11 @@ package org.gradle.api.specs;
 
 import com.google.common.collect.ObjectArrays;
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.internal.Cast;
+
+import javax.annotation.Nullable;
 
 /**
  * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.
@@ -45,13 +48,27 @@ public class AndSpec<T> extends CompositeSpec<T> {
 
     @Override
     public boolean isSatisfiedBy(T object) {
+        return findUnsatisfiedSpec(object) == null;
+    }
+
+    /**
+     * Finds the first {@link Spec} that is not satisfied by the object.
+     *
+     * @param object to check specs against
+     * @return an unsatisfied spec or null
+     *
+     * @since 7.6
+     */
+    @Nullable
+    @Incubating
+    public Spec<? super T> findUnsatisfiedSpec(T object) {
         Spec<? super T>[] specs = getSpecsArray();
         for (Spec<? super T> spec : specs) {
             if (!spec.isSatisfiedBy(object)) {
-                return false;
+                return spec;
             }
         }
-        return true;
+        return null;
     }
 
     @SuppressWarnings("varargs")

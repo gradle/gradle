@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -36,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -77,10 +79,10 @@ public final class ConfigurationReportModelFactory {
 
     private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
         // Important to lock the config prior to extracting the attributes, as some attributes, such as TargetJvmVersion, are actually added by this locking process
-        configuration.preventFromFurtherMutation();
+        List<? extends GradleException> lenientErrors = configuration.preventFromFurtherMutationLenient();
 
         final List<ReportAttribute> attributes = configuration.getAttributes().keySet().stream()
-            .map(a -> convertAttributeInContainer(a, configuration.getAttributes()))
+            .map(a -> convertAttributeInContainer(a, configuration.getAttributes(), project.getDependencies().getAttributesSchema()))
             .sorted(Comparator.comparing(ReportAttribute::getName))
             .collect(Collectors.toList());
 
@@ -101,7 +103,7 @@ public final class ConfigurationReportModelFactory {
             .collect(Collectors.toList());
 
         final List<ReportSecondaryVariant> variants = configuration.getOutgoing().getVariants().stream()
-            .map(v -> convertConfigurationVariant(v, fileResolver))
+            .map(v -> convertConfigurationVariant(v, fileResolver, project.getDependencies().getAttributesSchema()))
             .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
             .collect(Collectors.toList());
 
@@ -116,16 +118,17 @@ public final class ConfigurationReportModelFactory {
             type = null;
         }
 
-        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, attributes, capabilities, artifacts, variants, extendedConfigurations);
+        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, new ArrayList<>(lenientErrors),
+            attributes, capabilities, artifacts, variants, extendedConfigurations);
     }
 
     private ReportArtifact convertPublishArtifact(PublishArtifact publishArtifact, FileResolver fileResolver) {
         return new ReportArtifact(publishArtifact.getName(), fileResolver.resolveForDisplay(publishArtifact.getFile()), publishArtifact.getClassifier(), publishArtifact.getType());
     }
 
-    private ReportSecondaryVariant convertConfigurationVariant(ConfigurationVariant variant, FileResolver fileResolver) {
+    private ReportSecondaryVariant convertConfigurationVariant(ConfigurationVariant variant, FileResolver fileResolver, AttributesSchema attributesSchema) {
         final List<ReportAttribute> attributes = Collections.unmodifiableList(variant.getAttributes().keySet().stream()
-            .map(a -> convertAttributeInContainer(a, variant.getAttributes()))
+            .map(a -> convertAttributeInContainer(a, variant.getAttributes(), attributesSchema))
             .sorted(Comparator.comparing(ReportAttribute::getName))
             .collect(Collectors.toList()));
         final List<ReportArtifact> artifacts = Collections.unmodifiableList(variant.getArtifacts().stream()
@@ -136,15 +139,20 @@ public final class ConfigurationReportModelFactory {
         return new ReportSecondaryVariant(variant.getName(), variant.getDescription().orElse(null), attributes, artifacts);
     }
 
-    private ReportAttribute convertAttributeInContainer(Attribute<?> attribute, AttributeContainer container) {
+    private ReportAttribute convertAttributeInContainer(Attribute<?> attribute, AttributeContainer container, AttributesSchema attributesSchema) {
         @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
         Object value = container.getAttribute(key);
-        return new ReportAttribute(key, value);
+        return new ReportAttribute(key, value, getDisambiguationPrecedence(attribute, attributesSchema).orElse(null));
     }
 
-    private ReportAttribute convertUncontainedAttribute(Attribute<?> attribute) {
+    private ReportAttribute convertUncontainedAttribute(Attribute<?> attribute, AttributesSchema attributesSchema) {
         @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
-        return new ReportAttribute(key, null);
+        return new ReportAttribute(key, null, getDisambiguationPrecedence(attribute, attributesSchema).orElse(null));
+    }
+
+    private Optional<Integer> getDisambiguationPrecedence(Attribute<?> attribute, AttributesSchema attributesSchema) {
+        int index = attributesSchema.getAttributeDisambiguationPrecedence().indexOf(attribute);
+        return index == -1 ? Optional.empty() : Optional.of(index + 1); // return ordinals, not indices
     }
 
     private ReportCapability convertCapability(Capability capability) {
@@ -156,7 +164,7 @@ public final class ConfigurationReportModelFactory {
     }
 
     /**
-     * This class can examine a project to deterimne which {@link Attribute}s in its schema have {@link org.gradle.api.internal.attributes.CompatibilityRule CompatibilityRule}s or
+     * This class can examine a project to determine which {@link Attribute}s in its schema have {@link org.gradle.api.internal.attributes.CompatibilityRule CompatibilityRule}s or
      * {@link org.gradle.api.internal.attributes.DisambiguationRule DisambiguationRule}s defined.
      */
     private final class ConfigurationRuleScanner {
@@ -169,7 +177,7 @@ public final class ConfigurationReportModelFactory {
         public List<ReportAttribute> getAttributesWithCompatibilityRules() {
             return attributesSchema.getAttributes().stream()
                 .filter(this::hasCompatibilityRules)
-                .map(ConfigurationReportModelFactory.this::convertUncontainedAttribute)
+                .map(a -> convertUncontainedAttribute(a, attributesSchema))
                 .sorted(Comparator.comparing(ReportAttribute::getName))
                 .collect(Collectors.toList());
         }
@@ -177,7 +185,7 @@ public final class ConfigurationReportModelFactory {
         public List<ReportAttribute> getAttributesWithDisambiguationRules() {
             return attributesSchema.getAttributes().stream()
                 .filter(this::hasDisambiguationRules)
-                .map(ConfigurationReportModelFactory.this::convertUncontainedAttribute)
+                .map(a -> convertUncontainedAttribute(a, attributesSchema))
                 .sorted(Comparator.comparing(ReportAttribute::getName))
                 .collect(Collectors.toList());
         }

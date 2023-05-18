@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
@@ -20,18 +21,22 @@ plugins {
     id("gradlebuild.code-quality")
     id("gradlebuild.ktlint")
     id("gradlebuild.ci-reporting")
+    id("gradlebuild.test-retry")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
+java.configureJavaToolChain()
 
 dependencies {
     api(platform(project(":build-platform")))
     implementation("gradlebuild:gradle-plugin")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        allWarningsAsErrors = true
+    }
 }
 
 ktlint {
@@ -42,7 +47,7 @@ ktlint {
 
 tasks.runKtlintCheckOverKotlinScripts {
     // Only check the build files, not all *.kts files in the project
-    setIncludes(listOf("*.gradle.kts"))
+    includes += listOf("*.gradle.kts")
 }
 
 tasks.named("codeQuality") {
@@ -50,8 +55,8 @@ tasks.named("codeQuality") {
 }
 
 tasks.validatePlugins {
-    failOnWarning.set(true)
-    enableStricterValidation.set(true)
+    failOnWarning = true
+    enableStricterValidation = true
 }
 
 tasks.withType<Test>().configureEach {

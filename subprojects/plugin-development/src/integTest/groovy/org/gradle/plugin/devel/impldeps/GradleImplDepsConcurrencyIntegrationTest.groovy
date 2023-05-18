@@ -17,10 +17,10 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.api.Plugin
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(TestPrecondition.HIGH_PERFORMANCE)
+@Requires(UnitTestPreconditions.HighPerformance)
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 4
@@ -95,7 +95,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
 
     static String gradleApiAndTestKitClassLoadingTestClass() {
         """
-            class MyTest extends groovy.util.GroovyTestCase {
+            class MyTest extends groovy.test.GroovyTestCase {
 
                 void testUsageOfGradleApiAndTestKitClasses() {
                     def classLoader = getClass().classLoader

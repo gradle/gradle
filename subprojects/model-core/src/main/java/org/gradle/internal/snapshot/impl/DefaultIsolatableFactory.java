@@ -25,8 +25,8 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 
@@ -104,6 +104,11 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         @Override
         public Isolatable<?> classValue(Class<?> value) {
             throw new IsolationException(value);
+        }
+
+        @Override
+        public Isolatable<?> implementationValue(String implementationClassIdentifier, Object implementation) {
+            throw new IsolationException(implementationClassIdentifier);
         }
 
         @Override

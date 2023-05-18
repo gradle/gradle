@@ -33,18 +33,7 @@ public enum DirectorySensitivity {
     /**
      * Ignore directories
      */
-    IGNORE_DIRECTORIES(snapshot -> snapshot.getType() != FileType.Directory),
-    /**
-     * Used to denote that no directory sensitivity has been specified explicitly.
-     *
-     * We currently use this to switch to {@link #IGNORE_DIRECTORIES} when an input is a file tree.
-     *
-     * @deprecated This should go away in 8.0, since the special case should go away.
-     */
-    @Deprecated
-    UNSPECIFIED(snapshot -> {
-        throw new AssertionError("Unspecified must not be used as directory sensitivity");
-    });
+    IGNORE_DIRECTORIES(snapshot -> snapshot.getType() != FileType.Directory);
 
     private final Predicate<FileSystemLocationSnapshot> fingerprintCheck;
 

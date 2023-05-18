@@ -53,9 +53,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     public ProgressLogger newOperation(Class<?> loggerCategory, BuildOperationDescriptor buildOperationDescriptor) {
         String category = ProgressStartEvent.BUILD_OP_CATEGORY;
         BuildOperationMetadata metadata = buildOperationDescriptor.getMetadata();
-        BuildOperationCategory buildOperationCategory = metadata == BuildOperationMetadata.NONE
-            ? BuildOperationCategory.UNCATEGORIZED
-            : (BuildOperationCategory) metadata;
+        BuildOperationCategory buildOperationCategory = BuildOperationCategory.toCategory(metadata);
         if (buildOperationCategory == BuildOperationCategory.TASK) {
             // This is a legacy quirk.
             // Scans use this to determine that progress logging is indicating start/finish of tasks.

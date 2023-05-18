@@ -36,8 +36,8 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final LoggingManager loggingManager;
     private final MessagingServer server;
     private final IdGenerator<Long> idGenerator;
-    private final File gradleUserHomeDir;
     private final JavaExecHandleFactory execHandleFactory;
+    private final JvmVersionDetector jvmVersionDetector;
     private final OutputEventListener outputEventListener;
     private final ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory;
     private final MemoryManager memoryManager;
@@ -49,10 +49,10 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
         this.loggingManager = loggingManager;
         this.server = server;
         this.idGenerator = idGenerator;
-        this.gradleUserHomeDir = gradleUserHomeDir;
         this.execHandleFactory = execHandleFactory;
+        this.jvmVersionDetector = jvmVersionDetector;
         this.outputEventListener = outputEventListener;
-        this.workerImplementationFactory = new ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(classPathRegistry, temporaryFileProvider, jvmVersionDetector, gradleUserHomeDir);
+        this.workerImplementationFactory = new ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(classPathRegistry, temporaryFileProvider, gradleUserHomeDir);
         this.memoryManager = memoryManager;
     }
 
@@ -70,18 +70,17 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
     @Override
     public <IN, OUT> SingleRequestWorkerProcessBuilder<IN, OUT> singleRequestWorker(Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation) {
-        return new DefaultSingleRequestWorkerProcessBuilder<IN, OUT>(workerImplementation, newWorkerProcessBuilder(), outputEventListener);
+        return new DefaultSingleRequestWorkerProcessBuilder<>(workerImplementation, newWorkerProcessBuilder(), outputEventListener);
     }
 
     @Override
     public <IN, OUT> MultiRequestWorkerProcessBuilder<IN, OUT> multiRequestWorker(Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation) {
-        return new DefaultMultiRequestWorkerProcessBuilder<IN, OUT>(workerImplementation, newWorkerProcessBuilder(), outputEventListener);
+        return new DefaultMultiRequestWorkerProcessBuilder<>(workerImplementation, newWorkerProcessBuilder(), outputEventListener);
     }
 
     private DefaultWorkerProcessBuilder newWorkerProcessBuilder() {
-        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager);
+        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager, jvmVersionDetector);
         builder.setLogLevel(loggingManager.getLevel());
-        builder.setGradleUserHomeDir(gradleUserHomeDir);
         builder.setConnectTimeoutSeconds(connectTimeoutSeconds);
         return builder;
     }

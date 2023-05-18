@@ -17,21 +17,14 @@
 package gradlebuild.performance.tasks
 
 import gradlebuild.basics.kotlindsl.execAndGetStdout
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.os.OperatingSystem
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
 import org.gradle.kotlin.dsl.*
 import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
-
-
-const val defaultBaseline = "defaults"
-
-
-const val forceDefaultBaseline = "force-defaults"
 
 
 const val flakinessDetectionCommitBaseline = "flakiness-detection-commit"
@@ -46,18 +39,25 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     @get:Internal
     abstract val determinedBaselines: Property<String>
 
+    @get:Internal
+    abstract val defaultBaselines: Property<String>
+
+    @get:Internal
+    abstract val logicalBranch: Property<String>
+
     @TaskAction
     fun determineForkPointCommitBaseline() {
-        if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
-            determinedBaselines.set(defaultBaseline)
-        } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
-            determinedBaselines.set(determineFlakinessDetectionBaseline())
-        } else if (!currentBranchIsMasterOrRelease() && !OperatingSystem.current().isWindows && configuredBaselines.isDefaultValue()) {
-            // Windows git complains "long path" so we don't build commit distribution on Windows
-            determinedBaselines.set(forkPointCommitBaseline())
+        if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
+            determinedBaselines = determineFlakinessDetectionBaseline()
+        } else if (configuredBaselines.getOrElse("").isNotEmpty()) {
+            determinedBaselines = configuredBaselines
+        } else if (!currentBranchIsMasterOrRelease()) {
+            determinedBaselines = forkPointCommitBaseline()
         } else {
-            determinedBaselines.set(configuredBaselines)
+            determinedBaselines = defaultBaselines
         }
+
+        println("Determined baseline is: ${determinedBaselines.get()}")
     }
 
     /**
@@ -70,10 +70,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
 
     private
-    fun currentBranchIsMasterOrRelease() = project.the<ModuleIdentityExtension>().logicalBranch.get() in listOf("master", "release")
-
-    private
-    fun Property<String>.isDefaultValue() = !isPresent || get() in listOf("", defaultBaseline)
+    fun currentBranchIsMasterOrRelease() = logicalBranch.get() in listOf("master", "release")
 
     private
     fun currentCommitBaseline() = commitBaseline(project.execAndGetStdout("git", "rev-parse", "HEAD"))

@@ -17,17 +17,19 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "pmd"
+            plugins {
+                id 'java-library'
+                id 'pmd'
+            }
 
             ${mavenCentralRepository()}
 
+            testing.suites.test.useJUnit()
             tasks.withType(Pmd) {
                 // clear the classpath to avoid file locking issues on PMD version < 5.5.1
                 classpath = files()
@@ -36,7 +38,6 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         badCode()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "allows configuring tool dependencies explicitly"() {
         def testDependency = 'net.sourceforge.pmd:pmd:5.1.1'
         expect: //defaults exist and can be inspected
@@ -72,9 +73,23 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
             }
         """.stripIndent()
 
-        expect:
-        fails("check")
+        when:
+        fails("pmdMain")
+
+        then:
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
+
+        when:
+        fails("pmdTest")
+
+        then:
+        failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
+
+        when:
+        fails("check")
+
+        then:
+        failure.assertHasFailures(2)
     }
 
 
@@ -85,6 +100,22 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         // PMD Lvl 2 Warning BooleanInstantiation
         // PMD Lvl 3 Warning OverrideBothEqualsAndHashcode
         file("src/test/java/org/gradle/Class1Test.java") <<
-            "package org.gradle; class Class1Test<T> { public boolean equals(Object arg) { return java.lang.Boolean.valueOf(true); } }"
+            """
+            package org.gradle;
+
+            import static org.junit.Assert.assertTrue;
+
+            import org.junit.Test;
+
+            public class Class1Test<T> {
+                @Test
+                public void testFoo() {
+                    Class1 c = new Class1();
+                    assertTrue(c.isFoo("foo"));
+                }
+
+                public boolean equals(Object arg) { return java.lang.Boolean.valueOf(true); }
+            }
+            """
     }
 }

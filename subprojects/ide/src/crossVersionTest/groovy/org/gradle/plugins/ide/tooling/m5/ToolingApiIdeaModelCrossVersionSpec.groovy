@@ -30,13 +30,17 @@ import org.gradle.util.GradleVersion
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
+    def shouldCheckForDeprecationWarnings(){
+        false
+    }
+
     def "builds the model even if idea plugin not applied"() {
 
-        file('build.gradle').text = '''
+        buildFile.text = '''
 apply plugin: 'java'
 description = 'this is a project'
 '''
-        file('settings.gradle').text = 'rootProject.name = \"test project\"'
+        settingsFile.text = 'rootProject.name = \"test project\"'
 
         when:
         IdeaProject project = loadToolingModel(IdeaProject)
@@ -52,7 +56,7 @@ description = 'this is a project'
 
     def "provides basic project information"() {
 
-        file('build.gradle').text = """
+        buildFile.text = """
 apply plugin: 'java'
 apply plugin: 'idea'
 
@@ -233,42 +237,6 @@ project(':impl') {
         parallel << [true, false]
     }
 
-    @TargetGradleVersion('>=2.6 <=2.7')
-    def "makes sure module names are unique"() {
-
-        file('build.gradle').text = """
-subprojects {
-    apply plugin: 'java'
-}
-
-project(':impl') {
-    dependencies {
-        ${implementationConfiguration} project(':api')
-    }
-}
-
-project(':contrib:impl') {
-    dependencies {
-        ${implementationConfiguration} project(':contrib:api')
-    }
-}
-"""
-        file('settings.gradle').text = "include 'api', 'impl', 'contrib:api', 'contrib:impl'"
-
-        when:
-        IdeaProject project = loadToolingModel(IdeaProject)
-
-        then:
-        def allNames = project.modules*.name
-        allNames.unique().size() == 6
-
-        IdeaModule impl = project.modules.find { it.name == 'impl' }
-        IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
-
-        impl.dependencies[0].targetModuleName == 'api'
-        contribImpl.dependencies[0].targetModuleName == 'contrib-api'
-    }
-
     def "module has access to gradle project and its tasks"() {
 
         file('build.gradle').text = """
@@ -315,7 +283,7 @@ project(':impl') {
     }
 }
 """
-        file('settings.gradle').text = "include 'api', 'impl'"
+        settingsFile.text = "include 'api', 'impl'"
 
         when:
         BasicIdeaProject project = withConnection { connection -> connection.getModel(BasicIdeaProject.class) }

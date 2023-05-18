@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -68,15 +69,15 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     FlatDirectoryArtifactRepository flatDir(Map<String, ?> args);
 
     /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     * Adds and configures a repository which will look for dependencies in a number of local directories.
      *
      * @param configureClosure The closure to execute to configure the repository.
      * @return The repository.
      */
-    FlatDirectoryArtifactRepository flatDir(Closure configureClosure);
+    FlatDirectoryArtifactRepository flatDir(@DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
 
     /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     * Adds and configures a repository which will look for dependencies in a number of local directories.
      *
      * @param action The action to execute to configure the repository.
      * @return The repository.
@@ -305,7 +306,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
-    MavenArtifactRepository maven(Closure closure);
+    MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class) Closure closure);
 
     /**
      * Adds and configures a Maven repository.
@@ -321,7 +322,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
-    IvyArtifactRepository ivy(Closure closure);
+    IvyArtifactRepository ivy(@DelegatesTo(IvyArtifactRepository.class) Closure closure);
 
     /**
      * Adds and configures an Ivy repository.

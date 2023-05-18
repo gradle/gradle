@@ -58,7 +58,7 @@ public interface ComponentSelectionReason {
     boolean isExpected();
 
     /**
-     * Informs whether the selected component is a project substitute from a build participating in in a composite build.
+     * Informs whether the selected component is a project substitute from a build participating in a composite build.
      *
      * @since 4.5
      */

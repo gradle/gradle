@@ -20,15 +20,18 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import java.util.function.Supplier
+
 class TasksFromProjectDependenciesTest extends AbstractProjectBuilderSpec {
 
-    def dependencies = Mock(DependencySet)
+    def dependencies = { Mock(DependencySet) } as Supplier<DependencySet>
     def context = Mock(TaskDependencyResolveContext)
     def project1State = Mock(ProjectState)
     def project2State = Mock(ProjectState)
@@ -47,7 +50,7 @@ class TasksFromProjectDependenciesTest extends AbstractProjectBuilderSpec {
     }
 
     def "provides tasks from project dependencies"() {
-        def tasks = new TasksFromProjectDependencies("buildNeeded", dependencies)
+        def tasks = new TasksFromProjectDependencies("buildNeeded", dependencies, TestFiles.taskDependencyFactory())
         def task = Mock(TaskInternal)
 
         when:

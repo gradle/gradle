@@ -17,11 +17,8 @@
 package org.gradle.integtests.resolve.derived
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.configCache }) // ResolvedArtifactResult as task input
 class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     MavenHttpModule direct
     MavenHttpModule transitive
@@ -48,19 +45,12 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
                 abstract ConfigurableFileCollection getArtifactCollection()
 
                 @Internal
-                abstract SetProperty<ResolvedArtifactResult> getResolvedArtifacts()
-
-                @Internal
                 List<String> expectedFiles = []
-
-                @Internal
-                List<String> expectedVariants = []
 
                 @TaskAction
                 void assertThat() {
                     assert artifacts.files*.name == expectedFiles
                     assert artifactCollection.files*.name == expectedFiles
-                    assert resolvedArtifacts.get()*.variant.displayName == expectedVariants
                 }
             }
 
@@ -76,7 +66,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
                 }
                 artifacts.from(artifactView.files)
                 artifactCollection.from(artifactView.artifacts.artifactFiles)
-                resolvedArtifacts.set(artifactView.artifacts.resolvedArtifacts)
             }
 
             task resolveJavadoc(type: Resolve) {
@@ -91,7 +80,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
                 }
                 artifacts.from(artifactView.files)
                 artifactCollection.from(artifactView.artifacts.artifactFiles)
-                resolvedArtifacts.set(artifactView.artifacts.resolvedArtifacts)
             }
         """
         transitive = mavenHttpRepo.module("test", "transitive", "1.0")
@@ -109,11 +97,9 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveSources {
                 expectedFiles = []
-                expectedVariants = []
             }
             resolveJavadoc {
                 expectedFiles = []
-                expectedVariants = []
             }
         """
         expect:
@@ -165,7 +151,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
-                expectedVariants = ['test:direct:1.0 variant sources', 'test:transitive:1.0 variant sources']
             }
         """
         expect:
@@ -219,7 +204,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveJavadoc {
                 expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
-                expectedVariants = ['test:direct:1.0 variant javadoc', 'test:transitive:1.0 variant javadoc']
             }
         """
         expect:
@@ -289,7 +273,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveJavadoc {
                 expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
-                expectedVariants = ['test:direct:1.0 variant javadoc', 'test:transitive:1.0 variant javadoc']
             }
         """
         expect:
@@ -306,7 +289,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
-                expectedVariants = ['test:direct:1.0 variant sources', 'test:transitive:1.0 variant sources']
             }
         """
 
@@ -341,7 +323,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveSources {
                 expectedFiles = ['transitive-1.0-sources.jar']
-                expectedVariants = ['test:transitive:1.0 variant sources']
             }
         """
         expect:
@@ -361,11 +342,9 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveSources {
                 expectedFiles = []
-                expectedVariants = []
             }
             resolveJavadoc {
                 expectedFiles = []
-                expectedVariants = []
             }
         """
         expect:
@@ -389,7 +368,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
-                expectedVariants = ['test:direct:1.0 configuration sources', 'test:transitive:1.0 configuration sources']
             }
         """
         expect:
@@ -413,7 +391,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveJavadoc {
                 expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
-                expectedVariants = ['test:direct:1.0 configuration javadoc', 'test:transitive:1.0 configuration javadoc']
             }
         """
         expect:
@@ -437,7 +414,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
-                expectedVariants = ['test:direct:1.0 configuration sources', 'test:transitive:1.0 configuration sources']
             }
         """
         expect:
@@ -454,7 +430,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveJavadoc {
                 expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
-                expectedVariants = ['test:direct:1.0 configuration javadoc', 'test:transitive:1.0 configuration javadoc']
             }
         """
 
@@ -475,7 +450,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             resolveSources {
                 expectedFiles = ['transitive-1.0-sources.jar']
-                expectedVariants = ['test:transitive:1.0 configuration sources']
             }
         """
         expect:

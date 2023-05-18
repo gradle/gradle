@@ -19,6 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
@@ -34,12 +36,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class AbstractAuthenticationSupportedRepository extends AbstractResolutionAwareArtifactRepository implements AuthenticationSupportedInternal {
+public abstract class AbstractAuthenticationSupportedRepository<T extends RepositoryDescriptor> extends AbstractResolutionAwareArtifactRepository<T> implements AuthenticationSupportedInternal {
     private final AuthenticationSupporter delegate;
     private final ProviderFactory providerFactory;
 
-    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, ProviderFactory providerFactory) {
-        super(objectFactory);
+    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, ProviderFactory providerFactory, VersionParser versionParser) {
+        super(objectFactory, versionParser);
         this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
         this.providerFactory = providerFactory;
     }

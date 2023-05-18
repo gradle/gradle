@@ -55,7 +55,7 @@ import static org.hamcrest.Matchers.containsString
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, ValidationMessageChecker {
 
-    def "transform can receive parameters, workspace and input artifact (#inputArtifactType) via abstract getter"() {
+    def "transform can receive parameters, workspace and input artifact via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -88,10 +88,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
 
                 @InputArtifact
-                abstract ${inputArtifactType} getInput()
+                abstract Provider<FileSystemLocation> getInput()
 
                 void transform(TransformOutputs outputs) {
-                    File inputFile = input${convertToFile}
+                    File inputFile = input.get().asFile
                     println "processing \${inputFile.name}"
                     def output = outputs.file(inputFile.name + "." + parameters.extension)
                     output.text = "ok"
@@ -100,20 +100,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         """
 
         when:
-        if (expectedDeprecation) {
-            executer.expectDocumentedDeprecationWarning(expectedDeprecation)
-        }
         run(":a:resolve")
 
         then:
         outputContains("processing b.jar")
         outputContains("processing c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
-
-        where:
-        inputArtifactType              | convertToFile   | expectedDeprecation
-        'File'                         | ''              | "Injecting the input artifact of a transform as a File has been deprecated. This will fail with an error in Gradle 8.0. Declare the input artifact as Provider<FileSystemLocation> instead. See https://docs.gradle.org/current/userguide/artifact_transforms.html#sec:implementing-artifact-transforms for more details."
-        'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 
     def "transform can receive parameter of type #type"() {
@@ -440,7 +432,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':a:implementation'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
@@ -490,7 +482,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertResolutionFailure(':a:implementation')
+        failure.assertResolutionFailure(':a:resolver')
         failure.assertHasCause("Cannot query the parameters of an instance of TransformAction that takes no parameters.")
     }
 
@@ -532,7 +524,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':a:implementation'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
@@ -584,7 +576,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':a:implementation'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
@@ -804,7 +796,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -842,53 +834,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         where:
         targetType << ["FileCollection", "Iterable<File>"]
-    }
-
-    def "old style transform cannot use @#annotation.name"() {
-        settingsFile << """
-            include 'a', 'b', 'c'
-        """
-        setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        artifactTransform(MakeGreen)
-                    }
-                }
-            }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
-            abstract class MakeGreen extends ArtifactTransform {
-                @${annotation.name}
-                abstract File getInputFile()
-
-                List<File> transform(File input) {
-                    println "processing \${input.name}"
-                    def output = new File(outputDirectory, input.name + ".green")
-                    output.text = "ok"
-                    return [output]
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
-        fails(":a:resolve")
-
-        then:
-        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getInputFile().")
-
-        where:
-        annotation << [InputArtifact, InputArtifactDependencies]
     }
 
     def "transform can receive parameter object via constructor parameter"() {
@@ -935,7 +880,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
         buildFile << """
             project(':a') {
@@ -961,17 +906,22 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
-        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
+        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
-        propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
+        propertyType << [
+            File,
+            FileCollection,
+            new TypeToken<Provider<File>>() {}.getType(),
+            new TypeToken<Provider<String>>() {}.getType()
+        ]
     }
 
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -1008,7 +958,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {

@@ -23,19 +23,19 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
-public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
-    private final ModuleComponentRepositoryAccess delegate;
+public class BaseModuleComponentRepositoryAccess<T> implements ModuleComponentRepositoryAccess<T> {
+    private final ModuleComponentRepositoryAccess<T> delegate;
 
-    public BaseModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate) {
+    public BaseModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<T> delegate) {
         this.delegate = delegate;
     }
 
-    public ModuleComponentRepositoryAccess getDelegate() {
+    public ModuleComponentRepositoryAccess<T> getDelegate() {
         return delegate;
     }
 
@@ -45,7 +45,7 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
     }
 
     @Override
-    public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+    public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result) {
         delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
     }
 
@@ -55,7 +55,7 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
         delegate.resolveArtifact(artifact, moduleSources, result);
     }
 

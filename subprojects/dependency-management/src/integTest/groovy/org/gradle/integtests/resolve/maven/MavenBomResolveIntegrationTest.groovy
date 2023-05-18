@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
@@ -65,7 +64,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -93,7 +94,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -133,7 +136,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -179,12 +184,13 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     module("group:moduleC:1.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "a parent pom is not a bom"() {
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
         bomDependency('moduleA')
@@ -255,7 +261,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails late for dependency entries that fail to provide a missing version"() {
         given:
         bomDependency('moduleA')
@@ -301,7 +306,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -330,7 +337,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }

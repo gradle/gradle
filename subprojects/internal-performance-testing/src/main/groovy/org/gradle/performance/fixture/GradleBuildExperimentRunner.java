@@ -25,6 +25,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.OutputDirSelector;
+import org.gradle.performance.results.OutputDirSelectorUtil;
 import org.gradle.profiler.BuildAction;
 import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
@@ -211,7 +212,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .addAll(invocationSpec.getJvmArguments())
             .build();
         return new GradleScenarioDefinition(
-            OutputDirSelector.fileSafeNameFor(experimentSpec.getDisplayName()),
+            OutputDirSelectorUtil.fileSafeNameFor(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, invocationSpec.getClientJvmArguments()),

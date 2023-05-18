@@ -52,7 +52,6 @@ public class StandardJavadocDocletOptionsTest {
         assertEmpty(options.getDocletpath());
         assertNull(options.getSource());
         assertEmpty(options.getClasspath());
-        assertEmpty(options.getSourcePath());
         assertEmpty(options.getBootClasspath());
         assertEmpty(options.getExtDirs());
         assertEquals(options.getOutputLevel(), JavadocOutputLevel.QUIET);
@@ -162,13 +161,6 @@ public class StandardJavadocDocletOptionsTest {
         final File[] classpathValue = new File[]{new File("classpath.jar"), new File("classpath-dir")};
         assertEquals(options, options.classpath(classpathValue));
         assertArrayEquals(classpathValue, options.getClasspath().toArray());
-    }
-
-    @Test
-    public void testFluentSourcepath() {
-        final File[] sourcePathValue = new File[]{new File("sourcepathA"), new File("sourcepathB")};
-        assertEquals(options, options.sourcePath(sourcePathValue));
-        assertArrayEquals(sourcePathValue, options.getSourcePath().toArray());
     }
 
     @Test

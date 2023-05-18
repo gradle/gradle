@@ -26,15 +26,10 @@ import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProject
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.tooling.model.eclipse.EclipseRuntime
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 
-@UsesNativeServices
-@CleanupTestDirectory
 class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     Project child1
     Project child2
@@ -42,16 +37,10 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     Project child4
 
     def setup() {
-        // Without this file, the build layout finds the one from Gradle itself and causes dependency verification to be enabled
-        temporaryFolder.testDirectory.createFile("settings.gradle")
-        project = TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
         child3 = ProjectBuilder.builder().withName("child3").withParent(project).build()
         child4 = ProjectBuilder.builder().withName("child4").withParent(project).build()
-        new File(project.projectDir, "settings.gradle") << """
-            rootProject.name = 'test'
-        """
 
         def libsDir = new File(project.projectDir, "libs")
         libsDir.mkdirs()

@@ -7,11 +7,11 @@ version = "1.0"
 
 tasks.register<Zip>("myZip") {
     from("somedir")
-
+    val projectDir = layout.projectDirectory.asFile
     doLast {
         println(archiveFileName.get())
-        println(relativePath(destinationDirectory))
-        println(relativePath(archiveFile))
+        println(destinationDirectory.get().asFile.relativeTo(projectDir))
+        println(archiveFile.get().asFile.relativeTo(projectDir))
     }
 }
 // end::zip-task[]

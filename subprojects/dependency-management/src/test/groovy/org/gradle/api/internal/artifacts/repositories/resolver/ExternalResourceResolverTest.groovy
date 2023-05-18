@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
@@ -29,7 +30,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileStore
@@ -41,7 +42,7 @@ import spock.lang.Specification
 class ExternalResourceResolverTest extends Specification {
     String name = "TestResolver"
     ExternalResourceRepository repository = Mock()
-    BuildableArtifactResolveResult artifactResult = Mock()
+    BuildableArtifactFileResolveResult artifactResult = Mock()
     BuildableModuleComponentMetaDataResolveResult metadataResult = Mock()
     ModuleComponentArtifactIdentifier artifactIdentifier = Stub() {
         getDisplayName() >> '<some-artifact>'
@@ -59,7 +60,7 @@ class ExternalResourceResolverTest extends Specification {
     ExternalResourceResolver resolver
 
     def setup() {
-        resolver = new TestResolver(name, true, repository, resourceAccessor, locallyAvailableResourceFinder, fileStore, metadataSources, Stub(MetadataArtifactProvider))
+        resolver = new TestResolver(Stub(UrlRepositoryDescriptor), true, repository, resourceAccessor, locallyAvailableResourceFinder, fileStore, metadataSources, Stub(MetadataArtifactProvider))
         resolver.artifactResolver = artifactResolver
     }
 
@@ -139,9 +140,11 @@ class ExternalResourceResolverTest extends Specification {
     def "tries to fetch artifact when module metadata file is missing and legacy mode is active"() {
         given:
         def id = Stub(ModuleComponentIdentifier)
+        def metadata = Stub(ComponentOverrideMetadata)
+        metadata.artifact >> null
 
         when:
-        resolver.remoteAccess.resolveComponentMetaData(id, Stub(ComponentOverrideMetadata), metadataResult)
+        resolver.remoteAccess.resolveComponentMetaData(id, metadata, metadataResult)
 
         then:
         1 * metadataSources.sources() >> ImmutableList.of(new DefaultArtifactMetadataSource(Mock(MutableModuleMetadataFactory)))

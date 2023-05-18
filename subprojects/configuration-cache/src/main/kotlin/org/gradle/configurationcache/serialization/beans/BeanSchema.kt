@@ -17,13 +17,10 @@
 package org.gradle.configurationcache.serialization.beans
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.TaskInternal
-import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
@@ -128,12 +125,7 @@ fun MutableIsolateContext.reportUnsupportedFieldType(
 
 internal
 fun unsupportedFieldTypeFor(field: Field): KClass<*>? =
-    field.takeUnless {
-        field.isAnnotationPresent(DisableConfigurationCacheFieldTypeCheck::class.java)
-    }?.let {
-        unsupportedFieldDeclaredTypes
-            .firstOrNull { it.java.isAssignableFrom(field.type) }
-    }
+    unsupportedFieldDeclaredTypes.firstOrNull { it.java.isAssignableFrom(field.type) }
 
 
 private
@@ -156,8 +148,6 @@ fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
 private
 val irrelevantDeclaringClasses = setOf(
     Object::class.java,
-    Task::class.java,
-    TaskInternal::class.java,
     DefaultTask::class.java,
     ConventionTask::class.java
 )

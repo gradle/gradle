@@ -12,13 +12,15 @@ dependencies {
 }
 
 tasks.register('preCompileJsps') {
+    def jasperClasspath = configurations.jasper.asPath
+    def projectLayout = layout
     doLast {
         ant.taskdef(classname: 'org.apache.jasper.JspC',
                     name: 'jasper',
-                    classpath: configurations.jasper.asPath)
+                    classpath: jasperClasspath)
         ant.jasper(validateXml: false,
-                   uriroot: file('src/main/webapp'),
-                   outputDir: file("$buildDir/compiled-jsps"))
+                   uriroot: projectLayout.projectDirectory.file('src/main/webapp').asFile,
+                   outputDir: projectLayout.buildDirectory.file("compiled-jsps").get().asFile)
     }
 }
 // end::custom-configuration[]

@@ -77,7 +77,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
                 }, EnumSet.of(OperationType.GENERIC)).addProgressListener({ ProgressEvent event ->
                     resultsOfLastListener.add(event)
                 }, EnumSet.of(OperationType.GENERIC))
-                collectOutputs(build)
                 build.run()
         }
 
@@ -125,8 +124,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
 
         events.operations[0] == runBuild
 
-        events.operations.each { it.successful }
-        events.operations.each { it.buildOperation }
+        events.operations.every { it.successful }
+        events.operations.every { it.buildOperation }
     }
 
     def "receive build progress events for failed operations"() {

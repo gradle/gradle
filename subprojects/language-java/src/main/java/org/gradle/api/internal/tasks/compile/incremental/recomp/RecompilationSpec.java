@@ -25,14 +25,10 @@ import java.util.Set;
 
 public class RecompilationSpec {
     private final Set<String> classesToCompile = new LinkedHashSet<>();
+    private final Set<String> sourcePaths = new LinkedHashSet<>();
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
-    private final PreviousCompilation previousCompilation;
     private String fullRebuildCause;
-
-    public RecompilationSpec(PreviousCompilation previousCompilation) {
-        this.previousCompilation = previousCompilation;
-    }
 
     @Override
     public String toString() {
@@ -40,10 +36,15 @@ public class RecompilationSpec {
             "classesToCompile=" + classesToCompile +
             ", classesToProcess=" + classesToProcess +
             ", resourcesToGenerate=" + resourcesToGenerate +
+            ", sourcePaths=" + sourcePaths +
             ", fullRebuildCause='" + fullRebuildCause + '\'' +
             ", buildNeeded=" + isBuildNeeded() +
             ", fullRebuildNeeded=" + isFullRebuildNeeded() +
             '}';
+    }
+
+    public boolean addClassToCompile(String classToCompile) {
+        return classesToCompile.add(classToCompile);
     }
 
     public void addClassesToCompile(Collection<String> classes) {
@@ -54,18 +55,8 @@ public class RecompilationSpec {
         return Collections.unmodifiableSet(classesToCompile);
     }
 
-    public PreviousCompilation getPreviousCompilation() {
-        return previousCompilation;
-    }
-
-    public void addClassesToProcess(Collection<String> classes) {
-        classes.forEach(classToReprocess -> {
-            if (classToReprocess.endsWith("package-info") || classToReprocess.equals("module-info")) {
-                classesToCompile.add(classToReprocess);
-            } else {
-                classesToProcess.add(classToReprocess);
-            }
-        });
+    public void addClassToReprocess(String classToReprocess) {
+        classesToProcess.add(classToReprocess);
     }
 
     public Collection<String> getClassesToProcess() {
@@ -78,6 +69,18 @@ public class RecompilationSpec {
 
     public Collection<GeneratedResource> getResourcesToGenerate() {
         return Collections.unmodifiableCollection(resourcesToGenerate);
+    }
+
+    public void addSourcePath(String sourcePath) {
+        sourcePaths.add(sourcePath);
+    }
+
+    public void addSourcePaths(Set<String> sourcePath) {
+        sourcePaths.addAll(sourcePath);
+    }
+
+    public Collection<String> getSourcePaths() {
+        return Collections.unmodifiableCollection(sourcePaths);
     }
 
     public boolean isBuildNeeded() {
@@ -95,5 +98,4 @@ public class RecompilationSpec {
     public void setFullRebuildCause(String description) {
         fullRebuildCause = description;
     }
-
 }

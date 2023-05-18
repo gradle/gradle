@@ -26,21 +26,21 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
-import org.gradle.api.internal.artifacts.transform.TransformationStep
-import org.gradle.api.internal.artifacts.transform.TransformationSubject
-import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory
+import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory
+import org.gradle.api.internal.artifacts.transform.TransformStep
+import org.gradle.api.internal.artifacts.transform.TransformStepSubject
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.atomic.AtomicInteger
 
 class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
-    public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger(0)
+    public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger()
     public static final String SELECTED_PATH = "selected.txt"
 
     def artifactType = Attribute.of('artifactType', String)
@@ -96,14 +96,14 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
         selectedFile2.text = "Hello"
 
         when:
-        def transformationResult1 = invokeTransform(transform, inputArtifact1).get()
-        def transformationResult2 = invokeTransform(transform, inputArtifact2).get()
+        def transformResult1 = invokeTransform(transform, inputArtifact1).get()
+        def transformResult2 = invokeTransform(transform, inputArtifact2).get()
         then:
-        transformationResult1.size() == 4
-        transformationResult2.size() == 4
-        transformationResult1[0, 2] == [selectedFile1, inputArtifact1]
-        transformationResult2[0, 2] == [selectedFile2, inputArtifact2]
-        transformationResult1[1, 3] == transformationResult2[1, 3]
+        transformResult1.size() == 4
+        transformResult2.size() == 4
+        transformResult1[0, 2] == [selectedFile1, inputArtifact1]
+        transformResult2[0, 2] == [selectedFile2, inputArtifact2]
+        transformResult1[1, 3] == transformResult2[1, 3]
         INVOCATION_COUNT.get() == 1
     }
 
@@ -111,31 +111,31 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
         new TestFile(project.file(path))
     }
 
-    private <T extends TransformParameters> TransformationStep registerTransform(Class<? extends TransformAction<T>> actionType) {
+    private <T extends TransformParameters> TransformStep registerTransform(Class<? extends TransformAction<T>> actionType) {
         def variantTransformRegistry = project.services.get(VariantTransformRegistry)
-        int currentRegisteredTransforms = variantTransformRegistry.transforms.size()
+        int currentRegisteredTransforms = variantTransformRegistry.registrations.size()
         project.dependencies.registerTransform(actionType) {
             it.from.attribute(artifactType, 'jar')
             it.to.attribute(artifactType, 'transformed')
         }
-        return variantTransformRegistry.transforms[currentRegisteredTransforms].transformationStep
+        return variantTransformRegistry.registrations[currentRegisteredTransforms].transformStep
     }
 
-    private Try<ImmutableList<File>> invokeTransform(TransformationStep transform, File inputArtifact) {
+    private Try<ImmutableList<File>> invokeTransform(TransformStep transform, File inputArtifact) {
         transform.isolateParametersIfNotAlready()
-        def invocationFactory = project.services.get(TransformerInvocationFactory)
+        def invocationFactory = project.services.get(TransformInvocationFactory)
         def inputFingerprinter = project.services.get(InputFingerprinter)
         def artifact = Stub(ResolvableArtifact) {
             getId() >> new OpaqueComponentArtifactIdentifier(inputArtifact)
         }
         def invocation = invocationFactory.createInvocation(
-            transform.getTransformer(),
+            transform.getTransform(),
             inputArtifact,
             DefaultTransformUpstreamDependenciesResolver.NO_RESULT,
-            TransformationSubject.initial(artifact),
+            TransformStepSubject.initial(artifact),
             inputFingerprinter
         )
-        invocation.invoke()
+        invocation.completeAndGet()
     }
 
     static abstract class IdentityTransform implements TransformAction<TransformParameters.None> {

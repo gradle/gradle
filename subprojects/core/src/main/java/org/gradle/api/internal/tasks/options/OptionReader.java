@@ -44,7 +44,8 @@ public class OptionReader {
     private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
     private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
 
-    public List<OptionDescriptor> getOptions(Object target) {
+
+    public Map<String, OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
         Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
         if (!cachedOptionElements.containsKey(targetClass)) {
@@ -54,7 +55,7 @@ public class OptionReader {
             JavaMethod<Object, Collection> optionValueMethod = cachedOptionValueMethods.get(optionElement);
             options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement, optionValueMethod));
         }
-        return CollectionUtils.sort(options.values());
+        return options;
     }
 
     private void loadClassDescriptorInCache(Object target) {
@@ -219,5 +220,4 @@ public class OptionReader {
                     type.getName()));
         }
     }
-
 }

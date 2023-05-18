@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
+import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.slf4j.LoggerFactory
 
@@ -49,6 +50,13 @@ class SmokeTestGradleRunner extends GradleRunner {
         return result
     }
 
+    @Override
+    BuildResult run() throws InvalidRunnerConfigurationException {
+        def result = delegate.run()
+        verifyDeprecationWarnings(result)
+        return result
+    }
+
     /**
      * Expect a deprecation warning to appear when {@link #build()} or {@link #buildAndFail()} is called.
      *
@@ -59,6 +67,9 @@ class SmokeTestGradleRunner extends GradleRunner {
      *      to record how it will happen.
      */
     SmokeTestGradleRunner expectDeprecationWarning(String warning, String followup) {
+        if (followup == null || followup.isBlank()) {
+            throw new IllegalArgumentException("Follow up is required! Did you mean to expect a legacy deprecation warning instead?")
+        }
         expectedDeprecationWarnings.add(warning)
         return this
     }
@@ -118,7 +129,7 @@ class SmokeTestGradleRunner extends GradleRunner {
         @DelegatesTo.Target Class<U> deprecationClass,
         @DelegatesTo(
             genericTypeIndex = 0,
-            strategy=Closure.DELEGATE_FIRST)
+            strategy = Closure.DELEGATE_FIRST)
             Closure<T> closure) {
         deprecationClass.newInstance(this).tap(closure)
         return this
@@ -127,7 +138,7 @@ class SmokeTestGradleRunner extends GradleRunner {
     def <T> SmokeTestGradleRunner deprecations(
         @DelegatesTo(
             value = BaseDeprecations.class,
-            strategy=Closure.DELEGATE_FIRST)
+            strategy = Closure.DELEGATE_FIRST)
             Closure<T> closure) {
         return deprecations(BaseDeprecations, closure)
     }
@@ -259,6 +270,10 @@ class SmokeTestGradleRunner extends GradleRunner {
     SmokeTestGradleRunner forwardOutput() {
         delegate.forwardOutput()
         return this
+    }
+
+    List<String> getJvmArguments() {
+        return delegate.getJvmArguments()
     }
 
     SmokeTestGradleRunner withJvmArguments(List<String> jvmArguments) {

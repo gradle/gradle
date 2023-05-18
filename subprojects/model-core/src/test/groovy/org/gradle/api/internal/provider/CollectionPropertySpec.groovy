@@ -25,7 +25,6 @@ import org.gradle.internal.Describables
 import org.gradle.util.internal.TextUtil
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
-    @Override
     AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
         return property()
     }
@@ -615,9 +614,9 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasKnownProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue.isEmpty()
+        value.getFixedValue().isEmpty()
     }
 
     def "has no producer and missing execution time value when element provider with no value added"() {
@@ -654,9 +653,9 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == toImmutable(["a", "b"])
+        value.getFixedValue() == toImmutable(["a", "b"])
     }
 
     def "has no producer and fixed execution time value when elements added"() {
@@ -667,7 +666,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == toImmutable(["a", "b", "c"])
     }
 
@@ -679,7 +678,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == toImmutable(["a", "b"])
     }
 
@@ -691,7 +690,7 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == toImmutable(["a", "b", "c"])
     }
 
@@ -704,8 +703,8 @@ The value of this property is derived from: <source>""")
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
         value.isChangingValue()
-        value.changingValue.get() == toImmutable(["a", "b", "c"])
-        value.changingValue.get() == toImmutable(["a", "c"])
+        value.getChangingValue().get() == toImmutable(["a", "b", "c"])
+        value.getChangingValue().get() == toImmutable(["a", "c"])
     }
 
     def "has union of producer task from providers unless producer task attached"() {
@@ -963,5 +962,107 @@ The value of this property is derived from: <source>""")
 
     Property<String> elementProperty() {
         return new DefaultProperty<String>(host, String)
+    }
+
+    def "runs side effect when calling '#getter' on property to which providers were added via 'add'"() {
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        def expectedUnpackedValue = ["some value", "simple value", "other value"]
+
+        when:
+        property.add(Providers.of("some value").withSideEffect(sideEffect1))
+        property.add(Providers.of("simple value"))
+        property.add(Providers.of("other value").withSideEffect(sideEffect2))
+
+        def value = property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = property.calculateExecutionTimeValue()
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        def unpackedValue = value.get()
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        when:
+        unpackedValue = getter(property, getter, toMutable(["yet another value"]))
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "runs side effect when calling '#getter' on property to which providers were added via 'addAll'"() {
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def expectedUnpackedValue = ["some value", "other value"]
+
+        when:
+        property.addAll(Providers.of(["some value", "other value"]).withSideEffect(sideEffect))
+
+        def value = property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = property.calculateExecutionTimeValue()
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        def unpackedValue = value.get()
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect.execute(expectedUnpackedValue)
+        0 * _
+
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect.execute(expectedUnpackedValue)
+        0 * _
+
+        when:
+        unpackedValue = getter(property, getter, toMutable(["yet another value"]))
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect.execute(expectedUnpackedValue)
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "does not run side effect when calling 'size'"() {
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+
+        when:
+        property.add(Providers.of("some value").withSideEffect(sideEffect1))
+        property.addAll(Providers.of(["other value"]).withSideEffect(sideEffect2))
+        property.size()
+
+        then:
+        0 * _
     }
 }

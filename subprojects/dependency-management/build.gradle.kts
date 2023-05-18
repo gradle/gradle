@@ -11,6 +11,7 @@ description = """This project contains most of the dependency management logic o
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":build-option"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
@@ -45,6 +46,7 @@ dependencies {
     implementation(libs.ant)
     implementation(libs.ivy)
     implementation(libs.maven3SettingsBuilder)
+    implementation(libs.fastutil)
 
     testImplementation(project(":process-services"))
     testImplementation(project(":diagnostics"))
@@ -114,11 +116,11 @@ dependencies {
     crossVersionTestImplementation(libs.jettyWebApp)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 tasks.clean {
     val testFiles = layout.buildDirectory.dir("tmp/test files")

@@ -16,6 +16,7 @@
 
 package org.gradle.api.file
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -311,5 +312,41 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         then:
         outputContains("finalize failed with: Cannot finalize the value for this file collection because configuration of root project 'broken' has not completed yet.")
         output.count("value = [${file('some-file')}]") == 2
+    }
+
+    @NotYetImplemented
+    def "finalizing value on read with a ConfigurableFileCollection does not lose dependency information"() {
+        buildFile """
+            abstract class Generate extends DefaultTask {
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDirectory()
+                
+                @TaskAction
+                void generate() {
+                    def outputFile = outputDirectory.get().file("generated.txt").asFile
+                    outputFile.text = "generated file"
+                }
+            }
+            
+            def generateFile = tasks.register('generate', Generate) {
+                outputDirectory.convention(layout.buildDirectory)
+            }
+            
+            interface ProjectModel {
+                ConfigurableFileCollection getGeneratedFiles()
+            }
+            
+            def thing = project.extensions.create("thing", ProjectModel)
+            thing.generatedFiles.from(generateFile)
+            thing.generatedFiles.finalizeValueOnRead()
+            
+            task show {
+                dependsOn thing.generatedFiles
+            }
+        """
+        when:
+        run("show")
+        then:
+        result.assertTasksExecuted(":generate", ":show")
     }
 }

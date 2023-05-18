@@ -18,12 +18,14 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.attributes.plugin.GradlePluginApiVersion
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.api.internal.plugins.PluginDescriptor
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Provider
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.events.LogEvent
@@ -33,6 +35,7 @@ import org.gradle.plugin.devel.PluginDeclaration
 import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
@@ -218,6 +221,25 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         publications.size() == 2
         publications[0].pluginId == DefaultPluginId.of("a.plugin")
         publications[1].pluginId == DefaultPluginId.of("b.plugin")
+    }
+
+    def "sets Gradle plugin API version attribute on classpath of all source sets"() {
+        when: "the plugin is applied and a custom source set is created"
+        project.pluginManager.apply(JavaGradlePluginPlugin)
+        def sourceSets = project.extensions.getByType(JavaPluginExtension).sourceSets
+        sourceSets.create("other")
+
+        then: "the Gradle plugin API version attribute should be set on the classpath configurations of all source sets but no other configurations"
+        def classpathConfigurations = sourceSets
+            .collectMany { [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName] }
+            .collect(project.configurations::getByName)
+
+        classpathConfigurations.every {
+            it.attributes.getAttribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE).name == GradleVersion.current().getVersion()
+        }
+        project.configurations.minus(classpathConfigurations).every {
+            it.attributes.getAttribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE) == null
+        }
     }
 
     static class ResettableOutputEventListener implements OutputEventListener {

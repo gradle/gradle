@@ -18,6 +18,7 @@ package org.gradle.util.internal;
 
 import com.google.common.base.Objects;
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.metaclass.MissingMethodExecutionFailed;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
 import org.gradle.util.Configurable;
@@ -76,7 +77,8 @@ public class ClosureBackedAction<T> implements Action<T> {
             if (Objects.equal(e.getType(), closure.getClass()) && Objects.equal(e.getMethod(), "doCall")) {
                 throw new InvalidActionClosureException(closure, delegate);
             }
-            throw e;
+            // https://github.com/apache/groovy/commit/75c068207ba24648ea2d698c520601c6fcf0a45b
+            throw new MissingMethodExecutionFailed(e.getMethod(), e.getType(), e.getArguments(), e.isStatic(), e);
         }
     }
 

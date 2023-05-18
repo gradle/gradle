@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -153,7 +152,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
                     variant('jdk8Runtime', expectedLibraryAttributes)
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'jdk8')
+                    artifact(classifier: 'jdk8')
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -196,13 +195,12 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
                     variant('jdk8Runtime', expectedLibraryAttributes)
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'jdk8')
+                    artifact(classifier: 'jdk8')
                 }
             }
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "using a non-existing base throws and error"() {
         given:
         repository {
@@ -277,15 +275,15 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                 module('org.test:moduleA:1.0') {
                     variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
                                             'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'jar')
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'pom')
-                    if (hasModuleFile) { artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'module') }
+                    artifact(type: 'jar')
+                    artifact(type: 'pom')
+                    if (hasModuleFile) { artifact(type: 'module') }
                     module('org.test:moduleB:1.0') {
                         variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
                                                 'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
-                        artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'jar')
-                        artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'pom')
-                        if (hasModuleFile) { artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'module') }
+                        artifact(type: 'jar')
+                        artifact(type: 'pom')
+                        if (hasModuleFile) { artifact(type: 'module') }
                     }
                 }
             }
@@ -331,8 +329,8 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0:runtime') {
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0')
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'extraFeature')
+                    artifact()
+                    artifact(classifier: 'extraFeature')
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -391,13 +389,12 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
                     variant('very-special-variant', expectedVariantAttributes)
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'special-data')
+                    artifact(classifier: 'special-data')
                 }
             }
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot add file with the same name multiple times"() {
         def dependencyDeclaration = (useMaven() || gradleMetadataPublished)
             ? "'org.test:moduleA:1.0'" // variant matching
@@ -640,8 +637,8 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'jar')
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'extraFeature')
+                    artifact(type: 'jar')
+                    artifact(classifier: 'extraFeature')
                 }
             }
         }
@@ -688,8 +685,8 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'notJar')
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'extraFeature')
+                    artifact(type: 'notJar')
+                    artifact(classifier: 'extraFeature')
                 }
             }
         }
@@ -728,7 +725,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'notJar')
+                    artifact(type: 'notJar')
                 }
             }
         }

@@ -23,7 +23,7 @@ import org.gradle.internal.SystemProperties
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DslTestFixture
-import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProjectWith
+import org.gradle.kotlin.dsl.fixtures.runWithProjectBuilderProject
 import org.gradle.kotlin.dsl.fixtures.testInstallationGradleApiExtensionsClasspathFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.hamcrest.CoreMatchers.equalTo
@@ -378,8 +378,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     ) {
         val projectDir = newDir(name)
         @Suppress("DEPRECATION") val tmpDir = File(SystemProperties.getInstance().javaIoTmpDir, "test-" + name + "-tmp")
-        newProjectBuilderProjectWith(projectDir).run {
-
+        runWithProjectBuilderProject(projectDir) {
             preRegisteredTasks.forEach {
                 tasks.register(it.name, it.type.java)
             }

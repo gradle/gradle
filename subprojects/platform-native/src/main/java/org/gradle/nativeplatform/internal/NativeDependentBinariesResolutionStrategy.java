@@ -24,9 +24,10 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.reporting.dependents.internal.DependentComponentsUtils;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
@@ -54,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -92,7 +94,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     public static final String NAME = "native";
 
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final BuildProjectRegistry projectRegistry;
     private final ProjectModelResolver projectModelResolver;
     private final Cache<String, State> stateCache = CacheBuilder.<String, State>newBuilder()
         .maximumSize(1)
@@ -105,7 +107,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     private TestSupport testSupport;
 
-    public NativeDependentBinariesResolutionStrategy(ProjectRegistry<ProjectInternal> projectRegistry, ProjectModelResolver projectModelResolver) {
+    public NativeDependentBinariesResolutionStrategy(BuildProjectRegistry projectRegistry, ProjectModelResolver projectModelResolver) {
         super();
         checkNotNull(projectRegistry, "ProjectRegistry must not be null");
         checkNotNull(projectModelResolver, "ProjectModelResolver must not be null");
@@ -152,7 +154,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private State buildState() {
         State state = new State();
 
-        List<ProjectInternal> orderedProjects = Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects());
+        List<ProjectInternal> orderedProjects = Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects().stream().map(ProjectState::getMutableModel).collect(Collectors.toList()));
         for (ProjectInternal project : orderedProjects) {
             if (project.getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
                 ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(project.getPath());

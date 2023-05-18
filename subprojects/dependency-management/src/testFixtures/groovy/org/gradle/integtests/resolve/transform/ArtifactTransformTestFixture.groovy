@@ -16,15 +16,16 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.tasks.TasksWithInputsAndOutputs
+
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.resolve.VariantAwareDependencyResolutionTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
-trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
+trait ArtifactTransformTestFixture extends VariantAwareDependencyResolutionTestFixture {
     abstract TestFile getBuildFile()
 
     abstract ExecutionResult getResult()
@@ -52,19 +53,14 @@ trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
     }
 
     void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), Builder builder) {
+        setupBuildWithColorVariants(buildFile)
+
         buildFile << """
 import ${javax.inject.Inject.name}
 // TODO: Default imports should work for of inner classes
 import ${org.gradle.api.artifacts.transform.TransformParameters.name}
 
-def color = Attribute.of('color', String)
 allprojects {
-    configurations {
-        implementation {
-            canBeResolved = true
-            attributes.attribute(color, 'blue')
-        }
-    }
     task producer(type: ${builder.producerTaskClassName}) {
         ${builder.producerConfig}
     }
@@ -74,14 +70,15 @@ allprojects {
     artifacts {
         implementation producer.output
     }
+
     task resolve (type: ShowFileCollection) {
-        def view = configurations.implementation.incoming.artifactView {
+        def view = configurations.resolver.incoming.artifactView {
             attributes.attribute(color, 'green')
         }.files
         files.from(view)
     }
     task resolveArtifacts(type: ShowArtifactCollection) {
-        collection = configurations.implementation.incoming.artifactView {
+        collection = configurations.resolver.incoming.artifactView {
             attributes.attribute(color, 'green')
         }.artifacts
     }
@@ -89,20 +86,6 @@ allprojects {
 
 import ${JarOutputStream.name}
 import ${ZipEntry.name}
-
-class ShowFileCollection extends DefaultTask {
-    @InputFiles
-    final ConfigurableFileCollection files = project.objects.fileCollection()
-
-    ShowFileCollection() {
-        outputs.upToDateWhen { false }
-    }
-
-    @TaskAction
-    def go() {
-        println "result = \${files.files.name}"
-    }
-}
 
 class JarProducer extends DefaultTask {
     @OutputFile
@@ -251,28 +234,6 @@ class JarProducer extends DefaultTask {
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
      */
-    void setupBuildWithLegacyColorTransformImplementation(TestFile buildFile = getBuildFile()) {
-        setupBuildWithColorTransformAction(buildFile)
-        buildFile << """
-            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-                @InputArtifact
-                abstract Provider<FileSystemLocation> getInputArtifact()
-
-                void transform(TransformOutputs outputs) {
-                    def input = inputArtifact.get().asFile
-                    println "processing [\${input.name}]"
-                    assert input.file
-                    def output = outputs.file(input.name + ".green")
-                    output.text = input.text + ".green"
-                }
-            }
-        """
-    }
-
-    /**
-     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
-     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
-     */
     void setupBuildWithColorTransformImplementation(TestFile buildFile = getBuildFile(), boolean lenient = false) {
         setupBuildWithColorTransform(buildFile)
         buildFile << """
@@ -304,7 +265,7 @@ class JarProducer extends DefaultTask {
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
      */
     void setupBuildWithColorTransformThatTakesUpstreamArtifacts() {
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifactDependencies
@@ -375,29 +336,6 @@ class JarProducer extends DefaultTask {
                 }
             }
         """
-    }
-
-    /**
-     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'.
-     * By default the variant will contain a single file, this can be configured using the supplied {@link Builder}.
-     * Caller will need to provide an implementation of 'MakeGreen' transform action
-     */
-    void setupBuildWithColorTransformAction(TestFile buildFile = getBuildFile(), @DelegatesTo(Builder) Closure cl = {}) {
-        setupBuildWithColorAttributes(buildFile, cl)
-        buildFile << """
-allprojects {
-    dependencies {
-        registerTransform(MakeGreen) {
-            from.attribute(color, 'blue')
-            to.attribute(color, 'green')
-        }
-    }
-}
-"""
-    }
-
-    void setupBuildWithColorTransformAction(@DelegatesTo(Builder) Closure cl) {
-        setupBuildWithColorTransformAction(buildFile, cl)
     }
 
     /**

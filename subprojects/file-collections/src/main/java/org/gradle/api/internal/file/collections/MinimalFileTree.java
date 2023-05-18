@@ -39,10 +39,6 @@ public interface MinimalFileTree extends MinimalFileCollection {
     void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner);
 
     interface MinimalFileTreeStructureVisitor {
-        /**
-         * Visits a file tree whose content is generated from some opaque source.
-         */
-        void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree);
 
         /**
          * Visits a file tree at a root file on the file system (potentially filtered).

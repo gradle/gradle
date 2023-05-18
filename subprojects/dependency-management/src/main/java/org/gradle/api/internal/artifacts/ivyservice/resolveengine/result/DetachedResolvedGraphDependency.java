@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -33,16 +32,16 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     private final ComponentSelectionReason reason;
     private final ModuleVersionResolveException failure;
     private final boolean constraint;
-    private final ResolvedVariantResult fromVariant;
-    private final ResolvedVariantResult targetVariant;
+    private final Long fromVariant;
+    private final Long targetVariant;
 
     public DetachedResolvedGraphDependency(ComponentSelector requested,
                                            Long selected,
                                            ComponentSelectionReason reason,
                                            ModuleVersionResolveException failure,
                                            boolean constraint,
-                                           ResolvedVariantResult fromVariant,
-                                           ResolvedVariantResult targetVariant
+                                           Long fromVariant,
+                                           Long targetVariant
     ) {
         assert requested != null;
         assert failure != null || selected != null;
@@ -82,12 +81,12 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     }
 
     @Override
-    public ResolvedVariantResult getFromVariant() {
+    public Long getFromVariant() {
         return fromVariant;
     }
 
     @Override
-    public ResolvedVariantResult getSelectedVariant() {
+    public Long getSelectedVariant() {
         return targetVariant;
     }
 }

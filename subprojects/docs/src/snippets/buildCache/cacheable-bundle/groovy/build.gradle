@@ -3,15 +3,21 @@ plugins {
 }
 
 // Fake NPM task that would normally execute npm with its provided arguments
-class NpmTask extends DefaultTask {
+abstract class NpmTask extends DefaultTask {
 
     @Input
     final ListProperty<String> args = project.objects.listProperty(String)
 
+    @Inject
+    abstract ProjectLayout getProjectLayout()
+
     @TaskAction
     void run() {
-        project.file("$project.buildDir/bundle.js").withOutputStream { stream ->
-            project.file("scripts").listFiles().sort().each {
+        def bundleFile = projectLayout.buildDirectory.file("bundle.js").get().asFile
+        def scriptsFiles = projectLayout.projectDirectory.dir("scripts").asFile.listFiles()
+
+        bundleFile.withOutputStream { stream ->
+            scriptsFiles.sort().each {
                 stream.write(it.bytes)
             }
         }
@@ -39,7 +45,10 @@ tasks.register('bundle', NpmTask) {
 
 tasks.register('printBundle') {
     dependsOn bundle
+
+    def projectLayout = layout
+
     doLast {
-        println file("$buildDir/bundle.js").text
+        println projectLayout.buildDirectory.file("bundle.js").get().asFile.text
     }
 }

@@ -766,26 +766,6 @@
     "linux" : 129000
   } ]
 }, {
-  "scenario" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.faster abi change (build comparison)",
-  "durations" : [ {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 1604000
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.faster non-abi change (build comparison)",
-  "durations" : [ {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 823000
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.file system watching baseline non-abi change (build comparison)",
-  "durations" : [ {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 1019000,
-    "windows" : 1773000,
-    "macOs" : 1614000
-  } ]
-}, {
   "scenario" : "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
   "durations" : [ {
     "testProject" : "largeJavaMultiProject",

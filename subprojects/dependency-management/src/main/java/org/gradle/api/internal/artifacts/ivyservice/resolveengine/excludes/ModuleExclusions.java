@@ -53,7 +53,7 @@ public class ModuleExclusions {
         nothing = factory.nothing();
     }
 
-    public ExcludeSpec excludeAny(Collection<ExcludeMetadata> excludes) {
+    public ExcludeSpec excludeAny(Collection<? extends ExcludeMetadata> excludes) {
         if (excludes.isEmpty()) {
             // avoids creation of empty hashset
             return nothing;

@@ -19,7 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
-import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.watch.registry.WatchMode;
 
@@ -31,8 +31,8 @@ public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystemDebugLogging;
     private boolean vfsVerboseLogging;
 
-    private BuildOption.Value<Boolean> configurationCache = BuildOption.Value.defaultValue(false);
-    private BuildOption.Value<Boolean> isolatedProjects = BuildOption.Value.defaultValue(false);
+    private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
+    private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
     private int configurationCacheMaxProblems = 512;
@@ -138,19 +138,24 @@ public class StartParameterInternal extends StartParameter {
      *
      * Consider querying {@link BuildModelParameters} instead.
      */
-    public BuildOption.Value<Boolean> getConfigurationCache() {
+    public Option.Value<Boolean> getConfigurationCache() {
         return configurationCache;
     }
 
-    public void setConfigurationCache(BuildOption.Value<Boolean> configurationCache) {
+    public void setConfigurationCache(Option.Value<Boolean> configurationCache) {
         this.configurationCache = configurationCache;
     }
 
-    public BuildOption.Value<Boolean> getIsolatedProjects() {
+    public Option.Value<Boolean> getIsolatedProjects() {
         return isolatedProjects;
     }
 
-    public void setIsolatedProjects(BuildOption.Value<Boolean> isolatedProjects) {
+    @Override
+    public boolean isConfigurationCacheRequested() {
+        return configurationCache.get();
+    }
+
+    public void setIsolatedProjects(Option.Value<Boolean> isolatedProjects) {
         this.isolatedProjects = isolatedProjects;
     }
 

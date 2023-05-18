@@ -17,7 +17,7 @@
 package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.strictlyEquals
@@ -25,7 +25,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class OpaqueComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter value"() {
         when:
-        ComponentIdentifier componentIdentifier = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_API)
+        ComponentIdentifier componentIdentifier = new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_API)
 
         then:
         componentIdentifier.displayName == "Gradle API"
@@ -42,8 +42,8 @@ class OpaqueComponentIdentifierTest extends Specification {
 
     def "can compare with equivalent identifiers"() {
         expect:
-        ComponentIdentifier componentIdentifier1 = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_API)
-        ComponentIdentifier componentIdentifier2 = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_API)
+        ComponentIdentifier componentIdentifier1 = new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_API)
+        ComponentIdentifier componentIdentifier2 = new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_API)
         strictlyEquals(componentIdentifier1, componentIdentifier2)
         componentIdentifier1.hashCode() == componentIdentifier2.hashCode()
         componentIdentifier1.toString() == componentIdentifier2.toString()
@@ -51,8 +51,8 @@ class OpaqueComponentIdentifierTest extends Specification {
 
     def "can compare with different identifiers"() {
         expect:
-        ComponentIdentifier componentIdentifier1 = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_API)
-        ComponentIdentifier componentIdentifier2 = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.LOCAL_GROOVY)
+        ComponentIdentifier componentIdentifier1 = new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_API)
+        ComponentIdentifier componentIdentifier2 = new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY)
         !strictlyEquals(componentIdentifier1, componentIdentifier2)
         componentIdentifier1.hashCode() != componentIdentifier2.hashCode()
         componentIdentifier1.toString() != componentIdentifier2.toString()

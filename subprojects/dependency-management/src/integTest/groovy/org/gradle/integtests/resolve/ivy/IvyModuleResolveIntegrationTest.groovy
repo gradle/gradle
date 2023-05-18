@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -86,7 +85,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-other-1.6.jar', 'projectD-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails when project dependency references a configuration that does not exist"() {
         ivyRepo.module('test', 'target', '1.0').publish()
 
@@ -111,7 +109,6 @@ task retrieve(type: Sync) {
         failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails when ivy module references a configuration that does not exist"() {
         def b = ivyRepo.module('test', 'b', '1.0').publish()
         ivyRepo.module('test', 'a', '1.0')
@@ -373,7 +370,8 @@ task retrieve(type: Sync) {
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.0") {
-                module("ivy.configuration:projectA:1.2:a") {
+                module("ivy.configuration:projectA:1.2") {
+                    configuration("a")
                     module("ivy.configuration:projectB:1.5") {
                         variant('a', ['org.gradle.status': 'integration']) // b, parent are redundant
                         variant('c', ['org.gradle.status': 'integration']) // b, parent are redundant

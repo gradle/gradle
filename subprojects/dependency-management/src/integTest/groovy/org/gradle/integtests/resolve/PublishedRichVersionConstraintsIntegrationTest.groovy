@@ -18,12 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
-    @ToBeFixedForConfigurationCache
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
         repository {
@@ -107,7 +105,9 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
                 edge("org:foo:{strictly [1.0,1.2]}", "org:foo:1.2")
                 edge('org:bar:1.0', 'org:bar:1.0') {
                     edge("org:foo:{strictly [1.1,1.3]}", "org:foo:1.2") {
+                        notRequested()
                         byAncestor()
+                        byReason("didn't match version 1.3")
                     }
                 }
             }
@@ -164,7 +164,9 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:bar:1') {
-                    edge("org:foo:{prefer 1.1}", "org:foo:1.1")
+                    edge("org:foo:{prefer 1.1}", "org:foo:1.1") {
+                        byReason("didn't match version 2.0")
+                    }
                 }
                 module('org:baz:1') {
                     edge("org:foo:{prefer 1.0}", "org:foo:1.1")
@@ -210,7 +212,9 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge('org:foo:{strictly 17}', 'org:foo:17')
+                edge('org:foo:{strictly 17}', 'org:foo:17') {
+                    byAncestor()
+                }
                 module('org:bar:1.0') {
                     edge("org:foo:{strictly 15}", "org:foo:17")
                 }
@@ -219,7 +223,6 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "should fail during conflict resolution transitive dependency rejects"() {
         given:
         repository {
@@ -256,7 +259,6 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
    Dependency path ':test:unspecified' --> 'org:bar:1.0' (runtime) --> 'org:foo:{require 1.0; reject 1.1}'""")
     }
 
-    @ToBeFixedForConfigurationCache
     void "honors multiple rejections #rejects using dynamic versions using dependency notation #rejects"() {
         given:
         repository {
@@ -300,7 +302,6 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "should fail if required module is rejected"() {
         given:
         repository {
@@ -336,7 +337,6 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "shows only one path to dependency when node is already visited"() {
         given:
         repository {
@@ -395,7 +395,6 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         failure.assertHasNoCause("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b:1.1'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "handles dependency cycles"() {
         given:
         repository {

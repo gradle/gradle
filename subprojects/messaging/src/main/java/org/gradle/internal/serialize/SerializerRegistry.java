@@ -19,6 +19,8 @@ package org.gradle.internal.serialize;
 public interface SerializerRegistry {
     /**
      * Use the given serializer for objects of the given type.
+     * <p>
+     * The provided serializer must be thread-safe and reusable.
      */
     <T> void register(Class<T> implementationType, Serializer<T> serializer);
 

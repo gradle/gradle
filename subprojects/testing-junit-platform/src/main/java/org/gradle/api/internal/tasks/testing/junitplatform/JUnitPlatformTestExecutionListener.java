@@ -163,11 +163,15 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @SuppressWarnings("unchecked")
     private static List<Throwable> getFailureListFromMultipleFailuresError(Throwable f) {
         try {
-            if (!f.getClass().getCanonicalName().equals("org.opentest4j.MultipleFailuresError")) {
-                return null;
-            } else {
+            String className = f.getClass().getCanonicalName();
+            if (className.equals("org.opentest4j.MultipleFailuresError")) {
                 Method getFailures = f.getClass().getMethod("getFailures");
                 return (List<Throwable>) getFailures.invoke(f);
+            } else if (className.equals("org.assertj.core.error.MultipleAssertionsError")) {
+                Method getFailures = f.getClass().getMethod("getErrors");
+                return (List<Throwable>) getFailures.invoke(f);
+            } else {
+                return null;
             }
         } catch (Exception ignore) {
             return null;

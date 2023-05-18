@@ -16,9 +16,14 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -155,7 +160,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForConfigurationCache
     def "mavenLocal fails to resolve artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2').publishPom()
@@ -167,7 +171,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause('Could not find group:projectA:1.2')
     }
 
-    @ToBeFixedForConfigurationCache
     def "mavenLocal reports and recovers from missing module"() {
         def module = m2.mavenRepo().module('group', 'projectA', '1.2')
 
@@ -178,9 +181,13 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pomFile.toURL()}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
+        failure.assertHasResolutions(repositoryHint("Maven POM"),
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
 
         when:
         module.publish()
@@ -244,7 +251,6 @@ Required by:
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForConfigurationCache
     def "mavenLocal fails to resolve snapshot artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
@@ -272,7 +278,6 @@ Required by:
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForConfigurationCache
     def "mavenLocal fails to resolve non-unique snapshot artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()

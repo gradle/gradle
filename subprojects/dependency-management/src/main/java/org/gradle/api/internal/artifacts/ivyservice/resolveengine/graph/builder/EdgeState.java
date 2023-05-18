@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -29,11 +28,13 @@ import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantArtifactResolveState;
+import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.model.VariantSelectionResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
@@ -65,7 +66,7 @@ class EdgeState implements DependencyGraphEdge {
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
-    private ResolvedVariantResult resolvedVariant;
+    private NodeState resolvedVariant;
     private boolean unattached;
     private boolean used;
 
@@ -131,8 +132,8 @@ class EdgeState implements DependencyGraphEdge {
 
     void attachToTargetConfigurations() {
         ComponentState targetComponent = getTargetComponent();
-        if (targetComponent == null) {
-            // The selector failed or the module has been deselected. Do not attach.
+        if (targetComponent == null || !isUsed()) {
+            // The selector failed or the module has been deselected or the edge source has been deselected. Do not attach.
             return;
         }
 
@@ -218,10 +219,10 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     private void calculateTargetConfigurations(ComponentState targetComponent) {
-        ComponentResolveMetadata targetModuleVersion = targetComponent.getMetadata();
+        ComponentGraphResolveState targetComponentState = targetComponent.getResolveStateOrNull();
         targetNodes.clear();
         targetNodeSelectionFailure = null;
-        if (targetModuleVersion == null) {
+        if (targetComponentState == null) {
             targetComponent.getModule().getPlatformState().addOrphanEdge(this);
             // Broken version
             return;
@@ -258,11 +259,11 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        List<ConfigurationMetadata> targetConfigurations;
+        VariantSelectionResult targetVariants;
         try {
             ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
             attributes = resolveState.getAttributesFactory().concat(attributes, safeGetAttributes());
-            targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema(), dependencyState.getDependency().getSelector().getRequestedCapabilities());
+            targetVariants = dependencyMetadata.selectVariants(attributes, targetComponentState, resolveState.getAttributesSchema(), dependencyState.getDependency().getSelector().getRequestedCapabilities());
         } catch (AttributeMergingException mergeError) {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
@@ -276,8 +277,8 @@ class EdgeState implements DependencyGraphEdge {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
             return;
         }
-        for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
-            NodeState targetNodeState = resolveState.getNode(targetComponent, targetConfiguration);
+        for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
+            NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
             this.targetNodes.add(targetNodeState);
         }
     }
@@ -369,9 +370,19 @@ class EdgeState implements DependencyGraphEdge {
         return resolvedVariant != null || !findTargetNodes().isEmpty();
     }
 
-    @Override
     @Nullable
-    public ResolvedVariantResult getSelectedVariant() {
+    @Override
+    public Long getSelectedVariant() {
+        NodeState node = getSelectedNode();
+        if (node == null) {
+            return null;
+        } else {
+            return node.getNodeId();
+        }
+    }
+
+    @Nullable
+    public NodeState getSelectedNode() {
         if (resolvedVariant != null) {
             return resolvedVariant;
         }
@@ -379,7 +390,7 @@ class EdgeState implements DependencyGraphEdge {
         assert !targetNodes.isEmpty();
         for (NodeState targetNode : targetNodes) {
             if (targetNode.isSelected()) {
-                resolvedVariant = targetNode.getResolvedVariant();
+                resolvedVariant = targetNode;
                 return resolvedVariant;
             }
         }
@@ -409,8 +420,8 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ResolvedVariantResult getFromVariant() {
-        return from.getResolvedVariant();
+    public Long getFromVariant() {
+        return from.getNodeId();
     }
 
     @Nullable
@@ -427,12 +438,12 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public List<ComponentArtifactMetadata> getArtifacts(final ConfigurationMetadata targetConfiguration) {
+    public List<ComponentArtifactMetadata> getArtifacts(VariantArtifactResolveState targetVariant) {
         List<IvyArtifactName> artifacts = dependencyMetadata.getArtifacts();
         if (artifacts.isEmpty()) {
             return Collections.emptyList();
         }
-        return artifacts.stream().map(targetConfiguration::artifact).collect(Collectors.toList());
+        return artifacts.stream().map(targetVariant::resolveArtifact).collect(Collectors.toList());
     }
 
     void maybeDecreaseHardEdgeCount(NodeState removalSource) {

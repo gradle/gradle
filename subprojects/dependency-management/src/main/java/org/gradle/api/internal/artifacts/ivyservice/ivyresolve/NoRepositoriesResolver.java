@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -40,6 +40,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * Used as a fallback when no repositories are defined for a given resolution.
@@ -67,7 +68,7 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
 
     @Override
     public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
-        result.failed(new ModuleVersionNotFoundException(dependency.getSelector(), () -> String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getSelector())));
+        result.failed(new ModuleVersionNotFoundException(dependency.getSelector(), () -> String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getSelector()), ImmutableList.of()));
     }
 
     @Override
@@ -82,17 +83,17 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentArtifactResolveMetadata component, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
         throw new UnsupportedOperationException();
     }
 }

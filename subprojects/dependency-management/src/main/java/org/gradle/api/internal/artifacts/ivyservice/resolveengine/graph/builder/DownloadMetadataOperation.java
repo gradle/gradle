@@ -28,7 +28,7 @@ class DownloadMetadataOperation implements RunnableBuildOperation {
 
     @Override
     public void run(BuildOperationContext context) {
-        state.getMetadata();
+        state.getMetadataOrNull();
     }
 
     @Override

@@ -48,6 +48,7 @@ public class Configurations {
         return out;
     }
 
+    @Deprecated // TODO:Finalize Upload Removal - Issue #21439
     public static String uploadTaskName(String configurationName) {
         return "upload" + StringUtils.capitalize(configurationName);
     }

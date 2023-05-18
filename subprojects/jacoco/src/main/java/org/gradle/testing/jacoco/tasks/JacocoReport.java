@@ -33,7 +33,7 @@ import java.io.File;
  * Task to generate HTML, Xml and CSV reports of Jacoco coverage data.
  */
 @CacheableTask
-public class JacocoReport extends JacocoReportBase implements Reporting<JacocoReportsContainer> {
+public abstract class JacocoReport extends JacocoReportBase implements Reporting<JacocoReportsContainer> {
 
     private final Property<String> projectName = getProject().getObjects().property(String.class);
     private final JacocoReportsContainer reports;

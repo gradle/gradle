@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.reproducibility
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -35,7 +34,6 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails to resolve a direct changing dependency"() {
         buildFile << """
             dependencies {
@@ -61,7 +59,6 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
         failure.assertHasCause("Could not resolve org:test:1.0: Resolution strategy disallows usage of changing versions")
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails to resolve a transitive changing dependency"() {
         buildFile << """
             dependencies {
@@ -97,7 +94,6 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForConfigurationCache
     def "can deny a direct snapshot dependency (unique = #unique)"() {
         buildFile << """
             dependencies {
@@ -131,7 +127,6 @@ class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDepende
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForConfigurationCache
     def "can deny a transitive snapshot dependency (unique = #unique)"() {
         buildFile << """
             dependencies {

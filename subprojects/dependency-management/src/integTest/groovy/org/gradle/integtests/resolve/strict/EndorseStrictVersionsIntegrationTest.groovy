@@ -17,15 +17,10 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResolveTest {
-
-    def setup() {
-        resolve.withStrictReasonsCheck()
-    }
 
     void "can downgrade version through platform"() {
         given:
@@ -72,11 +67,15 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
             root(':', ':test:') {
                 module('org:platform:1.0') {
                     constraint('org:bar:1.0').byConstraint()
-                    constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                    constraint('org:foo:{strictly 1.0}', 'org:foo:1.0')
                 }
                 edge('org:bar', 'org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
-                }.byRequest()
+                    edge('org:foo:2.0', 'org:foo:1.0') {
+                        notRequested()
+                        byConstraint()
+                        byAncestor()
+                    }
+                }
             }
         }
     }
@@ -133,18 +132,23 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org:platform:1.0', 'org:platform:2.0') {
-                    constraint('org:bar:1.0').byConstraint()
-                    constraint('org:foo:1.0', 'org:foo:2.0').byConstraint().byConflictResolution("between versions 2.0 and 1.0")
-                }.byConflictResolution("between versions 2.0 and 1.0")
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    constraint('org:bar:1.0')
+                    constraint('org:foo:1.0', 'org:foo:2.0') {
+                        notRequested()
+                        byConstraint()
+                        byConflictResolution("between versions 2.0 and 1.0")
+                    }
+                }
                 edge('org:bar', 'org:bar:1.0') {
+                    byConstraint()
                     module('org:foo:2.0')
-                    module('org:platform:2.0').byRequest()
-                }.byRequest()
+                    module('org:platform:2.0')
+                }
             }
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "multiple endorsed strict versions that target the same module fail the build if they conflict"() {
         given:
         repository {
@@ -194,7 +198,6 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
    Constraint path ':test:unspecified' --> 'org:platform-b:1.0' (runtime) --> 'org:foo:{strictly 2.0}'"""
     }
 
-    @ToBeFixedForConfigurationCache
     def "a module from which strict versions are endorsed can itself be influenced by strict versions endorsed form elsewhere"() {
         given:
         repository {
@@ -247,11 +250,15 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:platform:1.0') {
-                    constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                    constraint('org:foo:{strictly 1.0}', 'org:foo:1.0')
                 }
                 module('org:baz:1.0') {
                     module('org:bar:1.0') {
-                        edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                        edge('org:foo:2.0', 'org:foo:1.0') {
+                            notRequested()
+                            byConstraint()
+                            byAncestor()
+                        }
                     }
                 }
             }
@@ -309,11 +316,14 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                 module('org:baz:1.0') {
                     module('org:platform:1.0') {
                         constraint('org:bar:1.0').byConstraint()
-                        constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+                        constraint('org:foo:{strictly 1.0}', 'org:foo:1.0')
                     }
                     edge('org:bar', 'org:bar:1.0') {
-                        byRequest()
-                        edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
+                        edge('org:foo:2.0', 'org:foo:1.0') {
+                            notRequested()
+                            byConstraint()
+                            byAncestor()
+                        }
                     }
                 }
             }

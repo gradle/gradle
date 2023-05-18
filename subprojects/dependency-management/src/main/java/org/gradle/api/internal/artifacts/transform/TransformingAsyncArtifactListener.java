@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.internal.Deferrable;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -38,18 +39,18 @@ import java.io.File;
 import java.util.List;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
-    private final List<BoundTransformationStep> transformationSteps;
+    private final List<BoundTransformStep> transformSteps;
     private final ImmutableAttributes target;
     private final List<? extends Capability> capabilities;
     private final ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result;
 
     public TransformingAsyncArtifactListener(
-        List<BoundTransformationStep> transformationSteps,
+        List<BoundTransformStep> transformSteps,
         ImmutableAttributes target,
         List<? extends Capability> capabilities,
         ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result
     ) {
-        this.transformationSteps = transformationSteps;
+        this.transformSteps = transformSteps;
         this.target = target;
         this.capabilities = capabilities;
         this.result = result;
@@ -60,7 +61,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         artifacts.visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> variantCapabilities, ResolvableArtifact artifact) {
-                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformationSteps);
+                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformSteps);
                 result.add(transformedArtifact);
             }
 
@@ -87,16 +88,16 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final List<? extends Capability> capabilities;
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
-        private final List<BoundTransformationStep> transformationSteps;
-        private Try<TransformationSubject> transformedSubject;
-        private CacheableInvocation<TransformationSubject> invocation;
+        private final List<BoundTransformStep> transformSteps;
+        private Try<TransformStepSubject> transformedSubject;
+        private Deferrable<Try<TransformStepSubject>> invocation;
 
-        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformationStep> transformationSteps) {
+        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformStep> transformSteps) {
             this.variantName = variantName;
             this.artifact = artifact;
             this.target = target;
             this.capabilities = capabilities;
-            this.transformationSteps = transformationSteps;
+            this.transformSteps = transformSteps;
         }
 
         public DisplayName getVariantName() {
@@ -115,8 +116,18 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             return capabilities;
         }
 
-        public List<BoundTransformationStep> getTransformationSteps() {
-            return transformationSteps;
+        public List<BoundTransformStep> getTransformSteps() {
+            return transformSteps;
+        }
+
+        @Override
+        public void prepareForVisitingIfNotAlready() {
+            // The parameters of the transforms should already be isolated prior to visiting this set.
+            // However, in certain cases, the transform's parameters may not be isolated (eg https://github.com/gradle/gradle/issues/23116), so do this now
+            // Those cases should be improved so that the parameters are always isolated, for example by always using work nodes to do this work
+            for (BoundTransformStep step : transformSteps) {
+                step.getTransformStep().isolateParametersIfNotAlready();
+            }
         }
 
         @Override
@@ -133,11 +144,6 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public void run(@Nullable BuildOperationContext context) {
-            finalizeValue();
-        }
-
-        @Override
-        public void finalizeNow(boolean requireFiles) {
             finalizeValue();
         }
 
@@ -163,12 +169,12 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 }
             }
 
-            CacheableInvocation<TransformationSubject> invocation = createInvocation();
+            Deferrable<Try<TransformStepSubject>> invocation = createInvocation();
             synchronized (this) {
                 this.invocation = invocation;
-                if (invocation.getCachedResult().isPresent()) {
+                if (invocation.getCompleted().isPresent()) {
                     // Have already executed the transform, no need to execute
-                    transformedSubject = invocation.getCachedResult().get();
+                    transformedSubject = invocation.getCompleted().get();
                     return false;
                 } else {
                     // Have not executed the transform, should execute
@@ -177,7 +183,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             }
         }
 
-        private Try<TransformationSubject> finalizeValue() {
+        private Try<TransformStepSubject> finalizeValue() {
             synchronized (this) {
                 if (transformedSubject != null) {
                     return transformedSubject;
@@ -192,7 +198,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 }
             }
 
-            CacheableInvocation<TransformationSubject> invocation;
+            Deferrable<Try<TransformStepSubject>> invocation;
             synchronized (this) {
                 invocation = this.invocation;
             }
@@ -200,27 +206,32 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             if (invocation == null) {
                 invocation = createInvocation();
             }
-            Try<TransformationSubject> result = invocation.invoke();
+            Try<TransformStepSubject> result = invocation.completeAndGet();
             synchronized (this) {
                 transformedSubject = result;
                 return result;
             }
         }
 
-        private CacheableInvocation<TransformationSubject> createInvocation() {
-            TransformationSubject initialSubject = TransformationSubject.initial(artifact);
-            BoundTransformationStep initialStep = transformationSteps.get(0);
-            CacheableInvocation<TransformationSubject> invocation = initialStep.getTransformation().createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
-            for (int i = 1; i < transformationSteps.size(); i++) {
-                BoundTransformationStep nextStep = transformationSteps.get(i);
-                invocation = invocation.flatMap(intermediate -> nextStep.getTransformation().createInvocation(intermediate, nextStep.getUpstreamDependencies(), null));
+        private Deferrable<Try<TransformStepSubject>> createInvocation() {
+            TransformStepSubject initialSubject = TransformStepSubject.initial(artifact);
+            BoundTransformStep initialStep = transformSteps.get(0);
+            Deferrable<Try<TransformStepSubject>> invocation = initialStep.getTransformStep()
+                .createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
+            for (int i = 1; i < transformSteps.size(); i++) {
+                BoundTransformStep nextStep = transformSteps.get(i);
+                invocation = invocation
+                    .flatMap(intermediateResult -> intermediateResult
+                        .map(intermediateSubject -> nextStep.getTransformStep()
+                            .createInvocation(intermediateSubject, nextStep.getUpstreamDependencies(), null))
+                        .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure))));
             }
             return invocation;
         }
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            Try<TransformationSubject> transformedSubject = finalizeValue();
+            Try<TransformStepSubject> transformedSubject = finalizeValue();
             transformedSubject.ifSuccessfulOrElse(
                 subject -> {
                     for (File output : subject.getFiles()) {

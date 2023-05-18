@@ -62,7 +62,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
 
     @Override
     public String getRepositoryId(ResolvedComponentResult resolvedComponentResult) {
-        return ((ResolvedComponentResultInternal) resolvedComponentResult).getRepositoryName();
+        return ((ResolvedComponentResultInternal) resolvedComponentResult).getRepositoryId();
     }
 
     @Override
@@ -72,7 +72,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         final Map<String, Map<String, String>> components = Maps.newHashMap();
         resolutionResult.allComponents(component -> components.put(
             component.getId().getDisplayName(),
-            Collections.singletonMap("repoName", ((ResolvedComponentResultInternal) component).getRepositoryName())
+            Collections.singletonMap("repoId", getRepositoryId(component))
         ));
         model.put("components", components);
         ImmutableList.Builder<Object> requestedAttributesBuilder = new ImmutableList.Builder<>();
@@ -106,11 +106,13 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
             return getDesugared().keySet();
         }
 
+        @Deprecated
         @Override
         public <T> AttributeContainer attribute(Attribute<T> key, T value) {
             return getDesugared().attribute(key, value);
         }
 
+        @Deprecated
         @Override
         public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
             return getDesugared().attributeProvider(key, provider);

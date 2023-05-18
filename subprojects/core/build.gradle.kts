@@ -44,6 +44,7 @@ dependencies {
     implementation(project(":worker-processes"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
+    implementation(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -59,13 +60,15 @@ dependencies {
     implementation(libs.groovyTest)
     implementation(libs.groovyXml)
     implementation(libs.ant)
+    implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation(libs.asm)
+    implementation(libs.asmTree)
     implementation(libs.asmCommons)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.commonsCompress)
     implementation(libs.nativePlatform)
     implementation(libs.xmlApis)
     implementation(libs.tomlj)
@@ -73,7 +76,11 @@ dependencies {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
-    testImplementation(project(":plugins"))
+    compileOnly(libs.futureKotlin("stdlib")) {
+        because("it needs to forward calls from instrumented code to the Kotlin standard library")
+    }
+
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":testing-base"))
     testImplementation(project(":platform-native"))
     testImplementation(libs.jsoup)
@@ -113,12 +120,16 @@ dependencies {
     testFixturesApi(project(":resources")) {
         because("test fixtures expose file resource types")
     }
+    testFixturesApi(testFixtures(project(":persistent-cache"))) {
+        because("test fixtures expose cross-build cache factory")
+    }
     testFixturesApi(project(":process-services")) {
         because("test fixtures expose exec handler types")
     }
     testFixturesApi(testFixtures(project(":hashing"))) {
         because("test fixtures expose test hash codes")
     }
+    testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))
     testFixturesImplementation(project(":snapshots"))
@@ -128,6 +139,7 @@ dependencies {
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.groovyAnt)
+    testFixturesImplementation(libs.asm)
 
     testFixturesRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
@@ -172,13 +184,20 @@ dependencies {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    annotationProcessor(project(":internal-instrumentation-processor"))
+    annotationProcessor(platform(project(":distributions-dependencies")))
+
+    testAnnotationProcessor(project(":internal-instrumentation-processor"))
+    testAnnotationProcessor(platform(project(":distributions-dependencies")))
 }
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
+    ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
@@ -186,9 +205,19 @@ tasks.test {
     setForkEvery(200)
 }
 
+// Disable annotation processing for Groovy, as it is not compatible with Groovy IC
+tasks.withType<GroovyCompile>().configureEach {
+    options.compilerArgs.add("-proc:none")
+}
+
 tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

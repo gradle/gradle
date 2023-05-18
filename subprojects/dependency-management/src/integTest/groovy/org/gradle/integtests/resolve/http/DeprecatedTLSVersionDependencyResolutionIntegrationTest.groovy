@@ -16,8 +16,10 @@
 
 package org.gradle.integtests.resolve.http
 
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.junit.Rule
 
@@ -27,10 +29,10 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
 
 class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore = TestKeyStore.init(resources.dir)
+    ResolveFailureTestFixture failedResolve = new ResolveFailureTestFixture(buildFile)
 
     def "unable to resolve dependencies when server only supports deprecated TLS versions"() {
         given:
@@ -40,15 +42,20 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
         }
         keyStore.configureServerCert(executer)
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+
         and:
         writeBuildFile()
+        failedResolve.prepare()
+
         when:
         module.allowAll()
+
         then:
         executer.withStackTraceChecksDisabled()
-        fails('listJars')
+        fails('checkDeps')
+
         and:
-        failure.assertHasDescription("Execution failed for task ':listJars'")
+        failedResolve.assertFailurePresent(failure)
         failure.assertHasCause("Could not GET '$server.uri")
         failure.assertThatCause(
             allOf(
@@ -57,7 +64,7 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
                     startsWith("The server may not support the client's requested TLS protocol versions:") // Windows
                 ),
                 containsString("You may need to configure the client to allow other protocols to be used."),
-                containsString("See: https://docs.gradle.org/")
+                containsString(documentationRegistry.getDocumentationRecommendationFor("on this", "build_environment", "sec:gradle_system_properties"))
             )
         )
     }
@@ -70,15 +77,20 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
         }
         keyStore.configureServerCert(executer)
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+
         and:
         writeBuildFile()
+        failedResolve.prepare()
 
         when:
         module.allowAll()
+
         and:
         executer.withArgument("-Dhttps.protocols=TLSv1.3")
+
         then:
-        fails('listJars')
+        fails('checkDeps')
+        failedResolve.assertFailurePresent(failure)
     }
 
     def writeBuildFile() {
@@ -91,11 +103,6 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
             configurations { compile }
             dependencies {
                 compile 'group:projectA:1.2'
-            }
-            task listJars {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-                }
             }
         """
     }

@@ -55,6 +55,8 @@ class ZipSlipIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "Copy task refuses to unzip evil.zip"() {
+        executer.withStacktraceEnabled()
+
         given:
         buildFile << '''
             task copyEvilZip(type: Copy) {

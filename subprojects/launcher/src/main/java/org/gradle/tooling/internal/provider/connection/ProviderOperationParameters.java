@@ -80,14 +80,6 @@ public interface ProviderOperationParameters {
      */
     File getProjectDir();
 
-    /**
-     * @return When null, use the provider's default value for search upwards.
-     * @since 1.0-milestone-3
-     * @deprecated The ability to change the search upward behavior when calling a build has been removed in Gradle 7.0. This is kept for compatibility with pre 7.0 versions.
-     */
-    @Deprecated
-    @Nullable
-    Boolean isSearchUpwards();
 
     /**
      * @return When null, use the provider's default value for embedded.
@@ -171,4 +163,10 @@ public interface ProviderOperationParameters {
      * @since 2.8-rc-1
      */
     List<File> getInjectedPluginClasspath();
+
+    /**
+     * @return Additional system properties defined by the client to be available in the build.
+     * @since 7.6
+     */
+    Map<String, String> getSystemProperties(Map<String, String> defaultValue);
 }

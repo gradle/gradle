@@ -6,17 +6,10 @@ plugins {
 group "org.sample"
 version "1.0"
 
-repositories {
-    ivy {
-        name 'localrepo'
-        url file("../../../local-repo")
-    }
-}
-
 publishing {
     repositories {
         maven {
-            url file("../../../local-repo")
+            url file("../../local-repo")
         }
     }
     publications {

@@ -17,10 +17,7 @@
 
 package org.gradle.integtests.tooling.r23
 
-
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ModelBuilder
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.build.BuildEnvironment
 
 class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
@@ -32,11 +29,10 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        BuildEnvironment model = toolingApi.withConnection { ProjectConnection connection ->
-            ModelBuilder<BuildEnvironment> modelBuilder = connection.model(BuildEnvironment.class)
-            modelBuilder.forTasks(new String[0])
-            collectOutputs(modelBuilder)
-            modelBuilder.get()
+        BuildEnvironment model = toolingApi.withConnection {
+            it.model(BuildEnvironment)
+                .forTasks(new String[0])
+                .get()
         }
 
         then:

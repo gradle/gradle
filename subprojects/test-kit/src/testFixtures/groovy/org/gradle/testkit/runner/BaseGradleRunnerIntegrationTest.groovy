@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner
 
 import groovy.transform.Sortable
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
@@ -52,6 +51,7 @@ import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
+import org.junit.AssumptionViolatedException
 import org.junit.Rule
 import org.spockframework.runtime.extension.IMethodInvocation
 import spock.lang.Retry
@@ -180,31 +180,26 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         OutputScrapingExecutionFailure.from(buildResult.output, buildResult.output)
     }
 
-    static String determineMinimumVersionThatRunsOnCurrentJavaVersion(String desiredGradleVersion) {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-            def compatibleVersion = GradleVersion.version("7.3-rc-2")
-            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
-                return compatibleVersion.version
-            }
+    private static final String LOWEST_MAJOR_GRADLE_VERSION
+    static {
+        def releasedGradleVersions = new ReleasedVersionDistributions()
+        def probeVersions = ["4.10.3", "5.6.4", "6.9.2", "7.5.1", "7.6"]
+        String compatibleVersion = probeVersions.find {version ->
+            releasedGradleVersions.getDistribution(version)?.worksWith(Jvm.current())
         }
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            def compatibleVersion = GradleVersion.version("7.0")
-            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
-                return compatibleVersion.version
-            }
+        LOWEST_MAJOR_GRADLE_VERSION = compatibleVersion
+    }
+
+    static String findLowestMajorGradleVersion() {
+        LOWEST_MAJOR_GRADLE_VERSION
+    }
+
+    static String getLowestMajorGradleVersion() {
+        def gradleVersion = LOWEST_MAJOR_GRADLE_VERSION
+        if (gradleVersion == null) {
+            throw new AssumptionViolatedException("No version of Gradle supports Java ${Jvm.current()}")
         }
-        if (JavaVersion.current().isJava11Compatible()) {
-            def compatibleVersion = GradleVersion.version("4.8.1") // see https://github.com/gradle/gradle/issues/4860
-            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
-                return compatibleVersion.version
-            }
-        } else if (JavaVersion.current().isJava9Compatible()) {
-            def compatibleVersion = GradleVersion.version("4.3.1") // see https://github.com/gradle/gradle/issues/2992
-            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
-                return compatibleVersion.version
-            }
-        }
-        return desiredGradleVersion
+        return gradleVersion
     }
 
     static class Interceptor extends AbstractMultiTestInterceptor {

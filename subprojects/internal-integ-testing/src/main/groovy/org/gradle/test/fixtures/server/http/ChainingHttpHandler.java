@@ -165,7 +165,7 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     // We observed jstack hanging on windows, so for now we only enable it for Linux
     private void dumpThreadsUponTimeout(String stacktrace) {
         if (stacktrace.contains("due to a timeout waiting for other requests") && OperatingSystem.current().isLinux()) {
-            JavaProcessStackTracesMonitor.printAllStackTracesByJstack(new File("."));
+            new JavaProcessStackTracesMonitor(new File(".")).printAllStackTracesByJstack();
         }
     }
 

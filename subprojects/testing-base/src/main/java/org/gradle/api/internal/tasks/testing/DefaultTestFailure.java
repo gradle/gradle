@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
+import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -77,20 +78,27 @@ public class DefaultTestFailure extends TestFailure {
     }
 
     public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, List<TestFailure> causes) {
-        DefaultTestFailureDetails details = new DefaultTestFailureDetails(failure.getMessage(), failure.getClass().getName(), stacktraceOf(failure), true, expected, actual);
+        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), true, expected, actual);
         return new DefaultTestFailure(failure, details, causes == null ? Collections.<TestFailure>emptyList() : causes);
     }
 
     public static TestFailure fromTestFrameworkFailure(Throwable failure, List<TestFailure> causes) {
-        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), failure.getClass().getName(), stacktraceOf(failure), false, null, null);
+        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), false, null, null);
         return new DefaultTestFailure(failure, details, causes == null ? Collections.<TestFailure>emptyList() : causes);
     }
+
     private static String messageOf(Throwable throwable) {
         try {
             return throwable.getMessage();
         } catch (Throwable t) {
-            return String.format("Could not determine failure message for exception of type %s: %s", throwable.getClass().getName(), t);
+            return String.format("Could not determine failure message for exception of type %s: %s", classNameOf(throwable), t);
         }
+    }
+
+    private static String classNameOf(Throwable failure) {
+        return failure instanceof PlaceholderExceptionSupport
+            ? ((PlaceholderExceptionSupport) failure).getExceptionClassName()
+            : failure.getClass().getName();
     }
 
     private static String stacktraceOf(Throwable throwable) {

@@ -19,8 +19,8 @@ There are times when the default substitutions determined by Gradle are not suff
 Take for example a single-project build 'unpublished', that produces a java utility library but does not declare a value for the `group` attribute:
 
 ====
-include::sample[dir="groovy/anonymous-library",files="build.gradle[]"]
 include::sample[dir="kotlin/anonymous-library",files="build.gradle.kts[]"]
+include::sample[dir="groovy/anonymous-library",files="build.gradle[]"]
 ====
 
 When this build is included in a composite, it will attempt to substitute for the dependency module `undefined:unpublished` ('undefined' is the default value for `project.group`, and 'unpublished' is the root project name). Clearly this isn't going to be very useful in a composite build.
@@ -28,8 +28,8 @@ When this build is included in a composite, it will attempt to substitute for th
 In order to use the `unpublished` library as-is in a composite build, the composing build can explicitly declare the substitutions that it provides.
 
 ====
-include::sample[dir="groovy",files="settings.gradle[tags=composite_substitution]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[tags=composite_substitution]"]
+include::sample[dir="groovy",files="settings.gradle[tags=composite_substitution]"]
 ====
 
 With this configuration, the composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of `anonymous-library`.

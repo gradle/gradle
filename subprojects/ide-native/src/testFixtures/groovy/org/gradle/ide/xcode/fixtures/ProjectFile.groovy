@@ -310,7 +310,7 @@ class ProjectFile {
         }
 
         void assertSupportedArchitectures(String... architectures) {
-            def toXcodeArchitecture = [x86: 'i386', 'x86-64': 'x86_64'].withDefault { it }
+            def toXcodeArchitecture = [x86: 'i386', 'x86-64': 'x86_64', aarch64: 'arm64e'].withDefault { it }
             String expectedValidArchitectures = architectures.collect { toXcodeArchitecture.get(it) }.join(" ")
             assert this.buildConfigurationList.buildConfigurations.every { it.buildSettings.VALID_ARCHS == expectedValidArchitectures }
         }

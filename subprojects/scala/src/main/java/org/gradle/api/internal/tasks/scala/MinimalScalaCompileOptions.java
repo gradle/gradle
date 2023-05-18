@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.scala;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.language.scala.tasks.KeepAliveMode;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -38,6 +39,7 @@ public class MinimalScalaCompileOptions implements Serializable {
     private List<String> loggingPhases;
     private MinimalScalaCompilerDaemonForkOptions forkOptions;
     private transient IncrementalCompileOptions incrementalOptions;
+    private final KeepAliveMode keepAliveMode;
 
     public MinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
         this.failOnError = compileOptions.isFailOnError();
@@ -47,12 +49,13 @@ public class MinimalScalaCompileOptions implements Serializable {
         this.optimize = compileOptions.isOptimize();
         this.encoding = compileOptions.getEncoding();
         this.force = compileOptions.isForce();
-        this.additionalParameters = compileOptions.getAdditionalParameters() == null ? null : ImmutableList.copyOf(compileOptions.getAdditionalParameters());
+        this.additionalParameters = ImmutableList.copyOf(compileOptions.getAdditionalParameters());
         this.listFiles = compileOptions.isListFiles();
         this.loggingLevel = compileOptions.getLoggingLevel();
         this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());
         this.forkOptions = new MinimalScalaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.incrementalOptions = compileOptions.getIncrementalOptions();
+        this.keepAliveMode = compileOptions.getKeepAliveMode().get();
     }
 
     public boolean isFailOnError() {
@@ -160,5 +163,9 @@ public class MinimalScalaCompileOptions implements Serializable {
 
     public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
         this.incrementalOptions = incrementalOptions;
+    }
+
+    public KeepAliveMode getKeepAliveMode() {
+        return keepAliveMode;
     }
 }

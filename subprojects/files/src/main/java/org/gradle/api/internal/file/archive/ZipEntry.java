@@ -16,43 +16,61 @@
 
 package org.gradle.api.internal.file.archive;
 
+import org.gradle.internal.io.IoFunction;
+
 import java.io.IOException;
 import java.io.InputStream;
 
 public interface ZipEntry {
+    /**
+     * The compression method used for an entry
+     */
+    enum ZipCompressionMethod {
+        /**
+         * The entry is compressed with DEFLATE algorithm.
+         */
+        DEFLATED,
+
+        /**
+         * The entry is stored uncompressed.
+         */
+        STORED,
+        /**
+         * The entry is compressed with some other method (Zip spec declares about a dozen of these).
+         */
+        OTHER,
+    }
 
     boolean isDirectory();
 
     String getName();
 
     /**
-     * This method or {@link #withInputStream(InputStreamAction)} ()} can be called at most once per entry.
+     * This method or {@link #withInputStream(IoFunction)} ()} may or may not support being called more than
+     * once per entry.  Use {@link #canReopen()} to determine if more than one call is supported.
      */
     byte[] getContent() throws IOException;
 
     /**
-     * Functional interface to run an action against a {@link InputStream}
-     *
-     * @param <T> the action's result.
-     */
-    interface InputStreamAction<T> {
-        /**
-         * action to run against the passed {@link InputStream}.
-         */
-        T run(InputStream inputStream) throws IOException;
-    }
-
-    /**
      * Declare an action to be run against this ZipEntry's content as a {@link InputStream}.
-     * The {@link InputStream} passed to the {@link InputStreamAction#run(InputStream)} will
+     * The {@link InputStream} passed to the {@link IoFunction#apply(Object)} will
      * be closed right after the action's return.
      *
-     * This method or {@link #getContent()} can be called at most once per entry.
+     * This method or {@link #getContent()} may or may not support being called more than once per entry.
+     * Use {@link #canReopen()} to determine if more than one call is supported.
      */
-    <T> T withInputStream(InputStreamAction<T> action) throws IOException;
+    <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException;
 
     /**
      * The size of the content in bytes, or -1 if not known.
      */
     int size();
+
+    /**
+     * Whether or not the zip entry can safely be read again if any bytes
+     * have already been read from it.
+     */
+    boolean canReopen();
+
+    ZipCompressionMethod getCompressionMethod();
 }

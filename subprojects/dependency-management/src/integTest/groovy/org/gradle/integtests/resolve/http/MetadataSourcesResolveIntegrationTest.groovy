@@ -18,9 +18,14 @@ package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpRepository
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -148,7 +153,6 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "will only search for defined metadata sources"() {
         def metadataSource = isGradleMetadataPublished() ? "gradleMetadata" : useIvy() ? "ivyDescriptor" : "mavenPom"
         def metadataType = isGradleMetadataPublished() ? HttpRepository.MetadataType.ONLY_GRADLE : HttpRepository.MetadataType.ONLY_ORIGINAL
@@ -180,7 +184,12 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         failure.assertHasCause("""Could not find org.test:projectA:1.1.
 Searched in the following locations:
   - ${metadataUri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in '$format' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:""")
+        failure.assertHasResolutions(repositoryHint(format),
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
+
     }
 }

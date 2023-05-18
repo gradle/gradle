@@ -13,6 +13,7 @@ dependencies {
     testFixturesApi(project(":base-services"))
     testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(libs.groovyJson)
 
     performanceTestDistributionRuntimeOnly(project(":distributions-full")) {
@@ -64,5 +65,5 @@ tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
     environment("GRADLE_INTERNAL_REPO_USERNAME", System.getenv("GRADLE_INTERNAL_REPO_USERNAME"))
     environment("GRADLE_INTERNAL_REPO_PASSWORD", System.getenv("GRADLE_INTERNAL_REPO_PASSWORD"))
 
-    reportGeneratorClass.set("org.gradle.performance.results.BuildScanReportGenerator")
+    reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
 }

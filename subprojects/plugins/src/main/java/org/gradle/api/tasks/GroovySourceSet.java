@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 
@@ -26,7 +27,7 @@ import javax.annotation.Nullable;
  * org.gradle.api.plugins.GroovyPlugin}.
  *
  * @deprecated Using convention to contribute to source sets is deprecated. You can configure the groovy sources via the {@code GroovySourceDirectorySet} extension (e.g.
- * {@code sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 8.0.
+ * {@code sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class).setSrcDirs(...)}). This interface is scheduled for removal in Gradle 9.0.
  */
 @Deprecated
 public interface GroovySourceSet {
@@ -46,7 +47,7 @@ public interface GroovySourceSet {
      * @param configureClosure The closure to use to configure the Groovy source.
      * @return this
      */
-    GroovySourceSet groovy(@Nullable Closure configureClosure);
+    GroovySourceSet groovy(@Nullable @DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
 
     /**
      * Configures the Groovy source for this set.

@@ -16,11 +16,13 @@
 
 package org.gradle.internal.deprecation;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 
 import javax.annotation.Nullable;
+
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 public class DeprecatedFeatureUsage extends FeatureUsage {
 
@@ -48,6 +50,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.documentation = Preconditions.checkNotNull(documentation);
     }
 
+    @VisibleForTesting
     DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, Exception traceException) {
         super(usage.getSummary(), usage.getCalledFrom(), traceException);
         this.removalDetails = usage.removalDetails;
@@ -144,10 +147,9 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return outputBuilder.toString();
     }
 
-    private void append(StringBuilder outputBuilder, String message) {
-        if (!StringUtils.isEmpty(message)) {
+    private static void append(StringBuilder outputBuilder, @Nullable String message) {
+        if (isNotEmpty(message)) {
             outputBuilder.append(" ").append(message);
         }
     }
-
 }

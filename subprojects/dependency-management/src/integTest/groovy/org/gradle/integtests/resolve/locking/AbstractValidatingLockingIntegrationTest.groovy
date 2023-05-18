@@ -16,11 +16,8 @@
 
 package org.gradle.integtests.resolve.locking
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 abstract class AbstractValidatingLockingIntegrationTest extends AbstractLockingIntegrationTest {
 
-    @ToBeFixedForConfigurationCache
     def 'fails when lock file conflicts with declared strict constraint (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -64,7 +61,6 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def 'fails when lock file conflicts with declared version constraint (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -106,7 +102,6 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def 'fails when lock file contains entry that is not in resolution result (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -146,7 +141,6 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def 'fails when lock file does not contain entry for module in resolution result (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -186,7 +180,6 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def 'fails when resolution result is empty and lock file contains entries (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -219,7 +212,6 @@ configurations {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def 'dependency report passes with failed dependencies using out-of-date lock file (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -263,7 +255,6 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def 'dependency report passes with FAILED dependencies for all out lock issues (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()

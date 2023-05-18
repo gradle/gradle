@@ -15,20 +15,21 @@
  */
 package org.gradle.kotlin.dsl.plugins.precompiled
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.Factory
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 
 /**
@@ -36,7 +37,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
  *
  * @see PrecompiledScriptPluginsSupport
  */
-class PrecompiledScriptPlugins : Plugin<Project> {
+abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
@@ -52,25 +53,27 @@ class PrecompiledScriptPlugins : Plugin<Project> {
     private
     class Target(override val project: Project) : PrecompiledScriptPluginsSupport.Target {
 
+        override val jvmTarget: Provider<JavaVersion> =
+            DeprecationLogger.whileDisabled(Factory {
+                @Suppress("DEPRECATION")
+                project.kotlinDslPluginOptions.jvmTarget.map { JavaVersion.toVersion(it) }
+            })!!
+
         override val kotlinSourceDirectorySet: SourceDirectorySet
             get() = project.sourceSets["main"].kotlin
-
-        @Deprecated("No longer used.", ReplaceWith(""))
-        override val kotlinCompileTask: TaskProvider<out Task>
-            get() = error("No longer used")
-
-        @Deprecated("No longer used.", ReplaceWith(""))
-        override fun applyKotlinCompilerArgs(args: List<String>) =
-            error("No longer used.")
     }
 }
 
 
+val Project.kotlinDslPluginOptions: KotlinDslPluginOptions
+    get() = extensions.getByType()
+
+
 private
-val Project.sourceSets
-    get() = project.the<SourceSetContainer>()
+val Project.sourceSets: SourceSetContainer
+    get() = extensions.getByType()
 
 
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = @Suppress("deprecation") withConvention(KotlinSourceSet::class) { kotlin }
+    get() = extensions.getByName("kotlin") as SourceDirectorySet

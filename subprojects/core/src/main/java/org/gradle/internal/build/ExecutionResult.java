@@ -21,8 +21,12 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public abstract class ExecutionResult<T> {
     private static final Success<Void> SUCCESS = new Success<Void>() {
@@ -46,6 +50,11 @@ public abstract class ExecutionResult<T> {
      * Returns a single exception object that contains all failures in this result, if available.
      */
     public abstract RuntimeException getFailure();
+
+    /**
+     * Returns a single exception object that contains all failures in this result, or null if the operation was successful.
+     */
+    public abstract RuntimeException getFailureOrNull();
 
     /**
      * Returns the value or rethrows the failures of this result.
@@ -80,6 +89,15 @@ public abstract class ExecutionResult<T> {
         return SUCCESS;
     }
 
+    public static ExecutionResult<Void> maybeFailing(Runnable action) {
+        try {
+            action.run();
+            return SUCCESS;
+        } catch (Throwable t) {
+            return failed(t);
+        }
+    }
+
     public static <T> ExecutionResult<T> failed(Throwable failure) {
         return new Failure<>(ImmutableList.of(failure));
     }
@@ -97,6 +115,28 @@ public abstract class ExecutionResult<T> {
             return SUCCESS;
         } else {
             return new Failure<>(ImmutableList.of(failure));
+        }
+    }
+
+    /**
+     * Applies the given action to each item in the given collection and collects the failures.
+     */
+    public static <T> ExecutionResult<Void> forEach(Iterable<T> items, Consumer<? super T> action) {
+        List<Throwable> failures = null;
+        for (T item : items) {
+            try {
+                action.accept(item);
+            } catch (Throwable t) {
+                if (failures == null) {
+                    failures = new ArrayList<>();
+                }
+                failures.add(t);
+            }
+        }
+        if (failures == null) {
+            return succeeded();
+        } else {
+            return maybeFailed(failures);
         }
     }
 
@@ -121,6 +161,11 @@ public abstract class ExecutionResult<T> {
 
         @Override
         public void rethrow() {
+        }
+
+        @Override
+        public RuntimeException getFailureOrNull() {
+            return null;
         }
 
         @Override
@@ -158,6 +203,11 @@ public abstract class ExecutionResult<T> {
         }
 
         @Override
+        public RuntimeException getFailureOrNull() {
+            return getFailure();
+        }
+
+        @Override
         public RuntimeException getFailure() {
             if (failures.size() == 1 && failures.get(0) instanceof RuntimeException) {
                 return (RuntimeException) failures.get(0);
@@ -175,10 +225,10 @@ public abstract class ExecutionResult<T> {
             if (otherResult.getFailures().isEmpty()) {
                 return this;
             }
-            ImmutableList.Builder<Throwable> builder = ImmutableList.builder();
-            builder.addAll(failures);
-            builder.addAll(otherResult.getFailures());
-            return new Failure<>(builder.build());
+            Set<Throwable> mergedFailures = new LinkedHashSet<>();
+            mergedFailures.addAll(failures);
+            mergedFailures.addAll(otherResult.getFailures());
+            return new Failure<>(ImmutableList.copyOf(mergedFailures));
         }
 
         @Override

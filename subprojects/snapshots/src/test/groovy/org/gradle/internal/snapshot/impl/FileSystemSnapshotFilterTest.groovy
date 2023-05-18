@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.MutableReference
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
@@ -58,9 +57,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def subdir = dir1.createDir("subdir")
         def subdirFile1 = subdir.createFile("subdirFile1")
 
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
-        def unfiltered = result.get()
+        def unfiltered = fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet())).get()
 
         expect:
         filteredPaths(unfiltered, include("**/*2")) == [root, dir1, dirFile2, subdir, rootFile2] as Set
@@ -98,9 +95,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         dir1.createFile("dirFile1")
         dir1.createFile("dirFile2")
 
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
-        def unfiltered = result.get()
+        def unfiltered = fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet())).get()
 
         when:
         def filtered = FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered)

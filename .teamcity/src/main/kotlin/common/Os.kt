@@ -53,16 +53,23 @@ wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
 wmic Path win32_process Where "name='java.exe'"
 """
 
+enum class Arch(val suffix: String, val nameOnLinuxWindows: String, val nameOnMac: String) {
+    AMD64("64bit", "amd64", "x86_64"),
+    AARCH64("aarch64", "aarch64", "aarch64");
+
+    fun asName() = name.lowercase().toCapitalized()
+}
+
 enum class Os(
     val agentRequirement: String,
-    val ignoredSubprojects: List<String> = emptyList(),
     val androidHome: String,
     val jprofilerHome: String,
     val killAllGradleProcesses: String,
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
-    val perfTestJavaVendor: String = "oracle",
+    val perfTestJavaVendor: JvmVendor = JvmVendor.openjdk,
     val buildJavaVersion: JvmVersion = JvmVersion.java11,
-    val perfTestJavaVersion: JvmVersion = JvmVersion.java8
+    val perfTestJavaVersion: JvmVersion = JvmVersion.java17,
+    val defaultArch: Arch = Arch.AMD64
 ) {
     LINUX(
         "Linux",
@@ -75,14 +82,14 @@ enum class Os(
         androidHome = """C:\Program Files\android\sdk""",
         jprofilerHome = """C:\Program Files\jprofiler\jprofiler11.1.4""",
         killAllGradleProcesses = killAllGradleProcessesWindows,
-        perfTestWorkingDir = "P:/"
+        perfTestWorkingDir = "P:/",
     ),
     MACOS(
         "Mac",
-        listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "tooling-native"),
         androidHome = "/opt/android/sdk",
         jprofilerHome = "/Applications/JProfiler11.1.4.app",
-        killAllGradleProcesses = killAllGradleProcessesUnixLike
+        killAllGradleProcesses = killAllGradleProcessesUnixLike,
+        defaultArch = Arch.AARCH64
     );
 
     fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""

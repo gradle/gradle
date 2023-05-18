@@ -1,7 +1,7 @@
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[understanding-variant-selection]]
-= Understanding variant selection 
+= Understanding variant selection
 
 In other dependency management engines, like Apache Maven™, dependencies and artifacts are bound to a component that is published at a particular GAV (group-artifact-version) coordinates.
 The set of dependencies for this component are always the same, regardless of which artifact may be used from the component.
@@ -24,12 +24,13 @@ Gradle's dependency management engine is _variant aware_.
 
 In addition to a component, Gradle has the concept of _variants_ of a component.
 Variants correspond to the different ways a component can be used, such as for Java compilation or native linking or documentation.
-Artifacts are attached to a _variant_ and each variant can have a different set of dependencies:
+Artifacts are attached to a _variant_ and each variant can have a different set of dependencies.
 
 How does Gradle know which variant to choose when there's more than one?
 Variants are matched by use of <<variant_attributes.adoc#variant_attributes,attributes>>, which provide semantics to the variants and help the engine to produce a _consistent_ resolution result.
 
 Gradle differentiates between two kind of components:
+
 - local components (like projects), built from sources
 - external components, published to repositories
 
@@ -52,11 +53,11 @@ Not all configurations are variants because they may be used for declaring or re
 
 The consumer can define any number of attributes.
 Each attribute helps narrow the possible variants that can be selected.
-Attribute values do not need to be exact matches. 
+Attribute values do not need to be exact matches.
 
 The variant can also define any number of attributes.
 The attributes should describe how the variant is intended to be used.
-For example, Gradle uses an attribute named `org.gradle.usage` to describe with how a component is used by the consumer (for compilation, for runtime execution, etc). 
+For example, Gradle uses an attribute named `org.gradle.usage` to describe with how a component is used by the consumer (for compilation, for runtime execution, etc).
 It is not unusual for a variant to have more attributes than the consumer needs to provide to select it.
 
 [[sec:variant-aware-matching]]
@@ -84,20 +85,21 @@ There are two exceptions to this rule that bypass variant aware resolution:
 
 == A simple example
 
-Let's consider an example where a consumer is trying to use a library for compilation. 
+Let's consider an example where a consumer is trying to use a library for compilation.
 
 First, the consumer needs to explain how it's going to use the result of dependency resolution. This is done by setting _attributes_ on the resolvable configuration of the consumer.
 
-The consumer wants to resolve a variant that matches:
-- `org.gradle.usage=JAVA_API`
+The consumer wants to resolve a variant that matches: `org.gradle.usage=JAVA_API`
 
 Second, the producer needs to expose the different variants of the component.
 
-The producer component exposes 2 variants: 
+The producer component exposes 2 variants:
+
 - its API (named `apiElements`) with attribute `org.gradle.usage=JAVA_API`
 - its runtime (named `runtimeElements`) with attribute `org.gradle.usage=JAVA_RUNTIME`
 
 Finally, Gradle selects the appropriate variant by looking at the variant attributes:
+
 - the consumer wants a variant with attributes `org.gradle.usage=JAVA_API`
 - the producer has a matching variant (`apiElements`)
 - the producer has a non-matching variant (`runtimeElements`)
@@ -108,7 +110,7 @@ Gradle provides the artifacts and dependencies from the `apiElements` variant to
 
 In the real world, consumers and producers have more than one attribute.
 
-A Java Library project in Gradle will involve several different attributes
+A Java Library project in Gradle will involve several different attributes:
 
 - `org.gradle.usage` that describes how the variant is used
 - `org.gradle.dependency.bundling` that describes how the variant handles dependencies (shadow jar vs fat jar vs regular jar)
@@ -121,18 +123,21 @@ Let's consider an example where the consumer wants to run tests with a library o
 First, the consumer needs to explain which version of the Java it needs.
 
 The consumer wants to resolve a variant that:
+
 - can be used at runtime (has `org.gradle.usage=JAVA_RUNTIME`)
 - can be run on _at least_ Java 8 (`org.gradle.jvm.version=8`)
 
 Second, the producer needs to expose the different variants of the component.
 
 Like in the simple example, there is both a API (compilation) and runtime variant. These exist for both the Java 8 and Java 11 version of the component.
+
 - its API for Java 8 consumers (named `apiJava8Elements`) with attribute `org.gradle.usage=JAVA_API` and `org.gradle.jvm.version=8`
 - its runtime for Java 8 consumers (named `runtime8Elements`) with attribute `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=8`
 - its API for Java 11 consumers (named `apiJava11Elements`) with attribute `org.gradle.usage=JAVA_API` and `org.gradle.jvm.version=11`
 - its runtime for Java 11 consumers (named `runtime11Elements`) with attribute `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=11`
 
 Finally, Gradle selects the best matching variant by looking at all of the attributes:
+
 - the consumer wants a variant with compatible attributes to `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=8`
 - the variants `runtime8Elements` and `runtime11Elements` have `org.gradle.usage=JAVA_RUNTIME`
 - the variants `apiJava8Elements` and `apiJava11Elements` are incompatible
@@ -156,6 +161,7 @@ If the consumer requested `org.gradle.jvm.version=15`, then Gradle knows either 
 == Variant selection errors
 
 When selecting the most compatible variant of a component, resolution may fail:
+
 * when more than one variant from the producer matches the consumer attributes (ambiguity error)
 * when no variants from the producer match the consumer attributes (incompatibility error)
 
@@ -232,22 +238,23 @@ A no matching variant error looks like the following:
 All _compatible_ candidate variants are displayed with their attributes.
 
 * Incompatible attributes are presented first, as they usually are the key in understanding why a variant could not be selected.
-* Other attributes are presented second, this includes _required_ and _compatible_ ones as well as all extra _producer_ attributes that are not requested by the consumer.
+* Other attributes are presented second, this includes _requested_ and _compatible_ ones as well as all extra _producer_ attributes that are not requested by the consumer.
 
-Similar to the ambiguous variant error, the goal is to understand which variant should be selected. In some cases, there may not be any compatible variants from the producer (e.g., trying to run on Java 8 with a library built for Java 11). 
+Similar to the ambiguous variant error, the goal is to understand which variant should be selected. In some cases, there may not be any compatible variants from the producer (e.g., trying to run on Java 8 with a library built for Java 11).
 
 [[sec:variant-visual]]
 == Visualizing variant information
 
+[[outgoing_variants_report]]
 === Outgoing variants report
 
-The report task `outgoingVariants` shows the list of variants available for selection by consumers of the project. It displays the capabilities, attributes and artifacts for each variant. 
+The report task `outgoingVariants` shows the list of variants available for selection by consumers of the project. It displays the capabilities, attributes and artifacts for each variant.
 
 This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,reporting task>>.
 
 By default, `outgoingVariants` prints information about all variants.
 It offers the optional parameter `--variant <variantName>` to select a single variant to display.
-It also accepts the `--all` flag to include information about legacy and deprecated configurations.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations, or `--no-all` to exclude this information.
 
 Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
 
@@ -257,7 +264,7 @@ Here is the output of the `outgoingVariants` task on a freshly generated `java-l
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - new-java-library:lib:unspecified (default capability)
@@ -304,7 +311,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - new-java-library:lib:unspecified (default capability)
@@ -374,6 +381,14 @@ As they indicate, this is where the difference is made between what needs to be 
 It also shows _secondary_ variants, which are exclusive to Gradle projects and not published.
 For example, the secondary variant `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
 
+==== Information about invalid consumable configurations
+
+A project cannot have multiple configurations with the same attributes and capabilities.
+In that case, the project will fail to build.
+
+In order to be able to visualize such issues, the outgoing variant reports handle those errors in a lenient fashion.
+This allows the report to display information about the issue.
+
 === Resolvable configurations report
 
 Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.  The report will list their attributes and any configurations that they extend.  It will also list a summary of any attributes which will be affected by <<variant_attributes.adoc#sec:abm_compatibility_rules, Compatibility Rules>> or <<variant_attributes.adoc#sec:abm_disambiguation_rules, Disambiguation Rules>> during resolution.
@@ -382,8 +397,9 @@ By default, `resolvableConfigurations` prints information about all purely resol
 These are configurations that are marked resolvable but *not* marked consumable.
 Though some resolvable configurations are also marked consumable, these are legacy configurations that should *not* have dependencies added in build scripts.
 This report offers the optional parameter `--configuration <configurationName>` to select a single configuration to display.
-It also accepts the `--all` flag to include information about legacy and deprecated configurations.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations, or `--no-all` to exclude this information.
 Finally, it accepts the `--recursive` flag to list in the extended configurations section those configurations which are extended _transitively_ rather than directly.
+Alternatively, `--no-recursive` can be used to exclude this information.
 
 Here is the output of the `resolvableConfigurations` task on a freshly generated `java-library` project:
 
@@ -527,13 +543,14 @@ See the {metadata-file-spec}[Gradle Module Metadata specification] for more info
 Modules published on a Maven repository are automatically converted into variant-aware modules.
 
 There is no way for Gradle to know which kind of component was published:
+
 - a BOM that represents a Gradle platform
 - a BOM used as a super-POM
 - a POM that is both a platform _and_ a library
 
 The default strategy used by Java projects in Gradle is to derive 8 different variants:
 
-* 2 "library" variants (attribute `org.gradle.category` = `library`)
+* two "library" variants (attribute `org.gradle.category` = `library`)
 ** the `compile` variant maps the `<scope>compile</scope>` dependencies.
 This variant is equivalent to the `apiElements` variant of the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>>.
 All dependencies of this scope are considered _API dependencies_.
@@ -543,7 +560,7 @@ All dependencies of those scopes are considered _runtime dependencies_.
 - in both cases, the `<dependencyManagement>` dependencies are _not converted to constraints_
 * a "sources" variant that represents the sources jar for the component
 * a "javadoc" variant that represents the javadoc jar for the component
-* 4 "platform" variants derived from the `<dependencyManagement>` block (attribute `org.gradle.category` = `platform`):
+* four "platform" variants derived from the `<dependencyManagement>` block (attribute `org.gradle.category` = `platform`):
 ** the `platform-compile` variant maps the  `<scope>compile</scope>` dependency management dependencies as _dependency constraints_.
 ** the `platform-runtime` variant maps both the `<scope>compile</scope>` and `<scope>runtime</scope>` dependency management dependencies as _dependency constraints_.
 ** the `enforced-platform-compile` is similar to `platform-compile` but all the constraints are _forced_
@@ -565,8 +582,8 @@ If you know that all the Ivy modules your are consuming have been published with
 
 .Deriving compile and runtime variants for Ivy metadata
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
 ====
 
 The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.

@@ -24,10 +24,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.definition.InjectedPluginResolver;
@@ -36,13 +32,11 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.PublicBuildPath;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -60,14 +54,13 @@ import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionControlRepositoryConnectionFactory;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers, ComponentMetaDataResolver, OriginArtifactSelector, ArtifactResolver {
+public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers, ComponentMetaDataResolver, ArtifactResolver {
     private final LocalComponentRegistry localComponentRegistry;
     private final VcsResolver vcsResolver;
     private final VersionControlRepositoryConnectionFactory versionControlSystemFactory;
@@ -123,8 +116,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 if (entry == null) {
                     result.failed(new ModuleVersionResolveException(depSelector, () -> spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
                 } else {
-                    LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(entry.right);
-                    result.resolved(componentMetaData);
+                    LocalComponentGraphResolveState component = localComponentRegistry.getComponent(entry.right);
+                    result.resolved(component);
                 }
             }
         }
@@ -172,12 +165,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     @Override
     public OriginArtifactSelector getArtifactSelector() {
-        return this;
-    }
-
-    @Nullable
-    @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         return null;
     }
 
@@ -187,10 +174,10 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
     }
 }

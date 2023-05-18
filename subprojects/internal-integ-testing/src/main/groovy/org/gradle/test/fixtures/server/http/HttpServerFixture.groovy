@@ -223,7 +223,7 @@ trait HttpServerFixture {
 
     }
 
-    void requireAuthentication(String path, String username, String password) {
+    void requireAuthentication(String path = '/*', String username, String password) {
         securityHandlerWrapper.requireAuthentication(path, username, password)
     }
 

@@ -23,9 +23,15 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+
+import static java.util.Collections.singleton;
+import static java.util.Optional.of;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE;
+import static org.gradle.buildinit.plugins.internal.modifiers.ComponentType.BASIC;
+import static org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption.SINGLE_PROJECT;
 
 public class BasicProjectGenerator implements ProjectGenerator {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
@@ -45,14 +51,14 @@ public class BasicProjectGenerator implements ProjectGenerator {
     public void generate(InitSettings settings) {
         scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "build", settings.isUseIncubatingAPIs())
             .fileComment("This is a general purpose Gradle build.\n"
-                + "Learn more about Gradle by exploring our samples at " + documentationRegistry.getSampleIndex())
+                + documentationRegistry.getSampleForMessage())
             .create(settings.getTarget())
             .generate();
     }
 
     @Override
     public ComponentType getComponentType() {
-        return ComponentType.BASIC;
+        return BASIC;
     }
 
     @Override
@@ -61,13 +67,18 @@ public class BasicProjectGenerator implements ProjectGenerator {
     }
 
     @Override
+    public boolean isJvmLanguage() {
+        return false;
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
-        return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
+        return singleton(SINGLE_PROJECT);
     }
 
     @Override
     public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
+        return KOTLIN;
     }
 
     @Override
@@ -77,16 +88,16 @@ public class BasicProjectGenerator implements ProjectGenerator {
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {
-        return BuildInitTestFramework.NONE;
+        return NONE;
     }
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return Collections.singleton(BuildInitTestFramework.NONE);
+        return singleton(NONE);
     }
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of("Learn more about Gradle by exploring our samples at " + documentationRegistry.getSampleIndex());
+        return of(documentationRegistry.getSampleForMessage());
     }
 }

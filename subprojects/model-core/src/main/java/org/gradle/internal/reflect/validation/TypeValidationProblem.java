@@ -19,13 +19,10 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.problems.BaseProblem;
 import org.gradle.problems.Solution;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Severity, TypeValidationProblemLocation> {
-    @Nullable
     private final UserManualReference userManualReference;
     private final boolean onlyAffectsCacheableWork;
 
@@ -36,7 +33,7 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
                                  Supplier<String> longDescription,
                                  Supplier<String> reason,
                                  boolean onlyAffectsCacheableWork,
-                                 @Nullable UserManualReference userManualReference,
+                                 UserManualReference userManualReference,
                                  List<Supplier<Solution>> solutions) {
         super(id,
             severity,
@@ -50,8 +47,8 @@ public class TypeValidationProblem extends BaseProblem<ValidationProblemId, Seve
         this.onlyAffectsCacheableWork = onlyAffectsCacheableWork;
     }
 
-    public Optional<UserManualReference> getUserManualReference() {
-        return Optional.ofNullable(userManualReference);
+    public UserManualReference getUserManualReference() {
+        return userManualReference;
     }
 
     public boolean isOnlyAffectsCacheableWork() {

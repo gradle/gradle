@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
@@ -78,10 +77,13 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "a component's variant can be modified before publishing"() {
         given:
         createBuildScripts """
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
             dependencies {
                 api 'org:foo:1.0'
                 implementation 'org:bar:1.0'
@@ -147,7 +149,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
             }
 
@@ -165,9 +167,15 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
             }
         """)
 
+
         expect:
         fails('publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + variantAttributesLink())
+    }
+
+    def variantAttributesLink() {
+        documentationRegistry.getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category")
     }
 
     def "can not publish variant with attribute specifying category = verification if defining new attribute with string"() {
@@ -177,7 +185,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Attribute.of('org.gradle.category', String), 'verification')
             }
 
@@ -197,7 +205,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
 
         expect:
         fails('publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + variantAttributesLink())
     }
 
     def "can not publish test results from java test suite"() {
@@ -242,7 +251,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
 
         expect:
         fails('test', 'publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + variantAttributesLink())
     }
 
     def "can publish variants with attribute specifying category if not verification"() {
@@ -252,7 +262,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'not verification'))
             }
 

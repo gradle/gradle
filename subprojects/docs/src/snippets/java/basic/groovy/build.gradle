@@ -6,7 +6,7 @@ plugins {
 // tag::java-extension[]
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 // end::java-extension[]
@@ -26,13 +26,18 @@ dependencies {
 
 // tag::java-basic-test-config[]
 dependencies {
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-test {
-    useJUnit()
+tasks.named('test', Test) {
+    useJUnitPlatform()
 
     maxHeapSize = '1G'
+
+    testLogging {
+        events "passed"
+    }
 }
 // end::java-basic-test-config[]
 
@@ -50,7 +55,8 @@ configurations {
 }
 
 dependencies {
-    intTestImplementation 'junit:junit:4.13'
+    intTestImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    intTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 // end::practical-integ-test-source-set[]
 
@@ -79,7 +85,10 @@ javadoc {
 
 
 // tag::skip-tests-condition[]
-test.onlyIf { !project.hasProperty('mySkipTests') }
+def skipTestsProvider = providers.gradleProperty('mySkipTests')
+test.onlyIf("mySkipTests property is not set") {
+    !skipTestsProvider.present
+}
 // end::skip-tests-condition[]
 
 // tag::java-compiler-options[]
@@ -104,6 +113,12 @@ tasks.register('integrationTest', Test) {
     testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
     shouldRunAfter test
+
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed"
+    }
 }
 
 check.dependsOn integrationTest

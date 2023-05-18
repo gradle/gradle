@@ -64,10 +64,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         Object status = attr(attributes, ProjectInternal.STATUS_ATTRIBUTE);
 
         StringBuilder sb = new StringBuilder();
-        if (usage != null) {
-            describeUsage(usage, sb);
-            sb.append(" of ");
-        }
+
         if (category != null) {
             if (docsType != null && toName(category).equals(Category.DOCUMENTATION)) {
                 describeDocsType(docsType, sb);
@@ -81,12 +78,16 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
                 sb.append("a component");
             }
         }
+        if (usage != null) {
+            sb.append(" for use during ");
+            describeUsage(usage, sb);
+        }
         if (status != null) {
-            sb.append(" with a ");
+            sb.append(", with a ");
             describeStatus(status, sb);
         }
         if (targetJvm != null) {
-            sb.append(" compatible with ");
+            sb.append(", compatible with ");
             describeTargetJvm(targetJvm, sb);
         }
         if (le != null) {
@@ -247,17 +248,17 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         String str = toName(usage);
         switch (str) {
             case Usage.JAVA_API:
-            case Usage.JAVA_API_CLASSES:
-            case Usage.JAVA_API_JARS:
-                sb.append("an API");
+            case JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS:
+            case JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES:
+                sb.append("compile-time");
                 break;
             case Usage.JAVA_RUNTIME:
-            case Usage.JAVA_RUNTIME_CLASSES:
-            case Usage.JAVA_RUNTIME_JARS:
-                sb.append("a runtime");
+            case JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS:
+            case JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES:
+                sb.append("runtime");
                 break;
             default:
-                sb.append("a usage of '").append(str).append("'");
+                sb.append("'").append(str).append("'");
         }
     }
 

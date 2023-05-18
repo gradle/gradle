@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.buildBranch
-import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.buildFinalRelease
 import gradlebuild.basics.buildMilestoneNumber
 import gradlebuild.basics.buildRcNumber
@@ -23,6 +21,8 @@ import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.buildTimestamp
 import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.ignoreIncomingBuildReceipt
+import gradlebuild.basics.isPromotionBuild
+import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.identity.extension.ReleasedVersionsDetails
@@ -83,27 +83,17 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     moduleIdentity.version.convention(GradleVersion.version(versionNumber))
     moduleIdentity.snapshot.convention(isSnapshot)
     moduleIdentity.buildTimestamp.convention(buildTimestamp)
-    moduleIdentity.promotionBuild.convention(isPromotionBuild())
+    moduleIdentity.promotionBuild.convention(isPromotionBuild)
 
-    moduleIdentity.gradleBuildBranch.convention(buildBranch)
-    moduleIdentity.gradleBuildCommitId.convention(buildCommitId)
-
-    moduleIdentity.releasedVersions.set(
-        provider {
-            ReleasedVersionsDetails(
-                moduleIdentity.version.get().baseVersion,
-                repoRoot().file("released-versions.json")
-            )
-        }
-    )
+    moduleIdentity.releasedVersions = provider {
+        ReleasedVersionsDetails(
+            moduleIdentity.version.get().baseVersion,
+            releasedVersionsFile()
+        )
+    }
 
     return versionNumber
 }
-
-/**
- * Is a promotion build task called?
- */
-fun isPromotionBuild(): Boolean = gradle.startParameter.taskNames.contains("promotionBuild")
 
 /**
  * Returns the trimmed contents of the file at the given [path] after
@@ -116,15 +106,11 @@ fun Project.trimmedContentsOfFile(path: String): String =
 fun Project.buildTimestamp(): Provider<String> =
     providers.of(BuildTimestampValueSource::class) {
         parameters {
-            buildTimestampFromBuildReceipt.set(buildTimestampFromBuildReceipt())
-            buildTimestampFromGradleProperty.set(buildTimestamp)
-            runningOnCi.set(buildRunningOnCi)
-            runningInstallTask.set(
-                provider { isRunningInstallTask() }
-            )
-            runningDocsTestTask.set(
-                provider { isRunningDocsTestTask() }
-            )
+            buildTimestampFromBuildReceipt = buildTimestampFromBuildReceipt()
+            buildTimestampFromGradleProperty = buildTimestamp
+            runningOnCi = buildRunningOnCi
+            runningInstallTask = provider { isRunningInstallTask() }
+            runningDocsTestTask = provider { isRunningDocsTestTask() }
         }
     }
 
@@ -132,14 +118,12 @@ fun Project.buildTimestamp(): Provider<String> =
 fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
     providers.of(BuildTimestampFromBuildReceiptValueSource::class) {
         parameters {
-            ignoreIncomingBuildReceipt.set(project.ignoreIncomingBuildReceipt)
-            buildReceiptFileContents.set(
-                repoRoot()
-                    .dir("incoming-distributions")
-                    .file(BuildReceipt.buildReceiptFileName)
-                    .let(providers::fileContents)
-                    .asText
-            )
+            ignoreIncomingBuildReceipt = project.ignoreIncomingBuildReceipt
+            buildReceiptFileContents = repoRoot()
+                .dir("incoming-distributions")
+                .file(BuildReceipt.buildReceiptFileName)
+                .let(providers::fileContents)
+                .asText
         }
     }
 

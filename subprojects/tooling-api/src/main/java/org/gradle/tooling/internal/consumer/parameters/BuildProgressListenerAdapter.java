@@ -48,6 +48,7 @@ import org.gradle.tooling.events.download.internal.DefaultFileDownloadFinishEven
 import org.gradle.tooling.events.download.internal.DefaultFileDownloadOperationDescriptor;
 import org.gradle.tooling.events.download.internal.DefaultFileDownloadStartEvent;
 import org.gradle.tooling.events.download.internal.DefaultFileDownloadSuccessResult;
+import org.gradle.tooling.events.download.internal.NotFoundFileDownloadSuccessResult;
 import org.gradle.tooling.events.internal.DefaultBinaryPluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
@@ -56,6 +57,13 @@ import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.internal.DefaultScriptPluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.internal.DefaultStatusEvent;
+import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent;
+import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor;
+import org.gradle.tooling.events.lifecycle.BuildPhaseProgressEvent;
+import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent;
+import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseFinishEvent;
+import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseOperationDescriptor;
+import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseStartEvent;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -109,14 +117,15 @@ import org.gradle.tooling.events.work.internal.DefaultWorkItemFinishEvent;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemOperationDescriptor;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemStartEvent;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemSuccessResult;
-import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
+import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
-import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
@@ -124,6 +133,7 @@ import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalNotFoundFileDownloadResult;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
@@ -157,12 +167,13 @@ import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -178,10 +189,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
-        List<ProgressListener> noListeners = Collections.emptyList();
+        List<ProgressListener> noListeners = emptyList();
         testProgressListeners.addAll(listeners.getOrDefault(OperationType.TEST, noListeners));
         taskProgressListeners.addAll(listeners.getOrDefault(OperationType.TASK, noListeners));
         buildOperationProgressListeners.addAll(listeners.getOrDefault(OperationType.GENERIC, noListeners));
@@ -190,6 +202,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         transformProgressListeners.addAll(listeners.getOrDefault(OperationType.TRANSFORM, noListeners));
         testOutputProgressListeners.addAll(listeners.getOrDefault(OperationType.TEST_OUTPUT, noListeners));
         fileDownloadListeners.addAll(listeners.getOrDefault(OperationType.FILE_DOWNLOAD, noListeners));
+        buildPhaseListeners.addAll(listeners.getOrDefault(OperationType.BUILD_PHASE, noListeners));
     }
 
     @Override
@@ -218,6 +231,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (!fileDownloadListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.FILE_DOWNLOAD);
+        }
+        if (!buildPhaseListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.BUILD_PHASE);
         }
         return operations;
     }
@@ -249,6 +265,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             transformProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof TestOutputEvent) {
             testOutputProgressListeners.getSource().statusChanged(event);
+        } else if (event instanceof BuildPhaseProgressEvent) {
+            buildPhaseListeners.getSource().statusChanged(event);
         } else {
             // Everything else treat as a generic operation
             buildOperationProgressListeners.getSource().statusChanged(event);
@@ -278,6 +296,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastStatusEvent((InternalStatusEvent) progressEvent);
         } else if (descriptor instanceof InternalFileDownloadDescriptor) {
             broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
+        } else if (descriptor instanceof InternalBuildPhaseDescriptor) {
+            broadcastBuildPhaseEvent(progressEvent, (InternalBuildPhaseDescriptor) descriptor);
         } else {
             broadcastGenericProgressEvent(progressEvent);
         }
@@ -336,6 +356,44 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (progressEvent != null) {
             fileDownloadListeners.getSource().statusChanged(progressEvent);
         }
+    }
+
+    private void broadcastBuildPhaseEvent(InternalProgressEvent event, InternalBuildPhaseDescriptor descriptor) {
+        ProgressEvent progressEvent = toBuildPhaseEvent(event, descriptor);
+        if (progressEvent != null) {
+            buildPhaseListeners.getSource().statusChanged(progressEvent);
+        }
+    }
+
+    private BuildPhaseProgressEvent toBuildPhaseEvent(InternalProgressEvent event, InternalBuildPhaseDescriptor descriptor) {
+        if (event instanceof InternalOperationStartedProgressEvent) {
+            return buildPhaseStartEvent((InternalOperationStartedProgressEvent) event, descriptor);
+        } else if (event instanceof InternalOperationFinishedProgressEvent) {
+            return buildPhaseFinishEvent((InternalOperationFinishedProgressEvent) event);
+        } else {
+            return null;
+        }
+    }
+
+    private BuildPhaseStartEvent buildPhaseStartEvent(InternalOperationStartedProgressEvent event, InternalBuildPhaseDescriptor descriptor) {
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
+        BuildPhaseOperationDescriptor newDescriptor = addDescriptor(
+            event.getDescriptor(),
+            new DefaultBuildPhaseOperationDescriptor(descriptor, parent)
+        );
+        return new DefaultBuildPhaseStartEvent(event.getEventTime(), event.getDisplayName(), newDescriptor);
+    }
+
+    private BuildPhaseFinishEvent buildPhaseFinishEvent(InternalOperationFinishedProgressEvent event) {
+        BuildPhaseOperationDescriptor descriptor = removeDescriptor(BuildPhaseOperationDescriptor.class, event.getDescriptor());
+        OperationResult result;
+        if (event.getResult() instanceof InternalFailureResult) {
+            InternalFailureResult internalResult = (InternalFailureResult) event.getResult();
+            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()));
+        } else {
+            result = new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime());
+        }
+        return new DefaultBuildPhaseFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result);
     }
 
     private void broadcastGenericProgressEvent(InternalProgressEvent event) {
@@ -497,7 +555,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private FinishEvent genericFinishedEvent(InternalOperationFinishedProgressEvent event) {
         OperationDescriptor descriptor = removeDescriptor(OperationDescriptor.class, event.getDescriptor());
-        return new DefaultFinishEvent<OperationDescriptor, OperationResult>(event.getEventTime(), event.getDisplayName(), descriptor, toResult(event.getResult()));
+        return new DefaultFinishEvent<>(event.getEventTime(), event.getDisplayName(), descriptor, toResult(event.getResult()));
     }
 
     private synchronized <T extends OperationDescriptor> T addDescriptor(InternalOperationDescriptor descriptor, T clientDescriptor) {
@@ -613,18 +671,17 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private FileDownloadResult toFileDownloadResult(InternalOperationResult result) {
-        if (!(result instanceof InternalFileDownloadResult)) {
-            // This was the case for some 7.3 nightlies. Can remove this branch after releasing 7.3
-            return null;
-        }
         InternalFileDownloadResult fileDownloadResult = (InternalFileDownloadResult) result;
+        if(result instanceof InternalNotFoundFileDownloadResult){
+            return new NotFoundFileDownloadSuccessResult(result.getStartTime(), result.getEndTime());
+        }
         if (result instanceof InternalSuccessResult) {
             return new DefaultFileDownloadSuccessResult(result.getStartTime(), result.getEndTime(), fileDownloadResult.getBytesDownloaded());
-        } else if (result instanceof InternalFailureResult) {
-            return new DefaultFileDownloadFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), fileDownloadResult.getBytesDownloaded());
-        } else {
-            return null;
         }
+        if (result instanceof InternalFailureResult) {
+            return new DefaultFileDownloadFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), fileDownloadResult.getBytesDownloaded());
+        }
+        return null;
     }
 
     private TestOperationResult toTestResult(InternalTestResult result) {
@@ -738,7 +795,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (causes == null) {
             return null;
         }
-        List<Failure> failures = new ArrayList<Failure>();
+        List<Failure> failures = new ArrayList<>();
         for (InternalFailure cause : causes) {
             failures.add(toFailure(cause));
         }

@@ -21,8 +21,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -46,6 +46,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     private final Property<String> mainClass;
     private final Property<String> mainModule;
     private final ModularitySpec modularity;
+    private final ListProperty<String> jvmArguments;
 
     private final FileCollectionFactory fileCollectionFactory;
     private ConfigurableFileCollection classpath;
@@ -57,6 +58,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         FileCollectionFactory fileCollectionFactory
     ) {
         super(resolver, fileCollectionFactory, objectFactory.newInstance(DefaultJavaDebugOptions.class));
+        this.jvmArguments = objectFactory.listProperty(String.class);
         this.mainClass = objectFactory.property(String.class);
         this.mainModule = objectFactory.property(String.class);
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
@@ -181,34 +183,13 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     }
 
     @Override
+    public ListProperty<String> getJvmArguments() {
+        return jvmArguments;
+    }
+
+    @Override
     public Property<String> getMainClass() {
         return mainClass;
-    }
-
-    @Nullable
-    @Override
-    @Deprecated
-    public String getMain() {
-        DeprecationLogger.deprecateMethod(JavaExecSpec.class, "getMain()")
-            .withAdvice("Please use the mainClass property instead.")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "java_exec_properties")
-            .nagUser();
-
-        return mainClass.getOrNull();
-    }
-
-    @Override
-    @Deprecated
-    public JavaExecSpec setMain(@Nullable String main) {
-        DeprecationLogger.deprecateMethod(JavaExecSpec.class, "setMain(String)")
-            .withAdvice("Please use the mainClass property instead.")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "java_exec_properties")
-            .nagUser();
-
-        mainClass.set(main);
-        return this;
     }
 
     @Override

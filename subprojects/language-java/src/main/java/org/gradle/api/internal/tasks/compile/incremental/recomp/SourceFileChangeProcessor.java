@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 class SourceFileChangeProcessor {
@@ -36,5 +37,29 @@ class SourceFileChangeProcessor {
         }
         spec.addClassesToCompile(actualDependents.getAllDependentClasses());
         spec.addResourcesToGenerate(actualDependents.getDependentResources());
+    }
+
+    public void processOnlyAccessibleChangeOfClasses(Set<String> classNames, RecompilationSpec spec) {
+        DependentsSet actualDependents = previousCompilation.findDependentsOfSourceChanges(classNames);
+        if (actualDependents.isDependencyToAll()) {
+            spec.setFullRebuildCause(actualDependents.getDescription());
+            return;
+        }
+        spec.addClassesToCompile(actualDependents.getAccessibleDependentClasses());
+        spec.addResourcesToGenerate(actualDependents.getDependentResources());
+    }
+
+    public Set<String> processAnnotationDependenciesOfIndependentClasses(Set<String> classNames, RecompilationSpec spec) {
+        Set<String> newAdded = new LinkedHashSet<>();
+        for (String className : classNames) {
+            DependentsSet annotationProcessingDependentsSet = previousCompilation.getAnnotationProcessingDependentsSet(className);
+            for (String classToCompile : annotationProcessingDependentsSet.getAllDependentClasses()) {
+                if (spec.addClassToCompile(classToCompile)) {
+                    newAdded.add(classToCompile);
+                }
+            }
+            spec.addResourcesToGenerate(annotationProcessingDependentsSet.getDependentResources());
+        }
+        return newAdded;
     }
 }

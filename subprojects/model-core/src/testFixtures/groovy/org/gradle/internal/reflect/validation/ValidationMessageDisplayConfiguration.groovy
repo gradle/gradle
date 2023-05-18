@@ -16,6 +16,9 @@
 
 package org.gradle.internal.reflect.validation
 
+
+import static org.gradle.util.internal.TextUtil.endLineWithDot
+
 class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayConfiguration<T>> {
     private final ValidationMessageChecker checker
     String pluginId
@@ -30,7 +33,9 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     String typeName
     String property
+    String propertyType
     String section
+    String documentationId = "validation_problems"
     boolean includeLink = false
 
     T inPlugin(String pluginId) {
@@ -58,6 +63,11 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         this
     }
 
+    T propertyType(String propertyType) {
+        this.propertyType = propertyType
+        this
+    }
+
     T type(String name) {
         typeName = name
         this
@@ -73,40 +83,43 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         this
     }
 
+    T documentationSection(String documentationSection) {
+        section = documentationSection
+        this
+    }
+
+    T documentationId(String id) {
+        documentationId = id
+        this
+    }
+
     String getPropertyIntro() {
         "property"
     }
 
     private String getIntro() {
-        if (hasIntro) {
-            String intro = typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
-            if (pluginId) {
-                return "In plugin '${pluginId}' ${intro.uncapitalize()}"
-            } else {
-                return intro
-            }
-        } else {
-            ''
+        if (!hasIntro) {
+            return ''
         }
+        String intro = typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
+        if (pluginId) {
+            return "In plugin '${pluginId}' ${intro.uncapitalize()}"
+        }
+        return intro
     }
 
     private String getOutro() {
-        includeLink ? "${checker.learnAt("validation_problems", section)}." : ""
+        checker.learnAt(documentationId, section)
     }
 
     static String formatEntry(String entry) {
-        if (entry.endsWith(".")) {
-            entry.capitalize()
-        } else {
-            "${entry.capitalize()}."
-        }
+        endLineWithDot(entry.capitalize())
     }
 
     String render(boolean renderSolutions = true) {
         def newLine = "\n${checker.messageIndent}"
         StringBuilder sb = new StringBuilder(intro)
-        sb.append(description)
-            .append(description.endsWith(".") ? '' : '.')
+        sb.append(endLineWithDot(description))
             .append(newLine)
             .append(newLine)
         if (reason) {
@@ -121,9 +134,9 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
             } else {
                 sb.append("Possible solution: ${formatEntry(solutions[0])}$newLine")
             }
-        }
-        if (outro) {
             sb.append(newLine)
+        }
+        if (includeLink) {
             sb.append(outro)
         }
         sb.toString().trim()

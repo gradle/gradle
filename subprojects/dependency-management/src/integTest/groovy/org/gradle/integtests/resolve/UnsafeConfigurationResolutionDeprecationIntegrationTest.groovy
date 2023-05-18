@@ -18,11 +18,13 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "deprecation warning when configuration in another project is resolved unsafely"() {
+    def "configuration in another project can not be resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -51,38 +53,32 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                 }
             }
         """
-
-        when:
-        executer.expectDeprecationWarning()
         executer.withArgument("--parallel")
-        succeeds(":resolve")
 
-        then:
-        outputContains("Resolution of the configuration :bar:bar was attempted from a context different than the project context.")
+        expect:
+        fails(":resolve")
+        result.assertHasErrorOutput("Resolution of the configuration :bar:bar was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
     }
 
-    @UnsupportedWithConfigurationCache(because = "resolves configuration from background thread")
+    @ToBeFixedForConfigurationCache(because = "uses Configuration API at runtime")
     def "exception when non-gradle thread resolves dependency graph"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
             rootProject.name = "foo"
-            include(':bar')
         """
 
         buildFile << """
-            project(':bar') {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
 
-                configurations {
-                    bar
-                }
+            configurations {
+                bar
+            }
 
-                dependencies {
-                    bar "test:test-jar:1.0"
-                }
+            dependencies {
+                bar "test:test-jar:1.0"
             }
 
             task resolve {
@@ -90,7 +86,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                     def failure = null
                     def thread = new Thread({
                         try {
-                            file('bar') << project(':bar').configurations.bar.${expression}
+                            file('bar') << configurations.bar.${expression}
                         } catch(Throwable t) {
                             failure = t
                         }
@@ -107,7 +103,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         then:
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
-            it.assertHasCause("The configuration :bar:bar was resolved from a thread not managed by Gradle.")
+            it.assertHasCause("The configuration :bar was resolved from a thread not managed by Gradle.")
         }
 
         where:
@@ -130,31 +126,29 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         ]
     }
 
+    @ToBeFixedForConfigurationCache(because = "uses Configuration API at runtime")
     def "no exception when non-gradle thread iterates over dependency artifacts that were declared as task inputs"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
             rootProject.name = "foo"
-            include(':bar')
         """
 
         buildFile << """
-            project(':bar') {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
 
-                configurations {
-                    bar
-                }
+            configurations {
+                bar
+            }
 
-                dependencies {
-                    bar "test:test-jar:1.0"
-                }
+            dependencies {
+                bar "test:test-jar:1.0"
             }
 
             task resolve {
-                def configuration = project(':bar').configurations.bar
+                def configuration = configurations.bar
                 inputs.files(configuration)
                 doFirst {
                     def failure = null
@@ -202,32 +196,30 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         settingsFile << """
             rootProject.name = "foo"
-            include(':bar')
         """
 
         buildFile << """
-            project(':bar') {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
 
-                configurations {
-                    bar
-                }
+            configurations {
+                bar
+            }
 
-                dependencies {
-                    bar "test:test-jar:1.0"
-                }
+            dependencies {
+                bar "test:test-jar:1.0"
             }
 
             task resolve {
-                def configuration = project(':bar').configurations.bar
+                def configuration = configurations.bar
+                def outFile = file('bar')
                 doFirst {
                     configuration.files
                     def failure = null
                     def thread = new Thread({
                         try {
-                            file('bar') << configuration.files
+                            outFile << configuration.files
                         } catch(Throwable t) {
                             failure = t
                         }
@@ -245,7 +237,8 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
     }
 
-    def "deprecation warning when configuration is resolved while evaluating a different project"() {
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
+    def "fails when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -272,14 +265,11 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                 println project(':baz').configurations.baz.files
             }
         """
-
-        when:
-        executer.expectDeprecationWarning()
         executer.withArgument("--parallel")
-        succeeds(":bar:help")
 
-        then:
-        outputContains("Resolution of the configuration :baz:baz was attempted from a context different than the project context.")
+        expect:
+        fails(":bar:help")
+        result.assertHasErrorOutput("Resolution of the configuration :baz:baz was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
     }
 
     def "no deprecation warning when configuration is resolved while evaluating same project"() {

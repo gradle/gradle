@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.constraints
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Issue
 
 class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -219,7 +220,10 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 }
                 module("org:first-level2:1.0") {
                     if (available) {
-                        edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                        edge("org:foo:1.0","org:foo:1.1") {
+                            byConstraint()
+                            byConflictResolution("between versions 1.1 and 1.0")
+                        }
                     } else {
                         module("org:foo:1.0")
                     }
@@ -284,7 +288,9 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:bar:1.0") {
                     if (available) {
-                        edge("org:foo:[1.1,1.2]", "org:foo:1.1")
+                        edge("org:foo:[1.1,1.2]", "org:foo:1.1") {
+                            byConstraint("didn't match version 1.2")
+                        }
                     } else {
                         edge("org:foo:[1.1,1.2]", "org:foo:1.2")
                     }
@@ -392,8 +398,12 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level:1.0") {
                     if (available) {
-                        constraint("org:bar:1.1", "org:foo:1.1").selectedByRule()
-                        edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                        constraint("org:bar:1.1", "org:foo:1.1")
+                        edge("org:foo:1.0", "org:foo:1.1") {
+                            selectedByRule()
+                            byConstraint()
+                            byConflictResolution("between versions 1.1 and 1.0")
+                        }
                     } else {
                         module("org:foo:1.0")
                     }
@@ -452,7 +462,9 @@ dependencies {
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:weird:1.0', 'org:weird:1.1')
+                edge('org:weird:1.0', 'org:weird:1.1') {
+                    byConflictResolution("between versions 1.1 and 1.0")
+                }
                 module('org:other:1.0') {
                     module('org:bar:1.0')
                     module('org:weird:1.1')
@@ -531,7 +543,9 @@ dependencies {
                     noArtifacts()
                     configuration(platformConfiguration)
                 }
-                edge('org:first:1.0', 'org:first:2.0')
+                edge('org:first:1.0', 'org:first:2.0') {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
                 module('org:second:1.0') {
                     module('org:intermediate:1.0') {
                         module('org:first:2.0')
@@ -541,4 +555,100 @@ dependencies {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24037")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    void "duplicate constraint going back to pending not leave hanging edge"() {
+        when:
+        repository {
+            'org:foundation:1.0' {
+                dependsOn 'org:compose:1.0'
+            }
+            'org:compose:1.0' {
+                dependsOn 'org:activity-ktx:1.7'
+            }
+            'org:activity-ktx:1.5' {
+                constraint 'org:activity-compose:1.5'
+            }
+            'org:activity-ktx:1.7' {
+                constraint 'org:activity-compose:1.7'
+            }
+
+            'org:activity-compose:1.5' {
+                dependsOn 'org:activity-ktx:1.5'
+                dependsOn 'org:lifecycle-java8:2.5'
+            }
+            'org:activity-compose:1.7' {
+                dependsOn 'org:activity-ktx:1.7'
+                constraint 'org:activity-ktx:1.7'
+            }
+
+            'org:lifecycle-java8:2.5' {
+                dependsOn 'org:annotation:1.1'
+                dependsOn 'org:lifecycle-common:2.5'
+            }
+            'org:lifecycle-runtime:2.6' {
+                dependsOn 'org:annotation:1.1'
+                dependsOn 'org:lifecycle-common:2.6'
+                constraint 'org:lifecycle-common:2.6'
+            }
+            'org:annotation:1.1'()
+            'org:lifecycle-common:2.6' {
+                dependsOn 'org:annotation:1.1'
+                dependsOn 'org:coroutines:1.6'
+                constraint 'org:lifecycle-runtime:2.6'
+                // Constraint duplicated to match reproducer
+                constraint 'org:lifecycle-java8:2.5'
+                constraint 'org:lifecycle-java8:2.5'
+            }
+            'org:coroutines:1.6'()
+        }
+
+        buildFile << """
+dependencies {
+    conf 'org:foundation:1.0'
+    conf 'org:activity-compose:1.5'
+    conf 'org:lifecycle-runtime:2.6'
+}
+"""
+
+        repositoryInteractions {
+            'org:foundation:1.0' {
+                allowAll()
+            }
+            'org:compose:1.0' {
+                allowAll()
+            }
+            'org:activity-ktx:1.5' {
+                allowAll()
+            }
+            'org:activity-ktx:1.7' {
+                allowAll()
+            }
+            'org:activity-compose:1.5' {
+                allowAll()
+            }
+            'org:lifecycle-java8:2.5' {
+                allowAll()
+            }
+            'org:activity-compose:1.7' {
+                allowAll()
+            }
+            'org:lifecycle-runtime:2.6' {
+                allowAll()
+            }
+            'org:annotation:1.1' {
+                allowAll()
+            }
+            'org:coroutines:1.6' {
+                allowAll()
+            }
+            'org:lifecycle-common:2.6' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds 'checkDeps'
+        // We do not check the graph state as the bug was failing resolution
+    }
 }

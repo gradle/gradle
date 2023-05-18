@@ -16,21 +16,23 @@
 
 package org.gradle.docs.samples;
 
+import org.gradle.exemplar.test.normalizer.FileSeparatorOutputNormalizer;
+import org.gradle.exemplar.test.normalizer.GradleOutputNormalizer;
+import org.gradle.exemplar.test.normalizer.JavaObjectSerializationOutputNormalizer;
+import org.gradle.exemplar.test.runner.SampleModifiers;
+import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
-import org.gradle.integtests.fixtures.logging.StackTraceSanitizingOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.ToolchainDownloadOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.ZincScalaCompilerOutputNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
-import org.gradle.exemplar.test.normalizer.FileSeparatorOutputNormalizer;
-import org.gradle.exemplar.test.normalizer.GradleOutputNormalizer;
-import org.gradle.exemplar.test.normalizer.JavaObjectSerializationOutputNormalizer;
-import org.gradle.exemplar.test.runner.SampleModifiers;
-import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 
 @SamplesOutputNormalizers({
     SampleOutputNormalizer.class,
@@ -41,9 +43,11 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
     ArtifactResolutionOmittingOutputNormalizer.class,
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,
+    ConfigurationCacheOutputCleaner.class,
     ConfigurationCacheOutputNormalizer.class,
     EmbeddedKotlinOutputNormalizer.class,
-    StackTraceSanitizingOutputNormalizer.class
+    ZincScalaCompilerOutputNormalizer.class,
+    ToolchainDownloadOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
@@ -63,4 +67,3 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
  */
 abstract class BaseSamplesTest {
 }
-

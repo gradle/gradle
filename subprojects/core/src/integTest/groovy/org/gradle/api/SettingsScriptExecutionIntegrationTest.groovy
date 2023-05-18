@@ -27,6 +27,7 @@ import spock.lang.Issue
 @IgnoreIf({ OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
 
+    @IgnoreIf({ FeaturePreviewsActivationFixture.inactiveFeatures().isEmpty() })
     def "emits deprecation warnings when enabling inactive #feature feature"() {
         given:
         settingsFile << """

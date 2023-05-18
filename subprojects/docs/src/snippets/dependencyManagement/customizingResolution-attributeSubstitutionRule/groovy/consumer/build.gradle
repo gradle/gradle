@@ -30,8 +30,9 @@ configurations.all {
 // end::substitution_rule_alternative[]
 
 tasks.register('resolve') {
-    inputs.files(configurations.runtimeClasspath)
+    FileCollection classpath = configurations.runtimeClasspath
+    inputs.files(classpath)
     doLast {
-        println configurations.runtimeClasspath.files.name
+        println classpath.files.name
     }
 }

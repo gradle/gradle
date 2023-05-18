@@ -19,7 +19,7 @@ package org.gradle.internal.resource.transport.gcp.gcs
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpRequest
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.testing.http.MockHttpTransport
 import com.google.api.client.testing.http.MockLowLevelHttpResponse
 import com.google.api.client.util.Sleeper
@@ -35,7 +35,7 @@ class RetryHttpInitializerWrapperTest extends Specification {
     def transport = new MockHttpTransport.Builder()
         .setLowLevelHttpResponse(httpResponse)
         .build()
-    def jsonFactory = new JacksonFactory()
+    def jsonFactory = new GsonFactory()
     def credential = Mock(Credential)
     def credentialSupplier = new Supplier<Credential>() {
         @Override

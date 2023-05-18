@@ -17,6 +17,9 @@
 package org.gradle.internal.reflect.validation
 
 import groovy.transform.CompileStatic
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.ServiceReference
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
@@ -69,7 +72,7 @@ Possible solutions:
   1. Assign a value to 'someProperty'.
   2. Mark property 'someProperty' as optional.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#value_not_set for more details about this problem.
+${validationMessage("value_not_set")}
 """
     }
 
@@ -86,6 +89,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
             includeLink()
         }
 
+
         then:
         outputEquals """
 Type 'MyTask' method 'setFoo()' should not be annotated with: @SomeAnnotation.
@@ -96,8 +100,12 @@ Possible solutions:
   1. Remove the annotations.
   2. Rename the method.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#ignored_annotations_on_method for more details about this problem.
+${validationMessage("ignored_annotations_on_method")}
 """
+    }
+
+    private validationMessage(String ignoredAnnotationsOnMethod) {
+        new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", ignoredAnnotationsOnMethod)
     }
 
     @ValidationTestFor(
@@ -121,7 +129,7 @@ Possible solutions:
   1. Make the getter public.
   2. Annotate the public version of the getter.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#private_getter_must_not_be_annotated for more details about this problem.
+${validationMessage("private_getter_must_not_be_annotated")}
 """
     }
 
@@ -147,7 +155,7 @@ Possible solutions:
   1. Remove the input annotations.
   2. Remove the @Internal annotation.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#ignored_property_must_not_be_annotated for more details about this problem.
+${validationMessage("ignored_property_must_not_be_annotated")}
 """
     }
 
@@ -170,7 +178,7 @@ Reason: The different annotations have different semantics and Gradle cannot det
 
 Possible solution: Choose between one of the conflicting annotations.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#conflicting_annotations for more details about this problem.
+${validationMessage("conflicting_annotations")}
 """
     }
 
@@ -196,7 +204,7 @@ Possible solutions:
   1. Remove the property.
   2. Use a different annotation, e.g one of @Inject, @InputArtifact or @InputArtifactDependencies.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#annotation_invalid_in_context for more details about this problem.
+${validationMessage("annotation_invalid_in_context")}
 """
         when:
         render annotationInvalidInContext {
@@ -213,7 +221,7 @@ Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
   1. Remove the property.
-  2. Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy.
+  2. Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference.
 """
 
         when:
@@ -231,7 +239,7 @@ Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
   1. Remove the property.
-  2. Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles or @ReplacedBy.
+  2. Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference.
 """
     }
 
@@ -257,7 +265,7 @@ Possible solutions:
   1. Remove the annotation.
   2. Use a different annotation, e.g one of @Classpath, @CompileClasspath or @PathSensitive.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#annotation_invalid_in_context for more details about this problem.
+${validationMessage("annotation_invalid_in_context")}
 """
     }
 
@@ -282,7 +290,7 @@ Possible solutions:
   1. Add something cool.
   2. Mark it as @Internal.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#missing_annotation for more details about this problem.
+${validationMessage("missing_annotation")}
 """
     }
 
@@ -307,7 +315,7 @@ Possible solutions:
   1. Add a getter for field 'claws'.
   2. Remove the annotations on 'claws'.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#ignored_annotations_on_field for more details about this problem.
+${validationMessage("ignored_annotations_on_field")}
 """
     }
 
@@ -331,7 +339,7 @@ Reason: This modifier is used in conjunction with a property of type 'SuperPower
 
 Possible solution: Remove the '@Boring' annotation.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#incompatible_annotations for more details about this problem.
+${validationMessage("incompatible_annotations")}
 """
     }
 
@@ -354,10 +362,37 @@ Reason: A property of type 'FileCollection' annotated with @Input cannot determi
 
 Possible solutions:
   1. Annotate with @InputFile for regular files.
-  2. Annotate with @InputDirectory for directories.
+  2. Annotate with @InputFiles for collections of files.
   3. If you want to track the path, return File.absolutePath as a String and keep @Input.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#incorrect_use_of_input_annotation for more details about this problem.
+${validationMessage("incorrect_use_of_input_annotation")}
+"""
+    }
+
+
+    @ValidationTestFor(
+        ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE
+    )
+    def "tests output of serviceReferenceMustBeABuildService"() {
+        when:
+        render serviceReferenceMustBeABuildService {
+            type('MyTask')
+            property('someService')
+            propertyType('mypackage.FooBar')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'MyTask' property 'someService' has @ServiceReference annotation used on property of type 'mypackage.FooBar' which is not a build service implementation.
+
+Reason: A property annotated with @${ServiceReference.class.simpleName} must be of a type that implements '${BuildService.class.name}'.
+
+Possible solutions:
+  1. Make 'mypackage.FooBar' implement '${BuildService.class.name}'.
+  2. Replace the @ServiceReference annotation on 'someService' with @Internal and assign a value of type 'mypackage.FooBar' explicitly.
+
+${validationMessage("service_reference_must_be_a_build_service")}
 """
     }
 
@@ -380,30 +415,7 @@ Reason: If you don't declare the normalization, outputs can't be re-used between
 
 Possible solution: Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#missing_normalization_annotation for more details about this problem.
-"""
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
-    )
-    def "tests output of unresolvableInput"() {
-        when:
-        render unresolvableInput {
-            type('Task').property("inputFiles")
-            conversionProblem("cannot convert butter into gold")
-            includeLink()
-        }
-
-        then:
-        outputEquals """
-Type 'Task' property 'inputFiles' cannot be resolved: cannot convert butter into gold.
-
-Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs.
-
-Possible solution: Consider using Task.dependsOn instead.
-
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#unresolvable_input for more details about this problem.
+${validationMessage("missing_normalization_annotation")}
 """
     }
 
@@ -431,7 +443,7 @@ Possible solutions:
   2. Declare an explicit dependency on 'producer' from 'consumer' using Task#dependsOn.
   3. Declare an explicit dependency on 'producer' from 'consumer' using Task#mustRunAfter.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implicit_dependency for more details about this problem.
+${validationMessage("implicit_dependency")}
 """
     }
 
@@ -457,7 +469,7 @@ Possible solutions:
   1. Make sure the file exists before the task is called.
   2. Make sure that the task which produces the file is declared as an input.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#input_file_does_not_exist for more details about this problem.
+${validationMessage("input_file_does_not_exist")}
 """
 
         render inputDoesNotExist {
@@ -476,7 +488,7 @@ Possible solutions:
   1. Make sure the directory exists before the task is called.
   2. Make sure that the task which produces the directory is declared as an input.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#input_file_does_not_exist for more details about this problem.
+${validationMessage("input_file_does_not_exist")}
 """
 
     }
@@ -505,7 +517,7 @@ Possible solutions:
   1. Use a file as an input.
   2. Declare the input as a directory instead.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#unexpected_input_file_type for more details about this problem.
+${validationMessage("unexpected_input_file_type")}
 """
     }
 
@@ -532,7 +544,7 @@ Reason: Expected '${location}' to be a directory but it's a file.
 
 Possible solution: Make sure that the 'output' is configured to a directory.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
+${validationMessage("cannot_write_output")}
 """
 
         when:
@@ -551,7 +563,7 @@ Reason: Expected '${ancestor}' to be a directory but it's a file.
 
 Possible solution: Make sure that the 'output' is configured to a directory.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
+${validationMessage("cannot_write_output")}
 """
     }
 
@@ -580,7 +592,7 @@ Possible solutions:
   1. Configure 'output' to point to a file, not a directory.
   2. Annotate 'output' with @OutputDirectory instead of @OutputFiles.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
+${validationMessage("cannot_write_output")}
 """
 
         when:
@@ -599,7 +611,7 @@ Reason: Cannot create parent directories that are existing as file.
 
 Possible solution: Configure 'output' to point to the correct location.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
+${validationMessage("cannot_write_output")}
 """
     }
 
@@ -624,7 +636,7 @@ Reason: Trying to write an output to a read-only location which is for Gradle in
 
 Possible solution: Select a different output location.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_to_reserved_location for more details about this problem.
+${validationMessage("cannot_write_to_reserved_location")}
 """
     }
 
@@ -649,7 +661,7 @@ Reason: Expected the root of the file tree '${location}' to be a directory but i
 
 Possible solution: Make sure that the root of the file tree 'output' is configured to a directory.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
+${validationMessage("cannot_write_output")}
 """
     }
 
@@ -676,7 +688,7 @@ Possible solutions:
   1. Use a mask.
   2. Use a vaccine.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#unsupported_notation for more details about this problem.
+${validationMessage("unsupported_notation")}
 """
     }
 
@@ -700,7 +712,7 @@ Reason: This annotation only makes sense on Task types.
 
 Possible solution: Remove the annotation.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#invalid_use_of_cacheable_annotation for more details about this problem.
+${validationMessage("invalid_use_of_cacheable_annotation")}
 """
     }
 
@@ -725,7 +737,7 @@ Possible solutions:
   1. Remove the @Optional annotation.
   2. Use the java.lang.Integer type instead.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_use_optional_on_primitive_types for more details about this problem.
+${validationMessage("cannot_use_optional_on_primitive_types")}
 """
     }
 
@@ -749,7 +761,7 @@ Possible solutions:
   1. Remove one of the getters.
   2. Annotate one of the getters with @Internal.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#redundant_getters for more details about this problem.
+${validationMessage("redundant_getters")}
 """
     }
 
@@ -772,7 +784,7 @@ Reason: Properties of type 'Property<String>' are already mutable.
 
 Possible solution: Remove the 'setSomeProperty' method.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#mutable_type_with_setter for more details about this problem.
+${validationMessage("mutable_type_with_setter")}
 """
     }
 
@@ -794,7 +806,7 @@ Reason: This is not allowed for cacheable transforms.
 
 Possible solution: Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cacheable_transform_cant_use_absolute_sensitivity for more details about this problem.
+${validationMessage("cacheable_transform_cant_use_absolute_sensitivity")}
 """
     }
 
@@ -817,7 +829,8 @@ Reason: Using Java lambdas is not supported as task inputs.
 
 Possible solution: Use an (anonymous inner) class instead.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+${validationMessage("implementation_unknown")}
+"""
     }
 
     @ValidationTestFor(
@@ -839,7 +852,7 @@ Reason: Using Java lambdas is not supported as task inputs.
 
 Possible solution: Use an (anonymous inner) class instead.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
+${validationMessage("implementation_unknown")}"""
     }
 
     @ValidationTestFor(
@@ -861,56 +874,7 @@ Reason: Gradle cannot track the implementation for classes loaded with an unknow
 
 Possible solution: Load your class by using one of Gradle's built-in ways.
 
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#implementation_unknown for more details about this problem."""
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
-    )
-    def "tests output of task without non-cacheable reason"() {
-        when:
-        render notCacheableWithoutReason {
-            type("MyTask")
-            noReasonOnTask()
-            includeLink()
-        }
-
-        then:
-        outputEquals """
-Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
-
-Reason: The task author should make clear why a task is not cacheable.
-
-Possible solutions:
-  1. Add @DisableCachingByDefault(because = ...).
-  2. Add @CacheableTask.
-  3. Add @UntrackedTask(because = ...).
-
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
-    )
-    def "tests output of transform action without non-cacheable reason"() {
-        when:
-        render notCacheableWithoutReason {
-            type("MyTransform")
-            noReasonOnArtifactTransform()
-            includeLink()
-        }
-
-        then:
-        outputEquals """
-Type 'MyTransform' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
-
-Reason: The transform action author should make clear why a transform action is not cacheable.
-
-Possible solutions:
-  1. Add @DisableCachingByDefault(because = ...).
-  2. Add @CacheableTransform.
-
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""
+${validationMessage("implementation_unknown")}"""
     }
 
     @ValidationTestFor(

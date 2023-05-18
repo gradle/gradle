@@ -284,19 +284,19 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
 
     def "recompiles downstream dependents of classes whose package-info changed"() {
         given:
-        file("api/src/main/${language.name}/annotations/Anno.${language.name}").text = """
+        source api: ["""
             package annotations;
             import java.lang.annotation.*;
             @Retention(RetentionPolicy.RUNTIME)
             @Target(ElementType.PACKAGE)
             public @interface Anno {}
-        """
+        """]
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
         packageFile.text = """@Deprecated package foo;"""
-        file("api/src/main/${language.name}/foo/A.${language.name}").text = "package foo; public class A {}"
-        file("api/src/main/${language.name}/bar/B.${language.name}").text = "package bar; public class B {}"
-        file("impl/src/main/${language.name}/baz/C.${language.name}").text = "package baz; import foo.A; class C extends A {}"
-        file("impl/src/main/${language.name}/baz/D.${language.name}").text = "package baz; import bar.B; class D extends B {}"
+        source(
+            api: ["package foo; public class A {}", "package bar; public class B {}"],
+            impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        )
 
         impl.snapshot { succeeds "impl:${language.compileTaskName}" }
 
@@ -311,10 +311,10 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
     def "recompiles downstream dependents of classes whose package-info was added"() {
         given:
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
-        file("api/src/main/${language.name}/foo/A.${language.name}").text = "package foo; public class A {}"
-        file("api/src/main/${language.name}/bar/B.${language.name}").text = "package bar; public class B {}"
-        file("impl/src/main/${language.name}/baz/C.${language.name}").text = "package baz; import foo.A; class C extends A {}"
-        file("impl/src/main/${language.name}/baz/D.${language.name}").text = "package baz; import bar.B; class D extends B {}"
+        source(
+            api: ["package foo; public class A {}", "package bar; public class B {}"],
+            impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        )
 
         impl.snapshot { succeeds "impl:${language.compileTaskName}" }
 
@@ -330,10 +330,10 @@ abstract class CrossTaskClassChangesIncrementalCompilationIntegrationTest extend
         given:
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")
         packageFile.text = """@Deprecated package foo;"""
-        file("api/src/main/${language.name}/foo/A.${language.name}").text = "package foo; public class A {}"
-        file("api/src/main/${language.name}/bar/B.${language.name}").text = "package bar; public class B {}"
-        file("impl/src/main/${language.name}/baz/C.${language.name}").text = "package baz; import foo.A; class C extends A {}"
-        file("impl/src/main/${language.name}/baz/D.${language.name}").text = "package baz; import bar.B; class D extends B {}"
+        source(
+            api: ["package foo; public class A {}", "package bar; public class B {}"],
+            impl: ["package baz; import foo.A; class C extends A {}", "package baz; import bar.B; class D extends B {}"]
+        )
 
         impl.snapshot { succeeds "impl:${language.compileTaskName}" }
 

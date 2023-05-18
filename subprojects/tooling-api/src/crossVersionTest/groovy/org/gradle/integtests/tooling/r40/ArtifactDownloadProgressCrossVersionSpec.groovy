@@ -21,8 +21,13 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
+import spock.lang.Timeout
+
+import java.util.concurrent.TimeUnit
 
 class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
+
+    @Timeout(value = 10, unit = TimeUnit.MINUTES)
     @TargetGradleVersion(">=5.7")
     def "generates events for downloading artifacts"() {
         given:

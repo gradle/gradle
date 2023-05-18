@@ -23,32 +23,26 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.internal.Describables;
 import org.gradle.internal.Pair;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -61,15 +55,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
-    private final AttributeDesugaring attributeDesugaring;
     private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
-    private final ImmutableCapability implicitCapability;
+    private final DefaultImmutableCapability implicitCapability;
     private final int hashCode;
 
-    private volatile ComponentResolveMetadata metadata;
+    private volatile ComponentGraphResolveState resolveState;
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
     private ModuleVersionResolveException metadataResolveFailure;
@@ -80,14 +73,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean root;
     private Pair<Capability, Collection<NodeState>> capabilityReject;
 
-    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, AttributeDesugaring attributeDesugaring) {
+    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.implicitCapability = ImmutableCapability.defaultCapabilityForComponent(id);
-        this.attributeDesugaring = attributeDesugaring;
+        this.implicitCapability = DefaultImmutableCapability.defaultCapabilityForComponent(id);
         this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
     }
 
@@ -109,13 +101,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ModuleVersionIdentifier getId() {
         return id;
-    }
-
-    @Override
-    public String getRepositoryName() {
-        return metadata.getSources().withSource(RepositoryChainModuleSource.class, source -> source
-            .map(RepositoryChainModuleSource::getRepositoryName)
-            .orElse(null));
     }
 
     @Override
@@ -149,16 +134,39 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public ComponentResolveMetadata getMetadata() {
+    @Nullable
+    public ComponentGraphResolveMetadata getMetadataOrNull() {
         resolve();
-        return metadata;
+        if (resolveState == null) {
+            return null;
+        } else {
+            return resolveState.getMetadata();
+        }
+    }
+
+    public ComponentGraphResolveMetadata getMetadata() {
+        resolve();
+        return resolveState.getMetadata();
+    }
+
+    @Override
+    public ComponentGraphResolveState getResolveState() {
+        resolve();
+        assert resolveState != null;
+        return resolveState;
+    }
+
+    @Nullable
+    public ComponentGraphResolveState getResolveStateOrNull() {
+        resolve();
+        return resolveState;
     }
 
     @Override
     public ComponentIdentifier getComponentId() {
         // Use the resolved component id if available: this ensures that Maven Snapshot ids are correctly reported
-        if (metadata != null) {
-            return metadata.getId();
+        if (resolveState != null) {
+            return resolveState.getId();
         }
         return componentIdentifier;
     }
@@ -182,7 +190,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      * @return true if it has been resolved in a cheap way
      */
     public boolean alreadyResolved() {
-        return metadata != null || metadataResolveFailure != null;
+        return resolveState != null || metadataResolveFailure != null;
     }
 
     public void resolve() {
@@ -199,28 +207,30 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         } else {
             componentOverrideMetadata = DefaultComponentOverrideMetadata.EMPTY;
         }
-        DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
         if (tryResolveVirtualPlatform()) {
             return;
         }
+        DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
         resolver.resolve(componentIdentifier, componentOverrideMetadata, result);
 
         if (result.getFailure() != null) {
             metadataResolveFailure = result.getFailure();
             return;
         }
-        metadata = result.getMetadata();
+        resolveState = result.getState();
     }
 
     private boolean tryResolveVirtualPlatform() {
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {
                 if (version != this) {
-                    ComponentResolveMetadata metadata = version.getMetadata();
-                    if (metadata instanceof LenientPlatformResolveMetadata) {
-                        LenientPlatformResolveMetadata lenient = (LenientPlatformResolveMetadata) metadata;
-                        this.metadata = lenient.withVersion((ModuleComponentIdentifier) componentIdentifier, id);
-                        return true;
+                    ComponentGraphResolveState versionState = version.getResolveStateOrNull();
+                    if (versionState != null) {
+                        ComponentGraphResolveState lenient = versionState.maybeAsLenientPlatform((ModuleComponentIdentifier) componentIdentifier, id);
+                        if (lenient != null) {
+                            setState(lenient);
+                            return true;
+                        }
                     }
                 }
             }
@@ -228,8 +238,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return false;
     }
 
-    public void setMetadata(ComponentResolveMetadata metaData) {
-        this.metadata = metaData;
+    public void setState(ComponentGraphResolveState state) {
+        this.resolveState = state;
         this.metadataResolveFailure = null;
     }
 
@@ -276,67 +286,16 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public List<ResolvedVariantResult> getResolvedVariants() {
-        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builder();
-        addResolvedVariants(builder::add);
+    public List<ResolvedGraphVariant> getSelectedVariants() {
+        ImmutableList.Builder<ResolvedGraphVariant> builder = ImmutableList.builder();
+        addSelectedVariants(builder::add);
         return builder.build();
     }
 
-    @Override
-    public List<ResolvedVariantResult> getAllVariants() {
-        // Without mixing in resolved variants here, we don't return all variants selected in the case of project dependencies.
-        // Additionally, we wouldn't have the external variants that we get from getResolvedVariants().
-        // TODO: Figure out why the variants from getVariantsForGraphTraversal() are different in the case of project dependencies.
-        Set<String> seen = new HashSet<>();
-        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builder();
-        Consumer<ResolvedVariantResult> resolvedVariantResultConsumer = v -> {
-            if (seen.add(v.getDisplayName())) {
-                builder.add(v);
-            }
-        };
-        addResolvedVariants(resolvedVariantResultConsumer);
-        addOtherVariants(resolvedVariantResultConsumer);
-        return builder.build();
-    }
-
-    private void addResolvedVariants(Consumer<ResolvedVariantResult> consumer) {
+    private void addSelectedVariants(Consumer<ResolvedGraphVariant> consumer) {
         for (NodeState node : nodes) {
             if (node.isSelected()) {
-                consumer.accept(node.getResolvedVariant());
-            }
-        }
-    }
-
-    private void addOtherVariants(Consumer<ResolvedVariantResult> consumer) {
-        if (metadata.getVariantsForGraphTraversal().isPresent()) {
-            for (ConfigurationMetadata configurationMetadata : metadata.getVariantsForGraphTraversal().get()) {
-                for (VariantResolveMetadata variant : configurationMetadata.getVariants()) {
-                    List<? extends Capability> capabilities = variant.getCapabilities().getCapabilities();
-                    if (capabilities.isEmpty()) {
-                        capabilities = ImmutableList.of(getImplicitCapability());
-                    } else {
-                        capabilities = ImmutableList.copyOf(capabilities);
-                    }
-                    consumer.accept(new DefaultResolvedVariantResult(
-                        metadata.getId(),
-                        Describables.of(variant.getName()),
-                        attributeDesugaring.desugar(variant.getAttributes().asImmutable()),
-                        capabilities,
-                        null
-                    ));
-                }
-            }
-        }
-        // Fall-back if there's no graph data
-        for (NodeState node : nodes) {
-            for (VariantResolveMetadata variant : node.getMetadata().getVariants()) {
-                consumer.accept(new DefaultResolvedVariantResult(
-                    metadata.getId(),
-                    Describables.of(variant.getName()),
-                    node.desugar(variant.getAttributes().asImmutable()),
-                    ImmutableList.of(),
-                    null
-                ));
+                consumer.accept(node);
             }
         }
     }

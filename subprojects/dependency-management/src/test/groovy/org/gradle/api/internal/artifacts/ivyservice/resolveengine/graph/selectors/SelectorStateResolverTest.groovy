@@ -39,7 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -57,11 +57,14 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.RANG
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_EMPTY
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
-import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER_BATCH1
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER_BATCH2
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_SINGLE
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
-import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES_BATCH1
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES_BATCH2
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
+
 /**
  * Unit test coverage of dependency resolution of a single module version, given a set of input selectors.
  */
@@ -73,8 +76,9 @@ class SelectorStateResolverTest extends Specification {
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
     private final ResolveOptimizations resolveOptimizations = new ResolveOptimizations()
-    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
-    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
+    private final VersionParser versionParser = new VersionParser()
+    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
+    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
     def "resolve selector #permutation"() {
         given:
@@ -88,7 +92,7 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_SINGLE
     }
 
-    def "resolve pair #permutation"() {
+    def "resolve pair #permutation (batch 1)"() {
         given:
         def candidates = permutation.candidates
         def expected = permutation.expectedSingle
@@ -97,7 +101,19 @@ class SelectorStateResolverTest extends Specification {
         resolver(permutation.conflicts).resolve(candidates) == expected
 
         where:
-        permutation << SCENARIOS_TWO_DEPENDENCIES
+        permutation << SCENARIOS_TWO_DEPENDENCIES_BATCH1
+    }
+
+    def "resolve pair #permutation (batch 2)"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expectedSingle
+
+        expect:
+        resolver(permutation.conflicts).resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_TWO_DEPENDENCIES_BATCH2
     }
 
     def "resolve empty pair #permutation"() {
@@ -112,7 +128,7 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_EMPTY
     }
 
-    def "resolve prefer pair #permutation"() {
+    def "resolve prefer pair #permutation (batch 1)"() {
         given:
         def candidates = permutation.candidates
         def expected = permutation.expectedSingle
@@ -121,7 +137,19 @@ class SelectorStateResolverTest extends Specification {
         resolver(permutation.conflicts).resolve(candidates) == expected
 
         where:
-        permutation << SCENARIOS_PREFER
+        permutation << SCENARIOS_PREFER_BATCH1
+    }
+
+    def "resolve prefer pair #permutation (batch 2)"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expectedSingle
+
+        expect:
+        resolver(permutation.conflicts).resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_PREFER_BATCH2
     }
 
     def "resolve reject pair #permutation"() {
@@ -177,7 +205,7 @@ class SelectorStateResolverTest extends Specification {
         def nine = new TestProjectSelectorState(projectId)
         def otherNine = new TestProjectSelectorState(projectId)
         ModuleConflictResolver mockResolver = Mock()
-        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
+        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
         when:
         def selected = resolverWithMock.selectBest(moduleId, moduleSelectors([nine, otherNine]))
@@ -237,7 +265,7 @@ class SelectorStateResolverTest extends Specification {
     }
 
     ModuleSelectors moduleSelectors(List<? extends ResolvableSelectorState> selectors) {
-        def moduleSelectors = new ModuleSelectors<ResolvableSelectorState>(versionComparator.asVersionComparator())
+        def moduleSelectors = new ModuleSelectors<ResolvableSelectorState>(versionComparator.asVersionComparator(), versionParser)
         selectors.forEach { moduleSelectors.add(it, false) }
         return moduleSelectors
     }
@@ -266,7 +294,7 @@ class SelectorStateResolverTest extends Specification {
 
     static class TestComponentFactory implements ComponentStateFactory<ComponentResolutionState> {
         @Override
-        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentResolveMetadata metadata) {
+        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state) {
             return new TestComponentResolutionState(componentIdentifier, id)
         }
     }

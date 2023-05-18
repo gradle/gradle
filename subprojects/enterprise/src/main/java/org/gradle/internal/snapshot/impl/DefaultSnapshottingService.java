@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.Snapshot;
 import org.gradle.internal.snapshot.SnapshottingService;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -39,7 +38,7 @@ public class DefaultSnapshottingService implements SnapshottingService {
     @Override
     public Snapshot snapshotFor(Path filePath) {
         String absolutePath = filePath.toAbsolutePath().toString();
-        HashCode hash = fileSystemAccess.read(absolutePath, FileSystemLocationSnapshot::getHash);
+        HashCode hash = fileSystemAccess.read(absolutePath).getHash();
 
         return new DefaultSnapshot(hash);
     }

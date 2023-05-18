@@ -15,14 +15,13 @@
  */
 package org.gradle.launcher.daemon.context
 
-
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.ConfigureUtil
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -85,7 +84,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
         unsatisfiedReason.contains "Java home is different"
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "contexts with symlinked javaHome are compatible"() {
         // Make something that looks like a Java installation
         def jdk = tmp.testDirectory.file("jdk").createDir()
@@ -148,5 +147,28 @@ class DaemonCompatibilitySpecSpec extends Specification {
         expect:
         !compatible
         unsatisfiedReason.contains "Process priority is different"
+    }
+
+    def "context with different agent status"() {
+        client { applyInstrumentationAgent = clientStatus }
+        server { applyInstrumentationAgent = !clientStatus }
+
+        expect:
+        !compatible
+        unsatisfiedReason.contains "Agent status is different"
+
+        where:
+        clientStatus << [true, false]
+    }
+
+    def "context with same agent status"() {
+        client { applyInstrumentationAgent = status }
+        server { applyInstrumentationAgent = status }
+
+        expect:
+        compatible
+
+        where:
+        status << [true, false]
     }
 }

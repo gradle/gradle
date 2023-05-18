@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 /**
@@ -67,13 +66,15 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
             root(":", ":test:") {
                 constraint("org:foo:1.1","org:foo:1.0")
                 module("org:bar:1.0") {
-                    edge("org:foo:1.0","org:foo:1.0")
+                    edge("org:foo:1.0","org:foo:1.0") {
+                        forced()
+                        byConstraint()
+                    }
                 }
             }
         }
     }
 
-    @ToBeFixedForConfigurationCache
     void "fail-on-conflict resolution strategy is applied to dependency constraints"() {
         given:
         buildFile << """
@@ -92,7 +93,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """Conflict(s) found for the following module(s):
+        failure.assertHasCause """Conflict found for the following module:
   - org:foo between versions 1.1 and 1.0"""
     }
 
@@ -120,7 +121,10 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
             root(":", ":test:") {
                 constraint("org:foo:1.1","org:foo:1.0")
                 module("org:bar:1.0") {
-                    edge("org:foo:1.0","org:foo:1.0")
+                    edge("org:foo:1.0","org:foo:1.0") {
+                        selectedByRule()
+                        byConstraint()
+                    }
                 }
             }
         }
@@ -152,7 +156,11 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
             root(":", ":test:") {
                 constraint("org:foo:1.1","org:foo:1.0")
                 module("org:bar:1.0") {
-                    edge("org:foo:1.0","org:foo:1.0")
+                    selectedByRule()
+                    edge("org:foo:1.0","org:foo:1.0") {
+                        selectedByRule()
+                        byConstraint()
+                    }
                 }
             }
         }

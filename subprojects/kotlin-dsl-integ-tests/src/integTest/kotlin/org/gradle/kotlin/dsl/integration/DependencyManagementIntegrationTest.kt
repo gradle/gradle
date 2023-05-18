@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -30,7 +29,6 @@ import org.junit.Test
 class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `declare dependency constraints`() {
 
         withFile("repo/in-block/accessor-1.0.jar")
@@ -104,7 +102,7 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
                 output,
                 containsMultiLineString(
                     """
-                api - API dependencies for source set 'main'. (n)
+                api - API dependencies for the 'main' feature. (n)
                 +--- in-block:accessor (n)
                 +--- in-block:accessor-with-action (n)
                 +--- in-block:string-invoke (n)

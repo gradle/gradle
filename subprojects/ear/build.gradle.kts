@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":model-core"))
     implementation(project(":platform-jvm"))
+    implementation(project(":platform-base"))
     implementation(project(":plugins"))
 
     implementation(libs.groovy)
@@ -38,6 +39,6 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/plugins/ear/internal/*")
 }

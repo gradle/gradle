@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyi
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.DependencyVerificationReportWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.VerificationReport;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefinedKeys;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
@@ -42,6 +42,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -49,6 +50,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resource.local.FileResourceListener;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -69,28 +71,33 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
     private final DependencyVerificationMode verificationMode;
+    private final FileResourceListener fileResourceListener;
     private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean hasFatalFailure = new AtomicBoolean();
     private final DependencyVerificationReportWriter reportWriter;
 
-    public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor,
-                                                    File gradleUserHome,
-                                                    File verificationsFile,
-                                                    BuildTreeDefinedKeys keyrings,
-                                                    ChecksumService checksumService,
-                                                    SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                    DependencyVerificationMode verificationMode,
-                                                    DocumentationRegistry documentationRegistry,
-                                                    File reportsDirectory,
-                                                    Factory<GradleProperties> gradlePropertiesFactory) {
+    public ChecksumAndSignatureVerificationOverride(
+        BuildOperationExecutor buildOperationExecutor,
+        File gradleUserHome,
+        File verificationsFile,
+        BuildTreeDefinedKeys keyrings,
+        ChecksumService checksumService,
+        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+        DependencyVerificationMode verificationMode,
+        DocumentationRegistry documentationRegistry,
+        File reportsDirectory,
+        Factory<GradleProperties> gradlePropertiesFactory,
+        FileResourceListener fileResourceListener
+    ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksumService = checksumService;
         this.verificationMode = verificationMode;
+        this.fileResourceListener = fileResourceListener;
         try {
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
-                new FileInputStream(verificationsFile)
+                new FileInputStream(observed(verificationsFile))
             );
             this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, verifier.getSuggestedWriteFlags(), reportsDirectory, gradlePropertiesFactory);
         } catch (FileNotFoundException e) {
@@ -134,7 +141,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     queue.add(new RunnableBuildOperation() {
                         @Override
                         public void run(BuildOperationContext context) {
-                            verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, ve.mainFile, ve.signatureFile.create(), f -> {
+                            verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, observed(ve.mainFile), observed(ve.signatureFile.create()), f -> {
                                 synchronized (failures) {
                                     failures.put(ve.artifact, new RepositoryAwareVerificationFailure(f, ve.repositoryName));
                                 }
@@ -157,7 +164,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     @Override
-    public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
+    public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
         return new DependencyVerifyingModuleComponentRepository(original, this, verifier.getConfiguration().isVerifySignatures());
     }
 
@@ -216,6 +223,14 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                 return artifact.getType();
             }
         };
+    }
+
+    private File observed(File file) {
+        if (file == null) {
+            return file;
+        }
+        fileResourceListener.fileObserved(file);
+        return file;
     }
 
     @Override

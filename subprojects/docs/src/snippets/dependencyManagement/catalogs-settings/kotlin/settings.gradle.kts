@@ -86,7 +86,7 @@ if (providers.systemProperty("create4").getOrNull() != null) {
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
-                plugin("jmh", "me.champeau.jmh").version("0.6.5")
+                plugin("versions", "com.github.ben-manes.versions").version("0.45.0")
             }
         }
     }
@@ -114,8 +114,8 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("testLibs") {
             val junit5 = version("junit5", "5.7.1")
-            library("junit-api", "org.junit.jupiter", "junit-jupiter-api").version(junit5)
-            library("junit-engine", "org.junit.jupiter", "junit-jupiter-engine").version(junit5)
+            library("junit-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit5)
+            library("junit-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit5)
         }
     }
 }

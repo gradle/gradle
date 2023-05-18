@@ -71,35 +71,6 @@ class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegratio
         assertIntegrationTestsWereExecutedAndExcluded()
     }
 
-    def "options for test framework are respected for JUnit for custom test suite where task overrides test framework"() {
-        buildFile << """
-            testing {
-                suites {
-                    integrationTest(JvmTestSuite) {
-                        useJUnitJupiter()
-                        dependencies {
-                            implementation "junit:junit:4.13"
-                        }
-                        targets.all {
-                            testTask.configure {
-                                useJUnit()
-                                options {
-                                    excludeCategories "com.example.Exclude"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        """
-        writeSources(file("src/integrationTest/java"))
-
-        when:
-        succeeds("check")
-        then:
-        assertIntegrationTestsWereExecutedAndExcluded()
-    }
-
     @Override
     void writeSources(TestFile sourcePath) {
         sourcePath.file("com/example/Exclude.java") << """

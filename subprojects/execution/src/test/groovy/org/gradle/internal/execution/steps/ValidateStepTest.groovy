@@ -28,21 +28,19 @@ import org.gradle.internal.vfs.VirtualFileSystem
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
 
 class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements ValidationMessageChecker {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
     def delegateResult = Mock(Result)
 
-    @Override
-    protected BeforeExecutionContext createContext() {
-        def validationContext = new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP)
-        return Stub(BeforeExecutionContext) {
-            getValidationContext() >> validationContext
-        }
+
+    def setup() {
+        def validationContext = new DefaultWorkValidationContext(new DocumentationRegistry(), WorkValidationContext.TypeOriginInspector.NO_OP)
+        context.getValidationContext() >> validationContext
     }
 
     def "executes work when there are no violations"() {
@@ -53,7 +51,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         then:
         result == delegateResult
 
-        1 * delegate.execute(work, { ValidationFinishedContext context -> !context.validationProblems.present }) >> delegateResult
+        1 * delegate.execute(work, { ValidationFinishedContext context -> context.validationProblems.empty }) >> delegateResult
         _ * work.validate(_ as  WorkValidationContext) >> { validated = true }
 
         then:
@@ -69,7 +67,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            def validationProblem = dummyValidationProblem('java.lang.Object', null, 'Validation error', 'Test').trim()
+            def validationProblem = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
             hasMessage """A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType').
   - ${validationProblem}"""
         }
@@ -79,6 +77,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .reportAs(ERROR)
                     .forType(Object)
                     .withDescription("Validation error")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
         }
@@ -93,8 +92,8 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            def validationProblem1 = dummyValidationProblem('java.lang.Object', null, 'Validation error #1', 'Test')
-            def validationProblem2 = dummyValidationProblem('java.lang.Object', null, 'Validation error #2', 'Test')
+            def validationProblem1 = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error #1', 'Test')
+            def validationProblem2 = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error #2', 'Test')
             hasMessage """Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType').
   - ${validationProblem1.trim()}
   - ${validationProblem2.trim()}"""
@@ -106,6 +105,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .reportAs(ERROR)
                     .forType(Object)
                     .withDescription("Validation error #1")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
             validationContext.forType(SecondaryJobType, true).visitTypeProblem{
@@ -113,6 +113,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .reportAs(ERROR)
                     .forType(Object)
                     .withDescription("Validation error #2")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
         }
@@ -131,24 +132,27 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .reportAs(WARNING)
                     .forType(Object)
                     .withDescription("Validation warning")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
         }
 
         then:
-        1 * warningReporter.recordValidationWarnings(work, { warnings -> warnings == [expectedWarning] })
+        1 * warningReporter.recordValidationWarnings(work, { warnings ->
+            convertToSingleLine(renderMinimalInformationAbout(warnings.first(), false, false)) == expectedWarning })
         1 * virtualFileSystem.invalidateAll()
 
         then:
-        1 * delegate.execute(work, { ValidationFinishedContext context -> context.validationProblems.get().warnings == [expectedWarning] })
+        1 * delegate.execute(work, { ValidationFinishedContext context ->
+            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.first(), false, false)) == expectedWarning })
         0 * _
     }
 
     def "reports deprecation warning even when there's also an error"() {
-        String expectedWarning = convertToSingleLine(dummyValidationProblem('java.lang.Object', null, 'Validation warning', 'Test').trim())
+        String expectedWarning = convertToSingleLine(dummyValidationProblemWithLink('java.lang.Object', null, 'Validation warning', 'Test').trim())
         // errors are reindented but not warnings
         expectReindentedValidationMessage()
-        String expectedError = dummyValidationProblem('java.lang.Object', null, 'Validation error', 'Test')
+        String expectedError = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test')
 
         when:
         step.execute(work, context)
@@ -161,6 +165,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .reportAs(ERROR)
                     .forType(Object)
                     .withDescription("Validation error")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
             typeContext.visitTypeProblem{
@@ -168,12 +173,13 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .reportAs(WARNING)
                     .forType(Object)
                     .withDescription("Validation warning")
+                    .documentedAt("id", "section")
                     .happensBecause("Test")
             }
         }
 
         then:
-        1 * warningReporter.recordValidationWarnings(work, { warnings -> warnings == [expectedWarning] })
+        1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first(), true, false)) == expectedWarning })
 
         then:
         def ex = thrown WorkValidationException

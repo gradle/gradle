@@ -16,7 +16,7 @@
 
 package org.gradle.internal.extensibility
 
-
+import org.gradle.api.Action
 import org.gradle.api.plugins.Convention
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
@@ -131,7 +131,8 @@ class DefaultConventionTest {
         //then
         assertTrue(convention.extensionsAsDynamicObject.hasProperty("foo"))
         assertTrue(convention.extensionsAsDynamicObject.hasMethod("foo", {}))
-        assertEquals(convention.extensionsAsDynamicObject.properties.get("foo"), ext);
+        assertTrue(convention.extensionsAsDynamicObject.hasMethod("foo", {} as Action))
+        assertEquals(convention.extensionsAsDynamicObject.properties.get("foo"), ext)
     }
 
     @Test void extensionsTakePrecedenceOverPluginConventions() {

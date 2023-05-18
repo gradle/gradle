@@ -43,7 +43,7 @@ import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
+public abstract class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     public DefaultXcodeProject xcodeProject;
 
     @Internal

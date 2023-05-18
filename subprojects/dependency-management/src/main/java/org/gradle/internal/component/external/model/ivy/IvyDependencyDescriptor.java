@@ -27,12 +27,15 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.model.VariantSelectionResult;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -122,9 +125,9 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
     @Override
-    public List<ConfigurationMetadata> selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public VariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
-        List<ConfigurationMetadata> targets = Lists.newLinkedList();
+        List<ConfigurationGraphResolveState> targets = Lists.newLinkedList();
         boolean matched = false;
         String fromConfigName = fromConfiguration.getName();
         for (String config : fromConfiguration.getHierarchy()) {
@@ -161,15 +164,20 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
         }
 
-        return targets;
+        ImmutableList.Builder<VariantGraphResolveState> builder = ImmutableList.builderWithExpectedSize(targets.size());
+        for (ConfigurationGraphResolveState target : targets) {
+            builder.add(target.asVariant());
+        }
+
+        return new VariantSelectionResult(builder.build(), false);
     }
 
-    private void findMatches(ComponentIdentifier fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationMetadata> targetConfigurations) {
+    private void findMatches(ComponentIdentifier fromComponent, ComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {
                 String preferred = targetPattern.substring(0, startFallback);
-                ConfigurationMetadata configuration = targetComponent.getConfiguration(preferred);
+                ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(preferred);
                 if (configuration != null) {
                     maybeAddConfiguration(targetConfigurations, configuration);
                     return;
@@ -179,9 +187,9 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         }
 
         if (targetPattern.equals("*")) {
-            for (String targetName : targetComponent.getConfigurationNames()) {
-                ConfigurationMetadata configuration = targetComponent.getConfiguration(targetName);
-                if (configuration.isVisible()) {
+            for (String targetName : targetComponent.getMetadata().getConfigurationNames()) {
+                ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetName);
+                if (configuration.getMetadata().isVisible()) {
                     maybeAddConfiguration(targetConfigurations, configuration);
                 }
             }
@@ -194,22 +202,22 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             targetPattern = fromConfiguration;
         }
 
-        ConfigurationMetadata configuration = targetComponent.getConfiguration(targetPattern);
+        ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
             throw new ConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }
 
-    private void maybeAddConfiguration(List<ConfigurationMetadata> configurations, ConfigurationMetadata toAdd) {
-        Iterator<ConfigurationMetadata> iter = configurations.iterator();
+    private void maybeAddConfiguration(List<ConfigurationGraphResolveState> configurations, ConfigurationGraphResolveState toAdd) {
+        Iterator<ConfigurationGraphResolveState> iter = configurations.iterator();
         while (iter.hasNext()) {
-            ConfigurationMetadata configuration = iter.next();
-            if (configuration.getHierarchy().contains(toAdd.getName())) {
+            ConfigurationGraphResolveState configuration = iter.next();
+            if (configuration.getMetadata().getHierarchy().contains(toAdd.getName())) {
                 // this configuration is a child of toAdd, so no need to add it
                 return;
             }
-            if (toAdd.getHierarchy().contains(configuration.getName())) {
+            if (toAdd.getMetadata().getHierarchy().contains(configuration.getName())) {
                 // toAdd is a child, so implies this configuration
                 iter.remove();
             }

@@ -1,0 +1,41 @@
+allprojects {
+    configurations {
+        evictedTransitive
+        evictedDirect
+        multiProject
+        create('default')
+    }
+    dependencies {
+        repositories {
+            ivy {
+                artifactPattern projectDir.absolutePath + '/[module]-[revision].jar'
+                ivyPattern projectDir.absolutePath + '/[module]-[revision]-ivy.xml'
+            }
+        }
+    }
+}
+
+dependencies {
+    // projectA-1.2 depends on projectB-1.5, which should be evicted by projectB-2.1.5
+    evictedTransitive 'test:projectA:1.2'
+    evictedTransitive 'test:projectB:2.1.5'
+
+    // projectA-2.0 depends on projectB-2.1.5, which should evict projectB-1.5
+    evictedDirect 'test:projectA:2.0'
+    evictedDirect 'test:projectB:1.5'
+
+    // subproject depends on projectA-2.0, which should evict projectA-1.2
+    multiProject 'test:projectA:1.2'
+    multiProject project(':subproject')
+}
+
+project(':subproject') {
+    dependencies {
+        add('default', 'test:projectA:2.0')
+    }
+}
+
+file("projectA-1.2.jar").text = ''
+file("projectA-2.0.jar").text = ''
+file("projectB-1.5.jar").text = ''
+file("projectB-2.1.5.jar").text = ''

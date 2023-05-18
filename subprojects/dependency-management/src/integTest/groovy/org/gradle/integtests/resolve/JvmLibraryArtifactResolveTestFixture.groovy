@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.test.fixtures.file.TestFile
 
@@ -130,10 +131,7 @@ class VerificationException extends org.gradle.internal.exceptions.DefaultMultiC
     }
 
     void createVerifyTask(String taskName) {
-        buildFile << """
-task $taskName {
-    doLast {
-        def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
+        def resolveAndCheck = """
         assert deps.size() == 1
         def componentId = deps[0].selected.id
 
@@ -156,19 +154,41 @@ task $taskName {
 
         ${checkComponentResultArtifacts("componentResult", "sources", expectedSources)}
         ${checkComponentResultArtifacts("componentResult", "javadoc", expectedJavadoc)}
-
+"""
+        if (GradleContextualExecuter.configCache) {
+            buildFile << """
+task $taskName {
+    def root = configurations.${config}.incoming.resolutionResult.rootComponent
+    def result = root.map {
+        def deps = it.dependencies
+        $resolveAndCheck
+        failures
+    }
+    doLast {
+        def failures = result.get()
         if (!failures.empty) {
             throw new VerificationException("Artifact resolution failed", failures)
         }
     }
 }
 """
+        } else {
+            buildFile << """
+task $taskName {
+    doLast {
+        def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
+        $resolveAndCheck
+        if (!failures.empty) {
+            throw new VerificationException("Artifact resolution failed", failures)
+        }
+    }
+}
+"""
+        }
     }
 
     void prepareComponentNotFound() {
-        buildFile << """
-task verify {
-    doLast {
+        def resolveAndCheck = """
         def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId("${id.group}", "${id.module}")
         def componentId = new org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier(mid, "${id.version}")
 
@@ -186,21 +206,40 @@ task verify {
         assert componentResult.id.module == "${id.module}"
         assert componentResult.id.version == "${id.version}"
         assert componentResult instanceof UnresolvedComponentResult
-
-        throw componentResult.failure
+        def failure = componentResult.failure
+"""
+        if (GradleContextualExecuter.configCache) {
+            buildFile << """
+task verify {
+    def result = provider {
+        $resolveAndCheck
+        failure
+    }
+    doLast {
+        throw result.get()
     }
 }
 """
+        } else {
+            buildFile << """
+task verify {
+    doLast {
+        $resolveAndCheck
+        throw failure
+    }
+}
+"""
+        }
     }
 
     private String checkComponentResultArtifacts(String componentResult, String type, def expectedFiles) {
         """
     def ${type}ArtifactResultFiles = []
     ${componentResult}.getArtifacts(${type.capitalize()}Artifact).each { artifactResult ->
-        assert artifactResult.id.componentIdentifier.displayName == "${id.displayName}" 
-        assert artifactResult.id.componentIdentifier.group == "${id.group}" 
-        assert artifactResult.id.componentIdentifier.module == "${id.module}" 
-        assert artifactResult.id.componentIdentifier.version == "${id.version}" 
+        assert artifactResult.id.componentIdentifier.displayName == "${id.displayName}"
+        assert artifactResult.id.componentIdentifier.group == "${id.group}"
+        assert artifactResult.id.componentIdentifier.module == "${id.module}"
+        assert artifactResult.id.componentIdentifier.version == "${id.version}"
         if (artifactResult instanceof ResolvedArtifactResult) {
             copy {
                 from artifactResult.file

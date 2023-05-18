@@ -57,6 +57,68 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         serviceRegistryReferences("A", "B")
     }
 
+    def "incremental processing works on subsequent incremental compilations after failure"() {
+        def a = java "@Service class A {}"
+        java "@Service class B {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text = "@Service class A { public String foo() { return 0; } }"
+        runAndFail "compileJava", "-d"
+
+        then:
+        outputs.noneRecompiled()
+        outputContains("Deleting generated files: [${file("build/classes/java/main/ServiceRegistryResource.txt")}, " +
+            "${file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java")}]")
+        outputContains("Restoring stashed files: [" +
+            "${file("build/classes/java/main/A.class")}, " +
+            "${file("build/classes/java/main/ServiceRegistry.class")}, " +
+            "${file("build/classes/java/main/ServiceRegistryResource.txt")}, " +
+            "${file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java")}]"
+        )
+
+        when:
+        a.text = "@Service class A { public int foo() { return 0; } }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt")
+        serviceRegistryReferences("A", "B")
+    }
+
+
+    def "incremental processing works when new aggregating type is added on subsequent incremental compilations after failure"() {
+        def a = java "@Service class A {}"
+        java "@Service class B {}"
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        def c = java "@Service class C { public String foo() { return 0; } }"
+        runAndFail "compileJava", "-d"
+
+        then:
+        outputs.noneRecompiled()
+        outputContains("Deleting generated files: [${file("build/classes/java/main/ServiceRegistryResource.txt")}, " +
+            "${file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java")}]")
+        outputContains("Restoring stashed files: [" +
+            "${file("build/classes/java/main/ServiceRegistry.class")}, " +
+            "${file("build/classes/java/main/ServiceRegistryResource.txt")}, " +
+            "${file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java")}]"
+        )
+
+        when:
+        c.text = "@Service class C { public int foo() { return 0; } }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("C", "ServiceRegistry", "ServiceRegistryResource.txt")
+        serviceRegistryReferences("A", "B", "C")
+    }
+
     def "unrelated files are not recompiled when annotated file changes"() {
         def a = java "@Service class A {}"
         java "class Unrelated {}"

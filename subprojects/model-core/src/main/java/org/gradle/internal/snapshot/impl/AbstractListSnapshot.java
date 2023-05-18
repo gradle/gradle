@@ -58,4 +58,9 @@ class AbstractListSnapshot<T extends Hashable> implements Hashable {
     public int hashCode() {
         return elements.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return elements.toString();
+    }
 }

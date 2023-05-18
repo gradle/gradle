@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -103,7 +104,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof Ear
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.destinationDirectory.get() == project.libsDirectory.get()
 
         when:
@@ -166,7 +167,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task.destinationDirectory.get() == project.libsDirectory.get()
-        task dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME))
+        task dependsOn(hasItems(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME))
     }
 
     def "adds ear as publication"() {

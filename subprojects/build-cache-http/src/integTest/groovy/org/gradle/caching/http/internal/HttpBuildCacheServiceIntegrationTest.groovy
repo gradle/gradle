@@ -159,6 +159,25 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         skipped ":customTask"
     }
 
+    def "url can be specified with trailing slash"() {
+        httpBuildCacheServer.start()
+        def buildCacheUrl = URI.create("${httpBuildCacheServer.uri}/")
+        settingsFile.text = useHttpBuildCache(buildCacheUrl)
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        expect:
+        withBuildCache().run "clean"
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        skipped ":compileJava"
+    }
+
     def "credentials can be specified via DSL"() {
         httpBuildCacheServer.withBasicAuth("user", "pass")
         settingsFile << """
@@ -254,12 +273,10 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         settingsFile.text = useHttpBuildCache(httpBuildCacheServer.uri)
 
         then:
-        def failure = withBuildCache().fails "jar"
-        failure.assertHasCause(
-            "Using insecure protocols with remote build cache, without explicit opt-in, is unsupported. " +
-                "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols. " +
-                Documentation.dslReference(HttpBuildCache, "allowInsecureProtocol").consultDocumentationMessage()
-        )
+        withBuildCache().fails("jar")
+            .assertHasCause("Using insecure protocols with remote build cache, without explicit opt-in, is unsupported.")
+            .assertHasResolution("Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.")
+            .assertHasResolution(Documentation.dslReference(HttpBuildCache, "allowInsecureProtocol").consultDocumentationMessage())
     }
 
     def "ssl certificate is validated"() {
@@ -330,6 +347,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         """
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
 
@@ -418,6 +436,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         }
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:
@@ -439,6 +458,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         }
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:

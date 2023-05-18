@@ -40,7 +40,8 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
                 'quietProject2ScriptClassPathOut',
                 'quietProject2CallbackOut',
                 'settings quiet out',
-                'init QUIET out',
+                'init : QUIET out',
+                'init :buildSrc QUIET out',
                 'init callback quiet out',
                 'main buildSrc quiet',
                 'nestedBuild buildSrc quiet',
@@ -53,7 +54,8 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
                 'external ERROR error message',
                 '[ant:echo] An error message logged from Ant',
                 'A severe log message logged using JUL',
-                'init ERROR err'
+                'init : ERROR err',
+                'init :buildSrc ERROR err'
         )
         warning(
                 'A warning log message.',
@@ -66,7 +68,8 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
                 'An error message which is logged at LIFECYCLE level',
                 'A task message which is logged at LIFECYCLE level',
                 'settings lifecycle log',
-                'init lifecycle log',
+                'init : lifecycle log',
+                'init :buildSrc lifecycle log',
                 'external LIFECYCLE error message',
                 'external LIFECYCLE log message',
                 'LOGGER: evaluating :',
@@ -92,9 +95,10 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
                 'infoProject2ScriptClassPathOut',
                 'settings info out',
                 'settings info log',
-                'init INFO out',
-                'init INFO err',
-                'init info log',
+                'init : INFO out',
+                'init :buildSrc INFO out',
+                'init :buildSrc INFO err',
+                'init :buildSrc info log',
                 'LOGGER: build finished',
                 'LOGGER: evaluated project :',
                 'LOGGER: evaluated project :project1',

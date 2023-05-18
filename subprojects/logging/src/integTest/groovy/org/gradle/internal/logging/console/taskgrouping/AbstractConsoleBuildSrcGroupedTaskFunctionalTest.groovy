@@ -30,8 +30,8 @@ abstract class AbstractConsoleBuildSrcGroupedTaskFunctionalTest extends Abstract
                     logger.quiet '$HELLO_WORLD_MESSAGE'
                 }
             }
-            
-            assemble.dependsOn helloWorld
+
+            jar.dependsOn helloWorld
         """
         buildFile << """
             task byeWorld {

@@ -22,7 +22,7 @@ import org.gradle.model.internal.inspect.ReadonlyImmutableManagedPropertyExcepti
 
 class ManagedNamedTest extends ProjectRegistrySpec {
 
-    def "named struct has name name property populated"() {
+    def "named struct has name property populated"() {
         when:
         registry.registerWithInitializer("foo", NamedThingInterface, nodeInitializerRegistry)
 

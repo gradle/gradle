@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
+import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
@@ -145,6 +146,19 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
+    public Provider<Map<String, String>> gradlePropertiesPrefixedBy(String variableNamePrefix) {
+        return gradlePropertiesPrefixedBy(Providers.of(variableNamePrefix));
+    }
+
+    @Override
+    public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> variableNamePrefix) {
+        return of(
+            GradlePropertiesPrefixedByValueSource.class,
+            spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
+        );
+    }
+
+    @Override
     public FileContents fileContents(RegularFile file) {
         return fileContents(property -> property.set(file));
     }
@@ -210,7 +224,7 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public <A, B, R> Provider<R> zip(Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
-        return new BiProvider<>(left, right, combiner);
+        return left.zip(right, combiner);
     }
 
 }

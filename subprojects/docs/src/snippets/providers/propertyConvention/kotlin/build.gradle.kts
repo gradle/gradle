@@ -1,21 +1,22 @@
-tasks.register("show") {
-    doLast {
 // tag::conventions[]
-val property = objects.property(String::class)
+tasks.register("show") {
+    val property = objects.property(String::class)
 
-// Set a convention
-property.convention("convention 1")
-println("value = " + property.get())
+    // Set a convention
+    property.convention("convention 1")
 
-// Can replace the convention
-property.convention("convention 2")
-println("value = " + property.get())
+    doLast {
+        println("value = " + property.get())
 
-property.set("value")
+        // Can replace the convention
+        property.convention("convention 2")
+        println("value = " + property.get())
 
-// Once a value is set, the convention is ignored
-property.convention("ignored convention")
-println("value = " + property.get())
-// end::conventions[]
+        property.set("value")
+
+        // Once a value is set, the convention is ignored
+        property.convention("ignored convention")
+        println("value = " + property.get())
     }
 }
+// end::conventions[]

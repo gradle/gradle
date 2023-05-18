@@ -10,14 +10,16 @@ dependencies {
 }
 
 tasks.register("preCompileJsps") {
+    val jasperClasspath = jasper.asPath
+    val projectLayout = layout
     doLast {
         ant.withGroovyBuilder {
             "taskdef"("classname" to "org.apache.jasper.JspC",
                       "name" to "jasper",
-                      "classpath" to jasper.asPath)
+                      "classpath" to jasperClasspath)
             "jasper"("validateXml" to false,
-                     "uriroot" to file("src/main/webapp"),
-                     "outputDir" to file("$buildDir/compiled-jsps"))
+                     "uriroot" to projectLayout.projectDirectory.file("src/main/webapp").asFile,
+                     "outputDir" to projectLayout.buildDirectory.file("compiled-jsps").get().asFile)
         }
     }
 }

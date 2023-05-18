@@ -287,7 +287,7 @@ class ClassInspectorTest extends Specification {
         void setSomeProp(boolean value) {
         }
 
-        Boolean isReadOnly() {
+        boolean isReadOnly() {
             return prop
         }
     }

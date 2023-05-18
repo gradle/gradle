@@ -20,15 +20,18 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.WarPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultWarPluginConvention extends WarPluginConvention implements HasPublicType {
+public abstract class DefaultWarPluginConvention extends WarPluginConvention implements HasPublicType {
     private String webAppDirName;
     private final Project project;
 
+    @Inject
     public DefaultWarPluginConvention(Project project) {
         this.project = project;
         webAppDirName = "src/main/webapp";
@@ -41,21 +44,32 @@ public class DefaultWarPluginConvention extends WarPluginConvention implements H
 
     @Override
     public File getWebAppDir() {
+        logDeprecation();
         return project.file(webAppDirName);
     }
 
     @Override
     public String getWebAppDirName() {
+        logDeprecation();
         return webAppDirName;
     }
 
     @Override
     public void setWebAppDirName(String webAppDirName) {
+       logDeprecation();
         this.webAppDirName = webAppDirName;
     }
 
     @Override
     public Project getProject() {
+       logDeprecation();
         return project;
+    }
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(WarPluginConvention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "war_convention_deprecation")
+            .nagUser();
     }
 }

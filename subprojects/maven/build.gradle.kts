@@ -13,9 +13,9 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":plugin-use"))
-    implementation(project(":plugins"))
     implementation(project(":publish"))
     implementation(project(":resources"))
 
@@ -46,6 +46,7 @@ dependencies {
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":dependency-management"))
@@ -62,9 +63,9 @@ strictCompile {
     ignoreRawTypes() // old 'maven' publishing mechanism: raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/publication/maven/internal/**")
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
@@ -30,7 +29,6 @@ class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDepe
     @Rule
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     def 'locks build script classpath configuration (initial unique: #unique)'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -67,7 +65,6 @@ buildscript {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     def 'locks build script classpath configuration in custom lockfile'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -153,8 +150,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.foo
     doLast {
-        println configurations.foo.files
+        println files.files
     }
 }
 """
@@ -198,7 +196,6 @@ buildscript {
         failureHasCause("Locking strict mode:")
     }
 
-    @ToBeFixedForConfigurationCache
     def 'locks build script classpath combined with plugins (initial unique: #unique)'() {
         given:
         addPlugin()
@@ -247,7 +244,6 @@ plugins {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def 'creates lock file for build script classpath'() {
         given:
         addPlugin()
@@ -316,7 +312,6 @@ buildscript {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def 'same name buildscript and project configurations result in different lock files'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -363,7 +358,6 @@ dependencies {
         lockfileFixture.verifyLockfile('classpath', ['org.foo:foo:1.1'])
     }
 
-    @ToBeFixedForConfigurationCache
     def 'settings locking'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -413,7 +407,6 @@ buildscript {
         lockfileFixture.verifyBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.1'])
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use plugins block with plugin management block"() {
         given:
         def message = "hello from settings plugin"

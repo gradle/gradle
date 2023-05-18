@@ -1,10 +1,12 @@
 package org.example;
 
 import java.util.HashMap;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 
@@ -43,9 +45,12 @@ public abstract class ProcessTemplates extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getOutputDir();
 
+    @Inject
+    protected abstract FileSystemOperations getFs();
+
     @TaskAction
     public void processTemplates() {
-        getProject().copy(spec -> spec.
+        getFs().copy(spec -> spec.
             into(getOutputDir()).
             from(getSourceFiles()).
             expand(new HashMap<>(getTemplateData().getVariables().get()))

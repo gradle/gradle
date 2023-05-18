@@ -65,7 +65,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildO
  *
  * @since 4.4
  */
-public class CppUnitTestPlugin implements Plugin<Project> {
+public abstract class CppUnitTestPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ObjectFactory objectFactory;
@@ -111,9 +111,9 @@ public class CppUnitTestPlugin implements Plugin<Project> {
                 return getAllBuildableTestExecutable()
                         .filter(it -> isCurrentArchitecture(it.getNativePlatform()))
                         .findFirst()
-                        .orElse(
-                                getAllBuildableTestExecutable().findFirst().orElse(
-                                        getAllTestExecutable().findFirst().orElse(null)));
+                        .orElseGet(
+                                () -> getAllBuildableTestExecutable().findFirst().orElseGet(
+                                        () -> getAllTestExecutable().findFirst().orElse(null)));
             }
 
             private boolean isCurrentArchitecture(NativePlatform targetPlatform) {
@@ -138,7 +138,7 @@ public class CppUnitTestPlugin implements Plugin<Project> {
                 task.setDescription("Executes C++ unit tests.");
 
                 final InstallExecutable installTask = binary.getInstallTask().get();
-                task.onlyIf(element -> binary.getInstallDirectory().get().getAsFile().exists());
+                task.onlyIf("Test executable installation directory exists", element -> binary.getInstallDirectory().get().getAsFile().exists());
                 task.getInputs()
                     .dir(binary.getInstallDirectory())
                     .withPropertyName("installDirectory");

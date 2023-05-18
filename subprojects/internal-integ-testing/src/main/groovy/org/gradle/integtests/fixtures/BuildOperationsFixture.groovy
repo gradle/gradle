@@ -32,7 +32,6 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
     private BuildOperationTreeFixture tree
 
     BuildOperationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
-
         String path = projectDir.testDirectory.file("operations").absolutePath
         executer.beforeExecute {
             executer.withArgument("-D$BuildOperationTrace.SYSPROP=$path")
@@ -74,6 +73,11 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
     @Override
     BuildOperationRecord first(Pattern displayName) {
         return tree.first(displayName)
+    }
+
+    @Override
+    List<BuildOperationRecord> all() {
+        return tree.all()
     }
 
     @Override

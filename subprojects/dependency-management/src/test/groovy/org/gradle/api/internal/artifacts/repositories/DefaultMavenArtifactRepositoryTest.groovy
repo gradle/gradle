@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -57,11 +58,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver)
     final ProviderFactory providerFactory = Mock()
 
-    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-        resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
-        artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
-        Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
-        TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory)
+    final DefaultMavenArtifactRepository repository = newRepo()
 
     def "creates local repository"() {
         given:
@@ -75,7 +72,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -93,7 +90,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -116,7 +113,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.artifactUrls('repo1', 'repo2')
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -138,7 +135,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -148,7 +145,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "fails when no root url specified"() {
         when:
-        repository.createRealResolver()
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()
@@ -166,7 +163,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = uri
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -268,6 +265,102 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         metadataSources.isArtifactEnabled()
         metadataSources.isGradleMetadataEnabled()
         metadataSources.isIgnoreGradleMetadataRedirectionEnabled()
+    }
+
+    def "repositories have the same id when base url and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        same.url = new URI("http://localhost")
+        different.url = new URI("http://localhost/repo")
+
+        and:
+        _ * resolver.resolveUri(_) >> { URI uri -> uri }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        different.url = new URI("http://localhost")
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+    }
+
+    def "repositories have the same id when artifact urls and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        repo.artifactUrls(new URI("http://localhost/dir"))
+        same.url = new URI("http://localhost")
+        same.artifactUrls(new URI("http://localhost/dir"))
+        different.url = new URI("http://localhost")
+
+        and:
+        _ * resolver.resolveUri(_) >> { URI uri -> uri }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        different.artifactUrls(new URI("http://localhost/dir"))
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+    }
+
+    def "repositories have the same id when metadata sources and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.url = new URI("http://localhost")
+        source(repo)
+        same.url = new URI("http://localhost")
+        source(same)
+        different.url = new URI("http://localhost")
+
+        and:
+        _ * resolver.resolveUri(_) >> { URI uri -> uri }
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        source(different)
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+
+        where:
+        source << [
+            { MavenArtifactRepository repository -> repository.metadataSources.gradleMetadata() },
+            { MavenArtifactRepository repository ->
+                repository.metadataSources.mavenPom()
+                repository.metadataSources.ignoreGradleMetadataRedirection()
+            },
+            { MavenArtifactRepository repository -> repository.metadataSources.artifact() }
+        ]
+    }
+
+    private DefaultMavenArtifactRepository newRepo() {
+        def repo = new DefaultMavenArtifactRepository(
+            resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
+            artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
+            Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
+            TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser())
+        repo.name = 'repo'
+        return repo
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {

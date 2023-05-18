@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportArtifact;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportAttribute;
@@ -126,7 +127,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             newLine();
             try {
                 depth++;
-                attributesWithCompatibilityRules.forEach(a -> writeAttribute(maxC, a));
+                attributesWithCompatibilityRules.forEach(a -> writeAttribute(maxC, a, false));
                 newLine();
             } finally {
                 depth--;
@@ -140,10 +141,15 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             newLine();
             try {
                 depth++;
-                attributesWithDisambiguationRules.forEach(a -> writeAttribute(maxD, a));
+                attributesWithDisambiguationRules.forEach(a -> writeAttribute(maxD, a, spec.isShowAttributePrecedence()));
                 newLine();
             } finally {
                 depth--;
+            }
+
+            if (spec.isShowAttributePrecedence()) {
+                writeDescription("(#): Attribute disambiguation precedence");
+                newLine();
             }
         }
     }
@@ -176,6 +182,8 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeConfiguration(ReportConfiguration config) {
         writeConfigurationNameHeader(config, spec.getReportedTypeAlias());
         writeDescription(config.getDescription());
+
+        writeErrors(config.getLenientErrors());
 
         if (!config.getAttributes().isEmpty() ||
             (spec.isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
@@ -217,6 +225,13 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         indent(false);
         if (description != null) {
             output.style(StyledTextOutput.Style.Normal).println(description);
+        }
+    }
+
+    private void writeErrors(List<? extends GradleException> lenientErrors) {
+        if (!lenientErrors.isEmpty()) {
+            indent(false);
+            lenientErrors.forEach(ex -> output.style(StyledTextOutput.Style.Failure).println(ex.getMessage()));
         }
     }
 
@@ -289,17 +304,21 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeAttributes(List<ReportAttribute> attributes) {
         if (!attributes.isEmpty()) {
             Integer max = attributes.stream().map(attr -> attr.getName().length()).max(Integer::compare).orElse(0);
-            printSection("Attributes", () -> attributes.forEach(attr -> writeAttribute(max, attr)));
+            printSection("Attributes", () -> attributes.forEach(attr -> writeAttribute(max, attr, false)));
         }
     }
 
-    private void writeAttribute(Integer max, ReportAttribute attr) {
+    private void writeAttribute(Integer max, ReportAttribute attr, boolean includePrecedence) {
         indent(true);
         if (attr.getValue().isPresent()) {
             valuePair(StringUtils.rightPad(attr.getName(), max), String.valueOf(attr.getValue().orElse("")));
         } else {
             output.style(StyledTextOutput.Style.Identifier).text(attr.getName());
+            if (includePrecedence && attr.getDisambiguationPrecedence() != null) {
+                output.text(" (" + attr.getDisambiguationPrecedence() + ")");
+            }
         }
+
         newLine();
     }
 

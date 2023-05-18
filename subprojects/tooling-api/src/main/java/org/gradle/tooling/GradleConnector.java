@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;
@@ -62,7 +61,7 @@ import java.net.URI;
  *
  * <p>The Tooling API is both forwards and backwards compatible with other versions of Gradle. It supports execution of Gradle builds that use older or newer versions of Gradle.  Each release of Gradle contains a new release of the Tooling API as well.</p>
  *
- * <p>The Tooling API supports running builds using Gradle version 2.6 and up.</p>
+ * <p>The Tooling API supports running builds using Gradle version 3.0 and up.</p>
  *
  * <p>You should note that not all features of the Tooling API are available for all versions of Gradle. Refer to the documentation for each class and method for more details.</p>
  *
@@ -157,6 +156,9 @@ public abstract class GradleConnector {
     /**
      * Creates a connection to the project in the specified project directory. You should call {@link org.gradle.tooling.ProjectConnection#close()} when you are finished with the connection.
      *
+     * <p>
+     * Note, that the returned instance does not automatically pick up changes if the connection configuration (e.g. the gradle.properties file) changes. It's the client's responsibility to close the connection and create a new one in that scenario.
+     *
      * @return The connection. Never return null.
      * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
@@ -177,6 +179,5 @@ public abstract class GradleConnector {
      *
      * @since 6.5
      */
-    @Incubating
     public abstract void disconnect();
 }

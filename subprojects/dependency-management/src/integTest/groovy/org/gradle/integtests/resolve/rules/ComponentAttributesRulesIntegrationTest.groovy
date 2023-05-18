@@ -18,13 +18,11 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 
 class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @ToBeFixedForConfigurationCache(iterationMatchers = ["fails.*"])
     def "#outcome if attribute is #mutation via component metadata rule"() {
         given:
         repository {
@@ -97,7 +95,6 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*component level = false.*"])
     def "variant attributes take precedence over component attributes (component level = #componentLevel)"() {
         given:
         repository {
@@ -223,14 +220,15 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         run ':checkDeps'
         resolve.expectGraph {
             root(":", ":test:") {
-                edge('org.test:module:[1.0,2.0)', 'org.test:module:1.1')
+                edge('org.test:module:[1.0,2.0)', 'org.test:module:1.1') {
+                    byReason("rejection: version 1.2:   - Attribute 'quality' didn't match. Requested 'qa', was: 'low'")
+                }
             }
         }
 
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*fix applied = false.*"])
     def "published component metadata can be overwritten (fix applied = #fixApplied)"() {
         given:
         repository {
@@ -448,7 +446,15 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge('org:test:[1,)', "org:test:$selected")
+                edge('org:test:[1,)', "org:test:$selected") {
+                    if (status == 'release') {
+                        byReason("rejection: version 5:   - Attribute 'org.gradle.status' didn't match. Requested 'release', was: 'integration'")
+                    } else if (status == 'milestone') {
+                        byReason("rejection: version 5:   - Attribute 'org.gradle.status' didn't match. Requested 'milestone', was: 'integration'")
+                        byReason("rejection: version 4:   - Attribute 'org.gradle.status' didn't match. Requested 'milestone', was: 'release'")
+                        byReason("rejection: version 3:   - Attribute 'org.gradle.status' didn't match. Requested 'milestone', was: 'integration'")
+                    }
+                }
             }
         }
 

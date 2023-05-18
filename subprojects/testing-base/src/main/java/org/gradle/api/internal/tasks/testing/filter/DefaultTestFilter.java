@@ -126,4 +126,12 @@ public class DefaultTestFilter implements TestFilter {
         this.commandLineIncludeTestNames.addAll(testNamePatterns);
         return this;
     }
+
+    public TestFilter includeCommandLineTest(String className, String methodName) {
+        return addToFilteringSet(commandLineIncludeTestNames, className, methodName);
+    }
+
+    public TestFilterSpec toSpec() {
+        return new TestFilterSpec(getIncludePatterns(), getExcludePatterns(), getCommandLineIncludePatterns());
+    }
 }

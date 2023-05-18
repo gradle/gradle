@@ -68,7 +68,7 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
                 gradleVersion = '12.34'
             }
     """
-        run 'wrapper'
+        run 'wrapper', '--no-validate-url'
         then:
         wrapper.generated("12.34")
     }

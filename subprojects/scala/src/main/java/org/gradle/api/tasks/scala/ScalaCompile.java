@@ -19,14 +19,12 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -36,26 +34,16 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
-import javax.inject.Inject;
-
 /**
  * Compiles Scala source files, and optionally, Java source files.
  */
 @CacheableTask
-public class ScalaCompile extends AbstractScalaCompile {
+public abstract class ScalaCompile extends AbstractScalaCompile {
 
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private FileCollection scalaCompilerPlugins;
-    private final Property<ScalaRuntime> scalaRuntime;
     private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
-
-    @Inject
-    public ScalaCompile() {
-        super(new ScalaCompileOptions());
-        ObjectFactory objectFactory = getObjectFactory();
-        this.scalaRuntime = objectFactory.property(ScalaRuntime.class);
-    }
 
     @Nested
     @Override
@@ -134,8 +122,8 @@ public class ScalaCompile extends AbstractScalaCompile {
             ClassLoaderRegistry classLoaderRegistry = getServices().get(ClassLoaderRegistry.class);
             ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
-                getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
-                getZincClasspath(), forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory,
+                getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory), getScalaClasspath(),
+                getZincClasspath(), forkOptionsFactory, classPathRegistry, classLoaderRegistry,
                 getServices().get(ClasspathHasher.class));
             compiler = scalaCompilerFactory.newCompiler(spec);
         }

@@ -58,6 +58,14 @@ class DaemonJvmOptionsTest extends Specification {
         "ssl truststore type"     | DaemonJvmOptions.SSL_TRUSTSTORETYPE_KEY   | "jks"
     }
 
+    def "all single use immutable jvm args has 4 elements" () {
+        when:
+        def opts = createOpts()
+
+        then:
+        opts.allSingleUseImmutableJvmArgs.size() == 4;
+    }
+
     private DaemonJvmOptions createOpts() {
         return new DaemonJvmOptions(TestFiles.fileCollectionFactory())
     }

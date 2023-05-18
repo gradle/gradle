@@ -127,6 +127,12 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     }
 
     @Override
+    public T withSystemProperties(Map<String, String> systemProperties) {
+        operationParamsBuilder.setSystemProperties(systemProperties);
+        return getThis();
+    }
+
+    @Override
     public T addJvmArguments(Iterable<String> jvmArguments) {
         operationParamsBuilder.addJvmArguments(CollectionUtils.toList(Preconditions.checkNotNull(jvmArguments)));
         return getThis();

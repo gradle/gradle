@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyResolutionTest {
 
@@ -114,7 +113,6 @@ project(':second') {
         outputContains('org:foo:1.1')
     }
 
-    @ToBeFixedForConfigurationCache
     def 'creates a lock file including transitive dependencies of dependent project'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()

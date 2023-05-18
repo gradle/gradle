@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -27,37 +26,43 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
+import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @NonNullApi
 public class ClientModuleResolver implements ComponentMetaDataResolver {
     private final ComponentMetaDataResolver resolver;
-    private final DependencyDescriptorFactory dependencyDescriptorFactory;
+    private final DependencyMetadataFactory dependencyMetadataFactory;
+    private final ModuleComponentGraphResolveStateFactory resolveStateFactory;
 
-    public ClientModuleResolver(ComponentMetaDataResolver resolver, DependencyDescriptorFactory dependencyDescriptorFactory) {
+    public ClientModuleResolver(ComponentMetaDataResolver resolver, DependencyMetadataFactory dependencyMetadataFactory, ModuleComponentGraphResolveStateFactory resolveStateFactory) {
         this.resolver = resolver;
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+        this.dependencyMetadataFactory = dependencyMetadataFactory;
+        this.resolveStateFactory = resolveStateFactory;
     }
 
     @Override
@@ -69,12 +74,12 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
         ClientModule clientModule = componentOverrideMetadata.getClientModule();
         if (clientModule != null) {
-            ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getMetadata();
+            ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getState().getMetadata();
             List<ModuleDependencyMetadata> clientModuleDependencies = createClientModuleDependencies(identifier, clientModule);
             ModuleComponentArtifactMetadata clientModuleArtifact = createClientModuleArtifact(originalMetadata);
             ClientModuleComponentResolveMetadata clientModuleMetaData = new ClientModuleComponentResolveMetadata(originalMetadata, clientModuleArtifact, clientModuleDependencies);
 
-            result.setMetadata(clientModuleMetaData);
+            result.setResult(resolveStateFactory.stateFor(clientModuleMetaData, clientModuleMetaData));
         }
     }
 
@@ -97,14 +102,14 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
     }
 
     private ModuleDependencyMetadata createDependencyMetadata(ComponentIdentifier identifier, ModuleDependency moduleDependency) {
-        LocalOriginDependencyMetadata dependencyMetadata = dependencyDescriptorFactory.createDependencyDescriptor(identifier, moduleDependency.getTargetConfiguration(), null, moduleDependency);
+        LocalOriginDependencyMetadata dependencyMetadata = dependencyMetadataFactory.createDependencyMetadata(identifier, moduleDependency.getTargetConfiguration(), null, moduleDependency);
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
             return new ClientModuleDependencyMetadataWrapper((DslOriginDependencyMetadata) dependencyMetadata);
         }
         return new ModuleDependencyMetadataWrapper(dependencyMetadata);
     }
 
-    private static class ClientModuleComponentResolveMetadata implements ComponentResolveMetadata {
+    private static class ClientModuleComponentResolveMetadata implements ExternalComponentResolveMetadata, ComponentGraphResolveMetadata {
         private final ModuleComponentResolveMetadata delegate;
         private final ModuleComponentArtifactMetadata clientModuleArtifact;
         private final List<ModuleDependencyMetadata> clientModuleDependencies;
@@ -131,11 +136,6 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public ComponentResolveMetadata withSources(ModuleSources sources) {
-            return delegate.withSources(sources);
-        }
-
-        @Override
         public AttributesSchemaInternal getAttributesSchema() {
             return delegate.getAttributesSchema();
         }
@@ -147,13 +147,13 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
         @Override
         @Nullable
-        public ConfigurationMetadata getConfiguration(String name) {
+        public ModuleConfigurationMetadata getConfiguration(String name) {
             return new ClientModuleConfigurationMetadata(delegate.getId(), name, clientModuleArtifact, clientModuleDependencies);
         }
 
         @Override
-        public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
-            return Optional.absent();
+        public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
+            return Optional.empty();
         }
 
         @Override
@@ -205,11 +205,6 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         @Override
         public Dependency getSource() {
             return delegate.getSource();
-        }
-
-        @Override
-        public String getReason() {
-            return delegate.getReason();
         }
     }
 }

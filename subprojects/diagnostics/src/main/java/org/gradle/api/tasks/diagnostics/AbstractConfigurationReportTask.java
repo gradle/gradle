@@ -20,20 +20,17 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
-import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModelFactory;
 import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationReportsImpl;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
-import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.AbstractWritableConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.ConsoleConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -43,8 +40,6 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.FileWriter;
 
 /**
  * Base class for reporting tasks which display information about attributes and related data associated to a variant/configuration.
@@ -118,28 +113,10 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
         reportToConsole(reportSpec, model);
     }
 
-    private void reportToFile(SingleFileReport report, AbstractConfigurationReportSpec reportSpec, ConfigurationReportModel reportModel) {
-        final File outputFile = report.getOutputLocation().get().getAsFile();
-        final AbstractWritableConfigurationReportRenderer renderer = buildToFileRenderer(report, reportSpec);
-
-        try (FileWriter fw = new FileWriter(outputFile)) {
-            renderer.render(reportModel, fw);
-        } catch (Exception e) {
-            throw new GradleException("Failed to write '" + report.getName() + "' report to " + outputFile, e);
-        }
-    }
-
     private void reportToConsole(AbstractConfigurationReportSpec reportSpec, ConfigurationReportModel reportModel) {
         final ConsoleConfigurationReportRenderer renderer = new ConsoleConfigurationReportRenderer(reportSpec);
         final StyledTextOutput output = getTextOutputFactory().create(getClass());
         renderer.render(reportModel, output);
-    }
-
-    private AbstractWritableConfigurationReportRenderer buildToFileRenderer(SingleFileReport report, AbstractConfigurationReportSpec reportSpec) {
-        switch (report.getName()) {
-            default:
-                throw new IllegalArgumentException("Unknown report type: " + report.getName());
-        }
     }
 
     private ConfigurationReportModel buildReportModel(Project project) {

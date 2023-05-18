@@ -34,7 +34,7 @@ class DefaultOutputDirSelector implements OutputDirSelector {
 
     @Override
     File outputDirFor(String testId) {
-        String fileSafeName = fileSafeNameFor(testId)
+        String fileSafeName = OutputDirSelectorUtil.fileSafeNameFor(testId)
         return new File(baseOutputDir, shortenPath(fileSafeName, 40))
     }
 

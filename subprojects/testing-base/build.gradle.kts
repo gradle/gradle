@@ -45,6 +45,7 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.jsoup)
 
@@ -58,8 +59,8 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.AbstractTestTask)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

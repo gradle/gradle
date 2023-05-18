@@ -27,6 +27,7 @@ import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import model.CIBuildModel
 import model.PerformanceTestBuildSpec
 import model.PerformanceTestType
@@ -51,17 +52,27 @@ class PerformanceTest(
         val type = performanceTestBuildSpec.type
         val os = performanceTestBuildSpec.os
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
-        applyPerformanceTestSettings(os = os, timeout = type.timeout)
+        applyPerformanceTestSettings(os = os, arch = os.defaultArch, timeout = type.timeout)
         artifactRules = individualPerformanceTestArtifactRules
 
         params {
-            param("performance.baselines", type.defaultBaselines)
+            text(
+                "performance.baselines",
+                type.defaultBaselines,
+                display = ParameterDisplay.PROMPT,
+                allowEmpty = true,
+                description = "The baselines you want to run performance tests against. Empty means default baseline."
+            )
             param("performance.channel", performanceTestBuildSpec.channel())
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             when (os) {
                 Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
                 else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin:/opt/swift/4.2.4-RELEASE-ubuntu18.04/usr/bin")
             }
+        }
+        failureConditions {
+            // We have test-retry to handle the crash in tests
+            javaCrash = false
         }
         if (testProjects.isNotEmpty()) {
             steps {

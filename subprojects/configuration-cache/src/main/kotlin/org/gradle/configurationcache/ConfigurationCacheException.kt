@@ -35,10 +35,7 @@ interface ConfigurationCacheThrowable
 class ConfigurationCacheError internal constructor(
     error: String,
     cause: Throwable? = null
-) : ConfigurationCacheThrowable, Exception(
-    "Configuration cache state could not be cached: $error",
-    cause
-)
+) : ConfigurationCacheThrowable, Exception(error, cause)
 
 
 @Contextual
@@ -54,7 +51,7 @@ open class ConfigurationCacheProblemsException : ConfigurationCacheException {
     object Documentation {
 
         val maxProblems: String
-            get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:max_problems")
+            get() = DocumentationRegistry().getDocumentationRecommendationFor("on this", "configuration_cache", "config_cache:usage:max_problems")
     }
 
     protected
@@ -84,7 +81,7 @@ class TooManyConfigurationCacheProblemsException internal constructor(
     summary: () -> String
 ) : ConfigurationCacheProblemsException(
     "Maximum number of configuration cache problems has been reached.\n" +
-        "This behavior can be adjusted, see ${Documentation.maxProblems}.",
+        "This behavior can be adjusted. ${Documentation.maxProblems}",
     causes,
     summary
 )

@@ -164,6 +164,17 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         } // else, already calculated so has no dependencies
     }
 
+    @Nullable
+    @Override
+    public WorkNodeAction getPreExecutionNode() {
+        CalculationState<T, S> calculationState = this.calculationState;
+        if (calculationState != null) {
+            return calculationState.supplier.getPreExecutionAction();
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Calculates the value, if not already calculated. Collects and does not rethrow failures.
      */

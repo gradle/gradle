@@ -31,10 +31,8 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestListener
-import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
@@ -105,15 +103,6 @@ abstract class DistributionTest : Test() {
     @get:Internal
     abstract val cachesCleaner: Property<CachesCleaner>
 
-    @get:Internal
-    @get:Option(option = "rerun", description = "Always rerun the task")
-    val rerun: Property<Boolean> = project.objects.property<Boolean>().convention(false)
-
-    @Option(option = "no-rerun", description = "Only run the task when necessary")
-    fun setNoRerun(value: Boolean) {
-        rerun.set(!value)
-    }
-
     init {
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(localRepository)
@@ -122,9 +111,6 @@ abstract class DistributionTest : Test() {
         jvmArgumentProviders.add(allDistributionZip)
         jvmArgumentProviders.add(docsDistributionZip)
         jvmArgumentProviders.add(srcDistributionZip)
-        outputs.upToDateWhen {
-            !rerun.get()
-        }
     }
 
     override fun executeTests() {

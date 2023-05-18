@@ -21,6 +21,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -113,6 +114,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             WorkerExecutionQueueFactory workerExecutionQueueFactory,
                                             ServiceRegistry projectServices,
                                             ActionExecutionSpecFactory actionExecutionSpecFactory,
+                                            CachedClasspathTransformer classpathTransformer,
                                             ProjectLayout projectLayout) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, instantiatorFactory, actionExecutionSpecFactory, projectServices);
 
@@ -130,6 +132,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                 classLoaderStructureProvider,
                 actionExecutionSpecFactory,
                 instantiatorFactory.decorateLenient(projectServices),
+                classpathTransformer,
                 projectLayout.getProjectDirectory().getAsFile());
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;

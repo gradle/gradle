@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -36,12 +35,15 @@ import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -62,7 +64,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private final boolean relocated;
     private final String snapshotTimestamp;
 
-    private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
+    private ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
 
     private boolean filterConstraints = true;
     private MavenDependencyDescriptor[] dependenciesAsArray;
@@ -104,11 +106,15 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
-        return Optional.fromNullable(getDerivedVariants());
+    protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
+        return Optional.ofNullable(getDerivedVariants());
     }
 
-    private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
+    protected Optional<List<? extends ModuleConfigurationMetadata>> deriveVariants() {
+        return Optional.ofNullable(getDerivedVariants());
+    }
+
+    private ImmutableList<? extends ModuleConfigurationMetadata> getDerivedVariants() {
         VariantDerivationStrategy strategy = getVariantDerivationStrategy();
         if (derivedVariants == null && strategy.derivesVariants()) {
             filterConstraints = false;
@@ -118,7 +124,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
+    protected ModuleConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
         DefaultConfigurationMetadata md = (DefaultConfigurationMetadata) super.populateConfigurationFromDescriptor(name, configurationDefinitions);
         if (filterConstraints && md != null) {
             // if the first call to getConfiguration is done before getDerivedVariants() is called

@@ -19,59 +19,50 @@ package org.gradle.internal.execution.steps
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.internal.Try
-import org.gradle.internal.execution.DeferredExecutionHandler
-import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.UnitOfWork
 
-import java.util.function.Supplier
+import static org.gradle.internal.execution.ExecutionEngine.Execution
 
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
     Cache<UnitOfWork.Identity, Try<Object>> cache = new ManualEvictionInMemoryCache<>()
 
     def step = new IdentityCacheStep<>(delegate)
-    def processor = Mock(DeferredExecutionHandler)
 
-    @Override
-    protected IdentityContext createContext() {
-        Stub(IdentityContext)
-    }
 
     def "executes when no cached output exists"() {
-        def processed = Mock(Object)
         def delegateOutput = Mock(Object)
         def delegateResult = Stub(CachingResult) {
-            getExecutionResult() >> Try.successful(Stub(ExecutionResult) {
+
+            getExecution() >> Try.successful(Stub(Execution) {
                 getOutput() >> delegateOutput
             })
         }
 
+        def execution = step.executeDeferred(work, context, cache)
+
+
         when:
-        def actual = step.executeDeferred(work, context, cache, processor)
+        def actualResult = execution.completeAndGet()
 
         then:
-        actual == processed
-        1 * processor.processDeferredOutput(_) >> { Supplier<Try<Object>> deferredExecution ->
-            assert deferredExecution.get().get() == delegateOutput
-            return processed
-        }
+        actualResult.get() == delegateOutput
 
-        then:
-        _ * delegate.execute(work, context) >> delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
     def "returns cached output when exists"() {
-        def cachedOutput = Try.successful(Mock(Object))
-        def processed = Mock(Object)
+        def cachedResult = Try.successful(Mock(Object))
+        cache.put(identity, cachedResult)
 
-        cache.put(identity, cachedOutput)
+        def execution = step.executeDeferred(work, context, cache)
 
         when:
-        def actual = step.executeDeferred(work, context, cache, processor)
+        def actualResult = execution.completeAndGet()
 
         then:
-        actual == processed
-        1 * processor.processCachedOutput(cachedOutput) >> processed
+        actualResult == cachedResult
+
         0 * _
     }
 }

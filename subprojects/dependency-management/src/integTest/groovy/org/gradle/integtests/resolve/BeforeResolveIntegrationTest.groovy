@@ -17,11 +17,84 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class BeforeResolveIntegrationTest extends AbstractDependencyResolutionTest {
+    def "can use beforeResolve hook to modify add dependencies"() {
+        mavenRepo.module('org.test', 'dep1', '1.0').publish()
+        mavenRepo.module('org.test', 'dep2', '1.0').publish()
+        mavenRepo.module('org.test', 'dep3', '1.0').publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+configurations {
+    conf
+}
+dependencies {
+    conf 'org.test:dep1:1.0'
+}
+
+configurations.conf.incoming.beforeResolve { resolvableDependencies ->
+    project.dependencies.add('conf', 'org.test:dep2:1.0')
+}
+
+task printFiles {
+    def conf = configurations.conf
+    doLast {
+        def files = conf.collect { it.name }
+        println files
+        assert files == ['dep1-1.0.jar', 'dep2-1.0.jar']
+    }
+}
+
+task printFilesWithConfigurationInput {
+    dependsOn configurations.conf
+    def conf = configurations.conf
+    doLast {
+        def files = conf.collect { it.name }
+        println files
+        assert files == ['dep1-1.0.jar', 'dep2-1.0.jar']
+    }
+}
+
+task copyFiles(type:Copy) {
+    from configurations.conf
+    into 'libs'
+}
+"""
+
+        when:
+        succeeds 'printFiles'
+
+        then:
+        outputContains('[dep1-1.0.jar, dep2-1.0.jar]')
+
+        when:
+        succeeds 'printFilesWithConfigurationInput'
+
+        then:
+        outputContains('[dep1-1.0.jar, dep2-1.0.jar]')
+
+        when:
+        succeeds 'copyFiles'
+        then:
+        file('libs').assertHasDescendants('dep1-1.0.jar', 'dep2-1.0.jar')
+
+        when:
+        buildFile << """
+// add another dependency to conf
+configurations.conf.incoming.beforeResolve { resolvableDependencies ->
+    project.dependencies.add('conf', 'org.test:dep3:1.0')
+}
+"""
+        succeeds "copyFiles"
+        then:
+        file('libs').assertHasDescendants('dep1-1.0.jar', 'dep2-1.0.jar', 'dep3-1.0.jar')
+    }
 
     @Issue("gradle/gradle#2480")
     def "can use beforeResolve hook to modify dependency excludes"() {
@@ -46,8 +119,9 @@ configurations.conf.incoming.beforeResolve { resolvableDependencies ->
 }
 
 task printFiles {
+    def conf = configurations.conf
     doLast {
-        def files = configurations.conf.collect { it.name }
+        def files = conf.collect { it.name }
         println files
         assert files == ['direct-dep-1.0.jar']
     }
@@ -55,8 +129,9 @@ task printFiles {
 
 task printFilesWithConfigurationInput {
     dependsOn configurations.conf
+    def conf = configurations.conf
     doLast {
-        def files = configurations.conf.collect { it.name }
+        def files = conf.collect { it.name }
         println files
         assert files == ['direct-dep-1.0.jar']
     }
@@ -104,18 +179,22 @@ task copyFiles(type:Copy) {
                 testImplementation('org.test:module2:1.0')
             }
 
-            configurations.all { configuration ->
-                configuration.incoming.beforeResolve { resolvableDependencies ->
-                    resolvableDependencies.dependencies.each { dependency ->
-                        dependency.exclude module: 'excluded-dep'
+            configurations.all { configuration -> 
+                if (configuration.canBeResolved) {
+                    configuration.incoming.beforeResolve { resolvableDependencies ->
+                        resolvableDependencies.dependencies.each { dependency ->
+                            dependency.exclude module: 'excluded-dep'
+                        }
                     }
                 }
             }
 
             task resolveDependencies {
+                def compile = configurations.compileClasspath
+                def testCompile = configurations.testCompileClasspath
                 doLast {
-                    configurations.compileClasspath.files
-                    configurations.testCompileClasspath.files
+                    compile.files
+                    testCompile.files
                 }
             }
 """
@@ -124,9 +203,10 @@ task copyFiles(type:Copy) {
         succeeds 'resolveDependencies'
     }
 
-    @Requires(TestPrecondition.ONLINE)
+    @Requires(UnitTestPreconditions.Online)
     // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
     def "can use beforeResolve hook to modify excludes for a dependency shared with an already-resolved configuration"() {
+        given: "3 modules, where there are dependency relations such that module1 depends on module2 and module2 depends on module3"
         mavenRepo.module('org.test', 'module1', '1.0').publish()
         mavenRepo.module('org.test', 'module2', '1.0')
             .dependsOn('org.test', 'module1', '1.0')
@@ -135,14 +215,9 @@ task copyFiles(type:Copy) {
             .dependsOn('org.test', 'module2', '1.0')
             .publish()
 
-        given:
+        and: "a build where conf a and b extend shared, which deps module3, and where if module3 is going to be resolved for conf b, then module 1 is excluded via a beforeResolve hook"
         buildFile << """
-plugins {
-    id 'io.spring.dependency-management' version '1.0.3.RELEASE'
-}
-
 configurations {
-   aOnly
    shared
    a.extendsFrom shared
    b.extendsFrom shared
@@ -165,15 +240,17 @@ dependencies {
 }
 
 task resolveDependencies {
+    def rootA = configurations.a.incoming.resolutionResult.rootComponent
+    def rootB = configurations.b.incoming.resolutionResult.rootComponent
     doLast {
-        configurations.a.incoming.resolutionResult
-        configurations.b.incoming.resolutionResult
-        configurations.a.incoming.resolutionResult
+        rootA.get()
+        rootB.get()
+        rootA.get()
     }
 }
 """
 
-        expect:
+        expect: "that resolving conf a, then b, then a again, succeeds"
         succeeds 'resolveDependencies'
     }
 
@@ -206,15 +283,17 @@ task resolveDependencies {
                 bar "org.test:module2:1.0"
             }
             task a {
-                inputs.files configurations.bar
+                def files = configurations.bar
+                inputs.files files
                 doLast {
-                    configurations.bar.each { println it }
+                    files.each { println it }
                 }
             }
             task b {
-                inputs.files configurations.bar
+                def files = configurations.bar
+                inputs.files files
                 doLast {
-                    configurations.bar.each { println it }
+                    files.each { println it }
                 }
             }
         """

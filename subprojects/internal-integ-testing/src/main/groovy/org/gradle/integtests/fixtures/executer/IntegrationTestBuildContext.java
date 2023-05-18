@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -37,6 +38,10 @@ public class IntegrationTestBuildContext {
 
     public TestFile getSamplesDir() {
         return file("integTest.samplesdir", null);
+    }
+
+    public TestFile getCommitDistributionsDir() {
+        return file("integTest.commitDistributionsDir", null);
     }
 
     @Nullable
@@ -97,6 +102,8 @@ public class IntegrationTestBuildContext {
     }
 
     public GradleDistribution distribution(String version) {
+        NativeServicesTestFixture.initialize();
+
         if (version.equals(getVersion().getVersion())) {
             return new UnderDevelopmentGradleDistribution();
         }
@@ -105,8 +112,8 @@ public class IntegrationTestBuildContext {
             return new BuildServerGradleDistribution(version, previousVersionDir.file(version));
         }
 
-        if (LocallyBuiltGradleDistribution.isLocallyBuiltVersion(version)) {
-            return new LocallyBuiltGradleDistribution(version);
+        if (CommitDistribution.isCommitDistribution(version)) {
+            return new CommitDistribution(version, getCommitDistributionsDir());
         }
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }

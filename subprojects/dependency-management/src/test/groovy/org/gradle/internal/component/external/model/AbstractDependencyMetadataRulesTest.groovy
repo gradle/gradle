@@ -31,15 +31,12 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
-import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
-import org.gradle.internal.component.model.VariantResolveMetadata
+import org.gradle.internal.component.model.VariantGraphResolveMetadata
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -63,12 +60,11 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared defaultVariant
 
     protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
-        Spec<VariantResolveMetadata> spec = variantName ? { it.name == variantName } as Spec<VariantResolveMetadata> : Specs.satisfyAll()
-        new VariantMetadataRules.VariantAction<T>(spec, action)
+        new VariantMetadataRules.VariantAction<T>(variantName, action)
     }
 
     private DefaultAttributesSchema createSchema() {
-        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+        def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
         GradlePluginVariantsSupport.configureSchema(schema)
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
@@ -94,6 +90,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
         ivyMetadataFactory.create(componentIdentifier, dependencies)
     }
+
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
             MavenDependencyType type = addAllDependenciesAsConstraints() ? MavenDependencyType.OPTIONAL_DEPENDENCY : MavenDependencyType.DEPENDENCY
@@ -101,6 +98,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
         mavenMetadataFactory.create(componentIdentifier, dependencies)
     }
+
     private gradleComponentMetadata(String[] deps) {
         def metadata = mavenMetadataFactory.create(componentIdentifier, [])
         //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
@@ -273,16 +271,17 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("toRemove")
     }
 
-    def selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
-        selectTargetConfigurationMetadata(targetComponent.asImmutable())
+    VariantGraphResolveMetadata selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
+        return selectTargetConfigurationMetadata(targetComponent.asImmutable())
     }
 
-    def selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
+    VariantGraphResolveMetadata selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
 
-        consumer.selectConfigurations(attributes, immutable, schema, [] as Set)[0]
+        return consumer.selectVariants(attributes, state, schema, [] as Set).variants[0].metadata
     }
 }

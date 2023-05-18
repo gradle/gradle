@@ -17,14 +17,13 @@
 package org.gradle.util.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.StreamByteBuffer;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -32,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -406,22 +404,6 @@ public class GUtil {
         return builder.toString();
     }
 
-    public static byte[] serialize(Object object) {
-        StreamByteBuffer buffer = new StreamByteBuffer();
-        serialize(object, buffer.getOutputStream());
-        return buffer.readAsByteArray();
-    }
-
-    public static void serialize(Object object, OutputStream outputStream) {
-        try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-            objectOutputStream.writeObject(object);
-            objectOutputStream.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     public static <T> Comparator<T> last(final Comparator<? super T> comparator, final T lastValue) {
         return new Comparator<T>() {
             @Override
@@ -477,7 +459,7 @@ public class GUtil {
 
             throw new IllegalArgumentException(
                 String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), new Transformer<String, T>() {
+                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), new InternalTransformer<Object, T>() {
                         @Override
                         public String transform(T t) {
                             return t.name();

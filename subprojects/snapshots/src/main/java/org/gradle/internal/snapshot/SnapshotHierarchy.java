@@ -62,6 +62,8 @@ public interface SnapshotHierarchy {
     @CheckReturnValue
     SnapshotHierarchy empty();
 
+    CaseSensitivity getCaseSensitivity();
+
     /**
      * Returns all root snapshots in the hierarchy.
      */

@@ -292,7 +292,8 @@ class MemberFlagsKmPropertyExtensionVisitor(
 
     private
     val kmPropertyExtensionVisitor = object : JvmPropertyExtensionVisitor() {
-        override fun visit(fieldSignature: JvmFieldSignature?, getterSignature: JvmMethodSignature?, setterSignature: JvmMethodSignature?) {
+
+        override fun visit(jvmFlags: Flags, fieldSignature: JvmFieldSignature?, getterSignature: JvmMethodSignature?, setterSignature: JvmMethodSignature?) {
             when (jvmSignature) {
                 fieldSignature?.asString() -> onMatch(predicate(fieldFlags))
                 getterSignature?.asString() -> onMatch(predicate(getterFlags))

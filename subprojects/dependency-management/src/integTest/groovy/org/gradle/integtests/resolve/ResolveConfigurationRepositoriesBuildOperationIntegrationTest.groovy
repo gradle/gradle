@@ -37,7 +37,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         buildFile << """
             apply plugin: 'java'
             ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
         if (deprecationWarning) {
             executer.expectDocumentedDeprecationWarning(deprecationWarning)
@@ -53,7 +56,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         op.details.buildPath == ":"
         def repos = op.details.repositories
         repos.size() == 1
-        repos.first() == augmentMapWithProperties(expectedRepo, [
+        def repo1 = repos.first()
+        repo1.remove('id')
+        repo1 == augmentMapWithProperties(expectedRepo, [
             URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
             DIRS: [buildFile.parentFile.file('fooDir').absolutePath]
         ])
@@ -66,7 +71,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()            | null
         'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()         | null
         'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()       | null
-        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()            | "The RepositoryHandler.jcenter() method has been deprecated. This is scheduled to be removed in Gradle 8.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
+        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()            | "The RepositoryHandler.jcenter() method has been deprecated. This is scheduled to be removed in Gradle 9.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
         'google'               | googleRepoBlock()             | expectedGoogleRepo()             | null
         'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo() | null
     }
@@ -161,7 +166,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             }
             apply plugin: 'org.example.plugin2'
             repositories { maven { url = '$mavenRepo.uri' } }
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -182,7 +190,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             allprojects {
                 apply plugin: 'java'
                 ${mavenCentralRepoBlock()}
-                task resolve { doLast { configurations.compileClasspath.resolve() } }
+                task resolve {
+                    def files = configurations.compileClasspath
+                    doLast { files.files }
+                }
             }
         """
 
@@ -214,7 +225,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -245,7 +259,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     name = 'custom repo'
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -282,7 +299,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -324,7 +344,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     ${definition}
                 }
             }
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -386,7 +409,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     dirs 'lib1', 'lib2'
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -410,7 +436,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenRepo() {
         [
-            id: 'maven',
             name: 'maven',
             type: 'MAVEN',
             properties: [
@@ -447,7 +472,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedIvyRepo() {
         [
-            id: 'ivy',
             name: 'ivy',
             type: 'IVY',
             properties: [
@@ -469,7 +493,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedIvyRepoNoUrl() {
         [
-            id: 'ivy',
             name: 'ivy',
             type: 'IVY',
             properties: [
@@ -493,7 +516,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedFlatDirRepo() {
         [
-            id: 'flatDir',
             name: 'flatDir',
             type: 'FLAT_DIR',
             properties: [
@@ -508,7 +530,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenLocalRepo() {
         [
-            id: 'MavenLocal',
             name: 'MavenLocal',
             type: 'MAVEN',
             properties: [
@@ -527,7 +548,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedMavenCentralRepo() {
         [
-            id: 'MavenRepo',
             name: 'MavenRepo',
             type: 'MAVEN',
             properties: [
@@ -546,7 +566,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedJcenterRepo() {
         [
-            id: 'BintrayJCenter',
             name: 'BintrayJCenter',
             type: 'MAVEN',
             properties: [
@@ -565,7 +584,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedGoogleRepo() {
         [
-            id: 'Google',
             name: 'Google',
             type: 'MAVEN',
             properties: [
@@ -584,7 +602,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     private static Map expectedGradlePluginPortalRepo() {
         [
-            id: 'Gradle Central Plugin Repository',
             name: 'Gradle Central Plugin Repository',
             type: 'MAVEN',
             properties: [

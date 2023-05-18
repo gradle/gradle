@@ -16,10 +16,8 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.TextUtil
-import org.gradle.work.InputChanges
 import spock.lang.Issue
 
 class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegrationSpec {
@@ -27,12 +25,11 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
     private static final String INCREMENTAL_TASK_NAME = "incrementalTask"
 
     @Issue("https://github.com/gradle/gradle/issues/9320")
-    def "incremental task with NAME_ONLY input (matching file names and content) detects changed input (type: #taskChangeType.simpleName)"() {
+    def "incremental task with NAME_ONLY input (matching file names and content) detects changed input"() {
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
         def modifiedInput = inputs[1]
 
-        buildFile << incrementalTaskWithNameOnlyInputFiles(taskChangeType, inputs)
-        expectDeprecationWarningForIncrementalTaskInputs(taskChangeType)
+        buildFile << incrementalTaskWithNameOnlyInputFiles(inputs)
         run INCREMENTAL_TASK_NAME, "--info"
 
         when:
@@ -49,19 +46,15 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         run INCREMENTAL_TASK_NAME, "--info"
         then:
         outputContains "${modifiedInput} has changed."
-
-        where:
-        taskChangeType << [IncrementalTaskInputs, InputChanges]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9320")
-    def "incremental task with NAME_ONLY input (matching file names and content) detects moved files (type: #taskChangeType.simpleName)"() {
+    def "incremental task with NAME_ONLY input (matching file names and content) detects moved files"() {
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
         def movableInput = inputs[1]
         def renamedInput = file("moved/${movableInput.name}")
 
-        buildFile << incrementalTaskWithNameOnlyInputFiles(taskChangeType, inputs + renamedInput)
-        expectDeprecationWarningForIncrementalTaskInputs(taskChangeType)
+        buildFile << incrementalTaskWithNameOnlyInputFiles(inputs + renamedInput)
         run INCREMENTAL_TASK_NAME, "--info"
 
         when:
@@ -74,17 +67,13 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         !movableInput.exists()
         renamedInput.exists()
         outputContains "is up-to-date"
-
-        where:
-        taskChangeType << [IncrementalTaskInputs, InputChanges]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9320")
-    def "incremental task with NAME_ONLY inputs (matching file names and content) detects deleted file (type: #taskChangeType.simpleName)"() {
+    def "incremental task with NAME_ONLY inputs (matching file names and content) detects deleted file"() {
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
 
-        buildFile << incrementalTaskWithNameOnlyInputFiles(taskChangeType, inputs)
-        expectDeprecationWarningForIncrementalTaskInputs(taskChangeType)
+        buildFile << incrementalTaskWithNameOnlyInputFiles(inputs)
         run INCREMENTAL_TASK_NAME
 
         when:
@@ -95,22 +84,11 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
         outputDoesNotContain "${inputs[0]} has been removed."
         outputContains "${inputs[1]} has been removed."
         outputContains "${inputs[2]} has been removed."
-
-        where:
-        taskChangeType << [IncrementalTaskInputs, InputChanges]
-    }
-
-    private void expectDeprecationWarningForIncrementalTaskInputs(Class<?> taskChangeType) {
-        if (taskChangeType == IncrementalTaskInputs) {
-            executer.beforeExecute {
-                expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'IncrementalTask.action' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
-            }
-        }
     }
 
     private static Range<String> folderNames() { 'a'..'c' }
 
-    private static String incrementalTaskWithNameOnlyInputFiles(Class<?> incrementalChangesType, List<? extends File> inputs) {
+    private static String incrementalTaskWithNameOnlyInputFiles(List<? extends File> inputs) {
         """
             abstract class IncrementalTask extends DefaultTask {
                 @InputFiles
@@ -122,7 +100,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
                 abstract RegularFileProperty getOutputFile()
 
                 @TaskAction
-                def action(${incrementalChangesType.name} changes) {}
+                def action(InputChanges changes) {}
             }
 
             task ${INCREMENTAL_TASK_NAME}(type: IncrementalTask) {}

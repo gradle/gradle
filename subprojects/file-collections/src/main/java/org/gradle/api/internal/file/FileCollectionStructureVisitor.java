@@ -31,13 +31,7 @@ public interface FileCollectionStructureVisitor {
         // Visitor is interested in the contents of the collection
         Visit,
         // Visitor is not interested in the contents of the collection, but would like to receive the source and other metadata
-        NoContents,
-        // Visitor is interested in the spec of the collection - that is, the files that the collection <em>might</em> include in the future
-        // For most collections, this will be the same as the elements of the collection. However, for a collection that includes
-        // all of the files from a directory, the spec for the collection would be the directory + the patterns it matches files with
-        // Or, for a collection that contains some transformation of another collection, the spec for the collection would include the spec
-        // for the original collection
-        Spec
+        NoContents
     }
 
     /**
@@ -70,11 +64,6 @@ public interface FileCollectionStructureVisitor {
      * Visits an opaque file source that cannot be visited in further detail.
      */
     void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents);
-
-    /**
-     * Visits a file tree whose content is generated from some opaque source.
-     */
-    void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree);
 
     /**
      * Visits a file tree at a root file on the file system (potentially filtered).

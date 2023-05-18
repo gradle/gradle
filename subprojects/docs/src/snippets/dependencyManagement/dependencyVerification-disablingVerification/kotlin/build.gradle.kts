@@ -9,7 +9,6 @@ val myPlugin by configurations.creating {
 val myPluginClasspath by configurations.creating {
     extendsFrom(myPlugin)
     isCanBeConsumed = false
-    isCanBeResolved = true
 }
 
 dependencies {
@@ -27,17 +26,19 @@ configurations {
 // end::disabling-one-configuration[]
 
 tasks.register("checkDependencies") {
-    inputs.files(myPluginClasspath)
+    val classpath: FileCollection = myPluginClasspath
+    inputs.files(classpath)
     doLast {
-        println(myPluginClasspath.files)
+        println(classpath.files)
     }
 }
 
 // tag::disabling-detached-configuration[]
 tasks.register("checkDetachedDependencies") {
+    val detachedConf: FileCollection = configurations.detachedConfiguration(dependencies.create("org.apache.commons:commons-lang3:3.3.1")).apply {
+        resolutionStrategy.disableDependencyVerification()
+    }
     doLast {
-        val detachedConf = configurations.detachedConfiguration(dependencies.create("org.apache.commons:commons-lang3:3.3.1"))
-        detachedConf.resolutionStrategy.disableDependencyVerification()
         println(detachedConf.files)
     }
 }

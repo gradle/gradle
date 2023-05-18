@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm.internal
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationPublications
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
@@ -33,7 +34,6 @@ import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
@@ -58,7 +58,7 @@ import static org.gradle.util.AttributeTestUtil.named
 
 class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
-    def configuresCompileClasspath() {
+    def "configures compileClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
         Action[] action = new Action[1]
@@ -80,7 +80,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         0 * _
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
         ]
@@ -92,14 +92,14 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         then:
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
             (TARGET_JVM_VERSION_ATTRIBUTE): 8
         ]
     }
 
-    def configuresRuntimeClasspath() {
+    def "configures runtimeClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
 
@@ -115,6 +115,43 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
+        ]
+    }
+
+    def "configures apiElements"() {
+        def mutable = AttributeTestUtil.attributesFactory().mutable()
+        def attrs = Mock(Configuration)
+
+        when:
+        services.configureAsApiElements(attrs)
+
+        then:
+        1 * attrs.getAttributes() >> mutable
+        0 * _
+        mutable.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+        ]
+
+    }
+
+    def "configures runtimeElements"() {
+        def mutable = AttributeTestUtil.attributesFactory().mutable()
+        def attrs = Mock(Configuration)
+
+        when:
+        services.configureAsRuntimeElements(attrs)
+
+        then:
+        1 * attrs.getAttributes() >> mutable
+        0 * _
+        mutable.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_RUNTIME),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
         ]
     }
 
@@ -163,11 +200,9 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         }
 
         when:
-        services.configureClassesDirectoryVariant("apiElements", sourceSet)
+        services.configureClassesDirectoryVariant(apiElements, sourceSet)
 
         then:
-        1 * configurations.all(_) >> { args -> args[0].execute(apiElements) }
-        1 * apiElements.getName() >> 'apiElements'
         1 * apiElements.getOutgoing() >> outgoing
         1 * outgoing.getVariants() >> variants
         1 * variants.maybeCreate('classes') >> variant
@@ -181,7 +216,6 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         1 * variant.setDescription(_)
         _ * sourceSet.getOutput() >> output
         1 * output.getClassesDirs() >> classes
-        1 * output.getClassesContributors() >> Stub(TaskDependency)
         1 * sourceSet.getName()
         0 * _
     }
@@ -253,7 +287,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API)
+            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API)
         ]
 
         when:

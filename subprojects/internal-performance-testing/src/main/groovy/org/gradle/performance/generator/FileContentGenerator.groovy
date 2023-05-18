@@ -41,6 +41,22 @@ abstract class FileContentGenerator {
         this.config = config
     }
 
+    String generateVersionCatalog() {
+        return """
+        [libraries]
+        groovy = "org.codehaus.groovy:groovy:2.5.22"
+        testng = "org.testng:testng:6.4"
+        junit = "junit:junit:4.13"
+
+        ${config.externalApiDependencies
+            .collect { "${it.key} = \"${it.value}\"" }
+            .join("\n        ")}
+        ${config.externalImplementationDependencies
+            .collect { "${it.key} = \"${it.value}\"" }
+            .join("\n        ")}
+        """
+    }
+
     String generateBuildGradle(Language language, Integer subProjectNumber, DependencyTree dependencyTree) {
         def isRoot = subProjectNumber == null
         if (isRoot && config.subProjects > 0) {
@@ -53,30 +69,27 @@ abstract class FileContentGenerator {
             return ""
         }
         return """
-        import org.gradle.util.GradleVersion
+        plugins {
+            ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
+        }
 
-        ${noJavaLibraryPluginFlag()}
-
-        ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
+        group = "org.gradle.test.performance"
+        version = "2.0"
 
         repositories {
             ${config.repositories.join("\n            ")}
         }
+
         ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}
 
-        allprojects {
-            dependencies{
+        dependencies{
         ${
-            language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.8') : ""
+            language == Language.GROOVY ? versionCatalogDependencyDeclaration('implementation', 'groovy') : ""
         }
-            }
         }
 
 
         ${tasksConfiguration()}
-
-        group = "org.gradle.test.performance"
-        version = "2.0"
         """
     }
 
@@ -90,7 +103,7 @@ abstract class FileContentGenerator {
                     """
                     includeBuild("project$it") {
                         dependencySubstitution {
-                            substitute(module("org.gradle.test.performance:project${it}")).with(project(":"))
+                            substitute(module("org.gradle.test.performance:project${it}")).using(project(":"))
                         }
                     }
                     """
@@ -204,8 +217,8 @@ abstract class FileContentGenerator {
             }
             body += """
             <dependencies>
-                ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join("")}
-                ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join("")}
+                ${config.externalApiDependencies.values().collect { convertToPomDependency(it) }.join("")}
+                ${config.externalImplementationDependencies.values().collect { convertToPomDependency(it) }.join("")}
                 ${convertToPomDependency('junit:junit:4.13', 'test')}
                 ${subProjectDependencies}
             </dependencies>
@@ -407,17 +420,13 @@ abstract class FileContentGenerator {
         if (plugin.contains('java')) {
             if (projectHasParents) {
                 return """
-                    if (noJavaLibraryPlugin) {
-                        ${imperativelyApplyPlugin("java")}
-                    } else {
-                        ${imperativelyApplyPlugin("java-library")}
-                    }
+                    ${pluginBlockApply("java-library")}
                 """
             } else {
-                return imperativelyApplyPlugin("java")
+                return pluginBlockApply("java")
             }
         }
-        return imperativelyApplyPlugin(plugin)
+        return pluginBlockApply(plugin)
     }
 
     private dependenciesBlock(String api, String implementation, String testImplementation, Integer subProjectNumber, DependencyTree dependencyTree) {
@@ -431,14 +440,13 @@ abstract class FileContentGenerator {
             }.join("\n            ")
         }
         def block = """
-                    ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
-                    ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
-                    ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.13')}
+                    ${config.externalApiDependencies.keySet().collect { versionCatalogDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
+                    ${config.externalImplementationDependencies.keySet().collect { versionCatalogDependencyDeclaration(implementation, it) }.join("\n            ")}
+                    ${versionCatalogDependencyDeclaration(testImplementation, config.useTestNG ? 'testng' : 'junit')}
 
                     $subProjectDependencies
         """
         return """
-            ${addJavaLibraryConfigurationsIfNecessary(hasParent)}
             dependencies {
                 $block
             }
@@ -459,17 +467,15 @@ abstract class FileContentGenerator {
                 </dependency>"""
     }
 
-    protected abstract String noJavaLibraryPluginFlag()
 
     protected abstract String tasksConfiguration()
 
-    protected abstract String imperativelyApplyPlugin(String plugin)
+    protected abstract String pluginBlockApply(String plugin)
 
     protected abstract String createTaskThatDependsOnAllIncludedBuildsTaskWithSameName(String taskName)
 
-    protected abstract String addJavaLibraryConfigurationsIfNecessary(boolean hasParent)
 
-    protected abstract String directDependencyDeclaration(String configuration, String notation)
+    protected abstract String versionCatalogDependencyDeclaration(String configuration, String alias)
 
     protected abstract String projectDependencyDeclaration(String configuration, int projectNumber)
 

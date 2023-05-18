@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scopes.BuildTree.class)
 public interface ProjectConfigurer {
     /**
      * Configures the given project.
@@ -37,8 +37,4 @@ public interface ProjectConfigurer {
      */
     void configureHierarchy(ProjectInternal project);
 
-    /*
-     * Configures the project and all of its sub-projects, including task discovery and binding model rules.
-     */
-    void configureHierarchyFully(ProjectInternal project);
 }

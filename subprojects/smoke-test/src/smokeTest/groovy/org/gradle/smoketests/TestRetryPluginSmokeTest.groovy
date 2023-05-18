@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Issue
-import spock.lang.PendingFeature
 
 class TestRetryPluginSmokeTest extends AbstractSmokeTest {
     def setup() {
@@ -36,18 +35,19 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
         """
     }
 
-    @PendingFeature(reason ="Exposing test failure types requires a breaking change in TestResultProcessor which is used by the test retry plugin")
     @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
     def 'test retry plugin'() {
         given:
         buildFile << """
             dependencies {
                 testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+                testRuntimeOnly("org.junit.platform:junit-platform-launcher")
             }
 
             test {
+                def markerFile = file("marker.file")
                 doFirst {
-                    file("marker.file").delete()
+                    markerFile.delete()
                 }
 
                 useJUnitPlatform()
@@ -64,7 +64,6 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
         assertHasFlakyOutput(result)
     }
 
-    @PendingFeature(reason ="Exposing test failure types requires a breaking change in TestResultProcessor which is used by the test retry plugin")
     @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
     def 'test retry plugin with test suites'() {
         given:
@@ -76,8 +75,9 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
                         targets {
                             all {
                                 testTask.configure {
+                                    def markerFile = file("marker.file")
                                     doFirst {
-                                        file("marker.file").delete()
+                                        markerFile.delete()
                                     }
                                     retry {
                                         maxRetries = 2

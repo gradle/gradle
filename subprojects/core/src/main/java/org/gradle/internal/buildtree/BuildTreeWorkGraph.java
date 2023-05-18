@@ -16,10 +16,14 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
+import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
@@ -27,23 +31,35 @@ import java.util.function.Consumer;
  */
 public interface BuildTreeWorkGraph {
     /**
-     * Schedules work using the given action and then prepares this work graphs for execution. Does not run any work until {@link #runWork()} is called.
+     * Schedules work using the given action and then prepares this work graphs for execution. Does not run any work until {@link FinalizedGraph#runWork()} is called.
      *
      * <p>This can be called only once for a given graph.</p>
      */
-    void scheduleWork(Consumer<? super Builder> action);
+    FinalizedGraph scheduleWork(Consumer<? super Builder> action);
 
-    /**
-     * Runs any scheduled work, blocking until complete. Does nothing when {@link #scheduleWork(Consumer)} has not been called to schedule the work.
-     *
-     * <p>This can be called only once for a given graph.</p>
-     */
-    ExecutionResult<Void> runWork();
+    interface FinalizedGraph {
+        /**
+         * Runs any scheduled work, blocking until complete. Does nothing when {@link #scheduleWork(Consumer)} has not been called to schedule the work.
+         *
+         * <p>This can be called only once for a given graph.</p>
+         */
+        ExecutionResult<Void> runWork();
+    }
 
     interface Builder {
         /**
          * Adds nodes to the work graph for the given build.
          */
         void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
+
+        /**
+         * Adds the given tasks and their dependencies to the work graph.
+         */
+        void scheduleTasks(Collection<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild);
+
+        /**
+         * Adds add task filter to the given build.
+         */
+        void addFilter(BuildState target, Spec<Task> filter);
     }
 }

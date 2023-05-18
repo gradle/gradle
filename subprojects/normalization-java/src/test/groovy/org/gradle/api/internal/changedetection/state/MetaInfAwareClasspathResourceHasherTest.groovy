@@ -24,6 +24,7 @@ import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
+import org.gradle.internal.io.IoFunction
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -404,6 +405,33 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
         1 * delegate.appendConfigurationToHasher(configurationHasher)
     }
 
+    def "hashes original context with delegate for files that are not manifest files (filename: #filename)"() {
+        def delegate = Mock(ResourceHasher)
+        hasher = new MetaInfAwareClasspathResourceHasher(delegate, ResourceEntryFilter.FILTER_NOTHING)
+        def notManifest = unsafeContextFor(filename)
+
+        when:
+        hasher.hash(notManifest)
+
+        then:
+        1 * delegate.hash(notManifest)
+
+        where:
+        filename << ["foo.txt", "some/path/to/MANIFEST.MF"]
+    }
+
+    def "always calls delegate for directories"() {
+        def delegate = Mock(ResourceHasher)
+        hasher = new MetaInfAwareClasspathResourceHasher(delegate, ResourceEntryFilter.FILTER_NOTHING)
+        def directory = directoryContextFor(MANIFEST_PATH)
+
+        when:
+        hasher.hash(directory)
+
+        then:
+        1 * delegate.hash(directory)
+    }
+
     void populateAttributes(Attributes attributes, Map<String, Object> attributesMap) {
         attributesMap.each { String name, Object value ->
             if (value instanceof String) {
@@ -412,12 +440,20 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
         }
     }
 
-    def zipEntry(String path, Map<String, Object> attributesMap = [:], Exception exception = null) {
+    def unsafeContextFor(String path) {
+        return zipEntry(path, [:], null, true)
+    }
+
+    def directoryContextFor(String path) {
+        return zipEntry(path, [:], null, true, true)
+    }
+
+    def zipEntry(String path, Map<String, Object> attributesMap = [:], Exception exception = null, boolean unsafe = false, boolean directory = false) {
         ByteArrayOutputStream bos = getManifestByteStream(attributesMap)
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
-                return false
+                return directory
             }
 
             @Override
@@ -431,16 +467,26 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
             }
 
             @Override
-            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
+            <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
                 if (exception) {
                     throw exception
                 }
-                return action.run(new ByteArrayInputStream(bos.toByteArray()))
+                return action.apply(new ByteArrayInputStream(bos.toByteArray()))
             }
 
             @Override
             int size() {
                 return bos.size()
+            }
+
+            @Override
+            boolean canReopen() {
+                return !unsafe
+            }
+
+            @Override
+            ZipEntry.ZipCompressionMethod getCompressionMethod() {
+                return ZipEntry.ZipCompressionMethod.DEFLATED
             }
         }
         return new DefaultZipEntryContext(zipEntry, path, "foo.zip")

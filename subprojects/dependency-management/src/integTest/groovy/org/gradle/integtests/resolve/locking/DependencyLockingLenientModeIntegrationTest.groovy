@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DependencyLockingLenientModeIntegrationTest extends AbstractLockingIntegrationTest {
     @Override
@@ -54,7 +53,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -63,11 +62,12 @@ dependencies {
         resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
-                edge("org:foo:1.+", "org:foo:1.1")
-                edge("org:foo:{strictly 1.1}", "org:foo:1.1")
-                constraint("org:foo:1.0", "org:foo:1.1"){
+                edge("org:foo:1.+", "org:foo:1.1") {
+                    byConflictResolution("between versions 1.0 and 1.1")
                     byConstraint("dependency was locked to version '1.0' (update/lenient mode)")
                 }
+                edge("org:foo:{strictly 1.1}", "org:foo:1.1")
+                constraint("org:foo:1.0", "org:foo:1.1")
             }
         }
 
@@ -102,7 +102,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -111,11 +111,12 @@ dependencies {
         resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
-                edge("org:foo:1.+", "org:foo:1.1")
-                module("org:foo:1.1")
-                constraint("org:foo:1.0", "org:foo:1.1"){
+                edge("org:foo:1.+", "org:foo:1.1") {
                     byConstraint("dependency was locked to version '1.0' (update/lenient mode)")
+                    byConflictResolution("between versions 1.0 and 1.1")
                 }
+                module("org:foo:1.1")
+                constraint("org:foo:1.0", "org:foo:1.1")
             }
         }
 
@@ -150,7 +151,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'], unique)
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -160,7 +161,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0")
-                constraint("org:foo:1.0", "org:foo:1.0"){
+                constraint("org:foo:1.0", "org:foo:1.0") {
                     byConstraint("dependency was locked to version '1.0' (update/lenient mode)")
                 }
             }
@@ -197,7 +198,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -208,7 +209,7 @@ dependencies {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0")
                 edge("org:bar:1.+", "org:bar:1.0")
-                constraint("org:foo:1.0", "org:foo:1.0"){
+                constraint("org:foo:1.0", "org:foo:1.0") {
                     byConstraint("dependency was locked to version '1.0' (update/lenient mode)")
                 }
             }
@@ -255,7 +256,6 @@ configurations {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def 'dependency report passes without failed dependencies using out-of-date lock file'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -284,7 +284,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
 
         when:
         run 'dependencies'
@@ -296,7 +296,6 @@ dependencies {
 \\--- org:foo:1.0 -> 1.1 (c)"""
     }
 
-    @ToBeFixedForConfigurationCache
     def 'dependency report passes without FAILED dependencies for all out lock issues'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -326,7 +325,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
 
         when:
         run 'dependencies'

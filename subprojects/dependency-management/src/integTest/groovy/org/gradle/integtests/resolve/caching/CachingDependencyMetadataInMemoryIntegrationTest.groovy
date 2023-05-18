@@ -19,7 +19,6 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 
 class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -42,8 +41,9 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
             }
             //runs first and resolves
             task resolveOne {
+                def files = configurations.one
                 doLast {
-                    configurations.one.files
+                    files.files
                 }
             }
             //runs second, purges repo
@@ -52,8 +52,9 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
             }
             //runs last, still works even though local repo is empty
             task resolveTwo(dependsOn: purgeRepo) {
+                def files = configurations.two
                 doLast {
-                    println "Resolved " + configurations.two.files*.name
+                    println "Resolved " + files*.name
                 }
             }
         """
@@ -76,7 +77,10 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
                 configurations { conf }
                 repositories { ivy { url "${ivyHttpRepo.uri}" } }
                 dependencies { conf 'org:lib:1.0' }
-                task resolveConf { doLast { println path + " " + configurations.conf.files*.name } }
+                task resolveConf {
+                    def files = configurations.conf
+                    doLast { println path + " " + files*.name }
+                }
             }
             resolveConf.dependsOn(':impl:resolveConf')
         """
@@ -101,9 +105,18 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
 
         file("build.gradle") << """
             allprojects {
-                configurations { conf }
+                configurations {
+                    conf {
+                        incoming.afterResolve { deps ->
+                            println "\${project.path} " + deps.files*.name
+                        }
+                    }
+                }
                 dependencies { conf 'org:lib:1.0' }
-                task resolveConf { doLast { println "\$path " + configurations.conf.files*.name } }
+                task resolveConf {
+                    def files = configurations.conf
+                    doLast { files.files }
+                }
             }
             repositories { ivy { url "${ivyRepo.uri}" } }
             project(":impl") {
@@ -116,12 +129,11 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
         runAndFail ":impl:resolveConf"
 
         then:
-        output.contains ':resolveConf [lib-1.0.jar]'
+        output.contains ': [lib-1.0.jar]'
         //uses different repo that does not contain this dependency
         failure.assertResolutionFailure(":impl:conf").assertHasCause("Could not find org:lib:1.0")
     }
 
-    @ToBeFixedForConfigurationCache
     def "cache expires at the end of build"() {
         given:
         ivyRepo.module("org", "dependency").publish()

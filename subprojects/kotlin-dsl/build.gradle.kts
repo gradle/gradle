@@ -8,13 +8,9 @@ description = "Kotlin DSL Provider"
 
 dependencies {
 
-    compileOnlyApi(libs.futureKotlin("compiler-embeddable"))
-    compileOnlyApi(libs.futureKotlin("reflect"))
-
-    runtimeOnly(project(":kotlin-compiler-embeddable"))
-
     api(project(":kotlin-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib-jdk8"))
+    api(libs.futureKotlin("reflect"))
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
@@ -45,6 +41,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.asm)
 
+    implementation(libs.futureKotlin("compiler-embeddable"))
     implementation(libs.futureKotlin("script-runtime"))
     implementation(libs.futureKotlin("daemon-embeddable"))
 
@@ -66,7 +63,10 @@ dependencies {
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1") {
+    implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
+        isTransitive = false
+    }
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
         isTransitive = false
     }
 
@@ -76,7 +76,7 @@ dependencies {
     testImplementation(project(":platform-native")) {
         because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
     }
-    testImplementation(project(":plugins"))
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":version-control"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.ant)
@@ -86,7 +86,9 @@ dependencies {
     testImplementation(libs.kotlinCoroutines)
     testImplementation(libs.awaitility)
 
-    integTestImplementation(project(":language-groovy"))
+    integTestImplementation(project(":build-option")) {
+        because("KotlinSettingsScriptIntegrationTest makes uses of FeatureFlag")
+    }
     integTestImplementation(project(":language-groovy")) {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
@@ -109,6 +111,8 @@ dependencies {
 
     testFixturesImplementation(testFixtures(project(":hashing")))
 
+    testFixturesImplementation(libs.futureKotlin("compiler-embeddable"))
+
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.mockitoKotlin)
     testFixturesImplementation(libs.jacksonKotlin)
@@ -117,8 +121,12 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
+
+strictCompile {
+    ignoreDeprecations()
+}

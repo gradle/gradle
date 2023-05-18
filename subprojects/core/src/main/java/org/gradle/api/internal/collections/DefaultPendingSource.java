@@ -58,6 +58,7 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
             if (flushAction != null) {
                 pending.remove(collector);
                 ImmutableList.Builder<T> builder = ImmutableList.builder();
+                // Collect elements discarding potential side effects aggregated in the returned value
                 collector.collectInto(builder);
                 List<T> realized = builder.build();
                 for (T element : realized) {

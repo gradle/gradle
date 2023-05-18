@@ -18,13 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
@@ -32,13 +31,13 @@ import org.gradle.internal.model.ValueCalculator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
+public class DefaultLocalComponentRegistry implements LocalComponentRegistry, HoldsProjectState {
     private final BuildIdentifier thisBuild;
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final LocalComponentProvider provider;
     private final LocalComponentInAnotherBuildProvider otherBuildProvider;
-    private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentMetadata, ?>> projects = new ConcurrentHashMap<>();
+    private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> projects = new ConcurrentHashMap<>();
 
     public DefaultLocalComponentRegistry(
         BuildIdentifier thisBuild,
@@ -55,17 +54,29 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     }
 
     @Override
-    public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
-        CalculatedValueContainer<LocalComponentMetadata, ?> valueContainer = projects.computeIfAbsent(projectIdentifier, projectComponentIdentifier -> {
-            ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
-            return calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), new MetadataSupplier(projectState));
-        });
-        // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
-        valueContainer.finalizeIfNotAlready();
-        return valueContainer.get();
+    public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
+        ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
+        if (isLocalProject(projectIdentifier)) {
+            CalculatedValueContainer<LocalComponentGraphResolveState, ?> valueContainer = projects.computeIfAbsent(projectIdentifier, projectComponentIdentifier ->
+                calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), new MetadataSupplier(projectState)));
+            // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
+            valueContainer.finalizeIfNotAlready();
+            return valueContainer.get();
+        } else {
+            return otherBuildProvider.getComponent(projectState);
+        }
     }
 
-    private class MetadataSupplier implements ValueCalculator<LocalComponentMetadata> {
+    private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
+        return projectIdentifier.getBuild().equals(thisBuild);
+    }
+
+    @Override
+    public void discardAll() {
+        projects.clear();
+    }
+
+    private class MetadataSupplier implements ValueCalculator<LocalComponentGraphResolveState> {
         private final ProjectState projectState;
 
         public MetadataSupplier(ProjectState projectState) {
@@ -73,30 +84,8 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-        }
-
-        @Override
-        public boolean usesMutableProjectState() {
-            return false;
-        }
-
-        @Override
-        public ProjectInternal getOwningProject() {
-            return null;
-        }
-
-        @Override
-        public LocalComponentMetadata calculateValue(NodeExecutionContext context) {
-            if (isLocalProject(projectState.getComponentIdentifier())) {
-                return provider.getComponent(projectState);
-            } else {
-                return otherBuildProvider.getComponent(projectState);
-            }
-        }
-
-        private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
-            return projectIdentifier.getBuild().equals(thisBuild);
+        public LocalComponentGraphResolveState calculateValue(NodeExecutionContext context) {
+            return provider.getComponent(projectState);
         }
     }
 }

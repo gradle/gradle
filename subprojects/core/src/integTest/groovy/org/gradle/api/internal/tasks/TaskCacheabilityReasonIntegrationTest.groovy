@@ -22,6 +22,8 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import javax.annotation.Nullable
 
@@ -59,6 +61,13 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
             @DisableCachingByDefault(because = 'do-not-cache-by-default reason')
             class NotCacheableByDefaultWithReason extends UnspecifiedCacheabilityTask {}
+
+            @UntrackedTask(because = 'untracked-task reason')
+            class UntrackedTrackWithReason extends UnspecifiedCacheabilityTask {}
+
+            @UntrackedTask(because = 'untracked-task-with-cacheable reason')
+            @CacheableTask
+            class UntrackedTrackWithReasonWithCacheable extends UnspecifiedCacheabilityTask {}
 
             @CacheableTask
             class Cacheable extends UnspecifiedCacheabilityTask {}
@@ -154,6 +163,41 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         then:
         assertCachingDisabledFor NO_OUTPUTS_DECLARED, "No outputs declared"
     }
+
+
+    def "cacheability for a untracked task via API is NOT_ENABLED_FOR_TASK with message"() {
+        buildFile """
+            task untrackedTrackWithReason(type: UnspecifiedCacheabilityTask) {
+                doNotTrackState("Untracked for testing from API")
+            }
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReason"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: Untracked for testing from API"
+    }
+
+
+    def "cacheability for a untracked task is NOT_ENABLED_FOR_TASK with message"() {
+        buildFile """
+            task untrackedTrackWithReason(type: UntrackedTrackWithReason) {}
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReason"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: untracked-task reason"
+    }
+
+    def "cacheability for a untracked task is NOT_ENABLED_FOR_TASK with message when marked cacheable"() {
+        buildFile """
+            task untrackedTrackWithReasonWithCacheable(type: UntrackedTrackWithReasonWithCacheable) {}
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReasonWithCacheable"
+        then:
+        assertCachingDisabledFor DO_NOT_CACHE_IF_SPEC_SATISFIED, "Task is untracked because: untracked-task-with-cacheable reason"
+    }
+
 
     def "cacheability for a task with no outputs is NOT_ENABLED_FOR_TASK"() {
         buildFile """
@@ -341,34 +385,38 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
-    def "cacheability for task with disabled optimizations is FAILED_VALIDATION"() {
+    // This test only works in embedded mode because of the use of validation test fixtures
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    def "cacheability for task with disabled optimizations is VALIDATION_FAILURE"() {
         when:
         executer.noDeprecationChecks()
         buildFile """
-            task producer {
-                def outputFile = file("out.txt")
-                outputs.file(outputFile)
-                doLast {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = "produced"
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+            import org.gradle.internal.reflect.validation.Severity
+
+            @CacheableTask
+            abstract class InvalidTask extends DefaultTask {
+                @ValidationProblem(value = Severity.WARNING)
+                abstract Property<String> getInput()
+
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                void doSomething() {
+                    output.get().asFile.text = input.get()
                 }
             }
 
-            task consumer {
-                def inputFile = file("out.txt")
-                def outputFile = file("consumerOutput.txt")
-                inputs.files(inputFile)
-                outputs.file(outputFile)
-                outputs.cacheIf { true }
-                doLast {
-                    outputFile.text = "consumed"
-                }
+            task invalid(type: InvalidTask) {
+                input = "invalid"
+                output = file("out.txt")
             }
         """
 
         then:
-        withBuildCache().succeeds("producer", "consumer")
-        assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":consumer"
+        withBuildCache().succeeds("invalid")
+        assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":invalid"
     }
 
     def "cacheability for a cacheable task can be disabled via #condition"() {

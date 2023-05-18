@@ -114,6 +114,7 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
                  *
                  * @see My_script_gradle
                  */
+                public
                 class MyScriptPlugin
                 """.trimIndent()
             )

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -73,7 +72,8 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                    File root = value.getValue();
                     switch (type) {
                         case FILE:
                             File parentFile = root.getParentFile();
@@ -109,7 +109,8 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
     private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                File root = value.getValue();
                 if (root.exists()) {
                     try {
                         switch (type) {

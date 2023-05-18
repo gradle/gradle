@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling.model;
 
+import org.gradle.api.Incubating;
+
 import javax.annotation.Nullable;
 
 /**
@@ -32,6 +34,16 @@ public interface Task extends Launchable {
      * @since 1.0-milestone-3
      */
     String getPath();
+
+    /**
+     * Returns the path of this task within the build tree. This is a unique name for this task within the composite build.
+     *
+     * @return The path of this task in the composite build.
+     * @throws org.gradle.tooling.model.UnsupportedMethodException When the target Gradle version does not support this method.
+     * @since 8.2
+     */
+    @Incubating
+    String getBuildTreePath();
 
     /**
      * Returns the name of this task. Note that the name is not necessarily a unique identifier for the task.

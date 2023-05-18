@@ -30,7 +30,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 @Output${files ? "Files" : "Directories"} FileCollection out
 
                 @TaskAction def exec() {
-                    out.each { it${files ? ".text = 'data'" : ".mkdirs()"} }
+                    out.each { it${files ? ".text = 'data' + it.name" : ".mkdirs(); new File(it, 'contents').text = 'data' + it.name"} }
                 }
             }
 
@@ -189,6 +189,44 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         (["customTask", "-PnumOutputs=${outputs.size()}"] + outputs.withIndex().collect { value, idx -> "-Poutput${idx}" + (value ? "=${value}" : '') }) as String[]
     }
 
+    def "output files moved from one location to another marks task up-to-date"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDirectory()
+
+                @TaskAction
+                void doAction() {
+                    getOutputDirectory().file("output.txt").get().asFile.text = "output"
+                }
+            }
+
+            task customTask(type: CustomTask) {
+                outputDirectory = project.file(project.providers.gradleProperty('outputDir'))
+            }
+        """
+
+        when:
+        succeeds ":customTask", "-PoutputDir=build/output1"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        succeeds ":customTask", "-PoutputDir=build/output2"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        succeeds ":customTask", "-PoutputDir=build/output1"
+        then:
+        skipped ":customTask"
+
+        when:
+        succeeds ":customTask", "-PoutputDir=build/output2"
+        then:
+        skipped ":customTask"
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/3073")
     def "optional input changed from null to non-null marks task not up-to-date"() {
         file("input.txt") << "Input data"
@@ -283,8 +321,9 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             task myTask {
                 inputs.dir('inputDir')
                 outputs.file('build/output.txt')
+                def outputFile = file('build/output.txt')
                 doLast {
-                    file('build/output.txt').text = "Hello world"
+                    outputFile.text = "Hello world"
                 }
             }
         """
@@ -453,34 +492,34 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         'tarTree'     | 'some.tar' | "TAR '%s'"
     }
 
-    def "cannot register tar tree of custom resource as an output"() {
+    def "task with base Java type input property can be up-to-date"() {
         buildFile << """
-            abstract class TaskWithInvalidOutput extends DefaultTask {
-                @TaskAction
-                void doStuff() {}
+            class MyTask extends DefaultTask {
+                @Input Duration duration
+                @OutputFile File output
 
-                @OutputFiles
-                abstract ConfigurableFileCollection getInvalidOutput()
+                @TaskAction def exec() {
+                    output.text = duration.toString()
+                }
             }
 
-            tasks.register("taskWithInvalidOutput", TaskWithInvalidOutput) {
-                invalidOutput.from(tarTree(new ReadableResource() {
-                    InputStream read() { new ByteArrayInputStream("Hello".bytes) }
-                    String displayName = "readable resource"
-                    URI URI = uri("https://test.com")
-                    String baseName = "base name"
-                }))
+            task myTask(type: MyTask) {
+                duration = Duration.ofMinutes(1)
+                output = project.file("build/output.txt")
             }
         """
-        executer.expectDocumentedDeprecationWarning(
-            "Using tarTree() on a resource without a backing file has been deprecated. " +
-                "This will fail with an error in Gradle 8.0. " +
-                "Convert the resource to a file and then pass this file to tarTree(). For converting the resource to a file you can use a custom task or declare a dependency. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#tar_tree_no_backing_file"
-        )
 
-        expect:
-        fails("taskWithInvalidOutput")
-        failure.assertHasCause("Only files and directories can be registered as outputs (was: TAR 'readable resource')")
+        when:
+        run ':myTask'
+
+        then:
+        executedAndNotSkipped ':myTask'
+
+        when:
+        run ':myTask'
+
+        then:
+        skipped ':myTask'
     }
+
 }

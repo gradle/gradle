@@ -27,8 +27,8 @@ import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
@@ -254,7 +254,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "existing foreground idle daemons are used"() {
         when:
         startForegroundDaemon()
@@ -527,7 +527,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     // GradleHandle.abort() does not work reliably on windows and creates flakiness
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @Ignore("TODO: Fix GradleHandle.abort() so that it doesn't hang")
     def "daemon stops immediately if stop is requested and then client disconnects"() {
         when:

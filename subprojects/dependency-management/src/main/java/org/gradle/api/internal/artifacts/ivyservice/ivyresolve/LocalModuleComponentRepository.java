@@ -24,7 +24,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
@@ -36,28 +36,28 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
  * This is used to wrap a file-backed ExternalResourceRepository instance, so that both 'local' and 'remote' operations will
  * be considered local.
  */
-public class LocalModuleComponentRepository extends BaseModuleComponentRepository {
+public class LocalModuleComponentRepository<T> extends BaseModuleComponentRepository<T> {
     private final LocalAccess localAccess = new LocalAccess();
-    private final RemoteAccess remoteAccess = new RemoteAccess();
+    private final RemoteAccess<T> remoteAccess = new RemoteAccess<>();
 
-    public LocalModuleComponentRepository(ModuleComponentRepository delegate) {
+    public LocalModuleComponentRepository(ModuleComponentRepository<T> delegate) {
         super(delegate);
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<T> getLocalAccess() {
         return localAccess;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<T> getRemoteAccess() {
         return remoteAccess;
     }
 
-    private class LocalAccess implements ModuleComponentRepositoryAccess {
+    private class LocalAccess implements ModuleComponentRepositoryAccess<T> {
         @Override
         public String toString() {
-            return "local adapter > " + delegate.toString();
+            return "local adapter > " + delegate;
         }
 
         @Override
@@ -69,7 +69,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result) {
             delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             if (!result.hasResult()) {
                 delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
@@ -85,7 +85,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
             delegate.getLocalAccess().resolveArtifact(artifact, moduleSources, result);
             if(!result.hasResult()) {
                 delegate.getRemoteAccess().resolveArtifact(artifact, moduleSources, result);
@@ -98,7 +98,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         }
     }
 
-    private static class RemoteAccess implements ModuleComponentRepositoryAccess {
+    private static class RemoteAccess<T> implements ModuleComponentRepositoryAccess<T> {
         @Override
         public String toString() {
             return "empty";
@@ -109,7 +109,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result) {
         }
 
         @Override
@@ -117,7 +117,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
         }
 
         @Override

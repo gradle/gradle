@@ -16,35 +16,34 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.provider.Provider
 
 import java.io.File
-import java.util.function.Consumer
 
 
+/**
+ * Protocol between `:kotlin-dsl-plugins` and `:kotlin-dsl-provider-plugins`.
+ *
+ * `:kotlin-dsl-plugins` is published to the plugin portal.
+ * `:kotlin-dsl-provider-plugins` is shipped with the distribution.
+ *
+ * This needs to be cross-version compatible.
+ */
 interface PrecompiledScriptPluginsSupport {
-
-    @Deprecated("Use enableOn(Target)")
-    fun enableOn(
-        project: Project,
-        kotlinSourceDirectorySet: SourceDirectorySet,
-        kotlinCompileTask: TaskProvider<out Task>,
-        kotlinCompilerArgsConsumer: Consumer<List<String>>
-    )
 
     fun enableOn(target: Target): Boolean
 
     fun collectScriptPluginFilesOf(project: Project): List<File>
 
     interface Target {
+
         val project: Project
+
+        val jvmTarget: Provider<JavaVersion>
+
         val kotlinSourceDirectorySet: SourceDirectorySet
-        @Deprecated("No longer used.")
-        val kotlinCompileTask: TaskProvider<out Task>
-        @Deprecated("No longer used.")
-        fun applyKotlinCompilerArgs(args: List<String>)
     }
 }

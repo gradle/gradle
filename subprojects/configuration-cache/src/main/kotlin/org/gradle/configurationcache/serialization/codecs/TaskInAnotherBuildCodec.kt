@@ -39,7 +39,7 @@ class TaskInAnotherBuildCodec(
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
         val taskPath = readString()
         val targetBuild = readNonNull<BuildIdentifier>()
-        return TaskInAnotherBuild.of(
+        return TaskInAnotherBuild.lazy(
             taskPath,
             targetBuild,
             includedTaskGraph

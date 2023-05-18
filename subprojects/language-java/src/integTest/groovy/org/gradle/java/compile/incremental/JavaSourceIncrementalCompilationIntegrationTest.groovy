@@ -17,8 +17,8 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -27,7 +27,7 @@ import java.nio.file.Paths
 class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles when module info changes"() {
         given:
         source("""
@@ -56,7 +56,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles when module info is added"() {
         given:
         source("""
@@ -80,7 +80,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     @Issue("https://github.com/gradle/gradle/issues/9202")
     def "source mapping file works with symlinks"() {
         given:
@@ -121,7 +121,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         outputs.recompiledClasses('MyClass', 'Other')
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles all when constant used by annotation on module-info is changed"() {
         given:
         source("""
@@ -130,7 +130,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
                 Logger logger;
             }
         """)
-        file("src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final String CONST = \"unchecked\"; }"
+        source("package constant; public class Const { public static final String CONST = \"unchecked\"; }")
         def moduleInfo = file("src/main/${language.name}/module-info.${language.name}")
         moduleInfo.text = """
             import constant.Const;
@@ -143,7 +143,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         outputs.snapshot { succeeds language.compileTaskName }
 
         when:
-        file("src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final String CONST = \"raw-types\"; }"
+        source("package constant; public class Const { public static final String CONST = \"raw-types\"; }")
         succeeds language.compileTaskName
 
         then:
@@ -163,17 +163,19 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         """
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """@Deprecated @annotations.Anno(Const.CONST + 1) package foo; import constant.Const;"""
-        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
-        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
-        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
-        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
-        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
-        file("src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final int CONST = 1; }"
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}",
+            "package constant; public class Const { public static final int CONST = 1; }"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
         when:
-        file("src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final int CONST = 2; }"
+        source("package constant; public class Const { public static final int CONST = 2; }")
         succeeds language.compileTaskName
 
         then:

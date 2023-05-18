@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal.task;
 import com.google.common.base.Strings;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.List;
@@ -30,7 +31,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ToolchainReportRenderer extends TextReportRenderer {
 
-    public void printToolchain(ReportableToolchain toolchain) {
+    public void printToolchain(JvmToolchainMetadata toolchain) {
         StyledTextOutput output = getTextOutput();
         JvmInstallationMetadata metadata = toolchain.metadata;
         String displayName = metadata.getDisplayName();
@@ -50,18 +51,42 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         getTextOutput().withStyle(Description).println(value);
     }
 
-    public void printInvalidToolchains(List<ReportableToolchain> invalidToolchains) {
-        if(!invalidToolchains.isEmpty()) {
+    public void printInvalidToolchains(List<JvmToolchainMetadata> invalidToolchains) {
+        if (!invalidToolchains.isEmpty()) {
             StyledTextOutput output = getTextOutput();
             output.withStyle(Identifier).println(" + Invalid toolchains");
-            for (ReportableToolchain toolchain : invalidToolchains) {
+            for (JvmToolchainMetadata toolchain : invalidToolchains) {
                 JvmInstallationMetadata metadata = toolchain.metadata;
                 output.withStyle(Identifier).println("     + " + metadata.getJavaHome());
-                final String paddedErrorType = Strings.padEnd("Error:", 20, ' ');
-                getTextOutput().withStyle(Normal).format("       | %s", paddedErrorType);
-                getTextOutput().withStyle(Description).println(metadata.getErrorMessage());
+                printInvalidToolchainErrorLines(toolchain);
             }
             output.println();
         }
     }
+
+    private void printInvalidToolchainErrorLines(JvmToolchainMetadata invalidToolchain) {
+        getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("Error:", 20, ' '));
+        getTextOutput().withStyle(Description).println(invalidToolchain.metadata.getErrorMessage());
+
+        final Throwable errorCause = invalidToolchain.metadata.getErrorCause();
+        Throwable cause = errorCause != null ? errorCause.getCause() : null;
+        int reportedCauseLines = 0;
+        while (cause != null) {
+            getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("    Caused by:", 20, ' '));
+            getTextOutput().withStyle(Description).println(cause.getMessage());
+            reportedCauseLines++;
+
+            cause = cause.getCause();
+
+            // Protect against excessively long cause-chains in the outputs.
+            if (reportedCauseLines == INVALID_TOOLCHAIN_ERROR_CAUSE_LIMIT && cause != null) {
+                // Ellipsize the omitted cause lines:
+                getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("", 20, ' '));
+                getTextOutput().withStyle(Description).println("...");
+                break;
+            }
+        }
+    }
+
+    private static final int INVALID_TOOLCHAIN_ERROR_CAUSE_LIMIT = 5;
 }

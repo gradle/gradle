@@ -348,9 +348,9 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             return contents.computeIfAbsent(includePath,
                 key -> {
                     File candidate = normalizeIncludePath(searchDir, includePath);
-                    return fileSystemAccess.readRegularFileContentHash(candidate.getAbsolutePath(),
-                            contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash)
-                        ).orElse(MISSING_INCLUDE_FILE);
+                    return fileSystemAccess.readRegularFileContentHash(candidate.getAbsolutePath())
+                        .map(contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash))
+                        .orElse(MISSING_INCLUDE_FILE);
                 });
         }
     }

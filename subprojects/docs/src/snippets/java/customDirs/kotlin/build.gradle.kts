@@ -52,12 +52,16 @@ sourceSets {
 
 // tag::custom-report-dirs[]
 reporting.baseDir = file("my-reports")
-project.setProperty("testResultsDirName", "$buildDir/my-test-results")
+java.testResultsDir.set(layout.buildDirectory.dir("my-test-results"))
 
 tasks.register("showDirs") {
+    val rootDir = project.rootDir
+    val reportsDir = project.reporting.baseDirectory
+    val testResultsDir = project.java.testResultsDir
+
     doLast {
-        logger.quiet(rootDir.toPath().relativize((project.property("reportsDir") as File).toPath()).toString())
-        logger.quiet(rootDir.toPath().relativize((project.property("testResultsDir") as File).toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize(reportsDir.get().asFile.toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize(testResultsDir.get().asFile.toPath()).toString())
     }
 }
 // end::custom-report-dirs[]

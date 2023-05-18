@@ -37,12 +37,6 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         return versionNumber >= VersionNumber.parse("1.7.3")
     }
 
-    private static boolean supportsDisablingScriptsInGroovydoc() {
-        // Groovy 3 to 4 doesn't support script flags at all. The Parrot parser doesn't check them.
-        // https://issues.apache.org/jira/browse/GROOVY-10578
-        return supportsScriptsInGroovydoc() && versionNumber < VersionNumber.parse("3.0.0")
-    }
-
     // The flags are available in all versions of Groovydoc, but package/protected only works in 1.7 and above
     private static boolean supportsHidingNonPrivateScopes() {
         return versionNumber >= VersionNumber.parse("1.7")
@@ -90,7 +84,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     def "scripts can be disabled"() {
-        assumeTrue(supportsDisablingScriptsInGroovydoc())
+        assumeTrue(supportsScriptsInGroovydoc())
         when:
         buildFile << "groovydoc { processScripts = false }"
         run "groovydoc"
@@ -101,7 +95,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     def "main method can be disabled for scripts"() {
-        assumeTrue(supportsDisablingScriptsInGroovydoc())
+        assumeTrue(supportsScriptsInGroovydoc())
         when:
         buildFile << "groovydoc { includeMainForScripts = false }"
         run "groovydoc"
@@ -148,53 +142,6 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         text =~ GROOVY_DOC_PACKAGE_PATTERN
         text =~ GROOVY_DOC_PROTECTED_PATTERN
         text =~ GROOVY_DOC_PUBLIC_PATTERN
-    }
-
-    def "private scope can be enabled with old method and produces deprecation warning"() {
-        when:
-        buildFile << "groovydoc { includePrivate = true; println(includePrivate) }"
-        executer.expectDocumentedDeprecationWarning(
-            "The Groovydoc.includePrivate property has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0. Please use the access property instead." +
-                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#groovydoc_option_improvements"
-        )
-        run "groovydoc"
-
-        then:
-        def text = file('build/docs/groovydoc/options/Thing.html').text
-        text =~ GROOVY_DOC_PRIVATE_PATTERN
-        text =~ GROOVY_DOC_PACKAGE_PATTERN
-        text =~ GROOVY_DOC_PROTECTED_PATTERN
-        text =~ GROOVY_DOC_PUBLIC_PATTERN
-    }
-
-    def "includePrivate is reflected in access property"() {
-        when:
-        buildFile << """
-            groovydoc {
-                includePrivate = true
-                assert(access.get() == GroovydocAccess.PRIVATE)
-                includePrivate = false
-                assert(access.get() == GroovydocAccess.PUBLIC)
-                access = GroovydocAccess.PRIVATE
-                assert(includePrivate)
-                // This maps to a "false" for includePrivate
-                access = GroovydocAccess.PROTECTED
-                assert(!includePrivate)
-                access = GroovydocAccess.PACKAGE
-                assert(!includePrivate)
-                access = GroovydocAccess.PUBLIC
-                assert(!includePrivate)
-            }
-        """
-        executer.expectDocumentedDeprecationWarning(
-            "The Groovydoc.includePrivate property has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0. Please use the access property instead." +
-                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#groovydoc_option_improvements"
-        )
-
-        then:
-        succeeds "groovydoc"
     }
 
     def "can limit to only public members"() {

@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.IgnoreIf
@@ -29,7 +28,6 @@ import spock.lang.Issue
 class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Issue("GRADLE-2502")
-    @ToBeFixedForConfigurationCache
     def "latest.integration selects highest version regardless of status"() {
         given:
         buildFile << """
@@ -114,7 +112,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
     }
 
     @Issue("GRADLE-2502")
-    @ToBeFixedForConfigurationCache
     def "latest.milestone selects highest version with milestone or release status"() {
         given:
         buildFile << """
@@ -190,7 +187,10 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1").byReason("didn't match version 1.3")
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1") {
+                    notRequested()
+                    byReason("didn't match version 1.3")
+                }
             }
         }
 
@@ -220,7 +220,10 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.2").byReason("didn't match version 1.3")
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.2") {
+                    notRequested()
+                    byReason("didn't match version 1.3")
+                }
             }
         }
 
@@ -251,13 +254,15 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.2").byReason("didn't match version 1.3")
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.2") {
+                    notRequested()
+                    byReason("didn't match version 1.3")
+                }
             }
         }
     }
 
     @Issue("GRADLE-2502")
-    @ToBeFixedForConfigurationCache
     void "latest.release selects highest version with release status"() {
         given:
         buildFile << """
@@ -345,7 +350,10 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:latest.release", "org.test:projectA:1.1").byReason("didn't match versions 1.3, 1.2")
+                edge("org.test:projectA:latest.release", "org.test:projectA:1.1") {
+                    notRequested()
+                    byReason("didn't match versions 1.3, 1.2")
+                }
             }
         }
 
@@ -386,13 +394,15 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:latest.release", "org.test:projectA:1.1").byReason("didn't match versions 1.3, 1.2, 1.1.1")
+                edge("org.test:projectA:latest.release", "org.test:projectA:1.1") {
+                    notRequested()
+                    byReason("didn't match versions 1.3, 1.2, 1.1.1")
+                }
             }
         }
     }
 
     @Issue(["GRADLE-2502", "GRADLE-2794"])
-    @ToBeFixedForConfigurationCache
     def "version selector ending in + selects highest matching version"() {
         given:
         buildFile << """
@@ -436,7 +446,10 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.1").byReason("didn't match version 2.0")
+                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.1") {
+                    notRequested()
+                    byReason("didn't match version 2.0")
+                }
             }
         }
 
@@ -459,7 +472,10 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.9").byReason("didn't match version 2.0")
+                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.9") {
+                    notRequested()
+                    byReason("didn't match version 2.0")
+                }
             }
         }
 
@@ -482,13 +498,15 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.10").byReason("didn't match version 2.0")
+                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.10") {
+                    notRequested()
+                    byReason("didn't match version 2.0")
+                }
             }
         }
     }
 
     @Issue("GRADLE-2502")
-    @ToBeFixedForConfigurationCache
     def "version range selects highest matching version"() {
         given:
         buildFile << """
@@ -533,7 +551,10 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.2.1").byReason("didn't match version 2.1")
+                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.2.1") {
+                    notRequested()
+                    byReason("didn't match version 2.1")
+                }
             }
         }
 
@@ -556,7 +577,10 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.3").byReason("didn't match version 2.1")
+                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.3") {
+                    notRequested()
+                    byReason("didn't match version 2.1")
+                }
             }
         }
     }
@@ -608,7 +632,10 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:[1.2,2.0)", "org.test:projectA:1.2.1:default").byReason("didn't match version 2.0")
+                edge("org.test:projectA:[1.2,2.0)", "org.test:projectA:1.2.1:default") {
+                    notRequested()
+                    byReason("didn't match version 2.0")
+                }
             }
         }
     }

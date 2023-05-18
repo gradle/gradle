@@ -26,13 +26,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T> {
+public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T>, HoldsProjectState {
     private final Map<String, T> projects = new HashMap<String, T>();
     private final Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
 
     @Override
     public void addProject(T project) {
-        projects.put(project.getPath(), project);
+        T previous = projects.put(project.getPath(), project);
+        if (previous != null) {
+            throw new IllegalArgumentException(String.format("Multiple projects registered for path '%s'.", project.getPath()));
+        }
         subProjects.put(project.getPath(), new HashSet<T>());
         addProjectToParentSubProjects(project);
     }
@@ -47,6 +50,12 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
             loopProject = loopProject.getParentIdentifier();
         }
         return project;
+    }
+
+    @Override
+    public void discardAll() {
+        projects.clear();
+        subProjects.clear();
     }
 
     private void addProjectToParentSubProjects(T project) {

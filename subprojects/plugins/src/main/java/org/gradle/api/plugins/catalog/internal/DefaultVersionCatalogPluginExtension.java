@@ -40,7 +40,6 @@ public class DefaultVersionCatalogPluginExtension implements CatalogExtensionInt
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             objects,
-            providers,
             (Supplier<DependencyResolutionServices>) () -> drs,
             dependenciesConfiguration
         );

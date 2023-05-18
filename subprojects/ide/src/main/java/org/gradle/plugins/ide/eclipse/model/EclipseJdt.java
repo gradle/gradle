@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
@@ -61,7 +62,7 @@ import javax.inject.Inject;
  * }
  * </pre>
  */
-public class EclipseJdt {
+public abstract class EclipseJdt {
 
     private JavaVersion sourceCompatibility = JavaVersion.current();
 
@@ -156,7 +157,7 @@ public class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    public void file(Closure closure) {
+    public void file(@DelegatesTo(PropertiesFileContentMerger.class) Closure closure) {
         ConfigureUtil.configure(closure, file);
     }
 

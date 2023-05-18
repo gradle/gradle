@@ -46,7 +46,7 @@ class JavaEcosystemAttributesDescriberTest extends Specification {
             .attribute(ProjectInternal.STATUS_ATTRIBUTE, "release")
 
         then:
-        describer.describeAttributeSet(attributes.asMap()) == "an API of a library with a release status compatible with Java 11, packaged as a jar"
+        describer.describeAttributeSet(attributes.asMap()) == "a library for use during compile-time, with a release status, compatible with Java 11, packaged as a jar"
     }
 
     def "describes arbitrary attributes"() {
@@ -67,7 +67,7 @@ class JavaEcosystemAttributesDescriberTest extends Specification {
             .attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11)
 
         then:
-        describer.describeAttributeSet(attributes.asMap()) == "a runtime of a component compatible with Java 11, preferably not packaged as a jar"
+        describer.describeAttributeSet(attributes.asMap()) == "a component for use during runtime, compatible with Java 11, preferably not packaged as a jar"
     }
 
     def "describes incompatible documentation type even if category is missing"() {

@@ -48,7 +48,7 @@ import java.util.Set;
 
 public class ZipHasher implements RegularFileSnapshotContextHasher, ConfigurableNormalizer {
 
-    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar");
+    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar", "klib");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
     private static final HashCode EMPTY_HASH_MARKER = Hashing.signature(ZipHasher.class);
 
@@ -57,17 +57,20 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     }
 
     private final ResourceHasher resourceHasher;
+    private final ZipHasher fallbackZipHasher;
     private final HashingExceptionReporter hashingExceptionReporter;
 
     public ZipHasher(ResourceHasher resourceHasher) {
         this(
             resourceHasher,
+            null,
             (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e)
         );
     }
 
-    public ZipHasher(ResourceHasher resourceHasher, HashingExceptionReporter hashingExceptionReporter) {
+    public ZipHasher(ResourceHasher resourceHasher, @Nullable ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
         this.resourceHasher = resourceHasher;
+        this.fallbackZipHasher = fallbackZipHasher;
         this.hashingExceptionReporter = hashingExceptionReporter;
     }
 
@@ -95,6 +98,9 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             return hasher.hash();
         } catch (Exception e) {
             hashingExceptionReporter.report(zipFileSnapshot, e);
+            if (fallbackZipHasher != null) {
+                return fallbackZipHasher.hashZipContents(zipFileSnapshot);
+            }
             return zipFileSnapshot.getHash();
         }
     }
@@ -116,7 +122,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
             ZipEntryContext zipEntryContext = new DefaultZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
-                zipEntryContext.getEntry().withInputStream((ZipEntry.InputStreamAction<Void>) inputStream -> {
+                zipEntryContext.getEntry().withInputStream(inputStream -> {
                     fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
                     return null;
                 });

@@ -1,9 +1,11 @@
 package org.example;
 
 import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.tasks.*;
 
 public abstract class Instrument extends DefaultTask {
@@ -17,9 +19,12 @@ public abstract class Instrument extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getDestinationDir();
 
+    @Inject
+    protected abstract FileSystemOperations getFs();
+
     @TaskAction
     public void doIt() {
-        getProject().copy(spec -> spec.
+        getFs().copy(spec -> spec.
             into(getDestinationDir()).
             from(getClassFiles()).
             rename("(.*)\\.class", "$1_instrumented.class")

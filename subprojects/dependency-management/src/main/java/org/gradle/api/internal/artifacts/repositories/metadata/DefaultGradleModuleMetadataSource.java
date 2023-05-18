@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -47,7 +48,7 @@ import java.util.List;
  * TODO: This class sources Gradle metadata files, but there's no corresponding ModuleComponentResolveMetadata for this metadata yet.
  * Because of this, we will generate an empty instance (either a Ivy or Maven) based on the repository type.
  */
-public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
+public class DefaultGradleModuleMetadataSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
     private final GradleModuleMetadataParser metadataParser;
     private final GradleModuleMetadataCompatibilityConverter metadataCompatibilityConverter;
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
@@ -64,7 +65,7 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
     }
 
     @Override
-    public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult result) {
+    public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         DefaultIvyArtifactName moduleMetadataArtifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module");
         DefaultModuleComponentArtifactMetadata artifactId = new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, moduleMetadataArtifact);
         LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(artifactId, result);

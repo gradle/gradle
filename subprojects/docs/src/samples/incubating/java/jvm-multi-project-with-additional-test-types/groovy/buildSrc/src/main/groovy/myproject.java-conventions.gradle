@@ -17,7 +17,7 @@ testing {
 
         integrationTest(JvmTestSuite) {
             dependencies {
-                implementation project
+                implementation project()
             }
 
             targets {

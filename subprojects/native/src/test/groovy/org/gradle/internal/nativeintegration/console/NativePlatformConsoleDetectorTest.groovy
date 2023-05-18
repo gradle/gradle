@@ -19,9 +19,9 @@ package org.gradle.internal.nativeintegration.console
 import net.rubygrapefruit.platform.NativeException
 import net.rubygrapefruit.platform.terminal.Terminals
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 class NativePlatformConsoleDetectorTest extends Specification {
@@ -52,7 +52,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console == null
     }
 
-    @Requires(TestPrecondition.SMART_TERMINAL)
+    @Requires(UnitTestPreconditions.SmartTerminalAvailable)
     def "returns metadata when stdout and stderr are attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> true
@@ -64,7 +64,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console.stdErr
     }
 
-    @Requires(TestPrecondition.SMART_TERMINAL)
+    @Requires(UnitTestPreconditions.SmartTerminalAvailable)
     def "returns metadata when only stdout is attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> true
@@ -76,7 +76,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         !detector.console.stdErr
     }
 
-    @Requires(TestPrecondition.SMART_TERMINAL)
+    @Requires(UnitTestPreconditions.SmartTerminalAvailable)
     def "returns metadata when only stderr is attached to console"() {
         given:
         terminals.isTerminal(Terminals.Output.Stdout) >> false
@@ -88,7 +88,7 @@ class NativePlatformConsoleDetectorTest extends Specification {
         detector.console.stdErr
     }
 
-    @Requires(TestPrecondition.UNIX)
+    @Requires(UnitTestPreconditions.Unix)
     def "returns null when TERM is not set"() {
         given:
         env.removeEnvironmentVariable('TERM')

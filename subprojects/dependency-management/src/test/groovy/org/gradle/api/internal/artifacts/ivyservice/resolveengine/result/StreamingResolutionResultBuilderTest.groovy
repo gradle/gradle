@@ -17,22 +17,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.artifacts.result.ResolvedVariantResult
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.local.model.RootConfigurationMetadata
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -46,13 +46,12 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 
 class StreamingResolutionResultBuilderTest extends Specification {
-
-    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(
+    def builder = new StreamingResolutionResultBuilder(
         new DummyBinaryStore(),
         new DummyStore(),
-        moduleIdentifierFactory,
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
+        new ThisBuildOnlyComponentDetailsSerializer(),
+        new ThisBuildOnlySelectedVariantSerializer(),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
@@ -82,8 +81,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def selector2 = selector(2, "org", "dep2", "3.0")
         def dep1 = node(2, "org", "dep1", "2.0", of(CONFLICT_RESOLUTION))
         root.outgoingEdges >> [
-                dep(selector1, 2),
-                dep(selector2, new RuntimeException("Boo!"))
+                dep(selector1, 1, 2),
+                dep(selector2, 1, new RuntimeException("Boo!"))
         ]
 
         builder.start(root)
@@ -109,7 +108,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     def "visiting resolved module version again has no effect"() {
         def root = rootNode(1, "org", "root", "1.0")
         def selector = selector(7, "org", "dep1", "2.0")
-        root.outgoingEdges >> [dep(selector, 2)]
+        root.outgoingEdges >> [dep(selector, 1, 2)]
 
         builder.start(root)
 
@@ -137,15 +136,15 @@ class StreamingResolutionResultBuilderTest extends Specification {
     def "accumulates dependencies for all configurations of same component"() {
         def root = rootNode(1, "org", "root", "1.0")
         def selector1 = selector(10, "org", "dep1", "1.0")
-        root.outgoingEdges >> [dep(selector1, 2)]
+        root.outgoingEdges >> [dep(selector1, 1, 2)]
 
         def conf1 = node(2, "org", "dep1", "1.0")
         def selector2 = selector(11, "org", "dep2", "1.0")
-        conf1.outgoingEdges >> [dep(selector2, 3)]
+        conf1.outgoingEdges >> [dep(selector2, 2, 3)]
 
         def conf2 = node(2, "org", "dep1", "1.0")
         def selector3 = selector(12, "org", "dep3", "1.0")
-        conf2.outgoingEdges >> [dep(selector3, 4)]
+        conf2.outgoingEdges >> [dep(selector3, 2, 4)]
 
         builder.start(root)
 
@@ -181,12 +180,12 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def selector1 = selector(10, "org", "dep1", "1.0")
         def selector2 = selector(11, "org", "dep2", "2.0")
         root.outgoingEdges >> [
-            dep(selector1, new RuntimeException()),
-            dep(selector2, 3)
+            dep(selector1, 1, new RuntimeException()),
+            dep(selector2, 1, 3)
         ]
         def dep2 = node(3, "org", "dep2", "2.0")
         def selector3 = selector(12, "org", "dep1", "5.0")
-        dep2.outgoingEdges >> [dep(selector3, new RuntimeException())]
+        dep2.outgoingEdges >> [dep(selector3, 3, new RuntimeException())]
 
         builder.start(root)
 
@@ -215,57 +214,70 @@ class StreamingResolutionResultBuilderTest extends Specification {
 """
     }
 
-    private DependencyGraphEdge dep(DependencyGraphSelector selector, Long selectedId) {
+    private DependencyGraphEdge dep(DependencyGraphSelector selector, Long fromVariant, Long selectedId) {
         def edge = Stub(DependencyGraphEdge)
         _ * edge.selector >> selector
         _ * edge.selected >> selectedId
         _ * edge.failure >> null
-        _ * edge.fromVariant >> Stub(ResolvedVariantResult) {
-            getOwner() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "from"), "1.0")
-        }
-        _ * edge.selectedVariant >> Stub(ResolvedVariantResult) {
-            getOwner() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "module"), "1.0")
-        }
+        _ * edge.fromVariant >> fromVariant
+        _ * edge.selectedVariant >> selectedId
         return edge
     }
 
-    private DependencyGraphEdge dep(DependencyGraphSelector selector, Throwable failure) {
+    private DependencyGraphEdge dep(DependencyGraphSelector selector, Long fromVariant, Throwable failure) {
         def edge = Stub(DependencyGraphEdge)
         _ * edge.selector >> selector
         _ * edge.requested >> selector.requested
         _ * edge.reason >> requested()
         _ * edge.failure >> new ModuleVersionResolveException(selector.requested, failure)
-        _ * edge.fromVariant >> Stub(ResolvedVariantResult) {
-            getOwner() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "from"), "1.0")
-        }
-        _ * edge.selectedVariant >> Stub(ResolvedVariantResult) {
-            getOwner() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "module"), "1.0")
-        }
+        _ * edge.fromVariant >> fromVariant
+        _ * edge.selectedVariant >> null
         return edge
     }
 
-    private DependencyGraphNode node(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = requested()) {
+    private DependencyGraphNode node(Long componentId, String org, String name, String ver, ComponentSelectionReason reason = requested()) {
+        def componentMetadata = Stub(ComponentGraphResolveMetadata)
+        _ * componentMetadata.moduleVersionId >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+
+        def componentState = Stub(ComponentGraphResolveState)
+        _ * componentState.instanceId >> componentId
+        _ * componentState.id >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * componentState.metadata >> componentMetadata
+
+        def variant = Stub(ResolvedGraphVariant)
+        variant.nodeId >> componentId
+
         def component = Stub(DependencyGraphComponent)
-        _ * component.resultId >> resultId
-        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
-        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * component.resultId >> componentId
         _ * component.selectionReason >> reason
+        _ * component.resolveState >> componentState
+        _ * component.selectedVariants >> [variant]
 
         def node = Stub(DependencyGraphNode)
         _ * node.owner >> component
         return node
     }
 
-    private RootGraphNode rootNode(Long resultId, String org, String name, String ver) {
+    private RootGraphNode rootNode(Long componentId, String org, String name, String ver) {
+        def componentMetadata = Stub(ComponentGraphResolveMetadata)
+        _ * componentMetadata.moduleVersionId >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+
+        def componentState = Stub(ComponentGraphResolveState)
+        _ * componentState.id >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * componentState.metadata >> componentMetadata
+
+        def variant = Stub(ResolvedGraphVariant)
+        variant.nodeId >> componentId
+
         def component = Stub(DependencyGraphComponent)
-        _ * component.resultId >> resultId
-        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
-        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * component.resultId >> componentId
         _ * component.selectionReason >> root()
+        _ * component.resolveState >> componentState
+        _ * component.selectedVariants >> [variant]
 
         def node = Stub(RootGraphNode)
         _ * node.owner >> component
-        _ * node.getMetadata() >> Mock(RootConfigurationMetadata) {
+        _ * node.metadata >> Mock(LocalConfigurationGraphResolveMetadata) {
             getAttributes() >> AttributeTestUtil.attributes(["org.foo": "v1", "org.bar": 2, "org.baz": true])
         }
         return node

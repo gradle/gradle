@@ -18,27 +18,26 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Collection;
-import java.util.List;
 
 public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> implements DependencySet {
     private final Describable displayName;
-    private final Configuration clientConfiguration;
+    private final ConfigurationInternal clientConfiguration;
     private final Action<? super ModuleDependency> mutationValidator;
 
-    public DefaultDependencySet(Describable displayName, final Configuration clientConfiguration, DomainObjectSet<Dependency> backingSet) {
+    public DefaultDependencySet(Describable displayName, final ConfigurationInternal clientConfiguration, DomainObjectSet<Dependency> backingSet) {
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;
@@ -61,20 +60,17 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
     @Override
     public boolean add(final Dependency o) {
-        warnIfConfigurationIsDeprecated();
+        assertConfigurationIsDeclarable();
+        clientConfiguration.maybeEmitDeclarationDeprecation();
         if (o instanceof AbstractModuleDependency) {
             ((AbstractModuleDependency) o).addMutationValidator(mutationValidator);
         }
         return super.add(o);
     }
 
-    private void warnIfConfigurationIsDeprecated() {
-        List<String> alternatives = ((DeprecatableConfiguration) clientConfiguration).getDeclarationAlternatives();
-        if (alternatives != null) {
-            DeprecationLogger.deprecateConfiguration(clientConfiguration.getName()).forDependencyDeclaration().replaceWith(alternatives)
-                .willBecomeAnErrorInGradle8()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-                .nagUser();
+    private void assertConfigurationIsDeclarable() {
+        if (!clientConfiguration.isCanBeDeclared()) {
+            throw new GradleException("Dependencies can not be declared against the `" + clientConfiguration.getName() + "` configuration.");
         }
     }
 

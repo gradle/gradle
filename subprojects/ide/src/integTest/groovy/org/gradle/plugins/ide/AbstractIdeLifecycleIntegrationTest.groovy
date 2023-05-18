@@ -58,12 +58,7 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         run lifeCycleTaskName, cleanTaskName
 
         then:
-        assertCleanTasksRunBeforeGenerationTasks()
-
-        and:
-        projectName(".") == "root"
-        projectName("foo") == "foo"
-        projectName("foo/bar") == "bar"
+        assertGenerationTasksRunBeforeCleanTasks()
     }
 
     @ToBeFixedForConfigurationCache
@@ -91,6 +86,14 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         [":", ":foo", ":foo:bar"].each { projectPath ->
             getGenerationTaskNames(projectPath).each { taskName ->
                 result.assertTaskOrder(getCleanTaskName(taskName), taskName)
+            }
+        }
+    }
+
+    def assertGenerationTasksRunBeforeCleanTasks() {
+        [":", ":foo", ":foo:bar"].each { projectPath ->
+            getGenerationTaskNames(projectPath).each { taskName ->
+                result.assertTaskOrder(taskName, getCleanTaskName(taskName))
             }
         }
     }

@@ -20,13 +20,15 @@ import org.gradle.api.provider.Provider;
 import javax.annotation.Nullable;
 import java.util.function.BiFunction;
 
-class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
+public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
+    private final Class<R> type;
     private final BiFunction<? super A, ? super B, ? extends R> combiner;
     private final ProviderInternal<A> left;
     private final ProviderInternal<B> right;
 
-    public BiProvider(Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
+    public BiProvider(@Nullable Class<R> type, Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
+        this.type = type;
         this.combiner = combiner;
         this.left = Providers.internal(left);
         this.right = Providers.internal(right);
@@ -35,6 +37,15 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
     @Override
     public String toString() {
         return String.format("and(%s, %s)", left, right);
+    }
+
+    @Override
+    public boolean calculatePresence(ValueConsumer consumer) {
+        if (!left.calculatePresence(consumer) || !right.calculatePresence(consumer)) {
+            return false;
+        }
+        // Purposefully only calculate full value if left & right are both present, to save time
+        return super.calculatePresence(consumer);
     }
 
     @Override
@@ -50,22 +61,26 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends A> lv = left.calculateValue(consumer);
-        if (lv.isMissing()) {
-            return lv.asType();
+        Value<? extends A> leftValue = left.calculateValue(consumer);
+        if (leftValue.isMissing()) {
+            return leftValue.asType();
         }
-        Value<? extends B> rv = right.calculateValue(consumer);
-        if (rv.isMissing()) {
-            return rv.asType();
+        Value<? extends B> rightValue = right.calculateValue(consumer);
+        if (rightValue.isMissing()) {
+            return rightValue.asType();
         }
-        return Value.of(combiner.apply(lv.get(), rv.get()));
+
+        R combinedUnpackedValue = combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
+
+        return Value.ofNullable(combinedUnpackedValue)
+            .withSideEffect(SideEffect.fixedFrom(leftValue))
+            .withSideEffect(SideEffect.fixedFrom(rightValue));
     }
 
     @Nullable
     @Override
     public Class<R> getType() {
-        // Could do a better job of inferring this
-        return null;
+        return type;
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.util.internal.GUtil;
 
@@ -52,8 +51,8 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample Gradle plugin project to get you started.")
-            .fileComment("For more details take a look at the Writing Custom Plugins chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("custom_plugins"));
+            .fileComment(documentationRegistry.getDocumentationRecommendationFor("details on writing Custom Plugins", "custom_plugins"));
+
         buildScriptBuilder.plugin("Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins", "java-gradle-plugin");
 
         buildScriptBuilder.block(null, "gradlePlugin", b -> b.containerElement("Define the plugin", "plugins", "greeting", null, g -> {
@@ -70,22 +69,23 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
         } else {
             functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
 
-            BuildScriptBuilder.Expression functionalTestConfiguration = buildScriptBuilder.containerElementExpression("configurations", "functionalTestImplementation");
-            BuildScriptBuilder.Expression testConfiguration = buildScriptBuilder.containerElementExpression("configurations", "testImplementation");
-            buildScriptBuilder.methodInvocation(null, functionalTestConfiguration, "extendsFrom", testConfiguration);
+            BuildScriptBuilder.Expression functionalTestImplementation = buildScriptBuilder.containerElementExpression("configurations", "functionalTestImplementation");
+            BuildScriptBuilder.Expression testImplementation = buildScriptBuilder.containerElementExpression("configurations", "testImplementation");
+            buildScriptBuilder.methodInvocation(null, functionalTestImplementation, "extendsFrom", testImplementation);
+
+            BuildScriptBuilder.Expression functionalTestRuntimeOnly = buildScriptBuilder.containerElementExpression("configurations", "functionalTestRuntimeOnly");
+            BuildScriptBuilder.Expression testRuntimeOnly = buildScriptBuilder.containerElementExpression("configurations", "testRuntimeOnly");
+            buildScriptBuilder.methodInvocation(null, functionalTestRuntimeOnly, "extendsFrom", testRuntimeOnly);
+
             BuildScriptBuilder.Expression functionalTest = buildScriptBuilder.taskRegistration("Add a task to run the functional tests", "functionalTest", "Test", b -> {
                 b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"), true);
                 b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);
-                if (getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
-                    b.methodInvocation(null, "useJUnitPlatform");
-                }
+                b.methodInvocation(null, "useJUnitPlatform");
             });
             buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
-            if (getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
-                buildScriptBuilder.taskMethodInvocation("Use JUnit Jupiter for unit tests.", "test", "Test", "useJUnitPlatform");
-            }
+            buildScriptBuilder.taskMethodInvocation("Use JUnit Jupiter for unit tests.", "test", "Test", "useJUnitPlatform");
         }
-        buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets", functionalTestSourceSet);
+        buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets.add", functionalTestSourceSet);
     }
 
     @Override
@@ -107,7 +107,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.of(documentationRegistry.getDocumentationFor("custom_plugins"));
+        return Optional.of(documentationRegistry.getDocumentationRecommendationFor("information", "custom_plugins"));
     }
 
     protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName);

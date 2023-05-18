@@ -47,10 +47,10 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
 
         where:
         kind     | jar                                                                                                                                | pom
-        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"                                                                                                 | "9ecdc5a5aaf0fb15d0e1c5d1760d477c"
-        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"                                                                                         | "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02"
-        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"                                                                 | "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481"
-        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+        "md5"    | "77df41d65c30c00c499adbde748f14da"                                                                                                 | "9ecdc5a5aaf0fb15d0e1c5d1760d477c"
+        "sha1"   | "d48c8da6999eb2191744f01691f84675e7ff520b"                                                                                         | "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02"
+        "sha256" | "f46001e8577ce4fdaf4d1f9aed03311c581b08f9e82bf2406e70553101680212"                                                                 | "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481"
+        "sha512" | "328114e6f92f888c200ea6889d9ba0c940ca260e81fcaeb238d583d7fab96fab451288afee1153dc9bf93caa33200583151f5d9aa500bbebc13a3dae92218bba" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
     }
 
     def "doesn't try to verify checksums for changing dependencies"() {
@@ -78,7 +78,6 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         noExceptionThrown()
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails verifying the file but not resolution itself if verification metadata fails for #kind"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", kind, "invalid")
@@ -112,10 +111,10 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         where:
         kind     | value
-        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"
-        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"
-        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"
-        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+        "md5"    | "77df41d65c30c00c499adbde748f14da"
+        "sha1"   | "d48c8da6999eb2191744f01691f84675e7ff520b"
+        "sha256" | "f46001e8577ce4fdaf4d1f9aed03311c581b08f9e82bf2406e70553101680212"
+        "sha512" | "328114e6f92f888c200ea6889d9ba0c940ca260e81fcaeb238d583d7fab96fab451288afee1153dc9bf93caa33200583151f5d9aa500bbebc13a3dae92218bba"
     }
 
     def "doesn't fail the build but logs errors if lenient mode is used (#param)"() {
@@ -129,19 +128,20 @@ This can indicate that a dependency has been compromised. Please carefully verif
         uncheckedModule("org", "foo")
         uncheckedModule("org", "bar")
         buildFile << """
+            apply plugin: 'java-test-fixtures'
             dependencies {
                 implementation "org:foo:1.0"
-                testImplementation "org:bar:1.0"
+                testFixturesApi "org:bar:1.0"
             }
         """
         file("src/test/java/HelloTest.java") << "public class HelloTest {}"
 
         when:
-        succeeds([":test", *param] as String[])
+        succeeds([":compileJava", *param] as String[])
 
         then:
         errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was 'd48c8da6999eb2191744f01691f84675e7ff520b'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
@@ -198,7 +198,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was 'd48c8da6999eb2191744f01691f84675e7ff520b'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""")
@@ -218,7 +218,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             addChecksum("org:foo:1.0", "sha1", "invalid")
             addChecksum("org:foo:1.0", "sha1", "invalid", "pom", "pom")
             addChecksum("org:bar:1.0", "sha1", "also invalid")
-            addChecksum("org:baz:1.0", "sha1", "c554a4a45e3ed3da494befb446fb2923b8bcecef")
+            addChecksum("org:baz:1.0", "sha1", "2945c3091628323b5038ef9c8337e86deb52443b")
         }
 
         given:
@@ -250,20 +250,15 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - baz-1.0.pom (org:baz:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': expected a 'sha1' checksum of 'also invalid' but was '14ec73769c3116a6a741a5ced0717f50689180c9'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was 'd48c8da6999eb2191744f01691f84675e7ff520b'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '6db079f8f24050d849647e029da573999776b635'
   - On artifact bar-1.0.pom (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact baz-1.0.pom (org:baz:1.0) in repository 'maven': checksum is missing from verification metadata.
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
@@ -306,23 +301,18 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.jar (org:foo:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact bar-1.0.jar (org:bar:1.0) in repository 'ivy': expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact bar-1.0.jar (org:bar:1.0) in repository 'ivy': expected a 'sha1' checksum of 'also invalid' but was '14ec73769c3116a6a741a5ced0717f50689180c9'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was 'd48c8da6999eb2191744f01691f84675e7ff520b'
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
-        }
-
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
@@ -368,6 +358,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
+        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         fails "resolve"
 
         then:
@@ -392,17 +384,17 @@ This can indicate that a dependency has been compromised. Please carefully verif
             return """Dependency verification failed for org:foo:1.0:
   - On artifact foo-1.0-sources.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
         }
 
         String message = """Dependency verification failed for configuration ':compileClasspath':
 """
         if (failsBarJar) {
-            message += """  - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '42077067b52edb41c658839ab62a616740417814'
+            message += """  - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '14ec73769c3116a6a741a5ced0717f50689180c9'
 """
         }
         if (failsFooJar) {
-            message += """  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+            message += """  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was 'd48c8da6999eb2191744f01691f84675e7ff520b'
 """
         }
         message += """
@@ -432,18 +424,12 @@ This can indicate that a dependency has been compromised. Please carefully verif
         then:
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a '$wrong' checksum of 'invalid' but was""")
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
-        }
-
+        assertConfigCacheDiscarded()
 
         where:
         wrong  | md5                                | sha1
-        "md5"  | "invalid"                          | "16e066e005a935ac60f06216115436ab97c5da02"
-        "sha1" | "ea8b622874eaa501476e0ebbe0c562ed" | "invalid"
+        "md5"  | "invalid"                          | "d48c8da6999eb2191744f01691f84675e7ff520b"
+        "sha1" | "77df41d65c30c00c499adbde748f14da" | "invalid"
     }
 
     def "can detect a compromised plugin using plugins block"() {
@@ -542,14 +528,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
 
-If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
+If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
@@ -584,7 +565,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
     def "can verify dependencies of buildSrc (terse output=#terse)"() {
         createMetadataFile {
-            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
         }
         uncheckedModule("org", "foo")
         uncheckedModule("org", "bar")
@@ -611,10 +592,10 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails "compileJava"
 
         then:
-        failure.assertHasDescription terse ? """Dependency verification failed for configuration ':buildSrc:runtimeClasspath'
+        failure.assertHasDescription terse ? """Dependency verification failed for configuration ':buildSrc:buildScriptClasspath'
 2 artifacts failed verification:
   - bar-1.0.jar (org:bar:1.0) from repository maven
-  - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':buildSrc:runtimeClasspath':
+  - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':buildSrc:buildScriptClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata."""
 
         where:
@@ -623,9 +604,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
     def "dependency verification also checks included build dependencies (terse output=#terse)"() {
         createMetadataFile {
-            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
         }
-        uncheckedModule("org", "foo")
         uncheckedModule("org", "bar")
 
         given:
@@ -633,7 +612,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         javaLibrary()
         buildFile << """
             dependencies {
-                implementation "org:foo:1.0"
                 implementation "org:included:1.0"
             }
         """
@@ -648,7 +626,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
                 maven { url "${mavenHttpRepo.uri}" }
             }
             dependencies {
-               implementation "org:bar:1.0"
+               compileOnly "org:bar:1.0"
             }
         """
         file("included/src/main/java/org/included/Included.java") << """
@@ -666,23 +644,16 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':included:compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata."""
 
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-2 problems were found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':included:compileClasspath'' failed to visit file collection"""))
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4934")
-    @ToBeFixedForConfigurationCache
     def "can detect a tampered file in the local cache (terse output=#terse)"() {
         createMetadataFile {
-            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
             addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
         }
         uncheckedModule("org", "foo")
@@ -707,7 +678,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
         def module = new File(group, "foo")
         def version = new File(module, "1.0")
-        def originHash = new File(version, "16e066e005a935ac60f06216115436ab97c5da02")
+        def originHash = new File(version, "d48c8da6999eb2191744f01691f84675e7ff520b")
         def artifactFile = new File(originHash, "foo-1.0.jar")
         artifactFile.text = "tampered"
 
@@ -717,7 +688,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         failure.assertHasCause terse ? """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the checksums.""" : """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of '16e066e005a935ac60f06216115436ab97c5da02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'd48c8da6999eb2191744f01691f84675e7ff520b' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
 
@@ -736,10 +707,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
      * it means they have access to the local FS so all bets are off.
      */
     @Issue("https://github.com/gradle/gradle/issues/4934")
-    @ToBeFixedForConfigurationCache
     def "can detect a tampered metadata file in the local cache (stop in between = #stop)"() {
         createMetadataFile {
-            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
             addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
         }
         uncheckedModule("org", "foo")
@@ -785,7 +755,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "can skip verification of metadata"() {
         createMetadataFile {
             noMetadataVerification()
-            addChecksum("org:foo:1.0", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo:1.0", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
         }
 
         given:
@@ -805,7 +775,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "can skip verification of parent POM"() {
         createMetadataFile {
             noMetadataVerification()
-            addChecksum("org:foo:1.0", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo:1.0", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
         }
 
         given:
@@ -875,13 +845,12 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         where:
         kind     | jar                                                                                                                                | pom
-        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"                                                                                                 | "9ecdc5a5aaf0fb15d0e1c5d1760d477c"
-        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"                                                                                         | "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02"
-        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"                                                                 | "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481"
-        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
+        "md5"    | "77df41d65c30c00c499adbde748f14da"                                                                                                 | "9ecdc5a5aaf0fb15d0e1c5d1760d477c"
+        "sha1"   | "d48c8da6999eb2191744f01691f84675e7ff520b"                                                                                         | "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02"
+        "sha256" | "f46001e8577ce4fdaf4d1f9aed03311c581b08f9e82bf2406e70553101680212"                                                                 | "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481"
+        "sha512" | "328114e6f92f888c200ea6889d9ba0c940ca260e81fcaeb238d583d7fab96fab451288afee1153dc9bf93caa33200583151f5d9aa500bbebc13a3dae92218bba" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reasonable error message when the verification file can't be parsed"() {
         given:
         javaLibrary()
@@ -930,8 +899,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
             configurations.compileClasspath.resolutionStrategy.disableDependencyVerification()
 
             tasks.register("resolveRuntime") {
+                def runtimeClasspath = configurations.runtimeClasspath
                 doLast {
-                    println configurations.runtimeClasspath.files
+                    println runtimeClasspath.files
                 }
             }
         """
@@ -953,7 +923,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':runtimeClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was 'd48c8da6999eb2191744f01691f84675e7ff520b'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
         }
 
@@ -999,15 +969,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
         failure.assertThatCause(containsText("""Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""))
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:printConfigurations` of type `org.gradle.api.DefaultTask`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
-        }
+        assertConfigCacheDiscarded()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can disable verification of a detached configuration (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")
@@ -1019,11 +983,11 @@ This can indicate that a dependency has been compromised. Please carefully verif
         uncheckedModule("org", "foo")
         buildFile << """
             tasks.register("resolve") {
+                def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
+                if (project.hasProperty("disableVerification")) {
+                    conf.resolutionStrategy.disableDependencyVerification()
+                }
                 doLast {
-                    def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
-                    if (project.hasProperty("disableVerification")) {
-                        conf.resolutionStrategy.disableDependencyVerification()
-                    }
                     println conf.files
                 }
             }
@@ -1040,7 +1004,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':detachedConfiguration1':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'invalid' but was 'd48c8da6999eb2191744f01691f84675e7ff520b'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata."""
         }
 
@@ -1054,11 +1018,10 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "handles artifacts cleaned by the cache cleanup"() {
 
         createMetadataFile {
-            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
             addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
         }
         def mod = mavenHttpRepo.module('org', 'foo', '1.0')
@@ -1104,7 +1067,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ':compileJava'
 
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of '16e066e005a935ac60f06216115436ab97c5da02' but was '062082db6574cbe2c0b473616611582ad9f14035'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of 'd48c8da6999eb2191744f01691f84675e7ff520b' but was 'f15f8b10d906e6b4cb6430887c76b0d9781539b0'
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of '85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02' but was 'ebf499f1591331d7cb0acfd6726ee3a172f5f82c'
 """
     }
@@ -1233,7 +1196,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
                 }
             }
 
-
             dependencies {
                 implementation "org:foo:1.0"
             }
@@ -1244,18 +1206,12 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
         fails ":printConfigurations"
 
         then:
         failure.assertThatCause(containsText("""Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""))
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:printConfigurations` of type `PrintConfigurations`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
-        }
+        assertConfigCacheDiscarded()
     }
 }

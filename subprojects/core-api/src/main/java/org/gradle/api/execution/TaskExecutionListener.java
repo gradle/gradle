@@ -18,6 +18,7 @@ package org.gradle.api.execution;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.internal.DeprecatedInGradleScope;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
@@ -30,6 +31,7 @@ import org.gradle.internal.service.scopes.Scopes;
  */
 @EventScope(Scopes.Build.class)
 @Deprecated
+@DeprecatedInGradleScope
 public interface TaskExecutionListener {
     /**
      * This method is called immediately before a task is executed.

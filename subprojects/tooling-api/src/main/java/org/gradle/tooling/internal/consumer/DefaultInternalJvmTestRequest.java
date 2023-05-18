@@ -23,10 +23,12 @@ import javax.annotation.Nullable;
 public class DefaultInternalJvmTestRequest implements InternalJvmTestRequest {
     private final String className;
     private final String methodName;
+    private final String testPattern;
 
-    public DefaultInternalJvmTestRequest(String className, @Nullable String methodName) {
+    public DefaultInternalJvmTestRequest(String className, @Nullable String methodName, @Nullable String testPattern) {
         this.className = className;
         this.methodName = methodName;
+        this.testPattern = testPattern;
     }
 
     @Override
@@ -53,13 +55,19 @@ public class DefaultInternalJvmTestRequest implements InternalJvmTestRequest {
         if (className != null ? !className.equals(that.className) : that.className != null) {
             return false;
         }
-        return !(methodName != null ? !methodName.equals(that.methodName) : that.methodName != null);
+
+        if (methodName != null ? !methodName.equals(that.methodName) : that.methodName != null) {
+            return false;
+        }
+
+        return !(testPattern != null ? !testPattern.equals(that.testPattern) : that.testPattern != null);
     }
 
     @Override
     public int hashCode() {
         int result = className != null ? className.hashCode() : 0;
         result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
+        result = 31 * result + (testPattern != null ? testPattern.hashCode() : 0);
         return result;
     }
 }

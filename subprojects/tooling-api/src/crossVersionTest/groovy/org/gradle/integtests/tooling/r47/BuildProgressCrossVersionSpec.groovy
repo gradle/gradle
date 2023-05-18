@@ -24,6 +24,9 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
+import spock.lang.Timeout
+
+import java.util.concurrent.TimeUnit
 
 @TargetGradleVersion(">=4.7")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -39,6 +42,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         server.after()
     }
 
+    @Timeout(value = 10, unit = TimeUnit.MINUTES)
     def "generates download events during maven publish"() {
         given:
         toolingApi.requireIsolatedUserHome()

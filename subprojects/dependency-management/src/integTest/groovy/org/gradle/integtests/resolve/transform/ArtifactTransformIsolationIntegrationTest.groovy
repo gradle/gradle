@@ -133,7 +133,7 @@ class Resolve extends Copy {
                         counter = buildScriptCounter
                     }
                 }
-                buildScriptCounter.increment()
+                buildScriptCounter.increment() // should not be captured during registration
                 registerTransform(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'secondCount')
@@ -186,137 +186,40 @@ class Resolve extends Copy {
         and:
         outputContains("variants: [{artifactType=secondCount, org.gradle.status=release}, {artifactType=secondCount, org.gradle.status=release}]")
         file("build/libs2").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs2/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
-        file("build/libs2/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            file("build/libs1/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+            file("build/libs1/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            file("build/libs2/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+            file("build/libs2/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        }
 
         and:
         outputContains("variants: [{artifactType=thirdCount, org.gradle.status=release}, {artifactType=thirdCount, org.gradle.status=release}]")
         file("build/libs3").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs3/test-1.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
-        file("build/libs3/test2-2.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            file("build/libs1/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+            file("build/libs1/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            file("build/libs3/test-1.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+            file("build/libs3/test2-2.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+        }
 
         and:
-        output.count("Transforming") == 6
-        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 3
-        output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 3
-    }
-
-    def "serialized mutable class is isolated during legacy artifact transformation"() {
-        mavenRepo.module("test", "test", "1.3").publish()
-        mavenRepo.module("test", "test2", "2.3").publish()
-
-        given:
-        buildFile << """
-
-            public class CountRecorder extends ArtifactTransform {
-                private final Counter counter;
-
-                @Inject
-                public CountRecorder(Counter counter) {
-                    this.counter = counter
-                    println "Creating CountRecorder"
-                }
-
-                List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, input.name + ".txt")
-                    println "Transforming \${input.name} to \${output.name}"
-                    output.withWriter { out ->
-                        out.println String.valueOf(counter.getCount())
-                        for (int i = 0; i < 4; i++) {
-                            out.println String.valueOf(counter.increment())
-                        }
-                        out.close()
-                    }
-                    return [output]
-                }
-            }
-
-            def counter = new Counter()
-
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-
-            configurations {
-                compile
-            }
-
-            dependencies {
-                compile 'test:test:1.3'
-                compile 'test:test2:2.3'
-            }
-
-            dependencies {
-                registerTransform {
-                    from.attribute(artifactType, 'jar')
-                    to.attribute(artifactType, 'firstCount')
-                    artifactTransform(CountRecorder) { params(counter) }
-                }
-                counter.increment()
-                registerTransform {
-                    from.attribute(artifactType, 'jar')
-                    to.attribute(artifactType, 'secondCount')
-                    artifactTransform(CountRecorder) { params(counter) }
-                }
-                counter.increment()
-                registerTransform {
-                    from.attribute(artifactType, 'jar')
-                    to.attribute(artifactType, 'thirdCount')
-                    artifactTransform(CountRecorder) { params(counter) }
-                }
-            }
-
-            task resolveFirst(type: Resolve) {
-                artifactTypeAttribute = 'firstCount'
-                into "\${buildDir}/libs1"
-            }
-
-            task increment {
-                doFirst {
-                    // Just to show that incrementing the counter doesn't matter.
-                    counter.increment()
-                }
-            }
-
-            task resolveSecond(type: Resolve) {
-                artifactTypeAttribute = 'secondCount'
-                into "\${buildDir}/libs2"
-            }
-
-            task resolveThird(type: Resolve) {
-                artifactTypeAttribute = 'thirdCount'
-                into "\${buildDir}/libs3"
-            }
-
-            task resolve dependsOn 'resolveFirst', 'increment', 'resolveSecond', 'resolveThird'
-        """
-
-        when:
-        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
-        run 'resolve'
-
-        then:
-        outputContains("variants: [{artifactType=firstCount, org.gradle.status=release}, {artifactType=firstCount, org.gradle.status=release}]")
-        file("build/libs1").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs1/test-1.3.jar.txt").readLines() == ["0", "1", "2", "3", "4"]
-        file("build/libs1/test2-2.3.jar.txt").readLines() == ["0", "1", "2", "3", "4"]
-
-        and:
-        outputContains("variants: [{artifactType=secondCount, org.gradle.status=release}, {artifactType=secondCount, org.gradle.status=release}]")
-        file("build/libs2").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs2/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
-        file("build/libs2/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
-
-        and:
-        outputContains("variants: [{artifactType=thirdCount, org.gradle.status=release}, {artifactType=thirdCount, org.gradle.status=release}]")
-        file("build/libs3").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs3/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
-        file("build/libs3/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
-
-        and:
-        output.count("Transforming") == 6
-        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 3
-        output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 3
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            output.count("Transforming") == 2
+            output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
+            output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            output.count("Transforming") == 6
+            output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 3
+            output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 3
+        }
     }
 }

@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -27,8 +27,8 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-
-    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule
+    ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def "can resolve and cache dependencies from HTTP Maven repository"() {
         given:
@@ -130,7 +130,6 @@ task retrieve(type: Sync) {
         identifier << Identifier.all
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', '1.2')
@@ -155,10 +154,9 @@ dependencies {
     compile 'group:projectA:1.2@jar'
     compile 'group:projectB:1.2:classy@jar'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.2-classy.jar']
-    }
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
 }
 """
 
@@ -169,17 +167,17 @@ task listJars {
         projectB.artifact(classifier: 'classy').expectGet()
 
         then:
-        succeeds('listJars')
+        succeeds('retrieve')
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.2-classy.jar')
 
         when:
         server.resetExpectations()
         // No extra calls for cached dependencies
 
         then:
-        succeeds('listJars')
+        succeeds('retrieve')
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve and cache artifact-only dependencies with no pom from an HTTP Maven repository"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', '1.2')
@@ -204,10 +202,9 @@ dependencies {
     compile 'group:projectA:1.2@jar'
     compile 'group:projectB:1.2:classy@jar'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.2-classy.jar']
-    }
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
 }
 """
 
@@ -218,17 +215,17 @@ task listJars {
         projectB.artifact(classifier: 'classy').expectGet()
 
         then:
-        succeeds('listJars')
+        succeeds('retrieve')
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.2-classy.jar')
 
         when:
         server.resetExpectations()
         // No extra calls for cached dependencies
 
         then:
-        succeeds('listJars')
+        succeeds('retrieve')
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -247,10 +244,9 @@ configurations {
 dependencies {
     compile 'group:projectA:1.0', 'group:projectB:1.0'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
-    }
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
 }
 """
 
@@ -268,14 +264,15 @@ task listJars {
         projectB.artifact.expectGet()
 
         then:
-        succeeds 'listJars'
+        succeeds 'retrieve'
+        file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar')
 
         when:
         server.resetExpectations()
         // No server requests when all jars cached
 
         then:
-        succeeds 'listJars'
+        succeeds 'retrieve'
     }
 
     def "uses artifactsUrl to resolve artifacts"() {
@@ -294,10 +291,9 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.0', 'group:projectB:1.0'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
-    }
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
 }
 """
 
@@ -314,7 +310,8 @@ task listJars {
         projectBArtifacts.artifact.expectGet()
 
         then:
-        succeeds 'listJars'
+        succeeds 'retrieve'
+        file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar')
     }
 
     def "can resolve and cache dependencies from HTTP Maven repository with invalid settings.xml"() {
@@ -368,7 +365,6 @@ task listJars {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void "fails when configured with AwsCredentials"() {
         given:
         mavenHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -396,7 +392,7 @@ task listJars {
         fails 'retrieve'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve org.group.name:projectA:1.2.")
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
@@ -412,10 +408,9 @@ task listJars {
             }
             configurations { compile }
             dependencies { compile 'group:projectA:1.0@zip' }
-            task listJars {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['projectA-1.0.zip']
-                }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
             }
         """
 
@@ -427,7 +422,7 @@ task listJars {
         })
 
         then:
-        fails 'listJars'
+        fails 'retrieve'
 
         failure.assertHasCause('Response 304: Not Modified has no content!')
     }
@@ -450,15 +445,14 @@ task listJars {
                 compile 'group3::1.0-SNAPSHOT'
                 compile 'group:name'
             }
-            task resolve {
-                doLast {
-                    assert configurations.compile.resolve()
-                }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
             }
         """
 
         when:
-        fails 'resolve'
+        fails 'retrieve'
 
         then:
 

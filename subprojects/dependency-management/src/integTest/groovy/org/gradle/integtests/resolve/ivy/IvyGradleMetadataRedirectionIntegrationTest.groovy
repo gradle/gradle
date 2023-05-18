@@ -31,7 +31,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: 'java-library'
-            
+
             repositories {
                 ivy { url "${ivyHttpRepo.uri}" }
             }
@@ -123,9 +123,9 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         setup:
         buildFile.text = """
             apply plugin: 'java-library'
-            
+
             repositories {
-                ivy { 
+                ivy {
                     url "${ivyHttpRepo.uri}"
                     metadataSources {
                         ivyDescriptor()
@@ -134,7 +134,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
                     }
                 }
             }
-            
+
              dependencies {
                 api "org:main:1.0"
             }

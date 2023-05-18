@@ -16,23 +16,17 @@
 
 package org.gradle.plugin.devel;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.provider.SetProperty;
 
-import javax.annotation.Nullable;
-import java.io.Serializable;
-import java.util.Objects;
-
-
-//TODO version - could be different from main artifact's version
 /**
  * Describes a Gradle plugin under development.
  *
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.14
  */
-public class PluginDeclaration implements Named,
-    // TODO: Shouldn't be serializable, remove the interface in Gradle 8.0.
-    Serializable {
+public abstract class PluginDeclaration implements Named {
     private final String name;
     private String id;
     private String implementationClass;
@@ -72,7 +66,6 @@ public class PluginDeclaration implements Named,
      *
      * @since 4.10
      */
-    @Nullable
     public String getDisplayName() {
         return displayName;
     }
@@ -97,7 +90,6 @@ public class PluginDeclaration implements Named,
      *
      * @since 4.10
      */
-    @Nullable
     public String getDescription() {
         return description;
     }
@@ -114,24 +106,15 @@ public class PluginDeclaration implements Named,
         this.description = description;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof PluginDeclaration) {
-            PluginDeclaration other = (PluginDeclaration) obj;
-            return Objects.equals(name, other.name)
-                && Objects.equals(id, other.id)
-                && Objects.equals(implementationClass, other.implementationClass)
-                && Objects.equals(displayName, other.displayName)
-                && Objects.equals(description, other.description);
-        }
-        return false;
-    }
+    /**
+     * Returns the tags property for this plugin declaration.
+     *
+     * <p>Tags are used when publishing this plugin to repositories that support tagging plugins,
+     * for example the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public abstract SetProperty<String> getTags();
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, id, implementationClass);
-    }
 }

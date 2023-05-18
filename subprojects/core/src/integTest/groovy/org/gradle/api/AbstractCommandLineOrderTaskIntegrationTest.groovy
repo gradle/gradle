@@ -131,11 +131,13 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
         final Set<TaskFixture> dependencies = []
         final Set<TaskFixture> finalizers = []
         final Set<TaskFixture> mustRunAfter = []
+        final Set<TaskFixture> shouldRunAfter = []
         final Set<String> destroys = []
         final Set<String> produces = []
         final Set<String> localState = []
         final Set<String> inputFiles = []
         boolean shouldBlock
+        String failMessage
 
         TaskFixture(ProjectFixture project, String path) {
             this.project = project
@@ -144,6 +146,11 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
 
         TaskFixture dependsOn(TaskFixture dependency) {
             dependencies.add(dependency)
+            return this
+        }
+
+        TaskFixture shouldRunAfter(TaskFixture dependency) {
+            shouldRunAfter.add(dependency)
             return this
         }
 
@@ -200,18 +207,25 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
             return this
         }
 
+        TaskFixture fail(String message = 'BOOM') {
+            failMessage = message
+            return this
+        }
+
         String getConfig() {
             return """
                 tasks.register('${name}') {
                     ${dependencies.collect {'dependsOn ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${finalizers.collect { 'finalizedBy ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${mustRunAfter.collect { 'mustRunAfter ' + dependencyFor(it) }.join('\n\t\t\t\t')}
+                    ${shouldRunAfter.collect { 'shouldRunAfter ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${produces.collect { 'outputs.file file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
                     ${destroys.collect { 'destroyables.register file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
                     ${localState.collect { 'localState.register file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
                     ${inputFiles.collect { 'inputs.files ' + it }.join('\n\t\t\t\t')}
                     doLast {
                         ${shouldBlock ? server.callFromTaskAction(path) : ''}
+                        ${failMessage ? "throw new RuntimeException('$failMessage')" : ''}
                     }
                 }
             """.stripIndent()

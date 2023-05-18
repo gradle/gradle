@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -62,6 +63,22 @@ fun DependencyHandler.create(
     classifier,
     ext
 )
+
+
+/**
+ * Creates a dependency without adding it to a configuration.
+ *
+ * @param dependencyNotation The dependency donation.
+ * @param dependencyConfiguration The expression to use to configure the dependency.
+ *
+ * @return The dependency.
+ *
+ * @since 7.6
+ */
+@Incubating
+inline fun DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+
+    (create(dependencyNotation) as ExternalModuleDependency).apply(dependencyConfiguration)
 
 
 /**

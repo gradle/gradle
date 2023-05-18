@@ -17,8 +17,10 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -69,6 +71,12 @@ class DefaultBuildController implements BuildController {
     public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
         assertInState(State.DiscoveringTasks);
         workGraph.populateWorkGraph(action);
+    }
+
+    @Override
+    public void addFilter(Spec<Task> filter) {
+        assertInState(State.DiscoveringTasks);
+        workGraph.addFilter(filter);
     }
 
     @Override

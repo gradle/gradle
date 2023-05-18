@@ -38,7 +38,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             configurations.create("custom") {
                 description = "My custom configuration"
-                canBeResolved = true
+                assert canBeResolved
                 canBeConsumed = false
             }
         """
@@ -53,8 +53,8 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             configurations.create("legacy") {
                 description = "My legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -69,8 +69,8 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             configurations.create("legacy") {
                 description = "My custom legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
+                assert canBeResolved
+                assert canBeConsumed
             }
         """
 
@@ -96,7 +96,7 @@ My custom legacy configuration""")
             configurations.create("custom") {
                 description = "My custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
             }
         """
 
@@ -121,7 +121,7 @@ My custom configuration
             configurations.create("custom") {
                 description = "My custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
 
                 attributes {
                     attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
@@ -159,7 +159,7 @@ Attributes
             configurations.create("someConf") {
                 description = "My first custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
 
                 attributes {
                     attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
@@ -171,7 +171,7 @@ Attributes
             configurations.create("otherConf") {
                 description = "My second custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
 
                 attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.DOCUMENTATION));
@@ -231,7 +231,7 @@ Attributes
         result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -261,6 +261,26 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
+Variant archives
+--------------------------------------------------
+Configuration for archive artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant default
+--------------------------------------------------
+Configuration for default artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
 List of source directories contained in the Main SourceSet.
@@ -278,7 +298,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -310,7 +330,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -369,7 +389,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -397,6 +417,26 @@ Secondary Variants (*)
         - org.gradle.usage               = java-api
     Artifacts
         - $builtMainClassesPath (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant archives
+--------------------------------------------------
+Configuration for archive artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant default
+--------------------------------------------------
+Configuration for default artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
 
 --------------------------------------------------
 Variant javadocElements
@@ -431,7 +471,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -463,7 +503,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -536,7 +576,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -564,6 +604,26 @@ Secondary Variants (*)
         - org.gradle.usage               = java-api
     Artifacts
         - $builtMainClassesPath (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant archives
+--------------------------------------------------
+Configuration for archive artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant default
+--------------------------------------------------
+Configuration for default artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
 
 --------------------------------------------------
 Variant javadocElements
@@ -598,7 +658,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -630,7 +690,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -696,7 +756,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -728,7 +788,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -753,7 +813,6 @@ Secondary Variants (*)
         """
 
         when:
-        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
         run ':outgoingVariants', '--all'
 
         then:
@@ -767,7 +826,7 @@ Secondary Variants (*)
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -797,7 +856,7 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives (l)
+Variant archives
 --------------------------------------------------
 Configuration for archive artifacts.
 
@@ -807,7 +866,7 @@ Artifacts
     - $jarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant default (l)
+Variant default
 --------------------------------------------------
 Configuration for default artifacts.
 
@@ -834,7 +893,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -866,7 +925,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -895,7 +954,6 @@ Artifacts
 """)
 
         and:
-        hasLegacyLegend()
         hasIncubatingLegend()
         hasSecondaryVariantsLegend()
     }
@@ -908,7 +966,6 @@ Artifacts
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
         run ':outgoingVariants', '--all'
 
         then:
@@ -921,7 +978,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -951,7 +1008,7 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives (l)
+Variant archives
 --------------------------------------------------
 Configuration for archive artifacts.
 
@@ -961,7 +1018,7 @@ Artifacts
     - $jarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant default (l)
+Variant default
 --------------------------------------------------
 Configuration for default artifacts.
 
@@ -988,7 +1045,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1020,7 +1077,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -1049,7 +1106,6 @@ Artifacts
 """)
 
         and:
-        hasLegacyLegend()
         hasIncubatingLegend()
         hasSecondaryVariantsLegend()
     }
@@ -1071,7 +1127,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org.test:extra:1.0
@@ -1103,7 +1159,7 @@ Capabilities
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1136,7 +1192,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -1163,7 +1219,7 @@ Secondary Variants (*)
             def sample = configurations.create("sample") {
                 visible = true
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
 
                 attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
@@ -1184,7 +1240,7 @@ Secondary Variants (*)
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1214,6 +1270,26 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
+Variant archives
+--------------------------------------------------
+Configuration for archive artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant default
+--------------------------------------------------
+Configuration for default artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
 List of source directories contained in the Main SourceSet.
@@ -1231,7 +1307,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1263,7 +1339,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -1316,7 +1392,7 @@ Artifacts
             configurations.create("custom") {
                 description = "My custom configuration"
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
             }
 
             task redJar(type: Jar) {

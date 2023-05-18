@@ -170,7 +170,8 @@ class IsolatedProjectsFixture {
         // Scripts - one or more for settings, and one for each project build script
         def scripts = buildOperations.all(ApplyScriptPluginBuildOperationType)
         assert !scripts.empty
-        assert scripts.first().details.targetType == "settings"
+        def sortedScripts = scripts.toSorted { it -> it.startTime }
+        assert sortedScripts.first().details.targetType == "settings"
         def otherScripts = scripts.findAll { it.details.targetType != "settings" }
         assert otherScripts.size() == projectsWithScripts(details.projects).size()
     }
@@ -192,7 +193,6 @@ class IsolatedProjectsFixture {
 
     private void assertHasWarningThatIncubatingFeatureUsed() {
         spec.outputContains(ConfigurationCacheFixture.ISOLATED_PROJECTS_MESSAGE)
-        spec.outputDoesNotContain(ConfigurationCacheFixture.CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ConfigurationCacheFixture.CONFIGURE_ON_DEMAND_MESSAGE)
     }
 
@@ -235,6 +235,7 @@ class IsolatedProjectsFixture {
          */
         void buildModelCreated(int count = 1) {
             runsTasks = false
+            loadsOnStore = false
             buildModelQueries += count
         }
 
@@ -244,6 +245,7 @@ class IsolatedProjectsFixture {
         void modelsCreated(String... paths) {
             projectsConfigured(paths)
             runsTasks = false
+            loadsOnStore = false
             models.addAll(paths.collect { new ModelDetails(it, 1) })
         }
 
@@ -253,6 +255,7 @@ class IsolatedProjectsFixture {
         void modelsCreated(String path, int count) {
             projectsConfigured(path)
             runsTasks = false
+            loadsOnStore = false
             models.add(new ModelDetails(path, count))
         }
 

@@ -20,9 +20,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.model.ComponentArtifactMetadata
-import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.ImmutableModuleSources
-import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
@@ -40,15 +38,15 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def componentArtifact = Stub(ComponentArtifactMetadata) {
             getId() >> componentArtifactId
         }
-        def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
+        def component = Stub(ComponentArtifactResolveMetadata)
         def artifactResolveResult = Mock(BuildableArtifactResolveResult)
         def failure = new RuntimeException("foo")
 
         when:
-        delegate.resolveArtifact(componentArtifact, moduleSources, artifactResolveResult) >> { throw failure }
+        delegate.resolveArtifact(component, componentArtifact, artifactResolveResult) >> { throw failure }
 
         and:
-        artifactResolver.resolveArtifact(componentArtifact, moduleSources, artifactResolveResult)
+        artifactResolver.resolveArtifact(component, componentArtifact, artifactResolveResult)
 
         then:
         1 * artifactResolveResult.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
@@ -61,7 +59,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def componentId = Stub(ComponentIdentifier) {
             getDisplayName() >> "<component>"
         }
-        def component = Stub(ComponentResolveMetadata) {
+        def component = Stub(ComponentArtifactResolveMetadata) {
             getId() >> componentId
         }
         def result = Mock(BuildableArtifactSetResolveResult)

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
@@ -37,9 +38,11 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.Module
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.AbstractModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
+import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -52,12 +55,13 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resource.ExternalResourceRepository
+import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -77,17 +81,19 @@ class ResolveIvyFactoryTest extends Specification {
     VersionParser versionParser
     BuildOperationExecutor buildOperationExecutor
     ChangingValueDependencyResolutionListener listener
+    ArtifactTypeRegistry artifactTypeRegistry
 
     def setup() {
         moduleVersionsCache = Mock(AbstractModuleVersionsCache)
         moduleMetaDataCache = Mock(AbstractModuleMetadataCache)
         moduleArtifactsCache = Mock(AbstractArtifactsCache)
         cachedArtifactIndex = Mock(ModuleArtifactCache)
+        artifactTypeRegistry = Mock(ArtifactTypeRegistry)
         def caches = new ModuleRepositoryCaches(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, cachedArtifactIndex)
         cacheProvider = new ModuleRepositoryCacheProvider(caches, caches)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
-            _ * dependencyVerificationOverride(_, _, _, _, _, _) >> DependencyVerificationOverride.NO_VERIFICATION
+            _ * dependencyVerificationOverride(_, _, _, _, _, _, _) >> DependencyVerificationOverride.NO_VERIFICATION
         }
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
@@ -96,8 +102,9 @@ class ResolveIvyFactoryTest extends Specification {
         versionParser = new VersionParser()
         buildOperationExecutor = Mock()
         listener = Mock()
+        def resolveStateFactory = DependencyManagementTestUtil.modelGraphResolveFactory()
 
-        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, listener, Stub(CalculatedValueContainerFactory))
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, TestUtil.checksumService, Mock(SignatureVerificationServiceFactory), new DocumentationRegistry(), buildCommencedTimeProvider, (Factory<GradleProperties>) Mock(Factory), Stub(FileResourceListener)), buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, listener, resolveStateFactory, Stub(CalculatedValueContainerFactory))
     }
 
     def "returns an empty resolver when no repositories are configured"() {
@@ -149,7 +156,7 @@ class ResolveIvyFactoryTest extends Specification {
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
-                "Spy Resolver",
+                Stub(UrlRepositoryDescriptor),
                 false,
                 externalResourceRepository,
                 cacheAwareExternalResourceAccessor,

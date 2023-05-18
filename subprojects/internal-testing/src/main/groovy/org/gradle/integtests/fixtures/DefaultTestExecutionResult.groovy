@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests.fixtures
 
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
+import org.gradle.integtests.fixtures.TestClassExecutionResult.TestCase
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
@@ -114,6 +117,44 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         testNames.collect { removeParentheses(it) } as String[]
     }
 
+    static String[][] removeAllParentheses(String[]... testNames) {
+        testNames.collect { [removeParentheses(it[0]), it[1]] } as String[][]
+    }
+
+    static TestCase testCase(String name) {
+        return new DefaultTestCase(name)
+    }
+
+    static TestCase testCase(String name, String displayName) {
+        return new DefaultTestCase(name, displayName)
+    }
+
+    static TestCase testCase(String name, String displayName, List<String> messages) {
+        return new DefaultTestCase(name, displayName, messages)
+    }
+
+    @ToString
+    @EqualsAndHashCode(includes = ['name', 'displayName'])
+    private static class DefaultTestCase implements TestCase {
+        String name
+        String displayName
+        List<String> messages
+
+        DefaultTestCase(String name) {
+            this(name, name)
+        }
+
+        DefaultTestCase(String name, String displayName) {
+            this(name, displayName, [])
+        }
+
+        DefaultTestCase(String name, String displayName, List<String> messages) {
+            this.name = removeParentheses(name)
+            this.displayName = removeParentheses(displayName)
+            this.messages = messages
+        }
+    }
+
     private class DefaultTestClassExecutionResult implements TestClassExecutionResult {
         List<TestClassExecutionResult> testClassResults
 
@@ -123,6 +164,12 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
             testClassResults*.assertTestsExecuted(removeAllParentheses(testNames))
+            this
+        }
+
+        @Override
+        TestClassExecutionResult assertTestsExecuted(TestCase... testCases) {
+            testClassResults*.assertTestsExecuted(testCases)
             this
         }
 

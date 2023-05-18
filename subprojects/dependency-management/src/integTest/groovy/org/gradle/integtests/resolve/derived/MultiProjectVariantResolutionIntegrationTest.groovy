@@ -33,7 +33,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                 configurations {
                     producerArtifacts {
                         canBeConsumed = false
-                        canBeResolved = true
+                        assert canBeResolved
 
                         attributes {
                             attribute(Attribute.of('shared', String), 'shared-value')
@@ -82,6 +82,23 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                         }
                     }.files)
                 }
+                
+                tasks.register('resolveAll', Resolve) {
+                    artifacts.from(configurations.producerArtifacts)
+                    artifacts.from(configurations.producerArtifacts.incoming.artifactView {
+                        withVariantReselection()
+                        attributes {
+                            attribute(Attribute.of('shared', String), 'shared-value')
+                            attribute(Attribute.of('unique', String), 'javadoc-value')
+                        }
+                    }.files)
+                    artifacts.from(configurations.producerArtifacts.incoming.artifactView {
+                        withVariantReselection()
+                        attributes {
+                            attribute(Attribute.of('other', String), 'foobar')
+                        }
+                    }.files)
+                }
             '''
         }
     }
@@ -95,7 +112,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
             configurations {
                 jarElements {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Attribute.of('shared', String), 'shared-value')
                         attribute(Attribute.of('unique', String), 'jar-value')
@@ -107,7 +124,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                 }
                 javadocElements {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Attribute.of('shared', String), 'shared-value')
                         attribute(Attribute.of('unique', String), 'javadoc-value')
@@ -119,7 +136,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                 }
                 otherElements {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Attribute.of('other', String), 'foobar')
                     }
@@ -201,6 +218,16 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolveOther')
+    }
+
+    def 'consumer resolves all variants of producer'() {
+        file('consumer/build.gradle') << '''
+            resolveAll {
+                expectations = [ 'producer-jar.txt', 'producer-javadoc.txt', 'producer-other.txt' ]
+            }
+        '''
+        expect:
+        succeeds(':consumer:resolveAll')
     }
 
     def 'consumer resolves jar variant of producer with dependencies'() {

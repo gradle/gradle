@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 
 /**
@@ -27,11 +28,18 @@ import org.gradle.api.InvalidActionClosureException;
  * <p>
  * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  * @param <T> The action type.
  */
 @Deprecated
 public class ClosureBackedAction<T> implements Action<T> {
+
+    static {
+        DeprecationLogger.deprecateType(ClosureBackedAction.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
 
     private final Closure closure;
     private final int resolveStrategy;
