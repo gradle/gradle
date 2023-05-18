@@ -99,6 +99,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
     val jgitSshApache = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache"
     val joda = "joda-time:joda-time"
+    val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"

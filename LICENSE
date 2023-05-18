@@ -379,6 +379,7 @@ org.eclipse.jgit:org.eclipse.jgit
 BSD-style
 
 com.jcraft:jzlib
+com.github.mwiede:jsch
 
 Copyright (c) 2000-2011 ymnk, JCraft,Inc. All rights reserved.
 
