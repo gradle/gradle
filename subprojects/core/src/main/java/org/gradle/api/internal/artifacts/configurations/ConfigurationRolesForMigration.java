@@ -54,6 +54,16 @@ public final class ConfigurationRolesForMigration {
     public static final ConfigurationRole RESOLVABLE_BUCKET_TO_BUCKET = difference(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.BUCKET);
 
     /**
+     * A configuration which cannot do anything. Intended solely to create {@code X_TO_DELETED} roles.
+     */
+    private static final ConfigurationRole DELETED = new DefaultConfigurationRole("Deleted", false, false, false, false, false, false);
+
+    /**
+     * A consumable configuration which will be deleted in the next major version.
+     */
+    public static final ConfigurationRole CONSUMABLE_TO_DELETED = difference(ConfigurationRoles.CONSUMABLE, DELETED);
+
+    /**
      * Computes the difference between two roles, such that any usage that is allowed in the
      * initial role but not allowed in the eventual role will be deprecated in the returned role.
      */
