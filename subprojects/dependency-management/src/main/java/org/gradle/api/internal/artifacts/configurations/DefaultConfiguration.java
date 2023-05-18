@@ -263,6 +263,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
+    private boolean useAttributeSnapshotsToSelectVariantForArtifacts = false;
+
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
      */
@@ -2031,6 +2033,19 @@ since users cannot create non-legacy configurations and there is no current publ
         return this;
     }
 
+    @Override
+    public ConfigurationRole getRoleAtCreation() {
+        return roleAtCreation;
+    }
+
+    @Deprecated
+    @Override
+    public Configuration useAttributeSnapshotsToSelectVariantForArtifacts() {
+        warnOnDeprecatedUsage("useAttributeSnapshotsToSelectVariantForArtifacts()", ProperMethodUsage.RESOLVABLE);
+        this.useAttributeSnapshotsToSelectVariantForArtifacts = true;
+        return this;
+    }
+
     private abstract static class ResolveState {
         static final ResolveState NOT_RESOLVED = new ResolveState(UNRESOLVED) {
             @Override
@@ -2106,16 +2121,17 @@ since users cannot create non-legacy configurations and there is no current publ
 
     private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
         AttributeContainerInternal viewAttributes = attributes;
+        // If the user desires legacy behavior, we need to make sure that the view attributes are a separate collection so
+        // they do not pick up later attribute changes to the configuration.
+        if (useAttributeSnapshotsToSelectVariantForArtifacts) {
+            viewAttributes = viewAttributes.asImmutable();
+        }
+
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
         ResolutionBackedFileCollection files = new ResolutionBackedFileCollection(
             new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
         );
         return new DefaultArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
-    }
-
-    @Override
-    public ConfigurationRole getRoleAtCreation() {
-        return roleAtCreation;
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
@@ -2196,6 +2212,11 @@ since users cannot create non-legacy configurations and there is no current publ
             // As this runs after the action used to configure the ArtifactView has run, the config might already have viewAttributes present
             // which the user added.  If so, continue to use those attributes, otherwise use the attributes from the creating configuration.
             AttributeContainerInternal viewAttributes = (config.viewAttributes == null) ? config.configurationAttributes : config.viewAttributes;
+            // If the user desires legacy behavior, we need to make sure that the view attributes are a separate collection so
+            // they do not pick up later attribute changes to the configuration.
+            if (useAttributeSnapshotsToSelectVariantForArtifacts) {
+                viewAttributes = viewAttributes.asImmutable();
+            }
 
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;

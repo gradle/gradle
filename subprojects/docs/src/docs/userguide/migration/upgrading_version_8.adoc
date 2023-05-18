@@ -35,6 +35,61 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.3]]
+== Upgrading from 8.2 and earlier
+
+=== Potential breaking changes
+
+==== ArtifactView and ArtifactCollection variant resolution behavior is more correct
+
+In previous versions of Gradle, the attributes used for variant resolution by `ArtifactView` and `ArtifactCollection` began as point-in-time copies of the attributes present on the `Configuration` instance used to create them.
+
+This meant the attributes used for resolution by those types could unexpectedly differ when the attributes on the `Configuration` changed after an `ArtifactView` or `ArtifactCollection` was created.
+Some default attributes are lazily and automatically added to `Configuration` instances by core Java plugins, so could lead to unexpected behavior.
+
+Consider the following scenario where `producer` is a sibling `java-library` project to the build below:
+
+```groovy
+    plugins {
+        id 'java-library'
+    }
+
+    dependencies {
+        api project(':producer')
+    }
+
+    def incomingFiles = configurations.compileClasspath.incoming.files
+    def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files
+
+    logger.warn 'Incoming Files:'
+    incomingFiles.each { logger.warn 'Name: ' + it.name }
+
+    logger.warn 'Artifact View Files:'
+    artifactViewFiles.each { logger.warn 'Name: ' + it.name }
+
+    assert incomingFiles*.name == artifactViewFiles*.name // FAILS!
+```
+
+Running `gradle help` shows the following logger output that demonstrates the problem:
+
+```
+Incoming Files:
+Name: main
+Artifact View Files:
+Name: producer.jar
+```
+
+This `ArtifactView` selects a variant without the benefit of the `org.gradle.libraryeleemnt=classes` attribute, which was added the `compileClasspath` configuration lazily, after the `ArtifactView` was created.
+That attribute allows for a performance optimization where the secondary `classes` variant is selected instead of the `producer` project's primary `jar` variant.
+As it never added to the `ArtifactView`'s attributes, the `ArtifactView` selects the primary `jar` variant instead.
+
+The above scenario demonstrates the previous attribute snapshotting behavior, where the assertion would fail.
+With the new behavior, the attribute collection used by `ArtifactView` is "live" and sees the modifications to the configuration's attributes; because of this the assertion now passes.
+
+The new behavior correctly implements the expectation that an `ArtifactView` without any further customization will return the same files as the configuration that created it.
+
+A new method `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#useAttributeSnapshotsToSelectVariantForArtifacts--[useAttributeSnapshotsToSelectVariantForArtifacts()]` has been added to the `Configuration` API to restore the legacy behavior for those who need it.
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 

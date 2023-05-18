@@ -301,6 +301,42 @@ logger.warn ''
         run ':help'
     }
 
+    def "use legacy behavior to declare and iterate artifact view files, then declare and iterate incoming files"() {
+        buildFile << """
+            configurations.compileClasspath.useAttributeSnapshotsToSelectVariantForArtifacts()
+
+            $declareArtifactViewFiles
+            $iterateArtifactViewFiles
+
+            $declareIncomingFiles
+            $iterateIncomingFiles
+
+            // The legacy behavior was for the artifact view variant selection to not use the lazy attributes
+            assert incomingFiles*.name != artifactViewFiles*.name
+        """
+
+        expect:
+        run ':help'
+    }
+
+    def "use legacy behavior to declare and iterate incoming artifacts, then declare and iterate artifact view artifacts"() {
+        buildFile << """
+            configurations.compileClasspath.useAttributeSnapshotsToSelectVariantForArtifacts()
+
+            $declareIncomingArtifacts
+            $iterateIncomingArtifacts
+
+            $declareArtifactViewArtifacts
+            $iterateArtifactViewArtifacts
+
+            // The legacy behavior was for the incoming artifacts variant selection to not use the lazy attributes
+            assert incomingArtifacts*.id.file.name != artifactViewArtifacts*.id.file.name
+        """
+
+        expect:
+        run ':help'
+    }
+
     @Ignore("There are 10,000s of these, so it takes some time, but is the ultimate sanity check")
     def "test all valid permutations of declaration and iteration order of files and artifacts on incoming vs. artifact view"() {
         buildFile << """
