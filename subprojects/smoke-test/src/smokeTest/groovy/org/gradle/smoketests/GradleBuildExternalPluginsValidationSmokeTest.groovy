@@ -16,6 +16,9 @@
 
 package org.gradle.smoketests
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -35,36 +38,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation, ValidationMessageChecker {
 
     def setup() {
-        ProjectBuildDirLocator locator = (String projectPath, TestFile projectRoot) -> {
-            if (projectPath == ':') {
-                projectRoot.file("build")
-            } else {
-                def projectDir = projectPath.split(':').join('/')
-
-                // Search in `subprojects` first.
-                def subprojectsPath = projectRoot.file("subprojects").file(projectDir).file("build")
-
-                if (subprojectsPath.exists()) {
-                    return subprojectsPath
-                }
-
-                // Otherwise, it might exist in a platform.
-                for (TestFile platformDir : projectRoot.file("platforms").listFiles()) {
-                    def platformPath = platformDir.file(projectDir).file("build")
-                    if (platformPath.exists()) {
-                        return platformPath
-                    }
-                }
-
-                throw new IllegalArgumentException("Cannot find build dir for project path '$projectPath'")
-            }
-        }
-
-        // Cache this since this gets called multiple times per project path.
-        Map<String, TestFile> locations = new HashMap<>()
-        allPlugins.projectPathToBuildDir = (String projectPath, TestFile projectRoot) -> {
-            locations.computeIfAbsent(projectPath, path -> locator.getBuildDir(path, projectRoot))
-        }
+        allPlugins.projectPathToBuildDir = new GradleBuildDirLocator()
     }
 
     def "performs static validation of plugins used by the Gradle build"() {
@@ -132,6 +106,39 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
 
         void onPlugin(String id, @DelegatesTo(value = PluginValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
             allPlugins.onPlugin(id, projectPath, spec)
+        }
+    }
+
+    private static class GradleBuildDirLocator implements ProjectBuildDirLocator {
+
+        private Map<String, String> subprojects
+
+        @Override
+        TestFile getBuildDir(String projectPath, TestFile projectRoot) {
+            if (projectPath == ':') {
+                return projectRoot.file("build")
+            } else {
+                if (subprojects == null) {
+                    ArrayNode arr = (ArrayNode) projectRoot.file(".teamcity/subprojects.json").withInputStream {
+                        new ObjectMapper().readTree(it)
+                    }
+                    subprojects = [:]
+                    for (int i = 0; i < arr.size(); i++) {
+                        JsonNode node = arr.get(i)
+                        subprojects.put(node.get("name").asText(), node.get("path").asText())
+                    }
+                }
+
+                assert projectPath.startsWith(":")
+                projectPath = projectPath.substring(1)
+                assert !projectPath.contains(":")
+
+                def path = subprojects.get(projectPath)
+                if (path == null) {
+                    throw new IllegalArgumentException("Cannot find build dir for project path '$projectPath'")
+                }
+                return projectRoot.file(path).file("build")
+            }
         }
     }
 }

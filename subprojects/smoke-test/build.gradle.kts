@@ -37,6 +37,7 @@ dependencies {
     smokeTestImplementation(libs.jgit)
     smokeTestImplementation(libs.spock)
     smokeTestImplementation(libs.junitPlatform)
+    smokeTestImplementation(libs.jacksonDatabind)
 
     smokeTestImplementation(testFixtures(project(":core")))
     smokeTestImplementation(testFixtures(project(":plugin-development")))
