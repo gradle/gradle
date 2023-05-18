@@ -20,18 +20,20 @@
 
 Gradle Build Tool is a fast, dependable, and adaptable open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool with an elegant and extensible declarative build language.
 
-In this User Manual, Gradle Build Tool is called **Gradle**.
+In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
 
 == Why Gradle?
 
-Gradle is a widely used and mature built tool with an active community and a strong developer ecosystem. So why Gradle?
+Gradle is a widely used and mature tool with an active community and a strong developer ecosystem.
 
-* Gradle is the most popular build system for JVM and the default in Android and Kotlin Multi-Platform with a rich community plugin ecosystem.
-* Gradle can automate a wide range of software build automation scenarios, either through built-in functionality, plugins, or custom build logic.
-* Gradle provides a high-level, declarative, and expressive build language that makes it easy to both read and write build logic.
+* Gradle is the most popular build system for the JVM and is the default system for Android and Kotlin Multi-Platform projects.
+It has a rich community plugin ecosystem.
+* Gradle can automate a wide range of software build scenarios using either its built-in functionality, third-party plugins, or custom build logic.
+* Gradle provides a high-level, declarative, and expressive build language that makes it easy to read and write build logic.
 * Gradle is fast, scalable, and can build projects of any size and complexity.
-* Gradle produces dependable results, even with optimizations such as incremental builds, build caching, or parallel execution.
+* Gradle produces dependable results while effortlessly benefiting from optimizations such as incremental builds, build caching, and parallel execution.
 
-Several major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
-Gradle provides a free service called https://scans.gradle.com/[Build Scan®] which provides extensive information about a build that you can use to identify problems or share for debugging help.
+Gradle, Inc. provides a free service called https://scans.gradle.com/[Build Scan®] that provides extensive information and insights about your builds.
+You can view scans to identify problems or share them for debugging help.
