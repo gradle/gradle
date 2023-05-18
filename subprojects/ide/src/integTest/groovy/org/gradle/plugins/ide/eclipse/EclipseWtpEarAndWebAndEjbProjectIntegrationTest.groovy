@@ -37,7 +37,7 @@ project(':ear') {
 
     dependencies {
         deploy project(':java')
-        deploy project(path: ':web', configuration: 'archives')
+        deploy project(path: ':web', configuration: 'war')
     }
 }
 project(':web') {
@@ -46,6 +46,14 @@ project(':web') {
     dependencies {
         providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
         testImplementation "junit:junit:4.13"
+    }
+
+    configurations {
+        war {
+            outgoing {
+                artifact(tasks.war)
+            }
+        }
     }
 }
 project(':java') {

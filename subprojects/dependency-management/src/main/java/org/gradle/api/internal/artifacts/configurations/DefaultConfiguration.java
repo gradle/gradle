@@ -1516,6 +1516,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void preventIllegalMutation(MutationType type) {
+        if (type == MutationType.ARTIFACTS) {
+            if (!canBeConsumed) {
+                DeprecationLogger.deprecate("Adding artifacts to non-consumable configurations")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "adding_artifacts_to_consumable_configurations")
+                    .nagUser();
+            } else if (isDeprecatedForConsumption()) {
+                DeprecationLogger.deprecateConfiguration(name).forArtifactDeclaration()
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "deprecated_configuration_usage")
+                    .nagUser();
+            }
+        }
+
         // TODO: Deprecate and eventually prevent these mutations when already resolved
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
             assertIsDeclarable();

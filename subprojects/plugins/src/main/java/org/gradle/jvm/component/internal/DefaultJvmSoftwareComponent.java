@@ -92,7 +92,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
         // Build the main jar when running `assemble`.
         extensions.getByType(DefaultArtifactPublicationSet.class)
-            .addCandidate(mainFeature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+            .addCandidateInternal(mainFeature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
 
         configurePublishing(plugins, extensions, sourceSet);
 

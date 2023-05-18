@@ -130,7 +130,7 @@ public abstract class DistributionPlugin implements Plugin<Project> {
         });
 
         PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidateInternal(archiveArtifact);
     }
 
     private void addInstallTask(final Project project, final String taskName, final Distribution distribution) {

@@ -104,7 +104,7 @@ public abstract class BasePlugin implements Plugin<Project> {
             if (!configuration.equals(archivesConfiguration)) {
                 configuration.getArtifacts().configureEach(artifact -> {
                     if (configuration.isVisible()) {
-                        defaultArtifacts.addCandidate(artifact);
+                        defaultArtifacts.addCandidateInternal(artifact);
                     }
                 });
             }

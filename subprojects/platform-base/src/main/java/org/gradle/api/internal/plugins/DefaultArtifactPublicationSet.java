@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.ChangingValueHandler;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -41,9 +42,22 @@ public abstract class DefaultArtifactPublicationSet {
     }
 
     public void addCandidate(PublishArtifact artifact) {
+        DeprecationLogger.deprecate("DefaultArtifactPublicationSet")
+            .withAdvice("This class is internal and is not meant for public usage. To build artifacts during the assemble lifecycle phase, use task dependencies.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "archives_configuration_deprecation")
+            .nagUser();
+
+        addCandidateInternal(artifact);
+    }
+
+    public void addCandidateInternal(PublishArtifact artifact) {
+        // TODO: In 9.0 when we remove this class, calls to this method should be replaced with calls to
+        // projects.tasks.assemble.dependsOn(artifact)
+
         if (defaultArtifactProvider == null) {
             defaultArtifactProvider = new DefaultArtifactProvider();
-            artifactContainer.addAllLater(defaultArtifactProvider);
+            DeprecationLogger.whileDisabled(() -> artifactContainer.addAllLater(defaultArtifactProvider));
         }
         defaultArtifactProvider.addArtifact(artifact);
     }
