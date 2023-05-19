@@ -34,11 +34,9 @@ import java.util.Set;
  */
 public interface ConsumableVariant extends Named, HasAttributes {
 
-    // TODO: Local variants backed by configurations can have multiple attribute sets.
-    // Configurations support sub-variants via the ConfigurationPublications API, each of
-    // which with a different attribute set. These sub-variants are selected during artifact
-    // selection based on additional attributes provided by the sub-variant. How does this
-    // fit into the ConsumableVariant API?
+    // TODO: Configurations support sub-variants via the ConfigurationPublications API, each of
+    // which with a different artifact set. ConsumableVariants should support this as well by
+    // exposing a set of "transformations" which can be selected during artifact selection.
 
     /**
      * The files produced by this variant.

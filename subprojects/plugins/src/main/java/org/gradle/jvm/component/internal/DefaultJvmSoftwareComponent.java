@@ -61,6 +61,10 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         this.features = project.getObjects().polymorphicDomainObjectContainer(ComponentFeature.class);
 
         // Map ConsumableVariant API to UsageContext API.
+        // TODO: This mapping is fragile since it relies on variant names. It is highly specialized
+        // for the Java plugin's variants. Instead, we should likely remove this mapping and separate these
+        // APIs. In reality, these APIs are incompatible since UsageContext publishes variant transformations
+        // while ConsumableVariant should not.
         variants.all(variant -> {
             if (variant instanceof ConfigurationBackedConsumableVariant) {
 

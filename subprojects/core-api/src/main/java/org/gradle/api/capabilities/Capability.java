@@ -18,12 +18,22 @@ package org.gradle.api.capabilities;
 import javax.annotation.Nullable;
 
 /**
- * A capability represents the content or API of a variant's artifacts. A variant often has a single capability,
- * representing the entire content of its artifacts. However, a variant may have multiple capabilities, where each
- * capability could represent a subset of the variant's content.
+ * A capability describes a feature of a component.
  *
- * <p>Capabilities are versioned, since a variant's content changes between versions. Multiple variants with the
- * same capability may not exist in a dependency graph simultaneously.</p>
+ * <p>Conceptually, a capability represents the content or API exposed by a set of artifacts.
+ * Capabilities are versioned since that API changes as the artifacts are updated.<p>
+ *
+ * <p>Each feature of a component, such as the production library or its test fixtures, exposes
+ * similar variants, such as the runtime, api, or sources variants. Each corresponding variant in
+ * a given feature of a component will have the same attributes, and therefore are distinguished
+ * by their capabilities.<p>
+ *
+ * <p>For example, the runtime/api variants of a library will share a capability with the sources variant,
+ * since they have the same content. However, their attributes differ since their artifacts
+ * differ in form. Conversely, the runtime/api variants of a library and its test fixtures will have the same
+ * attributes, but will have different capabilities since they expose different APIs.</p>
+ *
+ * <p>Multiple variants with the same capability may not exist in a dependency graph simultaneously.</p>
  *
  * @since 4.7
  */

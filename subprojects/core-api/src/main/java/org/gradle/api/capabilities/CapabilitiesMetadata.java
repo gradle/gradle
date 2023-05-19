@@ -18,7 +18,7 @@ package org.gradle.api.capabilities;
 import java.util.List;
 
 /**
- * Provides a list of capabilities.
+ * Provides a list of {@link Capability capabilities}.
  *
  * @since 4.7
  */

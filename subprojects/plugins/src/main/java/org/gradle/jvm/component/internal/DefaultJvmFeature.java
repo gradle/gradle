@@ -141,8 +141,8 @@ public class DefaultJvmFeature implements JvmFeature {
 
         this.variants = objectFactory.polymorphicDomainObjectContainer(ConsumableVariant.class);
         this.variants.registerFactory(ConfigurationBackedConsumableVariant.class, configName -> {
-            // TODO: Should we create the configuration with a different name?
-            // If the user creates an apiElements and the feature name is test should we use testApiElements for the configuration name?
+            // TODO: We should create this configuration with the global name. For example, if the user creates an
+            //  apiElements variant and the feature name is test we should use testApiElements for the configuration name.
             Configuration config = project.getConfigurations().maybeCreateWithRole(configName, elementsConfigurationRole, false, false);
             capabilities.forEach(config.getOutgoing()::capability);
             return objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, config);
@@ -172,7 +172,6 @@ public class DefaultJvmFeature implements JvmFeature {
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
         this.apiElements = createApiElements(jarArtifact, compileJava);
         this.runtimeElements = createRuntimeElements(jarArtifact, compileJava);
-        variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, runtimeElements));
 
         if (extendProductionCode) {
             doExtendProductionCode();

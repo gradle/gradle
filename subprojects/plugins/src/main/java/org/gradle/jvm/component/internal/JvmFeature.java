@@ -37,6 +37,9 @@ import javax.annotation.Nullable;
  * <p>This feature is configurable in that it can optionally expose additional variants for javadoc and sources jars.
  * Furthermore, this feature by default does not expose an API. However, it can be configured to do so in order to
  * model constructs like a standard JVM library.</p>
+ *
+ * <p>TODO: This JVM feature is implicitly a single-target feature. We will want to make JVM features multi-target
+ * before making this API public.</p>
  */
 public interface JvmFeature extends ComponentFeature {
 

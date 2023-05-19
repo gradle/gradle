@@ -30,13 +30,7 @@ import java.util.Set;
  */
 public interface ConsumableComponent extends SoftwareComponent {
 
-    // TODO: A local component belongs to a module and should define a ComponentIdentifier which
-    // defines a module name and group. A ModuleComponentIdentifier immediately seems fitting, however
-    // it defines a version, which may not make sense for local components. Local components really have
-    // an implicit "latest" version, and it only makes sense to have a version when the component is
-    // serialized during publication. Further, traditional project components have a ProjectComponentIdentifier
-    // and most of the Gradle infrastructure assumes this. Exposing a ModuleComponentIdentifier may not
-    // make the most sense here.
+    // TODO: A local component belongs to a module and should define a group and module name.
 
     /**
      * The variants of this component.
