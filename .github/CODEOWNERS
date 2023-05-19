@@ -1,6 +1,5 @@
 # Execution team
 subprojects/base-annotations/               @gradle/bt-execution
-subprojects/functional/                     @gradle/bt-execution @bamboo
 subprojects/build-cache/                    @gradle/bt-execution
 subprojects/build-cache-base/               @gradle/bt-execution
 subprojects/build-cache-http/               @gradle/bt-execution
@@ -10,23 +9,24 @@ subprojects/build-profile/                  @gradle/bt-execution
 subprojects/execution/                      @gradle/bt-execution
 subprojects/file-watching/                  @gradle/bt-execution
 subprojects/files/                          @gradle/bt-execution
+subprojects/functional/                     @gradle/bt-execution @bamboo
 subprojects/hashing/                        @gradle/bt-execution
 subprojects/snapshots/                      @gradle/bt-execution
 
 # Configuration cache team (soon to be renamed Configuration team)
-subprojects/instrumentation-agent/              @gradle/bt-configuration-cache
-subprojects/internal-instrumentation-api/       @gradle/bt-configuration-cache
-subprojects/internal-instrumentation-processor/ @gradle/bt-configuration-cache
 subprojects/api-metadata/                       @gradle/bt-configuration-cache
 subprojects/base-annotations/                   @gradle/bt-configuration-cache
 subprojects/configuration-cache/                @gradle/bt-configuration-cache
+subprojects/instrumentation-agent/              @gradle/bt-configuration-cache
+subprojects/internal-instrumentation-api/       @gradle/bt-configuration-cache
+subprojects/internal-instrumentation-processor/ @gradle/bt-configuration-cache
 
 # Gradle Enterprise
+subprojects/build-scan-performance/         @gradle/bt-build-scan
 subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/ge-build-insights @gradle/bt-build-scan
 subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/bt-build-scan @gradle/ge-testing
 subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt-build-scan
 subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
-subprojects/build-scan-performance/         @gradle/bt-build-scan
 
 # JVM platform
 subprojects/code-quality/                   @gradle/bt-jvm
@@ -81,13 +81,13 @@ subprojects/kotlin-dsl-tooling-models/                                          
 # Dev-prod team
 .teamcity/                                  @gradle/bt-developer-productivity
 .github/                                    @gradle/bt-developer-productivity
-gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
 /build-logic/                               @gradle/bt-developer-productivity
 /build-logic-commons/                       @gradle/bt-developer-productivity
 /build-logic-settings/                      @gradle/bt-developer-productivity
-subprojects/*/build.gradle*                 @gradle/bt-developer-productivity
 /build.gradle*                              @gradle/bt-developer-productivity
 /settings.gradle*                           @gradle/bt-developer-productivity
+gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
+subprojects/*/build.gradle*                 @gradle/bt-developer-productivity
 subprojects/internal-architecture-testing/  @gradle/bt-developer-productivity
 subprojects/internal-build-reports/         @gradle/bt-developer-productivity
 subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
