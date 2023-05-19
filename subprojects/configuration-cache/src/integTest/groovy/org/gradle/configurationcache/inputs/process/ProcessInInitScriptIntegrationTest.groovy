@@ -41,7 +41,11 @@ class ProcessInInitScriptIntegrationTest extends AbstractProcessIntegrationTest 
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Initialization script '${relativePath(file)}': external process started")
+            if (file.endsWith(".gradle.kts")) {
+                withProblem("Initialization script '${relativePath(file)}': external process started")
+            } else {
+                withProblem("Initialization script '${relativePath(file)}': line 5: external process started")
+            }
         }
 
         where:

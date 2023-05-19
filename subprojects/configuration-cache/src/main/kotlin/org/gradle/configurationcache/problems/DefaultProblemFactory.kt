@@ -18,6 +18,7 @@ package org.gradle.configurationcache.problems
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 
 
@@ -37,11 +38,11 @@ class DefaultProblemFactory(
     }
 
     override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?): PropertyProblem {
-        val trace = locationForCaller(exception)
+        val trace = locationForCaller(null, exception)
         return PropertyProblem(trace, message, exception, documentationSection)
     }
 
-    override fun problem(messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
+    override fun problem(consumer: String?, messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
         val message = StructuredMessage.build(messageBuilder)
         return object : ProblemFactory.Builder {
             var exception: Throwable? = null
@@ -54,7 +55,12 @@ class DefaultProblemFactory(
             }
 
             override fun exception(): ProblemFactory.Builder {
-                exception = InvalidUserCodeException(message.toString())
+                exception = InvalidUserCodeException(message.toString().capitalized())
+                return this
+            }
+
+            override fun exception(builder: (String) -> String): ProblemFactory.Builder {
+                exception = InvalidUserCodeException(builder(message.toString().capitalized()))
                 return this
             }
 
@@ -69,19 +75,19 @@ class DefaultProblemFactory(
             }
 
             override fun build(): PropertyProblem {
-                val location = locationMapper(locationForCaller(exception))
+                val location = locationMapper(locationForCaller(consumer, exception))
                 return PropertyProblem(location, message, exception, documentationSection)
             }
         }
     }
 
     private
-    fun locationForCaller(exception: Throwable?): PropertyTrace {
+    fun locationForCaller(consumer: String?, exception: Throwable?): PropertyTrace {
         val location = problemDiagnosticsFactory.forCurrentCaller(exception).location
         return if (location != null) {
             PropertyTrace.BuildLogic(location.sourceShortDisplayName, location.lineNumber)
         } else {
-            locationForCaller(null as String?)
+            locationForCaller(consumer)
         }
     }
 }
