@@ -30,6 +30,7 @@ import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.GZipNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.controller.NextGenBuildCacheHandler;
+import org.gradle.caching.internal.controller.RemoteNextGenBuildCacheHandler;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.H2BuildCacheService;
@@ -81,8 +82,12 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     ) {
         IncubationLogger.incubatingFeatureUsed("Next generation build cache");
 
-        NextGenBuildCacheHandler local = resolveService(localDescribedService);
-        NextGenBuildCacheHandler remote = resolveService(remoteDescribedService);
+        if (localDescribedService == null) {
+            // TODO Make this understandable to the compiler as well
+            throw new NullPointerException("Local cache shouldn't be null");
+        }
+        NextGenBuildCacheHandler local = new DefaultRemoteNextGenBuildCacheHandler(localDescribedService.service, localDescribedService.config.isPush());
+        RemoteNextGenBuildCacheHandler remote = resolveRemoteService(remoteDescribedService);
 
         return new NextGenBuildCacheController(
             buildInvocationScopeId.getId().asString(),
@@ -103,9 +108,9 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         );
     }
 
-    private static NextGenBuildCacheHandler resolveService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends BuildCacheService> describedService) {
+    private static RemoteNextGenBuildCacheHandler resolveRemoteService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends BuildCacheService> describedService) {
         return describedService != null && describedService.config.isEnabled()
-            ? new DefaultNextGenBuildCacheHandler(makeCompatible(describedService.service), describedService.config.isPush())
+            ? new DefaultRemoteNextGenBuildCacheHandler(makeCompatible(describedService.service), describedService.config.isPush())
             : DISABLED_BUILD_CACHE_HANDLER;
     }
 
@@ -141,7 +146,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         };
     }
 
-    private static final NextGenBuildCacheHandler DISABLED_BUILD_CACHE_HANDLER = new NextGenBuildCacheHandler() {
+    private static final RemoteNextGenBuildCacheHandler DISABLED_BUILD_CACHE_HANDLER = new RemoteNextGenBuildCacheHandler() {
         @Override
         public boolean canLoad() {
             return false;
@@ -150,6 +155,11 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         @Override
         public boolean canStore() {
             return false;
+        }
+
+        @Override
+        public void disableOnError() {
+            // Already disabled
         }
 
         @Override
@@ -171,41 +181,53 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
     };
 
-    private static class DefaultNextGenBuildCacheHandler implements NextGenBuildCacheHandler {
+    private static class DefaultRemoteNextGenBuildCacheHandler implements RemoteNextGenBuildCacheHandler {
         private final NextGenBuildCacheService service;
         private final boolean pushEnabled;
+        private volatile boolean disabledOnError;
 
-        public DefaultNextGenBuildCacheHandler(NextGenBuildCacheService service, boolean pushEnabled) {
+        public DefaultRemoteNextGenBuildCacheHandler(NextGenBuildCacheService service, boolean pushEnabled) {
             this.service = service;
             this.pushEnabled = pushEnabled;
         }
 
         @Override
         public boolean canLoad() {
-            // TODO Perhaps remove this since it will always be true
-            return true;
+            return !disabledOnError;
         }
 
         @Override
         public boolean canStore() {
-            return pushEnabled;
+            return !disabledOnError && pushEnabled;
+        }
+
+        @Override
+        public void disableOnError() {
+            this.disabledOnError = true;
         }
 
         @Override
         public boolean contains(BuildCacheKey key) {
+            if (disabledOnError) {
+                return false;
+            }
             return service.contains(key);
         }
 
         @Override
         public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+            if (disabledOnError) {
+                return false;
+            }
             return service.load(key, reader);
         }
 
         @Override
         public void store(BuildCacheKey key, NextGenBuildCacheService.NextGenWriter writer) throws BuildCacheException {
-            if (pushEnabled) {
-                service.store(key, writer);
+            if (!pushEnabled || disabledOnError) {
+                return;
             }
+            service.store(key, writer);
         }
 
         @Override

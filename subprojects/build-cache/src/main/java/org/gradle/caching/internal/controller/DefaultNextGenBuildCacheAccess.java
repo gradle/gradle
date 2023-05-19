@@ -46,14 +46,14 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNextGenBuildCacheAccess.class);
 
     private final NextGenBuildCacheHandler local;
-    private final NextGenBuildCacheHandler remote;
+    private final RemoteNextGenBuildCacheHandler remote;
     private final BufferProvider bufferProvider;
     private final ManagedThreadPoolExecutor remoteProcessor;
     private final ConcurrencyCounter counter;
 
     public DefaultNextGenBuildCacheAccess(
         NextGenBuildCacheHandler local,
-        NextGenBuildCacheHandler remote,
+        RemoteNextGenBuildCacheHandler remote,
         BufferProvider bufferProvider,
         ExecutorFactory executorFactory
     ) {
@@ -85,7 +85,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     }
 
     private <T> boolean loadLocally(LoadHandler<T> handler, BuildCacheKey key, T payload) {
-        return local.canLoad() && local.load(key, input -> handler.handle(input, payload));
+        return local.load(key, input -> handler.handle(input, payload));
     }
 
     @Override
@@ -94,10 +94,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             .flatMap(entry -> {
                 BuildCacheKey key = entry.getKey();
                 T payload = entry.getValue();
-                if (!local.canStore()) {
-                    // TODO Handle the case when local store is disabled but the remote is not?
-                    return Stream.empty();
-                }
                 if (!local.contains(key)) {
                     local.store(key, handler.createWriter(payload));
                 }
@@ -199,9 +195,9 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 } else {
                     handler.recordRemoteMiss(key);
                 }
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 handler.recordRemoteFailure(key, e);
-                throw e;
+                remote.disableOnError();
             }
         }
 
@@ -216,28 +212,23 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 size.set(data.size());
 
                 // Mirror data in local cache
-                // TODO Do we need to support local push = false?
-                if (local.canStore()) {
-                    local.store(key, new NextGenBuildCacheService.NextGenWriter() {
-                        @Override
-                        public InputStream openStream() {
-                            return data.toInputStream();
-                        }
+                local.store(key, new NextGenBuildCacheService.NextGenWriter() {
+                    @Override
+                    public InputStream openStream() {
+                        return data.toInputStream();
+                    }
 
-                        @Override
-                        public void writeTo(OutputStream output) throws IOException {
-                            data.writeTo(output);
-                        }
+                    @Override
+                    public void writeTo(OutputStream output) throws IOException {
+                        data.writeTo(output);
+                    }
 
-                        @Override
-                        public long getSize() {
-                            return data.size();
-                        }
-                    });
-                    handler.handle(data.toInputStream(), payload);
-                } else {
-                    handler.handle(input, payload);
-                }
+                    @Override
+                    public long getSize() {
+                        return data.size();
+                    }
+                });
+                handler.handle(data.toInputStream(), payload);
             });
             return size.get();
         }
@@ -285,9 +276,9 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             try {
                 boolean stored = storeInner(data);
                 handler.recordFinished(key, stored);
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 handler.recordFailure(key, e);
-                throw e;
+                remote.disableOnError();
             }
         }
 

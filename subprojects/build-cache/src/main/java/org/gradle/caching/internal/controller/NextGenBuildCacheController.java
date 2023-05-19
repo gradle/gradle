@@ -235,7 +235,9 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 if (failures.isEmpty()) {
                     finisher.accept(context);
                 } else {
-                    context.failed(new DefaultMultiCauseException("Errors encountered while loading entries from remote cache", failures));
+                    context.failed(failures.size() == 1
+                        ? failures.get(0)
+                        : new DefaultMultiCauseException("Errors encountered while loading entries from remote cache", failures));
                 }
             }
         }

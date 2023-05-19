@@ -16,18 +16,10 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheException;
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.NextGenBuildCacheService;
+public interface RemoteNextGenBuildCacheHandler extends NextGenBuildCacheHandler {
+    boolean canLoad();
 
-import java.io.Closeable;
+    boolean canStore();
 
-public interface NextGenBuildCacheHandler extends Closeable {
-    boolean contains(BuildCacheKey key);
-
-    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException;
-
-    void store(BuildCacheKey key, NextGenBuildCacheService.NextGenWriter writer) throws BuildCacheException;
-
+    void disableOnError();
 }
