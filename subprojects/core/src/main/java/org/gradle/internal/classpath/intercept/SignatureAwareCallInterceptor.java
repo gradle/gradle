@@ -24,11 +24,7 @@ import javax.annotation.Nullable;
  * A call interceptor that can also tell if it is going to intercept a call to a method based on the argument types, not the specific argument values.
  */
 @NonNullApi
-public abstract class SignatureAwareCallInterceptor extends CallInterceptor {
-    protected SignatureAwareCallInterceptor(InterceptScope... interceptScopes) {
-        super(interceptScopes);
-    }
-
+public interface SignatureAwareCallInterceptor {
     /**
      * @param receiverClass the class that the method is invoked on; the owner class if static
      * @param argumentClasses the classes of each argument passed to a call, with {@code null} elements for {@code null} values
@@ -36,7 +32,7 @@ public abstract class SignatureAwareCallInterceptor extends CallInterceptor {
      * or null if the interceptor does not match this signature
      */
     @Nullable
-    public abstract SignatureMatch matchesMethodSignature(Class<?> receiverClass, Class<?>[] argumentClasses, boolean isStatic);
+    SignatureMatch matchesMethodSignature(Class<?> receiverClass, Class<?>[] argumentClasses, boolean isStatic);
 
     @NonNullApi
     public static class SignatureMatch {

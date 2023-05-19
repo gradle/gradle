@@ -25,6 +25,8 @@ import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.ParameterInfo;
+import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
@@ -39,9 +41,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_GETTER;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_SETTER;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.callableKindForJavadoc;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptedCallableLink;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptorImplementationLink;
@@ -118,9 +123,11 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
 
     private static TypeSpec.Builder generateInterceptorClass(String className, CodeBlock scopes, List<CallInterceptionRequest> requests) {
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
-            .superclass(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
+            .superclass(CALL_INTERCEPTOR_CLASS)
+            .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
             .addJavadoc(interceptorClassJavadoc(requests))
             .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+
 
         MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addStatement("super($L)", scopes).build();
         generatedClass.addMethod(constructor);
@@ -149,7 +156,24 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
 
         generatedClass.addMethod(doIntercept);
         generatedClass.addMethod(matchesSignature);
+
+        if (hasGroovyPropertyRequests(requests)) {
+            generatedClass.addSuperinterface(PROPERTY_AWARE_CALL_INTERCEPTOR_CLASS);
+            MethodSpec matchesProperty = MethodSpec.methodBuilder("matchesProperty")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(Class.class)
+                .addParameter(Class.class, "receiverClass")
+                .addCode(generateMatchesPropertyCode(requests))
+                .build();
+            generatedClass.addMethod(matchesProperty);
+        }
+
         return generatedClass;
+    }
+
+    private static boolean hasGroovyPropertyRequests(List<CallInterceptionRequest> requests) {
+        return requests.stream().anyMatch(it -> it.getInterceptedCallable().getKind() == GROOVY_PROPERTY_GETTER || it.getInterceptedCallable().getKind() == GROOVY_PROPERTY_SETTER);
     }
 
     private static CodeBlock interceptorClassJavadoc(Collection<CallInterceptionRequest> requests) {
@@ -169,7 +193,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     private static CodeBlock namedCallableScopesArgs(String name, List<CallInterceptionRequest> requests) {
         List<CodeBlock> scopeExpressions = new ArrayList<>();
 
-        requests.stream().filter(it -> it.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER).forEach(request -> {
+        requests.stream().filter(it -> it.getInterceptedCallable().getKind() == GROOVY_PROPERTY_GETTER).forEach(request -> {
             String propertyName = request.getInterceptedCallable().getCallableName();
             String getterName = NameUtil.getterName(request.getInterceptedCallable().getCallableName(), request.getInterceptedCallable().getReturnType().getType());
             scopeExpressions.add(CodeBlock.of("$1T.readsOfPropertiesNamed($2S)", INTERCEPTED_SCOPE_CLASS, propertyName));
@@ -206,9 +230,55 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return result.build();
     }
 
+    private static CodeBlock generateMatchesPropertyCode(Collection<CallInterceptionRequest> requests) {
+        CodeBlock.Builder result = CodeBlock.builder();
+        LinkedHashMap<Type, Type> propertyTypeByReceiverType = requests.stream()
+            .filter(request -> request.getInterceptedCallable().getKind() == GROOVY_PROPERTY_GETTER || request.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER)
+            .collect(
+                Collectors.toMap(
+                    InterceptGroovyCallsGenerator::propertyReceiverType,
+                    InterceptGroovyCallsGenerator::propertyValueType,
+                    (a, b) -> {
+                        if (!a.equals(b)) {
+                            throw new IllegalArgumentException("multiple requests to intercept a property on a single receiver type " +
+                                "with different property types: " + a + ", " + b);
+                        } // otherwise, it's OK, we recognize them in the same way
+                        return a;
+                    },
+                    LinkedHashMap::new
+                )
+            );
+        propertyTypeByReceiverType.forEach((receiverType, propertyType) -> {
+            result.beginControlFlow("if ($T.class.isAssignableFrom(receiverClass))", TypeUtils.typeName(receiverType).box());
+            result.addStatement("return $T.class", TypeUtils.typeName(propertyType).box());
+            result.endControlFlow();
+        });
+        result.addStatement("return null");
+        return result.build();
+    }
+
+    private static Type propertyValueType(CallInterceptionRequest request) {
+        if (request.getInterceptedCallable().getKind() == GROOVY_PROPERTY_GETTER) {
+            return request.getInterceptedCallable().getReturnType().getType();
+        } else if (request.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
+            Optional<ParameterInfo> newValueParameter =
+                request.getInterceptedCallable().getParameters().stream().filter(parameter -> parameter.getKind() == ParameterKindInfo.METHOD_PARAMETER).findFirst();
+            return newValueParameter.orElseThrow(() -> new IllegalArgumentException("a setter interceptor must accept a parameter")).getParameterType();
+        } else {
+            throw new IllegalArgumentException("expected a property interception request, got " + request);
+        }
+    }
+
+    private static Type propertyReceiverType(CallInterceptionRequest request) {
+        return request.getInterceptedCallable().getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.RECEIVER).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("a property interception request must have a receiver parameter")).getParameterType();
+    }
+
+    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
     private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor");
     private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
         ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor.SignatureMatch");
+    private static final ClassName PROPERTY_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.PropertyAwareCallInterceptor");
     private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.InterceptScope");
     private static final ClassName INVOCATION_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.Invocation");
 
