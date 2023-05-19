@@ -208,26 +208,19 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
         @Override
         public boolean contains(BuildCacheKey key) {
-            if (disabledOnError) {
-                return false;
-            }
-            return service.contains(key);
+            return canLoad() && service.contains(key);
         }
 
         @Override
         public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-            if (disabledOnError) {
-                return false;
-            }
-            return service.load(key, reader);
+            return canLoad() && service.load(key, reader);
         }
 
         @Override
         public void store(BuildCacheKey key, NextGenBuildCacheService.NextGenWriter writer) throws BuildCacheException {
-            if (!pushEnabled || disabledOnError) {
-                return;
+            if (canStore()) {
+                service.store(key, writer);
             }
-            service.store(key, writer);
         }
 
         @Override
