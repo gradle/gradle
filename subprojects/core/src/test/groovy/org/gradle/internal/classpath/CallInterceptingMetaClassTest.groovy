@@ -135,6 +135,19 @@ class CallInterceptingMetaClassTest extends Specification {
         instance.intercepted == "callNotIntercepted()-not-intercepted"
     }
 
+    def 'a metamethod obtained within an entry point scope does not break out of the scope'() {
+        MetaMethod method = null
+
+        when:
+        withEntryPoint(INVOKE_METHOD, "test") {
+            method = instance.metaClass.getMetaMethod("test")
+        }
+        method.invoke(instance, [].toArray())
+
+        then: 'the call should not be intercepted'
+        instance.intercepted == null
+    }
+
     def 'successive pickMethod invocations in the entry point scope return the intercepted method'() {
         when:
         def method1 = null
