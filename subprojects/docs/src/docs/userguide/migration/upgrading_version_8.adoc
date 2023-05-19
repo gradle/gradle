@@ -43,10 +43,9 @@ The previous step will help you identify potential problems by issuing deprecati
 [[legacy_attribute_snapshotting]]
 ==== ArtifactView and ArtifactCollection variant resolution behavior is more correct
 
-In previous versions of Gradle, the attributes used for variant resolution by `ArtifactView` and `ArtifactCollection` began as point-in-time copies of the attributes present on the `Configuration` instance used to create them.
+Prior to Gradle 8.3, `Configuration.getIncoming().artifactView()` and `Configuration.getIncoming().getArtifacts()` captured immutable copies of the `Configuration`'s attributes upon invocation. Consequently, if the `Configuration`'s attributes were changed after these methods were called, the attributes used for resolution by these methods could unexpectedly differ from the final `Configuration` attributes.  
 
-This meant the attributes used for resolution by those types could unexpectedly differ when the attributes on the `Configuration` changed after an `ArtifactView` or `ArtifactCollection` was created.
-Some default attributes are lazily and automatically added to `Configuration` instances by core Java plugins, so could lead to unexpected behavior.
+Given that some attributes are lazily added to `Configuration`s during resolution, the behavior of these methods could have differed based on the order that these methods were called. 
 
 Consider the following scenario where `producer` is a sibling `java-library` project to the build below:
 
