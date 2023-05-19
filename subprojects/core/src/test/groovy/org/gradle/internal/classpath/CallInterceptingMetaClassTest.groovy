@@ -60,7 +60,7 @@ class CallInterceptingMetaClassTest extends Specification {
     def 'intercepts a dynamic call with argument'() {
         when:
         withEntryPoint(INVOKE_METHOD, "test") {
-            instance.test(instance)
+            instance.invokeMethod("test", [].toArray())
         }
 
         then:
@@ -95,6 +95,34 @@ class CallInterceptingMetaClassTest extends Specification {
 
         then:
         instance.intercepted == null
+    }
+
+    def 'method invocation with #name on a metaClass is intercepted: #intercepted'() {
+        MissingMethodException thrown = null
+
+        when:
+        withEntryPoint(INVOKE_METHOD, "test") {
+            try {
+                closure()
+            } catch (MissingMethodException e) {
+                thrown = e
+            }
+        }
+
+        then:
+        (thrown != null) == missing
+        instance.intercepted == (intercepted ? "test()" : null)
+
+        where:
+        name                                                                  | closure                                                                                       | intercepted | missing
+        "invokeMethod(receiver, methodName, (Object[]) arguments)"            | { instance.metaClass.invokeMethod(instance, "test", [].toArray()) }                           | true        | false
+        "invokeMethod(receiver, methodName, (Object) arguments)"              | { instance.metaClass.invokeMethod(instance, "test", (Object) [].toArray()) }                  | true        | false
+        "invokeMethod(sender, receiver, methodName, arguments, false, false)" | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), false, false) } | true        | false
+
+        // These should not be intercepted because of isCallToSuper and fromInsideClass
+        "invokeMethod(sender, receiver, methodName, arguments, true, false)"  | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), true, false) }  | false       | true
+        "invokeMethod(sender, receiver, methodName, arguments, false, true)"  | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), false, true) }  | false       | true
+        "invokeMethod(sender, receiver, methodName, arguments, true, true)"   | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), true, true) }   | false       | true
     }
 
     def 'non-intercepted invokeMethod calls invoke the original method'() {
