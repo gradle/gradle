@@ -40,6 +40,7 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[legacy_attribute_snapshotting]]
 ==== ArtifactView and ArtifactCollection variant resolution behavior is more correct
 
 In previous versions of Gradle, the attributes used for variant resolution by `ArtifactView` and `ArtifactCollection` began as point-in-time copies of the attributes present on the `Configuration` instance used to create them.
@@ -88,7 +89,8 @@ With the new behavior, the attribute collection used by `ArtifactView` is "live"
 
 The new behavior correctly implements the expectation that an `ArtifactView` without any further customization will return the same files as the configuration that created it.
 
-A new method `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#useAttributeSnapshotsToSelectVariantForArtifacts--[useAttributeSnapshotsToSelectVariantForArtifacts()]` has been added to the `Configuration` API to restore the legacy behavior for those who need it.
+A system setting `link:{javadocPath}/org/gradle/api/internal/artifacts/configuration/DefaultConfiguration.html#USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR--[org.gradle.configuration.use-legacy-attribute-snapshot-behavior]` has been provided to temporarily restore the legacy behavior for those who need time to migrate.
+This setting should be considered immediately deprecated and will be removed in Gradle 9.0.
 
 [[kotlin_1_8.20]]
 ==== Upgrade to Kotlin 1.8.21

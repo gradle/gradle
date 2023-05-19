@@ -16,7 +16,10 @@
 
 package org.gradle.integtests.resolve.attributes
 
+import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Ignore
 
 /**
@@ -30,6 +33,8 @@ import spock.lang.Ignore
  * variant.
  */
 class ArtifactViewAttributesIntegrationTest extends AbstractIntegrationSpec {
+    @Rule SetSystemProperties systemProperties
+
     private static declareIncomingFiles = "def incomingFiles = configurations.compileClasspath.incoming.files"
     private static declareIncomingArtifacts = "def incomingArtifacts = configurations.compileClasspath.incoming.artifacts"
     private static declareArtifactViewFiles = "def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files"
@@ -302,9 +307,9 @@ logger.warn ''
     }
 
     def "use legacy behavior to declare and iterate artifact view files, then declare and iterate incoming files"() {
-        buildFile << """
-            configurations.compileClasspath.useAttributeSnapshotsToSelectVariantForArtifacts()
+        System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
 
+        buildFile << """
             $declareArtifactViewFiles
             $iterateArtifactViewFiles
 
@@ -316,13 +321,14 @@ logger.warn ''
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
         run ':help'
     }
 
     def "use legacy behavior to declare and iterate incoming artifacts, then declare and iterate artifact view artifacts"() {
-        buildFile << """
-            configurations.compileClasspath.useAttributeSnapshotsToSelectVariantForArtifacts()
+        System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
 
+        buildFile << """
             $declareIncomingArtifacts
             $iterateIncomingArtifacts
 
@@ -334,6 +340,7 @@ logger.warn ''
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
         run ':help'
     }
 

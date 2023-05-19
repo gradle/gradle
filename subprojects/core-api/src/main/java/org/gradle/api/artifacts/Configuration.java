@@ -685,34 +685,4 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      */
     @Incubating
     Configuration disableConsistentResolution();
-
-    /**
-     * Instructs the configuration to use the legacy behavior of using attribute snapshots for artifact selection.
-     *
-     * This will prevent any attributes added to this configuration after an {@link ArtifactCollection} or {@link ArtifactView} has
-     * been created from being reflected in those instances when they resolve the dependency graph used to select
-     * a variant to obtain artifacts and files.
-     *
-     * For instance, consider when the {@code java-library} plugin is applied to both this project and a
-     * local producer project, which is a dependency of this one.  When this configuration resolves its dependencies,
-     * it will select the secondary {@code classes} variant rather than the primary variant containing a jar file as
-     * a build optimization that may make assembling the jar file of the producer project unnecessary.  The attribute
-     * information that enables this selection is automatically added lazily immediately before resolution.  Previously,
-     * if an {@link ArtifactView} or {@link ArtifactCollection} had already been created from this configuration,
-     * it would not receive these attributes.  This resulted in an odd situation where the {@link #getIncoming()}.{@link ResolvableDependencies#getFiles() getFiles()}
-     * might not match the files returned by {@link ArtifactView#getFiles()} (likewise for artifacts returned from
-     * {@link #getIncoming()}.{@link ResolvableDependencies#getArtifacts() getArtifacts()} and {@link ArtifactView#getArtifacts()})
-     * despite no additional configuration being performed on the view or collection.
-     *
-     * This method can be used to restore this legacy behavior if necessary.  However, it is strongly recommended that
-     * projects be updated to rely on the new behavior instead.
-     *
-     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
-     * called on a configuration that does not permit this usage, or has had allowed this usage but marked it as deprecated.
-     *
-     * @since 8.3
-     */
-    @Incubating
-    @Deprecated
-    Configuration useAttributeSnapshotsToSelectVariantForArtifacts();
 }

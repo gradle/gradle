@@ -174,6 +174,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfiguration.class);
 
+    public static final String USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR = "org.gradle.configuration.use-legacy-attribute-snapshot-behavior";
+
     private final ConfigurationResolver resolver;
     private final DependencyMetaDataProvider metaDataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -263,7 +265,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
-    private boolean useAttributeSnapshotsToSelectVariantForArtifacts = false;
+    private Boolean useLegacyAttributeSnapshottingBehavior = null;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -2043,14 +2045,6 @@ since users cannot create non-legacy configurations and there is no current publ
         return roleAtCreation;
     }
 
-    @Deprecated
-    @Override
-    public Configuration useAttributeSnapshotsToSelectVariantForArtifacts() {
-        warnOnDeprecatedUsage("useAttributeSnapshotsToSelectVariantForArtifacts()", ProperMethodUsage.RESOLVABLE);
-        this.useAttributeSnapshotsToSelectVariantForArtifacts = true;
-        return this;
-    }
-
     private abstract static class ResolveState {
         static final ResolveState NOT_RESOLVED = new ResolveState(UNRESOLVED) {
             @Override
@@ -2128,7 +2122,7 @@ since users cannot create non-legacy configurations and there is no current publ
         AttributeContainerInternal viewAttributes = attributes;
         // If the user desires legacy behavior, we need to make sure that the view attributes are a separate collection so
         // they do not pick up later attribute changes to the configuration.
-        if (useAttributeSnapshotsToSelectVariantForArtifacts) {
+        if (useLegacyAttributeSnapshottingBehavior()) {
             viewAttributes = viewAttributes.asImmutable();
         }
 
@@ -2137,6 +2131,21 @@ since users cannot create non-legacy configurations and there is no current publ
             new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
         );
         return new DefaultArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
+    }
+
+    private boolean useLegacyAttributeSnapshottingBehavior() {
+        if (useLegacyAttributeSnapshottingBehavior == null) {
+            useLegacyAttributeSnapshottingBehavior = Boolean.getBoolean(USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR);
+            if (useLegacyAttributeSnapshottingBehavior) {
+                DeprecationLogger.deprecateSystemProperty(USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR)
+                    .withAdvice("Please remove this flag and use the current default behavior.")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "legacy_attribute_snapshotting")
+                    .nagUser();
+            }
+        }
+
+        return useLegacyAttributeSnapshottingBehavior;
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
@@ -2219,7 +2228,7 @@ since users cannot create non-legacy configurations and there is no current publ
             AttributeContainerInternal viewAttributes = (config.viewAttributes == null) ? config.configurationAttributes : config.viewAttributes;
             // If the user desires legacy behavior, we need to make sure that the view attributes are a separate collection so
             // they do not pick up later attribute changes to the configuration.
-            if (useAttributeSnapshotsToSelectVariantForArtifacts) {
+            if (useLegacyAttributeSnapshottingBehavior()) {
                 viewAttributes = viewAttributes.asImmutable();
             }
 
