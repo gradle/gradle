@@ -147,9 +147,9 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
             calculateDefaultDependencyNotation(extension.getToolVersion())
-            .stream()
-            .map(project.getDependencies()::create)
-            .forEach(dependencies::add)
+                .stream()
+                .map(project.getDependencies()::create)
+                .forEach(dependencies::add)
         );
     }
 
