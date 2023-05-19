@@ -45,15 +45,15 @@ import java.util.stream.Stream;
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNextGenBuildCacheAccess.class);
 
-    private final NextGenBuildCacheHandler local;
-    private final RemoteNextGenBuildCacheHandler remote;
+    private final NextGenBuildCacheService local;
+    private final RemoteNextGenBuildCacheServiceHandler remote;
     private final BufferProvider bufferProvider;
     private final ManagedThreadPoolExecutor remoteProcessor;
     private final ConcurrencyCounter counter;
 
     public DefaultNextGenBuildCacheAccess(
-        NextGenBuildCacheHandler local,
-        RemoteNextGenBuildCacheHandler remote,
+        NextGenBuildCacheService local,
+        RemoteNextGenBuildCacheServiceHandler remote,
         BufferProvider bufferProvider,
         ExecutorFactory executorFactory
     ) {
