@@ -40,29 +40,29 @@ class ArtifactViewAttributesIntegrationTest extends AbstractIntegrationSpec {
     private static declareArtifactViewFiles = "def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files"
     private static declareArtifactViewArtifacts = "def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView { }.artifacts"
 
-    private static iterateIncomingFiles = """logger.warn 'Incoming Files:'
+    private static iterateIncomingFiles = """println 'Incoming Files:'
 incomingFiles.each {
-    logger.warn 'Name: ' + it.name
+    println 'Name: ' + it.name
 }
-logger.warn ''
+println ''
 """
-    private static iterateIncomingArtifacts = """logger.warn 'Incoming Artifacts:'
+    private static iterateIncomingArtifacts = """println 'Incoming Artifacts:'
 incomingArtifacts.each {
-    logger.warn 'Name: ' + it.id.name + ', File: ' + it.id.file.name
+    println 'Name: ' + it.id.name + ', File: ' + it.id.file.name
 }
-logger.warn ''
+println ''
 """
-    private static iterateArtifactViewFiles = """logger.warn 'Artifact View Files:'
+    private static iterateArtifactViewFiles = """println 'Artifact View Files:'
 artifactViewFiles.each {
-    logger.warn 'Name: ' + it.name
+    println 'Name: ' + it.name
 }
-logger.warn ''
+println ''
 """
-    private static iterateArtifactViewArtifacts = """logger.warn 'Artifact View Artifacts:'
+    private static iterateArtifactViewArtifacts = """println 'Artifact View Artifacts:'
 artifactViewArtifacts.each {
-    logger.warn 'Name: ' + it.id.name + ', File: ' + it.id.file.name
+    println 'Name: ' + it.id.name + ', File: ' + it.id.file.name
 }
-logger.warn ''
+println ''
 """
 
     private static filesComparison = "assert incomingFiles*.name == artifactViewFiles*.name"
