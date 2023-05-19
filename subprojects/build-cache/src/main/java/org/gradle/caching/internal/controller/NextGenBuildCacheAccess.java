@@ -18,6 +18,8 @@ package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
+import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -52,14 +54,36 @@ public interface NextGenBuildCacheAccess extends Closeable {
          */
         void handle(InputStream input, T payload);
 
-        void startLoad(BuildCacheKey key);
+        /**
+         * Starts the legacy {@link BuildCacheRemoteLoadBuildOperationType} build operation when the first download starts.
+         */
+        void startLoadOperation(BuildCacheKey key);
 
+        /**
+         * Record that the load operation was successful in loading a result.
+         * @param key the cache key of the finished entry.
+         * @param size the number of bytes that has been loaded.
+         */
         void recordLoadHit(BuildCacheKey key, long size);
 
+        /**
+         * Record that the load operation finished without error, but could not find the given entry.
+         * @param key the cache key of the finished entry.
+         */
         void recordLoadMiss(BuildCacheKey key);
 
+        /**
+         * Record that the load operation failed.
+         * @param key the cache key of the finished entry.
+         * @param failure the error that occurred.
+         */
         void recordLoadFailure(BuildCacheKey key, Throwable failure);
 
+        /**
+         * Record that the unpack operation failed.
+         * @param key the cache key of the finished entry.
+         * @param failure the error that occurred.
+         */
         void recordUnpackFailure(BuildCacheKey key, Throwable failure);
     }
 
@@ -72,12 +96,30 @@ public interface NextGenBuildCacheAccess extends Closeable {
          */
         NextGenBuildCacheService.NextGenWriter createWriter(T payload);
 
-        void startStore(BuildCacheKey key);
+        /**
+         * Starts the legacy {@link BuildCacheRemoteStoreBuildOperationType} build operation when the first upload starts.
+         */
+        void startStoreOperation(BuildCacheKey key);
 
-        void recordFinished(BuildCacheKey key, boolean stored);
+        /**
+         * Record that the store operation has finished successfully.
+         * @param key the cache key of the finished entry.
+         * @param stored whether anything was uploadedd to the server.
+         */
+        void recordStoreFinished(BuildCacheKey key, boolean stored);
 
+        /**
+         * Record that the store operation failed.
+         * @param key the cache key of the finished entry.
+         * @param failure the error that occurred.
+         */
         void recordStoreFailure(BuildCacheKey key, Throwable failure);
 
+        /**
+         * Record that the pack operation failed.
+         * @param key the cache key of the finished entry.
+         * @param failure the error that occurred.
+         */
         void recordPackFailure(BuildCacheKey key, Throwable failure);
     }
 
@@ -89,8 +131,8 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void startLoad(BuildCacheKey key) {
-            delegate.startLoad(key);
+        public void startLoadOperation(BuildCacheKey key) {
+            delegate.startLoadOperation(key);
         }
 
         @Override
@@ -122,13 +164,13 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void startStore(BuildCacheKey key) {
-            delegate.startStore(key);
+        public void startStoreOperation(BuildCacheKey key) {
+            delegate.startStoreOperation(key);
         }
 
         @Override
-        public void recordFinished(BuildCacheKey key, boolean stored) {
-            delegate.recordFinished(key, stored);
+        public void recordStoreFinished(BuildCacheKey key, boolean stored) {
+            delegate.recordStoreFinished(key, stored);
         }
 
         @Override

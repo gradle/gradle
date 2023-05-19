@@ -194,7 +194,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
         @Override
         protected void doRun() {
-            handler.startLoad(key);
+            handler.startLoadOperation(key);
             try {
                 long size = load();
                 if (size >= 0) {
@@ -271,10 +271,10 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         private void store(UnsynchronizedByteArrayOutputStream data) {
-            handler.startStore(key);
+            handler.startStoreOperation(key);
             try {
                 boolean stored = storeInner(data);
-                handler.recordFinished(key, stored);
+                handler.recordStoreFinished(key, stored);
             } catch (Exception e) {
                 handler.recordStoreFailure(key, e);
                 remote.disableOnError();

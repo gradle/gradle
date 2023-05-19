@@ -283,7 +283,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void startLoad(BuildCacheKey key) {
+                public void startLoadOperation(BuildCacheKey key) {
                     loadBuildOp.start(() -> BuildOperationDescriptor.displayName("Load entry " + manifestKey.getDisplayName() + " from remote build cache")
                         .details(new LoadOperationDetails(manifestKey))
                         .progressDisplayName("Requesting from remote build cache"));
@@ -539,7 +539,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void startStore(BuildCacheKey key) {
+                public void startStoreOperation(BuildCacheKey key) {
                     storeBuildOp.start(() -> BuildOperationDescriptor.displayName("Store entry " + manifestKey.getDisplayName() + " in remote build cache")
                         .details(new StoreOperationDetails(manifestKey, totalUploadSize))
                         .progressDisplayName("Uploading to remote build cache")
@@ -547,7 +547,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void recordFinished(BuildCacheKey key, boolean stored) {
+                public void recordStoreFinished(BuildCacheKey key, boolean stored) {
                     if (stored) {
                         storeEncountered.set(true);
                     }
