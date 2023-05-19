@@ -298,10 +298,14 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     private static Object invokeWithInterceptor(CallInterceptor interceptor, String name, InstrumentedGroovyCallsTracker.CallKind kind, Object receiver, Object[] arguments, String consumerClass, Callable<Object> doCallOriginal) {
         final boolean[] invokedOriginal = {false};
 
-        Invocation invocation = callOriginalReportingInvocation(receiver, arguments, doCallOriginal, () -> invokedOriginal[0] = true);
-
         try {
-            return interceptor.doIntercept(invocation, consumerClass);
+            if (consumerClass.equals(InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind))) {
+                Invocation invocation = callOriginalReportingInvocation(receiver, arguments, doCallOriginal, () -> invokedOriginal[0] = true);
+                return interceptor.doIntercept(invocation, consumerClass);
+            } else {
+                invokedOriginal[0] = true;
+                return doCallOriginal.call();
+            }
         } catch (Throwable throwable) {
             ThrowAsUnchecked.doThrow(throwable);
             throw new IllegalStateException("this is an unreachable statement, the call above always throws an exception");
