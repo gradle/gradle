@@ -16,6 +16,7 @@
 
 package org.gradle.java.fixtures
 
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import spock.lang.Issue
 
 /**
@@ -46,7 +47,7 @@ class KotlinTestFixturesIntegrationTest extends AbstractTestFixturesIntegrationT
         buildFile.text = """
             plugins {
                 id("org.gradle.java-test-fixtures")
-                id("org.jetbrains.kotlin.jvm") version "1.8.20"
+                id("org.jetbrains.kotlin.jvm").version("${new KotlinGradlePluginVersions().latest}")
             }
 
             ${mavenCentralRepository()}
