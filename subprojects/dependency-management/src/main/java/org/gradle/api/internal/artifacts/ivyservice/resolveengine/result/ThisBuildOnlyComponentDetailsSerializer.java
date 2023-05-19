@@ -53,7 +53,7 @@ public class ThisBuildOnlyComponentDetailsSerializer implements ComponentDetails
         if (component == null) {
             throw new IllegalStateException("No component with id " + instanceId + " found.");
         }
-        visitor.visitComponentDetails(component.getId(), component.getMetadata().getModuleVersionId(), component.getRepositoryId());
+        visitor.visitComponentDetails(component.getId(), component.getMetadata().getModuleVersionId());
         List<ResolvedVariantResult> availableVariants;
         if (decoder.readBoolean()) {
             // use all available variants
