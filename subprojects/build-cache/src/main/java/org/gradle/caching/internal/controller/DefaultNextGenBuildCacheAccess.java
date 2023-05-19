@@ -42,6 +42,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+/**
+ * Coordinates loading and storing entries in a local and a remote cache.
+ *
+ * When loading, entries unavailable locally are loaded tried from the remote cache.
+ * Entries found in the remote cache are missored in the local cache.
+ *
+ * Downloads and uploads to and from the remote cache are handled via a thread pool in parallel.
+ * However, both {@link #load(Map, LoadHandler)} and {@link #store(Map, StoreHandler)} wait for all
+ * async operations to finish before returning.
+ */
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNextGenBuildCacheAccess.class);
 
@@ -60,7 +70,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         this.local = local;
         this.remote = remote;
         this.bufferProvider = bufferProvider;
-        // TODO Configure this properly
+        // TODO Configure this properly, or better yet, replace with async HTTP and no thread pool
         this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 256, 256, 10, TimeUnit.SECONDS);
         this.counter = new ConcurrencyCounter(remoteProcessor);
     }
