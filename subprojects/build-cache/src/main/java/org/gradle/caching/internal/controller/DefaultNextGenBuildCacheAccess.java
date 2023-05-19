@@ -75,7 +75,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 try {
                     foundLocally = local.load(key, input -> handler.handle(input, payload));
                 } catch (Exception e) {
-                    handler.recordUnpackFailure(e);
+                    handler.recordUnpackFailure(key, e);
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
                 if (!foundLocally && remote.canLoad()) {
@@ -97,7 +97,12 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 BuildCacheKey key = entry.getKey();
                 T payload = entry.getValue();
                 if (!local.contains(key)) {
-                    local.store(key, handler.createWriter(payload));
+                    try {
+                        local.store(key, handler.createWriter(payload));
+                    } catch (Exception e) {
+                        handler.recordPackFailure(key, e);
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
                 }
                 // TODO Improve error handling
                 if (remote.canStore()) {
@@ -189,16 +194,16 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
         @Override
         protected void doRun() {
-            handler.startRemoteDownload(key);
+            handler.startLoad(key);
             try {
                 long size = load();
                 if (size >= 0) {
-                    handler.recordRemoteHit(key, size);
+                    handler.recordLoadHit(key, size);
                 } else {
-                    handler.recordRemoteMiss(key);
+                    handler.recordLoadMiss(key);
                 }
             } catch (Exception e) {
-                handler.recordRemoteFailure(key, e);
+                handler.recordLoadFailure(key, e);
                 remote.disableOnError();
             }
         }
@@ -266,12 +271,12 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         private void store(UnsynchronizedByteArrayOutputStream data) {
-            handler.startRemoteUpload(key);
+            handler.startStore(key);
             try {
                 boolean stored = storeInner(data);
                 handler.recordFinished(key, stored);
             } catch (Exception e) {
-                handler.recordFailure(key, e);
+                handler.recordStoreFailure(key, e);
                 remote.disableOnError();
             }
         }

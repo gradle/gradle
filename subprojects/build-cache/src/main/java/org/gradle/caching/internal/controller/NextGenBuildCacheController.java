@@ -91,6 +91,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -221,7 +222,12 @@ public class NextGenBuildCacheController implements BuildCacheController {
         }
     }
 
-    private class BuildOperationHolder {
+    /**
+     * A wrapper for on-demand build operations that are only started when needed.
+     *
+     * E.g. if we don't download anything, we don't need to start a legacy load operation.
+     */
+    private class OnDemandBuildOperationWrapper {
         private volatile BuildOperationContext context;
         private final List<Throwable> failures = new CopyOnWriteArrayList<>();
 
@@ -255,8 +261,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
     private class OperationFiringLoadHandlerFactory implements Closeable {
         private final BuildCacheKey manifestKey;
 
-        private final BuildOperationHolder unpackBuildOp = new BuildOperationHolder();
-        private final BuildOperationHolder loadBuildOp = new BuildOperationHolder();
+        private final OnDemandBuildOperationWrapper unpackBuildOp = new OnDemandBuildOperationWrapper();
+        private final OnDemandBuildOperationWrapper loadBuildOp = new OnDemandBuildOperationWrapper();
         private final AtomicLong unpackedEntryCount = new AtomicLong(0L);
         private final AtomicLong totalUnpackedSize = new AtomicLong(0L);
         private final AtomicLong totalDownloadedSize = new AtomicLong(0L);
@@ -277,29 +283,29 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void startRemoteDownload(BuildCacheKey key) {
+                public void startLoad(BuildCacheKey key) {
                     loadBuildOp.start(() -> BuildOperationDescriptor.displayName("Load entry " + manifestKey.getDisplayName() + " from remote build cache")
                         .details(new LoadOperationDetails(manifestKey))
                         .progressDisplayName("Requesting from remote build cache"));
                 }
 
                 @Override
-                public void recordRemoteHit(BuildCacheKey key, long size) {
+                public void recordLoadHit(BuildCacheKey key, long size) {
                     totalDownloadedSize.addAndGet(size);
                 }
 
                 @Override
-                public void recordRemoteMiss(BuildCacheKey key) {
+                public void recordLoadMiss(BuildCacheKey key) {
                     missEncountered.set(true);
                 }
 
                 @Override
-                public void recordRemoteFailure(BuildCacheKey key, Throwable failure) {
+                public void recordLoadFailure(BuildCacheKey key, Throwable failure) {
                     loadBuildOp.fail(failure);
                 }
 
                 @Override
-                public void recordUnpackFailure(Throwable failure) {
+                public void recordUnpackFailure(BuildCacheKey key, Throwable failure) {
                     // Make sure an unpack operation is running
                     startUnpack(-1);
                     unpackBuildOp.fail(failure);
@@ -510,14 +516,14 @@ public class NextGenBuildCacheController implements BuildCacheController {
         private final long totalUploadSize;
 
         private final BuildOperationRef parentOp;
-        private final BuildOperationHolder packBuildOp = new BuildOperationHolder();
+        private final OnDemandBuildOperationWrapper packBuildOp = new OnDemandBuildOperationWrapper();
         private final AtomicLong packEntryCount = new AtomicLong(0L);
         private final AtomicLong totalPackSize = new AtomicLong(0L);
-        private final BuildOperationHolder storeBuildOp = new BuildOperationHolder();
+        private final OnDemandBuildOperationWrapper storeBuildOp = new OnDemandBuildOperationWrapper();
         private final AtomicBoolean storeEncountered = new AtomicBoolean(false);
 
         public OperationFiringStoreHandlerFactory(BuildCacheKey manifestKey, long totalUploadSize) {
-            this.parentOp = CurrentBuildOperationRef.instance().get();
+            this.parentOp = Objects.requireNonNull(CurrentBuildOperationRef.instance().get());
             this.manifestKey = manifestKey;
             this.totalUploadSize = totalUploadSize;
             this.packBuildOp.start(() -> BuildOperationDescriptor.displayName("Pack build cache entry " + manifestKey)
@@ -533,7 +539,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void startRemoteUpload(BuildCacheKey key) {
+                public void startStore(BuildCacheKey key) {
                     storeBuildOp.start(() -> BuildOperationDescriptor.displayName("Store entry " + manifestKey.getDisplayName() + " in remote build cache")
                         .details(new StoreOperationDetails(manifestKey, totalUploadSize))
                         .progressDisplayName("Uploading to remote build cache")
@@ -548,8 +554,13 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void recordFailure(BuildCacheKey key, Throwable failure) {
+                public void recordStoreFailure(BuildCacheKey key, Throwable failure) {
                     storeBuildOp.fail(failure);
+                }
+
+                @Override
+                public void recordPackFailure(BuildCacheKey key, Throwable failure) {
+                    packBuildOp.fail(failure);
                 }
             };
         }

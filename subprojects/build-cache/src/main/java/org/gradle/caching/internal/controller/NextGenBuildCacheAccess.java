@@ -23,25 +23,62 @@ import java.io.Closeable;
 import java.io.InputStream;
 import java.util.Map;
 
+/**
+ * Coordinates loading and storing cache entries in batches.
+ */
 public interface NextGenBuildCacheAccess extends Closeable {
+    /**
+     * Load the given entries if available.
+     *
+     * @param entries map of cache keys to load, associated with an optional payload to use during loading.
+     * @param handler the handler to call for entries loaded from the cache; passes the corresponding payload, too.
+     */
     <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler);
 
+    /**
+     * Store the given entries in the build cache.
+     *
+     * @param entries map of cache keys to store, associated with an optional payload to use during storing.
+     * @param handler the handler to produce the bytes to store for each entry; passes the corresponding payload, too.
+     */
     <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler);
 
     interface LoadHandler<T> {
+        /**
+         * Handle the loaded content.
+         *
+         * @param input the content loaded from the cache.
+         * @param payload optional payload belonging to this entry (see {@link #load(Map, LoadHandler)}).
+         */
         void handle(InputStream input, T payload);
-        void startRemoteDownload(BuildCacheKey key);
-        void recordRemoteHit(BuildCacheKey key, long size);
-        void recordRemoteMiss(BuildCacheKey key);
-        void recordRemoteFailure(BuildCacheKey key, Throwable failure);
-        void recordUnpackFailure(Throwable failure);
+
+        void startLoad(BuildCacheKey key);
+
+        void recordLoadHit(BuildCacheKey key, long size);
+
+        void recordLoadMiss(BuildCacheKey key);
+
+        void recordLoadFailure(BuildCacheKey key, Throwable failure);
+
+        void recordUnpackFailure(BuildCacheKey key, Throwable failure);
     }
 
     interface StoreHandler<T> {
+        /**
+         * Handle the loaded content.
+         *
+         * @param payload optional payload belonging to this entry (see {@link #store(Map, StoreHandler)}).
+         * @return the writer that can produce the content for this entry.
+         */
         NextGenBuildCacheService.NextGenWriter createWriter(T payload);
-        void startRemoteUpload(BuildCacheKey key);
+
+        void startStore(BuildCacheKey key);
+
         void recordFinished(BuildCacheKey key, boolean stored);
-        void recordFailure(BuildCacheKey key, Throwable failure);
+
+        void recordStoreFailure(BuildCacheKey key, Throwable failure);
+
+        void recordPackFailure(BuildCacheKey key, Throwable failure);
     }
 
     abstract class DelegatingLoadHandler<T> implements LoadHandler<T> {
@@ -52,28 +89,28 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void startRemoteDownload(BuildCacheKey key) {
-            delegate.startRemoteDownload(key);
+        public void startLoad(BuildCacheKey key) {
+            delegate.startLoad(key);
         }
 
         @Override
-        public void recordRemoteHit(BuildCacheKey key, long size) {
-            delegate.recordRemoteHit(key, size);
+        public void recordLoadHit(BuildCacheKey key, long size) {
+            delegate.recordLoadHit(key, size);
         }
 
         @Override
-        public void recordRemoteMiss(BuildCacheKey key) {
-            delegate.recordRemoteMiss(key);
+        public void recordLoadMiss(BuildCacheKey key) {
+            delegate.recordLoadMiss(key);
         }
 
         @Override
-        public void recordRemoteFailure(BuildCacheKey key, Throwable t) {
-            delegate.recordRemoteFailure(key, t);
+        public void recordLoadFailure(BuildCacheKey key, Throwable t) {
+            delegate.recordLoadFailure(key, t);
         }
 
         @Override
-        public void recordUnpackFailure(Throwable failure) {
-            delegate.recordUnpackFailure(failure);
+        public void recordUnpackFailure(BuildCacheKey key, Throwable failure) {
+            delegate.recordUnpackFailure(key, failure);
         }
     }
 
@@ -85,8 +122,8 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void startRemoteUpload(BuildCacheKey key) {
-            delegate.startRemoteUpload(key);
+        public void startStore(BuildCacheKey key) {
+            delegate.startStore(key);
         }
 
         @Override
@@ -95,8 +132,13 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void recordFailure(BuildCacheKey key, Throwable failure) {
-            delegate.recordFailure(key, failure);
+        public void recordStoreFailure(BuildCacheKey key, Throwable failure) {
+            delegate.recordStoreFailure(key, failure);
+        }
+
+        @Override
+        public void recordPackFailure(BuildCacheKey key, Throwable failure) {
+            delegate.recordPackFailure(key, failure);
         }
     }
 }
