@@ -31,9 +31,16 @@ public interface NextGenBuildCacheAccess extends Closeable {
     interface LoadHandler<T> {
         void handle(InputStream input, T payload);
         void startRemoteDownload(BuildCacheKey key);
-        void recordRemoteHit(BuildCacheKey key, long size);
-        void recordRemoteMiss(BuildCacheKey key);
-        void recordRemoteFailure(BuildCacheKey key, Throwable t);
+        void recordHit(BuildCacheKey key, long size);
+        void recordMiss(BuildCacheKey key);
+        void recordFailure(BuildCacheKey key, Throwable failure);
+    }
+
+    interface StoreHandler<T> {
+        NextGenBuildCacheService.NextGenWriter createWriter(T payload);
+        void startRemoteUpload(BuildCacheKey key);
+        void recordFinished(BuildCacheKey key, boolean stored);
+        void recordFailure(BuildCacheKey key, Throwable failure);
     }
 
     abstract class DelegatingLoadHandler<T> implements LoadHandler<T> {
@@ -49,22 +56,41 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void recordRemoteHit(BuildCacheKey key, long size) {
-            delegate.recordRemoteHit(key, size);
+        public void recordHit(BuildCacheKey key, long size) {
+            delegate.recordHit(key, size);
         }
 
         @Override
-        public void recordRemoteMiss(BuildCacheKey key) {
-            delegate.recordRemoteMiss(key);
+        public void recordMiss(BuildCacheKey key) {
+            delegate.recordMiss(key);
         }
 
         @Override
-        public void recordRemoteFailure(BuildCacheKey key, Throwable t) {
-            delegate.recordRemoteFailure(key, t);
+        public void recordFailure(BuildCacheKey key, Throwable t) {
+            delegate.recordFailure(key, t);
         }
     }
 
-    interface StoreHandler<T> {
-        NextGenBuildCacheService.NextGenWriter handle(T payload);
+    abstract class DelegatingStoreHandler<T> implements StoreHandler<T> {
+        private final StoreHandler<T> delegate;
+
+        public DelegatingStoreHandler(StoreHandler<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void startRemoteUpload(BuildCacheKey key) {
+            delegate.startRemoteUpload(key);
+        }
+
+        @Override
+        public void recordFinished(BuildCacheKey key, boolean stored) {
+            delegate.recordFinished(key, stored);
+        }
+
+        @Override
+        public void recordFailure(BuildCacheKey key, Throwable failure) {
+            delegate.recordFailure(key, failure);
+        }
     }
 }

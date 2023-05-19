@@ -21,15 +21,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
-import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
-import org.gradle.caching.internal.controller.operations.StoreOperationResult;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.gradle.internal.file.BufferProvider;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +45,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
     private final NextGenBuildCacheHandler local;
     private final NextGenBuildCacheHandler remote;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final BufferProvider bufferProvider;
     private final ManagedThreadPoolExecutor remoteProcessor;
     private final ConcurrencyCounter counter;
@@ -59,13 +52,11 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public DefaultNextGenBuildCacheAccess(
         NextGenBuildCacheHandler local,
         NextGenBuildCacheHandler remote,
-        BuildOperationExecutor buildOperationExecutor,
         BufferProvider bufferProvider,
         ExecutorFactory executorFactory
     ) {
         this.local = local;
         this.remote = remote;
-        this.buildOperationExecutor = buildOperationExecutor;
         this.bufferProvider = bufferProvider;
         // TODO Configure this properly
         this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 256, 256, 10, TimeUnit.SECONDS);
@@ -106,11 +97,11 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                     return Stream.empty();
                 }
                 if (!local.contains(key)) {
-                    local.store(key, handler.handle(payload));
+                    local.store(key, handler.createWriter(payload));
                 }
                 // TODO Improve error handling
                 if (remote.canStore()) {
-                    return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteUpload(key)), remoteProcessor));
+                    return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteUpload(key, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
                 }
@@ -181,12 +172,12 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             try {
                 long size = load();
                 if (size >= 0) {
-                    handler.recordRemoteHit(key, size);
+                    handler.recordHit(key, size);
                 } else {
-                    handler.recordRemoteMiss(key);
+                    handler.recordMiss(key);
                 }
             } catch (RuntimeException e) {
-                handler.recordRemoteFailure(key, e);
+                handler.recordFailure(key, e);
                 throw e;
             }
         }
@@ -228,23 +219,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             return size.get();
         }
 
-        // TODO Do we need to emit this build operation, too?
         private void loadData(InputStream input, UnsynchronizedByteArrayOutputStream output) {
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    loadDataInternal(input, output);
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Download from remote build cache")
-                        .progressDisplayName("Downloading");
-                }
-            });
-        }
-
-        private void loadDataInternal(InputStream input, UnsynchronizedByteArrayOutputStream output) {
             try {
                 byte[] buffer = bufferProvider.getBuffer();
                 IOUtils.copyLarge(input, output, buffer);
@@ -256,9 +231,11 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
     private class RemoteUpload implements Runnable {
         private final BuildCacheKey key;
+        private final StoreHandler<?> handler;
 
-        public RemoteUpload(BuildCacheKey key) {
+        public RemoteUpload(BuildCacheKey key, StoreHandler<?> handler) {
             this.key = key;
+            this.handler = handler;
         }
 
         @Override
@@ -281,23 +258,14 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         private void store(UnsynchronizedByteArrayOutputStream data) {
-            String description = "Store entry " + key.getDisplayName() + " in remote build cache";
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    boolean stored = storeInner(data);
-                    context.setResult(stored
-                        ? StoreOperationResult.STORED
-                        : StoreOperationResult.NOT_STORED);
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName(description)
-                        .details(new StoreOperationDetails(key, data.size()))
-                        .progressDisplayName("Uploading to remote build cache");
-                }
-            });
+            handler.startRemoteUpload(key);
+            try {
+                boolean stored = storeInner(data);
+                handler.recordFinished(key, stored);
+            } catch (RuntimeException e) {
+                handler.recordFailure(key, e);
+                throw e;
+            }
         }
 
         private boolean storeInner(UnsynchronizedByteArrayOutputStream data) {
