@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
@@ -194,6 +195,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         });
     }
 
+    @VisibleForTesting
     static Set<String> calculateDefaultDependencyNotation(final String versionString) {
         final VersionNumber toolVersion = VersionNumber.parse(versionString);
         if (toolVersion.compareTo(VersionNumber.version(5)) < 0) {
