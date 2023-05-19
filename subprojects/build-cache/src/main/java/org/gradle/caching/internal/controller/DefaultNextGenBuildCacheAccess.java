@@ -24,6 +24,8 @@ import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.gradle.internal.file.BufferProvider;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,7 +157,28 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
     }
 
-    private class RemoteDownload<T> implements Runnable {
+    private static abstract class OperationPreservingRunnable implements Runnable {
+        private final BuildOperationRef mainThreadOperation;
+
+        public OperationPreservingRunnable() {
+            this.mainThreadOperation = CurrentBuildOperationRef.instance().get();
+        }
+
+        @Override
+        public void run() {
+            BuildOperationRef originalOperation = CurrentBuildOperationRef.instance().get();
+            CurrentBuildOperationRef.instance().set(mainThreadOperation);
+            try {
+                doRun();
+            } finally {
+                CurrentBuildOperationRef.instance().set(originalOperation);
+            }
+        }
+
+        abstract protected void doRun();
+    }
+
+    private class RemoteDownload<T> extends OperationPreservingRunnable {
         private final BuildCacheKey key;
         private final T payload;
         private final LoadHandler<T> handler;
@@ -167,7 +190,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         @Override
-        public void run() {
+        protected void doRun() {
             handler.startRemoteDownload(key);
             try {
                 long size = load();
@@ -229,7 +252,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
     }
 
-    private class RemoteUpload implements Runnable {
+    private class RemoteUpload extends OperationPreservingRunnable {
         private final BuildCacheKey key;
         private final StoreHandler<?> handler;
 
@@ -239,7 +262,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         @Override
-        public void run() {
+        protected void doRun() {
             // TODO Check contains only above a threshold
             if (remote.contains(key)) {
                 LOGGER.warn("Not storing {} in remote", key);

@@ -62,6 +62,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -493,6 +495,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         private final BuildCacheKey manifestKey;
         private final long totalUploadSize;
 
+        private final BuildOperationRef parentOp;
         private final BuildOperationHolder packBuildOp = new BuildOperationHolder();
         private final AtomicLong packEntryCount = new AtomicLong(0L);
         private final AtomicLong totalPackSize = new AtomicLong(0L);
@@ -500,6 +503,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         private final AtomicBoolean storeEncountered = new AtomicBoolean(false);
 
         public OperationFiringStoreHandlerFactory(BuildCacheKey manifestKey, long totalUploadSize) {
+            this.parentOp = CurrentBuildOperationRef.instance().get();
             this.manifestKey = manifestKey;
             this.totalUploadSize = totalUploadSize;
             this.packBuildOp.start(() -> BuildOperationDescriptor.displayName("Pack build cache entry " + manifestKey)
@@ -518,7 +522,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 public void startRemoteUpload(BuildCacheKey key) {
                     storeBuildOp.start(() -> BuildOperationDescriptor.displayName("Store entry " + manifestKey.getDisplayName() + " in remote build cache")
                         .details(new StoreOperationDetails(manifestKey, totalUploadSize))
-                        .progressDisplayName("Uploading to remote build cache"));
+                        .progressDisplayName("Uploading to remote build cache")
+                        .parent(parentOp));
                 }
 
                 @Override
