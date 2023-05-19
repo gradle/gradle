@@ -116,6 +116,86 @@ For the following use cases, consider these alternatives when replacing a `befor
 * **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged, but is permitted within a `withDependencies` hook.
 * **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
 
+[[deprecate_filtered_configuration_file_and_filecollection_methods]]
+==== Filtered Configuration `file` and `fileCollection` methods are deprecated
+
+In an ongoing effort to simplify the Gradle API, the following methods on
+link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] have been deprecated:
+
+- `files(Dependency...)`
+- `files(Spec)`
+- `files(Closure)`
+- `fileCollection(Dependency...)`
+- `fileCollection(Spec)`
+- `fileCollection(Closure)`
+
+To mitigate this deprecation, consider the example below that leverages the `ArtifactView`
+API along with the `componentFilter` method to select a subset of a Configuration's artifacts:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val conf by configurations.creating
+
+dependencies {
+    conf("com.thing:foo:1.0")
+    conf("org.example:bar:1.0")
+}
+
+tasks.register("filterDependencies") {
+    val files: FileCollection = conf.incoming.artifactView {
+        componentFilter {
+            when(it) {
+                is ModuleComponentIdentifier ->
+                    it.group == "com.thing" && it.module == "foo"
+                else -> false
+            }
+        }
+    }.files
+
+    doLast {
+        assert(files.map { it.name } == listOf("foo-1.0.jar"))
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+configurations {
+    conf
+}
+
+dependencies {
+    conf "com.thing:foo:1.0"
+    conf "org.example:bar:1.0"
+}
+
+tasks.register("filterDependencies") {
+    FileCollection files = configurations.conf.incoming.artifactView {
+        componentFilter {
+            it instanceof ModuleComponentIdentifier
+                && it.group == "com.thing"
+                && it.module == "foo"
+        }
+    }.files
+
+    doLast {
+        assert files*.name == ["foo-1.0.jar"]
+    }
+}
+----
+=====
+====
+
+Note that as contrary to the behavior of the deprecated `Dependency` filtering methods,
+`componentFilter` does not consider the transitive dependencies of the component being
+selected. This allows for more granular control over which artifacts are selected.
 
 [[deprecated_namers]]
 ==== Deprecated `Namer` of `Task` and `Configuration`

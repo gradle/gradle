@@ -248,7 +248,7 @@ configurations {
 task resolve {
     dependsOn configurations.conf
     doFirst {
-        configurations.conf.files() // Trigger `afterResolve`
+        configurations.conf.files // Trigger `afterResolve`
         assert distributions*.name.contains('myDist')
     }
 }
