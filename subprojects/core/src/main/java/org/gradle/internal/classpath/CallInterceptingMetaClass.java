@@ -25,7 +25,9 @@ import groovy.lang.MetaProperty;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.reflection.CachedClass;
+import groovy.lang.Tuple;
 import org.codehaus.groovy.reflection.ClassInfo;
+import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
@@ -158,6 +160,16 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             return originalProperty.getType();
         }
         return null;
+    }
+
+    @Override
+    public Object invokeMethod(Object object, String methodName, @Nullable Object arguments) {
+        Object[] argsForInterceptor = arguments == null ? MetaClassHelper.EMPTY_ARRAY :
+            arguments instanceof Tuple ? ((Tuple<?>) arguments).toArray() :
+                arguments instanceof Object[] ? (Object[]) arguments :
+                    new Object[]{arguments};
+
+        return invokeIntercepted(object, INVOKE_METHOD, methodName, argsForInterceptor, () -> adaptee.invokeMethod(object, methodName, arguments));
     }
 
     @Override
