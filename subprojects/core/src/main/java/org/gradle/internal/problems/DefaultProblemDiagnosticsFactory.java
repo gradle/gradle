@@ -27,9 +27,11 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
     private static final StackTraceTransformer NO_OP = ImmutableList::copyOf;
+    private static final Supplier<Throwable> EXCEPTION_FACTORY = Exception::new;
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final AtomicInteger remainingStackTraces = new AtomicInteger();
 
@@ -47,38 +49,49 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     @Override
     public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
         if (exception == null) {
-            return locationFromStackTrace(getThrowable(), false, NO_OP);
+            return locationFromStackTrace(getThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
         } else {
-            return locationFromStackTrace(exception, true, NO_OP);
+            return locationFromStackTrace(exception, true, true, NO_OP);
         }
     }
 
     @Override
+    public ProblemDiagnostics forCurrentCaller() {
+        return locationFromStackTrace(getThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+    }
+
+    @Override
+    public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
+        return locationFromStackTrace(getThrowable(exceptionFactory), false, true, NO_OP);
+    }
+
+    @Override
     public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
-        return locationFromStackTrace(getThrowable(), false, transformer);
+        return locationFromStackTrace(getThrowable(EXCEPTION_FACTORY), false, false, transformer);
     }
 
     @Override
     public ProblemDiagnostics forException(Throwable exception) {
-        return locationFromStackTrace(exception, true, NO_OP);
+        return locationFromStackTrace(exception, true, true, NO_OP);
     }
 
-    private Exception getThrowable() {
+    @Nullable
+    private Throwable getThrowable(Supplier<? extends Throwable> factory) {
         if (remainingStackTraces.getAndDecrement() > 0) {
-            return new Exception();
+            return factory.get();
         } else {
             return null;
         }
     }
 
-    private ProblemDiagnostics locationFromStackTrace(@Nullable Throwable throwable, boolean fromException, StackTraceTransformer transformer) {
+    private ProblemDiagnostics locationFromStackTrace(@Nullable Throwable throwable, boolean fromException, boolean keepException, StackTraceTransformer transformer) {
         if (throwable == null) {
             return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS;
         }
 
         List<StackTraceElement> stackTrace = transformer.transform(throwable.getStackTrace());
         Location location = locationAnalyzer.locationForUsage(stackTrace, fromException);
-        return new DefaultProblemDiagnostics(fromException ? throwable : null, stackTrace, location);
+        return new DefaultProblemDiagnostics(keepException ? throwable : null, stackTrace, location);
     }
 
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {

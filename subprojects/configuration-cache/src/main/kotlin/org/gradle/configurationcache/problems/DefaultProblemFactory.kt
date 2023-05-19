@@ -19,7 +19,9 @@ package org.gradle.configurationcache.problems
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
+import java.util.function.Supplier
 
 
 class DefaultProblemFactory(
@@ -38,29 +40,29 @@ class DefaultProblemFactory(
     }
 
     override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?): PropertyProblem {
-        val trace = locationForCaller(null, exception)
+        val trace = locationForCaller(null, problemDiagnosticsFactory.forCurrentCaller(exception))
         return PropertyProblem(trace, message, exception, documentationSection)
     }
 
     override fun problem(consumer: String?, messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
         val message = StructuredMessage.build(messageBuilder)
         return object : ProblemFactory.Builder {
-            var exception: Throwable? = null
+            var exceptionMessage: String? = null
             var documentationSection: DocumentationSection? = null
             var locationMapper: (PropertyTrace) -> PropertyTrace = { it }
 
             override fun exception(message: String): ProblemFactory.Builder {
-                exception = InvalidUserCodeException(message)
+                exceptionMessage = message
                 return this
             }
 
             override fun exception(): ProblemFactory.Builder {
-                exception = InvalidUserCodeException(message.toString().capitalized())
+                exceptionMessage = message.toString().capitalized()
                 return this
             }
 
             override fun exception(builder: (String) -> String): ProblemFactory.Builder {
-                exception = InvalidUserCodeException(builder(message.toString().capitalized()))
+                exceptionMessage = builder(message.toString().capitalized())
                 return this
             }
 
@@ -75,15 +77,20 @@ class DefaultProblemFactory(
             }
 
             override fun build(): PropertyProblem {
-                val location = locationMapper(locationForCaller(consumer, exception))
-                return PropertyProblem(location, message, exception, documentationSection)
+                val diagnostics = if (exceptionMessage == null) {
+                    problemDiagnosticsFactory.forCurrentCaller()
+                } else {
+                    problemDiagnosticsFactory.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage!!) })
+                }
+                val location = locationMapper(locationForCaller(consumer, diagnostics))
+                return PropertyProblem(location, message, diagnostics.exception, documentationSection)
             }
         }
     }
 
     private
-    fun locationForCaller(consumer: String?, exception: Throwable?): PropertyTrace {
-        val location = problemDiagnosticsFactory.forCurrentCaller(exception).location
+    fun locationForCaller(consumer: String?, diagnostics: ProblemDiagnostics): PropertyTrace {
+        val location = diagnostics.location
         return if (location != null) {
             PropertyTrace.BuildLogic(location.sourceShortDisplayName, location.lineNumber)
         } else {

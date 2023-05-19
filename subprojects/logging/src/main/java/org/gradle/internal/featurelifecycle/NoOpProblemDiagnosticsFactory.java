@@ -23,6 +23,7 @@ import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
     public static final ProblemDiagnostics EMPTY_DIAGNOSTICS = new ProblemDiagnostics() {
@@ -51,6 +52,16 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
 
     @Override
     public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
+        return EMPTY_DIAGNOSTICS;
+    }
+
+    @Override
+    public ProblemDiagnostics forCurrentCaller() {
+        return EMPTY_DIAGNOSTICS;
+    }
+
+    @Override
+    public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
         return EMPTY_DIAGNOSTICS;
     }
 
