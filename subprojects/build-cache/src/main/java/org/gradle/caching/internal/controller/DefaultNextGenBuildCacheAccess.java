@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.gradle.internal.file.BufferProvider;
@@ -71,7 +72,13 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             .flatMap(entry -> {
                 BuildCacheKey key = entry.getKey();
                 T payload = entry.getValue();
-                boolean foundLocally = loadLocally(handler, key, payload);
+                boolean foundLocally;
+                try {
+                    foundLocally = loadLocally(handler, key, payload);
+                } catch (Exception e) {
+                    handler.recordUnpackFailure(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
                 if (!foundLocally && remote.canLoad()) {
                     // TODO Improve error handling
                     return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteDownload<>(key, payload, handler)), remoteProcessor));

@@ -34,6 +34,7 @@ public interface NextGenBuildCacheAccess extends Closeable {
         void recordRemoteHit(BuildCacheKey key, long size);
         void recordRemoteMiss(BuildCacheKey key);
         void recordRemoteFailure(BuildCacheKey key, Throwable failure);
+        void recordUnpackFailure(Throwable failure);
     }
 
     interface StoreHandler<T> {
@@ -68,6 +69,11 @@ public interface NextGenBuildCacheAccess extends Closeable {
         @Override
         public void recordRemoteFailure(BuildCacheKey key, Throwable t) {
             delegate.recordRemoteFailure(key, t);
+        }
+
+        @Override
+        public void recordUnpackFailure(Throwable failure) {
+            delegate.recordUnpackFailure(failure);
         }
     }
 

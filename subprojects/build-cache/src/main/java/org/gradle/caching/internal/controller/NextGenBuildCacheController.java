@@ -137,7 +137,14 @@ public class NextGenBuildCacheController implements BuildCacheController {
         this.buildOperationExecutor = buildOperationExecutor;
         this.cacheAccess = cacheAccess;
         this.stringInterner = stringInterner;
-        this.gson = new GsonBuilder()
+        this.gson = createGson();
+
+        LOGGER.warn("Creating next-generation build cache controller");
+    }
+
+    @VisibleForTesting
+    public static Gson createGson() {
+        return new GsonBuilder()
             .registerTypeAdapter(Duration.class, new TypeAdapter<Duration>() {
                 @Override
                 public void write(JsonWriter out, Duration value) throws IOException {
@@ -161,8 +168,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
             })
             .create();
-
-        LOGGER.warn("Creating next-generation build cache controller");
     }
 
     @Override
@@ -191,7 +196,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 return Optional.empty();
             }
 
-            handlerFactory.startUnpack(manifest, manifestSize.get());
+            long totalSize = manifest.getPropertyManifests().values().stream()
+                .flatMap(List::stream)
+                .map(ManifestEntry::getLength)
+                .reduce(manifestSize.get(), Long::sum);
+            handlerFactory.startUnpack(totalSize);
             ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = loadContent(cacheableEntity, manifest, handlerFactory);
             return Optional.of(new BuildCacheLoadResult() {
                 @Override
@@ -288,15 +297,18 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 public void recordRemoteFailure(BuildCacheKey key, Throwable failure) {
                     loadBuildOp.fail(failure);
                 }
+
+                @Override
+                public void recordUnpackFailure(Throwable failure) {
+                    // Make sure an unpack operation is running
+                    startUnpack(-1);
+                    unpackBuildOp.fail(failure);
+                }
             };
         }
 
-        public void startUnpack(CacheManifest manifest, long manifestSize) {
+        public void startUnpack(long totalSize) {
             unpackBuildOp.start(() -> {
-                long totalSize = manifest.getPropertyManifests().values().stream()
-                    .flatMap(List::stream)
-                    .map(ManifestEntry::getLength)
-                    .reduce(manifestSize, Long::sum);
                 // TODO Use "load" instead of "unpack" here
                 return BuildOperationDescriptor.displayName("Unpack build cache entry " + manifestKey.getHashCode())
                     .details(new UnpackOperationDetails(manifestKey, totalSize))
