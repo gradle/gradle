@@ -31,9 +31,9 @@ public interface NextGenBuildCacheAccess extends Closeable {
     interface LoadHandler<T> {
         void handle(InputStream input, T payload);
         void startRemoteDownload(BuildCacheKey key);
-        void recordHit(BuildCacheKey key, long size);
-        void recordMiss(BuildCacheKey key);
-        void recordFailure(BuildCacheKey key, Throwable failure);
+        void recordRemoteHit(BuildCacheKey key, long size);
+        void recordRemoteMiss(BuildCacheKey key);
+        void recordRemoteFailure(BuildCacheKey key, Throwable failure);
     }
 
     interface StoreHandler<T> {
@@ -56,18 +56,18 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void recordHit(BuildCacheKey key, long size) {
-            delegate.recordHit(key, size);
+        public void recordRemoteHit(BuildCacheKey key, long size) {
+            delegate.recordRemoteHit(key, size);
         }
 
         @Override
-        public void recordMiss(BuildCacheKey key) {
-            delegate.recordMiss(key);
+        public void recordRemoteMiss(BuildCacheKey key) {
+            delegate.recordRemoteMiss(key);
         }
 
         @Override
-        public void recordFailure(BuildCacheKey key, Throwable t) {
-            delegate.recordFailure(key, t);
+        public void recordRemoteFailure(BuildCacheKey key, Throwable t) {
+            delegate.recordRemoteFailure(key, t);
         }
     }
 

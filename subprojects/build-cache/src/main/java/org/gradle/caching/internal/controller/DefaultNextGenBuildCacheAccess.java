@@ -172,12 +172,12 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             try {
                 long size = load();
                 if (size >= 0) {
-                    handler.recordHit(key, size);
+                    handler.recordRemoteHit(key, size);
                 } else {
-                    handler.recordMiss(key);
+                    handler.recordRemoteMiss(key);
                 }
             } catch (RuntimeException e) {
-                handler.recordFailure(key, e);
+                handler.recordRemoteFailure(key, e);
                 throw e;
             }
         }
