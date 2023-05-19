@@ -324,10 +324,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         @Override
         public void close() {
-            unpackBuildOp.finish(context -> context.setResult(new UnpackOperationResult(unpackedEntryCount.get())));
             loadBuildOp.finish(context -> context.setResult(missEncountered.get()
                 ? LoadOperationMissResult.INSTANCE
                 : new LoadOperationHitResult(totalDownloadedSize.get())));
+            unpackBuildOp.finish(context -> context.setResult(new UnpackOperationResult(unpackedEntryCount.get())));
         }
     }
 
