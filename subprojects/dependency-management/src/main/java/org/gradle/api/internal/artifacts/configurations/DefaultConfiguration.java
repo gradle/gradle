@@ -265,7 +265,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
-    private Boolean useLegacyAttributeSnapshottingBehavior = null;
+    private static Boolean useLegacyAttributeSnapshottingBehavior = null;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -2133,7 +2133,7 @@ since users cannot create non-legacy configurations and there is no current publ
         return new DefaultArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
     }
 
-    private boolean useLegacyAttributeSnapshottingBehavior() {
+    private static boolean useLegacyAttributeSnapshottingBehavior() {
         if (useLegacyAttributeSnapshottingBehavior == null) {
             useLegacyAttributeSnapshottingBehavior = Boolean.getBoolean(USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR);
             if (useLegacyAttributeSnapshottingBehavior) {

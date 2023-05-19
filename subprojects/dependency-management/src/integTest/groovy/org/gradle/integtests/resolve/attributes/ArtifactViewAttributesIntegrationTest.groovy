@@ -89,6 +89,9 @@ logger.warn ''
                 api project(':producer')
             }
         """
+
+        // Restore static property to default value prior to each test
+        DefaultConfiguration.useLegacyAttributeSnapshottingBehavior = null
     }
 
     def "declare and iterate incoming files, then declare and iterate artifact view files"() {
