@@ -81,8 +81,7 @@ Name: producer.jar
 ```
 
 This `ArtifactView` selects a variant without the benefit of the `org.gradle.libraryelements=classes` attribute, which was added the `compileClasspath` configuration lazily, after the `ArtifactView` was created.
-That attribute allows for a performance optimization where the secondary `classes` variant is selected instead of the `producer` project's primary `jar` variant.
-As it never added to the `ArtifactView`'s attributes, the `ArtifactView` selects the primary `jar` variant instead.
+Since the attribute is never added to the `ArtifactView`'s attributes, the `ArtifactView` selects the primary `jar` variant instead of the `classes` variant.
 
 The above scenario demonstrates the previous attribute snapshotting behavior, where the assertion would fail.
 With the new behavior, the attribute collection used by `ArtifactView` is "live" and sees the modifications to the configuration's attributes; because of this the assertion now passes.
