@@ -101,6 +101,9 @@ task show {
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         run 'show'
 
         then:
@@ -184,6 +187,7 @@ task show {
 }
 """
         expect:
+        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
@@ -248,6 +252,7 @@ task show {
 }
 """
         expect:
+        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
@@ -296,6 +301,7 @@ task show {
 }
 """
         expect:
+        maybeExpectDeprecation(expression)
         fails("show")
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
@@ -368,6 +374,7 @@ task show {
 """
 
         expect:
+        maybeExpectDeprecation(expression)
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
@@ -427,6 +434,7 @@ task show {
         m.pom.expectGetBroken()
 
         when:
+        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -475,6 +483,7 @@ task show {
         m2.artifact.expectGet()
 
         when:
+        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -510,6 +519,7 @@ task show {
 }
 """
         when:
+        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -569,6 +579,7 @@ task show {
         m2.artifact.expectGetBroken()
 
         when:
+        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -643,5 +654,14 @@ task show {
                 }
             }
         """
+    }
+
+    def maybeExpectDeprecation(String expression) {
+        if (expression.contains("files { true }")) {
+            executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        } else if (expression.contains("fileCollection { true }")) {
+            executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        }
+        true
     }
 }
