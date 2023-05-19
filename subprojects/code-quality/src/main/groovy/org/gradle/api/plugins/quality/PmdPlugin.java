@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
@@ -196,18 +197,18 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     static Set<String> calculateDefaultDependencyNotation(final String versionString) {
         final VersionNumber toolVersion = VersionNumber.parse(versionString);
         if (toolVersion.compareTo(VersionNumber.version(5)) < 0) {
-            return Set.of("pmd:pmd:" + versionString);
+            return Collections.singleton("pmd:pmd:" + versionString);
         } else if (toolVersion.compareTo(VersionNumber.parse("5.2.0")) < 0) {
-            return Set.of("net.sourceforge.pmd:pmd:" + versionString);
-        } else if (toolVersion.compareTo(VersionNumber.version(7)) >= 0) {
-            // starting from version 7, PMD is split into multiple modules
-            return Set.of(
-                "net.sourceforge.pmd:pmd-java:" + versionString,
-                "net.sourceforge.pmd:pmd-ant:" + versionString
-
-            );
+            return Collections.singleton("net.sourceforge.pmd:pmd:" + versionString);
+        } else if (toolVersion.compareTo(VersionNumber.version(7)) < 0) {
+            return Collections.singleton("net.sourceforge.pmd:pmd-java:" + versionString);
         }
-        return Set.of("net.sourceforge.pmd:pmd-java:" + versionString);
+
+        // starting from version 7, PMD is split into multiple modules
+        return ImmutableSet.of(
+            "net.sourceforge.pmd:pmd-java:" + versionString,
+            "net.sourceforge.pmd:pmd-ant:" + versionString
+        );
     }
 
     @Override
