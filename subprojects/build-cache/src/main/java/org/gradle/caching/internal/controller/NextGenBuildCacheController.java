@@ -50,6 +50,10 @@ import org.gradle.caching.internal.controller.operations.StoreOperationResult;
 import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
 import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
+import org.gradle.caching.internal.operations.BuildCacheArchivePackBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheArchiveUnpackBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.impl.RelativePathParser;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -107,6 +111,43 @@ import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT;
 import static org.gradle.internal.file.FileType.Directory;
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
+/**
+ * Controller for next-gen build cache.
+ *
+ * <h3>Legacy build operations</h3>
+ *
+ * <p>
+ *     Uses legacy build operations to capture next-gen build cache logic.
+ *     Since the new protocol is more fine-grained, some peculiarities can be observed.
+ * </p>
+ *
+ * <ul>
+ *   <li>
+ *     When downloading entries from the remote cache, only a single {@link BuildCacheRemoteLoadBuildOperationType}
+ *     is emitted per cached result. The cache key is the key for the manifest, the reported archive size is the sum
+ *     number of bytes downloaded (including manifest and content pieces).
+ *   </li>
+ *   <li>
+ *       Similarly during upload a single {@link BuildCacheRemoteStoreBuildOperationType} is emitted. The cache key
+ *       reported is the manifest key, and the size reported is the total size of all the entries in the manifest
+ *       plus the size of the manifest itself. Note: unlike with downloading, we do not report the actual amount
+ *       of uploaded data; this is because the operation requires the size to be specified up front,
+ *       before we know what has been stored and what hasn't.
+ *   </li>
+ *   <li>
+ *       For packing we once again report only one {@link BuildCacheArchivePackBuildOperationType}, the number of
+ *       stored entries and the total size reflect the actual number of entries and number of (uncompressed) bytes
+ *       stored in the local cache. (This includes the manifest's size and count.)
+ *   </li>
+ *   <li>
+ *       For unpacking we report a single {@link BuildCacheArchiveUnpackBuildOperationType}; similarly to the upload
+ *       case the archive size reported is actually not the copied amount, but the total size in the manifest
+ *       (plus the size of the manifest). The entry count reflects the actual files unpacked (plus one for the manifest).
+ *       However, for now this should always match the total number of files in the manifest, as (for now) we always
+ *       delete any previous output when loading from cache, and thus we need to unpack every entry.
+ *   </li>
+ * </ul>
+ */
 public class NextGenBuildCacheController implements BuildCacheController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NextGenBuildCacheController.class);
