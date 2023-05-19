@@ -24,7 +24,6 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.problems.Location;
-import org.gradle.problems.buildtree.ProblemLocationAnalyzer;
 
 import java.io.Closeable;
 import java.io.IOException;

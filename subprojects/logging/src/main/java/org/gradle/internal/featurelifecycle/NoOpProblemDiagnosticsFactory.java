@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
+public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
     private static final ProblemDiagnostics EMPTY_DIAGNOSTICS = new ProblemDiagnostics() {
         @Nullable
         @Override
@@ -51,6 +51,11 @@ class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
 
     @Override
     public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
+        return EMPTY_DIAGNOSTICS;
+    }
+
+    @Override
+    public ProblemDiagnostics forException(Throwable exception) {
         return EMPTY_DIAGNOSTICS;
     }
 }

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
-import org.gradle.problems.buildtree.ProblemLocationAnalyzer;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -45,6 +44,11 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     @Override
     public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
         return locationFromStackTrace(new Exception(), false, transformer);
+    }
+
+    @Override
+    public ProblemDiagnostics forException(Throwable exception) {
+        return locationFromStackTrace(exception, true, NO_OP);
     }
 
     private ProblemDiagnostics locationFromStackTrace(Throwable throwable, boolean fromException, StackTraceTransformer transformer) {

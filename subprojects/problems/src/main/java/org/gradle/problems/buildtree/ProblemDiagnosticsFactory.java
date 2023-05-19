@@ -23,11 +23,29 @@ import org.gradle.problems.ProblemDiagnostics;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * A factory for producing {@link ProblemDiagnostics} for a problem.
+ */
 @ServiceScope(Scopes.BuildTree.class)
 public interface ProblemDiagnosticsFactory {
+    /**
+     * Returns diagnostics based on the state of the calling thread.
+     *
+     * @param transformer A transformer to use to sanitize the stack trace.
+     */
     ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer);
 
+    /**
+     * Returns diagnostics based on the state of the calling thread.
+     *
+     * @param exception The exception that represents the failure.
+     */
     ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception);
+
+    /**
+     * Returns diagnostics based on given exception. Does not use any state from the calling thread.
+     */
+    ProblemDiagnostics forException(Throwable exception);
 
     interface StackTraceTransformer {
         List<StackTraceElement> transform(StackTraceElement[] original);
