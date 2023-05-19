@@ -34,7 +34,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -74,7 +73,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 T payload = entry.getValue();
                 boolean foundLocally;
                 try {
-                    foundLocally = loadLocally(handler, key, payload);
+                    foundLocally = local.load(key, input -> handler.handle(input, payload));
                 } catch (Exception e) {
                     handler.recordUnpackFailure(e);
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -89,10 +88,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             .toArray(CompletableFuture[]::new);
         CompletableFuture.allOf(asyncLoads)
             .join();
-    }
-
-    private <T> boolean loadLocally(LoadHandler<T> handler, BuildCacheKey key, T payload) {
-        return local.load(key, input -> handler.handle(input, payload));
     }
 
     @Override
@@ -214,7 +209,8 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             remote.load(key, input -> {
                 // TODO Make this work for large pieces of content, too
                 UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
-                loadData(input, data);
+                byte[] buffer = bufferProvider.getBuffer();
+                IOUtils.copyLarge(input, data, buffer);
                 LOGGER.warn("Found {} in remote (size: {})", key, data.size());
                 size.set(data.size());
 
@@ -238,15 +234,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 handler.handle(data.toInputStream(), payload);
             });
             return size.get();
-        }
-
-        private void loadData(InputStream input, UnsynchronizedByteArrayOutputStream output) {
-            try {
-                byte[] buffer = bufferProvider.getBuffer();
-                IOUtils.copyLarge(input, output, buffer);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
         }
     }
 
