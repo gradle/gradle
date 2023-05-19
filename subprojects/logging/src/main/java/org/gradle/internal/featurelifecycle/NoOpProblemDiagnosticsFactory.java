@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
-    private static final ProblemDiagnostics EMPTY_DIAGNOSTICS = new ProblemDiagnostics() {
+    public static final ProblemDiagnostics EMPTY_DIAGNOSTICS = new ProblemDiagnostics() {
         @Nullable
         @Override
         public Throwable getException() {

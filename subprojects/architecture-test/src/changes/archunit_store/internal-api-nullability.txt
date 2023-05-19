@@ -3037,7 +3037,7 @@ Class <org.gradle.internal.os.OperatingSystem$Solaris> is not annotated (directl
 Class <org.gradle.internal.os.OperatingSystem$Unix> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OperatingSystem.java:0)
 Class <org.gradle.internal.os.OperatingSystem$Windows> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OperatingSystem.java:0)
 Class <org.gradle.internal.os.OperatingSystem> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OperatingSystem.java:0)
-Class <org.gradle.internal.problems.DefaultProblemDiagnosticsFactory$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultProblemDiagnosticsFactory.java:0)
+Class <org.gradle.internal.problems.DefaultProblemDiagnosticsFactory$DefaultProblemDiagnostics> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultProblemDiagnosticsFactory.java:0)
 Class <org.gradle.internal.problems.DefaultProblemDiagnosticsFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultProblemDiagnosticsFactory.java:0)
 Class <org.gradle.internal.problems.DefaultProblemLocationAnalyzer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultProblemLocationAnalyzer.java:0)
 Class <org.gradle.internal.problems.ProblemLocationAnalyzer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ProblemLocationAnalyzer.java:0)
