@@ -18,12 +18,18 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
  * Default implementation of {@link MavenPomDependencies}.
  */
 public class DefaultMavenPomDependencies implements MavenPomDependencies {
+
+    public static final DefaultMavenPomDependencies EMPTY = new DefaultMavenPomDependencies(
+        Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet(),
+        Collections.emptySet(), Collections.emptySet(), Collections.emptySet()
+    );
 
     private final Set<MavenDependencyInternal> runtimeDependencies;
     private final Set<MavenDependencyInternal> apiDependencies;

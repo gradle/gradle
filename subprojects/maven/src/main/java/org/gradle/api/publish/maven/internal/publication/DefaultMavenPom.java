@@ -50,10 +50,10 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
     private String packaging;
-    private Property<String> name;
-    private Property<String> description;
-    private Property<String> url;
-    private Property<String> inceptionYear;
+    private final Property<String> name;
+    private final Property<String> description;
+    private final Property<String> url;
+    private final Property<String> inceptionYear;
     private final Property<MavenPomDependencies> dependencies;
     private final List<MavenPomLicense> licenses = new ArrayList<>();
     private MavenPomOrganization organization;

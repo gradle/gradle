@@ -79,17 +79,19 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
         Set<SoftwareComponent> ignored = new HashSet<>();
         for (ProjectComponentPublication publication : publications) {
-            if (publication.getComponent() != null && publication.getComponent() instanceof ComponentWithVariants) {
-                ComponentWithVariants parent = (ComponentWithVariants) publication.getComponent();
+            SoftwareComponent component = publication.getComponent().getOrNull();
+            if (component instanceof ComponentWithVariants) {
+                ComponentWithVariants parent = (ComponentWithVariants) component;
                 ignored.addAll(parent.getVariants());
             }
         }
         Set<ProjectComponentPublication> topLevel = new LinkedHashSet<>();
         Set<ProjectComponentPublication> topLevelWithComponent = new LinkedHashSet<>();
         for (ProjectComponentPublication publication : publications) {
-            if (!publication.isAlias() && (publication.getComponent() == null || !ignored.contains(publication.getComponent()))) {
+            SoftwareComponent component = publication.getComponent().getOrNull();
+            if (!publication.isAlias() && (component == null || !ignored.contains(component))) {
                 topLevel.add(publication);
-                if (publication.getComponent() != null) {
+                if (component != null) {
                     topLevelWithComponent.add(publication);
                 }
             }

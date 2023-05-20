@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
@@ -1256,7 +1257,7 @@ class GradleModuleMetadataWriterTest extends Specification {
 
     def publication(SoftwareComponentInternal component, ModuleVersionIdentifier coords, VersionMappingStrategyInternal mappingStrategyInternal = null, boolean withBuildId = false) {
         def publication = Stub(PublicationInternal)
-        publication.component >> component
+        publication.component >> Providers.of(component)
         publication.coordinates >> coords
         publication.versionMappingStrategy >> mappingStrategyInternal
         publication.isPublishBuildId() >> withBuildId

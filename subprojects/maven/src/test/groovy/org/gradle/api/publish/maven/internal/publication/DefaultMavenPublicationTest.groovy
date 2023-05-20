@@ -16,7 +16,6 @@
 package org.gradle.api.publish.maven.internal.publication
 
 import org.gradle.api.Action
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencyArtifact
@@ -177,7 +176,7 @@ class DefaultMavenPublicationTest extends Specification {
         then:
         publication.publishableArtifacts.files.files == [pomFile] as Set
         publication.artifacts.empty
-        publication.runtimeDependencies.empty
+        publication.pom.dependencies.get().runtimeDependencies.empty
     }
 
     def "artifacts are taken from added component"() {
@@ -201,7 +200,7 @@ class DefaultMavenPublicationTest extends Specification {
         then:
         publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
-        publication.runtimeDependencies.empty
+        publication.pom.dependencies.get().runtimeDependencies.empty
 
         when:
         def task = Mock(Task)
@@ -261,8 +260,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.runtimeDependencies.size() == 1
-        with(publication.runtimeDependencies.asList().first()) {
+        publication.pom.dependencies.get().runtimeDependencies.size() == 1
+        with(publication.pom.dependencies.get().runtimeDependencies.asList().first()) {
             groupId == "dep-group"
             artifactId == "dep-name"
             version == "dep-version"
@@ -290,7 +289,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.runtimeDependencies.size() == 0
+        publication.pom.dependencies.get().runtimeDependencies.size() == 0
     }
 
     def "respects self referencing module dependency with custom artifact from added component"() {
@@ -314,8 +313,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.runtimeDependencies.size() == 1
-        with(publication.runtimeDependencies.asList().first()) {
+        publication.pom.dependencies.get().runtimeDependencies.size() == 1
+        with(publication.pom.dependencies.get().runtimeDependencies.asList().first()) {
             groupId == "group"
             artifactId == "name"
             version == "version"
@@ -344,8 +343,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.runtimeDependencies.size() == 1
-        with(publication.runtimeDependencies.asList().first()) {
+        publication.pom.dependencies.get().runtimeDependencies.size() == 1
+        with(publication.pom.dependencies.get().runtimeDependencies.asList().first()) {
             groupId == "dep-group"
             artifactId == "dep-name"
             version == "dep-version"
@@ -375,8 +374,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(createComponent([], [moduleDependency], scope))
 
         then:
-        publication.importDependencyConstraints.size() == 1
-        with(publication.importDependencyConstraints.asList().first()) {
+        publication.pom.dependencies.get().importDependencyManagement.size() == 1
+        with(publication.pom.dependencies.get().importDependencyManagement.asList().first()) {
             groupId == "plat-group"
             artifactId == "plat-name"
             version == "plat-version"
@@ -407,8 +406,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(projectDependency))
 
         then:
-        publication.runtimeDependencies.size() == 1
-        with(publication.runtimeDependencies.asList().first()) {
+        publication.pom.dependencies.get().runtimeDependencies.size() == 1
+        with(publication.pom.dependencies.get().runtimeDependencies.asList().first()) {
             groupId == "pub-group"
             artifactId == "pub-name"
             version == "pub-version"
@@ -433,7 +432,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithDependency(projectDependency))
 
         then:
-        publication.runtimeDependencies.size() == 0
+        publication.pom.dependencies.get().runtimeDependencies.size() == 0
     }
 
     def "cannot add multiple components"() {
@@ -445,8 +444,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(Mock(SoftwareComponentInternal))
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message == "Maven publication 'pub-name' cannot include multiple components"
+        def e = thrown(IllegalStateException)
+        e.message == "The value for property 'component' is final and cannot be changed any further."
     }
 
     def "attaches artifacts parsed by notation parser"() {
@@ -561,8 +560,8 @@ class DefaultMavenPublicationTest extends Specification {
     def createPublication() {
         def instantiator = TestUtil.instantiatorFactory().decorateLenient()
         def objectFactory = TestUtil.objectFactory()
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory()
-            , AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal), DependencyManagementTestUtil.platformSupport(),
+        def publication = objectFactory.newInstance(DefaultMavenPublication.class, "pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(),
+            AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal), DependencyManagementTestUtil.platformSupport(),
             Mock(DocumentationRegistry), TestFiles.taskDependencyFactory())
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))
