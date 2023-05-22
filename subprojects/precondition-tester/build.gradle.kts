@@ -41,9 +41,10 @@ dependencies {
     testRuntimeOnly(testFixtures(project(":test-kit")))
     testRuntimeOnly(testFixtures(project(":smoke-test")))
 
-    testImplementation(libs.junit5JupiterApi)
-    testImplementation(libs.junit5JupiterParams)
-    testRuntimeOnly(libs.junit5JupiterEngine)
+    testImplementation(libs.junit5JupiterApi) {
+        because("Assume API comes from here")
+    }
+    testImplementation(libs.spock)
 }
 
 tasks {
