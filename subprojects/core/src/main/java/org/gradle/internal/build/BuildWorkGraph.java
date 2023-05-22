@@ -18,10 +18,12 @@ package org.gradle.internal.build;
 
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Collection;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface BuildWorkGraph extends Stoppable {
@@ -43,7 +45,7 @@ public interface BuildWorkGraph extends Stoppable {
     /**
      * Adds a finalization step to this work graph.
      */
-    void addFinalization(Consumer<ExecutionPlan> finalization);
+    void addFinalization(BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization);
 
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.

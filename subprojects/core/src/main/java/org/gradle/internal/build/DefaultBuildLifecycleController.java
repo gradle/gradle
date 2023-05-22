@@ -24,12 +24,14 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.DefaultEntryTaskSelectorContext;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.Describables;
 import org.gradle.internal.model.StateTransitionController;
@@ -38,6 +40,7 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -188,11 +191,19 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
                 workPlan.plan.onComplete(handler);
             }
-            for (Consumer<ExecutionPlan> finalization : workPlan.finalizations) {
-                finalization.accept(workPlan.plan);
+            List<BiConsumer<EntryTaskSelector.Context, ExecutionPlan>> finalizations = workPlan.finalizations;
+            if (!finalizations.isEmpty()) {
+                DefaultEntryTaskSelectorContext context = new DefaultEntryTaskSelectorContext(gradle, buildSpecificSelector());
+                for (BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization : finalizations) {
+                    finalization.accept(context, workPlan.plan);
+                }
             }
             workPlan.finalizedPlan = workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
         });
+    }
+
+    private BuildTaskSelector.BuildSpecificSelector buildSpecificSelector() {
+        return gradle.getServices().get(BuildTaskSelector.class).relativeToBuild(gradle.getOwner());
     }
 
     @Override
@@ -249,7 +260,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private final DefaultBuildLifecycleController owner;
         private final ExecutionPlan plan;
         private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
-        private final List<Consumer<ExecutionPlan>> finalizations = new ArrayList<>();
+        private final List<BiConsumer<EntryTaskSelector.Context, ExecutionPlan>> finalizations = new ArrayList<>();
         private FinalizedExecutionPlan finalizedPlan;
         private boolean empty = true;
 
@@ -269,7 +280,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addFinalization(Consumer<ExecutionPlan> finalization) {
+        public void addFinalization(BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization) {
             finalizations.add(finalization);
         }
 

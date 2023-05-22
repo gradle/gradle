@@ -22,7 +22,7 @@ import org.gradle.execution.plan.ExecutionPlan;
 public interface EntryTaskSelector {
     void applyTasksTo(Context context, ExecutionPlan plan);
 
-    default void postProcessExecutionPlan(ExecutionPlan plan) {
+    default void postProcessExecutionPlan(Context context, ExecutionPlan plan) {
     }
 
     interface Context {

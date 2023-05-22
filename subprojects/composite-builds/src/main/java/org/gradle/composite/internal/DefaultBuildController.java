@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
@@ -43,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 class DefaultBuildController implements BuildController {
@@ -81,7 +83,7 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
-    public void addFinalization(Consumer<ExecutionPlan> finalization) {
+    public void addFinalization(BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization) {
         assertInState(State.DiscoveringTasks);
         workGraph.addFinalization(finalization);
     }

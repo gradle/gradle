@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner
 
+import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -26,8 +27,8 @@ import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestFilter
 import org.gradle.execution.EntryTaskSelector
-import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
+import org.gradle.execution.TaskSelectionResult
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.internal.build.BuildProjectRegistry
@@ -115,7 +116,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
         when:
         buildConfigurationAction.applyTasksTo(context, executionPlan)
-        buildConfigurationAction.postProcessExecutionPlan(executionPlan)
+        buildConfigurationAction.postProcessExecutionPlan(context, executionPlan)
 
         then:
         1 * testFilter.includeTest(expectedClassFilter, expectedMethodFilter)
@@ -123,7 +124,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         1 * testTask.setIgnoreFailures(true)
         1 * testFilter.setFailOnNoMatchingTests(false)
         1 * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
-        1 * executionPlan.getContents() >> executionPlanContents
+        _ * executionPlan.getContents() >> executionPlanContents
 
         where:
         requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter | tasksAndTests
@@ -141,16 +142,20 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
     }
 
     private void setupTestTask() {
+        def taskSelectionResult = Mock(TaskSelectionResult)
         _ * projectInternal.getTasks() >> tasksContainerInternal
         _ * testTask.getFilter() >> testFilter
         _ * tasksContainerInternal.findByPath(TEST_TASK_NAME) >> testTask
         TaskCollection<Test> testTaskCollection = Mock()
         _ * testTaskCollection.iterator() >> [testTask].iterator()
-        _ * testTaskCollection.toArray() >> [testTask].toArray()
         _ * tasksContainerInternal.withType(Test) >> testTaskCollection
         _ * testTask.getOutputs() >> outputsInternal
         _ * testTask.getPath() >> TEST_TASK_NAME
-        _ * context.getSelection(TEST_TASK_NAME) >> new TaskSelection(null, null, new TaskNameResolver.FixedTaskSelectionResult(testTaskCollection))
+        _ * taskSelectionResult.collectTasks(_) >> { args ->
+            Collection<? super Task> tasks = args[0]
+            tasks.add(testTask)
+        }
+        _ * context.getSelection(TEST_TASK_NAME) >> new TaskSelection(null, null, taskSelectionResult)
     }
 
     private DefaultTestDescriptor testDescriptor() {

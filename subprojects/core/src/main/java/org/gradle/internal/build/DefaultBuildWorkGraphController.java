@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
@@ -173,7 +175,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
-        public void addFinalization(Consumer<ExecutionPlan> finalization) {
+        public void addFinalization(BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization) {
             getOwnedPlan().addFinalization(finalization);
         }
 

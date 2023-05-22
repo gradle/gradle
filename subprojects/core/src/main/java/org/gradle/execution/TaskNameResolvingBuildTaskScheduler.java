@@ -43,7 +43,7 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     @Override
     public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
         if (selector != null) {
-            selector.applyTasksTo(new ContextImpl(gradle), plan);
+            selector.applyTasksTo(new DefaultEntryTaskSelectorContext(gradle, taskSelector), plan);
         }
         List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
         for (TaskExecutionRequest taskParameter : taskParameters) {
@@ -52,24 +52,6 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
                 LOGGER.info("Selected primary task '{}' from project {}", taskSelection.getTaskName(), taskSelection.getProjectPath());
                 plan.addEntryTasks(taskSelection.getTasks());
             }
-        }
-    }
-
-    private class ContextImpl implements EntryTaskSelector.Context {
-        final GradleInternal gradle;
-
-        public ContextImpl(GradleInternal gradle) {
-            this.gradle = gradle;
-        }
-
-        @Override
-        public TaskSelection getSelection(String taskPath) {
-            return taskSelector.resolveTaskName(taskPath);
-        }
-
-        @Override
-        public GradleInternal getGradle() {
-            return gradle;
         }
     }
 }
