@@ -1,17 +1,17 @@
-# Execution team
+# Execution team and shared build cache ownership
 subprojects/base-annotations/               @gradle/bt-execution
 subprojects/functional/                     @gradle/bt-execution @bamboo
-subprojects/build-cache/                    @gradle/bt-execution
-subprojects/build-cache-base/               @gradle/bt-execution
-subprojects/build-cache-http/               @gradle/bt-execution
-subprojects/build-cache-packaging/          @gradle/bt-execution
-subprojects/build-operations/               @gradle/bt-execution
+subprojects/build-cache/                    @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-cache-base/               @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-cache-http/               @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-cache-packaging/          @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/build-profile/                  @gradle/bt-execution
 subprojects/execution/                      @gradle/bt-execution
 subprojects/file-watching/                  @gradle/bt-execution
-subprojects/files/                          @gradle/bt-execution
-subprojects/hashing/                        @gradle/bt-execution
-subprojects/snapshots/                      @gradle/bt-execution
+subprojects/files/                          @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/hashing/                        @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/snapshots/                      @gradle/bt-execution @gradle/bt-ge-build-cache
 
 # Configuration cache team (soon to be renamed Configuration team)
 subprojects/instrumentation-agent/              @gradle/bt-configuration-cache
