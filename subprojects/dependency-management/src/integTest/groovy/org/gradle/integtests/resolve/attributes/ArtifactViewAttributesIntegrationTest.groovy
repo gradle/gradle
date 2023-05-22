@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
@@ -309,6 +310,7 @@ println ''
         run ':help'
     }
 
+    @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
     def "use legacy behavior to declare and iterate artifact view files, then declare and iterate incoming files"() {
         System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
 
@@ -328,6 +330,7 @@ println ''
         run ':help'
     }
 
+    @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
     def "use legacy behavior to declare and iterate incoming artifacts, then declare and iterate artifact view artifacts"() {
         System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
 
@@ -411,6 +414,7 @@ println ''
         run ':verifySameArtifacts'
     }
 
+    @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
     def "test legacy behavior when adding an attribute lately without using beforeLocking or the java plugin still produces same files"() {
         System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
 
@@ -470,6 +474,7 @@ println ''
         fails ':verifySameFiles'
     }
 
+    @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
     def "test legacy behavior when adding an attribute lately without using beforeLocking or the java plugin still produces same artifacts"() {
         System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
 
