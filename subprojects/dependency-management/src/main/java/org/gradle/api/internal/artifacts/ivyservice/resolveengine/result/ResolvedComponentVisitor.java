@@ -28,12 +28,12 @@ public interface ResolvedComponentVisitor {
     /**
      * Starts visiting a component.
      */
-    void startVisitComponent(Long id, ComponentSelectionReason selectionReason);
+    void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName);
 
     /**
      * Visit graph independent details of the component.
      */
-    void visitComponentDetails(ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion, @Nullable String repoName);
+    void visitComponentDetails(ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion);
 
     /**
      * Visit a selected variant of the component.
@@ -41,7 +41,7 @@ public interface ResolvedComponentVisitor {
     void visitSelectedVariant(Long id, ResolvedVariantResult variant);
 
     /**
-     * Visit the graph dependent details of the component.
+     * Visit variants of the component.
      */
     void visitComponentVariants(List<ResolvedVariantResult> allVariants);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.java.fixtures
-
-class JavaTestFixturesIntegrationTest extends AbstractJavaProjectTestFixturesIntegrationTest {
-    @Override
-    String getPluginName() {
-        'java'
-    }
-
-    @Override
-    List getSkippedJars(boolean compileClasspathPackaging) {
-        compileClasspathPackaging ? [] : [':testFixturesJar']
-    }
-
-}
+/**
+ * Package with declarations for various configuration code interceptors for bytecode instrumentation, e.g. for configuration cache.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.classpath.declarations;

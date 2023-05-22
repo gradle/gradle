@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.java.fixtures
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-class JavaTestFixturesIntegrationTest extends AbstractJavaProjectTestFixturesIntegrationTest {
-    @Override
-    String getPluginName() {
-        'java'
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
+
+class ModuleComponentGraphSpecificResolveState implements ComponentGraphSpecificResolveState {
+    private final String repositoryName;
+
+    public ModuleComponentGraphSpecificResolveState(String repositoryName) {
+        this.repositoryName = repositoryName;
     }
 
     @Override
-    List getSkippedJars(boolean compileClasspathPackaging) {
-        compileClasspathPackaging ? [] : [':testFixturesJar']
+    public String getRepositoryName() {
+        return repositoryName;
     }
-
 }
