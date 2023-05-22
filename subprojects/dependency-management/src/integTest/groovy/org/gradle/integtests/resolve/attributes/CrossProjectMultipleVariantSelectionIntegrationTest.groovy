@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDependencyResolutionTest {
