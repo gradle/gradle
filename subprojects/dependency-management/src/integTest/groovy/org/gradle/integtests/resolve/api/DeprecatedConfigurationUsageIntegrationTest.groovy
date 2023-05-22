@@ -67,24 +67,23 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         succeeds('help')
 
         where:
-        methodName                                          | role          | methodCall                                                            || allowed
-        'attributes(Action)'                                | 'bucket'      | "attributes { attribute(Attribute.of('foo', String), 'bar') }"        || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
-        'defaultDependencies(Action)'                       | 'consumable'  | 'defaultDependencies { }'                                             || [ProperMethodUsage.DECLARABLE_AGAINST]
-        'defaultDependencies(Action)'                       | 'resolvable'  | 'defaultDependencies { }'                                             || [ProperMethodUsage.DECLARABLE_AGAINST]
-        'shouldResolveConsistentlyWith(Configuration)'      | 'consumable'  | 'shouldResolveConsistentlyWith(null)'                                 || [ProperMethodUsage.RESOLVABLE]
-        'shouldResolveConsistentlyWith(Configuration)'      | 'bucket'      | 'shouldResolveConsistentlyWith(null)'                                 || [ProperMethodUsage.RESOLVABLE]
-        'disableConsistentResolution()'                     | 'consumable'  | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
-        'disableConsistentResolution()'                     | 'bucket'      | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
-        'copy()'                                            | 'consumable'  | 'copy()'                                                              || [ProperMethodUsage.RESOLVABLE]
-        'copy()'                                            | 'bucket'      | 'copy()'                                                              || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive()'                                   | 'consumable'  | 'copyRecursive()'                                                     || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive()'                                   | 'bucket'      | 'copyRecursive()'                                                     || [ProperMethodUsage.RESOLVABLE]
-        'copy(Spec)'                                        | 'consumable'  | 'copy { } as Spec'                                                    || [ProperMethodUsage.RESOLVABLE]
-        'copy(Spec)'                                        | 'bucket'      | 'copy { } as Spec'                                                    || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive(Spec)'                               | 'consumable'  | 'copyRecursive { } as Spec'                                           || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive(Spec)'                               | 'bucket'      | 'copyRecursive { } as Spec'                                           || [ProperMethodUsage.RESOLVABLE]
-        'useAttributeSnapshotsToSelectVariantForArtifacts()'| 'bucket'      | 'useAttributeSnapshotsToSelectVariantForArtifacts()'                  || [ProperMethodUsage.RESOLVABLE]
-        'useAttributeSnapshotsToSelectVariantForArtifacts()'| 'consumable'  | 'useAttributeSnapshotsToSelectVariantForArtifacts()'                  || [ProperMethodUsage.RESOLVABLE]
+        methodName                                     | role         | methodCall                                                     || allowed
+        'attributes(Action)'                           | 'bucket'     | "attributes { attribute(Attribute.of('foo', String), 'bar') }" || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
+        'defaultDependencies(Action)'                  | 'consumable' | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
+        'defaultDependencies(Action)'                  | 'resolvable' | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
+        'shouldResolveConsistentlyWith(Configuration)' | 'consumable' | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
+        'shouldResolveConsistentlyWith(Configuration)' | 'bucket'     | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
+        'disableConsistentResolution()'                | 'consumable' | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
+        'disableConsistentResolution()'                | 'bucket'     | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
+        'copy()'                                       | 'consumable' | 'copy()'                                                       || [ProperMethodUsage.RESOLVABLE]
+        'copy()'                                       | 'bucket'     | 'copy()'                                                       || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive()'                              | 'consumable' | 'copyRecursive()'                                              || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive()'                              | 'bucket'     | 'copyRecursive()'                                              || [ProperMethodUsage.RESOLVABLE]
+        'copy(Spec)'                                   | 'consumable' | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
+        'copy(Spec)'                                   | 'bucket'     | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive(Spec)'                          | 'consumable' | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive(Spec)'                          | 'bucket'     | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
+
     }
 
     def "calling an invalid internal API method #methodName for role #role produces a deprecation warning"() {
