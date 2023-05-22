@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
@@ -35,6 +36,26 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
     def "applies reporting-base plugin"() {
         expect:
         project.plugins.hasPlugin(ReportingBasePlugin)
+    }
+
+    def "pmd 7.0.0 is loading the right dependencies"() {
+        expect:
+        PmdPlugin.calculateDefaultDependencyNotation("7.0.0") == ImmutableSet.of("net.sourceforge.pmd:pmd-java:7.0.0", "net.sourceforge.pmd:pmd-ant:7.0.0")
+    }
+
+    def "pmd 6.55.0 is loading the right dependencies"() {
+        expect:
+        PmdPlugin.calculateDefaultDependencyNotation("6.55.0") == Collections.singleton("net.sourceforge.pmd:pmd-java:6.55.0")
+    }
+
+    def "pmd 5.1.0 is loading the right dependencies"() {
+        expect:
+        PmdPlugin.calculateDefaultDependencyNotation("5.1.0") == Collections.singleton("net.sourceforge.pmd:pmd:5.1.0")
+    }
+
+    def "pmd 4.3.0 is loading the right dependencies"() {
+        expect:
+        PmdPlugin.calculateDefaultDependencyNotation("4.3.0") == Collections.singleton("pmd:pmd:4.3.0")
     }
 
     def "configures pmd configuration"() {

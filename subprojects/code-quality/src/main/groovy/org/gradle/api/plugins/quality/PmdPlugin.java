@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.quality;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
@@ -40,6 +42,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -135,7 +138,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         configureToolchains(task);
     }
 
-    private List<String> ruleSetsConvention(PmdExtension extension) {
+    private static List<String> ruleSetsConvention(PmdExtension extension) {
         if (extension.getRuleSetConfig() == null && extension.getRuleSetFiles().isEmpty()) {
             return new ArrayList<>(Collections.singletonList("category/java/errorprone.xml"));
         } else {
@@ -144,11 +147,11 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
-        configuration.defaultDependencies(dependencies -> {
-                VersionNumber version = VersionNumber.parse(extension.getToolVersion());
-                String dependency = calculateDefaultDependencyNotation(version);
-                dependencies.add(project.getDependencies().create(dependency));
-            }
+        configuration.defaultDependencies(dependencies ->
+            calculateDefaultDependencyNotation(extension.getToolVersion())
+                .stream()
+                .map(project.getDependencies()::create)
+                .forEach(dependencies::add)
         );
     }
 
@@ -192,13 +195,22 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         });
     }
 
-    private String calculateDefaultDependencyNotation(VersionNumber toolVersion) {
+    @VisibleForTesting
+    static Set<String> calculateDefaultDependencyNotation(final String versionString) {
+        final VersionNumber toolVersion = VersionNumber.parse(versionString);
         if (toolVersion.compareTo(VersionNumber.version(5)) < 0) {
-            return "pmd:pmd:" + extension.getToolVersion();
+            return Collections.singleton("pmd:pmd:" + versionString);
         } else if (toolVersion.compareTo(VersionNumber.parse("5.2.0")) < 0) {
-            return "net.sourceforge.pmd:pmd:" + extension.getToolVersion();
+            return Collections.singleton("net.sourceforge.pmd:pmd:" + versionString);
+        } else if (toolVersion.compareTo(VersionNumber.version(7)) < 0) {
+            return Collections.singleton("net.sourceforge.pmd:pmd-java:" + versionString);
         }
-        return "net.sourceforge.pmd:pmd-java:" + extension.getToolVersion();
+
+        // starting from version 7, PMD is split into multiple modules
+        return ImmutableSet.of(
+            "net.sourceforge.pmd:pmd-java:" + versionString,
+            "net.sourceforge.pmd:pmd-ant:" + versionString
+        );
     }
 
     @Override
