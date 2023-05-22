@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":platform-jvm"))
     implementation(project(":file-collections"))
+    implementation(project(":dependency-management"))
     compileOnly(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy)
@@ -25,6 +26,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.ant)
+    implementation(libs.commonsLang)
 
     testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))

@@ -49,7 +49,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         codenarc.maxPriority3Violations == 0
         codenarc.reportFormat == "html"
         codenarc.reportsDir == project.file("build/reports/codenarc")
-        codenarc.sourceSets == []
+        codenarc.sourceSets.isEmpty()
         !codenarc.ignoreFailures
     }
 
@@ -59,7 +59,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.isEmpty()
-        task.codenarcClasspath == project.configurations.codenarc
+        task.codenarcClasspath != null
         task.config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
         task.configFile == project.file("config/codenarc/codenarc.xml")
         task.maxPriority1Violations == 0
@@ -86,7 +86,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.isEmpty()
-        task.codenarcClasspath == project.configurations.codenarc
+        task.codenarcClasspath != null
         task.config.inputFiles.singleFile == project.file("codenarc-config")
         task.configFile == project.file("codenarc-config")
         task.maxPriority1Violations == 10

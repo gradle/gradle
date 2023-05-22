@@ -15,28 +15,23 @@
  */
 package org.gradle.api.plugins.quality;
 
-import com.google.common.util.concurrent.Callables;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
-import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Checkstyle Plugin.
@@ -46,7 +41,9 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
     public static final String DEFAULT_CHECKSTYLE_VERSION = "9.3";
+
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
+
     private CheckstyleExtension extension;
 
     @Override
@@ -59,13 +56,8 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         return Checkstyle.class;
     }
 
-    @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
-    protected CodeQualityExtension createExtension() {
+    protected CodeQualityExtension createExtension(Project project) {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
         Directory directory = project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
@@ -73,62 +65,46 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
             // If for whatever reason the provider above cannot be resolved, go back to default location, which we know how to ignore if missing
             .orElse(directory.file("checkstyle.xml"))));
+
         return extension;
     }
 
     @Override
-    protected void configureConfiguration(Configuration configuration) {
-        configureDefaultDependencies(configuration);
+    protected void configureTaskDefaults(Checkstyle task, final String baseName, FileCollection toolClasspath, Provider<JavaLauncher> toolchain) {
+        configureTaskConventionMapping(toolClasspath, task);
+        configureReportsConventionMapping(task, baseName);
+        task.getJavaLauncher().convention(toolchain);
     }
 
     @Override
-    protected void configureTaskDefaults(Checkstyle task, final String baseName) {
-        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
-        configureTaskConventionMapping(configuration, task);
-        configureReportsConventionMapping(task, baseName);
-        configureToolchains(task);
+    protected Set<Dependency> getToolDependencies() {
+        return Collections.singleton(getDependencyFactory().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()));
     }
 
-    private void configureDefaultDependencies(Configuration configuration) {
-        configuration.defaultDependencies(dependencies ->
-            dependencies.add(project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()))
-        );
-    }
-
-    private void configureTaskConventionMapping(Configuration configuration, Checkstyle task) {
+    private void configureTaskConventionMapping(FileCollection toolClasspath, Checkstyle task) {
         ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("checkstyleClasspath", Callables.returning(configuration));
+        taskMapping.map("checkstyleClasspath", (Callable<FileCollection>) () -> toolClasspath);
         taskMapping.map("config", (Callable<TextResource>) () -> extension.getConfig());
         taskMapping.map("configProperties", (Callable<Map<String, Object>>) () -> extension.getConfigProperties());
         taskMapping.map("ignoreFailures", (Callable<Boolean>) () -> extension.isIgnoreFailures());
         taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
         taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
+
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
-        ProjectLayout layout = project.getLayout();
-        ProviderFactory providers = project.getProviders();
-        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
-        task.getReports().all(action(report -> {
+        Provider<RegularFile> reportsDir = getProjectLayout().file(getProviders().provider(() -> extension.getReportsDir()));
+        task.getReports().all(report -> {
             report.getRequired().convention(!report.getName().equals("sarif"));
             report.getOutputLocation().convention(
-                layout.getProjectDirectory().file(providers.provider(() -> {
+                getProjectLayout().getProjectDirectory().file(getProviders().provider(() -> {
                     String reportFileName = baseName + "." + report.getName();
                     return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
                 }))
             );
-        }));
-    }
-
-    private void configureToolchains(Checkstyle task) {
-        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
-        task.getJavaLauncher().convention(javaLauncherProvider);
-        project.getPluginManager().withPlugin("java-base", p -> {
-            JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
-            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
         });
     }
 

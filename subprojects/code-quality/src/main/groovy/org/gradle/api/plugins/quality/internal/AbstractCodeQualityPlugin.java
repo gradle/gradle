@@ -15,221 +15,169 @@
  */
 package org.gradle.api.plugins.quality.internal;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.Callables;
-import org.gradle.api.Action;
+import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.Cast;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.workers.ForkingWorkerSpec;
 
-import java.io.File;
+import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
-public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
+/**
+ * Base class for all JVM code quality plugins.
+ *
+ * @param <T> The type of task used by this plugin to analyze code.
+ */
+public abstract class AbstractCodeQualityPlugin<T extends Task> implements Plugin<ProjectInternal> {
     private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
 
-    protected static ConventionMapping conventionMappingOf(Object object) {
-        return ((IConventionAware) object).getConventionMapping();
-    }
+    // Dependencies provided by Gradle which should be excluded from the tool classpath
+    private static final ImmutableSet<ModuleIdentifier> EXCLUDED_MODULES = ImmutableSet.of(
+        DefaultModuleIdentifier.newId("org.apache.ant", "ant"),
+        DefaultModuleIdentifier.newId("org.apache.ant", "ant"),
+        DefaultModuleIdentifier.newId("org.apache.ant", "ant-launcher"),
+        DefaultModuleIdentifier.newId("org.slf4j", "slf4j-api"),
+        DefaultModuleIdentifier.newId("org.slf4j", "jcl-over-slf4j"),
+        DefaultModuleIdentifier.newId("org.slf4j", "log4j-over-slf4j"),
+        DefaultModuleIdentifier.newId("commons-logging", "commons-logging"),
+        DefaultModuleIdentifier.newId("log4j", "log4j")
+    );
 
-    protected ProjectInternal project;
-    protected CodeQualityExtension extension;
+    @Inject protected abstract ProviderFactory getProviders();
+    @Inject protected abstract ObjectFactory getObjects();
+    @Inject protected abstract JvmPluginServices getJvmPluginServices();
+    @Inject protected abstract DependencyFactory getDependencyFactory();
+    @Inject protected abstract JavaToolchainService getToolchainService();
+    @Inject protected abstract ProjectLayout getProjectLayout();
 
     @Override
     public final void apply(ProjectInternal project) {
-        this.project = project;
+        project.getPluginManager().apply(JavaBasePlugin.class);
+        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
 
-        beforeApply();
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        createConfigurations();
-        extension = createExtension();
-        configureExtensionRule();
-        configureTaskRule();
-        configureSourceSetRule();
-        configureCheckTask();
+        ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
+
+        CodeQualityExtension extension = createExtension(project);
+        ConventionMapping extensionMapping = new DslObject(extension).getConventionMapping();
+        extensionMapping.map("sourceSets", () -> new ArrayList<>());
+        extensionMapping.map("reportsDir", () -> reporting.file(getToolName().toLowerCase()));
+        extensionMapping.map("sourceSets", () -> java.getSourceSets());
+
+        FileCollection toolClasspath = createToolClasspath(project.getConfigurations());
+        configureTaskRule(project.getTasks(), toolClasspath, java);
+
+        TaskContainer tasks = project.getTasks();
+        configureForSourceSets(tasks, java.getSourceSets());
+        configureCheckTaskDependents(tasks, extension);
     }
 
     protected abstract String getToolName();
 
     protected abstract Class<T> getTaskType();
 
-    private Class<? extends Task> getCastedTaskType() {
-        return Cast.uncheckedCast(getTaskType());
-    }
+    /**
+     * Called immediately after applying base plugins.
+     */
+    protected abstract CodeQualityExtension createExtension(Project project);
 
-    protected String getTaskBaseName() {
+    protected abstract Set<Dependency> getToolDependencies();
+
+    private String getTaskBaseName() {
         return getToolName().toLowerCase();
     }
 
-    protected String getConfigurationName() {
-        return getToolName().toLowerCase();
+    private String getTaskName(SourceSet sourceSet) {
+        return sourceSet.getTaskName(getTaskBaseName(), null);
     }
 
-    protected String getReportName() {
-        return getToolName().toLowerCase();
-    }
+    private FileCollection createToolClasspath(RoleBasedConfigurationContainerInternal configurations) {
+        String configurationName = getToolName().toLowerCase();
+        Configuration configuration = configurations.resolvableBucket(configurationName);
 
-    @SuppressWarnings("rawtypes")
-    protected Class<? extends Plugin> getBasePlugin() {
-        return JavaBasePlugin.class;
-    }
-
-    protected void beforeApply() {
-    }
-
-    protected void createConfigurations() {
-        Configuration configuration = project.getConfigurations().resolvableBucket(getConfigurationName());
+        getJvmPluginServices().configureAsRuntimeClasspath(configuration);
         configuration.setVisible(false);
-        configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
+        configuration.defaultDependencies(deps -> deps.addAll(getToolDependencies()));
 
         // Don't need these things, they're provided by the runtime
-        configuration.exclude(excludeProperties("ant", "ant"));
-        configuration.exclude(excludeProperties("org.apache.ant", "ant"));
-        configuration.exclude(excludeProperties("org.apache.ant", "ant-launcher"));
-        configuration.exclude(excludeProperties("org.slf4j", "slf4j-api"));
-        configuration.exclude(excludeProperties("org.slf4j", "jcl-over-slf4j"));
-        configuration.exclude(excludeProperties("org.slf4j", "log4j-over-slf4j"));
-        configuration.exclude(excludeProperties("commons-logging", "commons-logging"));
-        configuration.exclude(excludeProperties("log4j", "log4j"));
-        configureConfiguration(configuration);
+        return configuration.getIncoming().artifactView(view ->
+            view.componentFilter(id ->
+                !(id instanceof ModuleComponentIdentifier) ||
+                !EXCLUDED_MODULES.contains(((ModuleComponentIdentifier) id).getModuleIdentifier())
+            )
+        ).getFiles();
     }
 
-    protected abstract void configureConfiguration(Configuration configuration);
+    private void configureTaskRule(TaskContainer tasks, FileCollection toolClasspath, JavaPluginExtension java) {
+        tasks.withType(getTaskType()).configureEach(task -> {
+            String baseName = task.getName().replaceFirst(getTaskBaseName(), "");
+            baseName = baseName.isEmpty() ? task.getName() : StringUtils.uncapitalize(baseName);
 
-    private Map<String, String> excludeProperties(String group, String module) {
-        return ImmutableMap.<String, String>builder()
-            .put("group", group)
-            .put("module", module)
-            .build();
-    }
+            // Configure Java Launcher
+            Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(getObjects()));
+            JavaToolchainSpec toolchain = java.getToolchain();
+            Provider<JavaLauncher> launcher = getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider);
 
-    protected abstract CodeQualityExtension createExtension();
-
-    @SuppressWarnings("rawtypes")
-    private void configureExtensionRule() {
-        final ConventionMapping extensionMapping = conventionMappingOf(extension);
-        extensionMapping.map("sourceSets", Callables.returning(new ArrayList<>()));
-        extensionMapping.map("reportsDir", new Callable<File>() {
-            @Override
-            public File call() {
-                return project.getExtensions().getByType(ReportingExtension.class).file(getReportName());
-            }
-        });
-        withBasePlugin(new Action<Plugin>() {
-            @Override
-            public void execute(Plugin plugin) {
-                extensionMapping.map("sourceSets", new Callable<SourceSetContainer>() {
-                    @Override
-                    public SourceSetContainer call() {
-                        return getJavaPluginExtension().getSourceSets();
-                    }
-                });
-            }
+            configureTaskDefaults(task, baseName, toolClasspath, launcher);
         });
     }
 
-    @SuppressWarnings("unchecked")
-    private void configureTaskRule() {
-        project.getTasks().withType(getCastedTaskType()).configureEach(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                String prunedName = task.getName().replaceFirst(getTaskBaseName(), "");
-                if (prunedName.isEmpty()) {
-                    prunedName = task.getName();
-                }
-                prunedName = ("" + prunedName.charAt(0)).toLowerCase() + prunedName.substring(1);
-                configureTaskDefaults((T) task, prunedName);
-            }
+    protected abstract void configureTaskDefaults(T task, String baseName, FileCollection toolClasspath, Provider<JavaLauncher> toolchain);
+
+    private void configureForSourceSets(TaskContainer tasks, SourceSetContainer sourceSets) {
+        sourceSets.all(sourceSet -> {
+            tasks.register(getTaskName(sourceSet), getTaskType(), task -> {
+                configureForSourceSet(sourceSet, task);
+            });
         });
     }
 
-    protected void configureTaskDefaults(T task, String baseName) {
-    }
+    protected abstract void configureForSourceSet(SourceSet sourceSet, T task);
 
-    @SuppressWarnings("rawtypes")
-    private void configureSourceSetRule() {
-        withBasePlugin(new Action<Plugin>() {
-            @Override
-            public void execute(Plugin plugin) {
-                configureForSourceSets(getJavaPluginExtension().getSourceSets());
-            }
+    private void configureCheckTaskDependents(TaskContainer tasks, CodeQualityExtension extension) {
+        // Make sure `check` depends on code quality tasks specified in extension.
+        tasks.named(JavaBasePlugin.CHECK_TASK_NAME, task -> {
+            task.dependsOn((Callable<Iterable<Task>>) () ->
+                extension.getSourceSets().stream()
+                    .map(sourceSet -> tasks.getByName(getTaskName(sourceSet)))
+                    .collect(Collectors.toList())
+            );
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private void configureForSourceSets(SourceSetContainer sourceSets) {
-        sourceSets.all(new Action<SourceSet>() {
-            @Override
-            public void execute(final SourceSet sourceSet) {
-                project.getTasks().register(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType(), new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        configureForSourceSet(sourceSet, (T) task);
-                    }
-                });
-            }
-        });
-    }
-
-    protected void configureForSourceSet(SourceSet sourceSet, T task) {
-    }
-
-    @SuppressWarnings("rawtypes")
-    private void configureCheckTask() {
-        withBasePlugin(new Action<Plugin>() {
-            @Override
-            public void execute(Plugin plugin) {
-                configureCheckTaskDependents();
-            }
-        });
-    }
-
-    private void configureCheckTaskDependents() {
-        final String taskBaseName = getTaskBaseName();
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        return Iterables.transform(extension.getSourceSets(), new Function<SourceSet, String>() {
-                            @Override
-                            public String apply(SourceSet sourceSet) {
-                                return sourceSet.getTaskName(taskBaseName, null);
-                            }
-                        });
-                    }
-                });
-            }
-        });
-    }
-
-    @SuppressWarnings("rawtypes")
-    protected void withBasePlugin(Action<Plugin> action) {
-        project.getPlugins().withType(getBasePlugin(), action);
-    }
-
-    protected JavaPluginExtension getJavaPluginExtension() {
-        return project.getExtensions().getByType(JavaPluginExtension.class);
     }
 
     public static void maybeAddOpensJvmArgs(JavaLauncher javaLauncher, ForkingWorkerSpec spec) {

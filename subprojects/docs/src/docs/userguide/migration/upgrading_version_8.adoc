@@ -40,6 +40,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+=== Deprecations
+
+[[deprecate_get_default_target_jdk_pmd]]
+<<pmd_plugin#pmd_plugin, The PMD plugin>>'s `getDefaultTargetJdk(JavaVersion)` method has been deprecated for removal in Gradle 9.0.
+This method was never intended for public usage.
+
 [[kotlin_1_8.20]]
 ==== Upgrade to Kotlin 1.8.21
 

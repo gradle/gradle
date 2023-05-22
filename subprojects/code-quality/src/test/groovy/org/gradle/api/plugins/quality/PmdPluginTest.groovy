@@ -124,7 +124,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.with {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
-            assert pmdClasspath == project.configurations.pmd
+            assert pmdClasspath != null
             assert ruleSets == ["category/java/errorprone.xml"]
             assert ruleSetConfig == null
             assert ruleSetFiles.empty
@@ -144,7 +144,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.empty
-        task.pmdClasspath == project.configurations.pmd
+        task.pmdClasspath != null
         task.ruleSets == ["category/java/errorprone.xml"]
         task.ruleSetConfig == null
         task.ruleSetFiles.empty
@@ -203,7 +203,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.with {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
-            assert pmdClasspath == project.configurations.pmd
+            assert pmdClasspath != null
             assert ruleSets == ["java-braces", "java-unusedcode"]
             assert ruleSetConfig.asString() == "ruleset contents"
             assert ruleSetFiles.singleFile == project.file("my-ruleset.xml")
@@ -232,7 +232,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.empty
-        task.pmdClasspath == project.configurations.pmd
+        task.pmdClasspath != null
         task.ruleSets == ["java-braces", "java-unusedcode"]
         task.ruleSetConfig.asString() == "ruleset contents"
         task.ruleSetFiles.singleFile == project.file("my-ruleset.xml")

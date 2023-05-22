@@ -78,7 +78,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         assert task instanceof Checkstyle
         task.with {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes".toString()
-            assert checkstyleClasspath == project.configurations.checkstyle
+            assert checkstyleClasspath != null
             assert classpath.files == (sourceSet.output + sourceSet.compileClasspath).files
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
             assert configDirectory.get().getAsFile() == project.file("config/checkstyle")
@@ -99,7 +99,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.isEmpty()
-        task.checkstyleClasspath == project.configurations.checkstyle
+        task.checkstyleClasspath != null
         task.configFile == project.file("config/checkstyle/checkstyle.xml")
         task.configDirectory.get().getAsFile() == project.file("config/checkstyle")
         task.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
@@ -156,7 +156,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         task.with {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
             assert source as List == sourceSet.allJava as List
-            assert checkstyleClasspath == project.configurations["checkstyle"]
+            assert checkstyleClasspath != null
             assert configFile == project.file("checkstyle-config")
             assert configDirectory.get().getAsFile() == project.file("custom")
             assert config.inputFiles.singleFile == project.file("checkstyle-config")
@@ -183,7 +183,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.isEmpty()
-        task.checkstyleClasspath == project.configurations.checkstyle
+        task.checkstyleClasspath != null
         task.configFile == project.file("checkstyle-config")
         task.configDirectory.get().getAsFile() == project.file("custom")
         task.config.inputFiles.singleFile == project.file("checkstyle-config")
