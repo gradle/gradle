@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Ignore
 
 /**
  * Tests for [org.gradle.api.artifacts.ArtifactView ArtifactView] that ensure it uses the "live" attributes
@@ -91,6 +90,7 @@ println ''
         """
 
         // Restore static property to default value prior to each test
+        //noinspection GroovyAccessibility
         DefaultConfiguration.useLegacyAttributeSnapshottingBehavior = null
     }
 
@@ -526,48 +526,5 @@ println ''
         expect:
         executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
         fails ':downloadArtifacts'
-    }
-
-    @Ignore("There are 10,000s of these, so it takes some time, but is the ultimate sanity check")
-    def "test all valid permutations of declaration and iteration order of files and artifacts on incoming vs. artifact view"() {
-        buildFile << """
-            logger.warn '******************'
-            logger.warn '***** Script *****'
-            logger.warn '******************'
-            logger.warn ''
-            logger.warn '''$code'''
-            logger.warn ''
-
-            logger.warn '******************'
-            logger.warn '***** Output *****'
-            logger.warn '******************'
-            logger.warn ''
-            $code
-
-            assert incomingFiles*.name == artifactViewFiles*.name
-            assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name
-        """
-
-        expect:
-        run ':help'
-
-        where:
-        code << [
-            declareIncomingFiles,
-            declareIncomingArtifacts,
-            declareArtifactViewFiles,
-            declareArtifactViewArtifacts,
-            iterateIncomingFiles,
-            iterateIncomingArtifacts,
-            iterateArtifactViewFiles,
-            iterateArtifactViewArtifacts
-        ].permutations().findAll { declarationOccursPriorToRelevantIteration(it) }.collect { it.join('\n') }
-    }
-
-    private boolean declarationOccursPriorToRelevantIteration(List<String> code) {
-        return code.indexOf(declareIncomingFiles) < code.indexOf(iterateIncomingFiles) &&
-            code.indexOf(declareIncomingArtifacts) < code.indexOf(iterateIncomingArtifacts) &&
-            code.indexOf(declareArtifactViewFiles) < code.indexOf(iterateArtifactViewFiles) &&
-            code.indexOf(declareArtifactViewArtifacts) < code.indexOf(iterateArtifactViewArtifacts);
     }
 }
