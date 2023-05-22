@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 // TODO: Also do this for FileCollection types eventually
@@ -51,7 +52,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         expectDocumentedFailure()
     }
 
-    def "convention mapping can be used with Property"() {
+    def "convention mapping can be used with Property and an actual value"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract Property<String> getFoo()
@@ -60,17 +61,36 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void useIt() {
                     assert foo.get() == "foobar"
-                    assert bar.get() == "foobar"
                 }
             }
             tasks.register("mytask", MyTask) {
                 conventionMapping.map("foo") { "foobar" }
-                conventionMapping.map("bar") { providers.provider { "foobar" } }
             }
         """
 
         expect:
         succeeds 'mytask'
+    }
+
+    def "convention mapping cannot be used with Property and a Provider value"() {
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @Internal abstract Property<String> getFoo()
+                @Internal abstract Property<String> getBar()
+
+                @TaskAction
+                void useIt() {
+                    bar.get()
+                }
+            }
+            tasks.register("mytask", MyTask) {
+                conventionMapping.map("bar") { providers.provider { "foobar" } }
+            }
+        """
+
+        expect:
+        fails 'mytask'
+        failureHasCause("Cannot get the value of task ':mytask' property 'bar' of type $String.name as the provider associated with this property returned a value of type $DefaultProvider.name.")
     }
 
     def "emits deprecation warning when convention mapping is used with MapProperty"() {
