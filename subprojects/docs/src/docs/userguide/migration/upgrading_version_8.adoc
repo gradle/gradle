@@ -61,11 +61,11 @@ Consider the following scenario where `producer` is a sibling `java-library` pro
     def incomingFiles = configurations.compileClasspath.incoming.files
     def artifactViewFiles = configurations.compileClasspath.incoming.artifactView { }.files
 
-    logger.warn 'Incoming Files:'
-    incomingFiles.each { logger.warn 'Name: ' + it.name }
+    println 'Incoming Files:'
+    incomingFiles.each { println 'Name: ' + it.name }
 
     logger.warn 'Artifact View Files:'
-    artifactViewFiles.each { logger.warn 'Name: ' + it.name }
+    artifactViewFiles.each { println 'Name: ' + it.name }
 
     assert incomingFiles*.name == artifactViewFiles*.name // FAILS!
 ```
