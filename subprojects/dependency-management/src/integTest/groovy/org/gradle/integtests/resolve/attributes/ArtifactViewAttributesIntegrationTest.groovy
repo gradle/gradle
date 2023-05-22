@@ -19,8 +19,6 @@ package org.gradle.integtests.resolve.attributes
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 
 /**
  * Tests for [org.gradle.api.artifacts.ArtifactView ArtifactView] that ensure it uses the "live" attributes
@@ -33,8 +31,6 @@ import org.junit.Rule
  * variant.
  */
 class ArtifactViewAttributesIntegrationTest extends AbstractIntegrationSpec {
-    @Rule SetSystemProperties systemProperties
-
     private static declareIncomingFiles = "def incomingFiles = configurations.compileClasspath.incoming.files"
     private static declareIncomingArtifacts = "def incomingArtifacts = configurations.compileClasspath.incoming.artifacts"
     private static declareArtifactViewFiles = "def artifactViewFiles = configurations.compileClasspath.incoming.artifactView {  }.files"
@@ -312,8 +308,6 @@ println ''
 
     @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
     def "use legacy behavior to declare and iterate artifact view files, then declare and iterate incoming files"() {
-        System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
-
         buildFile << """
             $declareArtifactViewFiles
             $iterateArtifactViewFiles
@@ -327,13 +321,12 @@ println ''
 
         expect:
         executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
+        executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
         run ':help'
     }
 
     @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
     def "use legacy behavior to declare and iterate incoming artifacts, then declare and iterate artifact view artifacts"() {
-        System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
-
         buildFile << """
             $declareIncomingArtifacts
             $iterateIncomingArtifacts
@@ -347,10 +340,12 @@ println ''
 
         expect:
         executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
+        executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
         run ':help'
     }
 
     def "test adding an attribute lately without using beforeLocking or the java plugin still produces same files"() {
+        // Replace text to avoid adding Java plugin
         file("producer/build.gradle").text = """
             def attr = Attribute.of("test-attr", String)
 
@@ -366,6 +361,7 @@ println ''
             }
         """
 
+        // Replace text to avoid adding Java plugin
         buildFile.text = """
             def attr = Attribute.of("test-attr", String)
 
@@ -416,8 +412,7 @@ println ''
 
     @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
     def "test legacy behavior when adding an attribute lately without using beforeLocking or the java plugin still produces same files"() {
-        System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
-
+        // Replace text to avoid adding Java plugin
         file("producer/build.gradle").text = """
             interface Flavor extends Named {}
             def flavor = Attribute.of(Flavor)
@@ -442,6 +437,7 @@ println ''
             }
         """
 
+        // Replace text to avoid adding Java plugin
         buildFile.text = """
             interface Flavor extends Named {}
             def flavor = Attribute.of(Flavor)
@@ -471,13 +467,13 @@ println ''
 
         expect:
         executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
+        executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
         fails ':verifySameFiles'
     }
 
     @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
     def "test legacy behavior when adding an attribute lately without using beforeLocking or the java plugin still produces same artifacts"() {
-        System.setProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR, Boolean.TRUE.toString())
-
+        // Replace text to avoid adding Java plugin
         file("producer/build.gradle").text = """
             interface Flavor extends Named {}
             def flavor = Attribute.of(Flavor)
@@ -502,6 +498,7 @@ println ''
             }
         """
 
+        // Replace text to avoid adding Java plugin
         buildFile.text = """
             interface Flavor extends Named {}
             def flavor = Attribute.of(Flavor)
@@ -530,6 +527,7 @@ println ''
 
         expect:
         executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
+        executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
         fails ':downloadArtifacts'
     }
 }
