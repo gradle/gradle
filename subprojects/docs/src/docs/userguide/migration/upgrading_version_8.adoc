@@ -64,7 +64,7 @@ Consider the following scenario where `producer` is a sibling `java-library` pro
     println 'Incoming Files:'
     incomingFiles.each { println 'Name: ' + it.name }
 
-    logger.warn 'Artifact View Files:'
+    println 'Artifact View Files:'
     artifactViewFiles.each { println 'Name: ' + it.name }
 
     assert incomingFiles*.name == artifactViewFiles*.name // FAILS!
