@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
+import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
 
@@ -64,6 +65,18 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
             container.add(bean)
         }
         0 * rule._
+    }
+
+    def "named finds element added by addAllLater"() {
+//        container.addAllLater(Providers.of(([a])))
+        container.addLater(Providers.of(a))
+
+        when:
+        def result = container.named("a")
+
+        then:
+        result.present
+        result.get() == a
     }
 
     def "named finds objects added to container"() {

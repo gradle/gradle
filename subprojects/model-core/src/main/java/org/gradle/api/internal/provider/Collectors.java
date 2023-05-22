@@ -238,7 +238,7 @@ public class Collectors {
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return Objects.equal(provider, provider);
+            return Objects.equal(provider, this.provider);
         }
 
         @Override

@@ -39,10 +39,6 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
 
     void setModuleDescriptorGenerator(TaskProvider<? extends Task> descriptorGenerator);
 
-    Set<IvyDependencyInternal> getDependencies();
-
-    Set<IvyExcludeRule> getGlobalExcludes();
-
     IvyNormalizedPublication asNormalisedPublication();
 
     boolean writeGradleMetadataMarker();

@@ -295,13 +295,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 checkForComodification();
                 Element<T> element = backingList.get(previousIndex);
                 List<T> collected = element.getValues();
-                if (collected.size() > 1) {
-                    element.remove(collected.get(previousSubIndex));
-                    nextSubIndex--;
-                } else {
-                    backingList.remove(previousIndex);
+                if (collected.size() == 1) {
                     nextIndex--;
                 }
+                element.remove(collected.get(previousSubIndex));
+                nextSubIndex--;
                 previousIndex = -1;
                 previousSubIndex = -1;
             } else {
