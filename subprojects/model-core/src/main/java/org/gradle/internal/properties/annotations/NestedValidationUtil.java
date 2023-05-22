@@ -66,7 +66,8 @@ public class NestedValidationUtil  {
         return type.getName().startsWith("java.") || type.getName().startsWith("javax.");
     }
     private static boolean isSupportedType(Class<?> type) {
-        return !isJavaSE(type) || type.getName().startsWith(SUPPORTED_PACKAGE_NAME);
+//        return !isJavaSE(type) || type.getName().startsWith(SUPPORTED_PACKAGE_NAME);
+        return !isJavaSE(type);
     }
 
     /**
