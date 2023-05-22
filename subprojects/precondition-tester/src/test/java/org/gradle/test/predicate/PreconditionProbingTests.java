@@ -18,9 +18,12 @@ package org.gradle.test.predicate;
 
 import org.gradle.test.precondition.PredicatesFile;
 import org.gradle.test.precondition.TestPrecondition;
+import org.junit.jupiter.api.Named;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 import java.util.Set;
@@ -46,7 +49,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  *     </li>
  * </ul>
  */
-class PreconditionProbingTests {
+class PreconditionProbingTests implements ArgumentsProvider {
 
     private static List<Class<?>> loadClasses(Set<String> classNames) {
         return classNames
@@ -63,15 +66,25 @@ class PreconditionProbingTests {
             ).collect(Collectors.toList());
     }
 
-    private static Stream<Arguments> validPreconditionCombinationClassSource() {
+    private static String getDisplayName(List<? extends Class<?>> classes) {
+        return String.format(
+            "Preconditions: [%s]",
+            classes.stream().map(Class::getSimpleName).collect(Collectors.joining(","))
+        );
+    }
+
+    @Override
+    public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
         return PredicatesFile.DEFAULT_ACCEPTED_COMBINATIONS
             .stream()
             .map(PreconditionProbingTests::loadClasses)
-            .map(Arguments::of);
+            .map(classes -> Arguments.of(
+                Named.named(getDisplayName(classes), classes)
+            ));
     }
 
     @ParameterizedTest
-    @MethodSource("validPreconditionCombinationClassSource")
+    @ArgumentsSource(PreconditionProbingTests.class)
     void test(List<Class<? extends TestPrecondition>> testClasses) throws Exception {
         boolean satisfied = true;
 
