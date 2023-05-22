@@ -43,9 +43,9 @@ The previous step will help you identify potential problems by issuing deprecati
 [[legacy_attribute_snapshotting]]
 ==== ArtifactView and ArtifactCollection variant resolution behavior is more correct
 
-Prior to Gradle 8.3, `Configuration.getIncoming().artifactView()` and `Configuration.getIncoming().getArtifacts()` captured immutable copies of the `Configuration`'s attributes upon invocation. Consequently, if the `Configuration`'s attributes were changed after these methods were called, the attributes used for resolution by these methods could unexpectedly differ from the final `Configuration` attributes.  
+Prior to Gradle 8.3, `Configuration.getIncoming().artifactView()` and `Configuration.getIncoming().getArtifacts()` captured immutable copies of the `Configuration`'s attributes upon invocation. Consequently, if the `Configuration`'s attributes were changed after these methods were called, the attributes used for resolution by these methods could unexpectedly differ from the final `Configuration` attributes.
 
-Given that some attributes are lazily added to `Configuration`s during resolution, the behavior of these methods could have differed based on the order that these methods were called. 
+Given that some attributes are lazily added to `Configuration`s during resolution, the behavior of these methods could have differed based on the order that these methods were called.
 
 Consider the following scenario where `producer` is a sibling `java-library` project to the build below:
 
@@ -86,8 +86,7 @@ The above scenario demonstrates the previous attribute snapshotting behavior, wh
 With the new behavior, the attribute collection used by `ArtifactView` is "live" and sees the modifications to the configuration's attributes; because of this the assertion now passes.
 
 The new behavior correctly implements the expectation that an `ArtifactView` without any further customization will return the same files as the configuration that created it.
-
-A system setting `link:{javadocPath}/org/gradle/api/internal/artifacts/configuration/DefaultConfiguration.html#USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR--[org.gradle.configuration.use-legacy-attribute-snapshot-behavior]` has been provided to temporarily restore the legacy behavior for those who need time to migrate.
+A new system setting `org.gradle.configuration.use-legacy-attribute-snapshot-behavior` has been provided to temporarily restore the legacy behavior for those who need time to migrate.
 This setting should be considered immediately deprecated and will be removed in Gradle 9.0.
 
 [[kotlin_1_8.20]]
