@@ -34,9 +34,8 @@ public class NestedValidationUtil  {
      * Validates that the {@link org.gradle.api.tasks.Nested} annotation
      * supports the given bean type.
      * <p>
-     * Only types with annotated properties are supported. Not supported are
-     * types from the Java SE API, except for types from
-     * the {@code java.util.function} package.
+     * Only types with annotated properties are supported. Types of
+     * the Java SE API are not supported.
      *
      * @param validationContext the validation context
      * @param propertyName the name of the property
@@ -60,13 +59,11 @@ public class NestedValidationUtil  {
         }
     }
 
-    private static final String SUPPORTED_PACKAGE_NAME = "java.util.function";
-
     private static boolean isJavaSE(Class<?> type) {
         return type.getName().startsWith("java.") || type.getName().startsWith("javax.");
     }
     private static boolean isSupportedType(Class<?> type) {
-        return !isJavaSE(type) || type.getName().startsWith(SUPPORTED_PACKAGE_NAME);
+        return !isJavaSE(type);
     }
 
     /**
