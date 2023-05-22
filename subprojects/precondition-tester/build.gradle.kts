@@ -15,10 +15,7 @@
  */
 
 plugins {
-    `java-library`
-    id("gradlebuild.dependency-modules")
-    id("gradlebuild.repositories")
-    id("gradlebuild.minify")
+    id("gradlebuild.internal.java")
 }
 
 description = "Internal project testing and collecting information about all the test preconditons."
@@ -50,7 +47,8 @@ dependencies {
 }
 
 tasks {
-    test {
-        useJUnitPlatform()
+    withType(Test::class) {
+        testClassesDirs = sourceSets.test.get().output.classesDirs
+        classpath = sourceSets.test.get().runtimeClasspath
     }
 }
