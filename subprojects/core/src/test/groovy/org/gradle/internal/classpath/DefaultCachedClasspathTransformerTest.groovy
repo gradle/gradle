@@ -30,6 +30,7 @@ import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.Hasher
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.io.ClassLoaderObjectInputStream
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -247,7 +248,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/01e416160778d051d40336af60a1dca7/thing.jar")
+        def cachedFile = testDir.file("cached/${instrumentedClasspathEntryKey(file)}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -275,7 +276,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def dir = testDir.file("thing.dir")
         classesDir(dir)
         def classpath = DefaultClassPath.of(dir)
-        def cachedFile = testDir.file("cached/3adb41d26ed4b3fc7a3c0e70dd612e24/thing.dir.jar")
+        def cachedFile = testDir.file("cached/${instrumentedClasspathEntryKey(dir)}/thing.dir.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -305,8 +306,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(dir, file)
-        def cachedDir = testDir.file("cached/3adb41d26ed4b3fc7a3c0e70dd612e24/thing.dir.jar")
-        def cachedFile = testDir.file("cached/01e416160778d051d40336af60a1dca7/thing.jar")
+        def cachedDir = testDir.file("cached/${instrumentedClasspathEntryKey(dir)}/thing.dir.jar")
+        def cachedFile = testDir.file("cached/${instrumentedClasspathEntryKey(file)}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -363,8 +364,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file3 = testDir.file("thing3.jar")
         jar(file3)
         def classpath = DefaultClassPath.of(dir, file, dir2, file2, dir3, file3)
-        def cachedDir = testDir.file("cached/3adb41d26ed4b3fc7a3c0e70dd612e24/thing.dir.jar")
-        def cachedFile = testDir.file("cached/01e416160778d051d40336af60a1dca7/thing.jar")
+        def cachedDir = testDir.file("cached/${instrumentedClasspathEntryKey(dir)}/thing.dir.jar")
+        def cachedFile = testDir.file("cached/${instrumentedClasspathEntryKey(file)}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -380,11 +381,15 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
     def "applies client provided transform to file"() {
         given:
-        def transform = Mock(CachedClasspathTransformer.Transform)
+        def transformHash = { Hasher hasher -> hasher.putInt(123) }
+        def transform = Mock(CachedClasspathTransformer.Transform) {
+            1 * applyConfigurationTo(_) >> { Hasher hasher -> transformHash(hasher) }
+        }
+
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/5dc4b6748a3b200dfeacab5756530be3/thing.jar")
+        def cachedFile = testDir.file("cached/${instrumentedClasspathEntryKey(file, new CompositeTransformer(transform, new InstrumentingTransformer()))}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic, transform)
@@ -393,7 +398,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         cachedClasspath.asFiles == [cachedFile]
 
         and:
-        1 * transform.applyConfigurationTo(_) >> { Hasher hasher -> hasher.putInt(123) }
+        1 * transform.applyConfigurationTo(_) >> { Hasher hasher -> transformHash(hasher) }
         1 * transform.apply(_, _, _) >> { entry, visitor, data ->
             assert entry.name == "a.class"
             Pair.of(entry.path, visitor)
@@ -418,7 +423,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jarWithStoredResource(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/24e26f6ec0b84c21d9101cab1617c298/thing.jar")
+        def cachedFile = testDir.file("cached/${instrumentedClasspathEntryKey(file)}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -520,6 +525,24 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def result = recreate(original).call()
 
         result == "123"
+    }
+
+    String instrumentedClasspathEntryKey(
+        File jar,
+        CachedClasspathTransformer.Transform transform = new InstrumentingTransformer()
+    ) {
+        Hasher configHasher = Hashing.defaultFunction().newHasher()
+
+        // This replicates `org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.configHashFor`
+        // Modify this on changes to InstrumentingClasspathFileTransformer.CACHE_FORMAT
+        configHasher.putInt(5)
+        transform.applyConfigurationTo(configHasher)
+
+        // This replicates `org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.hashOf`
+        Hasher result = Hashing.defaultFunction().newHasher()
+        result.putHash(configHasher.hash())
+        result.putHash(fileSystemAccess.read(jar.absolutePath).hash)
+        return result.hash().toString()
     }
 
     Object recreate(Object value) {
