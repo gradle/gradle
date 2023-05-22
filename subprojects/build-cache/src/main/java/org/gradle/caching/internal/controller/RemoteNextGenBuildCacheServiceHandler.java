@@ -16,22 +16,29 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheException;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
 
-import java.io.Closeable;
-
-public interface NextGenBuildCacheHandler extends Closeable {
+/**
+ * Handler for a remote build cache service.
+ *
+ * A remote build cache service can be disabled either by its configuration, or after an error has occurred.
+ * Storing can be disabled via configuration even if the service is enabled (and thus can load).
+ */
+public interface RemoteNextGenBuildCacheServiceHandler extends NextGenBuildCacheService {
+    /**
+     * Returns if the service can fulfill load requests.
+     * @return {@literal true} if the service is not disabled.
+     */
     boolean canLoad();
 
+    /**
+     * Returns if the service can fulfill store requests.
+     * @return {@literal true} if the service is not disabled and storing is enabled for the service.
+     */
     boolean canStore();
 
-    boolean contains(BuildCacheKey key);
-
-    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException;
-
-    void store(BuildCacheKey key, NextGenBuildCacheService.NextGenWriter writer) throws BuildCacheException;
-
+    /**
+     * Disables the service after an error has been encountered.
+     */
+    void disableOnError();
 }
