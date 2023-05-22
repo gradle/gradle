@@ -16,61 +16,22 @@
 
 package org.gradle.integtests.resolve.attributes
 
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 /**
  * Tests for [org.gradle.api.artifacts.ArtifactView ArtifactView] that ensure it uses the "live" attributes
  * of the configuration that created it to select files and artifacts.
  *
- * These tests assume a situation where a consumer should resolve the secondary "classes" variant of a producer
- * and obtain the "main" directory as the only file.  As the necessary attributes are not present on the
- * consumer's compileClasspath configuration until the beforeLocking callback method is called, the previous
- * incorrect behavior of the ArtifactView was to select the standard jar file variant instead of the "classes"
- * variant.
+ * As the necessary attributes are not present on the consumer's compileClasspath configuration until the
+ * beforeLocking callback method is called, the previous incorrect behavior of the ArtifactView was to select without
+ * considering these attributes.  This has been corrected to use a "live" view
+ * of the attributes, to ensure that late changes to the attributes are reflected in the selection.
+ *
+ * Most of these tests use the `java-library` plugin and should resolve the secondary "classes" variant of the producer
+ * and obtain the "main" directory as the only file, instead of the standard jar file variant, which was the legacy
+ * behavior.
  */
-class ArtifactViewAttributesIntegrationTest extends AbstractIntegrationSpec {
-    private static declareIncomingFiles = "def incomingFiles = configurations.compileClasspath.incoming.files"
-    private static declareIncomingArtifacts = "def incomingArtifacts = configurations.compileClasspath.incoming.artifacts"
-    private static declareArtifactViewFiles = "def artifactViewFiles = configurations.compileClasspath.incoming.artifactView {  }.files"
-    private static declareArtifactViewArtifacts = "def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView {  }.artifacts"
-
-    private static iterateIncomingFiles = """println 'Incoming Files:'
-incomingFiles.each {
-    println 'Name: ' + it.name
-}
-println ''
-"""
-    private static iterateIncomingArtifacts = """println 'Incoming Artifacts:'
-incomingArtifacts.each {
-    println 'Name: ' + it.id.name + ', File: ' + it.id.file.name
-}
-println ''
-"""
-    private static iterateArtifactViewFiles = """println 'Artifact View Files:'
-artifactViewFiles.each {
-    println 'Name: ' + it.name
-}
-println ''
-"""
-    private static iterateArtifactViewArtifacts = """println 'Artifact View Artifacts:'
-artifactViewArtifacts.each {
-    println 'Name: ' + it.id.name + ', File: ' + it.id.file.name
-}
-println ''
-"""
-
-    private static filesComparison = "assert incomingFiles*.name == artifactViewFiles*.name"
-    private static artifactComparison = "assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name"
-
+class ArtifactViewAttributesIntegrationTest extends AbstractArtifactViewAttributesIntegrationTest {
     def setup() {
-        settingsFile << """
-            rootProject.name = "consumer"
-            include "producer"
-        """
-
-        file("producer/build.gradle").text = """
+        file("producer/build.gradle") << """
             plugins {
                 id 'java-library'
             }
@@ -85,10 +46,6 @@ println ''
                 api project(':producer')
             }
         """
-
-        // Restore static property to default value prior to each test
-        //noinspection GroovyAccessibility
-        DefaultConfiguration.useLegacyAttributeSnapshottingBehavior = null
     }
 
     def "declare and iterate incoming files, then declare and iterate artifact view files"() {
@@ -306,43 +263,6 @@ println ''
         run ':help'
     }
 
-    @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
-    def "use legacy behavior to declare and iterate artifact view files, then declare and iterate incoming files"() {
-        buildFile << """
-            $declareArtifactViewFiles
-            $iterateArtifactViewFiles
-
-            $declareIncomingFiles
-            $iterateIncomingFiles
-
-            // The legacy behavior was for the artifact view variant selection to not use the lazy attributes
-            assert incomingFiles*.name != artifactViewFiles*.name
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
-        executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
-        run ':help'
-    }
-
-    @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
-    def "use legacy behavior to declare and iterate incoming artifacts, then declare and iterate artifact view artifacts"() {
-        buildFile << """
-            $declareIncomingArtifacts
-            $iterateIncomingArtifacts
-
-            $declareArtifactViewArtifacts
-            $iterateArtifactViewArtifacts
-
-            // The legacy behavior was for the incoming artifacts variant selection to not use the lazy attributes
-            assert incomingArtifacts*.id.file.name != artifactViewArtifacts*.id.file.name
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
-        executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
-        run ':help'
-    }
 
     def "test adding an attribute lately without using beforeLocking or the java plugin still produces same files"() {
         // Replace text to avoid adding Java plugin
@@ -408,126 +328,5 @@ println ''
 
         and:
         run ':verifySameArtifacts'
-    }
-
-    @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
-    def "test legacy behavior when adding an attribute lately without using beforeLocking or the java plugin still produces same files"() {
-        // Replace text to avoid adding Java plugin
-        file("producer/build.gradle").text = """
-            interface Flavor extends Named {}
-            def flavor = Attribute.of(Flavor)
-
-            configurations {
-                producerConf1 {
-                    attributes {
-                        attribute(flavor, objects.named(Flavor, 'vanilla'))
-                    }
-                    outgoing {
-                        artifact file('file-vanilla')
-                    }
-                }
-                producerConf2 {
-                    attributes {
-                        attribute(flavor, objects.named(Flavor, 'chocolate'))
-                    }
-                    outgoing {
-                        artifact file('file-chocolate')
-                    }
-                }
-            }
-        """
-
-        // Replace text to avoid adding Java plugin
-        buildFile.text = """
-            interface Flavor extends Named {}
-            def flavor = Attribute.of(Flavor)
-
-            configurations {
-                filesConsumerConf {
-                    attributes {
-                        attribute(flavor, objects.named(Flavor, 'vanilla'))
-                    }
-                }
-            }
-
-            dependencies {
-                filesConsumerConf(project(":producer"))
-            }
-
-            tasks.register("verifySameFiles") {
-                def incomingFiles = configurations.filesConsumerConf.incoming.files
-                def artifactViewFiles = configurations.filesConsumerConf.incoming.artifactView { lenient = true }.files // snapshot is taken here
-                configurations.filesConsumerConf.attributes.attribute(flavor, objects.named(Flavor, 'chocolate')) // not used for artifact view
-
-                doLast {
-                    assert incomingFiles*.name == artifactViewFiles*.name // fails
-                }
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
-        executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
-        fails ':verifySameFiles'
-    }
-
-    @ToBeFixedForConfigurationCache(because = "Legacy behavior is not supported with the configuration cache")
-    def "test legacy behavior when adding an attribute lately without using beforeLocking or the java plugin still produces same artifacts"() {
-        // Replace text to avoid adding Java plugin
-        file("producer/build.gradle").text = """
-            interface Flavor extends Named {}
-            def flavor = Attribute.of(Flavor)
-
-            configurations {
-                producerConf1 {
-                    attributes {
-                        attribute(flavor, objects.named(Flavor, 'vanilla'))
-                    }
-                    outgoing {
-                        artifact file('file-vanilla')
-                    }
-                }
-                producerConf2 {
-                    attributes {
-                        attribute(flavor, objects.named(Flavor, 'chocolate'))
-                    }
-                    outgoing {
-                        artifact file('file-chocolate')
-                    }
-                }
-            }
-        """
-
-        // Replace text to avoid adding Java plugin
-        buildFile.text = """
-            interface Flavor extends Named {}
-            def flavor = Attribute.of(Flavor)
-
-            configurations {
-                artifactsConsumerConf {
-                    attributes {
-                        attribute(flavor, objects.named(Flavor, 'vanilla'))
-                    }
-                }
-            }
-
-            dependencies {
-                artifactsConsumerConf(project(":producer"))
-            }
-
-            tasks.register("downloadArtifacts") {
-                def incomingArtifacts = configurations.artifactsConsumerConf.incoming.artifacts // attributes snapshot is taken here
-                configurations.artifactsConsumerConf.attributes.attribute(flavor, objects.named(Flavor, 'chocolate')) // not used
-
-                doLast {
-                    assert incomingArtifacts*.id.file.name == ['file-chocolate'] // fails
-                }
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The org.gradle.configuration.use-legacy-attribute-snapshot-behavior system property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please remove this flag and use the current default behavior. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#legacy_attribute_snapshotting")
-        executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
-        fails ':downloadArtifacts'
     }
 }

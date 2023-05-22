@@ -89,8 +89,6 @@ The new behavior correctly implements the expectation that an `ArtifactView` wit
 A new system setting `org.gradle.configuration.use-legacy-attribute-snapshot-behavior` has been provided to temporarily restore the legacy behavior for those who need time to migrate.
 This setting should be considered immediately deprecated and will be removed in Gradle 9.0.
 
-Note that the legacy behavior is not supported with the Configuration Cache.
-
 [[kotlin_1_8.20]]
 ==== Upgrade to Kotlin 1.8.21
 
