@@ -16,11 +16,13 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
@@ -66,7 +68,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     Throwable failure = null;
                     try {
                         worker.execute(buildOperation, context);
-                        context.setProblems(Problems.removeAllProblems());
                     } catch (Throwable t) {
                         if (context.getFailure() == null) {
                             if (t instanceof GradleExceptionWithContext) {
@@ -76,6 +77,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                             }
                         }
                         failure = t;
+                    } finally {
+                        context.setProblems(Problems.removeAllProblems());
                     }
                     listener.stop(descriptor, operationState, parent, context);
                     if (failure != null) {
@@ -276,8 +279,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
         @Override
         void setStatus(@Nullable String status);
-        List<Object> getProblems();
-        void setProblems(List<Object> objects);
+        List<Problem> getProblems();
+        void setProblems(List<Problem> objects);
     }
 
     public interface BuildOperationExecutionListener {
@@ -324,7 +327,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         private Throwable failure;
         private Object result;
         private String status;
-        private List<Object> problems;
+        private List<Problem> problems = new ArrayList<Problem>();
 
         public DefaultBuildOperationContext(BuildOperationDescriptor descriptor, BuildOperationExecutionListener listener) {
             this.descriptor = descriptor;
@@ -365,13 +368,13 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         @Override
-        public List<Object> getProblems() {
+        public List<Problem> getProblems() {
             return problems;
         }
 
         @Override
-        public void setProblems(List<Object> objects) {
-            this.problems = objects;
+        public void setProblems(List<Problem> objects) {
+            this.problems.addAll(objects);
         }
 
         @Override

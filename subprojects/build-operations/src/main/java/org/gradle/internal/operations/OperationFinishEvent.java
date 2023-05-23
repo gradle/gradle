@@ -16,6 +16,8 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.api.problems.Problem;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -24,9 +26,9 @@ public final class OperationFinishEvent {
     private final long endTime;
     private final Throwable failure;
     private final Object result;
-    private final List<Object> additionalFailureContext;
+    private final List<Problem> additionalFailureContext;
 
-    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result, @Nullable List<Object> additionalFailureContext) {
+    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result, @Nullable List<Problem> additionalFailureContext) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failure = failure;
@@ -52,7 +54,7 @@ public final class OperationFinishEvent {
         return result;
     }
 
-    public List<Object> getAdditionalFailureContext() {
+    public List<Problem> getAdditionalFailureContext() {
         return additionalFailureContext;
     }
 

@@ -17,35 +17,36 @@
 package org.gradle.api.problems;
 
 import org.gradle.internal.operations.GradleExceptionWithContext;
+import org.gradle.internal.problems.DefaultProblem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Problems {
 
-    private static final ThreadLocal<List<Object>> problems = new ThreadLocal<List<Object>>();
-    public static List<Object> removeAllProblems() {
-        return problems.get();
+    private static final ThreadLocal<List<Problem>> problems = new ThreadLocal<List<Problem>>();
+    public static List<Problem> removeAllProblems() {
+        List<Problem> objects = problems.get();
+        return objects == null ? Collections.<Problem>emptyList() : objects;
+
     }
 
     public static void reportWarning(String message) {
-        Map<String, String> warning = new HashMap<String, String>();
-        warning.put("severity", "WARNING");
-        warning.put("message", message);
-        addProblem(warning);
+        addProblem(new DefaultProblem(message, "WARNING", null, null, null));
     }
 
-    public static void reportFailure(Object failureContext, Throwable cause) {
-        addProblem(failureContext);
-        throw new GradleExceptionWithContext(failureContext, cause);
+    public static void reportFailure(String message, String file, Integer line, Integer column, Throwable cause) {
+        addProblem(new DefaultProblem(message, "ERROR", file, line, column));
+        throw new GradleExceptionWithContext(cause);
     }
 
-    private static void addProblem(Object problem) {
-        List<Object> problemList = problems.get();
+    private static void addProblem(Problem problem) {
+        List<Problem> problemList = problems.get();
         if (problemList == null) {
-            problemList = new ArrayList<Object>();
+            problemList = new ArrayList<Problem>();
         }
         problemList.add(problem);
         problems.set(problemList);

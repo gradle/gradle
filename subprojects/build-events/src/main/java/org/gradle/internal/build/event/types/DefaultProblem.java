@@ -16,10 +16,12 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.api.problems.Problem;
 import org.gradle.tooling.internal.protocol.InternalProblem;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,25 +33,34 @@ public class DefaultProblem implements Serializable, InternalProblem {
         this.rawAttributes = rawAttributes;
     }
 
-
     @Override
     public Map<String, String> getRawAttributes() {
         return rawAttributes;
     }
 
-    public static InternalProblem from(Map<String, String> rawAttributes) {
+    private static InternalProblem from(Problem problem) {
+        Map<String, String> rawAttributes = new HashMap<>();
+        rawAttributes.put("message", problem.getMessage());
+        rawAttributes.put("severity", problem.getSeverity());
+        String file = problem.getFile();
+        if (file != null) {
+            rawAttributes.put("file", file);
+        }
+        Integer line = problem.getLine();
+        if (line != null) {
+            rawAttributes.put("line", line.toString());
+        }
+        Integer column = problem.getColumn();
+        if (column != null) {
+            rawAttributes.put("column", column.toString());
+        }
         return new DefaultProblem(rawAttributes);
     }
 
-    @SuppressWarnings("unchecked")
-    public static List<InternalProblem> from(List<Object> problems) {
+    public static List<InternalProblem> from(List<Problem> problems) {
         List<InternalProblem> result = new ArrayList<>(problems.size());
-        for (Object problem : problems) {
-            if (problem instanceof Map) {
-                result.add(DefaultProblem.from((Map<String, String>) problem));
-            } else {
-                throw new RuntimeException("Not the droids I'm looking for.");
-            }
+        for (Problem problem : problems) {
+            result.add(from(problem));
         }
         return result;
     }

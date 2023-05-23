@@ -550,10 +550,11 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-//        List<Problem> problems = listener.context
-//        (problems[0].rawAttributes['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
-//        (problems[0].rawAttributes['severity'] as String).contains('WARNING')
-        //problems[1] == "Should not happen"
+        List<Problem> problems = listener.context
+        (problems[0].rawAttributes['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
+        (problems[0].rawAttributes['severity'] as String).contains('WARNING')
+        (problems[1].rawAttributes['message'] as String).contains('Should not happen')
+        (problems[1].rawAttributes['severity'] as String).contains('ERROR')
     }
 
     def "Test line number"() {
