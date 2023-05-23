@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Identity of a transformation node in an execution plan.
+ * Identity of a transform step node in an execution plan.
  *
  * @since 8.1
  */
@@ -48,29 +48,29 @@ public interface PlannedTransformStepIdentity extends NodeIdentity {
     ComponentIdentifier getComponentId();
 
     /**
-     * Full set of attributes of the artifact before the transformation.
+     * Full set of attributes of the artifact before the transform.
      */
     Map<String, String> getSourceAttributes();
 
     /**
      * Target attributes of the transformed artifact.
      * <p>
-     * The attributes include all source attributes of the artifact before the transformation,
-     * values for some of which have been changed by the transformation.
+     * The attributes include all source attributes of the artifact before the transform,
+     * values for some of which have been changed by the transform.
      */
     Map<String, String> getTargetAttributes();
 
     /**
      * Capabilities of the variant of the transformed artifact.
      * <p>
-     * Artifact transforms can only change attributes, so the capabilities remain unchanged throughout the transformation chain.
+     * Artifact transforms can only change attributes, so the capabilities remain unchanged throughout the transform chain.
      */
     List<? extends Capability> getCapabilities();
 
     /**
      * Name of the source artifact being transformed.
      * <p>
-     * This name remains the same throughout the transformation chain.
+     * This name remains the same throughout the transform chain.
      */
     String getArtifactName();
 
@@ -83,7 +83,7 @@ public interface PlannedTransformStepIdentity extends NodeIdentity {
     ConfigurationIdentity getDependenciesConfigurationIdentity();
 
     /**
-     * An opaque identifier distinguishes between different transformation nodes in case other identity properties are the same.
+     * An opaque identifier distinguishes between different transform step nodes in case other identity properties are the same.
      */
     long getTransformStepNodeId();
 

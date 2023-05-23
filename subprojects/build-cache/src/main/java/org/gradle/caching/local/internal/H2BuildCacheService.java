@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -49,8 +50,10 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
     public void open() {
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
+        // AUTO_COMPACT_FILL_RATE=0 disables compacting, we will compact on cleanup
+        // COMPRESS=false disables compression, we already do gzip compression
         // We use MODE=MySQL so we can use INSERT IGNORE
-        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;MODE=MySQL;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve("filestore"));
+        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;AUTO_COMPACT_FILL_RATE=0;COMPRESS=false;MODE=MySQL;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve("filestore"));
         hikariConfig.setJdbcUrl(h2JdbcUrl);
         hikariConfig.setDriverClassName(Driver.class.getName());
         hikariConfig.setUsername("sa");
@@ -109,6 +112,18 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
                 }
             }
         } catch (SQLException | IOException e) {
+            throw new BuildCacheException("storing " + key, e);
+        }
+    }
+
+    @VisibleForTesting
+    public boolean remove(BuildCacheKey key) throws BuildCacheException {
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("delete from filestore.catalog where entry_key = ?")) {
+                stmt.setString(1, key.getHashCode());
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
             throw new BuildCacheException("storing " + key, e);
         }
     }

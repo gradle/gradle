@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.artifacts.transform.TransformationDependency;
+import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
 
 import javax.annotation.Nullable;
 
@@ -41,7 +41,7 @@ public interface TaskDependencyResolveContext extends Action<Task> {
      *
      * <li>{@link org.gradle.api.Buildable}</li>
      *
-     * <li>{@link TransformationDependency}</li>
+     * <li>{@link TransformNodeDependency}</li>
      *
      * <li>{@link WorkNodeAction}</li>
      *

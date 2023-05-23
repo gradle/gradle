@@ -23,28 +23,28 @@ import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentit
 
 public class ExecutePlannedTransformStepBuildOperationDetails implements ExecutePlannedTransformStepBuildOperationType.Details, CustomOperationTraceSerialization {
 
-    private final TransformationNode transformationNode;
+    private final TransformStepNode transformStepNode;
     private final String transformerName;
     private final String subjectName;
 
-    public ExecutePlannedTransformStepBuildOperationDetails(TransformationNode transformationNode, String transformerName, String subjectName) {
-        this.transformationNode = transformationNode;
+    public ExecutePlannedTransformStepBuildOperationDetails(TransformStepNode transformStepNode, String transformerName, String subjectName) {
+        this.transformStepNode = transformStepNode;
         this.transformerName = transformerName;
         this.subjectName = subjectName;
     }
 
-    public TransformationNode getTransformationNode() {
-        return transformationNode;
+    public TransformStepNode getTransformStepNode() {
+        return transformStepNode;
     }
 
     @Override
     public PlannedTransformStepIdentity getPlannedTransformStepIdentity() {
-        return transformationNode.getNodeIdentity();
+        return transformStepNode.getNodeIdentity();
     }
 
     @Override
     public Class<?> getTransformActionClass() {
-        return transformationNode.getTransformationStep().getTransformer().getImplementationClass();
+        return transformStepNode.getTransformStep().getTransform().getImplementationClass();
     }
 
     @Override

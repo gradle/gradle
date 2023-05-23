@@ -73,6 +73,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'dev.adamko.dokkatoo.DokkatooBasePlugin$Inject',
                 'dev.adamko.dokkatoo.adapters.DokkatooJavaAdapter$Inject',
                 'dev.adamko.dokkatoo.adapters.DokkatooKotlinAdapter$Inject',
+                'dev.adamko.dokkatoo.adapters.DokkatooAndroidAdapter$Inject',
                 'dev.adamko.dokkatoo.formats.DokkatooHtmlPlugin$Inject',
             ]
         }

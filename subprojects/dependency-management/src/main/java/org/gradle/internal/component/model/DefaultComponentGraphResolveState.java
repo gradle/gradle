@@ -198,15 +198,15 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), new ExternalVariantArtifactSelectionMetadata(allVariants, legacyVariants), exclusions, overriddenAttributes);
+            return artifactSelector.resolveArtifacts(new ExternalArtifactResolveMetadata(artifactMetadata), new ExternalVariantArtifactSelectionCandidates(allVariants, legacyVariants), exclusions, overriddenAttributes);
         }
     }
 
-    private static class ExternalVariantArtifactSelectionMetadata implements VariantArtifactSelectionMetadata {
+    private static class ExternalVariantArtifactSelectionCandidates implements VariantArtifactSelectionCandidates {
         private final Set<? extends VariantResolveMetadata> allVariants;
         private final Set<? extends VariantResolveMetadata> legacyVariants;
 
-        public ExternalVariantArtifactSelectionMetadata(Set<? extends VariantResolveMetadata> allVariants, Set<? extends VariantResolveMetadata> legacyVariants) {
+        public ExternalVariantArtifactSelectionCandidates(Set<? extends VariantResolveMetadata> allVariants, Set<? extends VariantResolveMetadata> legacyVariants) {
             this.allVariants = allVariants;
             this.legacyVariants = legacyVariants;
         }
