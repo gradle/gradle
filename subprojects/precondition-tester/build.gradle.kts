@@ -51,5 +51,9 @@ tasks {
     withType(Test::class) {
         testClassesDirs = sourceSets.test.get().output.classesDirs
         classpath = sourceSets.test.get().runtimeClasspath
+
+        predictiveSelection {
+            enabled = false
+        }
     }
 }
