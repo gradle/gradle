@@ -18,24 +18,28 @@ package org.gradle.internal.build;
 import com.google.common.collect.ImmutableList;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.HoldsProjectState;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.execution.DefaultEntryTaskSelectorContext;
 import org.gradle.execution.EntryTaskSelector;
+import org.gradle.execution.TaskSelection;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.Describables;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -193,7 +197,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             }
             List<BiConsumer<EntryTaskSelector.Context, ExecutionPlan>> finalizations = workPlan.finalizations;
             if (!finalizations.isEmpty()) {
-                DefaultEntryTaskSelectorContext context = new DefaultEntryTaskSelectorContext(gradle, buildSpecificSelector());
+                EntryTaskSelectorContext context = new EntryTaskSelectorContext();
                 for (BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization : finalizations) {
                     finalization.accept(context, workPlan.plan);
                 }
@@ -202,9 +206,50 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         });
     }
 
-    private BuildTaskSelector.BuildSpecificSelector buildSpecificSelector() {
-        return gradle.getServices().get(BuildTaskSelector.class).relativeToBuild(gradle.getOwner());
+    @NonNullApi
+    private class EntryTaskSelectorContext implements EntryTaskSelector.Context {
+
+        @Override
+        public TaskSelection getSelection(String taskPath) {
+            // We assume taskPath is valid since the selector has been used before
+            Path path = Path.path(taskPath);
+            Path projectPath = path.getParent();
+            String taskName = path.getName();
+            ProjectInternal project = findProject(projectPath, gradle.getOwner());
+            if (project != null) {
+                return new TaskSelection(
+                    project.getPath(),
+                    taskName,
+                    tasks -> tasks.add(project.getTasks().getByName(taskName))
+                );
+            }
+            return new TaskSelection(null, null, tasks -> {});
+        }
+
+        @Override
+        public GradleInternal getGradle() {
+            return gradle;
+        }
     }
+
+    @Nullable
+    private static ProjectInternal findProject(Path path, BuildState target) {
+        assert path.isAbsolute();
+        // Either the project is available at the current target
+        ProjectState targetProject = target.getProjects().findProject(path);
+        if (targetProject != null) {
+            return targetProject.getMutableModel();
+        }
+        // Or it must be from an included build.
+        String includedBuildName = path.segment(0);
+        for (IncludedBuildInternal includedBuild : target.getMutableModel().includedBuilds()) {
+            if (includedBuild.getName().equals(includedBuildName)) {
+                return findProject(path.removeFirstSegments(1), includedBuild.getTarget());
+            }
+        }
+        return null;
+    }
+
 
     @Override
     public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {

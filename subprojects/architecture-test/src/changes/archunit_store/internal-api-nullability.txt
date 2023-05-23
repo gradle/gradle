@@ -2091,6 +2091,7 @@ Class <org.gradle.internal.build.BuildWorkGraph> is not annotated (directly or v
 Class <org.gradle.internal.build.BuildWorkGraphController> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildWorkGraphController.java:0)
 Class <org.gradle.internal.build.BuildWorkPreparer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildWorkPreparer.java:0)
 Class <org.gradle.internal.build.CompositeBuildParticipantBuildState> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CompositeBuildParticipantBuildState.java:0)
+Class <org.gradle.internal.build.DefaultBuildLifecycleController$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildLifecycleController.java:0)
 Class <org.gradle.internal.build.DefaultBuildLifecycleController$DefaultBuildWorkPlan> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildLifecycleController.java:0)
 Class <org.gradle.internal.build.DefaultBuildLifecycleController$DefaultWorkGraphBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildLifecycleController.java:0)
 Class <org.gradle.internal.build.DefaultBuildLifecycleController$State> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildLifecycleController.java:0)
