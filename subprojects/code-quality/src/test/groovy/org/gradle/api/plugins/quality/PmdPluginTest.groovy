@@ -16,6 +16,11 @@
 package org.gradle.api.plugins.quality
 
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
@@ -254,5 +259,47 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         def pmdTask = project.tasks.getByName("pmdMain")
         expect:
         pmdTask.classpath.files == (mainSourceSet.output + mainSourceSet.compileClasspath).files
+    }
+
+    def "tool configuration has correct attributes"() {
+        expect:
+        with(project.configurations.pmd.attributes) {
+            assert getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.LIBRARY
+            assert getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
+            assert getAttribute(Bundling.BUNDLING_ATTRIBUTE).name == Bundling.EXTERNAL
+            assert getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).name == LibraryElements.JAR
+            assert getAttribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE).name == TargetJvmEnvironment.STANDARD_JVM
+        }
+    }
+
+    def "pmdAux configuration has correct attributes"() {
+        expect:
+        with(project.configurations.pmdAux.attributes) {
+            assert getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.LIBRARY
+            assert getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
+            assert getAttribute(Bundling.BUNDLING_ATTRIBUTE).name == Bundling.EXTERNAL
+            assert getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).name == LibraryElements.JAR
+            assert getAttribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE).name == TargetJvmEnvironment.STANDARD_JVM
+        }
+    }
+
+    def "task aux configurations have correct attributes"() {
+        given:
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+
+        when:
+        project.tasks.pmdMain
+
+        then:
+        with(project.configurations.mainPmdAuxClasspath.attributes) {
+            assert getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.LIBRARY
+            assert getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
+            assert getAttribute(Bundling.BUNDLING_ATTRIBUTE).name == Bundling.EXTERNAL
+            assert getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).name == LibraryElements.JAR
+            assert getAttribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE).name == TargetJvmEnvironment.STANDARD_JVM
+        }
     }
 }
