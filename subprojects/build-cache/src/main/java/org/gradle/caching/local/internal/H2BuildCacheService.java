@@ -191,6 +191,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
          * Copies entries that are not too old to a new database returns the path to the new file of new database.
          */
         private void copyDatabase() {
+            open();
             try (Connection conn = dataSource.getConnection()) {
                 // Drop linked tables if they exist, to avoid "table already exists" error
                 // in case a previous cleanup failed for some reason during the copy
