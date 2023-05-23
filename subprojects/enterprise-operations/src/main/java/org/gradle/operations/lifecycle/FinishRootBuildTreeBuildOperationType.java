@@ -18,7 +18,7 @@ package org.gradle.operations.lifecycle;
 
 import org.gradle.internal.operations.BuildOperationType;
 
-public final class FinishBuildTreeBuildOperationType implements BuildOperationType<FinishBuildTreeBuildOperationType.Details, FinishBuildTreeBuildOperationType.Result> {
+public final class FinishRootBuildTreeBuildOperationType implements BuildOperationType<FinishRootBuildTreeBuildOperationType.Details, FinishRootBuildTreeBuildOperationType.Result> {
 
     public interface Details {
     }

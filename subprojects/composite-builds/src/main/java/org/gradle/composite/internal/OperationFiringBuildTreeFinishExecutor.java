@@ -21,7 +21,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.operations.lifecycle.FinishBuildTreeBuildOperationType;
+import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -57,6 +57,6 @@ public class OperationFiringBuildTreeFinishExecutor implements BuildTreeFinishEx
         });
     }
 
-    private static final FinishBuildTreeBuildOperationType.Details DETAILS = new FinishBuildTreeBuildOperationType.Details() {};
-    private static final FinishBuildTreeBuildOperationType.Result RESULT = new FinishBuildTreeBuildOperationType.Result() {};
+    private static final FinishRootBuildTreeBuildOperationType.Details DETAILS = new FinishRootBuildTreeBuildOperationType.Details() {};
+    private static final FinishRootBuildTreeBuildOperationType.Result RESULT = new FinishRootBuildTreeBuildOperationType.Result() {};
 }
