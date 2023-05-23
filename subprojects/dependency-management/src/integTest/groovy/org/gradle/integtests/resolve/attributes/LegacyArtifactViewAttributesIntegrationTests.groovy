@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 
 /**
  * Tests for [org.gradle.api.artifacts.ArtifactView ArtifactView] that confirm the legacy "snapshotting"
@@ -26,8 +28,16 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
  * the variant using the artifact view.
  */
 class LegacyArtifactViewAttributesIntegrationTests extends AbstractArtifactViewAttributesIntegrationTest {
+    @Rule SetSystemProperties resetProperties = new SetSystemProperties()
+
     def setup() {
         executer.withArgument("-D${DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR}=true")
+    }
+
+    def cleanup() {
+        System.clearProperty(DefaultConfiguration.USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR)
+        //noinspection GroovyAccessibility
+        DefaultConfiguration.useLegacyAttributeSnapshottingBehavior = null // reset cached property in loaded class
     }
 
     def "use legacy behavior to declare and iterate artifact view files, then declare and iterate incoming files"() {
