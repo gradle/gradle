@@ -17,6 +17,7 @@
 package org.gradle.tooling.events;
 
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.Problem;
 
 import java.util.List;
 
@@ -34,6 +35,5 @@ public interface FailureResult extends OperationResult {
      */
     List<? extends Failure> getFailures();
 
-    List<Object> getAdditionalFailureContext();
-
+    List<? extends Problem> getAdditionalFailureContext();
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 
 import java.util.List;
@@ -24,9 +25,9 @@ import java.util.List;
 public class DefaultProjectConfigurationFailureResult extends AbstractProjectConfigurationResult implements InternalFailureResult {
 
     private final List<InternalFailure> failures;
-    private final List<Object> additionalFailureContext;
+    private final List<InternalProblem> additionalFailureContext;
 
-    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<InternalFailure> failures, List<? extends InternalPluginApplicationResult> pluginApplicationResults, List<Object> additionalFailureContext) {
+    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<InternalFailure> failures, List<? extends InternalPluginApplicationResult> pluginApplicationResults, List<InternalProblem> additionalFailureContext) {
         super(startTime, endTime, "failed", pluginApplicationResults, additionalFailureContext);
         this.failures = failures;
         this.additionalFailureContext = additionalFailureContext;
@@ -39,7 +40,7 @@ public class DefaultProjectConfigurationFailureResult extends AbstractProjectCon
 
 
     @Override
-    public List<Object> getAdditionalFailureContext() {
+    public List<InternalProblem> getAdditionalFailureContext() {
         return additionalFailureContext;
     }
 }

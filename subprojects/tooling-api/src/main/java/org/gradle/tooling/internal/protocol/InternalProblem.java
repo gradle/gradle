@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.work.internal;
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
-import org.gradle.tooling.events.work.WorkItemFailureResult;
+import java.util.Map;
 
-import java.util.List;
+public interface InternalProblem {
 
-public class DefaultWorkItemFailureResult extends DefaultOperationFailureResult implements WorkItemFailureResult {
-
-    public DefaultWorkItemFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
-        super(startTime, endTime, failures);
-    }
-
+    Map<String, String> getRawAttributes();
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public abstract class AbstractProjectConfigurationResult extends AbstractOperati
 
     private final List<? extends InternalPluginApplicationResult> pluginApplicationResults;
 
-    public AbstractProjectConfigurationResult(long startTime, long endTime, String outcomeDescription, List<? extends InternalPluginApplicationResult> pluginApplicationResults, List<Object> additionalFailureContext) {
+    public AbstractProjectConfigurationResult(long startTime, long endTime, String outcomeDescription, List<? extends InternalPluginApplicationResult> pluginApplicationResults, List<InternalProblem> additionalFailureContext) {
         super(startTime, endTime, outcomeDescription, additionalFailureContext);
         this.pluginApplicationResults = pluginApplicationResults;
     }

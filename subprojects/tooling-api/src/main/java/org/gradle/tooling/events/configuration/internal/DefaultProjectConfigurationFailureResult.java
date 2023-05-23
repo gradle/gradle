@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.configuration.internal;
 
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.configuration.ProjectConfigurationFailureResult;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 
@@ -25,10 +26,10 @@ import java.util.List;
 public class DefaultProjectConfigurationFailureResult extends DefaultOperationFailureResult implements ProjectConfigurationFailureResult {
 
     private final List<? extends PluginApplicationResult> pluginApplicationResults;
-    private final List<Object> additionalFailureContext;
+    private final List<Problem> additionalFailureContext;
 
-    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends PluginApplicationResult> pluginApplicationResults, List<Object> additionalFailureContext) {
-        super(startTime, endTime, failures, null);
+    public DefaultProjectConfigurationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends PluginApplicationResult> pluginApplicationResults, List<Problem> additionalFailureContext) {
+        super(startTime, endTime, failures);
         this.pluginApplicationResults = pluginApplicationResults;
         this.additionalFailureContext = additionalFailureContext;
     }
@@ -40,7 +41,7 @@ public class DefaultProjectConfigurationFailureResult extends DefaultOperationFa
 
 
     @Override
-    public List<Object> getAdditionalFailureContext() {
+    public List<Problem> getAdditionalFailureContext() {
         return additionalFailureContext;
     }
 }

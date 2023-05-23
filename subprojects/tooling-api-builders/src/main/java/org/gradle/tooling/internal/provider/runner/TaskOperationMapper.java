@@ -28,6 +28,7 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.types.AbstractTaskResult;
 import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultProblem;
 import org.gradle.internal.build.event.types.DefaultTaskDescriptor;
 import org.gradle.internal.build.event.types.DefaultTaskFailureResult;
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent;
@@ -131,7 +132,7 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
             if (failure == null) {
                 return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons);
             } else {
-                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons, finishEvent.getAdditionalFailureContext());
+                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons, DefaultProblem.from(finishEvent.getAdditionalFailureContext()));
             }
         }
     }

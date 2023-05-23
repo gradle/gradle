@@ -22,6 +22,7 @@ import org.gradle.internal.build.event.types.DefaultFailureResult;
 import org.gradle.internal.build.event.types.DefaultOperationDescriptor;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultProblem;
 import org.gradle.internal.build.event.types.DefaultSuccessResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -72,8 +73,8 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();
         if (failure != null) {
-            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), result.getAdditionalFailureContext());
+            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), DefaultProblem.from(result.getAdditionalFailureContext()));
         }
-        return new DefaultSuccessResult(startTime, endTime);
+        return new DefaultSuccessResult(startTime, endTime); // TODO we might have problems here too
     }
 }

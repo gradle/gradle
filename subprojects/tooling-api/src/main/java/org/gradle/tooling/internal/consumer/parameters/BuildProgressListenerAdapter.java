@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
@@ -118,10 +119,12 @@ import org.gradle.tooling.events.work.internal.DefaultWorkItemOperationDescripto
 import org.gradle.tooling.events.work.internal.DefaultWorkItemStartEvent;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
+import org.gradle.tooling.internal.consumer.DefaultProblem;
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
@@ -389,11 +392,19 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         OperationResult result;
         if (event.getResult() instanceof InternalFailureResult) {
             InternalFailureResult internalResult = (InternalFailureResult) event.getResult();
-            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()), internalResult.getAdditionalFailureContext());
+            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()), toToolingProblems(internalResult.getAdditionalFailureContext()));
         } else {
             result = new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime());
         }
         return new DefaultBuildPhaseFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result);
+    }
+
+    private static List<Problem> toToolingProblems(List<? extends InternalProblem> additionalFailureContext) {
+       List<Problem> result = new ArrayList<>(additionalFailureContext.size());
+       for (InternalProblem context : additionalFailureContext) {
+           result.add(new DefaultProblem(context.getRawAttributes()));
+       }
+       return result;
     }
 
     private void broadcastGenericProgressEvent(InternalProgressEvent event) {
@@ -742,7 +753,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()), result.getAdditionalFailureContext());
+            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()), toToolingProblems(result.getAdditionalFailureContext()));
         } else {
             return null;
         }
@@ -785,7 +796,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), ((InternalFailureResult)result).getAdditionalFailureContext());
+            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toToolingProblems(result.getAdditionalFailureContext()));
         } else {
             return null;
         }

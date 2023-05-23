@@ -17,17 +17,19 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 
 import java.util.List;
 
 public class DefaultFailureResult extends AbstractOperationResult implements InternalFailureResult {
     private final List<InternalFailure> failures;
+
     public DefaultFailureResult(long startTime, long endTime, List<InternalFailure> failures) {
         this(startTime, endTime, failures, null);
     }
 
-    public DefaultFailureResult(long startTime, long endTime, List<InternalFailure> failures, List<Object> additionalFailureContext) {
+    public DefaultFailureResult(long startTime, long endTime, List<InternalFailure> failures, List<InternalProblem> additionalFailureContext) {
         super(startTime, endTime, "failed", additionalFailureContext);
         this.failures = failures;
     }

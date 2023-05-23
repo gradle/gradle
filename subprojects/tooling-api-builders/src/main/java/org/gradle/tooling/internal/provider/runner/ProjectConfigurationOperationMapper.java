@@ -23,6 +23,7 @@ import org.gradle.internal.build.event.types.AbstractProjectConfigurationResult;
 import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultProblem;
 import org.gradle.internal.build.event.types.DefaultProjectConfigurationDescriptor;
 import org.gradle.internal.build.event.types.DefaultProjectConfigurationFailureResult;
 import org.gradle.internal.build.event.types.DefaultProjectConfigurationSuccessResult;
@@ -85,8 +86,8 @@ class ProjectConfigurationOperationMapper implements BuildOperationMapper<Config
         long endTime = finishEvent.getEndTime();
         Throwable failure = finishEvent.getFailure();
         if (failure != null) {
-            return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults, finishEvent.getAdditionalFailureContext());
+            return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults, DefaultProblem.from(finishEvent.getAdditionalFailureContext()));
         }
-        return new DefaultProjectConfigurationSuccessResult(startTime, endTime, pluginApplicationResults);
+        return new DefaultProjectConfigurationSuccessResult(startTime, endTime, pluginApplicationResults); // TODO problems should be also passed to the success event
     }
 }

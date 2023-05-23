@@ -31,7 +31,7 @@ public final class DefaultTaskFailureResult extends DefaultOperationFailureResul
     private final TaskExecutionDetails taskExecutionDetails;
 
     public DefaultTaskFailureResult(long startTime, long endTime, List<? extends Failure> failures, TaskExecutionDetails taskExecutionDetails) {
-        super(startTime, endTime, failures, null);
+        super(startTime, endTime, failures);
         this.taskExecutionDetails = taskExecutionDetails;
     }
 

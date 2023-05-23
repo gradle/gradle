@@ -22,6 +22,7 @@ import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.DefaultFailureResult;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultProblem;
 import org.gradle.internal.build.event.types.DefaultSuccessResult;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -102,7 +103,7 @@ public class BuildPhaseOperationListener implements BuildOperationListener {
         long startTime = finishEvent.getStartTime();
         long endTime = finishEvent.getEndTime();
         if (finishEvent.getFailure() != null) {
-            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(finishEvent.getFailure())), finishEvent.getAdditionalFailureContext());
+            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(finishEvent.getFailure())), DefaultProblem.from(finishEvent.getAdditionalFailureContext()));
         } else {
             return new DefaultSuccessResult(startTime, endTime);
         }

@@ -17,6 +17,7 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.events.InternalTaskFailureResult;
 
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.List;
 public class DefaultTaskFailureResult extends AbstractTaskResult implements InternalTaskFailureResult {
     private final List<InternalFailure> failures;
 
-    public DefaultTaskFailureResult(long startTime, long endTime, List<InternalFailure> failures, boolean incremental, List<String> executionReasons, List<Object> additionalFailureContext) {
+    public DefaultTaskFailureResult(long startTime, long endTime, List<InternalFailure> failures, boolean incremental, List<String> executionReasons, List<InternalProblem> additionalFailureContext) {
         super(startTime, endTime, "failed", incremental, executionReasons, additionalFailureContext);
         this.failures = failures;
     }

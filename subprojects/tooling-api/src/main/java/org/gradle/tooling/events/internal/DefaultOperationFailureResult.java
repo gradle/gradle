@@ -17,8 +17,10 @@
 package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.FailureResult;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,17 +31,17 @@ public class DefaultOperationFailureResult implements FailureResult {
     private final long startTime;
     private final long endTime;
     private final List<? extends Failure> failures;
-    private final List<Object> additionalFailureContext;
+    private final List<Problem> additionalFailureContext;
 
     public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
         this(startTime, endTime, failures, null);
      }
 
-    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<Object> additionalFailureContext) {
+    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<Problem> additionalFailureContext) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failures = failures;
-        this.additionalFailureContext = additionalFailureContext;
+        this.additionalFailureContext = additionalFailureContext == null ? Collections.<Problem>emptyList() : additionalFailureContext;
     }
 
     @Override
@@ -58,7 +60,7 @@ public class DefaultOperationFailureResult implements FailureResult {
     }
 
     @Override
-    public List<Object> getAdditionalFailureContext() {
+    public List<Problem> getAdditionalFailureContext() {
         return additionalFailureContext;
     }
 }

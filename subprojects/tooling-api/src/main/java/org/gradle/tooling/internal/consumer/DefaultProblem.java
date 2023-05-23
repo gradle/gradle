@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.transform.internal;
+package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.Failure;
-import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
-import org.gradle.tooling.events.transform.TransformFailureResult;
+import org.gradle.tooling.Problem;
 
-import java.util.List;
+import java.util.Map;
 
-public class DefaultTransformFailureResult extends DefaultOperationFailureResult implements TransformFailureResult {
+public class DefaultProblem implements Problem{
 
-    public DefaultTransformFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
-        super(startTime, endTime, failures);
+    private final Map<String, String> rawAttributes;
+
+    public DefaultProblem(Map<String, String> rawAttributes) {
+        this.rawAttributes = rawAttributes;
     }
 
+    @Override
+    public Map<String, String> getRawAttributes() {
+        return rawAttributes;
+    }
 }

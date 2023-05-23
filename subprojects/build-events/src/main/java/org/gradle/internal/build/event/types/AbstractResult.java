@@ -16,6 +16,7 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalProblem;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -25,13 +26,13 @@ public abstract class AbstractResult implements Serializable {
     private final long startTime;
     private final long endTime;
     private final String outcomeDescription;
-    private final List<Object> additionalFailureContext;
+    private final List<InternalProblem> additionalFailureContext;
 
-    public AbstractResult(long startTime, long endTime, String outcomeDescription, List<Object> additionalFailureContext) {
+    public AbstractResult(long startTime, long endTime, String outcomeDescription, List<InternalProblem> additionalFailureContext) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.outcomeDescription = outcomeDescription;
-        this.additionalFailureContext = additionalFailureContext;
+        this.additionalFailureContext = additionalFailureContext == null ? Collections.emptyList() : additionalFailureContext;
     }
 
     public long getStartTime() {
@@ -50,7 +51,7 @@ public abstract class AbstractResult implements Serializable {
         return Collections.emptyList();
     }
 
-    public List<Object> getAdditionalFailureContext() {
+    public List<? extends InternalProblem> getAdditionalFailureContext() {
         return additionalFailureContext;
     }
 }

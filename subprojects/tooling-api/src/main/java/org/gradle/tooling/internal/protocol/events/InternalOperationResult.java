@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.protocol.events;
 
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
 import java.util.List;
@@ -48,5 +49,5 @@ public interface InternalOperationResult extends InternalProtocolInterface {
      */
     List<? extends InternalFailure> getFailures();
 
-    List<Object> getAdditionalFailureContext();
+    List<? extends InternalProblem> getAdditionalFailureContext();
 }

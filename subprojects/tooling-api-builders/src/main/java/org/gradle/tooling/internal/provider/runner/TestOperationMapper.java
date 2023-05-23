@@ -22,6 +22,7 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractTestResult;
+import org.gradle.internal.build.event.types.DefaultProblem;
 import org.gradle.internal.build.event.types.DefaultTestAssertionFailure;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestFailureResult;
@@ -125,7 +126,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             case SKIPPED:
                 return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:
-                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getFailures()), finishEvent.getAdditionalFailureContext());
+                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getFailures()), DefaultProblem.from(finishEvent.getAdditionalFailureContext()));
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }

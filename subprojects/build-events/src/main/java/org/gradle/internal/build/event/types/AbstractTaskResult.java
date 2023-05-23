@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public abstract class AbstractTaskResult extends AbstractResult implements Inter
     protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons) {
         this(startTime, endTime, outcomeDescription, incremental, executionReasons, null);
     }
-    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons, List<Object> additionalFailureContext) {
+    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons, List<InternalProblem> additionalFailureContext) {
         super(startTime, endTime, outcomeDescription, additionalFailureContext);
         this.incremental = incremental;
         this.executionReasons = executionReasons;

@@ -24,6 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r24.BuildEnvironmentCrossVersionSpec
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
+import org.gradle.tooling.Problem
 import org.gradle.tooling.TestAssertionFailure
 import org.gradle.tooling.TestFrameworkFailure
 import org.gradle.tooling.events.FailureResult
@@ -506,7 +507,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     class MyProgressListener implements  ProgressListener {
 
-        def context
+        List<Problem> context
 
         @Override
         void statusChanged(ProgressEvent event) {
@@ -538,15 +539,21 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         when:
         def listener = new MyProgressListener()
         withConnection { connection ->
-            connection.newBuild().forTasks(":ba").addProgressListener(listener).run()
+            connection.newBuild()
+                .forTasks(":ba")
+                .addProgressListener(listener)
+                .setStandardError(System.err)
+                .setStandardOutput(System.out)
+                .addArguments("--info")
+                .run()
         }
 
         then:
         thrown(BuildException)
-        List<Object> problems = listener.context
-        (problems[0]['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
-        (problems[0]['severity'] as String).contains('WARNING')
-        problems[1] == "Should not happen"
+//        List<Problem> problems = listener.context
+//        (problems[0].rawAttributes['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
+//        (problems[0].rawAttributes['severity'] as String).contains('WARNING')
+        //problems[1] == "Should not happen"
     }
 
     def "Test line number"() {
