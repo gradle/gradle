@@ -26,7 +26,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -69,12 +68,6 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
     private PmdExtension extension;
-
-    @Inject
-    protected JvmPluginServices getJvmPluginServices() {
-        // Constructor injection is not used to keep binary compatibility
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     protected String getToolName() {
@@ -119,10 +112,11 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void createConfigurations() {
         super.createConfigurations();
-        project.getConfigurations().createWithRole(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, ConfigurationRoles.BUCKET, additionalAuxDepsConfiguration -> {
+        Configuration auxClasspath = project.getConfigurations().createWithRole(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, ConfigurationRoles.BUCKET, additionalAuxDepsConfiguration -> {
             additionalAuxDepsConfiguration.setDescription("The additional libraries that are available for type resolution during analysis");
             additionalAuxDepsConfiguration.setVisible(false);
         });
+        getJvmPluginServices().configureAsRuntimeClasspath(auxClasspath);
     }
 
     @Override
