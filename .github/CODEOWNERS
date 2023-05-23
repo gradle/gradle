@@ -70,13 +70,13 @@ subprojects/version-control/                @gradle/bt-jvm
 subprojects/diagnostics/                    @gradle/bt-jvm @gradle/bt-configuration-cache @gradle/bt-execution
 
 # Kotlin DSL
-build-logic/kotlin-dsl/                                                                 @eskatos @jbartok
-subprojects/kotlin-dsl/                                                                 @eskatos @jbartok
-subprojects/kotlin-dsl-integ-tests/                                                     @eskatos @jbartok
-subprojects/kotlin-dsl-plugins/                                                         @eskatos @jbartok
-subprojects/kotlin-dsl-provider-plugins/                                                @eskatos @jbartok
-subprojects/kotlin-dsl-tooling-builders/                                                @eskatos @jbartok
-subprojects/kotlin-dsl-tooling-models/                                                  @eskatos @jbartok
+build-logic/kotlin-dsl/                                                                 @gradle/bt-kotlin-dsl-maintainers
+subprojects/kotlin-dsl/                                                                 @gradle/bt-kotlin-dsl-maintainers
+subprojects/kotlin-dsl-integ-tests/                                                     @gradle/bt-kotlin-dsl-maintainers
+subprojects/kotlin-dsl-plugins/                                                         @gradle/bt-kotlin-dsl-maintainers
+subprojects/kotlin-dsl-provider-plugins/                                                @gradle/bt-kotlin-dsl-maintainers
+subprojects/kotlin-dsl-tooling-builders/                                                @gradle/bt-kotlin-dsl-maintainers
+subprojects/kotlin-dsl-tooling-models/                                                  @gradle/bt-kotlin-dsl-maintainers
 
 # Dev-prod team
 .teamcity/                                  @gradle/bt-developer-productivity
@@ -112,9 +112,9 @@ subprojects/docs/src/samples/                                                   
 subprojects/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-devrel-education
 subprojects/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-devrel-education
 
-subprojects/docs/src/snippets/kotlinDsl/                                                @eskatos @jbartok @gradle/bt-devrel-education
-subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @eskatos @jbartok @gradle/bt-devrel-education
-subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @eskatos @jbartok @gradle/bt-devrel-education
+subprojects/docs/src/snippets/kotlinDsl/                                                @gradle/bt-kotlin-dsl-maintainers @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-kotlin-dsl-maintainers @gradle/bt-devrel-education
+subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-kotlin-dsl-maintainers @gradle/bt-devrel-education
 
 subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm @gradle/bt-devrel-education
 subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm @gradle/bt-devrel-education
