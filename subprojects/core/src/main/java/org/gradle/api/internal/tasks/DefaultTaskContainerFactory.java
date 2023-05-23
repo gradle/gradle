@@ -24,21 +24,20 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.internal.core.DirectNodeNoInputsModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelMapModelProjection;
 import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistration;
 import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.core.NodeBackedModelMap;
 import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -85,58 +84,62 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     @Override
     public TaskContainerInternal create() {
         DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskIdentityFactory, taskFactory, statistics, buildOperationExecutor, crossProjectConfigurator, callbackDecorator);
-        bridgeIntoSoftwareModelWhenNeeded(tasks);
+        project.addRuleBasedPluginListener(proj -> bridgeIntoSoftwareModel(proj, tasks));
         return tasks;
     }
 
-    private void bridgeIntoSoftwareModelWhenNeeded(final DefaultTaskContainer tasks) {
-        project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
-            @Override
-            public void prepareForRuleBasedPlugins(Project project) {
-                ModelReference<DefaultTaskContainer> containerReference = ModelReference.of(TaskContainerInternal.MODEL_PATH, DEFAULT_TASK_CONTAINER_MODEL_TYPE);
+    private static void bridgeIntoSoftwareModel(Project project, DefaultTaskContainer tasks) {
+        ModelReference<DefaultTaskContainer> containerReference = ModelReference.of(TaskContainerInternal.MODEL_PATH, DEFAULT_TASK_CONTAINER_MODEL_TYPE);
 
-                ModelRegistrations.Builder registrationBuilder = BridgedCollections.bridgeTaskCollection(
-                    containerReference,
-                    new Transformer<DefaultTaskContainer, MutableModelNode>() {
-                        @Override
-                        public DefaultTaskContainer transform(MutableModelNode mutableModelNode) {
-                            tasks.setModelNode(mutableModelNode);
-                            return tasks;
-                        }
-                    },
-                    new Task.Namer(),
-                    "Project.<init>.tasks()",
-                    new Namer()
-                );
+        final ModelPath containerPath = containerReference.getPath();
+        final ModelType<DefaultTaskContainer> containerType = containerReference.getType();
+        assert containerPath != null : "container reference path cannot be null";
 
-                ModelRegistry modelRegistry = ((ProjectInternal) project).getServices().get(ModelRegistry.class);
-                modelRegistry.register(
-                    registrationBuilder
-                        .withProjection(ModelMapModelProjection.unmanaged(TASK_MODEL_TYPE, ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
-                            @Override
-                            public NamedEntityInstantiator<Task> transform(MutableModelNode modelNode) {
-                                return modelNode.getPrivateData(DEFAULT_TASK_CONTAINER_MODEL_TYPE).getEntityInstantiator();
-                            }
-                        }))))
-                        .withProjection(UnmanagedModelProjection.of(TASK_CONTAINER_MODEL_TYPE))
-                        .build()
-                );
-
-                ModelNode modelNode = modelRegistry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.Created);
-
-                // TODO LD use something more stable than a cast here
-                MutableModelNode mutableModelNode = (MutableModelNode) modelNode;
-
-                // Add tasks created through rules to the actual task container
-                mutableModelNode.applyTo(allLinks(), ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(TASK_MODEL_REFERENCE, COPY_TO_TASK_CONTAINER_DESCRIPTOR, new BiAction<MutableModelNode, Task>() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, Task task) {
-                        TaskContainerInternal taskContainer = modelNode.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);
-                        taskContainer.addInternal(task);
+        ModelRegistry modelRegistry = ((ProjectInternal) project).getServices().get(ModelRegistry.class);
+        modelRegistry.register(ModelRegistrations.of(containerPath)
+            .action(ModelActionRole.Create, containerNode -> {
+                tasks.setModelNode(containerNode);
+                containerNode.setPrivateData(containerType, tasks);
+            })
+            .action(ModelActionRole.Create, containerNode -> {
+                final DefaultTaskContainer container = containerNode.getPrivateData(containerType);
+                container.whenElementKnown(info -> {
+                    final String name = info.getName();
+                    if (!containerNode.isMutable()) {
+                        // Ignore tasks created after not closed
+                        return;
                     }
-                }));
-            }
-        });
+                    if (!containerNode.hasLink(name)) {
+                        ModelRegistration itemRegistration = ModelRegistrations
+                            .unmanagedInstanceOf(
+                                ModelReference.of(containerPath.child(name), Cast.<Class<Task>>uncheckedNonnullCast(info.getType())),
+                                modelNode -> modelNode.getParent().getPrivateData(containerType).getByName(name)
+                            )
+                            .descriptor(new SimpleModelRuleDescriptor(() -> new Namer().transform(name)))
+                            .build();
+                        containerNode.addLink(itemRegistration);
+                    }
+                });
+                container.whenObjectRemovedInternal(item -> containerNode.removeLink(new Task.Namer().determineName(item)));
+            })
+            .descriptor("Project.<init>.tasks()")
+            .withProjection(ModelMapModelProjection.unmanaged(TASK_MODEL_TYPE, ChildNodeInitializerStrategyAccessors.of(
+                NodeBackedModelMap.createUsingParentNode(modelNode -> modelNode.getPrivateData(DEFAULT_TASK_CONTAINER_MODEL_TYPE).getEntityInstantiator())
+            )))
+            .withProjection(UnmanagedModelProjection.of(TASK_CONTAINER_MODEL_TYPE))
+            .build()
+        );
+
+        ModelNode modelNode = modelRegistry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.Created);
+
+        // TODO LD use something more stable than a cast here
+        MutableModelNode mutableModelNode = (MutableModelNode) modelNode;
+
+        // Add tasks created through rules to the actual task container
+        mutableModelNode.applyTo(allLinks(), ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(TASK_MODEL_REFERENCE, COPY_TO_TASK_CONTAINER_DESCRIPTOR, (mutableModelNode2, task) -> {
+            TaskContainerInternal taskContainer = mutableModelNode2.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);
+            taskContainer.addInternal(task);
+        }));
     }
 
     private static class Namer implements Transformer<String, String> {
