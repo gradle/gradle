@@ -27,7 +27,10 @@ import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType
+import org.junit.Assume
 import spock.lang.IgnoreIf
+import spock.lang.IgnoreRest
 
 import java.util.regex.Pattern
 
@@ -354,6 +357,112 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
         graphNotifyOps[1].details.buildPath == ":"
         graphNotifyOps[1].parentId == treeTaskGraphOps[1].id
+    }
+
+    def "generates finish build tree lifecycle operation for included builds without build finished operations"() {
+        given:
+        def buildC = multiProjectBuild("buildC", ["someLib"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                }
+            """
+        }
+        includedBuilds << buildC
+        buildA.buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:buildB:1.0'
+                    classpath 'org.test:buildC:1.0'
+                }
+            }
+        """ + buildA.buildFile.text
+        dependency buildB, "org.test:buildC:1.0"
+
+        when:
+        execute(buildA, ":jar", [])
+
+        then:
+        executed ":buildB:jar", ":buildC:jar"
+
+        and:
+        operations.only(FinishRootBuildTreeBuildOperationType)
+    }
+
+    @IgnoreRest
+    def "generates finish build tree lifecycle operation for included builds with #description"() {
+        if (GradleContextualExecuter.configCache) {
+            Assume.assumeFalse(description == "buildFinished")
+        }
+        given:
+        def buildC = multiProjectBuild("buildC", ["someLib"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                }
+            """ << registration("buildC")
+        }
+        includedBuilds << buildC
+        buildA.buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:buildB:1.0'
+                    classpath 'org.test:buildC:1.0'
+                }
+            }
+        """ + buildA.buildFile.text + registration("buildA")
+        dependency buildB, "org.test:buildC:1.0"
+        buildB.buildFile << registration("buildB")
+
+        when:
+        execute(buildA, ":jar", [])
+
+        then:
+        executed ":buildB:jar", ":buildC:jar"
+
+        and:
+        def buildFinished = operations.only(FinishRootBuildTreeBuildOperationType)
+        buildFinished.progress.size() == 3
+        buildFinished.progress.details.spans.text.flatten() ==~ ["buildA", "buildB", "buildC"].collect { "$message $it\n".toString() }
+
+        where:
+        description     | registration                                                          | message
+        "buildFinished" | CompositeBuildOperationsIntegrationTest.&buildFinishedRegistrationFor | "buildFinished from"
+        "flow actions"  | CompositeBuildOperationsIntegrationTest.&flowActionRegistrationFor    | "flowAction from"
+    }
+
+    static String getFlowActionClass() {
+        """
+            abstract class LogBuild implements FlowAction<LogBuild.Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input
+                    Property<String> getBuildName()
+                }
+
+                @Override
+                void execute(Parameters parameters) {
+                    println "flowAction from \${parameters.buildName.get()}"
+                }
+            }
+        """
+    }
+
+    static String buildFinishedRegistrationFor(String buildName) {
+        """
+            gradle.buildFinished {
+                println "buildFinished from $buildName"
+            }
+        """
+    }
+
+    static String flowActionRegistrationFor(String buildName) {
+        flowActionClass + """
+            def flowScope = gradle.services.get(FlowScope)
+            def flowProviders = gradle.services.get(FlowProviders)
+            flowScope.always(LogBuild) {
+                parameters.buildName = flowProviders.buildWorkResult.map { result -> "$buildName" }
+            }
+        """
     }
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {
