@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Closer;
+import com.google.common.io.CountingInputStream;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
@@ -39,15 +40,34 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
+import org.gradle.caching.internal.controller.operations.LoadOperationDetails;
+import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
+import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
+import org.gradle.caching.internal.controller.operations.PackOperationDetails;
+import org.gradle.caching.internal.controller.operations.PackOperationResult;
+import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
+import org.gradle.caching.internal.controller.operations.StoreOperationResult;
+import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
+import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
+import org.gradle.caching.internal.operations.BuildCacheArchivePackBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheArchiveUnpackBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType;
+import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.impl.RelativePathParser;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -60,6 +80,7 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -74,16 +95,59 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT;
 import static org.gradle.internal.file.FileType.Directory;
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
+/**
+ * Controller for next-gen build cache.
+ *
+ * <h3>Legacy build operations</h3>
+ *
+ * <p>
+ *     Uses legacy build operations to capture next-gen build cache logic.
+ *     Since the new protocol is more fine-grained, some peculiarities can be observed.
+ * </p>
+ *
+ * <ul>
+ *   <li>
+ *     When downloading entries from the remote cache, only a single {@link BuildCacheRemoteLoadBuildOperationType}
+ *     is emitted per cached result. The cache key is the key for the manifest, the reported archive size is the sum
+ *     number of bytes downloaded (including manifest and content pieces).
+ *   </li>
+ *   <li>
+ *       Similarly during upload a single {@link BuildCacheRemoteStoreBuildOperationType} is emitted. The cache key
+ *       reported is the manifest key, and the size reported is the total size of all the entries in the manifest
+ *       plus the size of the manifest itself. Note: unlike with downloading, we do not report the actual amount
+ *       of uploaded data; this is because the operation requires the size to be specified up front,
+ *       before we know what has been stored and what hasn't.
+ *   </li>
+ *   <li>
+ *       For packing we once again report only one {@link BuildCacheArchivePackBuildOperationType}, the number of
+ *       stored entries and the total size reflect the actual number of entries and number of (uncompressed) bytes
+ *       stored in the local cache. (This includes the manifest's size and count.)
+ *   </li>
+ *   <li>
+ *       For unpacking we report a single {@link BuildCacheArchiveUnpackBuildOperationType}; similarly to the upload
+ *       case the archive size reported is actually not the copied amount, but the total size in the manifest
+ *       (plus the size of the manifest). The entry count reflects the actual files unpacked (plus one for the manifest).
+ *       However, for now this should always match the total number of files in the manifest, as (for now) we always
+ *       delete any previous output when loading from cache, and thus we need to unpack every entry.
+ *   </li>
+ * </ul>
+ */
 public class NextGenBuildCacheController implements BuildCacheController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NextGenBuildCacheController.class);
@@ -91,6 +155,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
     public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
 
     private final BufferProvider bufferProvider;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
     private final String buildInvocationId;
@@ -104,15 +169,24 @@ public class NextGenBuildCacheController implements BuildCacheController {
         FileSystemAccess fileSystemAccess,
         BufferProvider bufferProvider,
         StringInterner stringInterner,
+        BuildOperationExecutor buildOperationExecutor,
         NextGenBuildCacheAccess cacheAccess
     ) {
         this.buildInvocationId = buildInvocationId;
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.bufferProvider = bufferProvider;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.cacheAccess = cacheAccess;
         this.stringInterner = stringInterner;
-        this.gson = new GsonBuilder()
+        this.gson = createGson();
+
+        LOGGER.warn("Creating next-generation build cache controller");
+    }
+
+    @VisibleForTesting
+    public static Gson createGson() {
+        return new GsonBuilder()
             .registerTypeAdapter(Duration.class, new TypeAdapter<Duration>() {
                 @Override
                 public void write(JsonWriter out, Duration value) throws IOException {
@@ -136,8 +210,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
             })
             .create();
-
-        LOGGER.warn("Creating next-generation build cache controller");
     }
 
     @Override
@@ -151,17 +223,156 @@ public class NextGenBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public Optional<BuildCacheLoadResult> load(BuildCacheKey manifestCacheKey, CacheableEntity cacheableEntity) {
-        // TODO Make load() return T
-        AtomicReference<CacheManifest> manifestRef = new AtomicReference<>();
-        cacheAccess.load(Collections.singletonMap(manifestCacheKey, null), (manifestStream, __) ->
-            manifestRef.set(gson.fromJson(new InputStreamReader(manifestStream), CacheManifest.class)));
-        CacheManifest manifest = manifestRef.get();
-        if (manifest == null) {
-            return Optional.empty();
+    public Optional<BuildCacheLoadResult> load(BuildCacheKey manifestKey, CacheableEntity cacheableEntity) {
+        try (OperationFiringLoadHandlerFactory handlerFactory = new OperationFiringLoadHandlerFactory(manifestKey)) {
+            // TODO Make load() return T
+            AtomicReference<CacheManifest> manifestRef = new AtomicReference<>();
+            AtomicLong manifestSize = new AtomicLong(-1L);
+            cacheAccess.load(Collections.singletonMap(manifestKey, null), handlerFactory.create((manifestStream, __) -> {
+                CountingInputStream counterStream = new CountingInputStream(manifestStream);
+                manifestRef.set(gson.fromJson(new InputStreamReader(counterStream), CacheManifest.class));
+                manifestSize.set(counterStream.getCount());
+            }));
+            CacheManifest manifest = manifestRef.get();
+            if (manifest == null) {
+                return Optional.empty();
+            }
+
+            long totalSize = manifest.getPropertyManifests().values().stream()
+                .flatMap(List::stream)
+                .map(ManifestEntry::getLength)
+                .reduce(manifestSize.get(), Long::sum);
+            handlerFactory.startUnpack(totalSize);
+            ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = loadContent(cacheableEntity, manifest, handlerFactory);
+            return Optional.of(new BuildCacheLoadResult() {
+                @Override
+                public long getArtifactEntryCount() {
+                    return handlerFactory.unpackedEntryCount.get();
+                }
+
+                @Override
+                public OriginMetadata getOriginMetadata() {
+                    return manifest.getOriginMetadata();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
+                    return resultingSnapshots;
+                }
+            });
+        }
+    }
+
+    /**
+     * A wrapper for on-demand build operations that are only started when needed.
+     *
+     * E.g. if we don't download anything, we don't need to start a legacy load operation.
+     */
+    private class OnDemandBuildOperationWrapper {
+        private volatile BuildOperationContext context;
+        private final List<Throwable> failures = new CopyOnWriteArrayList<>();
+
+        public void start(Supplier<BuildOperationDescriptor.Builder> describer) {
+            if (context == null) {
+                synchronized (this) {
+                    if (context == null) {
+                        context = buildOperationExecutor.start(describer.get());
+                    }
+                }
+            }
         }
 
-        AtomicLong loadedEntryCount = new AtomicLong(0);
+        public void fail(Throwable failure) {
+            failures.add(failure);
+        }
+
+        public void finish(Consumer<BuildOperationContext> finisher) {
+            if (context != null) {
+                if (failures.isEmpty()) {
+                    finisher.accept(context);
+                } else {
+                    context.failed(failures.size() == 1
+                        ? failures.get(0)
+                        : new DefaultMultiCauseException("Errors encountered while loading entries from remote cache", failures));
+                }
+            }
+        }
+    }
+
+    private class OperationFiringLoadHandlerFactory implements Closeable {
+        private final BuildCacheKey manifestKey;
+
+        private final OnDemandBuildOperationWrapper unpackBuildOp = new OnDemandBuildOperationWrapper();
+        private final OnDemandBuildOperationWrapper loadBuildOp = new OnDemandBuildOperationWrapper();
+        private final AtomicLong unpackedEntryCount = new AtomicLong(0L);
+        private final AtomicLong totalUnpackedSize = new AtomicLong(0L);
+        private final AtomicLong totalDownloadedSize = new AtomicLong(0L);
+        private final AtomicBoolean missEncountered = new AtomicBoolean(false);
+
+        public OperationFiringLoadHandlerFactory(BuildCacheKey manifestKey) {
+            this.manifestKey = manifestKey;
+        }
+
+        public <T> NextGenBuildCacheAccess.LoadHandler<T> create(BiConsumer<InputStream, T> delegate) {
+            return new NextGenBuildCacheAccess.LoadHandler<T>() {
+                @Override
+                public void handle(InputStream input, T payload) {
+                    CountingInputStream countingStream = new CountingInputStream(input);
+                    delegate.accept(countingStream, payload);
+                    totalUnpackedSize.addAndGet(countingStream.getCount());
+                    unpackedEntryCount.incrementAndGet();
+                }
+
+                @Override
+                public void startLoadOperation(BuildCacheKey key) {
+                    loadBuildOp.start(() -> BuildOperationDescriptor.displayName("Load entry " + manifestKey.getDisplayName() + " from remote build cache")
+                        .details(new LoadOperationDetails(manifestKey))
+                        .progressDisplayName("Requesting from remote build cache"));
+                }
+
+                @Override
+                public void recordLoadHit(BuildCacheKey key, long size) {
+                    totalDownloadedSize.addAndGet(size);
+                }
+
+                @Override
+                public void recordLoadMiss(BuildCacheKey key) {
+                    missEncountered.set(true);
+                }
+
+                @Override
+                public void recordLoadFailure(BuildCacheKey key, Throwable failure) {
+                    loadBuildOp.fail(failure);
+                }
+
+                @Override
+                public void recordUnpackFailure(BuildCacheKey key, Throwable failure) {
+                    // Make sure an unpack operation is running
+                    startUnpack(-1);
+                    unpackBuildOp.fail(failure);
+                }
+            };
+        }
+
+        public void startUnpack(long totalSize) {
+            unpackBuildOp.start(() -> {
+                // TODO Use "load" instead of "unpack" here
+                return BuildOperationDescriptor.displayName("Unpack build cache entry " + manifestKey.getHashCode())
+                    .details(new UnpackOperationDetails(manifestKey, totalSize))
+                    .progressDisplayName("Unpacking build cache entry");
+            });
+        }
+
+        @Override
+        public void close() {
+            loadBuildOp.finish(context -> context.setResult(missEncountered.get()
+                ? LoadOperationMissResult.INSTANCE
+                : new LoadOperationHitResult(totalDownloadedSize.get())));
+            unpackBuildOp.finish(context -> context.setResult(new UnpackOperationResult(unpackedEntryCount.get())));
+        }
+    }
+
+    private ImmutableSortedMap<String, FileSystemSnapshot> loadContent(CacheableEntity cacheableEntity, CacheManifest manifest, OperationFiringLoadHandlerFactory handlerFactory) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> snapshots = ImmutableSortedMap.naturalOrder();
 
         cacheableEntity.visitOutputTrees((propertyName, type, root) -> {
@@ -198,9 +409,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
             });
 
             // TODO Filter out entries that are already in the right place in the output directory
-            cacheAccess.load(filesBuilder.build().asMap(), (input, filesForHash) -> {
-                loadedEntryCount.addAndGet(filesForHash.size());
-
+            cacheAccess.load(filesBuilder.build().asMap(), handlerFactory.create((input, filesForHash) -> {
                 try (Closer closer = Closer.create()) {
                     OutputStream output = filesForHash.stream()
                         .map(file -> {
@@ -218,7 +427,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
                 }
-            });
+            }));
 
             createSnapshot(type, root, manifestEntries)
                 .ifPresent(snapshot -> {
@@ -227,23 +436,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 });
         });
 
-        ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshots.build();
-        return Optional.of(new BuildCacheLoadResult() {
-            @Override
-            public long getArtifactEntryCount() {
-                return loadedEntryCount.get();
-            }
-
-            @Override
-            public OriginMetadata getOriginMetadata() {
-                return manifest.getOriginMetadata();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
-                return resultingSnapshots;
-            }
-        });
+        return snapshots.build();
     }
 
     // TODO Extract snapshotting part to it's own class
@@ -323,9 +516,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void store(BuildCacheKey manifestCacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+    public void store(BuildCacheKey manifestKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
         ImmutableMap.Builder<String, List<ManifestEntry>> propertyManifests = ImmutableMap.builder();
 
+        AtomicLong contentSize = new AtomicLong(0L);
         entity.visitOutputTrees((propertyName, type, root) -> {
             ImmutableList.Builder<ManifestEntry> manifestEntries = ImmutableList.builder();
             FileSystemSnapshot rootSnapshot = snapshots.get(propertyName);
@@ -333,11 +527,13 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 if (relativePath.isRoot()) {
                     assertCorrectType(type, snapshot);
                 }
+                long size = SnapshotUtil.getLength(snapshot);
                 manifestEntries.add(new ManifestEntry(
                     snapshot.getType(),
                     relativePath.toRelativePath(),
                     snapshot.getHash(),
-                    SnapshotUtil.getLength(snapshot)));
+                    size));
+                contentSize.addAndGet(size);
                 return SnapshotVisitResult.CONTINUE;
             });
             propertyManifests.put(propertyName, manifestEntries.build());
@@ -347,6 +543,110 @@ public class NextGenBuildCacheController implements BuildCacheController {
             new OriginMetadata(buildInvocationId, executionTime),
             propertyManifests.build());
 
+        String manifestJson = gson.toJson(manifest);
+        byte[] manifestBytes = manifestJson.getBytes(StandardCharsets.UTF_8);
+
+        long totalUploadSize = contentSize.get() + manifestBytes.length;
+        try (OperationFiringStoreHandlerFactory handlerFactory = new OperationFiringStoreHandlerFactory(manifestKey, totalUploadSize)) {
+            storeInner(manifestKey, entity, manifest, manifestBytes, handlerFactory);
+        }
+    }
+
+    private class OperationFiringStoreHandlerFactory implements Closeable {
+        private final BuildCacheKey manifestKey;
+        private final long totalUploadSize;
+
+        private final BuildOperationRef parentOp;
+        private final OnDemandBuildOperationWrapper packBuildOp = new OnDemandBuildOperationWrapper();
+        private final AtomicLong packEntryCount = new AtomicLong(0L);
+        private final AtomicLong totalPackSize = new AtomicLong(0L);
+        private final OnDemandBuildOperationWrapper storeBuildOp = new OnDemandBuildOperationWrapper();
+        private final AtomicBoolean storeEncountered = new AtomicBoolean(false);
+
+        public OperationFiringStoreHandlerFactory(BuildCacheKey manifestKey, long totalUploadSize) {
+            this.parentOp = Objects.requireNonNull(CurrentBuildOperationRef.instance().get());
+            this.manifestKey = manifestKey;
+            this.totalUploadSize = totalUploadSize;
+            this.packBuildOp.start(() -> BuildOperationDescriptor.displayName("Pack build cache entry " + manifestKey)
+                .details(new PackOperationDetails(manifestKey))
+                .progressDisplayName("Packing build cache entry"));
+        }
+
+        public <T> NextGenBuildCacheAccess.StoreHandler<T> create(Function<T, NextGenBuildCacheService.NextGenWriter> delegate) {
+            return new NextGenBuildCacheAccess.StoreHandler<T>() {
+                @Override
+                public NextGenBuildCacheService.NextGenWriter createWriter(T payload) {
+                    return delegate.apply(payload);
+                }
+
+                @Override
+                public void startStoreOperation(BuildCacheKey key) {
+                    storeBuildOp.start(() -> BuildOperationDescriptor.displayName("Store entry " + manifestKey.getDisplayName() + " in remote build cache")
+                        .details(new StoreOperationDetails(manifestKey, totalUploadSize))
+                        .progressDisplayName("Uploading to remote build cache")
+                        .parent(parentOp));
+                }
+
+                @Override
+                public void recordStoreFinished(BuildCacheKey key, boolean stored) {
+                    if (stored) {
+                        storeEncountered.set(true);
+                    }
+                }
+
+                @Override
+                public void recordStoreFailure(BuildCacheKey key, Throwable failure) {
+                    storeBuildOp.fail(failure);
+                }
+
+                @Override
+                public void recordPackFailure(BuildCacheKey key, Throwable failure) {
+                    packBuildOp.fail(failure);
+                }
+            };
+        }
+
+        @Override
+        public void close() {
+            packBuildOp.finish(context -> context.setResult(new PackOperationResult(packEntryCount.get(), totalPackSize.get())));
+            storeBuildOp.finish(context -> context.setResult(storeEncountered.get()
+                ? StoreOperationResult.STORED
+                : StoreOperationResult.NOT_STORED));
+        }
+    }
+
+    private static abstract class CountingWriter implements NextGenBuildCacheService.NextGenWriter {
+        private final AtomicLong entryCount;
+        private final AtomicLong totalSize;
+
+        public CountingWriter(AtomicLong entryCount, AtomicLong totalSize) {
+            this.entryCount = entryCount;
+            this.totalSize = totalSize;
+        }
+
+        @Override
+        public final InputStream openStream() throws IOException {
+            markStored();
+            return doOpenStream();
+        }
+
+        @Override
+        public final void writeTo(OutputStream output) throws IOException {
+            markStored();
+            doWriteTo(output);
+        }
+
+        protected abstract InputStream doOpenStream() throws IOException;
+
+        protected abstract void doWriteTo(OutputStream output) throws IOException;
+
+        private void markStored() {
+            entryCount.incrementAndGet();
+            totalSize.addAndGet(getSize());
+        }
+    }
+
+    private void storeInner(BuildCacheKey manifestKey, CacheableEntity entity, CacheManifest manifest, byte[] manifestBytes, OperationFiringStoreHandlerFactory handlerFactory) {
         entity.visitOutputTrees((propertyName, type, root) -> {
             Map<BuildCacheKey, ManifestEntry> manifestIndex = manifest.getPropertyManifests().get(propertyName).stream()
                 .filter(entry -> entry.getType() == FileType.RegularFile)
@@ -357,9 +657,9 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     (a, b) -> a)
                 );
 
-            cacheAccess.store(manifestIndex, manifestEntry -> new NextGenBuildCacheService.NextGenWriter() {
+            cacheAccess.store(manifestIndex, handlerFactory.create(manifestEntry -> new CountingWriter(handlerFactory.packEntryCount, handlerFactory.totalPackSize) {
                 @Override
-                public InputStream openStream() throws IOException {
+                protected InputStream doOpenStream() throws IOException {
                     // TODO Replace with "Files.newInputStream()" as it seems to be more efficient
                     //      Might be a good idea to pass `root` as `Path` instead of `File` then
                     //noinspection IOStreamConstructor
@@ -367,7 +667,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void writeTo(OutputStream output) throws IOException {
+                protected void doWriteTo(OutputStream output) throws IOException {
                     try (InputStream input = openStream()) {
                         IOUtils.copyLarge(input, output, bufferProvider.getBuffer());
                     }
@@ -377,30 +677,25 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 public long getSize() {
                     return manifestEntry.getLength();
                 }
-            });
+            }));
         });
 
-        cacheAccess.store(Collections.singletonMap(manifestCacheKey, manifest), __ -> {
-            String manifestJson = gson.toJson(manifest);
-            byte[] bytes = manifestJson.getBytes(StandardCharsets.UTF_8);
+        cacheAccess.store(Collections.singletonMap(manifestKey, manifest), handlerFactory.create(__ -> new CountingWriter(handlerFactory.packEntryCount, handlerFactory.totalPackSize) {
+            @Override
+            protected InputStream doOpenStream() {
+                return new UnsynchronizedByteArrayInputStream(manifestBytes);
+            }
 
-            return new NextGenBuildCacheService.NextGenWriter() {
-                @Override
-                public InputStream openStream() {
-                    return new UnsynchronizedByteArrayInputStream(bytes);
-                }
+            @Override
+            protected void doWriteTo(OutputStream output) throws IOException {
+                output.write(manifestBytes);
+            }
 
-                @Override
-                public void writeTo(OutputStream output) throws IOException {
-                    output.write(bytes);
-                }
-
-                @Override
-                public long getSize() {
-                    return bytes.length;
-                }
-            };
-        });
+            @Override
+            public long getSize() {
+                return manifestBytes.length;
+            }
+        }));
     }
 
     private static void assertCorrectType(TreeType type, FileSystemLocationSnapshot snapshot) {

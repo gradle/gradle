@@ -43,20 +43,21 @@ public class BlockingHttpsServer extends BlockingHttpServer {
      * @param testKeyStore The key store to configure this server from.
      * @param tlsProtocolFilter Used to prune the supported set of TLS versions
      */
-    public void configure(TestKeyStore testKeyStore, Predicate<String> tlsProtocolFilter) {
+    public void configure(TestKeyStore testKeyStore, boolean needClientAuth, Predicate<String> tlsProtocolFilter) {
         HttpsServer httpsServer = (HttpsServer) this.server;
-        SSLContext context = testKeyStore.asSSLContext();
+        SSLContext context = testKeyStore.asServerSSLContext();
         httpsServer.setHttpsConfigurator(new HttpsConfigurator(context) {
             @Override
             public void configure(HttpsParameters params) {
                 SSLContext c = getSSLContext();
                 SSLEngine engine = c.createSSLEngine();
-                params.setNeedClientAuth(false);
+                params.setNeedClientAuth(needClientAuth);
                 params.setCipherSuites(engine.getEnabledCipherSuites());
                 // TLS protocols need to be filtered off both the HttpsParameters & SSLParameters
                 params.setProtocols(stripFilteredProtocols(engine.getEnabledProtocols()));
                 SSLParameters parameters = c.getDefaultSSLParameters();
                 parameters.setProtocols(stripFilteredProtocols(parameters.getProtocols()));
+                parameters.setNeedClientAuth(needClientAuth);
                 params.setSSLParameters(parameters);
             }
 
@@ -67,6 +68,10 @@ public class BlockingHttpsServer extends BlockingHttpServer {
     }
 
     public void configure(TestKeyStore testKeyStore) {
-        configure(testKeyStore, __ -> true);
+        configure(testKeyStore, false, __ -> true);
+    }
+
+    public void configure(TestKeyStore testKeyStore, boolean needClientAuth) {
+        configure(testKeyStore, needClientAuth, __ -> true);
     }
 }

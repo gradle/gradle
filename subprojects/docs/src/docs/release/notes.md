@@ -50,7 +50,13 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="SSL"></a>
+### SSL improvements
 
+Gradle had multiple issues when non-standard keystores and truststores were used.
+This affected users on Linux systems with FIPS enabled and also Windows users who were storing certificates in the Trusted Root Certification Authorities store.
+SSL context creation has been improved to be more aligned with the default implementation and to support these cases.
+Also, error messages related to SSL have been improved, and they should be more visible.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
