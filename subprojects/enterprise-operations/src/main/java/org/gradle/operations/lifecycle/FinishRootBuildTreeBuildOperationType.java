@@ -18,6 +18,12 @@ package org.gradle.operations.lifecycle;
 
 import org.gradle.internal.operations.BuildOperationType;
 
+/**
+ * A build operation around the work that happens at the end of the root build.
+ * <p>
+ * {@code buildFinished} hooks and {@code FlowAction}s in the whole build tree run in this operation.
+ * The start of the operation marks the end of the execution phase of the root build.
+ */
 public final class FinishRootBuildTreeBuildOperationType implements BuildOperationType<FinishRootBuildTreeBuildOperationType.Details, FinishRootBuildTreeBuildOperationType.Result> {
 
     public interface Details {
