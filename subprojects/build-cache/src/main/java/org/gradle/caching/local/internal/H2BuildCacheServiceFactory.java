@@ -85,7 +85,8 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
             .config("location", target.getAbsolutePath())
             .config("removeUnusedEntriesAfter", removeUnusedEntriesAfterDays + " days");
         H2BuildCacheService h2Service = new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount(), removeUnusedEntriesAfterDays, Time.clock());
-        // For now this is used just so we can reuse cleanup infrastructure, but in future H2Cache could be provided by PersistentCache
+        // TODO: H2Cache could be provided by PersistentCache
+        // For now PersistentCache is used just so we can reuse cleanup infrastructure, but in future H2Cache could be provided by PersistentCache
         Function<HasCleanupAction, PersistentCache> persistentCacheFactory = buildCacheService -> unscopedCacheBuilderFactory
             .cache(target)
             .withCleanupStrategy(createCacheCleanupStrategy((cleanableStore, progressMonitor) -> buildCacheService.cleanup()))

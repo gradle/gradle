@@ -128,7 +128,10 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
 
     @Override
     public void cleanup() {
-        withOwnershipNow(delegate::cleanup);
+        crossProcessCacheAccess.withFileLock(() -> {
+            delegate.cleanup();
+            return null;
+        });
     }
 
     @Override

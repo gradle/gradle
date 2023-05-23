@@ -135,6 +135,7 @@ class H2BuildCacheServiceTest extends Specification {
         service.cleanup()
 
         then:
+        service.open()
         service.contains(key)
         service.contains(otherKey)
         dbDir.listFiles().collect { it.name } == ["filestore.mv.db"]
@@ -144,6 +145,7 @@ class H2BuildCacheServiceTest extends Specification {
         service.cleanup()
 
         then:
+        service.open()
         !service.contains(key)
         service.contains(otherKey)
         dbDir.listFiles().collect { it.name } == ["filestore.mv.db"]
@@ -153,6 +155,7 @@ class H2BuildCacheServiceTest extends Specification {
         service.cleanup()
 
         then:
+        service.open()
         !service.contains(key)
         !service.contains(otherKey)
         dbDir.listFiles().collect { it.name } == ["filestore.mv.db"]
