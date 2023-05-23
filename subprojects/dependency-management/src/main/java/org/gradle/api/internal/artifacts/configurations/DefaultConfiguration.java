@@ -84,8 +84,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
-import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -260,7 +260,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
-    private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
+    private TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
     /**
@@ -732,12 +732,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 if (!newState.hasError()) {
                     dependencyResolutionListeners.getSource().afterResolve(incoming);
-                    // Discard listeners
-                    dependencyResolutionListeners.removeAll();
 
                     // Use the current state, which may have changed if the listener queried the result
                     newState = currentResolveState.get();
                 }
+
+                // Discard State
+                dependencyResolutionListeners.removeAll();
+                if (resolutionStrategy != null) {
+                    resolutionStrategy.discardStateRequiredForGraphResolution();
+                }
+
                 captureBuildOperationResult(context, results);
                 return newState;
             }
@@ -868,10 +873,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        warnOnInvalidInternalAPIUsage("getDependenciesResolver()", ProperMethodUsage.RESOLVABLE);
+    public TransformUpstreamDependenciesResolverFactory getDependenciesResolverFactory() {
+        warnOnInvalidInternalAPIUsage("getDependenciesResolverFactory()", ProperMethodUsage.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
-            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
+            dependenciesResolverFactory = new DefaultTransformUpstreamDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
                     return new ResolutionBackedFileCollection(
@@ -1918,7 +1923,7 @@ since users cannot create non-legacy configurations and there is no current publ
      */
     @SuppressWarnings("JavadocReference")
     private boolean isPermittedConfigurationForRedundantActivation() {
-        return name.equals("runtimeClasspath") || name.endsWith("testRuntimeClasspath") || name.endsWith("TestRuntimeClasspath");
+        return name.equals("runtimeClasspath") || name.equals("testFixturesRuntimeClasspath") || name.endsWith("testRuntimeClasspath") || name.endsWith("TestRuntimeClasspath");
     }
 
     @Override

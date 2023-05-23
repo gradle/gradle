@@ -50,6 +50,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
         new DummyBinaryStore(),
         new DummyStore(),
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
+        new ThisBuildOnlyComponentDetailsSerializer(),
+        new ThisBuildOnlySelectedVariantSerializer(),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false

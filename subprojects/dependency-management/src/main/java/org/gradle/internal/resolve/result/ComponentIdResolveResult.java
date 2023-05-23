@@ -19,6 +19,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedVersion;
 
@@ -58,6 +59,14 @@ public interface ComponentIdResolveResult extends ResolveResult {
      */
     @Nullable
     ComponentGraphResolveState getState();
+
+    /**
+     * Returns the graph specific resolution state for the component, if it was available at resolve time.
+     *
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
+     */
+    @Nullable
+    ComponentGraphSpecificResolveState getGraphState();
 
     /**
      * Returns true if the component id was resolved, but it was rejected by constraint.

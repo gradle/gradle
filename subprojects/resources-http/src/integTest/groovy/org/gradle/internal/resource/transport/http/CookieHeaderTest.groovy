@@ -50,7 +50,7 @@ class CookieHeaderTest extends Specification {
         client.performGet("${httpServer.address}/cookie", false)
 
         then:
-        listener.events*.message.every { assert !it.contains('Invalid cookie header:') }
+        listener.events*.message.forEach { assert !it.contains('Invalid cookie header:') }
 
         where:
         attributes << [

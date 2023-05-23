@@ -21,7 +21,7 @@ package org.gradle.internal.operations;
  */
 public enum UncategorizedBuildOperations implements BuildOperationMetadata {
     /**
-     * Creates and executes the transformation actions. {@link BuildOperationCategory#TRANSFORM} can include this operation.
+     * Creates and executes the transform actions. {@link BuildOperationCategory#TRANSFORM} can include this operation.
      */
     TRANSFORM_ACTION
 }

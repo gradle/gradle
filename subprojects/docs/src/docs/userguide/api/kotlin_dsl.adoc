@@ -185,7 +185,7 @@ All Kotlin DSL build scripts have implicit imports consisting of:
 .Avoid using internal Kotlin DSL APIs
 ====
 Use of internal Kotlin DSL APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
-The link:{kotlinDslPath}/[Kotlin DSL API] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API>> with the types listed in the https://gradle.github.io/kotlin-dsl-docs/api/[corresponding API docs] that are in the packages listed above (but not subpackages of those).
+The link:{kotlinDslPath}/[Kotlin DSL API] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API>> with the types listed in the link:{kotlinDslPath}/[corresponding API docs] that are in the packages listed above (but not subpackages of those).
 ====
 
 [[sec:compilation_warnings]]

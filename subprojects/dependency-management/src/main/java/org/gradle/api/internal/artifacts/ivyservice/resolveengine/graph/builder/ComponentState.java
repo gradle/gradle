@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -36,6 +35,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -64,6 +64,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final int hashCode;
 
     private volatile ComponentGraphResolveState resolveState;
+    private volatile ComponentGraphSpecificResolveState graphResolveState;
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
     private ModuleVersionResolveException metadataResolveFailure;
@@ -102,6 +103,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ModuleVersionIdentifier getId() {
         return id;
+    }
+
+    @Nullable
+    @Override
+    public String getRepositoryName() {
+        return graphResolveState.getRepositoryName();
     }
 
     @Override
@@ -219,6 +226,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return;
         }
         resolveState = result.getState();
+        graphResolveState = result.getGraphState();
     }
 
     private boolean tryResolveVirtualPlatform() {
@@ -229,7 +237,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                     if (versionState != null) {
                         ComponentGraphResolveState lenient = versionState.maybeAsLenientPlatform((ModuleComponentIdentifier) componentIdentifier, id);
                         if (lenient != null) {
-                            setState(lenient);
+                            setState(lenient, ComponentGraphSpecificResolveState.EMPTY_STATE);
                             return true;
                         }
                     }
@@ -239,8 +247,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return false;
     }
 
-    public void setState(ComponentGraphResolveState state) {
+    public void setState(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
         this.resolveState = state;
+        this.graphResolveState = graphState;
         this.metadataResolveFailure = null;
     }
 
@@ -291,11 +300,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         ImmutableList.Builder<ResolvedGraphVariant> builder = ImmutableList.builder();
         addSelectedVariants(builder::add);
         return builder.build();
-    }
-
-    @Override
-    public List<ResolvedVariantResult> getAvailableVariants() {
-        return resolveState.getAllSelectableVariantResults();
     }
 
     private void addSelectedVariants(Consumer<ResolvedGraphVariant> consumer) {
