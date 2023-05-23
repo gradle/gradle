@@ -38,9 +38,9 @@ import org.junit.jupiter.api.Assumptions
  *     </li>
  * </ul>
  */
-class PreconditionProbingTests extends Specification {
+abstract class PreconditionProbingTests extends Specification {
 
-    def Class<? extends TestPrecondition> loadClass(String className) {
+    Class<? extends TestPrecondition> loadClass(String className) {
         try {
             return Class.forName(className) as Class<? extends TestPrecondition>
         } catch (ClassNotFoundException ex) {
