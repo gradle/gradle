@@ -30,11 +30,11 @@ import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType
 import org.junit.Assume
 import spock.lang.IgnoreIf
-import spock.lang.IgnoreRest
 
 import java.util.regex.Pattern
 
 class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+    private static final Pattern RUN_MAIN_TASKS = Pattern.compile("Run main tasks")
     BuildTestFile buildB
 
     def setup() {
@@ -123,7 +123,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[1].details.buildPath == ":buildB"
         taskGraphOps[1].parentId == treeTaskGraphOps[0].id
 
-        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = operations.first(RUN_MAIN_TASKS)
         runMainTasks.parentId == root.id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
@@ -335,7 +335,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[2].details.buildPath == ":buildB"
         taskGraphOps[2].parentId == treeTaskGraphOps[1].id
 
-        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = operations.first(RUN_MAIN_TASKS)
         runMainTasks.parentId == root.id
 
         // Tasks are run for buildB multiple times, once for buildscript dependency and again for production dependency
@@ -389,7 +389,6 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         operations.only(FinishRootBuildTreeBuildOperationType)
     }
 
-    @IgnoreRest
     def "generates finish build tree lifecycle operation for included builds with #description"() {
         if (GradleContextualExecuter.configCache) {
             Assume.assumeFalse(description == "buildFinished")
@@ -429,6 +428,25 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         description     | registration                                                          | message
         "buildFinished" | CompositeBuildOperationsIntegrationTest.&buildFinishedRegistrationFor | "buildFinished from"
         "flow actions"  | CompositeBuildOperationsIntegrationTest.&flowActionRegistrationFor    | "flowAction from"
+    }
+
+    def "build tree finished operation happens even when configuration fails"() {
+        buildA.buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:buildB:1.0'
+                }
+            }
+        """ + buildA.buildFile.text
+        buildB.file("src/main/java/Broken.java").text = "class Does not compile {}"
+        when:
+        fails(buildA, ":jar")
+
+        then:
+        executed ":buildB:compileJava"
+
+        operations.none(RUN_MAIN_TASKS)
+        operations.only(FinishRootBuildTreeBuildOperationType)
     }
 
     static String getFlowActionClass() {
