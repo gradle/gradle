@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.r24.BuildEnvironmentCrossVersionSpec
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.Problem
@@ -515,7 +514,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
                 OperationResult result = ((FinishEvent) event).getResult();
 
                 if (result instanceof FailureResult) {
-                    def context = ((FailureResult) result).getAdditionalFailureContext()
+                    def context = ((FailureResult) result).getProblems()
                     if (this.context == null) {
                         this.context = context
                     }

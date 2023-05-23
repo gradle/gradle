@@ -23,7 +23,7 @@ import java.util.List;
 
 public abstract class AbstractOperationResult extends AbstractResult implements InternalOperationResult {
 
-    protected AbstractOperationResult(long startTime, long endTime, String outcomeDescription, List<InternalProblem> additionalFailureContext) {
-        super(startTime, endTime, outcomeDescription, additionalFailureContext);
+    protected AbstractOperationResult(long startTime, long endTime, String outcomeDescription, List<InternalProblem> problems) {
+        super(startTime, endTime, outcomeDescription, problems);
     }
 }

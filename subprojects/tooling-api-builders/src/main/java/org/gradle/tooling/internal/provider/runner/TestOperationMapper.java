@@ -126,7 +126,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             case SKIPPED:
                 return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:
-                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getFailures()), DefaultProblem.from(finishEvent.getAdditionalFailureContext()));
+                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getFailures()), DefaultProblem.from(finishEvent.getProblems()));
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }

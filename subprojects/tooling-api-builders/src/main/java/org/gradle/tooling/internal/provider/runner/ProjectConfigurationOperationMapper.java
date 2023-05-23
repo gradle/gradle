@@ -86,7 +86,7 @@ class ProjectConfigurationOperationMapper implements BuildOperationMapper<Config
         long endTime = finishEvent.getEndTime();
         Throwable failure = finishEvent.getFailure();
         if (failure != null) {
-            return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults, DefaultProblem.from(finishEvent.getAdditionalFailureContext()));
+            return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults, DefaultProblem.from(finishEvent.getProblems()));
         }
         return new DefaultProjectConfigurationSuccessResult(startTime, endTime, pluginApplicationResults); // TODO problems should be also passed to the success event
     }

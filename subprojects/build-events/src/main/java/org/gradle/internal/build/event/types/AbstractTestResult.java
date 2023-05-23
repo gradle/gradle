@@ -22,7 +22,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 import java.util.List;
 
 public abstract class AbstractTestResult extends AbstractResult implements InternalTestResult {
-    protected AbstractTestResult(long startTime, long endTime, String outcomeDescription, List<InternalProblem> additionalFailureContext) {
-        super(startTime, endTime, outcomeDescription, additionalFailureContext);
+    protected AbstractTestResult(long startTime, long endTime, String outcomeDescription, List<InternalProblem> problems) {
+        super(startTime, endTime, outcomeDescription, problems);
     }
 }

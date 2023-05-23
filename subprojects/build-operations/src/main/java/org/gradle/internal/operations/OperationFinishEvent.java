@@ -26,14 +26,14 @@ public final class OperationFinishEvent {
     private final long endTime;
     private final Throwable failure;
     private final Object result;
-    private final List<Problem> additionalFailureContext;
+    private final List<Problem> problems;
 
-    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result, @Nullable List<Problem> additionalFailureContext) {
+    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result, @Nullable List<Problem> problems) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failure = failure;
         this.result = result;
-        this.additionalFailureContext = additionalFailureContext;
+        this.problems = problems;
     }
 
     public long getStartTime() {
@@ -54,8 +54,8 @@ public final class OperationFinishEvent {
         return result;
     }
 
-    public List<Problem> getAdditionalFailureContext() {
-        return additionalFailureContext;
+    public List<Problem> getProblems() {
+        return problems;
     }
 
     @Override

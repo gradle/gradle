@@ -31,17 +31,17 @@ public class DefaultOperationFailureResult implements FailureResult {
     private final long startTime;
     private final long endTime;
     private final List<? extends Failure> failures;
-    private final List<Problem> additionalFailureContext;
+    private final List<Problem> problems;
 
     public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
         this(startTime, endTime, failures, null);
      }
 
-    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<Problem> additionalFailureContext) {
+    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<Problem> problems) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failures = failures;
-        this.additionalFailureContext = additionalFailureContext == null ? Collections.<Problem>emptyList() : additionalFailureContext;
+        this.problems = problems == null ? Collections.<Problem>emptyList() : problems;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class DefaultOperationFailureResult implements FailureResult {
     }
 
     @Override
-    public List<Problem> getAdditionalFailureContext() {
-        return additionalFailureContext;
+    public List<Problem> getProblems() {
+        return problems;
     }
 }

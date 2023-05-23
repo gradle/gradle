@@ -392,16 +392,16 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         OperationResult result;
         if (event.getResult() instanceof InternalFailureResult) {
             InternalFailureResult internalResult = (InternalFailureResult) event.getResult();
-            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()), toToolingProblems(internalResult.getAdditionalFailureContext()));
+            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()), toToolingProblems(internalResult.getProblems()));
         } else {
             result = new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime());
         }
         return new DefaultBuildPhaseFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result);
     }
 
-    private static List<Problem> toToolingProblems(List<? extends InternalProblem> additionalFailureContext) {
-       List<Problem> result = new ArrayList<>(additionalFailureContext.size());
-       for (InternalProblem context : additionalFailureContext) {
+    private static List<Problem> toToolingProblems(List<? extends InternalProblem> problems) {
+       List<Problem> result = new ArrayList<>(problems.size());
+       for (InternalProblem context : problems) {
            result.add(new DefaultProblem(context.getRawAttributes()));
        }
        return result;
@@ -753,7 +753,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()), toToolingProblems(result.getAdditionalFailureContext()));
+            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()), toToolingProblems(result.getProblems()));
         } else {
             return null;
         }
@@ -796,7 +796,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toToolingProblems(result.getAdditionalFailureContext()));
+            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toToolingProblems(result.getProblems()));
         } else {
             return null;
         }

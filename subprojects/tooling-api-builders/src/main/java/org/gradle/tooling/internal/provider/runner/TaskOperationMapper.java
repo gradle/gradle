@@ -132,7 +132,7 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
             if (failure == null) {
                 return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons);
             } else {
-                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons, DefaultProblem.from(finishEvent.getAdditionalFailureContext()));
+                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons, DefaultProblem.from(finishEvent.getProblems()));
             }
         }
     }

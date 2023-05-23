@@ -35,5 +35,5 @@ public interface FailureResult extends OperationResult {
      */
     List<? extends Failure> getFailures();
 
-    List<? extends Problem> getAdditionalFailureContext();
+    List<? extends Problem> getProblems();
 }
