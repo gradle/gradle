@@ -19,6 +19,9 @@ package org.gradle.api.internal.artifacts.configurations
 import groovy.test.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConsumableConfiguration
+import org.gradle.api.artifacts.DependenciesConfiguration
+import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
@@ -47,6 +50,8 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicReference
 
 class DefaultConfigurationContainerTest extends Specification {
 
@@ -196,6 +201,118 @@ class DefaultConfigurationContainerTest extends Specification {
 
         then:
         thrown MissingMethodException
+    }
+
+    def "create(String) creates legacy configuration"() {
+        when:
+        def legacy = configurationContainer.create("foo")
+
+        then:
+        legacy instanceof ResolvableConfiguration
+        legacy instanceof ConsumableConfiguration
+        legacy instanceof DependenciesConfiguration
+        legacy.isCanBeResolved()
+        legacy.isCanBeConsumed()
+        legacy.isCanBeDeclared()
+    }
+
+    def "create(String, Action) creates legacy configuration"() {
+        when:
+        AtomicReference<Configuration> receiver = new AtomicReference<>()
+        def legacy = configurationContainer.create("foo", receiver::set)
+
+        then:
+        legacy == receiver.get()
+        legacy instanceof ResolvableConfiguration
+        legacy instanceof ConsumableConfiguration
+        legacy instanceof DependenciesConfiguration
+        legacy.isCanBeResolved()
+        legacy.isCanBeConsumed()
+        legacy.isCanBeDeclared()
+    }
+
+    def "resolvable(String) creates resolvable configuration"() {
+        when:
+        def resolvable = configurationContainer.resolvable("foo")
+
+        then:
+        resolvable instanceof ResolvableConfiguration
+        !(resolvable instanceof ConsumableConfiguration)
+        !(resolvable instanceof DependenciesConfiguration)
+        resolvable.isCanBeResolved()
+        !resolvable.isCanBeConsumed()
+        !resolvable.isCanBeDeclared()
+    }
+
+    def "resolvable(String, Action) creates resolvable configuration"() {
+        when:
+        AtomicReference<ResolvableConfiguration> receiver = new AtomicReference<>()
+        def resolvable = configurationContainer.resolvable("foo", receiver::set)
+
+        then:
+        resolvable == receiver.get()
+        resolvable instanceof ResolvableConfiguration
+        !(resolvable instanceof ConsumableConfiguration)
+        !(resolvable instanceof DependenciesConfiguration)
+        resolvable.isCanBeResolved()
+        !resolvable.isCanBeConsumed()
+        !resolvable.isCanBeDeclared()
+    }
+
+    def "consumable(String) creates consumable configuration"() {
+        when:
+        def consumable = configurationContainer.consumable("foo")
+
+        then:
+        consumable instanceof ConsumableConfiguration
+        !(consumable instanceof ResolvableConfiguration)
+        !(consumable instanceof DependenciesConfiguration)
+        consumable.isCanBeConsumed()
+        !consumable.isCanBeResolved()
+        !consumable.isCanBeDeclared()
+    }
+
+    def "consumable(String, Action) creates consumable configuration"() {
+        when:
+        AtomicReference<ConsumableConfiguration> receiver = new AtomicReference<>()
+        def consumable = configurationContainer.consumable("foo", receiver::set)
+
+        then:
+        consumable == receiver.get()
+        consumable instanceof ConsumableConfiguration
+        !(consumable instanceof ResolvableConfiguration)
+        !(consumable instanceof DependenciesConfiguration)
+        consumable.isCanBeConsumed()
+        !consumable.isCanBeResolved()
+        !consumable.isCanBeDeclared()
+    }
+
+    def "dependencies(String) creates dependencies configuration"() {
+        when:
+        def dependencies = configurationContainer.dependencies("foo")
+
+        then:
+        dependencies instanceof DependenciesConfiguration
+        !(dependencies instanceof ConsumableConfiguration)
+        !(dependencies instanceof ResolvableConfiguration)
+        dependencies.isCanBeDeclared()
+        !dependencies.isCanBeConsumed()
+        !dependencies.isCanBeResolved()
+    }
+
+    def "dependencies(String, Action) creates dependencies configuration"() {
+        when:
+        AtomicReference<DependenciesConfiguration> receiver = new AtomicReference<>()
+        def dependencies = configurationContainer.dependencies("foo", receiver::set)
+
+        then:
+        dependencies == receiver.get()
+        dependencies instanceof DependenciesConfiguration
+        !(dependencies instanceof ConsumableConfiguration)
+        !(dependencies instanceof ResolvableConfiguration)
+        dependencies.isCanBeDeclared()
+        !dependencies.isCanBeConsumed()
+        !dependencies.isCanBeResolved()
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements

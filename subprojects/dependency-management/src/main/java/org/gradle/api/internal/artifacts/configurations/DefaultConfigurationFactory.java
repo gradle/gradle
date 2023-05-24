@@ -114,10 +114,11 @@ public class DefaultConfigurationFactory {
     }
 
     /**
-     * Creates a new {@link DefaultConfiguration} instance.
+     * Creates a new configuration instance.
      */
-    DefaultConfiguration create(
+    <T extends DefaultConfiguration> T create(
         String name,
+        Class<T> configurationType,
         ConfigurationsProvider configurationsProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
@@ -127,7 +128,7 @@ public class DefaultConfigurationFactory {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
                 listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         return instantiator.newInstance(
-                DefaultConfiguration.class,
+                configurationType,
                 domainObjectContext,
                 name,
                 configurationsProvider,

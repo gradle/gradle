@@ -24,7 +24,6 @@ import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.VerificationType;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
@@ -85,7 +84,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
         this.mainFeature = new DefaultJvmFeature(
             sourceSetName, sourceSet, Collections.emptyList(),
-            (ProjectInternal) project, ConfigurationRoles.CONSUMABLE, false);
+            (ProjectInternal) project, false, false);
 
         // TODO: Should all features also have this variant? Why just the main feature?
         createSourceElements(configurations, providerFactory, objectFactory, mainFeature);
@@ -125,7 +124,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // of the component's API?
         String variantName = feature.getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        Configuration variant = configurations.migratingUnlocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
         variant.extendsFrom(mainFeature.getImplementationConfiguration());

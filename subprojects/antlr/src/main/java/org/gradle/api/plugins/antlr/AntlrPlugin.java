@@ -48,14 +48,14 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
-        final Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableBucket(ANTLR_CONFIGURATION_NAME)
+        @SuppressWarnings("deprecation")
+        final Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependenciesUnlocked(ANTLR_CONFIGURATION_NAME)
             .setVisible(false);
 
         antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));

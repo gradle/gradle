@@ -23,7 +23,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
@@ -112,10 +111,9 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void createConfigurations() {
         super.createConfigurations();
-        Configuration auxClasspath = project.getConfigurations().createWithRole(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, ConfigurationRoles.BUCKET, additionalAuxDepsConfiguration -> {
-            additionalAuxDepsConfiguration.setDescription("The additional libraries that are available for type resolution during analysis");
-            additionalAuxDepsConfiguration.setVisible(false);
-        });
+        Configuration auxClasspath = project.getConfigurations().dependenciesUnlocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
+        auxClasspath.setDescription("The additional libraries that are available for type resolution during analysis");
+        auxClasspath.setVisible(false);
         getJvmPluginServices().configureAsRuntimeClasspath(auxClasspath);
     }
 
@@ -218,7 +216,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Configuration pmdAdditionalAuxDepsConfiguration = configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
 
         // TODO: Consider checking if the resolution consistency is enabled for compile/runtime.
-        @SuppressWarnings("deprecation") Configuration pmdAuxClasspath = configurations.createWithRole(sourceSet.getName() + "PmdAuxClasspath", ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
+        Configuration pmdAuxClasspath = configurations.migratingUnlocked(sourceSet.getName() + "PmdAuxClasspath", ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
         pmdAuxClasspath.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
         pmdAuxClasspath.setVisible(false);
         // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.

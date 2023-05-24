@@ -62,7 +62,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("org.gradle.reporting-base");
 
         RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
-        final Configuration testAggregation = configurations.bucket(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME);
+        final Configuration testAggregation = configurations.dependenciesUnlocked(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME);
         testAggregation.setDescription("A configuration to collect test execution results");
         testAggregation.setVisible(false);
 
@@ -79,7 +79,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         });
 
         // A resolvable configuration to collect test results
-        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults");
+        Configuration testResultsConf = configurations.resolvableUnlocked("aggregateTestReportResults");
         testResultsConf.extendsFrom(testAggregation);
         testResultsConf.setDescription("Graph needed for the aggregated test results report.");
         testResultsConf.setVisible(false);

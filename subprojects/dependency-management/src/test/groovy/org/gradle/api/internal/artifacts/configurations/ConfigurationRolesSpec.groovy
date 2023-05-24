@@ -52,10 +52,10 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         role                                            || name
-        ConfigurationRoles.BUCKET                       || "Bucket"
+        ConfigurationRoles.BUCKET                       || "Dependencies"
         ConfigurationRoles.CONSUMABLE                   || "Consumable"
         ConfigurationRoles.RESOLVABLE                   || "Resolvable"
-        ConfigurationRoles.RESOLVABLE_BUCKET            || "Resolvable Bucket"
+        ConfigurationRoles.RESOLVABLE_BUCKET            || "Resolvable Dependencies"
         ConfigurationRoles.LEGACY                       || "Legacy"
     }
 }

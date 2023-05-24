@@ -20,8 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
@@ -61,15 +59,12 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
             JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
             SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
 
-            @SuppressWarnings("deprecation")
-            ConfigurationRole role = ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE;
-
             JvmFeatureInternal feature = new DefaultJvmFeature(
                 TEST_FIXTURES_FEATURE_NAME,
                 testFixturesSourceSet,
                 Collections.singletonList(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
                 (ProjectInternal) project,
-                role,
+                true,
                 false
             );
 

@@ -135,7 +135,13 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        @SuppressWarnings("deprecation") Configuration variant = project.getConfigurations().maybeCreateWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        Configuration variant = project.getConfigurations().findByName(variantName);
+        if (variant == null) {
+            variant = project.getConfigurations().migratingUnlocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        }
+//        else {
+//            TODO: Deprecate & warn the user. They should not be creating Gradle-managed configurations on their own.
+//        }
         variant.setVisible(false);
         variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 

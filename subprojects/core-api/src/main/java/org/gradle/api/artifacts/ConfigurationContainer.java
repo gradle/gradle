@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -124,4 +126,99 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @return The configuration.
      */
     Configuration detachedConfiguration(Dependency... dependencies);
+
+    /**
+     * Creates a {@link ResolvableConfiguration} with an immutable role. Resolvable configurations
+     * are meant to resolve dependency graphs and their artifacts.
+     *
+     * @param name The name of the configuration to create.
+     *
+     * @return A new resolvable configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    ResolvableConfiguration resolvable(String name);
+
+    /**
+     * Creates a {@link ResolvableConfiguration} via {@link #resolvable(String)} and then executes
+     * the provided action against it.
+     *
+     * @param name The name of the configuration to create.
+     * @param action The action to execute against the new configuration.
+     *
+     * @return The new resolvable configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    ResolvableConfiguration resolvable(String name, Action<? super ResolvableConfiguration> action);
+
+    /**
+     * Creates a new {@link ConsumableConfiguration} with an immutable role. Consumable configurations
+     * are meant to act as a variant in the context of Dependency Management and Publishing.
+     *
+     * @param name The name of the configuration to create.
+     *
+     * @return A new consumable configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    ConsumableConfiguration consumable(String name);
+
+    /**
+     * Creates a {@link ConsumableConfiguration} via {@link #consumable(String)} and then executes
+     * the provided action against it.
+     *
+     * @param name The name of the configuration to create.
+     * @param action The action to execute against the new configuration.
+     *
+     * @return The new consumable configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    ConsumableConfiguration consumable(String name, Action<? super ConsumableConfiguration> action);
+
+    /**
+     * Creates a new {@link DependenciesConfiguration} with an immutable role. Dependency configurations
+     * collect dependencies, dependency constraints, and exclude rules to be used by both resolvable
+     * and consumable configurations.
+     *
+     * @param name The name of the configuration to create.
+     *
+     * @return A new dependencies configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    DependenciesConfiguration dependencies(String name);
+
+    /**
+     * Creates a {@link DependenciesConfiguration} via {@link #dependencies(String)} and then executes
+     * the provided action against it.
+     *
+     * @param name The name of the configuration to create.
+     * @param action The action to execute against the new configuration.
+     *
+     * @return The new dependencies configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    DependenciesConfiguration dependencies(String name, Action<? super DependenciesConfiguration> action);
+
 }

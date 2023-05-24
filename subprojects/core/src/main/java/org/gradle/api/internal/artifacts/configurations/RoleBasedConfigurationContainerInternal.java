@@ -16,222 +16,125 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
+import org.gradle.api.artifacts.DependenciesConfiguration;
+import org.gradle.api.artifacts.ResolvableConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 /**
- * Extends {@link ConfigurationContainer} with methods that can use {@link ConfigurationRole}s to
- * define the allowed usage of a configuration at creation time.
- * <p>
- * This is an internal API, and is not yet intended for use outside of the Gradle build.
+ * Extends {@link ConfigurationContainer} to define internal-only methods for creating configurations.
+ * All methods in this interface produce <strong>unlocked</strong> configurations, meaning they
+ * are allowed to change roles. Starting in Gradle 9.0, all Gradle-created configurations will be locked.
+ *
+ * <p>The methods on this interface are meant to be transitional, and as such all usages of this interface
+ * should be migrated to the public API starting in Gradle 9.0.<p>
+ *
+ * <strong>New configurations should leverage the role-based factory methods on {@link ConfigurationContainer}.</strong>
  */
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer {
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#CONSUMABLE}.
-     */
-    default Configuration consumable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.CONSUMABLE, lockRole);
-    }
 
     /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#RESOLVABLE}.
+     * Creates a consumable configuration which can change roles.
      */
-    default Configuration resolvable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.RESOLVABLE, lockRole);
-    }
+    ConsumableConfiguration consumableUnlocked(String name);
 
     /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#RESOLVABLE_BUCKET}.
+     * Creates a resolvable configuration which can change roles.
      */
-    @SuppressWarnings("deprecation")
-    default Configuration resolvableBucket(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.RESOLVABLE_BUCKET, lockRole);
-    }
+    ResolvableConfiguration resolvableUnlocked(String name);
 
     /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#BUCKET}.
+     * Creates a dependencies configuration which can change roles.
      */
-    default Configuration bucket(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.BUCKET, lockRole);
-    }
+    DependenciesConfiguration dependenciesUnlocked(String name);
 
     /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#CONSUMABLE} that is <strong>NOT</strong> locked
-     * against further usage mutations.
+     * Creates a new configuration, which can change roles, with initial role {@code role}.
+     * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      */
-    default Configuration consumable(String name) {
-        return consumable(name, false);
-    }
+    Configuration migratingUnlocked(String name, ConfigurationRole role);
 
     /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#RESOLVABLE} that is <strong>NOT</strong> locked
-     * against further usage mutations.
-     */
-    default Configuration resolvable(String name) {
-        return resolvable(name, false);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#RESOLVABLE_BUCKET} that is <strong>NOT</strong> locked
-     * against further usage mutations.
-     */
-    @SuppressWarnings("deprecation")
-    default Configuration resolvableBucket(String name) {
-        return resolvableBucket(name, false);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#BUCKET} that is <strong>NOT</strong> locked
-     * against further usage mutations.
-     */
-    default Configuration bucket(String name) {
-        return bucket(name, false);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #create(String)} using the given role
-     * at creation.
+     * Creates a resolvable + dependencies configuration which can change roles.
      *
-     * @param name the name of the configuration
-     * @param role the role defining the configuration's allowed usage
-     * @param lockUsage {@code true} if the configuration's allowed usage should be locked to prevent any changes; {@code false} otherwise
-     * @param configureAction an action to run upon the configuration's creation to configure it
-     * @return the new configuration
+     * @deprecated Whether concept of a resolvable + dependencies configuration should exist
+     * is still under debate. However, in general, we should try to split up configurations which
+     * have this role into separate resolvable and dependencies configurations.
      */
-    Configuration createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super Configuration> configureAction);
+    @Deprecated
+    Configuration resolvableDependenciesUnlocked(String name);
 
-    /**
-     * Creates a new configuration in the same manner as {@link #create(String)} using the given role
-     * at creation.
-     *
-     * @param name the name of the configuration
-     * @param role the role defining the configuration's allowed usage
-     * @param lockUsage {@code true} if the configuration's allowed usage should be locked to prevent any changes; {@code false} otherwise
-     * @return the new configuration
-     */
-    default Configuration createWithRole(String name, ConfigurationRole role, boolean lockUsage) {
-        return createWithRole(name, role, lockUsage, Actions.doNothing());
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #create(String)} using the given role
-     * at creation and configuring it with the given action, without automatically locking the configuration's allowed usage.
-     *
-     * @param name the name of the configuration
-     * @param role the role defining the configuration's allowed usage
-     * @param configureAction an action to run upon the configuration's creation to configure it
-     * @return the new configuration
-     */
-    default Configuration createWithRole(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
-        return createWithRole(name, role, false, configureAction);
-    }
-
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * without locking the configuration's allowed usage.
-     */
-    default Configuration createWithRole(String name, ConfigurationRole role) {
-        return createWithRole(name, role, false);
-    }
-
-    /**
-     * Runs the same proces as {@link #maybeCreateWithRole(String, ConfigurationRole, boolean, boolean)}, without locking the configuration's allowed usage
-     * or asserting that an existing matching configuration's usage matches the given role.
-     *
-     * @param name the name of the configuration
-     * @param role the role defining the configuration's allowed usage
-     * @return the matching or new configuration
-     */
-    default Configuration maybeCreateWithRole(String name, ConfigurationRole role) {
-        return maybeCreateWithRole(name, role, false, false);
-    }
-
-    /**
-     * If it does not already exist, creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)};
-     * if the configuration does already exist, this method will <strong>NOT</strong>> change anything about its allowed usage or its role,
-     * but <strong>CAN</strong> optionally confirm that the current usage of the configuration
-     * matches the given role and/or prevent any further changes to the configuration's allowed usage.
-     *
-     * @param name the name of the configuration
-     * @param role the role defining the configuration's allowed usage
-     * @param lockUsage {@code true} if the configuration's allowed usage should be locked to prevent any changes; {@code false} otherwise
-     * @param assertInRole {@code true} if the configuration's current usage should be confirmed to match that specified by the given role
-     * @return the matching or new configuration
-     */
-    default Configuration maybeCreateWithRole(String name, ConfigurationRole role, boolean lockUsage, boolean assertInRole) {
-        DeprecatableConfiguration configuration = (DeprecatableConfiguration) findByName(name);
+    default Configuration maybeCreateResolvable(String name) {
+        Configuration configuration = findByName(name);
         if (configuration == null) {
-            return createWithRole(name, role, lockUsage);
-        } else {
-            if (assertInRole) {
-                RoleChecker.assertIsInRole(configuration, role);
-            }
-            if (lockUsage) {
-               configuration.preventUsageMutation();
-            }
-            return configuration;
+            return resolvableUnlocked(name);
         }
+
+        DeprecationEmitter.configurationExists(name);
+        return configuration;
+    }
+
+    default Configuration maybeCreateConsumableUnlocked(String name) {
+        Configuration configuration = findByName(name);
+        if (configuration == null) {
+            return consumableUnlocked(name);
+        }
+
+        DeprecationEmitter.configurationExists(name);
+        return configuration;
+    }
+
+    default Configuration maybeCreateDependenciesUnlocked(String name) {
+        return maybeCreateDependenciesUnlocked(name, true);
+    }
+
+    default Configuration maybeCreateDependenciesUnlocked(String name, boolean warnOnDuplicate) {
+        Configuration configuration = findByName(name);
+        if (configuration == null) {
+            return dependenciesUnlocked(name);
+        }
+
+        if (warnOnDuplicate) {
+            DeprecationEmitter.configurationExists(name);
+        }
+        return configuration;
+    }
+
+    default Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
+        Configuration configuration = findByName(name);
+        if (configuration == null) {
+            return migratingUnlocked(name, role);
+        }
+
+        DeprecationEmitter.configurationExists(name);
+        return configuration;
+    }
+
+    @Deprecated
+    default Configuration maybeCreateResolvableDependenciesUnlocked(String name) {
+        Configuration configuration = findByName(name);
+        if (configuration == null) {
+            return resolvableDependenciesUnlocked(name);
+        }
+
+        DeprecationEmitter.configurationExists(name);
+        return configuration;
     }
 
     /**
-     * This static util class hides methods internal to the {@code default} methods in the {@link RoleBasedConfigurationContainerInternal} interface.
+     * This static util class hides methods internal to the {@code default} methods in this interface.
      */
-    abstract class RoleChecker {
-        private RoleChecker() { /* not instantiable */ }
+    final class DeprecationEmitter {
+        private DeprecationEmitter() { /* not instantiable */ }
 
-        /**
-         * Checks that the current allowed usage of a configuration is the same as that specified by a given role.
-         *
-         * @param configuration the configuration to check
-         * @param role the role to check against
-         * @return {@code true} if so; {@code false} otherwise
-         */
-        public static boolean isUsageConsistentWithRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
-            return (role.isConsumable() == configuration.isCanBeConsumed())
-                    && (role.isResolvable() == configuration.isCanBeResolved())
-                    && (role.isDeclarable() == configuration.isCanBeDeclared())
-                    && (role.isConsumptionDeprecated() == configuration.isDeprecatedForConsumption())
-                    && (role.isResolutionDeprecated() == configuration.isDeprecatedForResolution())
-                    && (role.isDeclarationAgainstDeprecated() == configuration.isDeprecatedForDeclarationAgainst());
-        }
-
-        /**
-         * Checks that the current allowed usage of a configuration is the same as that specified by a given role,
-         * and throws an exception with a message describing the differences if not.
-         *
-         * @param configuration the configuration to check
-         * @param role the role to check against
-         */
-        public static void assertIsInRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
-            if (!isUsageConsistentWithRole(configuration, role)) {
-                throw new GradleException(describeDifferenceFromRole(configuration, role));
-            }
-        }
-
-        private static String describeDifferenceFromRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
-            if (!isUsageConsistentWithRole(configuration, role)) {
-                return "Usage for configuration: " + configuration.getName() + " is not consistent with the role: " + role.getName() + ".\n" +
-                        "Expected that it is:\n" +
-                        role.describeUsage() + "\n" +
-                        "But is actually is:\n" +
-                        UsageDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclared(),
-                                configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
-            } else {
-                return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";
-            }
+        public static void configurationExists(String configurationName) {
+            DeprecationLogger.deprecateBehaviour("The configuration " + configurationName + " was created explicitly. This configuration name is reserved for creation by Gradle.")
+                .withAdvice("Do not create a configuration with this name.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "configurations_allowed_usage")
+                .nagUser();
         }
     }
 }
