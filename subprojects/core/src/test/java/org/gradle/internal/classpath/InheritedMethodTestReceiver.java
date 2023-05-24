@@ -16,22 +16,15 @@
 
 package org.gradle.internal.classpath;
 
-public class JavaCallerForBasicCallInterceptorTest {
+public class InheritedMethodTestReceiver {
 
-    public static String doCallNoArg2(InheritedMethodTestReceiver receiver) {
-        String v = receiver.call();
-        System.out.println(v);
-        return v;
-    }
-    public static void doCallNoArg(InterceptorTestReceiver receiver) {
-        receiver.call();
+    public String call() {
+        return "Hello";
     }
 
-    public static void doCallSingleArg(InterceptorTestReceiver receiver) {
-        receiver.call(receiver);
+    public static class A extends InheritedMethodTestReceiver {
     }
 
-    public static void doCallVararg(InterceptorTestReceiver receiver) {
-        receiver.callVararg(receiver, receiver, receiver);
+    public static class B extends A {
     }
 }
