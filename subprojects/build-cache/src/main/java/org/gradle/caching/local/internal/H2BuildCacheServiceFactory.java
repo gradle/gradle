@@ -84,8 +84,9 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
         describer.type(H2_BUILD_CACHE_TYPE)
             .config("location", target.getAbsolutePath())
             .config("removeUnusedEntriesAfter", removeUnusedEntriesAfterDays + " days");
-        H2BuildCacheService h2Service = new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount(), removeUnusedEntriesAfterDays, Time.clock());
         // TODO: H2Cache could be provided by PersistentCache
+        // TODO: Add open/close functionality to LockOptionsBuilder, so we can open and close database when process acquires a lock
+        //  and we can remove crossProcessCacheAccess logic from LockOnDemandCrossProcessBuildCacheService
         // For now PersistentCache is used just so we can reuse cleanup infrastructure, but in future H2Cache could be provided by PersistentCache
         Function<HasCleanupAction, PersistentCache> persistentCacheFactory = buildCacheService -> unscopedCacheBuilderFactory
             .cache(target)
@@ -93,6 +94,7 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
             .withDisplayName("Build cache NG")
             .withLockOptions(mode(None))
             .open();
+        H2BuildCacheService h2Service = new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount(), removeUnusedEntriesAfterDays, Time.clock());
         return new LockOnDemandCrossProcessBuildCacheService("build-cache-2", target, lockManager, h2Service, persistentCacheFactory);
     }
 
