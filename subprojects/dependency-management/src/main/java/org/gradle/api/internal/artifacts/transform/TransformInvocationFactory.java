@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -34,5 +35,6 @@ public interface TransformInvocationFactory {
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
+        ProjectInternal owningProject,
         InputFingerprinter inputFingerprinter);
 }

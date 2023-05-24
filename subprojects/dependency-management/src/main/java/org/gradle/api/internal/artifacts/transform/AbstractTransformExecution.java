@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -29,16 +30,21 @@ import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
+import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.gradle.internal.file.TreeType.DIRECTORY;
@@ -58,9 +64,11 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     protected final File inputArtifact;
     private final TransformDependencies dependencies;
     private final TransformStepSubject subject;
+    private final ProjectInternal owningProject;
 
     private final TransformExecutionListener transformExecutionListener;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
     private final FileCollectionFactory fileCollectionFactory;
 
     private final Provider<FileSystemLocation> inputArtifactProvider;
@@ -72,9 +80,11 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
+        ProjectInternal owningProject,
 
         TransformExecutionListener transformExecutionListener,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         TransformWorkspaceServices workspaceServices
@@ -84,9 +94,11 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.dependencies = dependencies;
         this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
         this.subject = subject;
+        this.owningProject = owningProject;
         this.transformExecutionListener = transformExecutionListener;
 
         this.buildOperationExecutor = buildOperationExecutor;
+        this.progressEventEmitter = progressEventEmitter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
         this.workspaceServices = workspaceServices;
@@ -205,6 +217,10 @@ abstract class AbstractTransformExecution implements UnitOfWork {
                     .orElse(FileCollectionFactory.empty())));
     }
 
+    protected void emitIdentifyTransformExecutionProgressDetails(TransformWorkspaceIdentity transformWorkspaceIdentity) {
+        progressEventEmitter.emitNowIfCurrent(new DefaultIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity, transform, owningProject));
+    }
+
     @Override
     @OverridingMethodsMustInvokeSuper
     public void visitRegularInputs(InputVisitor visitor) {
@@ -237,5 +253,54 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     @Override
     public String getDisplayName() {
         return transform.getDisplayName() + ": " + inputArtifact;
+    }
+
+    private static class DefaultIdentifyTransformExecutionProgressDetails implements IdentifyTransformExecutionProgressDetails {
+
+        private final TransformWorkspaceIdentity transformWorkspaceIdentity;
+        private final Transform transform;
+        private final ProjectInternal owningProject;
+
+        public DefaultIdentifyTransformExecutionProgressDetails(
+            TransformWorkspaceIdentity transformWorkspaceIdentity,
+            Transform transform,
+            ProjectInternal owningProject
+        ) {
+            this.transformWorkspaceIdentity = transformWorkspaceIdentity;
+            this.transform = transform;
+            this.owningProject = owningProject;
+        }
+
+        @Override
+        public String getUniqueId() {
+            return transformWorkspaceIdentity.getUniqueId();
+        }
+
+        @Override
+        public String getConsumerBuildPath() {
+            return owningProject.getBuildPath().toString();
+        }
+
+        @Override
+        public String getConsumerProjectPath() {
+            return owningProject.getProjectPath().toString();
+        }
+
+        @Override
+        public Map<String, String> getFromAttributes() {
+            return AttributesToMapConverter.convertToMap(transform.getFromAttributes());
+        }
+
+        @Override
+        public Map<String, String> getToAttributes() {
+            return AttributesToMapConverter.convertToMap(transform.getToAttributes());
+        }
+
+        @Override
+        public byte[] getSecondaryInputValueHashBytes() {
+            Hasher hasher = Hashing.newHasher();
+            transformWorkspaceIdentity.getSecondaryInputsSnapshot().appendToHasher(hasher);
+            return hasher.hash().toByteArray();
+        }
     }
 }

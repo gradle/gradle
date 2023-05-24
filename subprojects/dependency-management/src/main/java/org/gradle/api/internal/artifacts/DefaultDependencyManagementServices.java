@@ -129,6 +129,7 @@ import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -221,7 +222,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 TransformExecutionListener transformExecutionListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
-                BuildOperationExecutor buildOperationExecutor
+                BuildOperationExecutor buildOperationExecutor,
+                BuildOperationProgressEventEmitter progressEventEmitter
         ) {
             return new DefaultTransformInvocationFactory(
                 executionEngine,
@@ -230,7 +232,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,
-                buildOperationExecutor
+                buildOperationExecutor,
+                progressEventEmitter
             );
         }
 
