@@ -139,16 +139,18 @@ private
 fun packageNameOf(code: String): String? =
     KotlinLexer().run {
         start(code)
-        skipWhiteSpaceAndComments()
-        when (tokenType) {
-            KtTokens.PACKAGE_KEYWORD -> {
-                advance()
-                skipWhiteSpaceAndComments()
-                parseQualifiedName()
-            }
 
-            else -> null
+        while (tokenType != null && tokenType != KtTokens.PACKAGE_KEYWORD) {
+            advance()
         }
+
+        if (tokenType == KtTokens.PACKAGE_KEYWORD) {
+            advance()
+            skipWhiteSpaceAndComments()
+            return parseQualifiedName()
+        }
+
+        return null
     }
 
 

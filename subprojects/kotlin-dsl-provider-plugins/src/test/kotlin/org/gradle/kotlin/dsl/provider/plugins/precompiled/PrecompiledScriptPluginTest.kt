@@ -9,6 +9,7 @@ import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import spock.lang.Issue
 
 import java.io.File
 
@@ -42,6 +43,40 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
                 """
 
                     package org.acme
+
+                """
+            ).id,
+            equalTo("org.acme.my-script")
+        )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16154")
+    @Test
+    fun `package name detection works even when there is a shebang line and file annotations`() {
+
+        assertThat(
+            scriptPlugin(
+                "my-script.gradle.kts",
+                """
+
+                    // she-bangs! ///////_*&@ because why not! _-|
+
+                    #!/something/something
+
+
+                    /* first file annotation */
+                    @file:Suppress("UnstableApiUsage")
+
+                    // second file annotation //second comment, just for fun
+
+                    @file    :    [   SuppressWarnings    Incubating   Suppress(
+                        "unused",
+                        "nothing_to_inline"
+                    )    ]
+
+                    /* /* one more weird comment here */ */
+
+                    package org.acme; // semicolon intentionally added to make sure it doesn't mess with processing
 
                 """
             ).id,
