@@ -789,7 +789,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     @Issue("https://github.com/gradle/gradle/issues/24594")
     @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
-    def "nested map with #type key is validated without deprecation warning"() {
+    def "nested map with #type key is validated without warning"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
             abstract class CustomTask extends DefaultTask {
@@ -834,7 +834,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     @Issue("https://github.com/gradle/gradle/issues/24594")
     @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
-    def "nested map with unsupported key type is validated with deprecation warning"() {
+    def "nested map with unsupported key type is validated with warning"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
             abstract class CustomTask extends DefaultTask {
@@ -876,7 +876,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
     @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
-    def "nested #type#parameterType is validated with deprecation warning"() {
+    def "nested #type#parameterType is validated with warning"() {
         buildFile << """
             abstract class CustomTask extends DefaultTask {
                 @Nested
@@ -905,6 +905,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         'File'     | ''                 | 'new File("some/path")'                                | 'java.io.File'
         'Integer'  | ''                 | 'Integer.valueOf(1)'                                   | 'java.lang.Integer'
         'String'   | ''                 | 'new String()'                                         | 'java.lang.String'
+        'GString'  | ''                 | 'GString.EMPTY'                                        | 'groovy.lang.GString$1'
         'Iterable' | '<Integer>'        | '[[Integer.valueOf(1)], [Integer.valueOf(2)]]'         | 'java.lang.Integer'
         'List'     | '<String>'         | '["value1", "value2"]'                                 | 'java.lang.String'
         'Map'      | '<String,Integer>' | '[a: Integer.valueOf(1), b: Integer.valueOf(2)]'       | 'java.lang.Integer'
@@ -913,7 +914,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
     @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
-    def "nested #type#parameterType is validated without deprecation warning"() {
+    def "nested #type#parameterType is validated without warning"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
             enum SomeEnum { A, B, C }
@@ -941,6 +942,37 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         'Iterable'   | '<NestedBean>'        | 'Arrays.asList(new NestedBean("input"), new NestedBean("input"))'
         'Map'        | '<String,NestedBean>' | 'Collections.singletonMap("a", new NestedBean("input"))'
         'Provider'   | '<NestedBean>'        | 'getProject().getProviders().provider(() -> new NestedBean("input"))'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested Kotlin #type is validated with warning"() {
+        buildKotlinFile << """
+            abstract class CustomTask : DefaultTask() {
+                @get:Nested
+                var my$type: $type = $producer
+
+                @TaskAction
+                fun execute() { }
+            }
+
+            tasks.register<CustomTask>("customTask") { }
+        """
+
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'Build_gradle.CustomTask' property 'my$type' where nested type '$className' is not supported. " +
+                "Reason: Nested types must declare annotated properties.",
+            'validation_problems',
+            'unsupported_nested_type')
+
+        expect:
+        succeeds("customTask")
+
+        where:
+        type                | producer                    | className
+        'DeprecationLevel'  | 'DeprecationLevel.WARNING'  | 'kotlin.DeprecationLevel'
+        'Int'               | 'Int.MIN_VALUE'             | 'java.lang.Integer'
+        'String'            | '"abc"'                     | 'java.lang.String'
     }
 
     private static String namedBeanClass() {

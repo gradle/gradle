@@ -35,7 +35,8 @@ public class NestedValidationUtil  {
      * supports the given bean type.
      * <p>
      * Only types with annotated properties are supported. Types of
-     * the Java SE API are not supported.
+     * the Java SE API, types of the Kotlin stdlib, and Groovy's GString type
+     * are not supported.
      *
      * @param validationContext the validation context
      * @param propertyName the name of the property
@@ -62,8 +63,17 @@ public class NestedValidationUtil  {
     private static boolean isJavaSE(Class<?> type) {
         return type.getName().startsWith("java.") || type.getName().startsWith("javax.");
     }
+
+    private static boolean isKotlinStdlib(Class<?> type) {
+        return type.getName().startsWith("kotlin.") || type.getName().startsWith("kotlinx.");
+    }
+
+    private static boolean isGString(Class<?> type) {
+        return type.getName().startsWith("groovy.lang.GString");
+    }
+
     private static boolean isSupportedType(Class<?> type) {
-        return !isJavaSE(type);
+        return !isJavaSE(type) && !isKotlinStdlib(type) && !isGString(type);
     }
 
     /**

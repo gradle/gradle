@@ -698,6 +698,21 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         source("src/main/groovy/MyTask.groovy")
     }
 
+    TestFile getKotlinTaskSource() {
+        buildFile.delete()
+        buildKotlinFile << """
+            plugins {
+                id("java-gradle-plugin")
+                `kotlin-dsl`
+            }
+
+            repositories {
+                mavenCentral()
+            }
+        """
+        source("src/main/kotlin/MyTask.kt")
+    }
+
     static class DocumentedProblem {
         final String message
         final Severity severity
