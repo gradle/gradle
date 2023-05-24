@@ -54,7 +54,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         dependency 'org.test:buildB:1.0'
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar"
@@ -79,7 +79,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         buildB.settingsFile << settings << "\n"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar"
@@ -166,7 +166,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         dependency buildB, "org.test:buildC:1.0"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar", ":buildC:jar"
@@ -227,7 +227,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         dependency buildB, "org.test:buildC:1.0"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar", ":buildC:jar"
@@ -283,7 +283,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         dependency "org.test:b2:1.0"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:b1:jar", ":buildB:b2:jar"
@@ -381,7 +381,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         dependency buildB, "org.test:buildC:1.0"
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar", ":buildC:jar"
@@ -416,7 +416,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         buildB.buildFile << registration("buildB")
 
         when:
-        execute(buildA, ":jar", [])
+        execute(buildA, ":jar")
 
         then:
         executed ":buildB:jar", ":buildC:jar"
@@ -448,6 +448,21 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         executed ":buildB:compileJava"
 
         operations.none(RUN_MAIN_TASKS)
+        operations.only(FinishRootBuildTreeBuildOperationType)
+    }
+
+    def "generates finish build tree lifecycle operation for empty project"() {
+        given:
+        includedBuilds.clear()
+        buildA.buildFile.text = ""
+
+        when:
+        execute(buildA, "help")
+
+        then:
+        executed ":help"
+
+        and:
         operations.only(FinishRootBuildTreeBuildOperationType)
     }
 
