@@ -171,7 +171,7 @@ include::sample[dir="snippets/scala/zincDependency/groovy",files="build.gradle[t
 The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application.
 Gradle takes care of specifying a compatible version of `scala-library` for you.
 
-You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,dependencyInsight>> for the `zinc` configuration.
+You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,dependencyInsight>> for the `zinc` configuration.
 
 .Zinc compatibility table
 [%header%autowidth,compact]
