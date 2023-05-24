@@ -34,6 +34,8 @@ import org.junit.Assume
 
 import java.util.regex.Pattern
 
+import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
+
 class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     private static final Pattern RUN_MAIN_TASKS = Pattern.compile("Run main tasks")
     BuildTestFile buildB
@@ -424,7 +426,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         and:
         def buildFinished = operations.only(FinishRootBuildTreeBuildOperationType)
         buildFinished.progress.size() == 3
-        buildFinished.progress.details.spans.text.flatten() ==~ ["buildA", "buildB", "buildC"].collect { "$message $it\n".toString() }
+        buildFinished.progress.details.spans.text.flatten() ==~ ["buildA", "buildB", "buildC"].collect { "$message $it${getPlatformLineSeparator()}".toString() }
 
         where:
         description     | registration                                                          | message
