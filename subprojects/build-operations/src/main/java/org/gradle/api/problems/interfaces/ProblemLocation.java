@@ -18,34 +18,15 @@ package org.gradle.api.problems.interfaces;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
 /**
- * Problem description.
+ * Problem location.
  *
  * @since 8.3
  */
 @Incubating
-public interface Problem {
+public interface ProblemLocation {
 
-    ProblemId getId();
+    String getPath();
 
-    String getMessage();
-
-    Severity getSeverity();
-
-    @Nullable
-    ProblemLocation getWhere();
-
-    @Nullable
-    String getWhy();
-
-    @Nullable
-    String getDocumentationLink();
-
-    @Nullable
-    String getDescription();
-
-    List<Solution> getSolutions();
+    Integer getLine();
 }

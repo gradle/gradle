@@ -18,34 +18,40 @@ package org.gradle.api.problems.interfaces;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
 /**
- * Problem description.
+ * Problem id.
  *
  * @since 8.3
  */
 @Incubating
-public interface Problem {
+public interface ProblemId {
 
-    ProblemId getId();
+    String getId();
 
-    String getMessage();
+    /**
+     * Known problem id.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    class KnownIds {
+        public static final ProblemId GENERIC = new ProblemId() {
 
-    Severity getSeverity();
+            @Override
+            public String getId() {
+                return "generic";
+            }
+        };
 
-    @Nullable
-    ProblemLocation getWhere();
+        public static final ProblemId DEPRECATION = new ProblemId() {
 
-    @Nullable
-    String getWhy();
+            @Override
+            public String getId() {
+                return "deprecation";
+            }
+        };
 
-    @Nullable
-    String getDocumentationLink();
-
-    @Nullable
-    String getDescription();
-
-    List<Solution> getSolutions();
+        private KnownIds() {
+        }
+    }
 }

@@ -78,6 +78,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         List<Problem> problems = listener.context
         (problems[0].rawAttributes['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
+        (problems[0].rawAttributes['doc'] as String).contains('https://docs.gradle.org/')
+        (problems[0].rawAttributes['description'] as String) == 'description'
+        (problems[0].rawAttributes['why'] as String).contains('been deprecated.')
         (problems[0].rawAttributes['severity'] as String).contains('WARNING')
         (problems[1].rawAttributes['message'] as String).contains('Should not happen')
         (problems[1].rawAttributes['severity'] as String).contains('ERROR')
@@ -103,8 +106,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         List<Problem> problems = listener.context
         problems[0].rawAttributes['message'].contains('Could not compile build file')
         problems[0].rawAttributes['severity'] == 'ERROR'
-        problems[0].rawAttributes['file'].endsWith('build.gradle')
+        problems[0].rawAttributes['path'].endsWith('build.gradle')
         problems[0].rawAttributes['line'] == "3"
-        problems[0].rawAttributes['column'] == "17"
     }
 }

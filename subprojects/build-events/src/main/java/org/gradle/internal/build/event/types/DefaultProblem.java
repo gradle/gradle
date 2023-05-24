@@ -17,6 +17,8 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.interfaces.ProblemLocation;
+import org.gradle.api.problems.interfaces.Solution;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.tooling.internal.protocol.InternalProblem;
 
@@ -42,19 +44,44 @@ public class DefaultProblem implements Serializable, InternalProblem {
 
     private static InternalProblem from(Problem problem) {
         Map<String, String> rawAttributes = new HashMap<>();
+        rawAttributes.put("id", problem.getId().getId());
         rawAttributes.put("message", problem.getMessage());
-        rawAttributes.put("severity", problem.getSeverity());
-        String file = problem.getFile();
-        if (file != null) {
-            rawAttributes.put("file", file);
+        rawAttributes.put("severity", problem.getSeverity().toString());
+        ProblemLocation where = problem.getWhere();
+        if (where != null) {
+            String path = where.getPath();
+            if (path != null) {
+                rawAttributes.put("path", path);
+            }
+            Integer line = where.getLine();
+            if (line != null) {
+                rawAttributes.put("line", line.toString());
+            }
         }
-        Integer line = problem.getLine();
-        if (line != null) {
-            rawAttributes.put("line", line.toString());
+        String why = problem.getWhy();
+        if (why != null) {
+            rawAttributes.put("why", why);
         }
-        Integer column = problem.getColumn();
-        if (column != null) {
-            rawAttributes.put("column", column.toString());
+
+        String doc = problem.getDocumentationLink();
+        if (doc != null) {
+            rawAttributes.put("doc", doc);
+        }
+
+        String description = problem.getDescription();
+        if (description != null) {
+            rawAttributes.put("description", description);
+        }
+
+        int i = 1;
+        for (Solution solution : problem.getSolutions()) {
+            if (solution.getDescription() != null) {
+                rawAttributes.put("solution" + i + "description", solution.getDescription());
+            }
+            if (solution.getDocumentationUrl() != null) {
+                rawAttributes.put("solution" + i + "documentation", solution.getDocumentationUrl());
+            }
+            i++;
         }
         return new DefaultProblem(rawAttributes);
     }

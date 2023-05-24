@@ -18,8 +18,13 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.interfaces.Solution;
 import org.gradle.api.problems.internal.GradleExceptionWithContext;
 import org.gradle.internal.problems.DefaultProblem;
+import org.gradle.internal.problems.DefaultProblemLocation;
+import org.gradle.internal.problems.DefaultSolution;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,12 +45,12 @@ public class Problems {
 
     }
 
-    public static void reportWarning(String message) {
-        addProblem(new DefaultProblem(message, "WARNING", null, null, null));
+    public static void reportWarning(ProblemId id, String message, String summary, String documentationUrl, String solution) {
+        addProblem(new DefaultProblem(id, message, Severity.WARNING, null, summary, documentationUrl, "description", Collections.<Solution>singletonList(new DefaultSolution(documentationUrl, solution))));
     }
 
-    public static void reportFailure(String message, String file, Integer line, Integer column, Throwable cause) {
-        addProblem(new DefaultProblem(message, "ERROR", file, line, column));
+    public static void reportFailure(ProblemId id, String message, String file, Integer line, Throwable cause) {
+        addProblem(new DefaultProblem(id, message, Severity.ERROR, new DefaultProblemLocation(file, line),  null, null, null, null));
         throw new GradleExceptionWithContext(cause);
     }
 

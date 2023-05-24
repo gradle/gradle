@@ -19,6 +19,7 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.Problems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
@@ -75,7 +76,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             message.append(featureMessage);
             displayDeprecationIfSameMessageNotDisplayedBefore(message, usage.getStack());
         }
-        Problems.reportWarning(featureMessage);
+
+
+        Problems.reportWarning(ProblemId.KnownIds.DEPRECATION, featureMessage, usage.getSummary(), usage.getDocumentationUrl(), usage.getAdvice());
         fireDeprecatedUsageBuildOperationProgress(usage);
     }
 

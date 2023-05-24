@@ -14,38 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.internal.problems;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.interfaces.ProblemLocation;
 
-import javax.annotation.Nullable;
-import java.util.List;
+@NonNullApi
+public class DefaultProblemLocation implements ProblemLocation {
 
-/**
- * Problem description.
- *
- * @since 8.3
- */
-@Incubating
-public interface Problem {
+    private final String path;
+    private final Integer line;
 
-    ProblemId getId();
+    public DefaultProblemLocation(String path, Integer line) {
+        this.path = path;
+        this.line = line;
+    }
 
-    String getMessage();
+    @Override
+    public String getPath() {
+        return path;
+    }
 
-    Severity getSeverity();
-
-    @Nullable
-    ProblemLocation getWhere();
-
-    @Nullable
-    String getWhy();
-
-    @Nullable
-    String getDocumentationLink();
-
-    @Nullable
-    String getDescription();
-
-    List<Solution> getSolutions();
+    @Override
+    public Integer getLine() {
+        return line;
+    }
 }
