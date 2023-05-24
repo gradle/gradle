@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.attributes
 
+import org.gradle.api.JavaVersion
+
 
 /**
  * Tests for [org.gradle.api.artifacts.ArtifactView ArtifactView] that ensure it uses the "live" attributes
@@ -43,7 +45,7 @@ class JavaLibraryArtifactViewAttributesIntegrationTest extends AbstractArtifactV
                 'org.gradle.dependency.bundling = external',
                 'org.gradle.jvm.environment = standard-jvm',
                 'org.gradle.libraryelements = classes',
-                'org.gradle.jvm.version = 11']
+                "org.gradle.jvm.version = ${JavaVersion.current().majorVersion}"]
     }
 
     @Override
