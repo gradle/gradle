@@ -20,8 +20,8 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
-import org.gradle.internal.featurelifecycle.FeatureUsageTest
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.internal.featurelifecycle.StackTraceSanitizerTest
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationListener
@@ -298,7 +298,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         useStackTrace(fakeStackTrace)
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest)))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, StackTraceSanitizerTest)))
         def events = outputEventListener.events
 
         then:
@@ -312,7 +312,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         fakeStackTrace = [
-            new StackTraceElement(FeatureUsageTest.name, 'calledFrom', 'FeatureUsageTest.java', 23),
+            new StackTraceElement(StackTraceSanitizerTest.name, 'calledFrom', 'FeatureUsageTest.java', 23),
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
         ]
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
@@ -324,7 +324,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         useStackTrace()
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, FeatureUsageTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, StackTraceSanitizerTest))
         def events = outputEventListener.events
 
         then:

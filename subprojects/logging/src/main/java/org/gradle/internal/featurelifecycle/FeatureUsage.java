@@ -16,9 +16,6 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * An immutable description of the usage of a deprecated feature.
  */
@@ -44,43 +41,7 @@ public abstract class FeatureUsage {
         return calledFrom;
     }
 
-    public static List<StackTraceElement> calculateStack(Class<?> calledFrom, StackTraceElement[] originalStack) {
-        List<StackTraceElement> result = new ArrayList<StackTraceElement>();
-        final String calledFromName = calledFrom.getName();
-        boolean calledFromFound = false;
-        int caller;
-        for (caller = 0; caller < originalStack.length; caller++) {
-            StackTraceElement current = originalStack[caller];
-            if (!calledFromFound) {
-                if (current.getClassName().startsWith(calledFromName)) {
-                    calledFromFound = true;
-                }
-            } else {
-                if (!current.getClassName().startsWith(calledFromName)) {
-                    break;
-                }
-            }
-        }
-        for (; caller < originalStack.length; caller++) {
-            StackTraceElement stackTraceElement = originalStack[caller];
-            if (!isSystemStackFrame(stackTraceElement.getClassName())) {
-                result.add(stackTraceElement);
-            }
-        }
-        return result;
-    }
-
-    private static boolean isSystemStackFrame(String className) {
-        return className.startsWith("jdk.internal.") ||
-            className.startsWith("sun.") ||
-            className.startsWith("com.sun.") ||
-            className.startsWith("org.codehaus.groovy.") ||
-            className.startsWith("org.gradle.internal.metaobject.") ||
-            className.startsWith("org.gradle.kotlin.dsl.execution.");
-    }
-
     public String formattedMessage() {
         return summary;
     }
-
 }

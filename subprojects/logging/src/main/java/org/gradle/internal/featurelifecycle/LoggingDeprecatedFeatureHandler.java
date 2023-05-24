@@ -62,12 +62,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     @Override
     public void featureUsed(final DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
-        ProblemDiagnostics diagnostics = problemDiagnosticsFactory.forCurrentCaller(new ProblemDiagnosticsFactory.StackTraceTransformer() {
-            @Override
-            public List<StackTraceElement> transform(StackTraceElement[] original) {
-                return FeatureUsage.calculateStack(usage.getCalledFrom(), original);
-            }
-        });
+        ProblemDiagnostics diagnostics = problemDiagnosticsFactory.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
         if (warningMode.shouldDisplayMessages()) {
             String featureMessage = usage.formattedMessage();
             StringBuilder message = new StringBuilder();
