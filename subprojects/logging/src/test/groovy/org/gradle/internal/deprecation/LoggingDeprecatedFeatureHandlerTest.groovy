@@ -64,6 +64,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     def 'logs each deprecation warning only once'() {
         given:
         useStackTrace()
+        useStackTrace()
+        useStackTrace()
 
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
@@ -93,6 +95,106 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         def event = outputEventListener.events[0]
         event.message == 'feature removal'
         event.logLevel == LogLevel.WARN
+    }
+
+    def 'includes problem location in message'() {
+        given:
+        useLocation("<long>", 123)
+
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature'))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == TextUtil.toPlatformLineSeparators('<long>: line 123\nfeature removal')
+    }
+
+    def 'logs deprecation warning once for each unique Gradle script location that appears first in the stack trace'() {
+        given:
+        useStackTrace(fakeStackTrace1)
+        useStackTrace(fakeStackTrace2)
+        useStackTrace(fakeStackTrace1)
+        useStackTrace(fakeStackTrace2)
+
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 2
+
+        and:
+        events[0].message == TextUtil.toPlatformLineSeparators("""feature1 removal
+\tat some.KotlinGradleScript.foo(GradleScript.gradle.kts:31337)
+\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)""")
+        events[1].message == TextUtil.toPlatformLineSeparators("""feature1 removal
+\tat some.KotlinGradleScript.foo(GradleScript.gradle.kts:7)
+\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)""")
+
+        where:
+        fakeStackTrace1 = [
+            new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'foo', 'LoggingDeprecatedFeatureHandlerTest.java', 15),
+            new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 31337),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+        ] as ArrayList<StackTraceElement>
+        fakeStackTrace2 = [
+            new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'foo', 'LoggingDeprecatedFeatureHandlerTest.java', 15),
+            new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 7),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+        ] as ArrayList<StackTraceElement>
+    }
+
+    def 'logs deprecation warning once for each unique location'() {
+        given:
+        useLocation("<one>", 123)
+        useLocation("<one>", 1)
+        useLocation("<one>", 123)
+        useLocation("<one>", 1)
+
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 2
+
+        and:
+        events[0].message == TextUtil.toPlatformLineSeparators("""<one>: line 123
+feature1 removal""")
+        events[1].message == TextUtil.toPlatformLineSeparators("""<one>: line 1
+feature1 removal""")
+    }
+
+    def 'does not log deprecation warning without stack trace if the same warning has already been seen with a stack trace'() {
+        given:
+        useStackTrace(fakeStackTrace)
+        useLocation("<plugin>", 123, fakeStackTrace)
+        useStackTrace()
+        useLocation("<plugin>", 123)
+
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        handler.featureUsed(deprecatedFeatureUsage('feature1'))
+
+        then:
+        def events = outputEventListener.events
+        events.size() == 2
+
+        where:
+        fakeStackTrace = [
+            new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'foo', 'LoggingDeprecatedFeatureHandlerTest.java', 15),
+            new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 31337),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+        ] as ArrayList<StackTraceElement>
     }
 
     def "no warnings should be displayed in #type"() {
@@ -144,19 +246,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
         ] as ArrayList<StackTraceElement>
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
-    }
-
-    private void useStackTrace(List<StackTraceElement> stackTrace = []) {
-        diagnosticsFactory.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
-            _ * getLocation() >> null
-            _ * getStack() >> stackTrace
-        }
-    }
-
-    private Exception mockTraceRootException(List<StackTraceElement> stackTraceElements) {
-        Exception mock = Mock()
-        _ * mock.getStackTrace() >> stackTraceElements.toArray(new StackTraceElement[stackTraceElements.size()])
-        mock
     }
 
     def 'fake call with Gradle script element first and #deprecationTracePropertyName=false logs only Gradle script element'() {
@@ -338,21 +427,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'location reporter can prepend text'() {
-        when:
-        handler.featureUsed(deprecatedFeatureUsage('feature'))
-
-        then:
-        1 * diagnosticsFactory.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
-            _ * getLocation() >> new Location(Describables.of("<long>"), Describables.of("<short>"), 123)
-        }
-
-        and:
-        def events = outputEventListener.events
-        events.size() == 1
-        events[0].message == TextUtil.toPlatformLineSeparators('<long>: line 123\nfeature removal')
-    }
-
     def 'Setting #deprecationTracePropertyName=#deprecationTraceProperty overrides setTraceLoggingEnabled value.'() {
         given:
         System.setProperty(deprecationTracePropertyName, deprecationTraceProperty)
@@ -398,6 +472,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     def 'deprecated usages are exposed as build operation progress events'() {
         given:
         useStackTrace()
+        useStackTrace()
+        useStackTrace()
 
         when:
         currentBuildOperationRef.set(new DefaultBuildOperationRef(new OperationIdentifier(1), null))
@@ -413,6 +489,20 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         then:
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
+    }
+
+    private void useStackTrace(List<StackTraceElement> stackTrace = []) {
+        1 * diagnosticsFactory.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
+            _ * getLocation() >> null
+            _ * getStack() >> stackTrace
+        }
+    }
+
+    private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
+        1 * diagnosticsFactory.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
+            _ * getStack() >> stackTrace
+            _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
+        }
     }
 
     private static void progressFired(OperationProgressEvent progressEvent, String summary) {

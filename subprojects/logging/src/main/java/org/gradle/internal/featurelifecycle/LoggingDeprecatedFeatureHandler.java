@@ -30,10 +30,10 @@ import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -45,7 +45,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
     private static boolean traceLoggingEnabled;
 
-    private final Set<String> messages = new HashSet<String>();
+    private final Set<String> loggedMessages = new CopyOnWriteArraySet<String>();
+    private final Set<String> loggedUsages = new CopyOnWriteArraySet<String>();
     private boolean deprecationsFound = false;
     private ProblemDiagnosticsFactory problemDiagnosticsFactory = new NoOpProblemDiagnosticsFactory();
 
@@ -64,17 +65,34 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         deprecationsFound = true;
         ProblemDiagnostics diagnostics = problemDiagnosticsFactory.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
         if (warningMode.shouldDisplayMessages()) {
-            String featureMessage = usage.formattedMessage();
-            StringBuilder message = new StringBuilder();
-            Location location = diagnostics.getLocation();
-            if (location != null) {
-                message.append(location.getFormatted());
-                message.append(SystemProperties.getInstance().getLineSeparator());
+            maybeLogUsage(usage, diagnostics);
+        }
+        if (warningMode == WarningMode.Fail) {
+            if (error == null) {
+                error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
             }
-            message.append(featureMessage);
-            displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getStack());
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
+    }
+
+    private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
+        String featureMessage = usage.formattedMessage();
+        Location location = diagnostics.getLocation();
+        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getStack().isEmpty()) {
+            // This usage does not contain any useful diagnostics and the usage has already been logged, so skip it
+            return;
+        }
+        StringBuilder message = new StringBuilder();
+        if (location != null) {
+            message.append(location.getFormatted());
+            message.append(SystemProperties.getInstance().getLineSeparator());
+        }
+        message.append(featureMessage);
+        if (location != null && !loggedUsages.add(message.toString()) && diagnostics.getStack().isEmpty()) {
+            // This usage has no stack trace and has already been logged with the same location, so skip it
+            return;
+        }
+        displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getStack());
     }
 
     private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, List<StackTraceElement> callStack) {
@@ -82,14 +100,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         // Even when two deprecation messages are emitted from the same location,
         // the stack traces at very bottom might be different due to thread pool scheduling.
         appendLogTraceIfNecessary(message, callStack, 0, 10);
-        if (messages.add(message.toString())) {
+        if (loggedMessages.add(message.toString())) {
             appendLogTraceIfNecessary(message, callStack, 10, callStack.size());
             LOGGER.warn(message.toString());
-            if (warningMode == WarningMode.Fail) {
-                if (error == null) {
-                    error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
-                }
-            }
         }
     }
 
@@ -102,7 +115,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     public void reset() {
         problemDiagnosticsFactory = new NoOpProblemDiagnosticsFactory();
         progressEventEmitter = null;
-        messages.clear();
+        loggedMessages.clear();
+        loggedUsages.clear();
         deprecationsFound = false;
         error = null;
     }
