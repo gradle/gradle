@@ -64,6 +64,10 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
 
     /**
      * Registers an action to execute before locking for further mutation.
+     *
+     * <p><strong>Do not use this method.</strong> It is used in the gradle/gradle
+     * build but it is otherwise unused. We should remove it after removing its usage
+     * from the gradle/gradle build.</p>
      */
     void beforeLocking(Action<? super ConfigurationInternal> action);
 
