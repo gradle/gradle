@@ -28,6 +28,8 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.SourceVersion;
 import javax.tools.DiagnosticListener;
@@ -57,6 +59,7 @@ import static java.lang.ClassLoader.getSystemClassLoader;
  * Subset replacement for {@link javax.tools.ToolProvider} that avoids the application class loader.
  */
 public class JdkTools {
+    private static final Logger LOG = LoggerFactory.getLogger(JdkTools.class);
 
     // Copied from ToolProvider.defaultJavaCompilerName
     private static final String DEFAULT_COMPILER_IMPL_NAME = "com.sun.tools.javac.api.JavacTool";
@@ -112,6 +115,7 @@ public class JdkTools {
                     for (JavaCompiler compilerCandidate : ServiceLoader.load(JavaCompiler.class, isolatedToolsLoader)) {
                         if (!compilerCandidate.getClass().getName().equals(DEFAULT_COMPILER_IMPL_NAME)) {
                             // take the first compiler found on the custom compiler classpath that is not the JavacTool system compiler (if any)
+                            LOG.debug("Using Java compiler {}", compilerCandidate.getClass().getName());
                             compiler = compilerCandidate;
                             break;
                         }

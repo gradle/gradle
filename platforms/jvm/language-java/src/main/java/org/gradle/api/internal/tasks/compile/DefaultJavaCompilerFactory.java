@@ -54,16 +54,20 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
+    /**
+     * If the 'customCompilerClasspath' is empty, the compiler classpath will be enriched with the 'org.gradle.internal.compiler.java.IncrementalCompileTask' compiler plugin.
+     * The compiler plugin is only compatible with the standard Java compiler. It is an optimization and the incremental compilation also works without it.
+     *
+     * @param customCompilerClasspath classpath containing a custom implementation of {@link javax.tools.JavaCompiler} or an empty collection
+     */
     private Factory<JavaCompiler> getJavaHomeBasedJavaCompilerFactory(Collection<File> customCompilerClasspath) {
         List<File> compilerPluginsClasspath;
         if (customCompilerClasspath.isEmpty()) {
-            // The 'IncrementalCompileTask' on the 'JAVA-COMPILER-PLUGIN' classpath is only compatible with the standard Java compiler (no custom compiler classpath).
-            // It is an optimization - the incremental compilation also works without it.
             compilerPluginsClasspath = classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles();
         } else {
             compilerPluginsClasspath = new ArrayList<>(customCompilerClasspath);
         }
-        if (javaHomeBasedJavaCompilerFactory == null || !javaHomeBasedJavaCompilerFactory.compilerPluginsClasspath.equals(compilerPluginsClasspath)) {
+        if (javaHomeBasedJavaCompilerFactory == null || !javaHomeBasedJavaCompilerFactory.getCompilerPluginsClasspath().equals(compilerPluginsClasspath)) {
             javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(compilerPluginsClasspath);
         }
         return javaHomeBasedJavaCompilerFactory;
