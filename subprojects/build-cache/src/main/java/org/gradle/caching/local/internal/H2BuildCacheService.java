@@ -102,7 +102,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
                 "select entry_content from filestore.catalog where entry_key = ?;" +
-                    "update filestore.lru set entry_accessed = ? where entry_key = ?;"
+                    "update filestore.catalog set entry_accessed = ? where entry_key = ?;"
             )) {
                 stmt.setString(1, key.getHashCode());
                 stmt.setLong(2, clock.getCurrentTime());
@@ -127,15 +127,13 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
     public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
-                "insert ignore into filestore.lru(entry_key, entry_accessed) values (?, ?);" +
-                    "insert ignore into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?);"
+                    "insert ignore into filestore.catalog(entry_key, entry_size, entry_accessed, entry_content) values (?, ?, ?, ?);"
             )) {
                 try (InputStream input = writer.openStream()) {
                     stmt.setString(1, key.getHashCode());
-                    stmt.setLong(2, clock.getCurrentTime());
-                    stmt.setString(3, key.getHashCode());
-                    stmt.setLong(4, writer.getSize());
-                    stmt.setBinaryStream(5, input);
+                    stmt.setLong(2, writer.getSize());
+                    stmt.setLong(3, clock.getCurrentTime());
+                    stmt.setBinaryStream(4, input);
                     stmt.executeUpdate();
                 }
             }
@@ -182,11 +180,9 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
             try (Connection conn = getConnection()) {
                 long deleteThresholdMillis = clock.getCurrentTime() - TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays);
                 try (PreparedStatement stmt = conn.prepareStatement(
-                    "delete from filestore.catalog where entry_key in (select entry_key FROM filestore.lru where entry_accessed < ?);" +
-                        "delete from filestore.lru where entry_accessed < ?;"
+                    "delete from filestore.catalog where entry_accessed < ?;"
                 )) {
                     stmt.setLong(1, deleteThresholdMillis);
-                    stmt.setLong(2, deleteThresholdMillis);
                     stmt.execute();
                 }
                 try (Statement stat = conn.createStatement()) {
