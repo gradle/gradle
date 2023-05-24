@@ -29,10 +29,6 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
-kotlin.sourceSets.all {
-    languageSettings.progressiveMode = true
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.addAll(
