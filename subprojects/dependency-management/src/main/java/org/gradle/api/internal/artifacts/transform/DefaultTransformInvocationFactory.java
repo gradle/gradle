@@ -44,11 +44,13 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -79,6 +81,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
 
     public DefaultTransformInvocationFactory(
         ExecutionEngine executionEngine,
@@ -87,7 +90,8 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         TransformWorkspaceServices immutableWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter progressEventEmitter
     ) {
         this.executionEngine = executionEngine;
         this.fileSystemAccess = fileSystemAccess;
@@ -96,6 +100,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.progressEventEmitter = progressEventEmitter;
     }
 
     @Override
@@ -104,6 +109,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
+        ProjectInternal owningProject,
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
@@ -116,9 +122,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 inputArtifact,
                 dependencies,
                 subject,
+                owningProject,
 
                 transformExecutionListener,
                 buildOperationExecutor,
+                progressEventEmitter,
                 fileCollectionFactory,
                 inputFingerprinter,
                 fileSystemAccess,
@@ -130,9 +138,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 inputArtifact,
                 dependencies,
                 subject,
+                owningProject,
 
                 transformExecutionListener,
                 buildOperationExecutor,
+                progressEventEmitter,
                 fileCollectionFactory,
                 inputFingerprinter,
                 workspaceServices
@@ -172,16 +182,17 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             TransformDependencies dependencies,
             TransformStepSubject subject,
 
-            TransformExecutionListener transformExecutionListener,
+            ProjectInternal owningProject, TransformExecutionListener transformExecutionListener,
             BuildOperationExecutor buildOperationExecutor,
+            BuildOperationProgressEventEmitter progressEventEmitter,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             FileSystemAccess fileSystemAccess,
             TransformWorkspaceServices workspaceServices
         ) {
             super(
-                transform, inputArtifact, dependencies, subject,
-                transformExecutionListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
+                transform, inputArtifact, dependencies, subject, owningProject,
+                transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter, workspaceServices
             );
             this.fileSystemAccess = fileSystemAccess;
         }
@@ -197,12 +208,14 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return new ImmutableTransformWorkspaceIdentity(
+            ImmutableTransformWorkspaceIdentity transformWorkspaceIdentity = new ImmutableTransformWorkspaceIdentity(
                 identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
                 identityInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
                 identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
             );
+            emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
+            return transformWorkspaceIdentity;
         }
     }
 
@@ -212,26 +225,30 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             File inputArtifact,
             TransformDependencies dependencies,
             TransformStepSubject subject,
+            ProjectInternal owningProject,
 
             TransformExecutionListener transformExecutionListener,
             BuildOperationExecutor buildOperationExecutor,
+            BuildOperationProgressEventEmitter progressEventEmitter,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             TransformWorkspaceServices workspaceServices
         ) {
             super(
-                transform, inputArtifact, dependencies, subject,
-                transformExecutionListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
+                transform, inputArtifact, dependencies, subject, owningProject,
+                transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter, workspaceServices
             );
         }
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return new MutableTransformWorkspaceIdentity(
+            MutableTransformWorkspaceIdentity transformWorkspaceIdentity = new MutableTransformWorkspaceIdentity(
                 inputArtifact.getAbsolutePath(),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
                 identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
             );
+            emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
+            return transformWorkspaceIdentity;
         }
     }
 
@@ -240,9 +257,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         protected final File inputArtifact;
         private final TransformDependencies dependencies;
         private final TransformStepSubject subject;
+        private final ProjectInternal owningProject;
 
         private final TransformExecutionListener transformExecutionListener;
         private final BuildOperationExecutor buildOperationExecutor;
+        private final BuildOperationProgressEventEmitter progressEventEmitter;
         private final FileCollectionFactory fileCollectionFactory;
 
         private final Provider<FileSystemLocation> inputArtifactProvider;
@@ -254,9 +273,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             File inputArtifact,
             TransformDependencies dependencies,
             TransformStepSubject subject,
+            ProjectInternal owningProject,
 
             TransformExecutionListener transformExecutionListener,
             BuildOperationExecutor buildOperationExecutor,
+            BuildOperationProgressEventEmitter progressEventEmitter,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             TransformWorkspaceServices workspaceServices
@@ -266,9 +287,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             this.dependencies = dependencies;
             this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
             this.subject = subject;
+            this.owningProject = owningProject;
             this.transformExecutionListener = transformExecutionListener;
 
             this.buildOperationExecutor = buildOperationExecutor;
+            this.progressEventEmitter = progressEventEmitter;
             this.fileCollectionFactory = fileCollectionFactory;
             this.inputFingerprinter = inputFingerprinter;
             this.workspaceServices = workspaceServices;
@@ -404,6 +427,10 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
         }
 
+        protected void emitIdentifyTransformExecutionProgressDetails(TransformWorkspaceIdentity transformWorkspaceIdentity) {
+            progressEventEmitter.emitNowIfCurrent(new DefaultIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity, transform, owningProject));
+        }
+
         @Override
         public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
             return transform.isCacheable()
@@ -417,16 +444,20 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         }
     }
 
-    private static class ImmutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
+    private interface TransformWorkspaceIdentity extends UnitOfWork.Identity {
+        ValueSnapshot getSecondaryInputsSnapshot();
+    }
+
+    private static class ImmutableTransformWorkspaceIdentity implements TransformWorkspaceIdentity {
         private final ValueSnapshot inputArtifactPath;
         private final ValueSnapshot inputArtifactSnapshot;
-        private final ValueSnapshot secondaryInputSnapshot;
+        private final ValueSnapshot secondaryInputsSnapshot;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+        public ImmutableTransformWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
             this.inputArtifactPath = inputArtifactPath;
             this.inputArtifactSnapshot = inputArtifactSnapshot;
-            this.secondaryInputSnapshot = secondaryInputSnapshot;
+            this.secondaryInputsSnapshot = secondaryInputsSnapshot;
             this.dependenciesHash = dependenciesHash;
         }
 
@@ -435,9 +466,13 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             Hasher hasher = Hashing.newHasher();
             inputArtifactPath.appendToHasher(hasher);
             inputArtifactSnapshot.appendToHasher(hasher);
-            secondaryInputSnapshot.appendToHasher(hasher);
+            secondaryInputsSnapshot.appendToHasher(hasher);
             hasher.putHash(dependenciesHash);
             return hasher.hash().toString();
+        }
+
+        public ValueSnapshot getSecondaryInputsSnapshot() {
+            return secondaryInputsSnapshot;
         }
 
         @Override
@@ -457,7 +492,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             if (!inputArtifactSnapshot.equals(that.inputArtifactSnapshot)) {
                 return false;
             }
-            if (!secondaryInputSnapshot.equals(that.secondaryInputSnapshot)) {
+            if (!secondaryInputsSnapshot.equals(that.secondaryInputsSnapshot)) {
                 return false;
             }
             return dependenciesHash.equals(that.dependenciesHash);
@@ -467,13 +502,13 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         public int hashCode() {
             int result = inputArtifactPath.hashCode();
             result = 31 * result + inputArtifactSnapshot.hashCode();
-            result = 31 * result + secondaryInputSnapshot.hashCode();
+            result = 31 * result + secondaryInputsSnapshot.hashCode();
             result = 31 * result + dependenciesHash.hashCode();
             return result;
         }
     }
 
-    public static class MutableTransformWorkspaceIdentity implements UnitOfWork.Identity {
+    public static class MutableTransformWorkspaceIdentity implements TransformWorkspaceIdentity {
         private final String inputArtifactAbsolutePath;
         private final ValueSnapshot secondaryInputsSnapshot;
         private final HashCode dependenciesHash;
@@ -491,6 +526,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             secondaryInputsSnapshot.appendToHasher(hasher);
             hasher.putHash(dependenciesHash);
             return hasher.hash().toString();
+        }
+
+        @Override
+        public ValueSnapshot getSecondaryInputsSnapshot() {
+            return secondaryInputsSnapshot;
         }
 
         @Override
@@ -519,6 +559,55 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             result = 31 * result + secondaryInputsSnapshot.hashCode();
             result = 31 * result + dependenciesHash.hashCode();
             return result;
+        }
+    }
+
+    private static class DefaultIdentifyTransformExecutionProgressDetails implements IdentifyTransformExecutionProgressDetails {
+
+        private final TransformWorkspaceIdentity transformWorkspaceIdentity;
+        private final Transform transform;
+        private final ProjectInternal owningProject;
+
+        public DefaultIdentifyTransformExecutionProgressDetails(
+            TransformWorkspaceIdentity transformWorkspaceIdentity,
+            Transform transform,
+            ProjectInternal owningProject
+        ) {
+            this.transformWorkspaceIdentity = transformWorkspaceIdentity;
+            this.transform = transform;
+            this.owningProject = owningProject;
+        }
+
+        @Override
+        public String getUniqueId() {
+            return transformWorkspaceIdentity.getUniqueId();
+        }
+
+        @Override
+        public String getConsumerBuildPath() {
+            return owningProject.getBuildPath().toString();
+        }
+
+        @Override
+        public String getConsumerProjectPath() {
+            return owningProject.getProjectPath().toString();
+        }
+
+        @Override
+        public Map<String, String> getFromAttributes() {
+            return AttributesToMapConverter.convertToMap(transform.getFromAttributes());
+        }
+
+        @Override
+        public Map<String, String> getToAttributes() {
+            return AttributesToMapConverter.convertToMap(transform.getToAttributes());
+        }
+
+        @Override
+        public byte[] getSecondaryInputValueHashBytes() {
+            Hasher hasher = Hashing.newHasher();
+            transformWorkspaceIdentity.getSecondaryInputsSnapshot().appendToHasher(hasher);
+            return hasher.hash().toByteArray();
         }
     }
 }
