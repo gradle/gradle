@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,19 +44,21 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
     private final List<ResolvedVariantResult> selectedVariants;
+    private final Map<Long, ResolvedVariantResult> selectedVariantsById;
     private final List<ResolvedVariantResult> allVariants;
     private final String repositoryName;
     private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = ArrayListMultimap.create();
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
-        List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, String repositoryName
+        Map<Long, ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, @Nullable String repositoryName
     ) {
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
-        this.selectedVariants = selectedVariants;
-        this.allVariants = allVariants;
+        this.selectedVariantsById = selectedVariants;
+        this.selectedVariants = ImmutableList.copyOf(selectedVariants.values());
+        this.allVariants = allVariants.isEmpty() ? this.selectedVariants : allVariants;
         this.repositoryName = repositoryName;
     }
 
@@ -64,9 +67,15 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return componentId;
     }
 
+    @Override
+    @Deprecated
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
     @Nullable
     @Override
-    public String getRepositoryName() {
+    public String getRepositoryId() {
         return repositoryName;
     }
 
@@ -132,6 +141,11 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
             ? "A variant with the same name exists but is not the same instance."
             : "There's no resolved variant with the same name.";
         throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
+    }
+
+    @Nullable
+    public ResolvedVariantResult getVariant(Long id) {
+        return selectedVariantsById.get(id);
     }
 
     public void associateDependencyToVariant(DependencyResult dependencyResult, ResolvedVariantResult fromVariant) {

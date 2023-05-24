@@ -341,6 +341,10 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.path
         }
 
+        override fun getBuildTreePath(): String {
+            return delegate.buildTreePath
+        }
+
         override fun getDefaultTasks(): MutableList<String> {
             onAccess()
             return delegate.defaultTasks

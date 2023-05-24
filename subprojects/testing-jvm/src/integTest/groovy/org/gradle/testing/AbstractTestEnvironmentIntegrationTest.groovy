@@ -18,12 +18,12 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getModuleName()
 
     def setup() {
@@ -124,7 +124,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMulti
         }
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "can run tests referencing slf4j with modular java"() {
         given:
         file('src/test/java/org/gradle/example/TestUsingSlf4j.java') << """
@@ -173,7 +173,10 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractJUnitMulti
         }
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) //hangs on Java9
+    @Requires(
+        value = UnitTestPreconditions.Jdk8OrEarlier,
+        reason = "Hangs on Java 9"
+    )
     def "can run tests with custom system classloader and java agent"() {
         given:
         file('src/main/java/org/gradle/MySystemClassLoader.java') << customSystemClassLoaderClass

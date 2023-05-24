@@ -233,7 +233,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_7 | MINIMUM_SUPPORTED_GRADLE_VERSION
+        JavaVersion.VERSION_1_7 | MINIMUM_SUPPORTED_GRADLE_VERSION.version
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
@@ -267,7 +267,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_7 | MINIMUM_SUPPORTED_GRADLE_VERSION
+        JavaVersion.VERSION_1_7 | MINIMUM_SUPPORTED_GRADLE_VERSION.version
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 

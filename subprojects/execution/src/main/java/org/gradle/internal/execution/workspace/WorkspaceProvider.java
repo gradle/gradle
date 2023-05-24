@@ -23,7 +23,7 @@ import java.io.File;
 
 public interface WorkspaceProvider {
     /**
-     * Provides a workspace and execution history store for executing the transformation.
+     * Provides a workspace and execution history store for executing the transform.
      */
     <T> T withWorkspace(String path, WorkspaceAction<T> action);
 

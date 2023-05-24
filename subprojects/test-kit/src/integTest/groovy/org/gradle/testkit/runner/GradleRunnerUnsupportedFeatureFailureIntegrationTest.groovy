@@ -17,12 +17,12 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Retry
 
 import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
@@ -56,7 +56,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         }
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) // tests against old Gradle version that can only work with Java versions up tp 8
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier) // tests against old Gradle version that can only work with Java versions up tp 8
     @Debug
     def "fails informatively when trying to inspect build output in debug mode with unsupported gradle version"() {
         def maxUnsupportedVersion = getPreviousVersion(MINIMUM_SUPPORTED_GRADLE_VERSION)
@@ -78,7 +78,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         e.message == "The version of Gradle you are using ($maxUnsupportedVersion) is not supported by TestKit. TestKit supports all Gradle versions Gradle $minSupportedVersion and later."
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) // tests against old Gradle version that can only work with Java versions up tp 8
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier) // tests against old Gradle version that can only work with Java versions up tp 8
     def "fails informatively when trying to inject plugin classpath with unsupported gradle version"() {
         def maxUnsupportedVersion = getPreviousVersion(MINIMUM_SUPPORTED_GRADLE_VERSION)
         def minSupportedVersion = MINIMUM_SUPPORTED_GRADLE_VERSION.version
@@ -97,7 +97,7 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         e.message == "The version of Gradle you are using ($maxUnsupportedVersion) is not supported by TestKit. TestKit supports all Gradle versions Gradle $minSupportedVersion and later."
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) // tests against old Gradle version that can only work with Java versions up tp 8
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier) // tests against old Gradle version that can only work with Java versions up tp 8
     def "fails informatively if trying to use conventional plugin classpath on version that does not support injection"() {
         given:
         def maxUnsupportedVersion = getPreviousVersion(MINIMUM_SUPPORTED_GRADLE_VERSION)

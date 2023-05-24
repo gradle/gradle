@@ -131,7 +131,7 @@ class DefaultBuildController implements BuildController {
         }
     }
 
-    private void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
+    private static void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
         if (visited.contains(task)) {
             // Already checked
             return;
@@ -157,7 +157,7 @@ class DefaultBuildController implements BuildController {
         visited.add(task);
     }
 
-    private void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
+    private static void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
         TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
         TaskNode node = taskNodeFactory.getOrCreateNode(task);
         for (Node dependency : node.getAllSuccessors()) {

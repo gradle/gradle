@@ -16,10 +16,10 @@
 
 package org.gradle.integtests
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 // wrapperExecuter requires a real distribution
 @IgnoreIf({ GradleContextualExecuter.embedded })
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/3799")
+@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3799")
 class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     private static final String DEFAULT_USER = "jdoe"
     private static final String DEFAULT_PASSWORD = "changeit"
@@ -51,8 +51,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         keyStore = TestKeyStore.init(resources.dir)
         // We need to set the SSL properties as arguments here even for non-embedded test mode
         // because we want them to be set on the wrapper client JVM, not the daemon one
-        wrapperExecuter.withArguments("-Djavax.net.ssl.trustStore=$keyStore.keyStore.path",
-            "-Djavax.net.ssl.trustStorePassword=$keyStore.keyStorePassword")
+        wrapperExecuter.withArguments(keyStore.getTrustStoreArguments())
         server.configure(keyStore)
         server.withBasicAuthentication(DEFAULT_USER, DEFAULT_PASSWORD)
         server.start()
@@ -73,7 +72,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     private prepareWrapper(String baseUrl) {
-        prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"), keyStore.keyStore.path, keyStore.keyStorePassword)
+        prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"), keyStore)
     }
 
     def "does not warn about using basic authentication over secure connection"() {
@@ -193,9 +192,9 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     private ExecutionResult runWithVersion(String baseUrl, String version) {
-        result = wrapperExecuter.withCommandLineGradleOpts("-Dorg.gradle.internal.services.base.url=$baseUrl",
-            "-Djavax.net.ssl.trustStore=$keyStore.keyStore.path",
-            "-Djavax.net.ssl.trustStorePassword=$keyStore.keyStorePassword")
+        def jvmOpts = ["-Dorg.gradle.internal.services.base.url=$baseUrl".toString()]
+        jvmOpts.addAll(keyStore.getTrustStoreArguments())
+        result = wrapperExecuter.withCommandLineGradleOpts(jvmOpts)
             .withArguments("wrapper", "--gradle-version", version)
             .run()
     }

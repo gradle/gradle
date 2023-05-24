@@ -30,6 +30,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
@@ -38,6 +39,7 @@ import org.gradle.internal.Cast;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.workers.ForkingWorkerSpec;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
@@ -100,6 +102,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
+        getJvmPluginServices().configureAsRuntimeClasspath(configuration);
 
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
@@ -231,6 +234,9 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     protected JavaPluginExtension getJavaPluginExtension() {
         return project.getExtensions().getByType(JavaPluginExtension.class);
     }
+
+    @Inject
+    protected abstract JvmPluginServices getJvmPluginServices();
 
     public static void maybeAddOpensJvmArgs(JavaLauncher javaLauncher, ForkingWorkerSpec spec) {
         if (JavaVersion.toVersion(javaLauncher.getMetadata().getJavaRuntimeVersion()).isJava9Compatible()) {

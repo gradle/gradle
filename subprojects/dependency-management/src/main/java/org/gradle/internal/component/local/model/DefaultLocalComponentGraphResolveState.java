@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
@@ -30,17 +31,21 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
-import org.gradle.internal.component.model.VariantArtifactSelectionMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantArtifactSelectionCandidates;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -55,21 +60,33 @@ import java.util.stream.Collectors;
  * <p>The aim is to create only a single instance of this type per project and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
  */
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata, LocalComponentMetadata> implements LocalComponentGraphResolveState {
-    // The artifact resolve state for each variant of this component
-    private final ConcurrentMap<LocalConfigurationGraphResolveMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
+    private final ComponentIdGenerator idGenerator;
+
+    // The graph resolve state for each configuration of this component
+    private final ConcurrentMap<String, DefaultLocalConfigurationGraphResolveState> configurations = new ConcurrentHashMap<>();
+
+    // The variants to use for variant selection during graph resolution
+    private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
+
     // The variants of this component to use for artifact selection when variant reselection is enabled
     private final Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection;
+
     // The public view of all selectable variants of this component
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
-    public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring) {
-        super(metadata, metadata, attributeDesugaring);
+    public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
+        super(instanceId, metadata, metadata, attributeDesugaring);
+        allVariantsForGraphResolution = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
+            variants.stream()
+                .map(variant -> getConfiguration(variant.getName()).asVariant())
+                .collect(Collectors.toList())));
         allVariantsForArtifactSelection = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream().
                 map(LocalConfigurationGraphResolveMetadata.class::cast).
                 map(LocalConfigurationGraphResolveMetadata::prepareToResolveArtifacts).
                 flatMap(variant -> variant.getVariants().stream()).
                 collect(Collectors.toSet())));
+        this.idGenerator = idGenerator;
         selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream().
             map(LocalConfigurationGraphResolveMetadata.class::cast).
             flatMap(variant -> variant.getVariants().stream()).
@@ -99,58 +116,119 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
+    public ModuleSources getSources() {
+        return getMetadata().getSources();
+    }
+
+    @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
         return selectableVariantResults.get();
     }
 
     @Override
-    public VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant) {
-        return stateFor((LocalConfigurationGraphResolveMetadata) variant);
+    protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
+        return allVariantsForGraphResolution.get();
     }
 
+    @Nullable
     @Override
-    public VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant) {
-        return stateFor((LocalConfigurationGraphResolveMetadata) variant);
+    public ConfigurationGraphResolveState getConfiguration(String configurationName) {
+        return configurations.computeIfAbsent(configurationName, n -> {
+            LocalConfigurationMetadata configuration = getMetadata().getConfiguration(configurationName);
+            if (configuration == null) {
+                return null;
+            } else {
+                return new DefaultLocalConfigurationGraphResolveState(idGenerator.nextVariantId(), getMetadata(), configuration, allVariantsForArtifactSelection);
+            }
+        });
     }
 
-    private DefaultLocalVariantArtifactResolveState stateFor(LocalConfigurationGraphResolveMetadata variant) {
-        return variants.computeIfAbsent(variant, c -> new DefaultLocalVariantArtifactResolveState(getMetadata(), variant, allVariantsForArtifactSelection));
+    private class DefaultLocalConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+        private final long instanceId;
+        private final LocalConfigurationMetadata configuration;
+        private final Lazy<DefaultLocalConfigurationArtifactResolveState> artifactResolveState;
+
+        public DefaultLocalConfigurationGraphResolveState(long instanceId, LocalComponentMetadata component, LocalConfigurationMetadata configuration, Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection) {
+            this.instanceId = instanceId;
+            this.configuration = configuration;
+            this.artifactResolveState = Lazy.locking().of(() -> new DefaultLocalConfigurationArtifactResolveState(component, configuration, allVariantsForArtifactSelection));
+        }
+
+        @Override
+        public long getInstanceId() {
+            return instanceId;
+        }
+
+        @Override
+        public String getName() {
+            return configuration.getName();
+        }
+
+        @Override
+        public ConfigurationGraphResolveMetadata getMetadata() {
+            return configuration;
+        }
+
+        @Override
+        public ImmutableAttributes getAttributes() {
+            return configuration.getAttributes();
+        }
+
+        @Override
+        public CapabilitiesMetadata getCapabilities() {
+            return configuration.getCapabilities();
+        }
+
+        @Override
+        public VariantGraphResolveState asVariant() {
+            return this;
+        }
+
+        @Override
+        public VariantArtifactGraphResolveMetadata resolveArtifacts() {
+            return artifactResolveState.get();
+        }
+
+        @Override
+        public VariantArtifactResolveState prepareForArtifactResolution() {
+            return artifactResolveState.get();
+        }
     }
 
-    private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
+    private static class DefaultLocalConfigurationArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final LocalComponentMetadata component;
-        private final LocalConfigurationGraphResolveMetadata graphSelectedVariant;
+        private final LocalConfigurationGraphResolveMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> legacyVariants;
         private final Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariants;
 
-        public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedVariant, Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection) {
+        public DefaultLocalConfigurationArtifactResolveState(LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariantsForArtifactSelection) {
             this.component = component;
-            this.graphSelectedVariant = graphSelectedVariant;
-            this.legacyVariants = graphSelectedVariant.prepareToResolveArtifacts().getVariants();
+            this.graphSelectedConfiguration = graphSelectedConfiguration;
+            this.legacyVariants = graphSelectedConfiguration.prepareToResolveArtifacts().getVariants();
             this.allVariants = allVariantsForArtifactSelection;
         }
 
         @Override
         public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            return graphSelectedVariant.prepareToResolveArtifacts().getArtifacts();
+            return graphSelectedConfiguration.prepareToResolveArtifacts().getArtifacts();
         }
 
         @Override
         public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            return graphSelectedVariant.prepareToResolveArtifacts().artifact(artifact);
+            return graphSelectedConfiguration.prepareToResolveArtifacts().artifact(artifact);
         }
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(new LocalComponentArtifactResolveMetadata(component), new LocalVariantArtifactSelectionMetadata(allVariants, legacyVariants), exclusions, overriddenAttributes);
+            return artifactSelector.resolveArtifacts(new LocalComponentArtifactResolveMetadata(component), new LocalVariantArtifactSelectionCandidates(allVariants, legacyVariants), exclusions, overriddenAttributes);
         }
     }
 
-    private static class LocalVariantArtifactSelectionMetadata implements VariantArtifactSelectionMetadata {
+    private static class LocalVariantArtifactSelectionCandidates implements VariantArtifactSelectionCandidates {
         private final Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariants;
         private final Set<? extends VariantResolveMetadata> legacyVariants;
 
-        public LocalVariantArtifactSelectionMetadata(Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants) {
+        public LocalVariantArtifactSelectionCandidates(Lazy<Optional<Set<? extends VariantResolveMetadata>>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants) {
             this.allVariants = allVariants;
             this.legacyVariants = legacyVariants;
         }

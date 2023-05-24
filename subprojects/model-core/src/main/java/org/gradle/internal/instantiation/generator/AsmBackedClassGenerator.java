@@ -433,7 +433,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
         private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
         private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
-        private static final Set<Type> DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_TYPES = ImmutableSet.of(getType(Project.class), getType(Gradle.class));
+
+        // This set is unlikely to change often, so instead of introducing an additional level of indirection,
+        // we are storing it here despite its relationship to Configuration Cache logic.
+        // The full prohibited hierarchy is stored because there is no efficient way to check the class hierarchy via `org.objectweb.asm.Type`.
+        private static final Set<Type> DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_TYPES = ImmutableSet.of(
+            getType(Project.class),
+            getType("Lorg/gradle/api/internal/project/ProjectInternal;"),
+            getType(Gradle.class),
+            getType("Lorg/gradle/api/internal/GradleInternal;")
+        );
         private static final Type JAVA_LANG_REFLECT_TYPE = getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = getType(Object.class);
         private static final Type CLASS_TYPE = getType(Class.class);
