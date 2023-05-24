@@ -28,8 +28,9 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
-import spock.lang.IgnoreIf
 
 import java.util.regex.Pattern
 
@@ -70,7 +71,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     // Also covered by tests in configuration cache project
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
@@ -149,7 +150,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     // Also covered by tests in configuration cache project
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "generates build lifecycle operations for multiple included builds"() {
         given:
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
@@ -204,7 +205,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     // Also covered by tests in configuration cache project
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "generates build lifecycle operations for multiple included builds used as buildscript dependencies"() {
         given:
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
@@ -269,7 +270,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     // Also covered by tests in configuration cache project
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
         given:
         buildA.buildFile.prepend("""
