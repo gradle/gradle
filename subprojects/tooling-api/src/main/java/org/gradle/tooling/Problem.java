@@ -15,11 +15,18 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
+
 import java.util.Map;
 
 /**
- * @since 2.4
+ * A problem.
+ *
+ * @since 8.3
  */
+@NonNullApi
+@Incubating
 public interface Problem {
 
     Map<String, String> getRawAttributes();

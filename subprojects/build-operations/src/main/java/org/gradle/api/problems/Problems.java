@@ -16,20 +16,25 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.operations.GradleExceptionWithContext;
 import org.gradle.internal.problems.DefaultProblem;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Prototype Problems API.
+ *
+ * @since 8.3
+ */
+@Incubating
 public class Problems {
 
-    private static final ThreadLocal<List<Problem>> problems = new ThreadLocal<List<Problem>>();
+    private static final ThreadLocal<List<Problem>> PROBLEMS = new ThreadLocal<List<Problem>>();
     public static List<Problem> removeAllProblems() {
-        List<Problem> objects = problems.get();
+        List<Problem> objects = PROBLEMS.get();
         return objects == null ? Collections.<Problem>emptyList() : objects;
 
     }
@@ -44,11 +49,11 @@ public class Problems {
     }
 
     private static void addProblem(Problem problem) {
-        List<Problem> problemList = problems.get();
+        List<Problem> problemList = PROBLEMS.get();
         if (problemList == null) {
             problemList = new ArrayList<Problem>();
         }
         problemList.add(problem);
-        problems.set(problemList);
+        PROBLEMS.set(problemList);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
-
-import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
-
 /**
- * Problem description.
- *
- * @since 8.3
+ * Problem API prototype.
  */
-@Incubating
-public interface Problem {
-
-    String getMessage();
-
-    String getSeverity();
-
-    @Nullable
-    String getFile();
-
-    @Nullable
-    Integer getLine();
-
-    @Nullable
-    Integer getColumn();
-}
+package org.gradle.api.problems;

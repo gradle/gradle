@@ -25,7 +25,6 @@ import org.gradle.api.problems.Problems;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 

@@ -16,8 +16,11 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import org.gradle.api.NonNullApi;
+
 import java.util.Map;
 
+@NonNullApi
 public interface InternalProblem {
 
     Map<String, String> getRawAttributes();

@@ -20,7 +20,7 @@ import org.gradle.tooling.Problem;
 
 import java.util.Map;
 
-public class DefaultProblem implements Problem{
+public class DefaultProblem implements Problem {
 
     private final Map<String, String> rawAttributes;
 

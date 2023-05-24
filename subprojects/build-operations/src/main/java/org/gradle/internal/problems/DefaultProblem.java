@@ -17,7 +17,8 @@
 package org.gradle.internal.problems;
 
 import org.gradle.api.problems.Problem;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public class DefaultProblem implements Problem {
 
