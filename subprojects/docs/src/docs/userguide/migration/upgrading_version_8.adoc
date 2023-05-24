@@ -41,12 +41,9 @@ The previous step will help you identify potential problems by issuing deprecati
 === Potential breaking changes
 
 [[legacy_attribute_snapshotting]]
-==== ArtifactView and ArtifactCollection variant resolution behavior is more correct
+==== Changed artifact selection behavior with `ArtifactView` and `ArtifactCollection`
 
-Prior to Gradle 8.3, `Configuration.getIncoming().artifactView()` and `Configuration.getIncoming().getArtifacts()` captured immutable copies of the `Configuration`'s attributes upon invocation. Consequently, if the `Configuration`'s attributes were changed after these methods were called, the attributes used for resolution by these methods could unexpectedly differ from the final `Configuration` attributes.
-
-Given that some attributes are lazily added to `Configuration`s during resolution, the behavior of these methods could have differed based on the order that these methods were called.
-
+The dependency resolution APIs for selecting different artifacts or files (`Configuration.getIncoming().artifactView()` and `Configuration.getIncoming().getArtifacts()`) captured immutable copies of the underlying `Configuration`'s attributes. If the `Configuration`'s attributes were changed after these methods were called, the artifacts selected by these methods could be unexpected or fail to be resolved.
 Consider the following scenario where `producer` is a sibling `java-library` project to the build below:
 
 ```groovy
