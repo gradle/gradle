@@ -215,14 +215,14 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
             """
         }
         includedBuilds << buildC
-        buildA.buildFile.text = """
+        buildA.buildFile.prepend("""
             buildscript {
                 dependencies {
                     classpath 'org.test:buildB:1.0'
                     classpath 'org.test:buildC:1.0'
                 }
             }
-        """ + buildA.buildFile.text
+        """)
         dependency buildB, "org.test:buildC:1.0"
 
         when:
@@ -272,13 +272,13 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
         given:
-        buildA.buildFile.text = """
+        buildA.buildFile.prepend("""
             buildscript {
                 dependencies {
                     classpath 'org.test:b1:1.0'
                 }
             }
-        """ + buildA.buildFile.text
+        """)
         dependency "org.test:b2:1.0"
 
         when:
@@ -369,14 +369,14 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
             """
         }
         includedBuilds << buildC
-        buildA.buildFile.text = """
+        buildA.buildFile.prepend("""
             buildscript {
                 dependencies {
                     classpath 'org.test:buildB:1.0'
                     classpath 'org.test:buildC:1.0'
                 }
             }
-        """ + buildA.buildFile.text
+        """)
         dependency buildB, "org.test:buildC:1.0"
 
         when:
@@ -402,14 +402,15 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
             """ << registration("buildC")
         }
         includedBuilds << buildC
-        buildA.buildFile.text = """
+        buildA.buildFile.prepend("""
             buildscript {
                 dependencies {
                     classpath 'org.test:buildB:1.0'
                     classpath 'org.test:buildC:1.0'
                 }
             }
-        """ + buildA.buildFile.text + registration("buildA")
+        """)
+        buildA.buildFile << registration("buildA")
         dependency buildB, "org.test:buildC:1.0"
         buildB.buildFile << registration("buildB")
 
