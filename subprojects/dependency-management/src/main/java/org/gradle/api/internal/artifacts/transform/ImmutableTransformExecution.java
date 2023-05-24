@@ -17,9 +17,11 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -37,17 +39,19 @@ class ImmutableTransformExecution extends AbstractTransformExecution {
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
+        ProjectInternal owningProject,
 
         TransformExecutionListener transformExecutionListener,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         FileSystemAccess fileSystemAccess,
         TransformWorkspaceServices workspaceServices
     ) {
         super(
-            transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
+            transform, inputArtifact, dependencies, subject, owningProject,
+            transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter, workspaceServices
         );
         this.fileSystemAccess = fileSystemAccess;
     }
@@ -63,11 +67,13 @@ class ImmutableTransformExecution extends AbstractTransformExecution {
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-        return new ImmutableTransformWorkspaceIdentity(
-            identityInputs.get(AbstractTransformExecution.INPUT_ARTIFACT_PATH_PROPERTY_NAME),
+        ImmutableTransformWorkspaceIdentity transformWorkspaceIdentity = new ImmutableTransformWorkspaceIdentity(
+            identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
             identityInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
-            identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
+            identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+            identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
         );
+        emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
+        return transformWorkspaceIdentity;
     }
 }

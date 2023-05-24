@@ -28,6 +28,7 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
@@ -42,6 +43,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
 
     public DefaultTransformInvocationFactory(
         ExecutionEngine executionEngine,
@@ -50,7 +52,8 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         TransformWorkspaceServices immutableWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter progressEventEmitter
     ) {
         this.executionEngine = executionEngine;
         this.fileSystemAccess = fileSystemAccess;
@@ -59,6 +62,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.progressEventEmitter = progressEventEmitter;
     }
 
     @Override
@@ -67,6 +71,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
+        ProjectInternal owningProject,
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
@@ -79,9 +84,11 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 inputArtifact,
                 dependencies,
                 subject,
+                owningProject,
 
                 transformExecutionListener,
                 buildOperationExecutor,
+                progressEventEmitter,
                 fileCollectionFactory,
                 inputFingerprinter,
                 fileSystemAccess,
@@ -93,10 +100,12 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 inputArtifact,
                 dependencies,
                 subject,
+                owningProject,
                 producerProject,
 
                 transformExecutionListener,
                 buildOperationExecutor,
+                progressEventEmitter,
                 fileCollectionFactory,
                 inputFingerprinter,
                 workspaceServices
