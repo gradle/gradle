@@ -139,6 +139,43 @@ Then force push your branch:
 
 `git push --force origin test-branch`
 
+### Fixing sanity check failures after public API changes
+
+If your PR includes any changes to the Gradle Public API, it will cause the binary compatibility check to fail.
+The binary compatibility check runs as a part of the broader sanity check.
+The latter runs on every PR and is a prerequisite for merging.
+
+If you run the sanity check locally with the `./gradlew sanityCheck`, you can see the binary compatibility error in the output.
+It looks like the following:
+
+```
+Execution failed for task ':architecture-test:checkBinaryCompatibility'.
+> A failure occurred while executing me.champeau.gradle.japicmp.JApiCmpWorkAction
+   > Detected binary changes.
+         - current: ...
+         - baseline: ...
+     
+     See failure report at file:///<path to Gradle checkout>/subprojects/architecture-test/build/reports/binary-compatibility/report.html
+```
+
+Here are the steps to resolve the issue:
+
+1. Open the failure report mentioned in the output.\
+If you don't see the report link in the output in the IDE, make sure to select the top-level node in the structured output panel.
+The report will explain the errors in detail.
+Perhaps, you forgot to add an `@Incubating` annotation or `@since` in the javadoc.
+
+2. Accept the changes.\
+If you are sure that the changes are intentional, follow the steps described in the report.
+This includes adding the description of the changes to the `accepted-public-api-changes.json` file, and providing a reason for each change.
+You can add the changes to any place in the file, e.g. at the top.
+
+3. Make sure the file with accepted changes is sorted.\
+Use the `./gradlew :architecture-test:sortAcceptedApiChanges` task to sort the file.
+
+4. Validate your changes before committing.\
+Run the `./gradlew sanityCheck` task again to make sure there are no more errors.
+
 ### Java Toolchain
 
 The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
