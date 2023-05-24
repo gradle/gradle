@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal;
 
+import com.google.common.io.Closer;
 import org.gradle.api.Action;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -36,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -141,12 +144,17 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
                 if (fileLockHeldByOwner != null) {
                     fileLockHeldByOwner.run();
                 }
-                persistentCache.close();
-                crossProcessCacheAccess.close();
+
+                Closer closer = Closer.create();
+                closer.register(crossProcessCacheAccess);
+                closer.register(persistentCache);
+                closer.close();
 
                 if (cacheClosedCount != 1) {
                     LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             } finally {
                 owner = null;
                 fileLockHeldByOwner = null;
