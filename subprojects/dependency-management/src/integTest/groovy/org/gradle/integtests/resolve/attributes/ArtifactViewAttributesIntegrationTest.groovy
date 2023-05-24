@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.attributes
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 /**
  * Tests for [org.gradle.api.artifacts.ArtifactView ArtifactView] that ensure it uses the "live" attributes
  * of the configuration that created it to select files and artifacts.
@@ -25,308 +27,131 @@ package org.gradle.integtests.resolve.attributes
  * considering these attributes.  This has been corrected to use a "live" view
  * of the attributes, to ensure that late changes to the attributes are reflected in the selection.
  *
- * Most of these tests use the `java-library` plugin and should resolve the secondary "classes" variant of the producer
- * and obtain the "main" directory as the only file, instead of the standard jar file variant, which was the legacy
- * behavior.
+ * These tests do not use any specific plugin (such as `java-library`) and manually make late changes to the attributes
+ * used to resolve the files that are then verified.
  */
 class ArtifactViewAttributesIntegrationTest extends AbstractArtifactViewAttributesIntegrationTest {
+    @Override
+    List<String> getExpectedFileNames() {
+        return ["chocolate.jar"]
+    }
+
+    @Override
+    List<String> getExpectedAttributes() {
+        return ['flavor = chocolate']
+    }
+
+    @Override
+    String getTestedClasspathName() {
+        return "consumerConf"
+    }
+
     def setup() {
         file("producer/build.gradle") << """
-            plugins {
-                id 'java-library'
-            }
-        """
-
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            dependencies {
-                api project(':producer')
-            }
-        """
-    }
-
-    def "declare and iterate incoming files, then declare and iterate artifact view files"() {
-        buildFile << """
-            $declareIncomingFiles
-            $iterateIncomingFiles
-
-            $declareArtifactViewFiles
-            $iterateArtifactViewFiles
-
-            $filesComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare and iterate artifact view files, then declare and iterate incoming files"() {
-        buildFile << """
-            $declareArtifactViewFiles
-            $iterateArtifactViewFiles
-
-            $declareIncomingFiles
-            $iterateIncomingFiles
-
-            $filesComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare incoming files, then declare artifact view files, then iterate both"() {
-        buildFile << """
-            $declareIncomingFiles
-            $declareArtifactViewFiles
-
-            $iterateIncomingFiles
-            $iterateArtifactViewFiles
-
-            $filesComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare and iterate incoming artifacts, then declare and iterate artifact view artifacts"() {
-        buildFile << """
-            $declareIncomingArtifacts
-            $iterateIncomingArtifacts
-
-            $declareArtifactViewArtifacts
-            $iterateArtifactViewArtifacts
-
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare and iterate artifact view artifacts, then declare and iterate incoming artifacts"() {
-        buildFile << """
-            $declareArtifactViewArtifacts
-            $iterateArtifactViewArtifacts
-
-            $declareIncomingArtifacts
-            $iterateIncomingArtifacts
-
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare incoming artifacts, then declare artifact view artifacts, then iterate both"() {
-        buildFile << """
-            $declareIncomingArtifacts
-            $declareArtifactViewArtifacts
-
-            $iterateIncomingArtifacts
-            $iterateArtifactViewArtifacts
-
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare artifacts (incoming, then artifact view) and files (incoming, then artifact view) , then iterate artifacts (incoming, then artifact view), then files (incoming, then artifact view) "() {
-        buildFile << """
-            $declareIncomingArtifacts
-            $declareArtifactViewArtifacts
-            $declareIncomingFiles
-            $declareArtifactViewFiles
-
-            $iterateIncomingArtifacts
-            $iterateArtifactViewArtifacts
-            $iterateIncomingFiles
-            $iterateArtifactViewFiles
-
-            $filesComparison
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare artifacts (artifact view, then incoming) and files (artifact view, then incoming) , then iterate artifacts (incoming, then artifact view), then files (incoming, then artifact view) "() {
-        buildFile << """
-            $declareArtifactViewArtifacts
-            $declareIncomingArtifacts
-            $declareArtifactViewFiles
-            $declareIncomingFiles
-
-            $iterateIncomingArtifacts
-            $iterateArtifactViewArtifacts
-            $iterateIncomingFiles
-            $iterateArtifactViewFiles
-
-            $filesComparison
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare artifacts (incoming, then artifact view) and files (incoming, then artifact view) , then iterate artifacts (artifact view then incoming), then files (artifact view, then incoming) "() {
-        buildFile << """
-            $declareIncomingArtifacts
-            $declareArtifactViewArtifacts
-            $declareIncomingFiles
-            $declareArtifactViewFiles
-
-            $iterateArtifactViewArtifacts
-            $iterateIncomingArtifacts
-            $iterateArtifactViewFiles
-            $iterateIncomingFiles
-
-            $filesComparison
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare artifacts (artifact view, then incoming) and files (artifact view, then incoming) , then iterate artifacts (artifact view then incoming), then files (artifact view, then incoming)"() {
-        buildFile << """
-            $declareArtifactViewArtifacts
-            $declareIncomingArtifacts
-            $declareArtifactViewFiles
-            $declareIncomingFiles
-
-            $iterateArtifactViewArtifacts
-            $iterateIncomingArtifacts
-            $iterateArtifactViewFiles
-            $iterateIncomingFiles
-
-            $filesComparison
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-    def "declare and iterate artifact view files, then artifact view artifacts, then incoming files, then incoming artifacts"() {
-        buildFile << """
-            $declareArtifactViewFiles
-            $iterateArtifactViewFiles
-
-            $declareArtifactViewArtifacts
-            $iterateArtifactViewArtifacts
-
-            $declareIncomingFiles
-            $iterateIncomingFiles
-
-            $declareIncomingArtifacts
-            $iterateIncomingArtifacts
-
-            $filesComparison
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-
-    def "declare and iterate incoming files, then incoming artifacts, then artifact view files, then artifact view artifacts"() {
-        buildFile << """
-            $declareIncomingFiles
-            $iterateIncomingFiles
-
-            $declareIncomingArtifacts
-            $iterateIncomingArtifacts
-
-            $declareArtifactViewFiles
-            $iterateArtifactViewFiles
-
-            $declareArtifactViewArtifacts
-            $iterateArtifactViewArtifacts
-
-            $filesComparison
-            $artifactComparison
-        """
-
-        expect:
-        run ':help'
-    }
-
-
-    def "test adding an attribute lately without using beforeLocking or the java plugin still produces same files"() {
-        // Replace text to avoid adding Java plugin
-        file("producer/build.gradle").text = """
-            def attr = Attribute.of("test-attr", String)
+            interface Flavor extends Named {}
+            def flavor = Attribute.of(Flavor)
 
             configurations {
-                producerConf1 {
-                    attributes.attribute(attr, 'foo')
-                    outgoing.artifact file('file1')
+                producerConfVanilla {
+                    attributes {
+                        attribute(flavor, objects.named(Flavor, 'vanilla'))
+                    }
+                    outgoing {
+                        artifact file('vanilla.jar')
+                    }
                 }
-                producerConf2 {
-                    attributes.attribute(attr, 'bar')
-                    outgoing.artifact file('file2')
+                producerConfChocolate {
+                    attributes {
+                        attribute(flavor, objects.named(Flavor, 'chocolate'))
+                    }
+                    outgoing {
+                        artifact file('chocolate.jar')
+                    }
                 }
             }
         """
 
-        // Replace text to avoid adding Java plugin
-        buildFile.text = """
-            def attr = Attribute.of("test-attr", String)
+        buildFile << """
+            interface Flavor extends Named {}
+            def flavor = Attribute.of(Flavor)
 
             configurations {
-                filesConsumerConf {
-                    attributes.attribute(attr, 'foo')
-                }
-
-                artifactsConsumerConf {
-                    attributes.attribute(attr, 'foo')
+                consumerConf {
+                    attributes {
+                        attribute(flavor, objects.named(Flavor, 'chocolate'))
+                    }
                 }
             }
 
             dependencies {
-                filesConsumerConf(project(":producer"))
-                artifactsConsumerConf(project(":producer"))
+                consumerConf(project(":producer"))
+            }
+        """
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Need to create an ArtifactView from the incoming ResolvableDependencies at execution time")
+    def "test adding an attribute lately using beforeLocking without produces same files"() {
+        buildFile << """
+            configurations.${testedClasspathName}.beforeLocking {
+                attributes.attribute(flavor, objects.named(Flavor, 'vanilla'))
             }
 
-            tasks.register("verifySameFiles") {
-                def incomingFiles = configurations.filesConsumerConf.incoming.files
-                def artifactViewFiles = configurations.filesConsumerConf.incoming.artifactView {}.files
-                configurations.filesConsumerConf.attributes.attribute(attr, 'bar')
-
-                doLast {
-                    assert incomingFiles*.name == ['file2']
-                    assert artifactViewFiles*.name == ['file2']
-                }
-            }
-
-            tasks.register("verifySameArtifacts") {
-                def incomingArtifacts = configurations.artifactsConsumerConf.incoming.artifacts
-                def artifactViewArtifacts = configurations.artifactsConsumerConf.incoming.artifactView {}.artifacts
-                configurations.artifactsConsumerConf.attributes.attribute(attr, 'bar')
-
-                doLast {
-                    assert incomingArtifacts*.id.file.name == ['file2']
-                    assert artifactViewArtifacts*.id.file.name == ['file2']
-                }
+            tasks.register('verifyFiles', FilesVerificationTask) {
+                incoming = configurations.${testedClasspathName}.incoming
             }
         """
 
         expect:
-        run ':verifySameFiles'
+        run ':verifyFiles'
+        output.contains("Resolved file: vanilla.jar") // Late attributes have changed the expectations
+        output.contains("Attribute: flavor = vanilla")
+    }
 
-        and:
-        run ':verifySameArtifacts'
+    @ToBeFixedForConfigurationCache(because = "Need to create an ArtifactView from the incoming ResolvableDependencies at execution time")
+    def "test adding an attribute lately without using beforeLocking still produces same files"() {
+        buildFile << """
+            tasks.register('verifyFiles', FilesVerificationTask) {
+                incoming = configurations.${testedClasspathName}.incoming
+                afterCreatingArtifactView = { configurations.${testedClasspathName}.attributes.attribute(flavor, objects.named(Flavor, 'vanilla')) }
+            }
+        """
+
+        expect:
+        run ':verifyFiles'
+        output.contains("Resolved file: vanilla.jar") // Late attributes have changed the expectations
+        output.contains("Attribute: flavor = vanilla")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Need to create an ArtifactView from the incoming ResolvableDependencies at execution time")
+    def "test adding an attribute lately using beforeLocking without produces same artifacts"() {
+        buildFile << """
+            configurations.${testedClasspathName}.beforeLocking {
+                attributes.attribute(flavor, objects.named(Flavor, 'vanilla'))
+            }
+
+            tasks.register('verifyArtifacts', ArtifactsVerificationTask) {
+                incoming = configurations.${testedClasspathName}.incoming
+            }
+        """
+
+        expect:
+        run ':verifyArtifacts'
+        output.contains("Resolved file: vanilla.jar") // Late attributes have changed the expectations
+        output.contains("Attribute: flavor = vanilla")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Need to create an ArtifactView from the incoming ResolvableDependencies at execution time")
+    def "test adding an attribute lately without using beforeLocking still produces same artifacts"() {
+        buildFile << """
+            tasks.register('verifyArtifacts', ArtifactsVerificationTask) {
+                incoming = configurations.${testedClasspathName}.incoming
+                afterCreatingArtifactView = { configurations.${testedClasspathName}.attributes.attribute(flavor, objects.named(Flavor, 'vanilla')) }
+            }
+        """
+
+        expect:
+        run ':verifyArtifacts'
+        output.contains("Resolved file: vanilla.jar") // Late attributes have changed the expectations
+        output.contains("Attribute: flavor = vanilla")
     }
 }

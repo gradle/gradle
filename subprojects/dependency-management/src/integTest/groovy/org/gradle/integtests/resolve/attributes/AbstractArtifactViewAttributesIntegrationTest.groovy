@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 /**
  * Base class for tests that verify the variant selection behavior of artifact views and artifact collections
@@ -25,38 +26,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  * These tests assume a situation where the root consumer project will resolve a variant of a nested producer project.
  */
 abstract class AbstractArtifactViewAttributesIntegrationTest extends AbstractIntegrationSpec {
-    protected static declareIncomingFiles = "def incomingFiles = configurations.compileClasspath.incoming.files"
-    protected static declareIncomingArtifacts = "def incomingArtifacts = configurations.compileClasspath.incoming.artifacts"
-    protected static declareArtifactViewFiles = "def artifactViewFiles = configurations.compileClasspath.incoming.artifactView {  }.files"
-    protected static declareArtifactViewArtifacts = "def artifactViewArtifacts = configurations.compileClasspath.incoming.artifactView {  }.artifacts"
-
-    protected static iterateIncomingFiles = """println 'Incoming Files:'
-incomingFiles.each {
-    println 'Name: ' + it.name
-}
-println ''
-"""
-    protected static iterateIncomingArtifacts = """println 'Incoming Artifacts:'
-incomingArtifacts.each {
-    println 'Name: ' + it.id.name + ', File: ' + it.id.file.name
-}
-println ''
-"""
-    protected static iterateArtifactViewFiles = """println 'Artifact View Files:'
-artifactViewFiles.each {
-    println 'Name: ' + it.name
-}
-println ''
-"""
-    protected static iterateArtifactViewArtifacts = """println 'Artifact View Artifacts:'
-artifactViewArtifacts.each {
-    println 'Name: ' + it.id.name + ', File: ' + it.id.file.name
-}
-println ''
-"""
-
-    protected static filesComparison = "assert incomingFiles*.name == artifactViewFiles*.name"
-    protected static artifactComparison = "assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name"
+    abstract List<String> getExpectedFileNames()
+    abstract List<String> getExpectedAttributes()
+    abstract String getTestedClasspathName()
 
     def setup() {
         settingsFile << """
@@ -64,6 +36,122 @@ println ''
             include "producer"
         """
 
-        file("producer/build.gradle") << ''
+        file("producer/build.gradle").createFile()
+
+        buildFile << """
+            abstract class FilesVerificationTask extends DefaultTask {
+                @Input
+                ResolvableDependencies incoming
+
+                @Input
+                Action<FilesVerificationTask> beforeCreatingArtifactView = { }
+                @Input
+                Action<FilesVerificationTask> afterCreatingArtifactView = { }
+
+                @TaskAction
+                def verify() {
+                    def incomingFiles = incoming.files
+                    beforeCreatingArtifactView.execute(this)
+                    def artifactView = incoming.artifactView { }
+                    def artifactViewFiles = artifactView.files
+                    afterCreatingArtifactView.execute(this)
+
+                    assert incomingFiles*.name == artifactViewFiles*.name
+                    incomingFiles.each {
+                        println 'Resolved file: ' + it.name
+                    }
+                    artifactView.attributes.keySet().each { attribute ->
+                        println 'Attribute: ' + attribute.name + ' = ' + artifactView.attributes.getAttribute(attribute)
+                    }
+                }
+            }
+
+            abstract class ArtifactsVerificationTask extends DefaultTask {
+                @Input
+                ResolvableDependencies incoming
+
+                @Input
+                Action<FilesVerificationTask> beforeCreatingArtifactView = { }
+                @Input
+                Action<FilesVerificationTask> afterCreatingArtifactView = { }
+
+                @TaskAction
+                def verify() {
+                    def incomingArtifacts = incoming.artifacts
+                    beforeCreatingArtifactView.execute(this)
+                    def artifactView = incoming.artifactView { }
+                    def artifactViewArtifacts = artifactView.artifacts
+                    afterCreatingArtifactView.execute(this)
+
+                    assert incomingArtifacts*.id.file.name == artifactViewArtifacts*.id.file.name
+                    incomingArtifacts.each {
+                        println 'Resolved file: ' + it.id.file.name
+                    }
+                    artifactView.attributes.keySet().each { attribute ->
+                        println 'Attribute: ' + attribute.name + ' = ' + artifactView.attributes.getAttribute(attribute)
+                    }
+                }
+            }
+        """
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Need to create an ArtifactView from the incoming ResolvableDependencies at execution time")
+    def "resolve files after creating artifact view"() {
+        buildFile << """
+            tasks.register('verifyFiles', FilesVerificationTask) {
+                incoming = configurations.${testedClasspathName}.incoming
+            }
+        """
+
+        expect:
+        run ':verifyFiles'
+        expectedFileNames.each {assert output.contains("Resolved file: $it") }
+        expectedAttributes.each { assert output.contains("Attribute: $it") }
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Need to create an ArtifactView from the incoming ResolvableDependencies at execution time")
+    def "resolve files before creating artifact view"() {
+        buildFile << """
+            tasks.register('verifyFiles', FilesVerificationTask) {
+                incoming = configurations.${testedClasspathName}.incoming
+                // Force resolution before creating the artifact view
+                beforeCreatingArtifactView = { incoming.files.forEach { it.exists() } }
+            }
+        """
+
+        expect:
+        run ':verifyFiles'
+        expectedFileNames.each {assert output.contains("Resolved file: $it") }
+        expectedAttributes.each { assert output.contains("Attribute: $it") }
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Need to create an ArtifactView from the incoming ResolvableDependencies at execution time")
+    def "resolve artifacts after creating artifact view"() {
+        buildFile << """
+            tasks.register('verifyArtifacts', ArtifactsVerificationTask) {
+                incoming = configurations.${testedClasspathName}.incoming
+            }
+        """
+
+        expect:
+        run ':verifyArtifacts'
+        expectedFileNames.each {assert output.contains("Resolved file: $it") }
+        expectedAttributes.each { assert output.contains("Attribute: $it") }
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Need to create an ArtifactView from the incoming ResolvableDependencies at execution time")
+    def "resolve artifacts before creating artifact view"() {
+        buildFile << """
+            tasks.register('verifyArtifacts', ArtifactsVerificationTask) {
+                incoming = configurations.${testedClasspathName}.incoming
+                // Force resolution before creating the artifact view
+                beforeCreatingArtifactView = { incoming.artifacts.forEach { it.id.file.exists() } }
+            }
+        """
+
+        expect:
+        run ':verifyArtifacts'
+        expectedFileNames.each {assert output.contains("Resolved file: $it") }
+        expectedAttributes.each { assert output.contains("Attribute: $it") }
     }
 }

@@ -174,8 +174,6 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfiguration.class);
 
-    public static final String USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR = "org.gradle.configuration.use-legacy-attribute-snapshot-behavior";
-
     private final ConfigurationResolver resolver;
     private final DependencyMetaDataProvider metaDataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -264,8 +262,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String consistentResolutionReason;
     private TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
-
-    private static Boolean useLegacyAttributeSnapshottingBehavior = null;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -2119,34 +2115,11 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        AttributeContainerInternal viewAttributes = attributes;
-        // If the user desires legacy behavior, we need to make sure that the view attributes are a separate collection so
-        // they do not pick up later attribute changes to the configuration.
-        if (useLegacyAttributeSnapshottingBehavior()) {
-            viewAttributes = viewAttributes.asImmutable();
-        }
-
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
         ResolutionBackedFileCollection files = new ResolutionBackedFileCollection(
-            new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
+            new SelectedArtifactsProvider(Specs.satisfyAll(), attributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
         );
         return new DefaultArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
-    }
-
-    private static boolean useLegacyAttributeSnapshottingBehavior() {
-        if (useLegacyAttributeSnapshottingBehavior == null) {
-            useLegacyAttributeSnapshottingBehavior = Boolean.getBoolean(USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR);
-        }
-
-        if (useLegacyAttributeSnapshottingBehavior) {
-            DeprecationLogger.deprecateSystemProperty(USE_LEGACY_ATTRIBUTE_SNAPSHOT_BEHAVIOR)
-                .withAdvice("Please remove this flag and use the current default behavior.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "legacy_attribute_snapshotting")
-                .nagUser();
-        }
-
-        return useLegacyAttributeSnapshottingBehavior;
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
@@ -2227,11 +2200,6 @@ since users cannot create non-legacy configurations and there is no current publ
             // As this runs after the action used to configure the ArtifactView has run, the config might already have viewAttributes present
             // which the user added.  If so, continue to use those attributes, otherwise use the attributes from the creating configuration.
             AttributeContainerInternal viewAttributes = (config.viewAttributes == null) ? config.configurationAttributes : config.viewAttributes;
-            // If the user desires legacy behavior, we need to make sure that the view attributes are a separate collection so
-            // they do not pick up later attribute changes to the configuration.
-            if (useLegacyAttributeSnapshottingBehavior()) {
-                viewAttributes = viewAttributes.asImmutable();
-            }
 
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
