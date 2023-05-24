@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.interfaces.Problem;
 
 import javax.annotation.Nullable;
 import java.util.List;

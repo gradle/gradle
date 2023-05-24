@@ -17,8 +17,9 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
+
 import org.gradle.tooling.Problem;
+import org.gradle.tooling.Failure;
 
 import java.util.List;
 
@@ -43,5 +44,5 @@ public interface FailureResult extends OperationResult {
      * @since 8.3
      */
     @Incubating
-    List<? extends Problem> getProblems();
+    List<Problem> getProblems();
 }

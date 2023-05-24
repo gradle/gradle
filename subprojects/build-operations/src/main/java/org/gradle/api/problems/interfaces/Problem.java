@@ -14,10 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.api.problems.interfaces;
 
-public class GradleExceptionWithContext extends RuntimeException {
-    public GradleExceptionWithContext(Throwable cause) {
-        super(cause);
-    }
+import org.gradle.api.Incubating;
+
+import javax.annotation.Nullable;
+
+/**
+ * Problem description.
+ *
+ * @since 8.3
+ */
+@Incubating
+public interface Problem {
+
+    String getMessage();
+
+    String getSeverity();
+
+    @Nullable
+    String getFile();
+
+    @Nullable
+    Integer getLine();
+
+    @Nullable
+    Integer getColumn();
 }

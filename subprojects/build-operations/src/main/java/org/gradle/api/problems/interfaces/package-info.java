@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+/**
+ * Represents some chunk of work.
+ */
+
+@NonNullApi
+package org.gradle.api.problems.interfaces;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.Problem;
-
-import java.util.Map;
-@NonNullApi
-public class DefaultProblem implements Problem {
-
-    private final Map<String, String> rawAttributes;
-
-    public DefaultProblem(Map<String, String> rawAttributes) {
-        this.rawAttributes = rawAttributes;
-    }
-
-    @Override
-    public Map<String, String> getRawAttributes() {
-        return rawAttributes;
-    }
-}

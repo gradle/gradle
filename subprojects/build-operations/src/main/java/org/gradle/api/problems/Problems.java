@@ -17,7 +17,8 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.operations.GradleExceptionWithContext;
+import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.internal.GradleExceptionWithContext;
 import org.gradle.internal.problems.DefaultProblem;
 
 import java.util.ArrayList;

@@ -16,8 +16,9 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleExceptionWithContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +69,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     Throwable failure = null;
                     try {
                         worker.execute(buildOperation, context);
+
                     } catch (Throwable t) {
                         if (context.getFailure() == null) {
                             if (t instanceof GradleExceptionWithContext) {
@@ -78,6 +80,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                         }
                         failure = t;
                     } finally {
+                        // this probably doesn't work, the worker can run things in parallel which means different threads, putting it in thread local variables won't cover this.
                         context.setProblems(Problems.removeAllProblems());
                     }
                     listener.stop(descriptor, operationState, parent, context);

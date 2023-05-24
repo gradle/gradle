@@ -13,31 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.api.problems.internal;
 
-package org.gradle.api.problems;
-
-import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
-
-/**
- * Problem description.
- *
- * @since 8.3
- */
-@Incubating
-public interface Problem {
-
-    String getMessage();
-
-    String getSeverity();
-
-    @Nullable
-    String getFile();
-
-    @Nullable
-    Integer getLine();
-
-    @Nullable
-    Integer getColumn();
-}
+import org.gradle.api.NonNullApi;

@@ -16,7 +16,8 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.tooling.internal.protocol.InternalProblem;
 
 import java.io.Serializable;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@NonNullApi
 public class DefaultProblem implements Serializable, InternalProblem {
 
     private final Map<String, String> rawAttributes;

@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.Failure;
 import org.gradle.tooling.Problem;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FailureResult;
 
 import java.util.Collections;

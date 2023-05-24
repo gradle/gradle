@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.tooling.Problem;
-
-import java.util.Map;
-@NonNullApi
-public class DefaultProblem implements Problem {
-
-    private final Map<String, String> rawAttributes;
-
-    public DefaultProblem(Map<String, String> rawAttributes) {
-        this.rawAttributes = rawAttributes;
-    }
-
-    @Override
-    public Map<String, String> getRawAttributes() {
-        return rawAttributes;
+/**
+ * Represents some chunk of work.
+ *
+ * @since 8.3
+ */
+public class GradleExceptionWithContext extends RuntimeException {
+    public GradleExceptionWithContext(Throwable cause) {
+        super(cause);
     }
 }

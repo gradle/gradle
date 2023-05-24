@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.events.configuration.internal;
 
-import org.gradle.tooling.Failure;
 import org.gradle.tooling.Problem;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.configuration.ProjectConfigurationFailureResult;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 

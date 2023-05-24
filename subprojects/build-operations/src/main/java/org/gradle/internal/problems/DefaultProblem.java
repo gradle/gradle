@@ -16,10 +16,12 @@
 
 package org.gradle.internal.problems;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.interfaces.Problem;
 
 import javax.annotation.Nullable;
 
+@NonNullApi
 public class DefaultProblem implements Problem {
 
     private final String message;
