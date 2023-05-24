@@ -23,7 +23,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.internal.Factory;
 
 import java.io.File;
 
@@ -79,7 +78,8 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
         String getUri();
     }
 
-    interface DerivedArtifact extends Factory<File> {
+    interface DerivedArtifact {
         boolean shouldBePublished();
+        File create();
     }
 }
