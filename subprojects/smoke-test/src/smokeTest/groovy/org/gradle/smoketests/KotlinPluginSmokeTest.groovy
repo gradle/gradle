@@ -116,6 +116,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     }
 
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
+
+        def versionNumber = VersionNumber.parse(kotlinVersion)
+        def kotlinCompileClasspathPropertyName = versionNumber >= VersionNumber.parse("1.7.0") ? 'libraries' : 'classpath'
+
         given:
         buildFile << """
             plugins {
@@ -131,7 +135,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 classpath = sourceSets.main.compileClasspath
             }
             tasks.named('compileKotlin') {
-                classpath += files(sourceSets.main.groovy.classesDirectory)
+                ${kotlinCompileClasspathPropertyName}.from(files(sourceSets.main.groovy.classesDirectory))
             }
 
             dependencies {
@@ -142,7 +146,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { val groovy = Groovy() }"
         file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
-        def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
         def result = runner(false, versionNumber, 'compileJava')
