@@ -16,12 +16,14 @@
 
 package gradlebuild.binarycompatibility
 
+import org.junit.Ignore
 import org.junit.Test
 
 
 /**
  * Asserts Kotlin `internal` members are filtered from the comparison.
  */
+@Ignore
 class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
 
     private

@@ -28,7 +28,6 @@ import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
 import kotlinx.metadata.jvm.JvmTypeExtensionVisitor
-import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
@@ -44,10 +43,10 @@ import java.io.File
 internal
 fun publicKotlinClass(
     internalClassName: InternalName,
-    header: KotlinClassHeader,
+    metadata: Metadata,
     classBody: ClassWriter.() -> Unit
 ): ByteArray = publicClass(internalClassName) {
-    visitKotlinMetadataAnnotation(header)
+    visitKotlinMetadataAnnotation(metadata)
     classBody()
 }
 
@@ -67,13 +66,13 @@ fun beginFileFacadeClassHeader() = KotlinClassMetadata.FileFacade.Writer()
 
 
 internal
-fun KotlinClassMetadata.FileFacade.Writer.closeHeader(moduleName: String): KotlinClassHeader {
+fun KotlinClassMetadata.FileFacade.Writer.closeHeader(moduleName: String): Metadata {
     (visitExtensions(JvmPackageExtensionVisitor.TYPE) as JvmPackageExtensionVisitor).run {
         visitModuleName(moduleName)
         visitEnd()
     }
     visitEnd()
-    return write().header
+    return write().annotationData
 }
 
 
@@ -117,8 +116,8 @@ fun ClassVisitor.publicStaticSyntheticMethod(
 
 
 internal
-fun ClassWriter.endKotlinClass(classHeader: KotlinClassHeader): ByteArray {
-    visitKotlinMetadataAnnotation(classHeader)
+fun ClassWriter.endKotlinClass(metadata: Metadata): ByteArray {
+    visitKotlinMetadataAnnotation(metadata)
     return endClass()
 }
 
@@ -127,7 +126,7 @@ fun ClassWriter.endKotlinClass(classHeader: KotlinClassHeader): ByteArray {
  * Writes the given [header] to the class file as a [kotlin.Metadata] annotation.
  **/
 private
-fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
+fun ClassWriter.visitKotlinMetadataAnnotation(header: Metadata) {
     visitAnnotation("Lkotlin/Metadata;", true).run {
         visit("mv", header.metadataVersion)
         visit("k", header.kind)
