@@ -18,10 +18,8 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
-import org.jetbrains.kotlin.lexer.KtTokens.FALSE_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
-import org.jetbrains.kotlin.lexer.KtTokens.TRUE_KEYWORD
 
 
 internal
@@ -56,68 +54,135 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
 }
 
 
+@Suppress("unused")
+private
+val debugger: ParserDebugger = ParserDebugger()
+
+
+@Suppress("UNUSED_PARAMETER")
+private
+fun <T> debug(name: String, parser: Parser<T>) =
+//    debugger.debug(name, parser)
+    parser
+
+
+private
+val combinator = Combinator(ignoresComments = true, ignoresNewline = false)
+
+
 private
 val pluginsBlockParser = run {
 
-    val parenString = paren(stringLiteral())
+    combinator.run {
 
-    val kotlinPluginId = symbol("kotlin") * parenString.map { "org.jetbrains.kotlin.$it" }
-
-    val pluginId = (symbol("id") * parenString + kotlinPluginId) * ws()
-
-    val dot = wsOrNewLine() * token(DOT) * wsOrNewLine()
-
-    val version = symbol("version")
-
-    val apply = symbol("apply")
-
-    val bool = token(TRUE_KEYWORD) { true } + token(FALSE_KEYWORD) { false }
-
-    val parenBool = paren(bool)
-
-    val dotVersion = dot * version * parenString * ws()
-
-    val dotApply = dot * apply * parenBool * ws()
-
-    val infixVersion = version * (parenString + stringLiteral()) * ws()
-
-    val infixApply = apply * (parenBool + bool) * ws()
-
-    val optionalApply = optional(dotApply + infixApply)
-
-    val optionalVersion = optional(dotVersion + infixVersion)
-
-    val infixVersionApply = infixVersion * optionalApply
-
-    val infixApplyVersion = flip(infixApply, optionalVersion)
-
-    val dotVersionApply = dotVersion * optionalApply
-
-    val dotApplyVersion = flip(dotApply, optionalVersion)
-
-    val optionalVersionAndApply = optional(infixVersionApply + infixApplyVersion + dotVersionApply + dotApplyVersion)
-
-    val pluginIdSpec = zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
-        when (versionAndApply) {
-            null -> ResidualProgram.PluginRequestSpec(id)
-            else -> versionAndApply.let { (v, a) ->
-                ResidualProgram.PluginRequestSpec(id, version = v, apply = a ?: true)
-            }
-        }
-    }
-
-    val kotlinDslSpec = zip(symbol("`kotlin-dsl`"), optionalApply) { _, a ->
-        ResidualProgram.PluginRequestSpec(
-            "org.gradle.kotlin.kotlin-dsl",
-            expectedKotlinDslPluginsVersion,
-            apply = a ?: true
+        val parenString = debug("parenString",
+            paren(stringLiteral)
         )
+
+        val parenBool = debug("parenBool",
+            paren(booleanLiteral)
+        )
+        val kotlinPluginId = debug("kotlinPluginId",
+            symbol("kotlin") * parenString.map { "org.jetbrains.kotlin.$it" }
+        )
+
+        val pluginId = debug("pluginId",
+            (symbol("id") * parenString + kotlinPluginId)
+        )
+
+        val dot = debug("dot",
+            wsOrNewLine() * token(DOT)
+        )
+
+        val version = debug("version",
+            symbol("version")
+        )
+
+        val apply = debug("apply",
+            symbol("apply")
+        )
+
+
+        val dotVersion = debug("dotVersion",
+            dot * version * parenString
+        )
+
+        val dotApply = debug("dotApply",
+            dot * apply * parenBool
+        )
+
+        val infixVersion = debug("infixVersion",
+            version * (parenString + stringLiteral)
+        )
+
+        val infixApply = debug("infixApply",
+            apply * (parenBool + booleanLiteral)
+        )
+
+        val optionalApply = debug("optionalApply",
+            optional(dotApply + infixApply)
+        )
+
+        val optionalVersion = debug("optionalVersion",
+            optional(dotVersion + infixVersion)
+        )
+
+        val infixVersionApply = debug("infixVersionApply",
+            infixVersion * optionalApply
+        )
+
+        val infixApplyVersion = debug("infixApplyVersion",
+            flip(infixApply, optionalVersion)
+        )
+
+        val dotVersionApply = debug("dotVersionApply",
+            dotVersion * optionalApply
+        )
+
+        val dotApplyVersion = debug("dotApplyVersion",
+            flip(dotApply, optionalVersion)
+        )
+
+        val optionalVersionAndApply = debug("optionalVersionAndApply",
+            optional(infixVersionApply + infixApplyVersion + dotVersionApply + dotApplyVersion)
+        )
+
+        val pluginIdSpec = debug("pluginIdSpec",
+            zip(pluginId, optionalVersionAndApply) { id, versionAndApply ->
+                when (versionAndApply) {
+                    null -> ResidualProgram.PluginRequestSpec(id)
+                    else -> versionAndApply.let { (v, a) ->
+                        ResidualProgram.PluginRequestSpec(id, version = v, apply = a ?: true)
+                    }
+                }
+            }
+        )
+
+        val kotlinDslSpec = debug("kotlinDslSpec",
+            zip(symbol("`kotlin-dsl`"), optionalApply) { _, a ->
+                ResidualProgram.PluginRequestSpec(
+                    "org.gradle.kotlin.kotlin-dsl",
+                    expectedKotlinDslPluginsVersion,
+                    apply = a ?: true
+                )
+            }
+        )
+
+        val pluginSpec = debug("pluginSpec",
+            pluginIdSpec + kotlinDslSpec
+        )
+
+        val firstLines = debug("firstLines",
+            zeroOrMore(pluginSpec * debug("statementSeparator", statementSeparator()))
+        )
+
+        val lastLine = debug("lastLine",
+            optional(pluginSpec * wsOrNewLine())
+        )
+
+        token(LBRACE) * wsOrNewLine() *
+            firstLines *
+            lastLine *
+            token(RBRACE)
     }
-
-    val pluginSpec = pluginIdSpec + kotlinDslSpec
-
-    token(LBRACE) * wsOrNewLine() *
-        zeroOrMore(pluginSpec * statementSeparator()) *
-        optional(pluginSpec * wsOrNewLine()) *
-        token(RBRACE)
 }

@@ -32,7 +32,7 @@ object ProgramParser {
 
         val topLevelBlockIds = TopLevelBlockId.topLevelBlockIdFor(target)
 
-        return lex(source.text, *topLevelBlockIds).map { (comments, topLevelBlocks) ->
+        return lex(source.text, *topLevelBlockIds).map { (comments, _, topLevelBlocks) ->
 
             checkForSingleBlocksOf(topLevelBlockIds, topLevelBlocks)
 
@@ -40,6 +40,8 @@ object ProgramParser {
 
             val sourceWithoutComments =
                 source.map { it.erase(comments) }
+
+            // todo: erase annotations on stage 1 blocks?
 
             val buildscriptFragment =
                 topLevelBlocks
