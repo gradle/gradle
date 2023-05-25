@@ -17,7 +17,6 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.problems.interfaces.Solution;

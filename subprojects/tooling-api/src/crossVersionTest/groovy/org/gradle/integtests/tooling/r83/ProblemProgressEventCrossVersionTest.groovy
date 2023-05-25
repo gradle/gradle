@@ -16,15 +16,12 @@
 
 package org.gradle.integtests.tooling.r83
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Problem
-import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.OperationResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 
