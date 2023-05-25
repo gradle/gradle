@@ -39,7 +39,10 @@ import java.util.Collections;
 public class Problems {
 
     public static void reportWarning(ProblemId id, String message, String summary, String documentationUrl, String solution) {
-        addProblem(new DefaultProblem(id, message, Severity.WARNING, null, summary, documentationUrl, "description", Collections.<Solution>singletonList(new DefaultSolution(documentationUrl, solution))));
+        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
+        if (operationContext != null) {
+            operationContext.addProblem(new DefaultProblem(id, message, Severity.WARNING, null, summary, documentationUrl, "description", Collections.<Solution>singletonList(new DefaultSolution(documentationUrl, solution))));
+        }
     }
 
     public static void reportFailure(ProblemId id, String message, String file, Integer line, Throwable cause) {
@@ -49,12 +52,5 @@ public class Problems {
             operationContext.failed(cause);
         }
         throw new GradleExceptionWithContext(cause);
-    }
-
-    private static void addProblem(Problem problem) {
-        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
-        if (operationContext != null) {
-            operationContext.addProblem(problem);
-        }
     }
 }

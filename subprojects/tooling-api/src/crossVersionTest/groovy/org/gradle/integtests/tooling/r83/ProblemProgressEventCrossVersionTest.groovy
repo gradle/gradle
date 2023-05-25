@@ -24,6 +24,7 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.Problem
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 
@@ -37,7 +38,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof FinishEvent) {
-                this.allProblems.addAll(((FailureResult) result).getProblems())
+                this.allProblems.addAll((event.getResult()).getProblems())
             }
         }
     }
@@ -69,6 +70,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         List<Problem> problems = listener.allProblems
+        problems.size() == 2
         (problems[0].rawAttributes['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
         (problems[0].rawAttributes['doc'] as String).contains('https://docs.gradle.org/')
         (problems[0].rawAttributes['description'] as String) == 'description'

@@ -390,15 +390,17 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private BuildPhaseFinishEvent buildPhaseFinishEvent(InternalOperationFinishedProgressEvent event) {
         BuildPhaseOperationDescriptor descriptor = removeDescriptor(BuildPhaseOperationDescriptor.class, event.getDescriptor());
-        OperationResult result;
+        OperationResult result = getOperationsResult(event);
+        return new DefaultBuildPhaseFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result);
+    }
+
+    private static OperationResult getOperationsResult(InternalOperationFinishedProgressEvent event) {
         InternalOperationResult internalResult = event.getResult();
         List<Problem> problems = toToolingProblems(internalResult.getProblems());
-        if (event.getResult() instanceof InternalFailureResult) {
-            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()), problems);
-        } else {
-            result = new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime(), problems);
+        if (internalResult instanceof InternalFailureResult) {
+            return new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()), problems);
         }
-        return new DefaultBuildPhaseFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result);
+        return new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime(), problems);
     }
 
     private static List<Problem> toToolingProblems(List<? extends InternalProblem> problems) {
