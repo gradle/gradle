@@ -33,6 +33,7 @@ class KotlinGradlePluginVersions {
         "1.7",
         "1.8",
         "1.9",
+        "2.0",
     ]
 
     private final Factory<Properties> propertiesFactory
