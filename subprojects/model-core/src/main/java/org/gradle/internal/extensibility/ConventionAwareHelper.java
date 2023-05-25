@@ -65,6 +65,8 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         }
 
         // When there's a Property, use its `.convention()` method instead
+        // This is something we added to support properties migrated in the future from
+        // Java bean to Property where old code uses ConventionMapping to set conventions.
         Class<? extends IConventionAware> sourceType = _source.getClass();
         Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
         if (getter != null && Property.class.isAssignableFrom(getter.getReturnType())) {
