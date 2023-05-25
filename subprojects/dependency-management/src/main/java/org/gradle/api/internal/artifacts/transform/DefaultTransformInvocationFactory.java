@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -51,6 +52,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
+import org.gradle.operations.dependencies.transforms.ExecuteTransformStepBuildOperationType;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -115,7 +117,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         ProjectInternal producerProject = determineProducerProject(subject);
         TransformWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
 
-        UnitOfWork execution;
+        AbstractTransformExecution execution;
         if (producerProject == null) {
             execution = new ImmutableTransformExecution(
                 transform,
@@ -149,8 +151,26 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             );
         }
 
-        return executionEngine.createRequest(execution)
-            .executeDeferred(workspaceServices.getIdentityCache())
+        Deferrable<Try<TransformExecutionResult>> deferredExecution = executionEngine.createRequest(execution)
+            .executeDeferred(workspaceServices.getIdentityCache());
+        deferredExecution.getCompleted().map(Deferrable::completed)
+            .orElseGet(() -> Deferrable.deferred(() -> buildOperationExecutor.call(new CallableBuildOperation<Try<TransformExecutionResult>>() {
+                @Override
+                public Try<TransformExecutionResult> call(BuildOperationContext context) {
+                    Try<TransformExecutionResult> result = deferredExecution.completeAndGet();
+                    // TODO: Get the result of the execution when the transform is not from the cache.
+                    //       It may also be possible that at this point we get a cache hit when we call completeAndGet()
+                    //       In that case we'd also want to not run this build operation.
+                    return result;
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Execute transform")
+                        .details(new RunTransformExecutionBuildOperationDetails(execution));
+                }
+            })));
+        return deferredExecution
             .map(result -> result
                 .map(successfulResult -> successfulResult.resolveOutputsForInputArtifact(inputArtifact))
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
@@ -267,6 +287,8 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         private final Provider<FileSystemLocation> inputArtifactProvider;
         protected final InputFingerprinter inputFingerprinter;
         private final TransformWorkspaceServices workspaceServices;
+
+        private TransformWorkspaceIdentity transformWorkspaceIdentity;
 
         public AbstractTransformExecution(
             Transform transform,
@@ -428,7 +450,12 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         }
 
         protected void emitIdentifyTransformExecutionProgressDetails(TransformWorkspaceIdentity transformWorkspaceIdentity) {
+            this.transformWorkspaceIdentity = transformWorkspaceIdentity;
             progressEventEmitter.emitNowIfCurrent(new DefaultIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity, transform, owningProject));
+        }
+
+        public TransformWorkspaceIdentity getTransformWorkspaceIdentity() {
+            return Preconditions.checkNotNull(transformWorkspaceIdentity);
         }
 
         @Override
@@ -608,6 +635,19 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             Hasher hasher = Hashing.newHasher();
             transformWorkspaceIdentity.getSecondaryInputsSnapshot().appendToHasher(hasher);
             return hasher.hash().toByteArray();
+        }
+    }
+
+    private static class RunTransformExecutionBuildOperationDetails implements ExecuteTransformStepBuildOperationType.Details {
+        private final AbstractTransformExecution execution;
+
+        public RunTransformExecutionBuildOperationDetails(AbstractTransformExecution execution) {
+            this.execution = execution;
+        }
+
+        @Override
+        public String getWorkspaceId() {
+            return execution.getTransformWorkspaceIdentity().getUniqueId();
         }
     }
 }
