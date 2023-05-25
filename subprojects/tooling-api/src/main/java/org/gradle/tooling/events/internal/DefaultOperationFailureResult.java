@@ -31,13 +31,9 @@ public class DefaultOperationFailureResult implements FailureResult {
     private final long startTime;
     private final long endTime;
     private final List<? extends Failure> failures;
-    private final List<Problem> problems;
+    private final List<? extends Problem> problems;
 
-    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures) {
-        this(startTime, endTime, failures, null);
-     }
-
-    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<Problem> problems) {
+    public DefaultOperationFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends Problem> problems) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failures = failures;

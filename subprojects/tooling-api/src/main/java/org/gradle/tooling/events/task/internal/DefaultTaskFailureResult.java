@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.task.internal;
 
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.task.TaskFailureResult;
 
@@ -30,8 +31,8 @@ public final class DefaultTaskFailureResult extends DefaultOperationFailureResul
 
     private final TaskExecutionDetails taskExecutionDetails;
 
-    public DefaultTaskFailureResult(long startTime, long endTime, List<? extends Failure> failures, TaskExecutionDetails taskExecutionDetails) {
-        super(startTime, endTime, failures);
+    public DefaultTaskFailureResult(long startTime, long endTime, List<? extends Failure> failures, List<? extends Problem> problems, TaskExecutionDetails taskExecutionDetails) {
+        super(startTime, endTime, failures, problems);
         this.taskExecutionDetails = taskExecutionDetails;
     }
 

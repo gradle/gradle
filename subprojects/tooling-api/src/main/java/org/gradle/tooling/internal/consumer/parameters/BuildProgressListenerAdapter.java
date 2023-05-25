@@ -691,7 +691,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultFileDownloadSuccessResult(result.getStartTime(), result.getEndTime(), fileDownloadResult.getBytesDownloaded(), toToolingProblems(result.getProblems()));
         }
         if (result instanceof InternalFailureResult) {
-            return new DefaultFileDownloadFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), fileDownloadResult.getBytesDownloaded());
+            return new DefaultFileDownloadFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toToolingProblems(result.getProblems()), fileDownloadResult.getBytesDownloaded());
         }
         return null;
     }
@@ -702,7 +702,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         } else if (result instanceof InternalTestSkippedResult) {
             return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime(), toToolingProblems(result.getProblems()));
         } else if (result instanceof InternalTestFailureResult) {
-            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toToolingProblems(result.getProblems()));
         } else {
             return null;
         }
@@ -719,7 +719,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         } else if (result instanceof InternalTaskSkippedResult) {
             return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage(), toToolingProblems(result.getProblems()));
         } else if (result instanceof InternalTaskFailureResult) {
-            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toTaskExecutionDetails(result));
+            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toToolingProblems(result.getProblems()), toTaskExecutionDetails(result));
         } else {
             return null;
         }
@@ -744,7 +744,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultWorkItemSuccessResult(result.getStartTime(), result.getEndTime(), toToolingProblems(result.getProblems()));
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultWorkItemFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            return new DefaultWorkItemFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toToolingProblems(result.getProblems()));
         } else {
             return null;
         }
@@ -787,7 +787,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalSuccessResult) {
             return new DefaultTransformSuccessResult(result.getStartTime(), result.getEndTime(), toToolingProblems(result.getProblems()));
         } else if (result instanceof InternalFailureResult) {
-            return new DefaultTransformFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures())); // TODO there are result types that still does not contain problems, only failures
+            return new DefaultTransformFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toToolingProblems(result.getProblems()));
         } else {
             return null;
         }

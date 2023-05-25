@@ -150,7 +150,7 @@ public class DistributionInstaller {
             }
 
             long endTime = clock.getCurrentTime();
-            FileDownloadResult result = failure == null ? new DefaultFileDownloadSuccessResult(startTime, endTime, bytesDownloaded, Collections.<Problem>emptyList()) : new DefaultFileDownloadFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), bytesDownloaded);
+            FileDownloadResult result = failure == null ? new DefaultFileDownloadSuccessResult(startTime, endTime, bytesDownloaded, Collections.<Problem>emptyList()) : new DefaultFileDownloadFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), Collections.<Problem>emptyList(), bytesDownloaded);
             buildProgressListener.onEvent(new DefaultFileDownloadFinishEvent(endTime, displayName + " finished", descriptor, result));
             if (failure != null) {
                 if (failure instanceof Exception) {
