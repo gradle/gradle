@@ -20,18 +20,44 @@ package org.gradle.api.file;
 import org.gradle.api.Incubating;
 
 /**
- * Describes file and directory access permissions. Immutable version of
- * {@link FilePermissions}.
+ * Describes file and directory access permissions for all classes of system users.
+ * <p>
+ * Follows the style of Unix file permissions, based on the concept of file ownership.
+ * <p>
+ * Permissions are grouped into 3 distinct categories (representing different classes of users):
+ * <ul>
+ *     <li>OWNER (user) permissions: what actions the owner of the file/directory can perform on the file/directory</li>
+ *     <li>GROUP permissions: what actions a user, who is a member of the group that a file/directory belongs to, can perform on the file/directory</li>
+ *     <li>OTHER (world) permissions: what actions all other users (non-owner, non-group) can perform on the file/directory</li>
+ * </ul>
+ * <p>
+ * For further details on specific permission for a certain class of user see {@link ImmutableUserClassFilePermissions}.
  *
  * @since 8.3
  */
 @Incubating
 public interface ImmutableFilePermissions {
 
+    /**
+     * Describes what actions the owner of the file can perform on the file/directory.
+     * <p>
+     * For further details about possible actions see {@link ImmutableUserClassFilePermissions}.
+     */
     ImmutableUserClassFilePermissions getUser();
 
+    /**
+     * Describes what actions a user, who is a member of the group that the file/directory belongs to,
+     * can perform on the file/directory.
+     * <p>
+     * For further details about possible actions see {@link ImmutableUserClassFilePermissions}.
+     */
     ImmutableUserClassFilePermissions getGroup();
 
+    /**
+     * Describes what actions all other users (non-owner, non-group) can perform on the file/directory.
+     * <p>
+     * For further details about possible actions see {@link ImmutableUserClassFilePermissions}.
+     */
     ImmutableUserClassFilePermissions getOther();
 
     /**

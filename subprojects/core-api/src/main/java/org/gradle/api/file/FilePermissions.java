@@ -20,48 +20,77 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * Provides the means of specifying file and directory access permissions.
- * Follows the style of Unix file permissions, based on the concept of file ownership.
+ * Provides the means of specifying file and directory access permissions for all classes of system users.
  * <p>
- * Permissions are grouped into 3 distinct categories (representing different classes of users):
- * <ul>
- *     <li>OWNER (user) permissions: what actions the owner of the file can perform on the file/directory</li>
- *     <li>GROUP permissions: what actions a user, who is a member of the group that a file belongs to, can perform on the file/directory</li>
- *     <li>OTHER (world) permissions: what actions all other users (non-owner, non-group) can perform on the file/directory</li>
- * </ul>
- * <p>
- * For each class of users the permissions consist of:
- * <ul>
- *     <li>READ access: grants the capability to view the contents of a file, or to list the contents of a directory
- *     <li>WRITE access: grants the capability to modify or remove the contents of a file, or to add or remove files to/from a directory</li>
- *     <li>EXECUTE access: grant the capability to run a file as a program; executing a directory doesn't really make sense, it's more like
- *     a traverse permission; for example, a user must have 'execute' access to the 'bin' directory in order to execute the 'ls' or 'cd' commands.</li>
- * </ul>
- * <p>
- * The default permissions used differ between files and directories and are as follows:
- * <ul>
- *     <li>FILE: read &amp; write for OWNER, read for GROUP, read for OTHER (0644, r-wr--r--)</li>
- *     <li>DIRECTORY: read, write &amp; execute for OWNER, read &amp; execute for GROUP, read &amp; execute for OTHER (0755, rwxr-xr-x)</li>
- * </ul>
+ * For details on classes of users and file/directory permissions see {@link ImmutableFilePermissions}.
  *
  * @since 8.3
  */
 @Incubating
 public interface FilePermissions extends ImmutableFilePermissions {
 
+    /**
+     * Returns the permissions the owner of the file has for the file/directory.
+     * <p>
+     * The returned object is live, modifying it will change the user's permissions.
+     * <p>
+     * For further details on permissions see {@link UserClassFilePermissions}.
+     */
     @Override
     UserClassFilePermissions getUser();
 
+    /**
+     * Modifies the permissions the owner of the file has for the file/directory.
+     * <p>
+     * For further details on permissions see {@link UserClassFilePermissions}.
+     * <p>
+     * Note that the provided configuration action only applies incremental modifications on top of whatever permission
+     * the user has at the moment and that the default values permissions start out are different for files and directories
+     * (see {@link ImmutableUserClassFilePermissions}).
+     */
     void user(Action<? super UserClassFilePermissions> configureAction);
 
+    /**
+     * Returns the permissions a user, who is a member of the group that the file/directory belongs to, has for the file/directory.
+     * <p>
+     * The returned object is live, modifying it will change the user's permissions.
+     * <p>
+     * For further details on permissions see {@link UserClassFilePermissions}.
+     */
     @Override
     UserClassFilePermissions getGroup();
 
+    /**
+     * Modifies the permissions a user, who is a member of the group that the file/directory belongs to, has for the file/directory.
+     * <p>
+     * For further details on permissions see {@link UserClassFilePermissions}.
+     * <p>
+     * Note that the provided configuration action only applies incremental modifications on top of whatever permission
+     * the user has at the moment and that the default values permissions start out are different for files and directories
+     * (see {@link ImmutableUserClassFilePermissions}).
+     */
     void group(Action<? super UserClassFilePermissions> configureAction);
 
+    /**
+     * Returns the permissions all other users (non-owner, non-group) have for the file/directory.
+     * <p>
+     * The returned object is live, modifying it will change the user's permissions.
+     * <p>
+     * For further details on permissions see {@link UserClassFilePermissions}.
+     */
     @Override
     UserClassFilePermissions getOther();
 
+    /**
+     * Modifies the permissions all other users (non-owner, non-group) have
+     * for the file/directory.
+     * <p>
+     * For further details on permissions see {@link UserClassFilePermissions}.
+     * <p>
+     * Note that the provided configuration action only applies incremental modifications on top of whatever permission
+     * the user has at the moment and that the default values permissions start out are different for files and directories
+     * (see {@link ImmutableUserClassFilePermissions}).
+     */
     void other(Action<? super UserClassFilePermissions> configureAction);
 
     /**

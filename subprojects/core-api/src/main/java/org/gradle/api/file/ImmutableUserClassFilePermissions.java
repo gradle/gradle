@@ -19,18 +19,49 @@ package org.gradle.api.file;
 import org.gradle.api.Incubating;
 
 /**
- * Describes file and directory access permissions for a certain class of users.
- * Immutable version of {@link UserClassFilePermissions}.
+ * Describes file and directory access permissions for a certain class of users (see {@link ImmutableFilePermissions}).
+ * <p>
+ * Permissions consist of:
+ * <ul>
+ *     <li>READ access: the capability to view the contents of a file, or to list the contents of a directory</li>
+ *     <li>WRITE access: the capability to modify or remove the contents of a file, or to add or remove files to/from a directory</li>
+ *     <li>EXECUTE access: the capability to run a file as a program; executing a directory doesn't really make sense, it's more like
+ *     a traverse permission; for example, a user must have 'execute' access to the 'bin' directory in order to execute the 'ls' or 'cd' commands.</li>
+ * </ul>
+ * <p>
+ * The default permissions used differ between files and directories and are as follows:
+ * <ul>
+ *     <li>FILE: read &amp; write for OWNER, read for GROUP, read for OTHER (0644, r-wr--r--)</li>
+ *     <li>DIRECTORY: read, write &amp; execute for OWNER, read &amp; execute for GROUP, read &amp; execute for OTHER (0755, rwxr-xr-x)</li>
+ * </ul>
  *
  * @since 8.3
  */
 @Incubating
 public interface ImmutableUserClassFilePermissions {
 
+    /**
+     * Describes if a certain class of users has read access to a file or directory.
+     * <p>
+     * Read access is the capability to view the contents of a file, or to list the contents of a directory.
+     */
     boolean getRead();
 
+    /**
+     * Describes if a certain class of users has write access to a file or directory.
+     * <p>
+     * Write access is the capability to modify or remove the contents of a file,
+     * or to add or remove files to/from a directory.
+     */
     boolean getWrite();
 
+    /**
+     * Describes if a certain class of users has execute access to a file or directory.
+     * <p>
+     * Execute access is the capability to run a file as a program; executing a directory
+     * doesn't really make sense, it's more like a traverse permission; for example, a user
+     * must have 'execute' access to the 'bin' directory in order to execute the 'ls' or 'cd' commands.
+     */
     boolean getExecute();
 
 }
