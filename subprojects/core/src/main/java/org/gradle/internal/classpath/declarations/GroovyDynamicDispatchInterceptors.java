@@ -16,61 +16,30 @@
 
 package org.gradle.internal.classpath.declarations;
 
-import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;
-import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
-import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
-import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY;
-import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY;
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.withEntryPoint;
 
 @SuppressWarnings("NewMethodNamingConvention")
 @NonNullApi
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
 public class GroovyDynamicDispatchInterceptors {
-    @NonNullApi
-    private interface ThrowingCallable<T> {
-        @Nullable
-        T call() throws Throwable;
-    }
-
-    private static <T> @Nullable T withEntryPoint(String consumer, String callableName, CallKind kind, ThrowingCallable<T> callable) throws Throwable {
-        InstrumentedGroovyCallsTracker.EntryPointCallSite entryPoint = InstrumentedGroovyCallsTracker.enterCall(consumer, callableName, kind);
-        try {
-            return callable.call();
-        } finally {
-            InstrumentedGroovyCallsTracker.leaveCall(entryPoint);
-        }
-    }
-
-    @InterceptJvmCalls
-    @InstanceMethod
-    public static Object intercept_callGroovyObjectGetProperty(
-        @Receiver CallSite callSite,
-        Object callReceiver,
-        @CallerClassName String consumer
-    ) throws Throwable {
-        return withEntryPoint(consumer, callSite.getName(), GET_PROPERTY, () -> callSite.callGroovyObjectGetProperty(callReceiver));
-    }
-
     @InterceptJvmCalls
     @CallableKind.StaticMethod(ofClass = ScriptBytecodeAdapter.class)
     public static void intercept_setGroovyObjectProperty(
@@ -81,11 +50,17 @@ public class GroovyDynamicDispatchInterceptors {
         String messageName,
         @CallerClassName String consumer
     ) throws Throwable {
-        interceptPropertySetter(messageArgument, receiver, messageName, consumer,
-            () -> {
-                ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
-                return null;
-            });
+        CallInterceptor interceptor = Instrumented.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
+        InstrumentedGroovyCallsTracker.ThrowingCallable<Object> setOriginalProperty = () -> {
+            ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
+            return null;
+        };
+        if (interceptor == null) {
+            withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
+        } else {
+            Invocation invocation = new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}, consumer, messageName, setOriginalProperty);
+            interceptor.doIntercept(invocation, consumer);
+        }
     }
 
     @InterceptJvmCalls
@@ -98,113 +73,36 @@ public class GroovyDynamicDispatchInterceptors {
         String messageName,
         @CallerClassName String consumer
     ) throws Throwable {
-        interceptPropertySetter(messageArgument, receiver, messageName, consumer,
-            () -> {
+        CallInterceptor interceptor = Instrumented.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
+        if (interceptor == null) {
+            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+        } else {
+            Invocation invocation = new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}, consumer, messageName, () -> {
                 ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
                 return null;
-            }
-        );
-    }
-
-    private static void interceptPropertySetter(
-        Object messageArgument,
-        Object receiver,
-        String messageName,
-        String consumer,
-        ThrowingCallable<Void> setOriginalProperty
-    ) throws Throwable {
-        if (!(receiver instanceof Closure)) {
-            CallInterceptor interceptor = Instrumented.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
-            if (interceptor == null) {
-                setOriginalProperty.call();
-            } else {
-                @NonNullApi
-                class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
-                    public SetPropertyInvocationImpl(Object receiver, Object[] args) {
-                        super(receiver, args);
-                    }
-
-                    @Override
-                    public @Nullable Object callOriginal() throws Throwable {
-                        return setOriginalProperty.call();
-                    }
-                }
-                Invocation invocation = new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument});
-                interceptor.doIntercept(invocation, consumer);
-            }
-        } else {
-            withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
+            });
+            interceptor.doIntercept(invocation, consumer);
         }
     }
 
-    @InterceptJvmCalls
-    @InstanceMethod
-    public static Object intercept_callCurrent(
-        @Receiver CallSite callSite,
-        GroovyObject receiver,
-        @CallerClassName String consumer
-    ) throws Throwable {
-        return withEntryPoint(consumer, callSite.getName(), INVOKE_METHOD, () -> callSite.callCurrent(receiver));
-    }
+    @NonNullApi
+    private static class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
+        private final String consumer;
+        private final String messageName;
+        private final InstrumentedGroovyCallsTracker.ThrowingCallable<?> setOriginalProperty;
 
-    @InterceptJvmCalls
-    @InstanceMethod
-    public static Object intercept_callCurrent(
-        @Receiver CallSite callSite,
-        GroovyObject receiver,
-        Object arg1,
-        @CallerClassName String consumer
-    ) throws Throwable {
-        return withEntryPoint(consumer, callSite.getName(), INVOKE_METHOD, () -> callSite.callCurrent(receiver, arg1));
-    }
+        public SetPropertyInvocationImpl(Object receiver, Object[] args, String consumer, String messageName, InstrumentedGroovyCallsTracker.ThrowingCallable<?> setOriginalProperty) {
+            super(receiver, args);
+            this.consumer = consumer;
+            this.messageName = messageName;
+            this.setOriginalProperty = setOriginalProperty;
+        }
 
-    @InterceptJvmCalls
-    @InstanceMethod
-    public static Object intercept_callCurrent(
-        @Receiver CallSite callSite,
-        GroovyObject receiver,
-        Object arg1,
-        Object arg2,
-        @CallerClassName String consumer
-    ) throws Throwable {
-        return withEntryPoint(consumer, callSite.getName(), INVOKE_METHOD, () -> callSite.callCurrent(receiver, arg1, arg2));
-    }
-
-    @InterceptJvmCalls
-    @InstanceMethod
-    public static Object intercept_callCurrent(
-        @Receiver CallSite callSite,
-        GroovyObject receiver,
-        Object arg1,
-        Object arg2,
-        Object arg3,
-        @CallerClassName String consumer
-    ) throws Throwable {
-        return withEntryPoint(consumer, callSite.getName(), INVOKE_METHOD, () -> callSite.callCurrent(receiver, arg1, arg2, arg3));
-    }
-
-    @InterceptJvmCalls
-    @InstanceMethod
-    public static Object intercept_callCurrent(
-        @Receiver CallSite callSite,
-        GroovyObject receiver,
-        Object arg1,
-        Object arg2,
-        Object arg3,
-        Object arg4,
-        @CallerClassName String consumer
-    ) throws Throwable {
-        return withEntryPoint(consumer, callSite.getName(), INVOKE_METHOD, () -> callSite.callCurrent(receiver, arg1, arg2, arg3, arg4));
-    }
-
-    @InterceptJvmCalls
-    @InstanceMethod
-    public static Object intercept_callCurrent(
-        @Receiver CallSite callSite,
-        GroovyObject receiver,
-        Object[] args,
-        @CallerClassName String consumer
-    ) throws Throwable {
-        return withEntryPoint(consumer, callSite.getName(), INVOKE_METHOD, () -> callSite.callCurrent(receiver, args));
+        @Override
+        public @Nullable Object callOriginal() throws Throwable {
+            // the interceptor did not match the call, but it can resolve
+            // dynamically to a different receiver under the hood, so track it:
+            return withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
+        }
     }
 }
