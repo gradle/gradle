@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 /**
  * Tests that resolution failures caused by {@link org.gradle.api.artifacts.ArtifactView ArtifactView}
@@ -51,7 +52,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
 
             configurations {
                 register("consumerConf") {
-                    attributes.attribute(flavor, "chocolate")
+                    attributes.attribute(flavor, "cinnamon")
                 }
             }
 
@@ -60,13 +61,9 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
             }
 
             tasks.register("verifyFiles") {
-                val consumerConf = configurations.named("consumerConf").get()
+                val artifactViewFiles = configurations.named("consumerConf").get().incoming.artifactView { }.files
 
                 doLast {
-                    val incomingFiles = consumerConf.incoming.files
-                    val artifactViewFiles = consumerConf.incoming.artifactView { }.files
-                    configurations["consumerConf"].attributes.attribute(flavor, "vanilla")
-                    incomingFiles.forEach { it.exists() } // Force resolution
                     artifactViewFiles.forEach { it.exists() } // Force resolution
                 }
             }
@@ -108,10 +105,9 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
             }
 
             tasks.register("verifyFiles") {
-                val consumerConf = configurations.named("consumerConf").get()
+                val incomingFiles = configurations.named("consumerConf").get().incoming.files
 
                 doLast {
-                    val incomingFiles = consumerConf.incoming.files
                     incomingFiles.forEach { it.exists() } // Force resolution
                 }
             }
