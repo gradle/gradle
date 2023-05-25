@@ -34,6 +34,6 @@ public final class ExecuteTaskActionBuildOperationType implements BuildOperation
     public interface Result {
     }
 
-    static final Details DETAILS_INSTANCE = new Details() {};
-    static final Result RESULT_INSTANCE = new Result() {};
+    public static final Details DETAILS_INSTANCE = new Details() {};
+    public static final Result RESULT_INSTANCE = new Result() {};
 }

@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskActionBuildOperationType;
 import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.provider.Provider;
@@ -343,18 +344,23 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             TransformExecutionResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformExecutionResult>() {
                 @Override
                 public TransformExecutionResult call(BuildOperationContext context) {
-                    File workspace = executionRequest.getWorkspace();
-                    InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
-                    TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
-                    resultSerializer.writeToFile(getResultsFile(workspace), result);
-                    return result;
+                    try {
+                        File workspace = executionRequest.getWorkspace();
+                        InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
+                        TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
+                        TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
+                        resultSerializer.writeToFile(getResultsFile(workspace), result);
+                        return result;
+                    } finally {
+                        context.setResult(ExecuteTaskActionBuildOperationType.RESULT_INSTANCE);
+                    }
                 }
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
                     String displayName = transform.getDisplayName() + " " + inputArtifact.getName();
                     return BuildOperationDescriptor.displayName(displayName)
+                        .details(ExecuteTaskActionBuildOperationType.DETAILS_INSTANCE)
                         .metadata(UncategorizedBuildOperations.TRANSFORM_ACTION)
                         .progressDisplayName(displayName);
                 }
