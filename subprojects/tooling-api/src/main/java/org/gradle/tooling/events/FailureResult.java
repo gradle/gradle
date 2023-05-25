@@ -16,9 +16,6 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
-import org.gradle.tooling.Problem;
 import org.gradle.tooling.Failure;
 
 import java.util.List;
@@ -36,13 +33,4 @@ public interface FailureResult extends OperationResult {
      * @return the failures, empty if the operation failed without any specific failure information.
      */
     List<? extends Failure> getFailures();
-
-    /**
-     * Returns problems.
-     *
-     * @return problems.
-     * @since 8.3
-     */
-    @Incubating
-    List<Problem> getProblems();
 }

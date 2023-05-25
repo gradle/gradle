@@ -16,16 +16,19 @@
 
 package org.gradle.tooling.events.test.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.test.TestSuccessResult;
+
+import java.util.List;
 
 /**
  * Implementation of the {@code TestSuccessResult} interface.
  */
 public final class DefaultTestSuccessResult extends DefaultOperationSuccessResult implements TestSuccessResult {
 
-    public DefaultTestSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime);
+    public DefaultTestSuccessResult(long startTime, long endTime, List<Problem> problems) {
+        super(startTime, endTime, problems);
     }
 
 }

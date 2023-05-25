@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.events.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.SuccessResult;
+
+import java.util.List;
 
 /**
  * Implementation of the {@code BuildSuccessResult} interface.
@@ -25,10 +28,12 @@ public class DefaultOperationSuccessResult implements SuccessResult {
 
     private final long startTime;
     private final long endTime;
+    private final List<Problem> problems;
 
-    public DefaultOperationSuccessResult(long startTime, long endTime) {
+    public DefaultOperationSuccessResult(long startTime, long endTime, List<Problem> problems) {
         this.startTime = startTime;
         this.endTime = endTime;
+        this.problems = problems;
     }
 
     @Override
@@ -39,6 +44,11 @@ public class DefaultOperationSuccessResult implements SuccessResult {
     @Override
     public long getEndTime() {
         return endTime;
+    }
+
+    @Override
+    public List<? extends Problem> getProblems() {
+        return problems;
     }
 
 }

@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.events.task.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.task.TaskSkippedResult;
+
+import java.util.List;
 
 /**
  * Implementation of the {@code TaskSkippedResult} interface.
@@ -26,11 +29,13 @@ public final class DefaultTaskSkippedResult implements TaskSkippedResult {
     private final long startTime;
     private final long endTime;
     private final String skipMessage;
+    private final List<Problem> problems;
 
-    public DefaultTaskSkippedResult(long startTime, long endTime, String skipMessage) {
+    public DefaultTaskSkippedResult(long startTime, long endTime, String skipMessage, List<Problem> problems) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.skipMessage = skipMessage;
+        this.problems = problems;
     }
 
     @Override
@@ -48,4 +53,8 @@ public final class DefaultTaskSkippedResult implements TaskSkippedResult {
         return this.skipMessage;
     }
 
+    @Override
+    public List<Problem> getProblems() {
+        return problems;
+    }
 }

@@ -16,13 +16,16 @@
 
 package org.gradle.tooling.events.work.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.work.WorkItemSuccessResult;
 
+import java.util.List;
+
 public class DefaultWorkItemSuccessResult extends DefaultOperationSuccessResult implements WorkItemSuccessResult {
 
-    public DefaultWorkItemSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime);
+    public DefaultWorkItemSuccessResult(long startTime, long endTime, List<Problem> problems) {
+        super(startTime, endTime, problems);
     }
 
 }

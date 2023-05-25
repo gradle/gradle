@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -26,6 +27,7 @@ import org.gradle.internal.build.event.types.DefaultFileDownloadFailureResult;
 import org.gradle.internal.build.event.types.DefaultFileDownloadSuccessResult;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultProblem;
 import org.gradle.internal.build.event.types.DefaultStatusEvent;
 import org.gradle.internal.build.event.types.NotFoundFileDownloadSuccessResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -44,6 +46,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 
@@ -87,14 +90,14 @@ public class FileDownloadOperationMapper implements BuildOperationMapper<Externa
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultFileDownloadDescriptor descriptor, ExternalResourceReadBuildOperationType.Details details, OperationFinishEvent finishEvent) {
         ExternalResourceReadBuildOperationType.Result operationResult = (ExternalResourceReadBuildOperationType.Result) finishEvent.getResult();
         long endTime = finishEvent.getEndTime();
-        AbstractOperationResult result = createFileDownloadResult(operationResult, finishEvent.getFailure(), finishEvent.getStartTime(), endTime);
+        AbstractOperationResult result = createFileDownloadResult(operationResult, finishEvent.getFailure(), finishEvent.getProblems(), finishEvent.getStartTime(), endTime);
         return new DefaultOperationFinishedProgressEvent(endTime, descriptor, result);
     }
 
     @Nonnull
-    private static AbstractOperationResult createFileDownloadResult(ExternalResourceReadBuildOperationType.Result operationResult, Throwable failure, long startTime, long endTime) {
+    private static AbstractOperationResult createFileDownloadResult(ExternalResourceReadBuildOperationType.Result operationResult, Throwable failure, List<Problem> problems, long startTime, long endTime) {
         if (failure == null) {
-            return new DefaultFileDownloadSuccessResult(startTime, endTime, operationResult.getBytesRead());
+            return new DefaultFileDownloadSuccessResult(startTime, endTime, operationResult.getBytesRead(), DefaultProblem.from(problems));
         }
         if (failure instanceof MissingResourceException) {
             return new NotFoundFileDownloadSuccessResult(startTime, endTime);

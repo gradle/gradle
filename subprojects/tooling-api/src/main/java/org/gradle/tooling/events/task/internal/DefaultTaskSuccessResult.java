@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.events.task.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.task.TaskSuccessResult;
 
@@ -31,8 +32,8 @@ public class DefaultTaskSuccessResult extends DefaultOperationSuccessResult impl
     private final boolean fromCache;
     private final TaskExecutionDetails taskExecutionDetails;
 
-    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, TaskExecutionDetails taskExecutionDetails) {
-        super(startTime, endTime);
+    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, TaskExecutionDetails taskExecutionDetails, List<Problem> problems) {
+        super(startTime, endTime, problems);
         this.upToDate = upToDate;
         this.fromCache = fromCache;
         this.taskExecutionDetails = taskExecutionDetails;

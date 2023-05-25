@@ -16,7 +16,11 @@
 
 package org.gradle.tooling.events;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.tooling.Problem;
+
+import java.util.List;
 
 /**
  * Describes the result of running an operation.
@@ -40,4 +44,12 @@ public interface OperationResult {
      */
     long getEndTime();
 
+    /**
+     * Returns problems.
+     *
+     * @return problems.
+     * @since 8.3
+     */
+    @Incubating
+    List<? extends Problem> getProblems();
 }

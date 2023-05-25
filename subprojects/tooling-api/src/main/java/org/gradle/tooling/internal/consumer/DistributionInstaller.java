@@ -19,6 +19,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.Clock;
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.StatusEvent;
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
@@ -149,7 +150,7 @@ public class DistributionInstaller {
             }
 
             long endTime = clock.getCurrentTime();
-            FileDownloadResult result = failure == null ? new DefaultFileDownloadSuccessResult(startTime, endTime, bytesDownloaded) : new DefaultFileDownloadFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), bytesDownloaded);
+            FileDownloadResult result = failure == null ? new DefaultFileDownloadSuccessResult(startTime, endTime, bytesDownloaded, Collections.<Problem>emptyList()) : new DefaultFileDownloadFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), bytesDownloaded);
             buildProgressListener.onEvent(new DefaultFileDownloadFinishEvent(endTime, displayName + " finished", descriptor, result));
             if (failure != null) {
                 if (failure instanceof Exception) {

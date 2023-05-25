@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
@@ -72,7 +71,9 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
                     } catch (Throwable t) {
                         if (context.getFailure() == null) {
-                            if (!(t instanceof GradleExceptionWithContext)) {
+                            if (t instanceof GradleExceptionWithContext) {
+                                context.failed(t.getCause());
+                            } else {
                                 context.failed(t);
                             }
                         }
@@ -284,7 +285,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         void setStatus(@Nullable String status);
         List<Problem> getProblems();
-        void addProblems(Collection<Problem> objects);
     }
 
     public interface BuildOperationExecutionListener {
@@ -374,11 +374,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         public List<Problem> getProblems() {
             return problems;
-        }
-
-        @Override
-        public void addProblems(Collection<Problem> objects) {
-            this.problems.addAll(objects);
         }
 
         @Override

@@ -24,7 +24,6 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.Problem
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.OperationResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 
@@ -32,20 +31,13 @@ import org.gradle.tooling.events.ProgressListener
 @TargetGradleVersion(">=8.3")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
-    class MyProgressListener implements  ProgressListener {
-        List<Problem> context
+    class MyProgressListener implements ProgressListener {
+        List<Problem> allProblems = []
 
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof FinishEvent) {
-                OperationResult result = ((FinishEvent) event).getResult();
-
-                if (result instanceof FailureResult) {
-                    def context = ((FailureResult) result).getProblems()
-                    if (this.context == null) {
-                        this.context = context
-                    }
-                }
+                this.allProblems.addAll(((FailureResult) result).getProblems())
             }
         }
     }
@@ -76,7 +68,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        List<Problem> problems = listener.context
+        List<Problem> problems = listener.allProblems
         (problems[0].rawAttributes['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
         (problems[0].rawAttributes['doc'] as String).contains('https://docs.gradle.org/')
         (problems[0].rawAttributes['description'] as String) == 'description'
@@ -103,7 +95,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        List<Problem> problems = listener.context
+        List<Problem> problems = listener.allProblems
         problems[0].rawAttributes['message'].contains('Could not compile build file')
         problems[0].rawAttributes['severity'] == 'ERROR'
         problems[0].rawAttributes['path'].endsWith('build.gradle')

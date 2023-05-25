@@ -15,10 +15,13 @@
  */
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 
+import java.util.List;
+
 public class DefaultSuccessResult extends AbstractOperationResult implements InternalSuccessResult {
-    public DefaultSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime, "succeeded", null);
+    public DefaultSuccessResult(long startTime, long endTime, List<InternalProblem> problems) {
+        super(startTime, endTime, "succeeded", problems);
     }
 }

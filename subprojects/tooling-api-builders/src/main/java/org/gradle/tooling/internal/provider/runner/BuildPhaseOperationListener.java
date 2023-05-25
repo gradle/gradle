@@ -32,9 +32,11 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.tooling.internal.protocol.InternalProblem;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -102,10 +104,11 @@ public class BuildPhaseOperationListener implements BuildOperationListener {
     private AbstractOperationResult toOperationResult(OperationFinishEvent finishEvent) {
         long startTime = finishEvent.getStartTime();
         long endTime = finishEvent.getEndTime();
+        List<InternalProblem> problems = DefaultProblem.from(finishEvent.getProblems());
         if (finishEvent.getFailure() != null) {
-            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(finishEvent.getFailure())), DefaultProblem.from(finishEvent.getProblems()));
+            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(finishEvent.getFailure())), problems);
         } else {
-            return new DefaultSuccessResult(startTime, endTime);
+            return new DefaultSuccessResult(startTime, endTime, problems);
         }
     }
 

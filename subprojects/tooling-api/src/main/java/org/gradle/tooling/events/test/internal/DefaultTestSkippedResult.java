@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.events.test.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.test.TestSkippedResult;
+
+import java.util.List;
 
 /**
  * Implementation of the {@code TestSkippedResult} interface.
@@ -25,10 +28,12 @@ public final class DefaultTestSkippedResult implements TestSkippedResult {
 
     private final long startTime;
     private final long endTime;
+    private final List<Problem> problems;
 
-    public DefaultTestSkippedResult(long startTime, long endTime) {
+    public DefaultTestSkippedResult(long startTime, long endTime, List<Problem> problems) {
         this.startTime = startTime;
         this.endTime = endTime;
+        this.problems = problems;
     }
 
     @Override
@@ -39,6 +44,11 @@ public final class DefaultTestSkippedResult implements TestSkippedResult {
     @Override
     public long getEndTime() {
         return endTime;
+    }
+
+    @Override
+    public List<Problem> getProblems() {
+        return problems;
     }
 
 }

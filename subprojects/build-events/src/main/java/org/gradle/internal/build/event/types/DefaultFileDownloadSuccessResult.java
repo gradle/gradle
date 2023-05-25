@@ -16,13 +16,16 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.InternalProblem;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
+
+import java.util.List;
 
 public class DefaultFileDownloadSuccessResult extends DefaultSuccessResult implements InternalFileDownloadResult {
     private final long bytesDownloaded;
 
-    public DefaultFileDownloadSuccessResult(long startTime, long endTime, long bytesDownloaded) {
-        super(startTime, endTime);
+    public DefaultFileDownloadSuccessResult(long startTime, long endTime, long bytesDownloaded, List<InternalProblem> problems) {
+        super(startTime, endTime, problems);
         this.bytesDownloaded = bytesDownloaded;
     }
 

@@ -16,13 +16,16 @@
 
 package org.gradle.tooling.events.transform.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.transform.TransformSuccessResult;
 
+import java.util.List;
+
 public class DefaultTransformSuccessResult extends DefaultOperationSuccessResult implements TransformSuccessResult {
 
-    public DefaultTransformSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime);
+    public DefaultTransformSuccessResult(long startTime, long endTime, List<Problem> problems) {
+        super(startTime, endTime, problems);
     }
 
 }

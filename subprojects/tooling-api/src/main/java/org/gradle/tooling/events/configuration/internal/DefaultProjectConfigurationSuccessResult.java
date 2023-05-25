@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.events.configuration.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 
@@ -25,8 +26,8 @@ public class DefaultProjectConfigurationSuccessResult extends DefaultOperationSu
 
     private final List<? extends PluginApplicationResult> pluginApplicationResults;
 
-    public DefaultProjectConfigurationSuccessResult(long startTime, long endTime, List<? extends PluginApplicationResult> pluginApplicationResults) {
-        super(startTime, endTime);
+    public DefaultProjectConfigurationSuccessResult(long startTime, long endTime, List<? extends PluginApplicationResult> pluginApplicationResults, List<Problem> problems) {
+        super(startTime, endTime, problems);
         this.pluginApplicationResults = pluginApplicationResults;
     }
 

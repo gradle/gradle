@@ -30,8 +30,10 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.tooling.internal.protocol.InternalProblem;
 
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Build listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
@@ -72,9 +74,10 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         Throwable failure = result.getFailure();
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();
+        List<InternalProblem> problems = DefaultProblem.from(result.getProblems());
         if (failure != null) {
-            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), DefaultProblem.from(result.getProblems()));
+            return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), problems);
         }
-        return new DefaultSuccessResult(startTime, endTime); // TODO we might have problems here too
+        return new DefaultSuccessResult(startTime, endTime, problems);
     }
 }

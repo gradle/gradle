@@ -60,7 +60,7 @@ public class DefaultOperationFailureResult implements FailureResult {
     }
 
     @Override
-    public List<Problem> getProblems() {
+    public List<? extends Problem> getProblems() {
         return problems;
     }
 }

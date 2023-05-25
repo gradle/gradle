@@ -16,10 +16,13 @@
 
 package org.gradle.tooling.events.download.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.download.FileDownloadNotFoundResult;
 
+import java.util.List;
+
 public class NotFoundFileDownloadSuccessResult extends DefaultFileDownloadSuccessResult implements FileDownloadNotFoundResult {
-    public NotFoundFileDownloadSuccessResult(long startTime, long endTime) {
-        super(startTime, endTime, 0);
+    public NotFoundFileDownloadSuccessResult(long startTime, long endTime, List<Problem> problems) {
+        super(startTime, endTime, 0, problems);
     }
 }

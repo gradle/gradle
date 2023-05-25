@@ -16,14 +16,17 @@
 
 package org.gradle.tooling.events.download.internal;
 
+import org.gradle.tooling.Problem;
 import org.gradle.tooling.events.download.FileDownloadResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
+
+import java.util.List;
 
 public class DefaultFileDownloadSuccessResult extends DefaultOperationSuccessResult implements FileDownloadResult {
     private final long bytesDownloaded;
 
-    public DefaultFileDownloadSuccessResult(long startTime, long endTime, long bytesDownloaded) {
-        super(startTime, endTime);
+    public DefaultFileDownloadSuccessResult(long startTime, long endTime, long bytesDownloaded, List<Problem> problems) {
+        super(startTime, endTime, problems);
         this.bytesDownloaded = bytesDownloaded;
     }
 
