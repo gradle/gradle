@@ -176,6 +176,23 @@ Use the `./gradlew :architecture-test:sortAcceptedApiChanges` task to sort the f
 4. Validate your changes before committing.\
 Run the `./gradlew sanityCheck` task again to make sure there are no more errors.
 
+#### Filtering changes by severity
+
+There is a somewhat non-obvious filter present on the page that allows you to control which type of messages are displayed.
+The filter is a dropdown box that appears when you click the `Severity ⬇️ ` label in the black header bar to the immediate right of the Gradle version.
+
+If you have a large number of messages of different types, filtering by severity to see only `Error`s can be helpful when processing the report.
+Errors are the only type of issues that must be resolved for the `checkBinaryCompatibility` task to succeed.
+
+You can set the 'bin.cmp.report.severity.filter' property in your `gradle.properties` to one of the available values in the dropdown box to automatically filter issues to that severity level upon opening this report.
+
+#### Accepting multiple changes
+
+If you have multiple changes to accept (and you're sure they ought to be accepted instead of corrected), you can use the `Accept Changes for all Errors` button to speed the process.
+This button will cause a Javascript alert dialog to appear asking you to type a reason for accepting the changes, e.g. "Added new API for Gradle 8.x".
+
+Clicking okay on the dialog will cause a copy of the `accepted-public-api-changes.json` containing your (properly sorted) addition to be downloaded.
+You can then replace the existing file with this new downloaded version. 
 ### Java Toolchain
 
 The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
