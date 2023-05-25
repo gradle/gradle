@@ -540,6 +540,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         CacheManifest manifest = new CacheManifest(
             new OriginMetadata(buildInvocationId, executionTime),
+            entity.getType().getName(),
+            entity.getIdentity(),
             propertyManifests.build());
 
         String manifestJson = gson.toJson(manifest);
