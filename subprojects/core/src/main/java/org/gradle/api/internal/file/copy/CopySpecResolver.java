@@ -20,9 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -34,16 +35,22 @@ import java.util.List;
 public interface CopySpecResolver {
 
     boolean isCaseSensitive();
+
     @Nullable
     Integer getFileMode();
+
     @Nullable
     Integer getDirMode();
     Provider<ConfigurableFilePermissions> getFilePermissions();
     Provider<FilePermissions> getImmutableFilePermissions();
     Provider<ConfigurableFilePermissions> getDirPermissions();
     Provider<FilePermissions> getImmutableDirPermissions();
+
     boolean getIncludeEmptyDirs();
+
     String getFilteringCharset();
+
+    LinksStrategy getPreserveLinks();
 
     RelativePath getDestPath();
 

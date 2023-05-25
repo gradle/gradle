@@ -26,6 +26,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -329,6 +330,17 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public void setFilteringCharset(String charset) {
         getDelegateCopySpec().setFilteringCharset(charset);
+    }
+
+    @Override
+    @Nullable
+    public LinksStrategy getPreserveLinks() {
+        return getDelegateCopySpec().getPreserveLinks();
+    }
+
+    @Override
+    public void setPreserveLinks(@Nullable LinksStrategy preserveLinks) {
+        getDelegateCopySpec().setPreserveLinks(preserveLinks);
     }
 
     @Override

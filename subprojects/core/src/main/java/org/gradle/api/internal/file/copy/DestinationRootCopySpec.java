@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.file.CopySpec;
 import org.gradle.internal.file.PathToFileResolver;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -46,6 +47,7 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
         return this;
     }
 
+    @Nullable
     public File getDestinationDir() {
         return destinationDir == null ? null : fileResolver.resolve(destinationDir);
     }

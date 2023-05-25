@@ -27,9 +27,10 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
@@ -97,6 +98,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(FilePermissions::toUnixNumeric))
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
+            getInputs().property(specPropertyName + ".preserveLinks", (Callable<LinksStrategy>) spec::getPreserveLinks);
         });
         this.getOutputs().doNotCacheIf(
             "Has custom actions",
@@ -636,5 +638,22 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     public void setFilteringCharset(String charset) {
         getMainSpec().setFilteringCharset(charset);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    public LinksStrategy getPreserveLinks() {
+        return getMainSpec().getPreserveLinks();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setPreserveLinks(@Nullable LinksStrategy preserveLinks) {
+        getMainSpec().setPreserveLinks(preserveLinks);
     }
 }

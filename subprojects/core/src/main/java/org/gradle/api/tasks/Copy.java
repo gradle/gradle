@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -94,6 +95,7 @@ public abstract class Copy extends AbstractCopyTask {
      * @return The destination dir.
      */
     @OutputDirectory
+    @Nullable
     public File getDestinationDir() {
         return getRootSpec().getDestinationDir();
     }

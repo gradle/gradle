@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AttributeBasedFileVisitDetailsFactory;
 import org.gradle.api.specs.Spec;
@@ -35,6 +36,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+
 class PathVisitor implements java.nio.file.FileVisitor<Path> {
     private final Deque<FileVisitDetails> directoryDetailsHolder = new ArrayDeque<>();
     private final Spec<? super FileTreeElement> spec;
@@ -43,6 +45,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     private final AtomicBoolean stopFlag;
     private final RelativePath rootPath;
     private final FileSystem fileSystem;
+    private final LinksStrategy linksStrategy;
 
     public PathVisitor(Spec<? super FileTreeElement> spec, boolean postfix, FileVisitor visitor, AtomicBoolean stopFlag, RelativePath rootPath, FileSystem fileSystem) {
         this.spec = spec;
@@ -51,6 +54,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
         this.stopFlag = stopFlag;
         this.rootPath = rootPath;
         this.fileSystem = fileSystem;
+        this.linksStrategy = visitor.getLinksStrategy();
     }
 
     private boolean shouldVisit(FileTreeElement element) {
@@ -61,6 +65,10 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
         FileVisitDetails details = getFileVisitDetails(dir, attrs);
         if (directoryDetailsHolder.size() == 0 || shouldVisit(details)) {
+            if (details.isSymbolicLink()) {
+                visitor.visitFile(details);
+                return FileVisitResult.SKIP_SUBTREE;
+            }
             directoryDetailsHolder.push(details);
             if (directoryDetailsHolder.size() > 1 && !postfix) {
                 visitor.visitDir(details);
@@ -81,10 +89,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
         FileVisitDetails details = getFileVisitDetails(file, attrs);
         if (shouldVisit(details)) {
-            if (attrs.isSymbolicLink()) {
-                // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                throw new GradleException(String.format("Couldn't follow symbolic link '%s'.", file));
-            }
+            linksStrategy.maybeThrowOnBrokenLink(details.getSymbolicLinkDetails(), file.toString());
             visitor.visitFile(details);
         }
         return checkStopFlag();
@@ -93,9 +98,9 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
     private FileVisitDetails getFileVisitDetails(Path file, @Nullable BasicFileAttributes attrs) {
         FileVisitDetails dirDetails = directoryDetailsHolder.peek();
         if (dirDetails != null) {
-            return AttributeBasedFileVisitDetailsFactory.getFileVisitDetails(file, dirDetails.getRelativePath(), attrs, stopFlag, fileSystem);
+            return AttributeBasedFileVisitDetailsFactory.getFileVisitDetails(file, dirDetails.getRelativePath(), attrs, stopFlag, fileSystem, linksStrategy);
         } else {
-            return AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file, rootPath, attrs, stopFlag, fileSystem);
+            return AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file, rootPath, attrs, stopFlag, fileSystem, linksStrategy);
         }
     }
 

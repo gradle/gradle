@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.SymbolicLinkDetails;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
@@ -95,5 +97,11 @@ public class UnauthorizedFileVisitDetails implements FileVisitDetails {
     @Override
     public FilePermissions getPermissions() {
         throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public SymbolicLinkDetails getSymbolicLinkDetails() {
+        return null;
     }
 }

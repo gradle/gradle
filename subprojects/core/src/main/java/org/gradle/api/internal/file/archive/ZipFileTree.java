@@ -17,11 +17,14 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
+import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -29,10 +32,12 @@ import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
@@ -89,13 +94,20 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
             AtomicBoolean stopFlag = new AtomicBoolean();
             File expandedDir = getExpandedDir();
+            LinksStrategy linksStrategy = visitor.getLinksStrategy();
             try (ZipFile zip = new ZipFile(zipFile)) {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
                 // to us. So, collect the entries in a map and iterate over them in alphabetical order.
                 Iterator<ZipArchiveEntry> sortedEntries = entriesSortedByName(zip);
                 while (!stopFlag.get() && sortedEntries.hasNext()) {
                     ZipArchiveEntry entry = sortedEntries.next();
-                    DetailsImpl details = new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod);
+
+                    SymbolicLinkDetails linkDetails = null;
+                    if (entry.isUnixSymlink()) {
+                        linkDetails = new SymbolicLinkDetailsImpl(entry, zip);
+                    }
+                    boolean preserveLink = linksStrategy.shouldBePreserved(linkDetails);
+                    DetailsImpl details = new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod, linkDetails, preserveLink);
                     if (entry.isDirectory()) {
                         visitor.visitDir(details);
                     } else {
@@ -133,12 +145,25 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         private final File originalFile;
         private final ZipArchiveEntry entry;
         private final ZipFile zip;
+        private final SymbolicLinkDetails linkDetails;
+        private final boolean preserveLink;
 
-        public DetailsImpl(File originalFile, File expandedDir, ZipArchiveEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
+        public DetailsImpl(
+            File originalFile,
+            File expandedDir,
+            ZipArchiveEntry entry,
+            ZipFile zip,
+            AtomicBoolean stopFlag,
+            Chmod chmod,
+            @Nullable SymbolicLinkDetails linkDetails,
+            boolean preserveLink
+        ) {
             super(chmod, expandedDir, stopFlag);
             this.originalFile = originalFile;
             this.entry = entry;
             this.zip = zip;
+            this.preserveLink = preserveLink;
+            this.linkDetails = linkDetails;
         }
 
         @Override
@@ -154,6 +179,11 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         @Override
         protected ZipArchiveEntry getArchiveEntry() {
             return entry;
+        }
+
+        @Override
+        public boolean isSymbolicLink() {
+            return preserveLink && entry.isUnixSymlink();
         }
 
         @Override
@@ -174,5 +204,45 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
             return super.getPermissions();
         }
+
+        @Nullable
+        @Override
+        public SymbolicLinkDetails getSymbolicLinkDetails() {
+            return linkDetails;
+        }
+
+    }
+
+    private static final class SymbolicLinkDetailsImpl implements SymbolicLinkDetails {
+        private String target;
+        private final ZipArchiveEntry entry;
+        private final ZipFile zip;
+
+        SymbolicLinkDetailsImpl(ZipArchiveEntry entry, ZipFile zip) {
+            this.entry = entry;
+            this.zip = zip;
+        }
+
+        @Override
+        public boolean isAbsolute() {
+            return getTarget().startsWith("/");
+        }
+
+        @Override
+        public String getTarget() {
+            if (target == null) {
+                try (InputStream is = zip.getInputStream(entry)) {
+                    target = IOUtils.toString(is, StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+            return target;
+        }
+
+        @Override
+        public boolean targetExists() {
+            return false;
+        } //FIXME: check properly
     }
 }

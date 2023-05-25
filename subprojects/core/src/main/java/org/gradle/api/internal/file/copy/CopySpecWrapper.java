@@ -28,6 +28,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
@@ -341,6 +342,17 @@ public class CopySpecWrapper implements SyncSpec {
     @Override
     public void setFilteringCharset(String charset) {
         delegate.setFilteringCharset(charset);
+    }
+
+    @Override
+    @Nullable
+    public LinksStrategy getPreserveLinks() {
+        return delegate.getPreserveLinks();
+    }
+
+    @Override
+    public void setPreserveLinks(@Nullable LinksStrategy preserveLinks) {
+        delegate.setPreserveLinks(preserveLinks);
     }
 
     @Override

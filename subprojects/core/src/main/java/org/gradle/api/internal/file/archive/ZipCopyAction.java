@@ -32,6 +32,7 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.IoActions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -60,7 +61,13 @@ public class ZipCopyAction implements CopyAction {
     private final String encoding;
     private final boolean preserveFileTimestamps;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps) {
+    public ZipCopyAction(
+        File zipFile,
+        ZipCompressor compressor,
+        DocumentationRegistry documentationRegistry,
+        @Nullable String encoding,
+        boolean preserveFileTimestamps
+    ) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
@@ -98,7 +105,7 @@ public class ZipCopyAction implements CopyAction {
     private class StreamAction implements CopyActionProcessingStreamAction {
         private final ZipArchiveOutputStream zipOutStr;
 
-        public StreamAction(ZipArchiveOutputStream zipOutStr, String encoding) {
+        public StreamAction(ZipArchiveOutputStream zipOutStr, @Nullable String encoding) {
             this.zipOutStr = zipOutStr;
             if (encoding != null) {
                 this.zipOutStr.setEncoding(encoding);
@@ -107,7 +114,9 @@ public class ZipCopyAction implements CopyAction {
 
         @Override
         public void processFile(FileCopyDetailsInternal details) {
-            if (details.isDirectory()) {
+            if (details.isSymbolicLink()) {
+                visitSymlink(details);
+            } else if (details.isDirectory()) {
                 visitDir(details);
             } else {
                 visitFile(details);
@@ -118,7 +127,9 @@ public class ZipCopyAction implements CopyAction {
             try {
                 ZipArchiveEntry archiveEntry = new ZipArchiveEntry(fileDetails.getRelativePath().getPathString());
                 archiveEntry.setTime(getArchiveTimeFor(fileDetails));
-                archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
+                int mode = fileDetails.getPermissions().toUnixNumeric();
+                mode |= UnixStat.FILE_FLAG;
+                archiveEntry.setUnixMode(mode);
                 zipOutStr.putArchiveEntry(archiveEntry);
                 fileDetails.copyTo(zipOutStr);
                 zipOutStr.closeArchiveEntry();
@@ -137,6 +148,22 @@ public class ZipCopyAction implements CopyAction {
                 zipOutStr.closeArchiveEntry();
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not add %s to ZIP '%s'.", dirDetails, zipFile), e);
+            }
+        }
+
+        private void visitSymlink(FileCopyDetails fileDetails) {
+            try {
+                ZipArchiveEntry archiveEntry = new ZipArchiveEntry(fileDetails.getRelativePath().getPathString());
+                archiveEntry.setTime(getArchiveTimeFor(fileDetails));
+                int mode = fileDetails.getPermissions().toUnixNumeric();
+                mode |= UnixStat.LINK_FLAG;
+                archiveEntry.setUnixMode(mode);
+                zipOutStr.putArchiveEntry(archiveEntry);
+                String target = fileDetails.getSymbolicLinkDetails().getTarget();
+                zipOutStr.write(target.getBytes());
+                zipOutStr.closeArchiveEntry();
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e);
             }
         }
     }

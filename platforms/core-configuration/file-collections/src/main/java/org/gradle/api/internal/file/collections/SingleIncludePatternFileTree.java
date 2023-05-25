@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AttributeBasedFileVisitDetailsFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -126,18 +127,21 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
         }
     }
 
+    //TODO: cover with tests for links
     private void doVisitDirOrFile(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
+        LinksStrategy linksStrategy = visitor.getLinksStrategy();
+
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {
                 RelativePath path = new RelativePath(true, pathSegments.toArray(new String[0]));
-                FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
+                FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem, linksStrategy);
                 if (!excludeSpec.isSatisfiedBy(details)) {
                     visitor.visitFile(details);
                 }
             }
         } else if (file.isDirectory()) {
             RelativePath path = new RelativePath(false, pathSegments.toArray(new String[0]));
-            FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem);
+            FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem, linksStrategy);
             if (!excludeSpec.isSatisfiedBy(details)) {
                 visitor.visitDir(details);
             }

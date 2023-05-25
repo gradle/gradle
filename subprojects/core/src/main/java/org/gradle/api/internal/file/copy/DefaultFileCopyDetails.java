@@ -25,20 +25,28 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.file.Chmod;
+import org.gradle.util.internal.GFileUtils;
+import org.jetbrains.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FilterReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
 public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
@@ -52,6 +60,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     private DefaultConfigurableFilePermissions permissions;
     private DuplicatesStrategy duplicatesStrategy;
+    private final LinksStrategy preserveLinks;
 
     @Inject
     public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, ObjectFactory objectFactory, Chmod chmod) {
@@ -62,6 +71,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         this.objectFactory = objectFactory;
         this.duplicatesStrategy = specResolver.getDuplicatesStrategy();
         this.defaultDuplicatesStrategy = specResolver.isDefaultDuplicateStrategy();
+        this.preserveLinks = specResolver.getPreserveLinks();
     }
 
     @Override
@@ -86,6 +96,17 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Override
     public boolean isDirectory() {
         return fileDetails.isDirectory();
+    }
+
+    @Override
+    public boolean isSymbolicLink() {
+        return fileDetails.isSymbolicLink();
+    }
+
+    @Nullable
+    @Override
+    public SymbolicLinkDetails getSymbolicLinkDetails() {
+        return fileDetails.getSymbolicLinkDetails();
     }
 
     @Override
@@ -124,12 +145,35 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public boolean copyTo(File target) {
-        if (filterChain.hasFilters()) {
-            return super.copyTo(target);
-        } else {
-            final boolean copied = fileDetails.copyTo(target);
-            adaptPermissions(target);
-            return copied;
+        validateTimeStamps();
+        try {
+            if (isSymbolicLink()) {
+                copySymlinkTo(target); //TODO: permissions?
+            } else if (isDirectory()) {
+                GFileUtils.mkdirs(target);
+                adaptPermissions(target);
+            } else {
+                GFileUtils.mkdirs(target.getParentFile());
+                copyFile(target);
+                adaptPermissions(target);
+            }
+            return true;
+        } catch (Exception e) {
+            throw new CopyFileElementException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
+        }
+    }
+
+    private void copyFile(File target) throws IOException {
+        try (FileOutputStream outputStream = new FileOutputStream(target)) {
+            copyTo(outputStream);
+        }
+    }
+
+    private void copySymlinkTo(File target) {
+        try {
+            Files.copy(getFile().toPath(), target.toPath(), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

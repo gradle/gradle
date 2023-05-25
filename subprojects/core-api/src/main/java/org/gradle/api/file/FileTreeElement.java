@@ -17,6 +17,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,6 +35,7 @@ public interface FileTreeElement {
 
     /**
      * Returns true if this element is a directory, or false if this element is a regular file.
+     * Returns true if this element is a symbolic link to a directory.
      *
      * @return true if this element is a directory.
      */
@@ -109,4 +111,19 @@ public interface FileTreeElement {
      */
     @Incubating
     FilePermissions getPermissions();
+
+    /**
+     * @since 8.3
+     */
+    @Incubating
+    @Nullable
+    SymbolicLinkDetails getSymbolicLinkDetails();
+
+    /**
+     * @since 8.3
+     */
+    @Incubating
+    default boolean isSymbolicLink() {
+        return getSymbolicLinkDetails() != null;
+    }
 }

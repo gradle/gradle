@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.tar.TarConstants;
 import org.apache.commons.compress.archivers.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
@@ -97,7 +98,9 @@ public class TarCopyAction implements CopyAction {
 
         @Override
         public void processFile(FileCopyDetailsInternal details) {
-            if (details.isDirectory()) {
+            if (details.isSymbolicLink()) {
+                visitSymlink(details);
+            } else if (details.isDirectory()) {
                 visitDir(details);
             } else {
                 visitFile(details);
@@ -128,6 +131,20 @@ public class TarCopyAction implements CopyAction {
                 tarOutStr.closeArchiveEntry();
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not add %s to TAR '%s'.", dirDetails, tarFile), e);
+            }
+        }
+
+        private void visitSymlink(FileCopyDetails fileDetails) {
+            try {
+                TarArchiveEntry archiveEntry = new TarArchiveEntry(fileDetails.getRelativePath().getPathString(), TarConstants.LF_SYMLINK);
+                String target = fileDetails.getSymbolicLinkDetails().getTarget();
+                archiveEntry.setModTime(getArchiveTimeFor(fileDetails));
+                archiveEntry.setMode(UnixStat.LINK_FLAG | fileDetails.getPermissions().toUnixNumeric());
+                archiveEntry.setLinkName(target);
+                tarOutStr.putArchiveEntry(archiveEntry);
+                tarOutStr.closeArchiveEntry();
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not add %s to TAR '%s'.", fileDetails, tarFile), e);
             }
         }
     }

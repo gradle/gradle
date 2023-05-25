@@ -89,9 +89,9 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         }
     }
 
-    private void validateTimeStamps() {
+    protected void validateTimeStamps() {
         final long lastModified = getLastModified();
-        if(lastModified < 0) {
+        if (lastModified < 0) {
             throw new GradleException(String.format("Invalid Timestamp %s for '%s'.", lastModified, getDisplayName()));
         }
     }

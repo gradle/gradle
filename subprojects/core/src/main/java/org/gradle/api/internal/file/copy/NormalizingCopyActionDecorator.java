@@ -26,6 +26,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.provider.Provider;
@@ -179,6 +180,12 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             }
 
             return super.getPermissions();
+        }
+
+        @Nullable
+        @Override
+        public SymbolicLinkDetails getSymbolicLinkDetails() {
+            return null; //this is not a symlink because it was traversed from below
         }
 
         @Override

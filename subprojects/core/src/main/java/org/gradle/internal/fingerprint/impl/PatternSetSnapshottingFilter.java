@@ -18,10 +18,12 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.Describable;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.DefaultFilePermissions;
+import org.gradle.api.internal.file.DefaultSymbolicLinkDetails;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
@@ -30,6 +32,7 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.util.internal.GFileUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -153,6 +156,12 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
             int unixNumeric = stat.getUnixMode(getFile());
             return new DefaultFilePermissions(unixNumeric);
         }
+
+        @Nullable
+        @Override
+        public SymbolicLinkDetails getSymbolicLinkDetails() {
+            return null; //FIXME
+        }
     }
 
     private static class PathBackedFileTreeElement implements FileTreeElement {
@@ -178,6 +187,11 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         @Override
         public boolean isDirectory() {
             return isDirectory;
+        }
+
+        @Override
+        public boolean isSymbolicLink() {
+            return !isDirectory() && Files.isSymbolicLink(path);
         }
 
         @Override
@@ -233,6 +247,16 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         public FilePermissions getPermissions() {
             int unixNumeric = stat.getUnixMode(path.toFile());
             return new DefaultFilePermissions(unixNumeric);
+        }
+
+        @Nullable
+        @Override
+        public SymbolicLinkDetails getSymbolicLinkDetails() {
+            if (Files.isSymbolicLink(path)) {
+                return new DefaultSymbolicLinkDetails(path);
+            } else {
+                return null;
+            }
         }
     }
 }

@@ -17,9 +17,11 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.Stat;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,8 +29,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AttributeBasedFileVisitDetails extends DefaultFileVisitDetails {
     private final BasicFileAttributes attributes;
 
-    public AttributeBasedFileVisitDetails(File file, RelativePath relativePath, AtomicBoolean stop, Chmod chmod, Stat stat, BasicFileAttributes attributes) {
-        super(file, relativePath, stop, chmod, stat);
+    public AttributeBasedFileVisitDetails(
+        File file,
+        RelativePath relativePath,
+        AtomicBoolean stop,
+        Chmod chmod,
+        Stat stat,
+        BasicFileAttributes attributes,
+        @Nullable SymbolicLinkDetails linkDetails,
+        boolean preserveLink
+    ) {
+        super(file, relativePath, stop, chmod, stat, linkDetails, preserveLink);
         this.attributes = attributes;
     }
 

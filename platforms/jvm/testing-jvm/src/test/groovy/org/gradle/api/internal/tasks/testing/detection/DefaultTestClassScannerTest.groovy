@@ -76,6 +76,6 @@ class DefaultTestClassScannerTest extends Specification {
     }
 
     FileVisitDetails stubFileVisitDetails(String className) {
-        return new DefaultFileVisitDetails(new File("${className}.class"), new RelativePath(false, "${className}.class"), null, null, null)
+        return new DefaultFileVisitDetails(new File("${className}.class"), new RelativePath(false, "${className}.class"), null, null, null, null, false)
     }
 }

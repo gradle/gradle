@@ -16,13 +16,15 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Stat;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -133,6 +135,12 @@ public class SingleFileTreeElementMatcher {
         public FilePermissions getPermissions() {
             int unixNumeric = stat.getUnixMode(file);
             return new DefaultFilePermissions(unixNumeric);
+        }
+
+        @Nullable
+        @Override
+        public SymbolicLinkDetails getSymbolicLinkDetails() {
+            return null; //FIXME
         }
     }
 }

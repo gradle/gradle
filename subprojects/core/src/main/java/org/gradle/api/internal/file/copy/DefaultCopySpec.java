@@ -34,6 +34,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -88,6 +89,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
+    private LinksStrategy preserveLinks = null;
     private final List<CopySpecListener> listeners = new LinkedList<>();
     private PatternFilterable preserve = new PatternSet();
 
@@ -588,6 +590,16 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.filteringCharset = charset;
     }
 
+    @Override
+    public LinksStrategy getPreserveLinks() {
+        return buildRootResolver().getPreserveLinks();
+    }
+
+    @Override
+    public void setPreserveLinks(@Nullable LinksStrategy preserveLinks) {
+        this.preserveLinks = preserveLinks;
+    }
+
     private static class MapBackedExpandAction implements Action<FileCopyDetails> {
         private final Map<String, ?> properties;
         private final Action<? super ExpandDetails> action;
@@ -853,6 +865,17 @@ public class DefaultCopySpec implements CopySpecInternal {
                 return parentResolver.getFilteringCharset();
             }
             return Charset.defaultCharset().name();
+        }
+
+        @Override
+        public LinksStrategy getPreserveLinks() {
+            if (preserveLinks != null) {
+                return preserveLinks;
+            }
+            if (parentResolver != null) {
+                return parentResolver.getPreserveLinks();
+            }
+            return LinksStrategy.NONE;
         }
     }
 

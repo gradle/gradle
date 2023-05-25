@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.model.ObjectFactory;
@@ -32,8 +33,10 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
 
-    public CopyFileVisitorImpl(CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, ObjectFactory objectFactory, FileSystem fileSystem,
-                               boolean reproducibleFileOrder) {
+    public CopyFileVisitorImpl(
+        CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, ObjectFactory objectFactory, FileSystem fileSystem,
+        boolean reproducibleFileOrder
+    ) {
         this.copySpecResolver = spec;
         this.action = action;
         this.instantiator = instantiator;
@@ -75,5 +78,10 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     @Override
     public boolean isReproducibleFileOrder() {
         return reproducibleFileOrder;
+    }
+
+    @Override
+    public LinksStrategy getLinksStrategy() {
+        return copySpecResolver.getPreserveLinks();
     }
 }

@@ -25,6 +25,9 @@ import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -81,10 +84,23 @@ public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeEle
             file = new File(expandedDir, safeEntryName());
             if (!file.exists()) {
                 GFileUtils.mkdirs(file.getParentFile());
-                copyTo(file);
+                if (isSymbolicLink()) {
+                    copySymlinkTo(file);
+                } else {
+                    copyTo(file);
+                }
             }
         }
         return file;
+    }
+
+    protected void copySymlinkTo(File target) { //FIXME: permissions?
+        Path targetPath = new File(getSymbolicLinkDetails().getTarget().replace("/", File.separator)).toPath();
+        try {
+            Files.createSymbolicLink(target.toPath(), targetPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
