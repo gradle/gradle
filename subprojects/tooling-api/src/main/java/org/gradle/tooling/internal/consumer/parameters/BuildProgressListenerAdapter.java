@@ -170,6 +170,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -390,7 +391,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private BuildPhaseFinishEvent buildPhaseFinishEvent(InternalOperationFinishedProgressEvent event) {
         BuildPhaseOperationDescriptor descriptor = removeDescriptor(BuildPhaseOperationDescriptor.class, event.getDescriptor());
         OperationResult result;
-        InternalFailureResult internalResult = (InternalFailureResult) event.getResult();
+        InternalOperationResult internalResult = event.getResult();
         List<Problem> problems = toToolingProblems(internalResult.getProblems());
         if (event.getResult() instanceof InternalFailureResult) {
             result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()), problems);
@@ -401,11 +402,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static List<Problem> toToolingProblems(List<? extends InternalProblem> problems) {
-       List<Problem> result = new ArrayList<>(problems.size());
-       for (InternalProblem context : problems) {
-           result.add(new DefaultProblem(context.getRawAttributes()));
-       }
-       return result;
+        if (problems == null) { // TODO investigate; this should probably never happen
+            return Collections.emptyList();
+        }
+        List<Problem> result = new ArrayList<>(problems.size());
+        for (InternalProblem context : problems) {
+            result.add(new DefaultProblem(context.getRawAttributes()));
+        }
+        return result;
     }
 
     private void broadcastGenericProgressEvent(InternalProgressEvent event) {
