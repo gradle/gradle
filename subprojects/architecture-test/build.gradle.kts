@@ -1,3 +1,4 @@
+import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
@@ -60,7 +61,7 @@ tasks.test {
     dependsOn(verifyAcceptedApiChangesOrdering)
     enabled = flakyTestStrategy !=  FlakyTestStrategy.ONLY
 
-    predictiveSelection {
+    extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
         // PTS doesn't work well with architecture tests which scan all classes
         enabled = false
     }
