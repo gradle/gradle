@@ -16,7 +16,6 @@
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 
 /**
  * A map from artifact name to a set of class name prefixes that should be kept.
