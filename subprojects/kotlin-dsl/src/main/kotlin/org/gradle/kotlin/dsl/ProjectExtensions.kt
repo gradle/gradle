@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.ProjectConfigurationServices
+import org.gradle.api.ProjectExecutionServices
 import org.gradle.api.Task
 
 import org.gradle.api.artifacts.Dependency
@@ -29,6 +31,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.api.plugins.PluginAware
 
@@ -41,6 +44,7 @@ import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 
@@ -280,3 +284,10 @@ fun Project.gradleKotlinDsl(): Dependency =
 )
 fun Project.plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit): Nothing =
     invalidPluginsCall()
+
+
+val Project.dslServices
+    get() = serviceOf<ProjectConfigurationServices>()
+
+val Project.executionServices
+    get() = serviceOf<ProjectExecutionServices>()

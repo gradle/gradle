@@ -663,7 +663,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Internal
-    protected ServiceRegistry getServices() {
+    public ServiceRegistry getServices() {
         return services;
     }
 
