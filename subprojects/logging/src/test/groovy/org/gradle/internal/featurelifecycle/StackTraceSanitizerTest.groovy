@@ -23,15 +23,18 @@ import static SimulatedSingleMessageLogger.DIRECT_CALL
 import static SimulatedSingleMessageLogger.INDIRECT_CALL
 import static SimulatedSingleMessageLogger.INDIRECT_CALL_2
 
-@Subject(FeatureUsage)
-class FeatureUsageTest extends Specification {
+@Subject(StackTraceSanitizer)
+class StackTraceSanitizerTest extends Specification {
 
     def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedSummary. #expectedMethod. #usage."() {
+        given:
+        def stack = new StackTraceSanitizer(usage.calledFrom).transform(usage.exception.stackTrace)
+
         expect:
-        !usage.stack.empty
+        !stack.empty
         usage.summary == expectedSummary
 
-        def stackTraceRoot = usage.stack[0]
+        def stackTraceRoot = stack[0]
         stackTraceRoot.className == callLocationClass.name
         stackTraceRoot.methodName == expectedMethod
 

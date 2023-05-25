@@ -377,6 +377,9 @@ class Codecs(
         bind(CharArrayCodec)
         bind(NonPrimitiveArrayCodec)
 
+        // Only serialize certain Queue implementations
+        bind(arrayDequeCodec)
+
         bind(EnumCodec)
         bind(RegexpPatternCodec)
         bind(UrlCodec)

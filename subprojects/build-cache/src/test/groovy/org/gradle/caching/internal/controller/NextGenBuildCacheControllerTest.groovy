@@ -24,6 +24,7 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.ThreadLocalBufferProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
@@ -53,6 +54,7 @@ class NextGenBuildCacheControllerTest extends Specification {
             fileSystemAccess,
             new ThreadLocalBufferProvider(64 * 1024),
             new StringInterner(),
+            new TestBuildOperationExecutor(),
             Mock(NextGenBuildCacheAccess)
         )
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.gradle.cache.HasCleanupAction;
@@ -140,6 +141,18 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
                 }
             }
         } catch (SQLException | IOException e) {
+            throw new BuildCacheException("storing " + key, e);
+        }
+    }
+
+    @VisibleForTesting
+    public boolean remove(BuildCacheKey key) throws BuildCacheException {
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("delete from filestore.catalog where entry_key = ?")) {
+                stmt.setString(1, key.getHashCode());
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
             throw new BuildCacheException("storing " + key, e);
         }
     }

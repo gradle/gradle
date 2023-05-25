@@ -263,21 +263,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             this.asNode = asNode;
             this.externalInterceptors = externalInterceptors.stream()
                 .map(className -> newInterceptor(className, methodVisitor))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .collect(toImmutableList());
         }
 
-        private static Optional<JvmBytecodeCallInterceptor> newInterceptor(String className, MethodVisitor methodVisitor) {
+        private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor methodVisitor) {
             try {
                 //noinspection Convert2MethodRef
                 InstrumentationMetadata metadata = (type, superType) -> type.equals(superType); // TODO implement properly
                 Constructor<?> constructor = Class.forName(className).getConstructor(MethodVisitor.class, InstrumentationMetadata.class);
-                return Optional.of((JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata));
-            } catch (ClassNotFoundException e) {
-                // No interceptor definition for this class
-                return Optional.empty();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                return (JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata);
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         }
