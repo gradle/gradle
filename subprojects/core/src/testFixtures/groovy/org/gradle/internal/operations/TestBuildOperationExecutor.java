@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.UncheckedException;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -328,7 +327,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             }
         }
 
-        @NotNull
         private <O extends BuildOperation> Record createRecord(O buildOperation) {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
