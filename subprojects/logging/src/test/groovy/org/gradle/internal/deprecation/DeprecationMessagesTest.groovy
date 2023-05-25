@@ -19,10 +19,11 @@ package org.gradle.internal.deprecation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.problems.ProblemDiagnostics
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
@@ -40,7 +41,11 @@ class DeprecationMessagesTest extends Specification {
     private final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(BuildOperationProgressEventEmitter))
+        def diagnosticsFactory = Mock(ProblemDiagnosticsFactory)
+        _ * diagnosticsFactory.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
+            getLocation() >> null
+        }
+        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, Mock(BuildOperationProgressEventEmitter))
     }
 
     def cleanup() {

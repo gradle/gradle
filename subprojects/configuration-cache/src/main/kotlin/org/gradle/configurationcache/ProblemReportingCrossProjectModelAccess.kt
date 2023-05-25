@@ -21,7 +21,6 @@ import groovy.lang.GroovyObjectSupport
 import groovy.lang.Script
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PathValidation
@@ -72,11 +71,9 @@ import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
-import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
@@ -1031,14 +1028,14 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun onAccess() {
-            val message = StructuredMessage.build {
+            val problem = problemFactory.problem {
                 text("Cannot access project ")
                 reference(delegate.identityPath.toString())
                 text(" from project ")
                 reference(referrer.identityPath.toString())
             }
-            val exception = InvalidUserCodeException(message.toString().capitalized())
-            val problem = problemFactory.problem(message, exception)
+                .exception()
+                .build()
             problems.onProblem(problem)
             coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
             // Configure the target project, if it would normally be configured before the referring project
