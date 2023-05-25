@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
@@ -26,6 +27,10 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
+import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
@@ -34,6 +39,7 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -48,11 +54,12 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
+import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 import org.gradle.operations.dependencies.transforms.ExecuteTransformStepBuildOperationType;
+import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -75,6 +82,9 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
     private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
     private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
+
+    private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TRANSFORM_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
+    };
 
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;
@@ -157,11 +167,10 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             .orElseGet(() -> Deferrable.deferred(() -> buildOperationExecutor.call(new CallableBuildOperation<Try<TransformExecutionResult>>() {
                 @Override
                 public Try<TransformExecutionResult> call(BuildOperationContext context) {
-                    Try<TransformExecutionResult> result = deferredExecution.completeAndGet();
                     // TODO: Get the result of the execution when the transform is not from the cache.
                     //       It may also be possible that at this point we get a cache hit when we call completeAndGet()
                     //       In that case we'd also want to not run this build operation.
-                    return result;
+                    return deferredExecution.completeAndGet();
                 }
 
                 @Override
@@ -289,6 +298,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         private final TransformWorkspaceServices workspaceServices;
 
         private TransformWorkspaceIdentity transformWorkspaceIdentity;
+        private BuildOperationContext operationContext;
 
         public AbstractTransformExecution(
             Transform transform,
@@ -437,6 +447,41 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                     transform.getInputArtifactDirectorySensitivity(),
                     transform.getInputArtifactLineEndingNormalization(),
                     () -> fileCollectionFactory.fixed(inputArtifact)));
+        }
+
+        @Override
+        public void markLegacySnapshottingInputsStarted() {
+            this.operationContext = buildOperationExecutor.start(BuildOperationDescriptor
+                .displayName("Snapshot transform inputs")
+                .name("Snapshot transform inputs")
+                .details(SNAPSHOT_TRANSFORM_INPUTS_DETAILS));
+        }
+
+        @Override
+        public void markLegacySnapshottingInputsFinished(CachingState cachingState) {
+            if (operationContext != null) {
+                ImmutableSortedSet.Builder<InputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
+                builder.add(new DefaultInputFilePropertySpec(
+                    INPUT_ARTIFACT_PROPERTY_NAME,
+                    transform.getInputArtifactNormalizer(),
+                    FileCollectionFactory.empty(),
+                    PropertyValue.ABSENT,
+                    INCREMENTAL,
+                    transform.getInputArtifactDirectorySensitivity(),
+                    transform.getInputArtifactLineEndingNormalization()
+                ));
+                builder.add(new DefaultInputFilePropertySpec(
+                    DEPENDENCIES_PROPERTY_NAME,
+                    transform.getInputArtifactDependenciesNormalizer(),
+                    FileCollectionFactory.empty(),
+                    PropertyValue.ABSENT,
+                    NON_INCREMENTAL,
+                    transform.getInputArtifactDependenciesDirectorySensitivity(),
+                    transform.getInputArtifactDependenciesLineEndingNormalization()
+                ));
+                operationContext.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState, builder.build()));
+                operationContext = null;
+            }
         }
 
         @Override
