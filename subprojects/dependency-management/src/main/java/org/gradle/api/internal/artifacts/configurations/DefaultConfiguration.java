@@ -2124,6 +2124,10 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
+        @Override
+        public String getDisplayName() {
+            return name;
+        }
 
         @Override
         public String getName() {
@@ -2236,6 +2240,11 @@ since users cannot create non-legacy configurations and there is no current publ
             }
 
             @Override
+            public String getDisplayName() {
+                return "ArtifactView for " + DefaultConfiguration.this.getDisplayName();
+            }
+
+            @Override
             public AttributeContainer getAttributes() {
                 return viewAttributes;
             }
@@ -2251,9 +2260,21 @@ since users cannot create non-legacy configurations and there is no current publ
                 return new ResolutionBackedFileCollection(
                     new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()),
                     lenient,
-                    new DefaultResolutionHost(),
+                    new ArtifactViewResolutionHost(),
                     taskDependencyFactory
                 );
+            }
+
+            private final class ArtifactViewResolutionHost extends ContextualizingResolutionHost {
+                @Override
+                public String getDisplayName() {
+                    return ConfigurationArtifactView.this.getDisplayName();
+                }
+
+                @Override
+                public DisplayName displayName(String type) {
+                    return Describables.of(ConfigurationArtifactView.this, type);
+                }
             }
         }
 
@@ -2460,7 +2481,34 @@ since users cannot create non-legacy configurations and there is no current publ
         }
     }
 
-    private class DefaultResolutionHost implements ResolutionHost {
+    /**
+     * A {@link ResolutionHost} that uses the {@link ResolveExceptionContextualizer} in the containing
+     * {@link DefaultConfiguration} to contextualize resolution failures of this configuration or
+     * any {@link ArtifactView}s it creates and also consolidates multiple failures into a single
+     * @link ArtifactResolveException} if necessary..
+     */
+    private abstract class ContextualizingResolutionHost implements ResolutionHost {
+        @Override
+        public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
+            if (failures.isEmpty()) {
+                return Optional.empty();
+            }
+            if (failures.size() == 1) {
+                ResolveException resolveException = exceptionContextualizer.maybeContextualize(failures, DefaultConfiguration.this);
+                if (resolveException != null) {
+                    return Optional.of(resolveException);
+                }
+                Throwable failure = failures.iterator().next();
+                if (failure instanceof ResolveException) {
+                    resolveException = (ResolveException) failure;
+                    return Optional.of(exceptionContextualizer.contextualize(resolveException, getDisplayName()));
+                }
+            }
+            return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures));
+        }
+    }
+
+    private class DefaultResolutionHost extends ContextualizingResolutionHost {
         @Override
         public String getDisplayName() {
             return DefaultConfiguration.this.getDisplayName();
@@ -2469,11 +2517,6 @@ since users cannot create non-legacy configurations and there is no current publ
         @Override
         public DisplayName displayName(String type) {
             return Describables.of(DefaultConfiguration.this, type);
-        }
-
-        @Override
-        public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
-            return DefaultConfiguration.this.mapFailure(type, failures);
         }
     }
 

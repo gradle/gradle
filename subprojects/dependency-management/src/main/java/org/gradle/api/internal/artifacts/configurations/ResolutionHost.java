@@ -21,6 +21,14 @@ import org.gradle.internal.DisplayName;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * This type represents a container in which resolution happens (i.e. it "hosts" the resolution),
+ * such as a {@link org.gradle.internal.component.external.descriptor.Configuration Configuration} or
+ * {@link org.gradle.api.artifacts.ArtifactView ArtifactView}.
+ *
+ * It provides context about the resolution for error reporting and utility methods to combine multiple
+ * resolution failures into a single exception to throw and report.
+ */
 public interface ResolutionHost {
     String getDisplayName();
 

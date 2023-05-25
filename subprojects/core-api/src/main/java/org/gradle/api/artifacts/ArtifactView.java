@@ -43,6 +43,17 @@ public interface ArtifactView extends HasAttributes {
     FileCollection getFiles();
 
     /**
+     * Describes this artifact view for diagnostic and error reporting purposes.
+     *
+     * @return a human-readable name or description of this view
+     * @since 8.3
+     */
+    @Incubating
+    default String getDisplayName() {
+        return "Artifact View";
+    }
+
+    /**
      * Configuration for a defined artifact view.
      *
      * @since 4.0
