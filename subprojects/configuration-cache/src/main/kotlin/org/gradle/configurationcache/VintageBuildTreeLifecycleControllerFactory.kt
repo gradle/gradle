@@ -51,8 +51,11 @@ class VintageBuildTreeLifecycleControllerFactory(
         return DefaultBuildTreeLifecycleController(targetBuild, workController, modelCreator, finishExecutor, stateTransitionControllerFactory)
     }
 
+    internal
     fun createModelCreator(targetBuild: BuildLifecycleController) =
         DefaultBuildTreeModelCreator(buildModelParameters, targetBuild.gradle.owner, buildOperationExecutor, projectLeaseRegistry)
 
-    fun createWorkPreparer(targetBuild: BuildLifecycleController) = DefaultBuildTreeWorkPreparer(targetBuild.gradle.owner, targetBuild)
+    internal
+    fun createWorkPreparer(targetBuild: BuildLifecycleController) =
+        DefaultBuildTreeWorkPreparer(targetBuild.gradle.owner, targetBuild)
 }
