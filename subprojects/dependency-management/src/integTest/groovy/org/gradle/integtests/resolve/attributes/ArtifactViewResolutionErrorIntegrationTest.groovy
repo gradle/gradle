@@ -17,8 +17,6 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 /**
  * Tests that resolution failures caused by {@link org.gradle.api.artifacts.ArtifactView ArtifactView}
  * rather than configurations indicate this in the error message.

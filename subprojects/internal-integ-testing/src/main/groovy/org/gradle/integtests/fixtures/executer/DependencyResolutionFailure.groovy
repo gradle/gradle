@@ -21,8 +21,8 @@ import java.util.regex.Pattern
 import static org.gradle.util.Matchers.*;
 import org.hamcrest.Matcher
 
-public class DependencyResolutionFailure {
-    private final ExecutionFailure failure
+class DependencyResolutionFailure {
+    protected final ExecutionFailure failure
 
     DependencyResolutionFailure(ExecutionFailure failure, String configuration) {
         this.failure = failure

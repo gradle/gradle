@@ -50,7 +50,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         then: "searched buildscript repository then plugin portal"
-        failure.assertHasCause("Could not resolve all files for configuration ':classpath'.")
+        failure.assertHasCause("Could not resolve all files for ArtifactView for configuration ':classpath'.")
         failure.assertHasCause """
             Could not find my:plugin:1.0.
             Searched in the following locations:

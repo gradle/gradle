@@ -106,6 +106,13 @@ public interface ExecutionFailure extends ExecutionResult {
      */
     DependencyResolutionFailure assertResolutionFailure(String configurationPath);
 
+    /**
+     * Assert that a resolution failure occurred for an {@link org.gradle.api.artifacts.ArtifactView ArtifactView} generated from the given configuration.
+     *
+     * @param configurationPath, for example ':compile', of the configuration containing the artifact view that failed to resolve
+     */
+    ArtifactViewDependencyResolutionFailure assertArtifactViewResolutionFailure(String configurationPath);
+
     interface Failure {
         /**
          * Asserts that this failure has the given number of direct causes.

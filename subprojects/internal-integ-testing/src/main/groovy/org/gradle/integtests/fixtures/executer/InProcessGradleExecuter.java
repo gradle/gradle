@@ -838,6 +838,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
             return new DependencyResolutionFailure(this, configurationPath);
         }
+
+        @Override
+        public ArtifactViewDependencyResolutionFailure assertArtifactViewResolutionFailure(String configurationPath) {
+            return new ArtifactViewDependencyResolutionFailure(this, configurationPath);
+        }
     }
 
     private static class FailureDetails extends AbstractFailure {

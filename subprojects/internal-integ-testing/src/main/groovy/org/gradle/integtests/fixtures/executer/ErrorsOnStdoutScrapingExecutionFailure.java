@@ -115,4 +115,9 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
         return delegate.assertResolutionFailure(configurationPath);
     }
+
+    @Override
+    public ArtifactViewDependencyResolutionFailure assertArtifactViewResolutionFailure(String configurationPath) {
+        return delegate.assertArtifactViewResolutionFailure(configurationPath);
+    }
 }

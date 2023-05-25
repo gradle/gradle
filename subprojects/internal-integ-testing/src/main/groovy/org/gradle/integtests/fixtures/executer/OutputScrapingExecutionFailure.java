@@ -288,6 +288,11 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
+    public ArtifactViewDependencyResolutionFailure assertArtifactViewResolutionFailure(String configurationPath) {
+        return new ArtifactViewDependencyResolutionFailure(this, configurationPath);
+    }
+
+    @Override
     public void assertResultVisited() {
         super.assertResultVisited();
         // Ensure that exceptions are not unintentionally introduced.
