@@ -16,12 +16,14 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
+import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
@@ -144,12 +146,13 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .addCode(generateCodeFromInterceptorSignatureTree(signatureTree))
             .build();
 
+        ParameterizedTypeName classWildcard = ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class));
         MethodSpec matchesSignature = MethodSpec.methodBuilder("matchesMethodSignature")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH)
-            .addParameter(Class.class, "receiverClass")
-            .addParameter(Class[].class, "argumentClasses")
+            .addParameter(classWildcard, "receiverClass")
+            .addParameter(ArrayTypeName.of(classWildcard), "argumentClasses")
             .addParameter(boolean.class, "isStatic")
             .addCode(generateMatchesSignatureCodeFromInterceptorSignatureTree(signatureTree))
             .build();
@@ -162,8 +165,8 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             MethodSpec matchesProperty = MethodSpec.methodBuilder("matchesProperty")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
-                .returns(Class.class)
-                .addParameter(Class.class, "receiverClass")
+                .returns(classWildcard)
+                .addParameter(classWildcard, "receiverClass")
                 .addCode(generateMatchesPropertyCode(requests))
                 .build();
             generatedClass.addMethod(matchesProperty);
