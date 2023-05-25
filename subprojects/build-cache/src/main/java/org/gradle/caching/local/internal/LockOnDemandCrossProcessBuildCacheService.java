@@ -16,9 +16,12 @@
 
 package org.gradle.caching.local.internal;
 
+import com.google.common.io.Closer;
 import org.gradle.api.Action;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.HasCleanupAction;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.AbstractCrossProcessCacheAccess;
 import org.gradle.cache.internal.LockOnDemandCrossProcessCacheAccess;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
@@ -34,14 +37,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIRED;
 
-public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCacheService {
+public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCacheService, HasCleanupAction {
     private final static Logger LOG = LoggerFactory.getLogger(LockOnDemandCrossProcessBuildCacheService.class);
 
     private final String cacheDisplayName;
@@ -51,6 +57,7 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
 
     private final Lock stateLock = new ReentrantLock(); // protects the following state
     private final Condition condition = stateLock.newCondition();
+    private final PersistentCache persistentCache;
 
     private Thread owner;
     private FileLock fileLock;
@@ -61,7 +68,8 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
         String cacheDisplayName,
         File lockTarget,
         FileLockManager lockManager,
-        StatefulNextGenBuildCacheService delegate
+        StatefulNextGenBuildCacheService delegate,
+        Function<HasCleanupAction, PersistentCache> persistentCacheFactory
     ) {
         this.cacheDisplayName = cacheDisplayName;
         this.delegate = delegate;
@@ -83,6 +91,7 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
             NO_INIT_REQUIRED,
             onFileLockAcquireAction,
             onFileLockReleaseAction);
+        this.persistentCache = persistentCacheFactory.apply(this);
 
         withOwnershipNow(() -> {
             try {
@@ -121,17 +130,31 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
     }
 
     @Override
+    public void cleanup() {
+        crossProcessCacheAccess.withFileLock(() -> {
+            delegate.cleanup();
+            return null;
+        });
+    }
+
+    @Override
     public synchronized void close() {
         withOwnershipNow(() -> {
             try {
                 if (fileLockHeldByOwner != null) {
                     fileLockHeldByOwner.run();
                 }
-                crossProcessCacheAccess.close();
+
+                Closer closer = Closer.create();
+                closer.register(crossProcessCacheAccess);
+                closer.register(persistentCache);
+                closer.close();
 
                 if (cacheClosedCount != 1) {
                     LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             } finally {
                 owner = null;
                 fileLockHeldByOwner = null;
