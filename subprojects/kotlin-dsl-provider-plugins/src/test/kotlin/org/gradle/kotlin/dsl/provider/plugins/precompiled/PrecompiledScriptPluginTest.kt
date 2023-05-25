@@ -85,6 +85,27 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
     }
 
     @Test
+    fun `package name detection works when there is none`() {
+
+        assertThat(
+            scriptPlugin(
+                "my-script.gradle.kts",
+                """
+
+                    @file:Suppress("UnstableApiUsage") // using a file annotation to disable simple package detection
+
+                    //import org.test.Message as TestMessage
+
+                    //val a = 1
+
+                    plugins {}
+                """
+            ).id,
+            equalTo("my-script")
+        )
+    }
+
+    @Test
     fun `implementationClass is a valid Java identifier`() {
 
         assertThat(
