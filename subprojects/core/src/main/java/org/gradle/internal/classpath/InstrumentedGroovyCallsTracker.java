@@ -36,6 +36,27 @@ import java.util.Stack;
 public class InstrumentedGroovyCallsTracker {
     private static final ThreadLocal<Stack<EntryPointCallSite>> CURRENT_CALL_STACK_PER_THREAD = ThreadLocal.withInitial(Stack::new);
 
+    @NonNullApi
+    public interface ThrowingCallable<T> {
+        @Nullable
+        T call() throws Throwable;
+    }
+
+    /**
+     * Executes the given {@code callable} in the context of an entry point produced from entering a dynamically dispatched
+     * call described by the {@code callableName} and {@code kind}
+     * from a class identified by {@code consumerClass}.
+     * After running the callable, ensures that the entry point leaves the context and returns the callable's result.
+     */
+    public static <T> @Nullable T withEntryPoint(String consumerClass, String callableName, InstrumentedGroovyCallsTracker.CallKind kind, ThrowingCallable<T> callable) throws Throwable {
+        InstrumentedGroovyCallsTracker.EntryPointCallSite entryPoint = InstrumentedGroovyCallsTracker.enterCall(consumerClass, callableName, kind);
+        try {
+            return callable.call();
+        } finally {
+            InstrumentedGroovyCallsTracker.leaveCall(entryPoint);
+        }
+    }
+
     /**
      * Registers the current call in the thread-specific instrumented call stack.
      * @return an entry point call site token that must later be passed to {@link InstrumentedGroovyCallsTracker#leaveCall}
