@@ -39,7 +39,7 @@ class ClientBuildEventGeneratorTest extends Specification {
     def operation = BuildOperationDescriptor.displayName("name").details(details).build(operationId, parentId)
     def startEvent = new OperationStartEvent(0)
     def progressEvent = new OperationProgressEvent(0, "progress")
-    def finishEvent = new OperationFinishEvent(0, 1, null, "result")
+    def finishEvent = new OperationFinishEvent(0, 1, null, "result", null)
     def clientDescriptor = Stub(InternalOperationDescriptor)
     def clientStartEvent = Stub(InternalOperationStartedProgressEvent)
     def clientFinishEvent = Stub(InternalOperationFinishedProgressEvent)

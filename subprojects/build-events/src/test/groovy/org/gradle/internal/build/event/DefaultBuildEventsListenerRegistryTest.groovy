@@ -205,7 +205,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     }
 
     private OperationFinishEvent operationFinishEvent() {
-        new OperationFinishEvent(123, 345, null, null)
+        new OperationFinishEvent(123, 345, null, null, [])
     }
 
     private BuildOperationDescriptor descriptor() {

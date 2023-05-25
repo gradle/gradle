@@ -31,7 +31,7 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
 
     def startEvent = new OperationStartEvent(0)
     def progressEvent = new OperationProgressEvent(0, null)
-    def finishEvent = new OperationFinishEvent(0, 0, null, null)
+    def finishEvent = new OperationFinishEvent(0, 0, null, null, null)
 
     def "notifies start and progress in registration order, finish in reverse registration order"() {
         given:
