@@ -43,7 +43,11 @@ public class Problems {
     }
 
     public static void reportFailure(ProblemId id, String message, String file, Integer line, Throwable cause) {
-        addProblem(new DefaultProblem(id, message, Severity.ERROR, new DefaultProblemLocation(file, line), null, null, null, null));
+        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
+        if (operationContext != null) {
+            operationContext.addProblem(new DefaultProblem(id, message, Severity.ERROR, new DefaultProblemLocation(file, line), null, null, null, null));
+            operationContext.failed(cause);
+        }
         throw new GradleExceptionWithContext(cause);
     }
 
