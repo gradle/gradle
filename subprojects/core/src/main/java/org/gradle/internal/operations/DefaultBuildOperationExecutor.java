@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
-
     private final BuildOperationRunner runner;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final Map<BuildOperationConstraint, ManagedExecutor> managedExecutors = new HashMap<>();
@@ -65,12 +64,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
-        runner.run(buildOperation);
+        runner.run(BuildOperationProxyFactory.createRunnableProxy(buildOperation));
     }
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        return runner.call(buildOperation);
+        return runner.call(BuildOperationProxyFactory.createCallableProxy(buildOperation));
     }
 
     @Override
