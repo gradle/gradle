@@ -2484,8 +2484,9 @@ since users cannot create non-legacy configurations and there is no current publ
     /**
      * A {@link ResolutionHost} that uses the {@link ResolveExceptionContextualizer} in the containing
      * {@link DefaultConfiguration} to contextualize resolution failures of this configuration or
-     * any {@link ArtifactView}s it creates and also consolidates multiple failures into a single
-     * @link ArtifactResolveException} if necessary..
+     * any {@link ArtifactView}s it creates.
+     *
+     * Also consolidates multiple failures into a single {@link DefaultLenientConfiguration.ArtifactResolveException} if necessary.
      */
     private abstract class ContextualizingResolutionHost implements ResolutionHost {
         @Override
