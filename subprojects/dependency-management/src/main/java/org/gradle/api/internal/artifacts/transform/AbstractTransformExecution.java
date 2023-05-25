@@ -44,6 +44,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
 import org.gradle.internal.properties.PropertyValue;
+import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
 
@@ -135,18 +136,23 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         TransformExecutionResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformExecutionResult>() {
             @Override
             public TransformExecutionResult call(BuildOperationContext context) {
-                File workspace = executionRequest.getWorkspace();
-                InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
-                TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
-                resultSerializer.writeToFile(getResultsFile(workspace), result);
-                return result;
+                try {
+                    File workspace = executionRequest.getWorkspace();
+                    InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
+                    TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
+                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
+                    resultSerializer.writeToFile(getResultsFile(workspace), result);
+                    return result;
+                } finally {
+                    context.setResult(ExecuteTransformActionBuildOperationType.RESULT_INSTANCE);
+                }
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String displayName = transform.getDisplayName() + " " + inputArtifact.getName();
                 return BuildOperationDescriptor.displayName(displayName)
+                    .details(ExecuteTransformActionBuildOperationType.DETAILS_INSTANCE)
                     .metadata(UncategorizedBuildOperations.TRANSFORM_ACTION)
                     .progressDisplayName(displayName);
             }
