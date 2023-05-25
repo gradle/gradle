@@ -16,6 +16,8 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.api.problems.interfaces.Problem;
+
 import javax.annotation.Nullable;
 
 public interface BuildOperationContext {
@@ -50,4 +52,13 @@ public interface BuildOperationContext {
      * Indicates some progress of this build operation.
      */
     void progress(long progress, long total, String units, String status);
+
+    /**
+     * Adds a problem to the build operation context.
+     * e.g. warnings
+     *
+     * @param problem The problem to add. Must not be null.
+     */
+    void addProblem(Problem problem);
+
 }

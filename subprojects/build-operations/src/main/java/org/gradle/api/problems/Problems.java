@@ -22,13 +22,13 @@ import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.problems.interfaces.Solution;
 import org.gradle.api.problems.internal.GradleExceptionWithContext;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationContextTracker;
 import org.gradle.internal.problems.DefaultProblem;
 import org.gradle.internal.problems.DefaultProblemLocation;
 import org.gradle.internal.problems.DefaultSolution;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Prototype Problems API.
@@ -38,28 +38,19 @@ import java.util.List;
 @Incubating
 public class Problems {
 
-    private static final ThreadLocal<List<Problem>> PROBLEMS = new ThreadLocal<List<Problem>>();
-    public static List<Problem> removeAllProblems() {
-        List<Problem> objects = PROBLEMS.get();
-        return objects == null ? Collections.<Problem>emptyList() : objects;
-
-    }
-
     public static void reportWarning(ProblemId id, String message, String summary, String documentationUrl, String solution) {
         addProblem(new DefaultProblem(id, message, Severity.WARNING, null, summary, documentationUrl, "description", Collections.<Solution>singletonList(new DefaultSolution(documentationUrl, solution))));
     }
 
     public static void reportFailure(ProblemId id, String message, String file, Integer line, Throwable cause) {
-        addProblem(new DefaultProblem(id, message, Severity.ERROR, new DefaultProblemLocation(file, line),  null, null, null, null));
+        addProblem(new DefaultProblem(id, message, Severity.ERROR, new DefaultProblemLocation(file, line), null, null, null, null));
         throw new GradleExceptionWithContext(cause);
     }
 
     private static void addProblem(Problem problem) {
-        List<Problem> problemList = PROBLEMS.get();
-        if (problemList == null) {
-            problemList = new ArrayList<Problem>();
+        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
+        if (operationContext != null) {
+            operationContext.addProblem(problem);
         }
-        problemList.add(problem);
-        PROBLEMS.set(problemList);
     }
 }

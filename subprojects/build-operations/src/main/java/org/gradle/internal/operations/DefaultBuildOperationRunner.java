@@ -17,13 +17,13 @@
 package org.gradle.internal.operations;
 
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleExceptionWithContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
@@ -72,16 +72,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
                     } catch (Throwable t) {
                         if (context.getFailure() == null) {
-                            if (t instanceof GradleExceptionWithContext) {
-                                context.failed(t.getCause());
-                            } else {
+                            if (!(t instanceof GradleExceptionWithContext)) {
                                 context.failed(t);
                             }
                         }
                         failure = t;
-                    } finally {
-                        // this probably doesn't work, the worker can run things in parallel which means different threads, putting it in thread local variables won't cover this.
-                        context.setProblems(Problems.removeAllProblems());
                     }
                     listener.stop(descriptor, operationState, parent, context);
                     if (failure != null) {
@@ -134,6 +129,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     public void progress(long progress, long total, String units, String status) {
                         assertNotFinished();
                         context.progress(progress, total, units, status);
+                    }
+
+                    @Override
+                    public void addProblem(Problem problem) {
+                        assertNotFinished();
+                        context.addProblem(problem);
                     }
 
                     private void finish() {
@@ -283,7 +284,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         void setStatus(@Nullable String status);
         List<Problem> getProblems();
-        void setProblems(List<Problem> objects);
+        void addProblems(Collection<Problem> objects);
     }
 
     public interface BuildOperationExecutionListener {
@@ -330,7 +331,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         private Throwable failure;
         private Object result;
         private String status;
-        private List<Problem> problems = new ArrayList<Problem>();
+        private final List<Problem> problems = new ArrayList<Problem>();
 
         public DefaultBuildOperationContext(BuildOperationDescriptor descriptor, BuildOperationExecutionListener listener) {
             this.descriptor = descriptor;
@@ -376,7 +377,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         @Override
-        public void setProblems(List<Problem> objects) {
+        public void addProblems(Collection<Problem> objects) {
             this.problems.addAll(objects);
         }
 
@@ -388,6 +389,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         public void progress(long progress, long total, String units, String status) {
             listener.progress(descriptor, progress, total, units, status);
+        }
+
+        @Override
+        public void addProblem(Problem problem) {
+            problems.add(problem);
         }
     }
 }

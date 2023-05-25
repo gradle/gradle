@@ -18,40 +18,56 @@ package org.gradle.internal.operations;
 
 public class BuildOperationProxyFactory {
     public static RunnableBuildOperation createRunnableProxy(final RunnableBuildOperation runnable) {
-        return new RunnableBuildOperation() {
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return runnable.description();
-            }
-
-            @Override
-            public void run(BuildOperationContext context) throws Exception {
-                try {
-                    BuildOperationContextTracker.push(context);
-                    runnable.run(context);
-                } finally {
-                    BuildOperationContextTracker.pop();
-                }
-            }
-        };
+        return new RunnableBuildOperationContextProxy(runnable);
     }
 
     public static <T> CallableBuildOperation<T> createCallableProxy(final CallableBuildOperation<T> callable) {
-        return new CallableBuildOperation<T>() {
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return callable.description();
-            }
+        return new CallableBuildOperationContextProxy<T>(callable);
+    }
 
-            @Override
-            public T call(BuildOperationContext context) throws Exception {
-                try {
-                    BuildOperationContextTracker.push(context);
-                    return callable.call(context);
-                } finally {
-                    BuildOperationContextTracker.pop();
-                }
+    private static class RunnableBuildOperationContextProxy implements RunnableBuildOperation {
+        private final RunnableBuildOperation runnable;
+
+        public RunnableBuildOperationContextProxy(RunnableBuildOperation runnable) {
+            this.runnable = runnable;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return runnable.description();
+        }
+
+        @Override
+        public void run(BuildOperationContext context) throws Exception {
+            try {
+                BuildOperationContextTracker.push(context);
+                runnable.run(context);
+            } finally {
+                BuildOperationContextTracker.pop();
             }
-        };
+        }
+    }
+
+    private static class CallableBuildOperationContextProxy<T> implements CallableBuildOperation<T> {
+        private final CallableBuildOperation<T> callable;
+
+        public CallableBuildOperationContextProxy(CallableBuildOperation<T> callable) {
+            this.callable = callable;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return callable.description();
+        }
+
+        @Override
+        public T call(BuildOperationContext context) throws Exception {
+            try {
+                BuildOperationContextTracker.push(context);
+                return callable.call(context);
+            } finally {
+                BuildOperationContextTracker.pop();
+            }
+        }
     }
 }

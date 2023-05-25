@@ -21,7 +21,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.UncheckedException;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -135,6 +137,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
         @Override
         public void progress(long progress, long total, String units, String status) {
+        }
+
+        @Override
+        public void addProblem(Problem problem) {
+            //ignore
         }
     }
 
@@ -285,47 +292,47 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
 
         private void run(RunnableBuildOperation buildOperation) {
-            Record record = new Record(buildOperation.description().build());
-            records.add(record);
+            Record record = createRecord(buildOperation);
             TestBuildOperationContext context = new TestBuildOperationContext(record);
             try {
                 buildOperation.run(context);
             } catch (Throwable failure) {
-                if (record.failure == null) {
-                    record.failure = failure;
-                }
-                throw UncheckedException.throwAsUncheckedException(failure);
+                throw recordException(record, failure);
             }
+        }
+
+        private static RuntimeException recordException(Record record, Throwable failure) {
+            if (record.failure == null) {
+                record.failure = failure;
+            }
+            return UncheckedException.throwAsUncheckedException(failure);
         }
 
         private <T> T call(CallableBuildOperation<T> buildOperation) {
-            Record record = new Record(buildOperation.description().build());
-            records.add(record);
+            Record record = createRecord(buildOperation);
             TestBuildOperationContext context = new TestBuildOperationContext(record);
-            T t;
             try {
-                t = buildOperation.call(context);
+                return buildOperation.call(context);
             } catch (Throwable failure) {
-                if (record.failure == null) {
-                    record.failure = failure;
-                }
-                throw UncheckedException.throwAsUncheckedException(failure);
+                throw recordException(record, failure);
             }
-            return t;
         }
 
         private <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker) {
-            Record record = new Record(buildOperation.description().build());
-            records.add(record);
+            Record record = createRecord(buildOperation);
             TestBuildOperationContext context = new TestBuildOperationContext(record);
             try {
                 worker.execute(buildOperation, context);
             } catch (Throwable failure) {
-                if (record.failure == null) {
-                    record.failure = failure;
-                }
-                throw UncheckedException.throwAsUncheckedException(failure);
+                throw recordException(record, failure);
             }
+        }
+
+        @NotNull
+        private <O extends BuildOperation> Record createRecord(O buildOperation) {
+            Record record = new Record(buildOperation.description().build());
+            records.add(record);
+            return record;
         }
 
         private BuildOperationContext start(final BuildOperationDescriptor.Builder descriptor) {
@@ -356,6 +363,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 @Override
                 public void progress(long progress, long total, String units, String status) {
                     context.progress(progress, total, units, status);
+                }
+
+                @Override
+                public void addProblem(Problem problem) {
+                    context.addProblem(problem);
                 }
             };
         }
