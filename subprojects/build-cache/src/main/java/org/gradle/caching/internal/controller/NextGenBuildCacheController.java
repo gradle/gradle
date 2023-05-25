@@ -102,7 +102,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -286,10 +285,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
             failures.add(failure);
         }
 
-        public void finish(Consumer<BuildOperationContext> finisher) {
+        public void finish(Supplier<Object> result) {
             if (context != null) {
                 if (failures.isEmpty()) {
-                    finisher.accept(context);
+                    context.setResult(result.get());
                 } else {
                     context.failed(failures.size() == 1
                         ? failures.get(0)
@@ -365,10 +364,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         @Override
         public void close() {
-            loadBuildOp.finish(context -> context.setResult(missEncountered.get()
+            loadBuildOp.finish(() -> missEncountered.get()
                 ? LoadOperationMissResult.INSTANCE
-                : new LoadOperationHitResult(totalDownloadedSize.get())));
-            unpackBuildOp.finish(context -> context.setResult(new UnpackOperationResult(unpackedEntryCount.get())));
+                : new LoadOperationHitResult(totalDownloadedSize.get()));
+            unpackBuildOp.finish(() -> new UnpackOperationResult(unpackedEntryCount.get()));
         }
     }
 
@@ -608,10 +607,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         @Override
         public void close() {
-            packBuildOp.finish(context -> context.setResult(new PackOperationResult(packEntryCount.get(), totalPackSize.get())));
-            storeBuildOp.finish(context -> context.setResult(storeEncountered.get()
+            packBuildOp.finish(() -> new PackOperationResult(packEntryCount.get(), totalPackSize.get()));
+            storeBuildOp.finish(() -> storeEncountered.get()
                 ? StoreOperationResult.STORED
-                : StoreOperationResult.NOT_STORED));
+                : StoreOperationResult.NOT_STORED);
         }
     }
 
