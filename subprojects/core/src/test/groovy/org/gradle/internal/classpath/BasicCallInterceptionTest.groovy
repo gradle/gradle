@@ -92,6 +92,7 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         "vararg"                | "Groovy callsite"         | { it.testVararg(it, it, it) }             | false          | "testVararg(Object...)"
         "vararg with array"     | "Groovy callsite"         | { it.testVararg([it, it, it].toArray()) } | false          | "testVararg(Object...)"
         "vararg with null item" | "Groovy callsite"         | { it.testVararg(null) }                   | false          | "testVararg(Object...)"
+        "non-existent-method"   | "Groovy callsite"         | { it.nonExistent(null) }                  | false          | "nonExistent(String)-non-existent"
 
         "no argument"           | "Groovy dynamic dispatch" | { test() }                                | true           | "test()"
         "one argument"          | "Groovy dynamic dispatch" | { test(it) }                              | true           | "test(InterceptorTestReceiver)"
@@ -99,6 +100,7 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         "vararg"                | "Groovy dynamic dispatch" | { testVararg(it, it, it) }                | true           | "testVararg(Object...)"
         "vararg with array"     | "Groovy dynamic dispatch" | { testVararg([it, it, it].toArray()) }    | true           | "testVararg(Object...)"
         "vararg with null item" | "Groovy dynamic dispatch" | { testVararg(null) }                      | true           | "testVararg(Object...)"
+        "non-existent-method"   | "Groovy dynamic dispatch" | { nonExistent(null) }                     | true          | "nonExistent(String)-non-existent"
     }
 
     def 'access to a #kind of a Groovy property from a #caller caller is intercepted as #expected'() {
@@ -120,10 +122,10 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
 
         "normal setter"       | "call site" | "setTestString(String)"                       | { it.testString = "value" }          | false
         "boolean setter"      | "call site" | "setTestFlag(boolean)"                        | { it.testFlag = true }               | false
-        "non-existent getter" | "call site" | "setNonExistentProperty(String)-non-existent" | { it.nonExistentProperty = "value" } | false
+        "non-existent setter" | "call site" | "setNonExistentProperty(String)-non-existent" | { it.nonExistentProperty = "value" } | false
 
         "normal setter"       | "dynamic"   | "setTestString(String)"                       | { testString = "value" }             | true
-        "boolean setter"      | "call site" | "setTestFlag(boolean)"                        | { testFlag = true }                  | true
-        "non-existent getter" | "dynamic"   | "setNonExistentProperty(String)-non-existent" | { nonExistentProperty = "value" }    | true
+        "boolean setter"      | "dynamic"   | "setTestFlag(boolean)"                        | { testFlag = true }                  | true
+        "non-existent setter" | "dynamic"   | "setNonExistentProperty(String)-non-existent" | { nonExistentProperty = "value" }    | true
     }
 }
