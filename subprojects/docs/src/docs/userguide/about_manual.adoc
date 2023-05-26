@@ -19,7 +19,7 @@
 
 The Gradle User Manual is broken down into the following sections:
 
-<<getting_started.adoc#getting_started,Quick Start>> :: Get up and running by installing Gradle.
+<<introduction.adoc#getting_started,Quick Start>> :: Get up and running by installing Gradle.
 <<command_line_interface.adoc#command_line_interface,Running Gradle Builds>> :: Use Gradle to build your project.
 <<build_lifecycle.adoc#build_lifecycle,Authoring Gradle Builds>> :: Develop tasks and plugins to customize your build.
 <<building_java_projects.adoc#building_java_projects,Authoring JVM Builds>> :: Use Gradle with your Java project.

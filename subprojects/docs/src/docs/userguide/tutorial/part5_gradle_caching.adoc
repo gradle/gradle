@@ -1,0 +1,204 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part5_gradle_caching]]
+= Part 5: Gradle Cache
+
+Learn the basics of Gradle's caching system.
+
+In this section you will:
+
+- Update Gradle Properties
+- Turn on Local cache
+- Understand caching
+- Explore remote caching
+
+[[part5_begin]]
+== Before you begin
+
+1. Complete <<part4_gradle_plugins#part4_begin,part 4>>.
+
+== 1. Gradle Properties
+In the top level folder of your app (`tutorial), create a `gradle.properties` file.
+
+[source]
+----
+$ touch gradle.properties
+----
+
+Add `org.gradle.caching=true` so the contents of the file look like:
+[source]
+----
+org.gradle.console=verbose
+org.gradle.caching=true
+----
+
+TIP: It's also a good time to add verbose outputs to Gradle by setting `org.gradle.console=verbose`.
+
+== 2. Use Local Cache
+Run the clean task and then the build task to populate the cache.
+[source]
+----
+$ ./gradlew :app:clean :app:build
+
+> Task :app:clean
+> Task :app:compileJava
+> Task :app:processResources
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 6s
+9 actionable tasks: 9 executed
+----
+
+No surprise here, Gradle invoked all the tasks needed to build the app and it was done successfully.
+
+Let's run the build again.
+[source]
+----
+$ ./gradlew :app:build
+
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources UP-TO-DATE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts UP-TO-DATE
+> Task :app:distTar UP-TO-DATE
+> Task :app:distZip UP-TO-DATE
+> Task :app:assemble UP-TO-DATE
+> Task :app:compileTestJava UP-TO-DATE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test UP-TO-DATE
+> Task :app:check UP-TO-DATE
+> Task :app:build UP-TO-DATE
+----
+
+As we can see, Gradle knows absolutely nothing has changed so it has decided not to re-run any tasks. Instead letting us know with the _outcome label_ `UP-TO-DATE`.
+
+Now let's delete all the files by running the clean and build back to back:
+[source]
+----
+$ ./gradlew :app:clean :app:build
+
+> Task :app:clean
+> Task :app:compileJava FROM-CACHE
+> Task :app:processResources
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava FROM-CACHE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test FROM-CACHE
+> Task :app:check UP-TO-DATE
+> Task :app:build
+
+BUILD SUCCESSFUL in 551ms
+9 actionable tasks: 6 executed, 3 from cache
+----
+
+Nothing has changed but files were deleted during the clean task so Gradle has to re-run tasks to re-build the App.
+
+Gradle is efficient, especially with the local cache turn on. Gradle will attempt to reuse outputs from previous builds for all builds.
+
+Gradle will look at the cache directory on your machine to check that those files don't already exist. If they do, instead of running that task, it will copy its results (outputs) into your project.
+
+The _outcome label_ `FROM-CACHE` lets the user know that Gradle has fetched the task results from the local cache.
+
+== 3. Explore the Cache
+The Gradle cache is located at:
+
+- **On Windows**: %USERPROFILE%\.gradle\caches
+- **On OS X / UNIX**: ~/.gradle/caches/
+
+A _cache key_ is used by Gradle to identity, quickly, which tasks and which inputs were used to create the cached results (outputs).
+If you use the `-i` argument you can see the _cache key_ used for each task input.
+
+Run a clean followed by a build to see this:
+[source]
+----
+$ ./gradlew :app:clean :app:build -i
+
+Initialized native services in: /Users/gradle-user/.gradle/native
+
+...
+
+> Task :app:compileJava FROM-CACHE
+Build cache key for task ':app:compileJava' is 7e6149c74419964bc38b387f6639a655
+Task ':app:compileJava' is not up-to-date because:
+  Output property 'destinationDirectory' file /Users/lkassovic/Documents/tutorial/app/build/classes/java/main has been removed.
+  Output property 'destinationDirectory' file /Users/lkassovic/Documents/tutorial/app/build/classes/java/main/com has been removed.
+  Output property 'destinationDirectory' file /Users/lkassovic/Documents/tutorial/app/build/classes/java/main/com/gradle has been removed.
+  Output property 'options.generatedSourceOutputDirectory' file /Users/lkassovic/Documents/tutorial/app/build/generated/sources/annotationProcessor/java/main has been removed.
+Loaded cache entry for task ':app:compileJava' with cache key 7e6149c74419964bc38b387f6639a655
+Resolve mutations for :app:processResources (Thread[Execution worker,5,main]) started.
+:app:processResources (Thread[Execution worker,5,main]) started.
+
+...
+----
+
+You can see the cache entries by looking in the cache directory:
+[source]
+----
+$ ls -ltr ~/.gradle/caches/build-cache-1/
+
+total 40
+-rw-r--r--  1 lkassovic  staff  3822 May 25 18:48 7e6149c74419964bc38b387f6639a655
+-rw-r--r--  1 lkassovic  staff  3373 May 25 18:48 5d1e0e63f2ba1b5e6797d4bf186d8fa6
+-rw-r--r--  1 lkassovic  staff  4217 May 25 18:48 e0ea15b80c7f67fdcd8b2902d1802da6
+-rw-r--r--  1 lkassovic  staff     0 May 25 18:48 gc.properties
+-rw-r--r--  1 lkassovic  staff    17 May 25 18:55 build-cache-1.lock
+----
+
+Here we see the cache key `7e6149c74419964bc38b387f6639a655`.
+[source]
+----
+$ ls -ltr ~/.gradle/caches/build-cache-1/7e6149c74419964bc38b387f6639a655
+
+total 40
+-rw-r--r--  1 lkassovic  staff  3822 May 25 18:48 7e6149c74419964bc38b387f6639a655
+-rw-r--r--  1 lkassovic  staff  3373 May 25 18:48 5d1e0e63f2ba1b5e6797d4bf186d8fa6
+-rw-r--r--  1 lkassovic  staff  4217 May 25 18:48 e0ea15b80c7f67fdcd8b2902d1802da6
+-rw-r--r--  1 lkassovic  staff     0 May 25 18:48 gc.properties
+-rw-r--r--  1 lkassovic  staff    17 May 25 18:55 build-cache-1.lock
+----
+`7e6149c74419964bc38b387f6639a655` is a TAR file.
+
+When the file is decompressed, we can see it contains our App class:
+
+image::tutorial/mac-tar-cache-exp.png[]
+
+Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
+
+== 4. Remote Caching
+The remote cache is a shared build cache.
+Reading from and writing to the remote cache is done via HTTP.
+
+One of the most common use cases of remote cache is continuous integration builds. On every clean build, the CI server populates the remote cache. So, the components that are changed will not be rebuilt, thereby speeding up the CI builds. Moreover, task outputs can also be shared among CI agents. The remote cache is not enabled by default.
+
+When both remote and local caches are enabled, then the build output is first checked in the local cache. If the output isn't present in the local cache, it'll be downloaded from the remote cache and also stored in the local cache. Then, in the next build, the same task output is taken from the local cache to speed up the build process.

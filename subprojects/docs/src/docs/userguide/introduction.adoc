@@ -1,0 +1,59 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[introduction]]
+= Introduction
+
+Everyone has to start somewhere and if you're new to Gradle, this is where to begin.
+
+[[gs:installation]]
+== Gradle Installation
+If all you want to do is run an existing Gradle build, then you don't need to install Gradle if the build has a <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>, identifiable via the _gradlew_ and/or _gradlew.bat_ files in the root of the build. You just need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
+
+Android Studio comes with a working installation of Gradle, so you don't need to install Gradle separately in that case.
+
+In order to create a new build or add a Wrapper to an existing build, you will need to install Gradle <<installation.adoc#installation,according to these instructions>>. Note that there may be other ways to install Gradle in addition to those described on that page, since it's nearly impossible to keep track of all the package managers out there.
+
+If you need to install Gradle before the Getting Started tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
+
+[[getting_started]]
+== Getting Started with Gradle
+The tutorial will take you from Gradle initialization all the way through caching configuration for your basic Java App. No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
+
+[sidebar]
+_Training level_: **Beginner** +
+_Training time_: **45 minutes**
+
+The tutorial covers:
+
+1. Gradle init
+2. Tasks
+3. Dependency management
+4. Plugins
+5. Caching
+6. Reference material
+
+== Reference Docs
+It's always useful to have reference documentation available during a tutorial:
+
+|===
+|Reference |How it is Used
+
+|link:https://docs.gradle.org/current/javadoc/index.html[Gradle API Reference]
+|View all Gradle API objects, methods, and attributes.
+
+|link:{kotlinDslPath}/[Kotlin DSL Reference]
+|Kotlin-based domain-specific language for Gradle build configurations and script development.
+
+|===

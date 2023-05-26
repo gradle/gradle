@@ -1,0 +1,179 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part2_gradle_tasks]]
+= Part 2: Gradle Tasks
+
+Learn the basics of Gradle tasks by running one and looking at its output.
+
+In this section you will:
+
+- See available tasks
+- Run a task and inspect the results
+- Understand default and typed tasks
+- Explore custom tasks
+
+[[part2_begin]]
+== Before you begin
+
+1. Complete <<part1_gradle_init.adoc#part1_begin,part 1>>.
+
+== 1. List tasks
+A task is a piece of work that must be done by Gradle as part of the build.
+
+In the `tutorial` directory, enter the command below to list all of the available tasks:
+[source]
+----
+$ ./gradlew tasks --all
+----
+
+These are all of the default Gradle tasks available to run in your project:
+
+[source]
+----
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+...
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code.
+
+...
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+...
+----
+Some of the default tasks available assemble, run, compile code and much more.
+
+You can also list the tasks only available in the `app` subproject by running `./gradlew :app:tasks --all`.
+
+A task might be compiling some classes, storing class files into separate target folder, creating JAR, generating Javadoc, or publishing some achieves to the repositories.
+
+In <<part1_gradle_init.adoc#part1_begin,part 1>>, we ran the `build` task using the `./gradlew build` command.
+
+It's important to know that there are two types of tasks:
+
+- **Default tasks** - the tasks available when Gradle is initialized
+- **Custom tasks** - the user-defined tasks that perform some specific work
+
+So far, only default tasks are listed when running `./gradlew tasks --all`. That's because we haven't created any custom tasks.
+
+Custom task code is typically available in the `build.gradle` file and look like this:
+[source]
+----
+task welcome {
+    doLast {
+        println 'Welcome to the Gradle tutorial!'
+    }
+}
+----
+
+This custom task, if added to `build.gradle.kts` file in the `app` subproject directory, would be executed using the command `./gradlew :app:welcome`.
+
+== 2. Tasks in the IDE
+Let's take a look at all of the default Gradle tasks in the IntelliJ IDE. The project should still be open following <<part1_gradle_init.adoc#part1_begin,part 1>>.
+
+On the right hand side of your window, open the `Gradle` pane:
+
+image::tutorial/intellij-idea-tasks.png[]
+
+== 3. Run Tasks in the IDE
+You can run a task in the IDE by double-clicking it in the pane.
+
+Double-click `tutorial > app > build > build`
+
+image::tutorial/intellij-idea-build.png[]
+
+It's important to make sure that the build was successful:
+[source]
+----
+BUILD SUCCESSFUL in 966ms
+7 actionable tasks: 7 executed
+3:18:24 AM: Execution finished 'build'.
+----
+
+And that the `build` directory has been updated.
+
+== 4. Run Tasks in the terminal
+Let's ask Gradle to create a JAR file of our App by using the `jar` default task.
+
+Run the following command in your terminal:
+[source]
+----
+$ ./gradlew jar
+----
+
+Now you should find a `app.jar` file in your `tutorial/app/build/libs/` folder.
+
+Try to invoke the `run` task and check the output:
+[source]
+----
+$ ./gradlew run
+
+> Task :app:run
+Hello World!
+
+BUILD SUCCESSFUL in 436ms
+----
+
+Take a moment and read the Java code you just ran in `tutorial/app/src/main/java/com.gradle.tutorial/App.java`:
+[source,java]
+----
+public class App {
+    public String getGreeting() {
+        return "Hello World!";
+    }
+    public static void main(String[] args) {
+        System.out.println(new App().getGreeting());
+    }
+}
+----
+== 5. Typed Tasks
+Custom and default Gradle tasks can be typed.
+
+_Typed tasks_ are a subclass of the type link:{javadocPath}/org/gradle/api/Task.html[@Task].
+
+This example shows a task of type `Copy`:
+[source]
+----
+task copyTask(type: Copy) {
+...
+}
+----
+
+Here is another task of type `Delete`:
+[source]
+----
+task clean(type: Delete) {
+...
+}
+----
+
+Popular tasks types include:
+
+- **Copy** - `Copy` is useful to copy files around.
+- **Delete** -  `Delete` is useful to delete files and directories.
+- **Exec** - `Exec` is useful to execute arbitrary O/S commands.
+- **Zip** - `Zip` is useful to bundle files.
+
+Many more types are included in the DSL documentation.
