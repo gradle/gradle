@@ -44,103 +44,40 @@ The previous step will help you identify potential problems by issuing deprecati
 ==== Fixed variant selection behavior with `ArtifactView` and `ArtifactCollection`
 
 The dependency resolution APIs for selecting different artifacts or files (`Configuration.getIncoming().artifactView { }` and `Configuration.getIncoming().getArtifacts()`) captured immutable copies of the underlying `Configuration`'s attributes to use for variant selection.
-If the `Configuration`'s attributes were changed after these methods were called, the artifacts selected by these methods could be unexpected or fail to be resolved.
+If the `Configuration`'s attributes were changed after these methods were called, the artifacts selected by these methods could be unexpected.
 
-Consider the following scenario where the root project depends on a nested `producer` project:
-
+Consider the case where the set of attributes on a `Configuration` is changed after an `ArtifactView` is created.
 ====
 [.multi-language-sample]
-=====
-.settings.gradle.kts
-[source,kotlin]
-----
-rootProject.name = "consumer"
-include("producer")
-----
-=====
-=====
-.producer/producer.gradle.kts
-[source,kotlin]
-----
-val flavor: Attribute<String> = Attribute.of("flavor", String::class.java)
-
-configurations {
-    register("producerConfVanilla") {
-        attributes.attribute(flavor, "vanilla")
-        outgoing.artifact(file("vanilla.jar"))
-    }
-    register("producerConfChocolate") {
-        attributes.attribute(flavor, "chocolate")
-        outgoing.artifact(file("chocolate.jar"))
-    }
-}
-
-----
-=====
 =====
 .build.gradle.kts
 [source,kotlin]
 ----
-val flavor: Attribute<String> = Attribute.of("flavor", String::class.java)
+tasks {
+    myTask {
+        inputFiles.from(configurations.classpath.incoming.artifactView {
+            attributes {
+                // Add attributes to select a different type of artifact
+            }
+        }.files)
+    }
+}
 
 configurations {
-    register("consumerConf") {
-        attributes.attribute(flavor, "chocolate")
+    classpath {
+        attributes {
+            // Add more attributes to the configuration
+        }
     }
 }
-
-dependencies {
-    configurations["consumerConf"](project(":producer"))
-}
-
-tasks.register("verifyFiles") {
-    val consumerConf = configurations.named("consumerConf").get()
-
-    doLast {
-        val incomingFiles = consumerConf.incoming.files
-        val artifactViewFiles = consumerConf.incoming.artifactView { }.files
-        // val artifactViewFiles = consumerConf.artifactView { withVariantReselection() }.files
-        configurations["consumerConf"].attributes.attribute(flavor, "vanilla")
-        incomingFiles.forEach { it.exists() } // Force resolution
-
-        println("Incoming Files:")
-        incomingFiles.forEach { println("Name: " + it.name) }
-
-        println("Artifact View Files:")
-        artifactViewFiles.forEach { println("Name: " + it.name) }
-
-        check(incomingFiles.map { it.name } == artifactViewFiles.map { it.name }) // FAILS!
-    }
-}
-
 
 ----
 =====
 
-Running `gradle verifyFiles` shows a build failure message that demonstrates the problem:
+The `inputFiles` property of `myTask` uses an artifact view to select a different type of artifact from the configuration `classpath`.
+Since the artifact view was created before the attributes were added to the configuration, Gradle was not able to select the correct artifact.
 
-```
-> Could not resolve all files for configuration ':consumerConf'.
-   > No variants of project :producer match the consumer attributes:
-       - Configuration ':producer:producerConfVanilla':
-           - Incompatible because this component declares attribute 'flavor' with value 'vanilla' and the consumer needed attribute 'flavor' with value 'chocolate'
-
-```
-
-This `ArtifactView` tries to use the original `flavor=chocolate` value set for the attribute, which was later changed to the value `vanilla`, after the `ArtifactView` was created.
-Since the attribute was never updated in the `ArtifactView`'s schema, the `ArtifactView` fails to reselect a matching variant from the candidates selected by the configuration (which used `flavor=vanilla`).
-
-If you replace the `artifactViewFiles` declaration line with the commented-out line below, reselection allows for a variant to be found - but it is the **wrong** variant.
-Since the attributes used for selection are different from the configuration's attributes at selection time, the check now fails.
-
-The above scenario demonstrates the previous attribute snapshotting behavior.
-With the new behavior, the attribute collection used by `ArtifactView` is "live" and sees the modifications to the configuration's attributes; because of this the build succeeds and the check passes.
-
-The new behavior correctly implements the expectation that an `ArtifactView` without any further customization will return the same files as the configuration that created it.
-Obtaining artifacts instead of files from an `ArtifactView` had a similar problem, which is also now fixed.
-
-This behavior is relevant to `project()` dependencies when using the `java-library`.
-That plugin automatically adds certain attributes to configurations late in the build, which resulted in dependant projects selecting different (but compatible) secondary variants when using `ArtifactView`.
+Some builds may have worked around this by also putting the additional attributes into the artifact view. This is no longer necessary.
 
 [[kotlin_1_8.20]]
 ==== Upgrade to Kotlin 1.8.21
