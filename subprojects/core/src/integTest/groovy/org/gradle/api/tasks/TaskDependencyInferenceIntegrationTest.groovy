@@ -360,7 +360,7 @@ The following types/formats are supported:
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
-        failure.assertHasCause("""Cannot convert ${file(path)} to a task.
+        failure.assertHasCause("""Cannot convert ${file(path).canonical} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
   - A Task instance
@@ -434,7 +434,7 @@ The following types/formats are supported:
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
-        failure.assertHasCause("""Cannot convert ${file(path)} to a task.
+        failure.assertHasCause("""Cannot convert ${file(path).canonical} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
   - A Task instance

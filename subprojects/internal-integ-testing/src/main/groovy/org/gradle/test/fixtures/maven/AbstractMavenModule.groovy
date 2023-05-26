@@ -273,7 +273,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     assert otherMetadataArtifact.file.file
                     def otherMetadata = new GradleModuleMetadata(otherMetadataArtifact.file)
                     def owner = otherMetadata.owner
-                    assert otherMetadataArtifact.file.parentFile.file(this.correctURLForSnapshot(owner.url)) == getModuleMetadata().file
+                    assert otherMetadataArtifact.file.parentFile.file(this.correctURLForSnapshot(owner.url)).canonicalFile == getModuleMetadata().file.canonicalFile
                     assert owner.group == groupId
                     assert owner.module == artifactId
                     assert owner.version == version

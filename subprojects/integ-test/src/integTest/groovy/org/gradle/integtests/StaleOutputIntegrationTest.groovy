@@ -616,11 +616,11 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         String overlappingOutputDir
 
         TestFile getOutputDir() {
-            file(outputDirPath)
+            file(outputDirPath).canonical
         }
 
         TestFile getOutputFile() {
-            file(outputFilePath)
+            file(outputFilePath).canonical
         }
 
         String getOutputDirPath() {

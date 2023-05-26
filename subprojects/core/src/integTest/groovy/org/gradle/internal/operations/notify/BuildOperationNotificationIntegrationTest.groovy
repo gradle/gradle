@@ -133,7 +133,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('buildSrc').absolutePath, settingsFile: file('buildSrc/settings.gradle').absolutePath, buildPath: ":buildSrc"])
         notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a').absolutePath, settingsFile: file('a/settings.gradle').absolutePath, buildPath: ":a"])
         notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a/buildSrc').absolutePath, settingsFile: file('a/buildSrc/settings.gradle').absolutePath, buildPath: ":a:buildSrc"])
-        notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('.').absolutePath, settingsFile: file('settings.gradle').absolutePath, buildPath: ":"])
+        notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('.').canonicalPath, settingsFile: file('settings.gradle').absolutePath, buildPath: ":"])
 
         notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":buildSrc"])
         notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"])

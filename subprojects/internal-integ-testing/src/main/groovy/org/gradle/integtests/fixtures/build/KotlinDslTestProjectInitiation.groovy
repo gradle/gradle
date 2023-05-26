@@ -177,11 +177,11 @@ trait KotlinDslTestProjectInitiation {
     }
 
     TestFile withFile(String path, String content = "") {
-        return file(path).tap { text = content.stripIndent() }
+        return file(path).canonical.tap { text = content.stripIndent() }
     }
 
     TestFile withEmptyJar(String path) {
-        return this.file(path).tap { jarFile ->
+        return this.file(path).canonical.tap { jarFile ->
             jarFile.parentFile.mkdirs()
             new ZipOutputStream(jarFile.newOutputStream()).close()
         }

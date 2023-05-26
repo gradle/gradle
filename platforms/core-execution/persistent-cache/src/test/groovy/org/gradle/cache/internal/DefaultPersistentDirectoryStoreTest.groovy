@@ -104,13 +104,18 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "locks requested target"() {
+        def actualTarget = null
         final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", target, mode(Shared), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
 
         when:
         store.open()
 
         then:
-        1 * lockManager.lock(cacheDir.file(lockFile), mode(Shared), "<display> ($cacheDir)") >> lock
+        1 * lockManager.lock(_, mode(Shared), "<display> ($cacheDir)") >> { args ->
+            actualTarget = args[0]
+            lock
+        }
+        actualTarget == cacheDir.file(lockFile).canonicalFile
 
         when:
         store.close()

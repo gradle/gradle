@@ -285,7 +285,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle/issues/25252')
     def "wrapper task succeeds if distribution url from command-line results in relative uri (no scheme)"() {
         given:
-        file("gradle/wrapper/../distributions/8.0-rc-5") << "some content"
+        file("gradle/wrapper/../distributions/8.0-rc-5").canonical << "some content"
 
         def url = "../distributions/8.0-rc-5"
 

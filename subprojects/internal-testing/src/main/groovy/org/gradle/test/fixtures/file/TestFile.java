@@ -110,6 +110,10 @@ public class TestFile extends File {
         return new File(getAbsolutePath()).getCanonicalFile();
     }
 
+    public TestFile getCanonical() throws IOException {
+        return new TestFile(this.getCanonicalFile());
+    }
+
     @Override
     public String getCanonicalPath() throws IOException {
         return new File(getAbsolutePath()).getCanonicalPath();
@@ -128,11 +132,7 @@ public class TestFile extends File {
         for (Object p : path) {
             current = new File(current, p.toString());
         }
-        try {
-            return current.getCanonicalFile();
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Could not canonicalise '%s'.", current), e);
-        }
+        return current.getAbsoluteFile();
     }
 
     public TestFile file(Object... path) {

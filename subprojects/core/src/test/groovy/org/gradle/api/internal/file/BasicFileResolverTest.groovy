@@ -29,7 +29,7 @@ class BasicFileResolverTest extends Specification {
     def "converts relative path"() {
         expect:
         resolver.transform("some-file") == baseDir.file("some-file")
-        resolver.transform("../other-file") == baseDir.file("../other-file")
+        resolver.transform("../other-file") == tmpDir.file("other-file")
         resolver.transform(".") == baseDir
     }
 
