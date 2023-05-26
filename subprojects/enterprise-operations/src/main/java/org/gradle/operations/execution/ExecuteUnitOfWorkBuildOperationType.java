@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.operations.dependencies.transforms;
+package org.gradle.operations.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
 
-public final class ExecuteTransformStepBuildOperationType implements BuildOperationType<ExecuteTransformStepBuildOperationType.Details, ExecuteTransformStepBuildOperationType.Result> {
+public final class ExecuteUnitOfWorkBuildOperationType implements BuildOperationType<ExecuteUnitOfWorkBuildOperationType.Details, ExecuteUnitOfWorkBuildOperationType.Result> {
+
     public interface Details {
         String getWorkspaceId();
     }
 
     public interface Result {
-
     }
 }

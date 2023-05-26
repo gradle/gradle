@@ -57,7 +57,6 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.operations.dependencies.transforms.ExecuteTransformStepBuildOperationType;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
 
@@ -161,25 +160,8 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             );
         }
 
-        Deferrable<Try<TransformExecutionResult>> deferredExecution = executionEngine.createRequest(execution)
-            .executeDeferred(workspaceServices.getIdentityCache());
-        deferredExecution.getCompleted().map(Deferrable::completed)
-            .orElseGet(() -> Deferrable.deferred(() -> buildOperationExecutor.call(new CallableBuildOperation<Try<TransformExecutionResult>>() {
-                @Override
-                public Try<TransformExecutionResult> call(BuildOperationContext context) {
-                    // TODO: Get the result of the execution when the transform is not from the cache.
-                    //       It may also be possible that at this point we get a cache hit when we call completeAndGet()
-                    //       In that case we'd also want to not run this build operation.
-                    return deferredExecution.completeAndGet();
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Execute transform")
-                        .details(new RunTransformExecutionBuildOperationDetails(execution));
-                }
-            })));
-        return deferredExecution
+        return executionEngine.createRequest(execution)
+            .executeDeferred(workspaceServices.getIdentityCache())
             .map(result -> result
                 .map(successfulResult -> successfulResult.resolveOutputsForInputArtifact(inputArtifact))
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
@@ -685,19 +667,6 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             Hasher hasher = Hashing.newHasher();
             transformWorkspaceIdentity.getSecondaryInputsSnapshot().appendToHasher(hasher);
             return hasher.hash().toByteArray();
-        }
-    }
-
-    private static class RunTransformExecutionBuildOperationDetails implements ExecuteTransformStepBuildOperationType.Details {
-        private final AbstractTransformExecution execution;
-
-        public RunTransformExecutionBuildOperationDetails(AbstractTransformExecution execution) {
-            this.execution = execution;
-        }
-
-        @Override
-        public String getWorkspaceId() {
-            return execution.getTransformWorkspaceIdentity().getUniqueId();
         }
     }
 }
