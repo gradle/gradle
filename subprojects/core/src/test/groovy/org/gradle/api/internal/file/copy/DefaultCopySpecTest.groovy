@@ -23,7 +23,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.file.ImmutableUserClassFilePermissions
+import org.gradle.api.file.UserClassFilePermissions
 import org.gradle.api.file.ImmutableFilePermissions
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.DefaultFilePermissions
@@ -518,7 +518,7 @@ class DefaultCopySpecTest extends Specification {
         return user + group  + other
     }
 
-    static String toPermissionString(ImmutableUserClassFilePermissions permission) {
+    static String toPermissionString(UserClassFilePermissions permission) {
         def read = permission.read ? "r" : "-"
         def write = permission.write ? "w" : "-"
         def execute = permission.execute ? "x" : "-"

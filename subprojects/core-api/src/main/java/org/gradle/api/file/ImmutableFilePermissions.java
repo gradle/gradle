@@ -31,7 +31,7 @@ import org.gradle.api.Incubating;
  *     <li>OTHER (world) permissions: what actions all other users (non-owner, non-group) can perform on the file/directory</li>
  * </ul>
  * <p>
- * For further details on specific permission for a certain class of user see {@link ImmutableUserClassFilePermissions}.
+ * For further details on specific permission for a certain class of user see {@link UserClassFilePermissions}.
  *
  * @since 8.3
  */
@@ -41,24 +41,24 @@ public interface ImmutableFilePermissions {
     /**
      * Describes what actions the owner of the file can perform on the file/directory.
      * <p>
-     * For further details about possible actions see {@link ImmutableUserClassFilePermissions}.
+     * For further details about possible actions see {@link UserClassFilePermissions}.
      */
-    ImmutableUserClassFilePermissions getUser();
+    UserClassFilePermissions getUser();
 
     /**
      * Describes what actions a user, who is a member of the group that the file/directory belongs to,
      * can perform on the file/directory.
      * <p>
-     * For further details about possible actions see {@link ImmutableUserClassFilePermissions}.
+     * For further details about possible actions see {@link UserClassFilePermissions}.
      */
-    ImmutableUserClassFilePermissions getGroup();
+    UserClassFilePermissions getGroup();
 
     /**
      * Describes what actions all other users (non-owner, non-group) can perform on the file/directory.
      * <p>
-     * For further details about possible actions see {@link ImmutableUserClassFilePermissions}.
+     * For further details about possible actions see {@link UserClassFilePermissions}.
      */
-    ImmutableUserClassFilePermissions getOther();
+    UserClassFilePermissions getOther();
 
     /**
      * Converts the permissions for the various user groups to a numeric Unix permission.

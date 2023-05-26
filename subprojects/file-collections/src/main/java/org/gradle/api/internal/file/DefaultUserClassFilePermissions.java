@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.file;
 
-public class DefaultImmutableUserClassFilePermissions extends AbstractImmutableUserClassFilePermissions {
+public class DefaultUserClassFilePermissions extends AbstractUserClassFilePermissions {
 
     private final boolean read;
     private final boolean write;
     private final boolean execute;
 
-    public DefaultImmutableUserClassFilePermissions(int unixNumeric) {
+    public DefaultUserClassFilePermissions(int unixNumeric) {
         read = isRead(unixNumeric);
         write = isWrite(unixNumeric);
         execute = isExecute(unixNumeric);

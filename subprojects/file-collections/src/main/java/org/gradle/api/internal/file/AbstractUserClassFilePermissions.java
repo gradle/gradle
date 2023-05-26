@@ -17,9 +17,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FilePermissions;
-import org.gradle.api.file.ImmutableUserClassFilePermissions;
+import org.gradle.api.file.UserClassFilePermissions;
 
-public abstract class AbstractImmutableUserClassFilePermissions implements ImmutableUserClassFilePermissions {
+public abstract class AbstractUserClassFilePermissions implements UserClassFilePermissions {
 
     /**
      * Converts the user permission to a numeric Unix permission.

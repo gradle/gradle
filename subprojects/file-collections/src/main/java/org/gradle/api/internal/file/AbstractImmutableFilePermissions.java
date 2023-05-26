@@ -22,9 +22,9 @@ public abstract class AbstractImmutableFilePermissions implements ImmutableFileP
 
     @Override
     public int toUnixNumeric() {
-        AbstractImmutableUserClassFilePermissions user = (AbstractImmutableUserClassFilePermissions) getUser();
-        AbstractImmutableUserClassFilePermissions group = (AbstractImmutableUserClassFilePermissions) getGroup();
-        AbstractImmutableUserClassFilePermissions other = (AbstractImmutableUserClassFilePermissions) getOther();
+        AbstractUserClassFilePermissions user = (AbstractUserClassFilePermissions) getUser();
+        AbstractUserClassFilePermissions group = (AbstractUserClassFilePermissions) getGroup();
+        AbstractUserClassFilePermissions other = (AbstractUserClassFilePermissions) getOther();
         return 64 * user.toUnixNumeric() + 8 * group.toUnixNumeric() + other.toUnixNumeric();
     }
 

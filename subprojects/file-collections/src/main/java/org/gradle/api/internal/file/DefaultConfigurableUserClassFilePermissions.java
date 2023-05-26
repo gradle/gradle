@@ -18,7 +18,7 @@ package org.gradle.api.internal.file;
 
 import javax.inject.Inject;
 
-public abstract class DefaultConfigurableUserClassFilePermissions extends AbstractImmutableUserClassFilePermissions implements ConfigurableUserClassFilePermissionsInternal {
+public abstract class DefaultConfigurableUserClassFilePermissions extends AbstractUserClassFilePermissions implements ConfigurableUserClassFilePermissionsInternal {
 
     @Inject
     public DefaultConfigurableUserClassFilePermissions(int unixNumeric) {

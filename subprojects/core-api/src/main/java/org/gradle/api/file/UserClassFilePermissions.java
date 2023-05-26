@@ -38,7 +38,7 @@ import org.gradle.api.Incubating;
  * @since 8.3
  */
 @Incubating
-public interface ImmutableUserClassFilePermissions {
+public interface UserClassFilePermissions {
 
     /**
      * Describes if a certain class of users has read access to a file or directory.

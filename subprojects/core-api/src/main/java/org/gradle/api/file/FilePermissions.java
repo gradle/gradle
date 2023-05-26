@@ -46,7 +46,7 @@ public interface FilePermissions extends ImmutableFilePermissions {
      * <p>
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
-     * (see {@link ImmutableUserClassFilePermissions}).
+     * (see {@link UserClassFilePermissions}).
      */
     void user(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
@@ -67,7 +67,7 @@ public interface FilePermissions extends ImmutableFilePermissions {
      * <p>
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
-     * (see {@link ImmutableUserClassFilePermissions}).
+     * (see {@link UserClassFilePermissions}).
      */
     void group(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
@@ -89,7 +89,7 @@ public interface FilePermissions extends ImmutableFilePermissions {
      * <p>
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
-     * (see {@link ImmutableUserClassFilePermissions}).
+     * (see {@link UserClassFilePermissions}).
      */
     void other(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
