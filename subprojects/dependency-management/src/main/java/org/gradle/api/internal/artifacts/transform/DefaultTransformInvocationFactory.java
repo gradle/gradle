@@ -27,8 +27,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
-import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskActionBuildOperationType;
 import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
@@ -61,6 +59,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.operations.dependencies.transforms.ExecuteTransformStepBuildOperationType;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
+import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -84,7 +83,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
     private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
 
-    private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TRANSFORM_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
+    private static final SnapshotTransformInputsBuildOperationType.Details SNAPSHOT_TRANSFORM_INPUTS_DETAILS = new SnapshotTransformInputsBuildOperationType.Details() {
     };
 
     private final ExecutionEngine executionEngine;
@@ -485,7 +484,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                     transform.getInputArtifactDependenciesDirectorySensitivity(),
                     transform.getInputArtifactDependenciesLineEndingNormalization()
                 ));
-                operationContext.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState, builder.build()));
+                operationContext.setResult(new SnapshotTransformInputsBuildOperationResult(cachingState, builder.build()));
                 operationContext = null;
             }
         }
