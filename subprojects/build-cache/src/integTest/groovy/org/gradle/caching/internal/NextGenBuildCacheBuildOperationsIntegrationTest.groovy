@@ -327,7 +327,8 @@ class NextGenBuildCacheBuildOperationsIntegrationTest extends AbstractIntegratio
         packOp.result.archiveEntryCount == 2
         remoteStoreOp.details.archiveSize > 0
 
-        operations.orderedSerialSiblings(remoteMissLoadOp, packOp, remoteStoreOp)
+        operations.orderedSerialSiblings(remoteMissLoadOp, packOp)
+        operations.parentsOf(remoteStoreOp).contains(packOp)
     }
 
     def "records ops for remote hit"() {
@@ -379,6 +380,6 @@ class NextGenBuildCacheBuildOperationsIntegrationTest extends AbstractIntegratio
         unpackOp.details.archiveSize > 0
         remoteHitLoadOp.result.archiveSize > 0
 
-        operations.orderedSerialSiblings(remoteHitLoadOp, unpackOp)
+        operations.parentsOf(unpackOp).contains(remoteHitLoadOp)
     }
 }

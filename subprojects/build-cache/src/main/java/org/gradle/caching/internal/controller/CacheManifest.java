@@ -25,15 +25,27 @@ import java.util.Map;
 
 public class CacheManifest {
     private final OriginMetadata originMetadata;
+    private final String workType;
+    private final String identity;
     private final Map<String, List<ManifestEntry>> propertyManifests;
 
-    public CacheManifest(OriginMetadata originMetadata, Map<String, List<ManifestEntry>> propertyManifests) {
+    public CacheManifest(OriginMetadata originMetadata, String workType, String identity, Map<String, List<ManifestEntry>> propertyManifests) {
         this.originMetadata = originMetadata;
+        this.workType = workType;
+        this.identity = identity;
         this.propertyManifests = propertyManifests;
     }
 
     public OriginMetadata getOriginMetadata() {
         return originMetadata;
+    }
+
+    public String getWorkType() {
+        return workType;
+    }
+
+    public String getIdentity() {
+        return identity;
     }
 
     public Map<String, List<ManifestEntry>> getPropertyManifests() {

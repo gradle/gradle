@@ -25,8 +25,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.gradle.internal.file.BufferProvider;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +88,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 }
                 if (!foundLocally && remote.canLoad()) {
                     // TODO Improve error handling
+                    handler.ensureLoadOperationStarted(key);
                     return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteDownload<>(key, payload, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
@@ -116,6 +115,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 }
                 // TODO Improve error handling
                 if (remote.canStore()) {
+                    handler.ensureStoreOperationStarted(key);
                     return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteUpload(key, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
@@ -170,28 +170,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
     }
 
-    private static abstract class OperationPreservingRunnable implements Runnable {
-        private final BuildOperationRef mainThreadOperation;
-
-        public OperationPreservingRunnable() {
-            this.mainThreadOperation = CurrentBuildOperationRef.instance().get();
-        }
-
-        @Override
-        public void run() {
-            BuildOperationRef originalOperation = CurrentBuildOperationRef.instance().get();
-            CurrentBuildOperationRef.instance().set(mainThreadOperation);
-            try {
-                doRun();
-            } finally {
-                CurrentBuildOperationRef.instance().set(originalOperation);
-            }
-        }
-
-        abstract protected void doRun();
-    }
-
-    private class RemoteDownload<T> extends OperationPreservingRunnable {
+    private class RemoteDownload<T> implements Runnable {
         private final BuildCacheKey key;
         private final T payload;
         private final LoadHandler<T> handler;
@@ -203,8 +182,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         @Override
-        protected void doRun() {
-            handler.startLoadOperation(key);
+        public void run() {
             try {
                 long size = load();
                 if (size >= 0) {
@@ -252,7 +230,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
     }
 
-    private class RemoteUpload extends OperationPreservingRunnable {
+    private class RemoteUpload implements Runnable {
         private final BuildCacheKey key;
         private final StoreHandler<?> handler;
 
@@ -262,7 +240,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         @Override
-        protected void doRun() {
+        public void run() {
             // TODO Check contains only above a threshold
             if (remote.contains(key)) {
                 LOGGER.warn("Not storing {} in remote", key);
@@ -281,7 +259,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         }
 
         private void store(UnsynchronizedByteArrayOutputStream data) {
-            handler.startStoreOperation(key);
             try {
                 boolean stored = storeInner(data);
                 handler.recordStoreFinished(key, stored);
