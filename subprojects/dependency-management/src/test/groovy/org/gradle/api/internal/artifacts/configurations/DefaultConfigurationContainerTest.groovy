@@ -18,7 +18,11 @@ package org.gradle.api.internal.artifacts.configurations
 
 import groovy.test.NotYetImplemented
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConsumableConfiguration
+import org.gradle.api.artifacts.DependenciesConfiguration
+import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
@@ -176,6 +180,180 @@ class DefaultConfigurationContainerTest extends Specification {
         thrown MissingMethodException
     }
 
+    def "#name creates legacy configurations"() {
+        when:
+        action.delegate = configurationContainer
+        def legacy = action()
+
+        then:
+        legacy instanceof ResolvableConfiguration
+        legacy instanceof ConsumableConfiguration
+        legacy instanceof DependenciesConfiguration
+        legacy.isCanBeResolved()
+        legacy.isCanBeConsumed()
+        legacy.isCanBeDeclared()
+
+        where:
+        name                        | action
+        "create(String)"            | { create("foo") }
+        "maybeCreate(String)"       | { maybeCreate("foo") }
+        "create(String, Action)"    | { create("foo") {} }
+        "register(String)"          | { register("foo").get() }
+        "register(String, Action)"  | { register("foo", {}).get() }
+    }
+
+    def "creates resolvable configurations"() {
+        expect:
+        verifyRole(ConfigurationRoles.RESOLVABLE, "a") {
+            resolvable("a")
+        }
+        verifyRole(ConfigurationRoles.RESOLVABLE, "b") {
+            resolvable("b", {})
+        }
+        verifyRole(ConfigurationRoles.RESOLVABLE, "c") {
+            resolvableUnlocked("c")
+        }
+        verifyRole(ConfigurationRoles.RESOLVABLE, "d") {
+            resolvableUnlocked("d", {})
+        }
+        verifyRole(ConfigurationRoles.RESOLVABLE, "e") {
+            maybeRegisterResolvableUnlocked("e", {})
+        }
+    }
+
+    def "creates consumable configurations"() {
+        expect:
+        verifyRole(ConfigurationRoles.CONSUMABLE, "a") {
+            consumable("a")
+        }
+        verifyRole(ConfigurationRoles.CONSUMABLE, "b") {
+            consumable("b", {})
+        }
+        verifyRole(ConfigurationRoles.CONSUMABLE, "c") {
+            consumableUnlocked("c")
+        }
+        verifyRole(ConfigurationRoles.CONSUMABLE, "d") {
+            consumableUnlocked("d", {})
+        }
+        verifyRole(ConfigurationRoles.CONSUMABLE, "e") {
+            maybeRegisterConsumableUnlocked("e", {})
+        }
+    }
+
+    def "#name creates dependencies configuration"() {
+        expect:
+        verifyRole(ConfigurationRoles.BUCKET, "a") {
+            dependencies("a")
+        }
+        verifyRole(ConfigurationRoles.BUCKET, "b") {
+            dependencies("b", {})
+        }
+        verifyRole(ConfigurationRoles.BUCKET, "c") {
+            dependenciesUnlocked("c")
+        }
+        verifyRole(ConfigurationRoles.BUCKET, "d") {
+            dependenciesUnlocked("d", {})
+        }
+        verifyRole(ConfigurationRoles.BUCKET, "e") {
+            maybeRegisterDependenciesUnlocked("e", {})
+        }
+        verifyRole(ConfigurationRoles.BUCKET, "f") {
+            maybeRegisterDependenciesUnlocked("f", false, {})
+        }
+    }
+
+    def "#name creates resolvable dependencies configuration"() {
+        expect:
+        verifyRole(ConfigurationRoles.RESOLVABLE_BUCKET, "a") {
+            resolvableDependenciesUnlocked("a")
+        }
+        verifyRole(ConfigurationRoles.RESOLVABLE_BUCKET, "b") {
+            resolvableDependenciesUnlocked("b", {})
+        }
+        verifyRole(ConfigurationRoles.RESOLVABLE_BUCKET, "c") {
+            maybeRegisterResolvableDependenciesUnlocked("c", {})
+        }
+    }
+
+    def "can create migrating configurations"() {
+        expect:
+        verifyRole(role, "a") {
+            migratingUnlocked("a", role)
+        }
+        verifyRole(role, "b") {
+            migratingUnlocked("b", role) {}
+        }
+        verifyRole(role, "c") {
+            maybeRegisterMigratingUnlocked("c", role) {}
+        }
+
+        where:
+        role << [
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET,
+            ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE,
+            ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE,
+            ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE,
+        ]
+    }
+
+    def "cannot create arbitrary roles with migrating factory methods"() {
+        when:
+        configurationContainer.migratingUnlocked("foo", role)
+
+        then:
+        thrown(InvalidUserDataException)
+
+        when:
+        configurationContainer.migratingUnlocked("bar", role) {}
+
+        then:
+        thrown(InvalidUserDataException)
+
+        when:
+        configurationContainer.maybeRegisterMigratingUnlocked("baz", role) {}
+
+        then:
+        thrown(InvalidUserDataException)
+
+        where:
+        role << [
+            ConfigurationRoles.LEGACY,
+            ConfigurationRoles.RESOLVABLE,
+            ConfigurationRoles.CONSUMABLE,
+            ConfigurationRoles.CONSUMABLE_BUCKET,
+            ConfigurationRoles.RESOLVABLE_BUCKET
+        ]
+    }
+
+    def "#name calls configure action with new configuration"() {
+        when:
+        action.delegate = configurationContainer
+        def arg = null
+        def del = null
+        def value = action({
+            arg = it
+            del = delegate
+        }).get()
+
+        then:
+        arg == value
+        del == value
+
+        where:
+        name                                                           | action
+        "consumable(String, Action)"                                   | { consumable("foo", it) }
+        "resolvable(String, Action)"                                   | { resolvable("foo", it) }
+        "dependencies(String, Action)"                                 | { dependencies("foo", it) }
+        "consumableUnlocked(String, Action)"                           | { consumableUnlocked("foo", it) }
+        "resolvableUnlocked(String, Action)"                           | { resolvableUnlocked("foo", it) }
+        "dependenciesUnlocked(String, Action)"                         | { dependenciesUnlocked("foo", it) }
+        "resolvableDependenciesUnlocked(String, Action)"               | { resolvableDependenciesUnlocked("foo", it) }
+        "maybeRegisterConsumableUnlocked(String, Action)"              | { maybeRegisterConsumableUnlocked("foo", it) }
+        "maybeRegisterResolvableUnlocked(String, Action)"              | { maybeRegisterResolvableUnlocked("foo", it) }
+        "maybeRegisterDependenciesUnlocked(String, Action)"            | { maybeRegisterDependenciesUnlocked("foo", it) }
+        "maybeRegisterResolvableDependenciesUnlocked(String, Action)"  | { maybeRegisterResolvableDependenciesUnlocked("foo", it) }
+    }
+
     // withType when used with a class that is not a super-class of the container does not work with registered elements
     @NotYetImplemented
     def "can find all configurations even when they're registered"() {
@@ -184,5 +362,37 @@ class DefaultConfigurationContainerTest extends Specification {
         configurationContainer.create("bar")
         then:
         configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar", "foo"]
+    }
+
+    def verifyRole(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
+        def action = {
+            assert role.resolvable == it instanceof ResolvableConfiguration
+            assert role.declarable == it instanceof DependenciesConfiguration
+            assert role.consumable == it instanceof ConsumableConfiguration
+            assert role.resolvable == it.isCanBeResolved()
+            assert role.declarable == it.isCanBeDeclared()
+            assert role.consumable == it.isCanBeConsumed()
+        }
+
+        producer.delegate = configurationContainer
+        def provider = producer()
+
+        assert provider.isPresent()
+        assert provider.name == name
+
+        def provider2 = configurationContainer.named(name)
+
+        assert provider2.isPresent()
+        assert provider2.name == name
+
+        def value = provider.get()
+
+        action(value)
+
+        value = provider2.get()
+
+        action(value)
+
+        true
     }
 }

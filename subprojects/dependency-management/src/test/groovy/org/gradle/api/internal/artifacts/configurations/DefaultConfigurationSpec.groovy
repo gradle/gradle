@@ -766,9 +766,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
     }
 
-    void "deprecations are passed to copies when corresponding role is #state"() {
-        ConfigurationRole role = new DefaultConfigurationRole("test", enabled, enabled, enabled, true, true, true)
-        def configuration = prepareConfigurationForCopyTest(role)
+    void "deprecations are passed to copies when corresponding role is #baseRole"() {
+        ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, true, true, true)
+        def configuration = prepareConfigurationForCopyTest(role, type)
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
         configuration.addDeclarationAlternatives("declaration")
@@ -789,9 +789,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.deprecatedForDeclarationAgainst
 
         where:
-        state | enabled
-        "enabled" | true
-        "disabled" | false
+        baseRole | type
+        ConfigurationRoles.LEGACY | DefaultLegacyConfiguration.class
+        ConfigurationRoles.CONSUMABLE | DefaultConsumableConfiguration.class
+        ConfigurationRoles.RESOLVABLE | DefaultResolvableConfiguration.class
+        ConfigurationRoles.BUCKET | DefaultDependenciesConfiguration.class
     }
 
     void "copies disabled configuration role as a deprecation"() {
@@ -901,8 +903,8 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest(ConfigurationRole role = ConfigurationRoles.LEGACY) {
-        def configuration = conf("conf", ":", ":", role)
+    private prepareConfigurationForCopyTest(ConfigurationRole role = ConfigurationRoles.LEGACY, Class<? extends DefaultConfiguration> type = DefaultLegacyConfiguration.class) {
+        def configuration = conf("conf", ":", ":", role, type)
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
@@ -1658,7 +1660,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         dump(configuration) == """
-Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'  role='Legacy'
+Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'  role='Legacy'
 Current Usage:
 \tConsumable - this configuration can be selected by another project as a dependency
 \tResolvable - this configuration can be resolved by this project to a set of files
@@ -1875,7 +1877,7 @@ All Artifacts:
         new DefaultExternalModuleDependency(group, name, version)
     }
 
-    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY) {
+    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY, Class<? extends DefaultConfiguration> type = DefaultLegacyConfiguration.class) {
         def domainObjectContext = Stub(DomainObjectContext)
         def build = Path.path(buildPath)
         _ * domainObjectContext.identityPath(_) >> { String p -> build.append(Path.path(projectPath)).child(p) }
@@ -1909,7 +1911,7 @@ All Artifacts:
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory()
         )
-        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role, false)
+        defaultConfigurationFactory.create(confName, type, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role, false)
     }
 
     private DefaultPublishArtifact artifact(String name) {

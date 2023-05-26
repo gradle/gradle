@@ -56,11 +56,11 @@ import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.ConfigurationArtifactView
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.LenientResolutionResult
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler
@@ -103,7 +103,6 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
 import java.util.concurrent.Executors.FinalizableDelegatedExecutorService
 import java.util.concurrent.ThreadFactory
-
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -382,8 +381,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("beanWithSameType.reference = null")
 
         where:
-        concreteType              | baseType           | reference                                            | deserializedValue
-        DefaultConfiguration      | Configuration      | "project.configurations.maybeCreate('some')"         | 'file collection'
-        DefaultSourceDirectorySet | SourceDirectorySet | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+        concreteType               | baseType           | reference                                            | deserializedValue
+        DefaultLegacyConfiguration | Configuration      | "project.configurations.maybeCreate('some')"         | 'file collection'
+        DefaultSourceDirectorySet  | SourceDirectorySet | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 }

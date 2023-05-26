@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -124,19 +125,25 @@ public abstract class WarPlugin implements Plugin<Project> {
     }
 
     private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
-        Configuration providedCompileConfiguration = configurationContainer.resolvableBucket(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
-            setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        @SuppressWarnings("deprecation")
+        NamedDomainObjectProvider<Configuration> providedCompileConfiguration = configurationContainer.resolvableDependenciesUnlocked(PROVIDED_COMPILE_CONFIGURATION_NAME, conf -> {
+            conf.setVisible(false);
+            conf.setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        });
 
-        Configuration providedRuntimeConfiguration = configurationContainer.resolvableBucket(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
-            extendsFrom(providedCompileConfiguration).
-            setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        @SuppressWarnings("deprecation")
+        NamedDomainObjectProvider<Configuration> providedRuntimeConfiguration = configurationContainer.resolvableDependenciesUnlocked(PROVIDED_RUNTIME_CONFIGURATION_NAME, conf -> {
+            conf.setVisible(false);
+            conf.extendsFrom(providedCompileConfiguration.get());
+            conf.setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        });
 
-        mainFeature.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
-        mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
-        mainFeature.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration);
+        mainFeature.getImplementationConfiguration().extendsFrom(providedCompileConfiguration.get());
+        mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration.get());
+        mainFeature.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration.get());
 
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
-        configurationContainer.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()).extendsFrom(providedRuntimeConfiguration);
+        configurationContainer.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()).extendsFrom(providedRuntimeConfiguration.get());
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {

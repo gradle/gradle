@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -27,7 +28,6 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -264,56 +264,45 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        warnIfConfigurationAlreadyExists(configurations, implementationConfigurationName);
-        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.BUCKET, false, false);
-        implementationConfiguration.setVisible(false);
-        implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
+        NamedDomainObjectProvider<? extends Configuration> implementationConfiguration = configurations.maybeRegisterDependenciesUnlocked(implementationConfigurationName, conf -> {
+            conf.setVisible(false);
+            conf.setDescription("Implementation only dependencies for " + sourceSetName + ".");
+        });
 
-        warnIfConfigurationAlreadyExists(configurations, compileOnlyConfigurationName);
-        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.BUCKET, false, false);
-        compileOnlyConfiguration.setVisible(false);
-        compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
+        NamedDomainObjectProvider<? extends Configuration> compileOnlyConfiguration = configurations.maybeRegisterDependenciesUnlocked(compileOnlyConfigurationName, conf -> {
+            conf.setVisible(false);
+            conf.setDescription("Compile only dependencies for " + sourceSetName + ".");
+        });
 
-        warnIfConfigurationAlreadyExists(configurations, compileClasspathConfigurationName);
-        Configuration compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
-        compileClasspathConfiguration.setVisible(false);
-        compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
-        compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
-        jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
+        NamedDomainObjectProvider<? extends Configuration> compileClasspathConfiguration = configurations.maybeRegisterResolvableUnlocked(compileClasspathConfigurationName, conf -> {
+            conf.setVisible(false);
+            conf.extendsFrom(compileOnlyConfiguration.get(), implementationConfiguration.get());
+            conf.setDescription("Compile classpath for " + sourceSetName + ".");
+            jvmPluginServices.configureAsCompileClasspath(conf);
+        });
 
-        warnIfConfigurationAlreadyExists(configurations, annotationProcessorConfigurationName);
-        Configuration annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_BUCKET, false, false);
-        annotationProcessorConfiguration.setVisible(false);
-        annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
-        jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
+        @SuppressWarnings("deprecation")
+        NamedDomainObjectProvider<? extends Configuration> annotationProcessorConfiguration = configurations.maybeRegisterResolvableDependenciesUnlocked(annotationProcessorConfigurationName, conf -> {
+            conf.setVisible(false);
+            conf.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
 
-        warnIfConfigurationAlreadyExists(configurations, runtimeOnlyConfigurationName);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.BUCKET, false, false);
-        runtimeOnlyConfiguration.setVisible(false);
-        runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
+        NamedDomainObjectProvider<? extends Configuration> runtimeOnlyConfiguration = configurations.maybeRegisterDependenciesUnlocked(runtimeOnlyConfigurationName, conf -> {
+            conf.setVisible(false);
+            conf.setDescription("Runtime only dependencies for " + sourceSetName + ".");
+        });
 
-        // TODO: The jmh plugin prevents asserting this role upon creation; if it has been applied, then it will pre-create a runtime classpath configuration
-        // for the jmg sourceset, which is both resolvable and declarable, so this would fail if we assert the role's usage here.
-        warnIfConfigurationAlreadyExists(configurations, runtimeClasspathConfigurationName);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
-        runtimeClasspathConfiguration.setVisible(false);
-        runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
-        runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
-        jvmPluginServices.configureAsRuntimeClasspath(runtimeClasspathConfiguration);
+        NamedDomainObjectProvider<? extends Configuration> runtimeClasspathConfiguration = configurations.maybeRegisterResolvableUnlocked(runtimeClasspathConfigurationName, conf -> {
+            conf.setVisible(false);
+            conf.setDescription("Runtime classpath of " + sourceSetName + ".");
+            conf.extendsFrom(runtimeOnlyConfiguration.get(), implementationConfiguration.get());
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
 
-        sourceSet.setCompileClasspath(compileClasspathConfiguration);
-        sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
-        sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
-    }
-
-    private void warnIfConfigurationAlreadyExists(ConfigurationContainer configurations, String configurationName) {
-        if (configurations.findByName(configurationName) != null) {
-            DeprecationLogger.deprecateBehaviour("The configuration " + configurationName + " was created explicitly. This configuration name is reserved for creation by Gradle.")
-                    .withAdvice("Do not create a configuration with this name.")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "configurations_allowed_usage")
-                    .nagUser();
-        }
+        sourceSet.setCompileClasspath(compileClasspathConfiguration.get());
+        sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration.get()));
+        sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration.get());
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {

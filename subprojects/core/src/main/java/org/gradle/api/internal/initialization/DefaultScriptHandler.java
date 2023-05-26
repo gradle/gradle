@@ -133,7 +133,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
         }
         if (classpathConfiguration == null) {
-            classpathConfiguration = configContainer.createWithRole(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET);
+            classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET).get();
             scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
         }
     }

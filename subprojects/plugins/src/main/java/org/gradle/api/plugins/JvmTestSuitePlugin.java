@@ -22,7 +22,6 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.TestSuiteName;
@@ -125,23 +124,24 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
     }
 
     private void addTestResultsVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        final Configuration variant = project.getConfigurations().consumable(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
-        variant.setDescription("Directory containing binary results of running tests for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
-        variant.setVisible(false);
+        project.getConfigurations().consumableUnlocked(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), variant -> {
+            variant.setDescription("Directory containing binary results of running tests for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
+            variant.setVisible(false);
 
-        final ObjectFactory objects = project.getObjects();
-        variant.attributes(attributes -> {
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-            attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
-            attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
-            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> createNamedTestTypeAndVerifyUniqueness(project, suite, tt)));
-            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
+            final ObjectFactory objects = project.getObjects();
+            variant.attributes(attributes -> {
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
+                attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
+                attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> createNamedTestTypeAndVerifyUniqueness(project, suite, tt)));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
+            });
+
+            variant.getOutgoing().artifact(
+                target.getTestTask().flatMap(AbstractTestTask::getBinaryResultsDirectory),
+                artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
+            );
         });
-
-        variant.getOutgoing().artifact(
-            target.getTestTask().flatMap(AbstractTestTask::getBinaryResultsDirectory),
-            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
-        );
     }
 
     private TestSuiteType createNamedTestTypeAndVerifyUniqueness(Project project, TestSuite suite, String tt) {
