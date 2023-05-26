@@ -196,9 +196,11 @@ image::tutorial/mac-tar-cache-exp.png[]
 Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 
 == 4. Remote Caching
-The remote cache is a shared build cache.
-Reading from and writing to the remote cache is done via HTTP.
+The remote cache (called a Build Cache Node) is a shared build cache available via HTTP.
 
-One of the most common use cases of remote cache is continuous integration builds. On every clean build, the CI server populates the remote cache. So, the components that are changed will not be rebuilt, thereby speeding up the CI builds. Moreover, task outputs can also be shared among CI agents. The remote cache is not enabled by default.
+The idea of a remote cache is to share commonly built task outputs across remote builds to improve build times.
 
-When both remote and local caches are enabled, then the build output is first checked in the local cache. If the output isn't present in the local cache, it'll be downloaded from the remote cache and also stored in the local cache. Then, in the next build, the same task output is taken from the local cache to speed up the build process.
+When both remote and local caches are enabled, then the build output is first checked in the local cache.
+If the output isn't present in the local cache, it'll be downloaded from the remote cache and also stored in the local cache.
+
+A remote build cache is available for free from Gradle. Individuals and organizations can also deploy their own cache node which is distributed as a Docker image and a executable JAR.
