@@ -19,15 +19,15 @@ package org.gradle.internal.execution.steps;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.operations.execution.ExecuteUnitOfWorkBuildOperationType;
+import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 
 import java.util.List;
 
-public class WorkspaceExecutionBuildOperationFiringStep<C extends IdentityContext, R extends CachingResult> extends BuildOperationStep<C, R> implements Step<C, R> {
+public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R extends CachingResult> extends BuildOperationStep<C, R> implements Step<C, R> {
 
     private final Step<? super C, R> delegate;
 
-    public WorkspaceExecutionBuildOperationFiringStep(BuildOperationExecutor buildOperationExecutor, Step<C, R> delegate) {
+    public ExecuteWorkBuildOperationFiringStep(BuildOperationExecutor buildOperationExecutor, Step<C, R> delegate) {
         super(buildOperationExecutor);
         this.delegate = delegate;
     }
@@ -36,21 +36,21 @@ public class WorkspaceExecutionBuildOperationFiringStep<C extends IdentityContex
     public R execute(UnitOfWork work, C context) {
         return operation(operationContext -> {
                 R result = delegate.execute(work, context);
-                ExecuteUnitOfWorkBuildOperationType.Result operationResult = new ExecuteUnitOfWorkResult(result.getExecutionReasons());
+                ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(result.getExecutionReasons());
                 operationContext.setResult(operationResult);
                 return result;
             },
             BuildOperationDescriptor
                 .displayName("Execute Unit of Work")
-                .details(new ExecuteUnitOfWorkDetails(work, context)));
+                .details(new ExecuteWorkDetails(work, context)));
     }
 
-    private class ExecuteUnitOfWorkDetails implements ExecuteUnitOfWorkBuildOperationType.Details {
+    private class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
 
         private final UnitOfWork work;
         private final C context;
 
-        public ExecuteUnitOfWorkDetails(UnitOfWork work, C context) {
+        public ExecuteWorkDetails(UnitOfWork work, C context) {
             this.work = work;
             this.context = context;
         }
@@ -67,11 +67,11 @@ public class WorkspaceExecutionBuildOperationFiringStep<C extends IdentityContex
 
     }
 
-    private static class ExecuteUnitOfWorkResult implements ExecuteUnitOfWorkBuildOperationType.Result {
+    private static class ExecuteWorkResult implements ExecuteWorkBuildOperationType.Result {
 
         private final List<String> executionReasons;
 
-        public ExecuteUnitOfWorkResult(List<String> executionReasons) {
+        public ExecuteWorkResult(List<String> executionReasons) {
             this.executionReasons = executionReasons;
         }
 

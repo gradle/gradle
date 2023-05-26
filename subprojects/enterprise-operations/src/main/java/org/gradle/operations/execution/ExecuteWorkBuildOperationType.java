@@ -20,7 +20,7 @@ import org.gradle.internal.operations.BuildOperationType;
 
 import java.util.List;
 
-public final class ExecuteUnitOfWorkBuildOperationType implements BuildOperationType<ExecuteUnitOfWorkBuildOperationType.Details, ExecuteUnitOfWorkBuildOperationType.Result> {
+public final class ExecuteWorkBuildOperationType implements BuildOperationType<ExecuteWorkBuildOperationType.Details, ExecuteWorkBuildOperationType.Result> {
 
     public interface Details {
         String getWorkType();
