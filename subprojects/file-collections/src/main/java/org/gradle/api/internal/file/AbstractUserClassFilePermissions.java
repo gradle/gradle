@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.UserClassFilePermissions;
 
 public abstract class AbstractUserClassFilePermissions implements UserClassFilePermissions {
 
     /**
      * Converts the user permission to a numeric Unix permission.
-     * See {@link FilePermissions#unix(String)} for details,
+     * See {@link ConfigurableFilePermissions#unix(String)} for details,
      * returned value is equivalent to one of the three octal digits.
      */
     protected int toUnixNumeric() {

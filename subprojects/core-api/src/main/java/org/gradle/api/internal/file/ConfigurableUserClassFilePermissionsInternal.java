@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.ConfigurableUserClassFilePermissions;
 
 public interface ConfigurableUserClassFilePermissionsInternal extends ConfigurableUserClassFilePermissions {
 
     /**
      * Sets the permission for a specific class of users from a PARTIAL Unix-style symbolic permission
-     * (i.e. 3 alphanumeric characters; see {@link FilePermissions#unix(String)} for details).
+     * (i.e. 3 alphanumeric characters; see {@link ConfigurableFilePermissions#unix(String)} for details).
      */
     void unix(String unixSymbolic);
 
     /**
      * Sets the permission for a specific class of users based on a PARTIAL Unix-style numeric permission
-     * (i.e. a number between 0 and 7; see {@link FilePermissions#unix(String)} for details).
+     * (i.e. a number between 0 and 7; see {@link ConfigurableFilePermissions#unix(String)} for details).
      */
     void unix(int unixNumeric);
 

@@ -19,7 +19,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableUserClassFilePermissions;
-import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
@@ -27,7 +27,7 @@ import javax.inject.Inject;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_DIR_MODE;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_FILE_MODE;
 
-public class DefaultFilePermissions extends AbstractImmutableFilePermissions implements FilePermissions {
+public class DefaultConfigurableFilePermissions extends AbstractImmutableFilePermissions implements ConfigurableFilePermissions {
 
     public static int getDefaultUnixNumeric(boolean isDirectory) {
         return isDirectory ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
@@ -40,7 +40,7 @@ public class DefaultFilePermissions extends AbstractImmutableFilePermissions imp
     private final ConfigurableUserClassFilePermissionsInternal other;
 
     @Inject
-    public DefaultFilePermissions(ObjectFactory objectFactory, int unixNumeric) {
+    public DefaultConfigurableFilePermissions(ObjectFactory objectFactory, int unixNumeric) {
         this.user = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getUserPartOf(unixNumeric));
         this.group = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getGroupPartOf(unixNumeric));
         this.other = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getOtherPartOf(unixNumeric));

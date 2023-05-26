@@ -62,7 +62,7 @@ public interface ImmutableFilePermissions {
 
     /**
      * Converts the permissions for the various user groups to a numeric Unix permission.
-     * See {@link FilePermissions#unix(String)} for details.
+     * See {@link ConfigurableFilePermissions#unix(String)} for details.
      */
     int toUnixNumeric();
 

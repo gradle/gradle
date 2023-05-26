@@ -20,11 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
@@ -574,7 +574,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Override
     @Internal
-    public Property<FilePermissions> getFilePermissions() {
+    public Property<ConfigurableFilePermissions> getFilePermissions() {
         return getMainSpec().getFilePermissions();
     }
 
@@ -582,7 +582,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public CopyProcessingSpec filePermissions(Action<? super FilePermissions> configureAction) {
+    public CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction) {
         return getMainSpec().filePermissions(configureAction);
     }
 
@@ -591,7 +591,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Override
     @Internal
-    public Property<FilePermissions> getDirPermissions() {
+    public Property<ConfigurableFilePermissions> getDirPermissions() {
         return getMainSpec().getDirPermissions();
     }
 
@@ -599,7 +599,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public CopyProcessingSpec dirPermissions(Action<? super FilePermissions> configureAction) {
+    public CopyProcessingSpec dirPermissions(Action<? super ConfigurableFilePermissions> configureAction) {
         return getMainSpec().dirPermissions(configureAction);
     }
 

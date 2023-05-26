@@ -27,7 +27,7 @@ import org.gradle.api.Incubating;
  * @since 8.3
  */
 @Incubating
-public interface FilePermissions extends ImmutableFilePermissions {
+public interface ConfigurableFilePermissions extends ImmutableFilePermissions {
 
     /**
      * Returns the permissions the owner of the file has for the file/directory.

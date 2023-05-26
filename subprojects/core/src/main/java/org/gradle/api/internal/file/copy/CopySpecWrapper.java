@@ -21,11 +21,11 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SyncSpec;
@@ -293,12 +293,12 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public Property<FilePermissions> getFilePermissions() {
+    public Property<ConfigurableFilePermissions> getFilePermissions() {
         return delegate.getFilePermissions();
     }
 
     @Override
-    public CopyProcessingSpec filePermissions(Action<? super FilePermissions> configureAction) {
+    public CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction) {
         return delegate.filePermissions(configureAction);
     }
 
@@ -314,12 +314,12 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public Property<FilePermissions> getDirPermissions() {
+    public Property<ConfigurableFilePermissions> getDirPermissions() {
         return delegate.getDirPermissions();
     }
 
     @Override
-    public CopyProcessingSpec dirPermissions(Action<? super FilePermissions> configureAction) {
+    public CopyProcessingSpec dirPermissions(Action<? super ConfigurableFilePermissions> configureAction) {
         return delegate.dirPermissions(configureAction);
     }
 

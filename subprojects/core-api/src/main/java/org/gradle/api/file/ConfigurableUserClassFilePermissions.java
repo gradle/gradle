@@ -19,7 +19,7 @@ package org.gradle.api.file;
 import org.gradle.api.Incubating;
 
 /**
- * Provides the means of specifying file and directory access permissions for a certain class of users (see {@link FilePermissions}).
+ * Provides the means of specifying file and directory access permissions for a certain class of users (see {@link ConfigurableFilePermissions}).
  * <p>
  * For details on the actual permissions see {@link UserClassFilePermissions}.
  *

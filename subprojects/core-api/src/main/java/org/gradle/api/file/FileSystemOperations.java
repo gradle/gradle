@@ -64,30 +64,30 @@ public interface FileSystemOperations {
     /**
      * Creates and configures file access permissions. Differs from directory permissions due to
      * the default value the permissions start out with before the configuration is applied.
-     * For details see {@link FilePermissions}.
+     * For details see {@link ConfigurableFilePermissions}.
      *
      * @param configureAction The configuration that gets applied to the newly created {@code FilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    FilePermissions filePermissions(Action<? super FilePermissions> configureAction);
+    ConfigurableFilePermissions filePermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
      * Creates and configures directory access permissions. Differs from file permissions due to
      * the default value the permissions start out with before the configuration is applied.
-     * For details see {@link FilePermissions}.
+     * For details see {@link ConfigurableFilePermissions}.
      *
      * @param configureAction The configuration that gets applied to the newly created {@code FilePermissions}.
      *
      * @since 8.3
      */
     @Incubating
-    FilePermissions directoryPermissions(Action<? super FilePermissions> configureAction);
+    ConfigurableFilePermissions directoryPermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
      * Creates file/directory access permissions and initializes them via a Unix style permission string.
-     * For details see {@link FilePermissions#unix(String)}.
+     * For details see {@link ConfigurableFilePermissions#unix(String)}.
      * <p>
      * Doesn't have separate variants for files and directories, like other configuration methods,
      * because the Unix style permission input completely overwrites the default values, so
@@ -96,11 +96,11 @@ public interface FileSystemOperations {
      * @since 8.3
      */
     @Incubating
-    FilePermissions permissions(String unixNumericOrSymbolic);
+    ConfigurableFilePermissions permissions(String unixNumericOrSymbolic);
 
     /**
      * Creates file/directory access permissions and initializes them via a Unix style numeric permissions.
-     * For details see {@link FilePermissions#unix(int)}.
+     * For details see {@link ConfigurableFilePermissions#unix(int)}.
      * <p>
      * Doesn't have separate variants for files and directories, like other configuration methods,
      * because the Unix style permission input completely overwrites the default values, so
@@ -109,7 +109,7 @@ public interface FileSystemOperations {
      * @since 8.3
      */
     @Incubating
-    FilePermissions permissions(int unixNumeric);
+    ConfigurableFilePermissions permissions(int unixNumeric);
 
     /**
      * {@link Provider} based version of {@link #permissions(String)},  to facilitate wiring into property chains.
@@ -117,5 +117,5 @@ public interface FileSystemOperations {
      * @since 8.3
      */
     @Incubating
-    Provider<FilePermissions> permissions(Provider<String> permissions);
+    Provider<ConfigurableFilePermissions> permissions(Provider<String> permissions);
 }

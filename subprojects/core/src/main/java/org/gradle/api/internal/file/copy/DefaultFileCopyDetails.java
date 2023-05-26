@@ -19,15 +19,15 @@ package org.gradle.api.internal.file.copy;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.ImmutableFilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.DefaultFilePermissions;
+import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
@@ -50,7 +50,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private RelativePath relativePath;
     private boolean excluded;
 
-    private DefaultFilePermissions permissions;
+    private DefaultConfigurableFilePermissions permissions;
     private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
@@ -200,7 +200,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public void permissions(Action<? super FilePermissions> configureAction) {
+    public void permissions(Action<? super ConfigurableFilePermissions> configureAction) {
         configureAction.execute(getPermissions());
     }
 
@@ -209,9 +209,9 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         getPermissions().unix(permissions.toUnixNumeric());
     }
 
-    private DefaultFilePermissions getPermissions() {
+    private DefaultConfigurableFilePermissions getPermissions() {
         if (permissions == null) {
-            permissions = objectFactory.newInstance(DefaultFilePermissions.class, objectFactory, DefaultFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
+            permissions = objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
         }
         return permissions;
     }
