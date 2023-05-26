@@ -68,20 +68,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     Throwable failure = null;
                     try {
                         worker.execute(buildOperation, context);
-
                     } catch (Throwable t) {
+                        Throwable cause = getCause(t);
                         if (context.getFailure() == null) {
-                            if(t instanceof GradleExceptionWithContext) {
-                                context.failed(t.getCause());
-                            } else {
-                                context.failed(t);
-                            }
+                             context.failed(cause);
                         }
-                        if(t instanceof GradleExceptionWithContext) {
-                            failure = t.getCause();
-                        } else {
-                            failure = t;
-                        }
+                        failure = cause;
                     }
                     listener.stop(descriptor, operationState, parent, context);
                     if (failure != null) {
@@ -92,9 +84,16 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     listener.close(descriptor, operationState);
                 }
             }
+
         });
     }
 
+    private static Throwable getCause(Throwable t) {
+        if (t instanceof GradleExceptionWithContext) {
+            return t.getCause();
+        }
+        return t;
+    }
     @Override
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder) {
         return execute(descriptorBuilder, getCurrentBuildOperation(), new BuildOperationExecution<BuildOperationContext>() {

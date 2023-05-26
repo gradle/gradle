@@ -19,6 +19,7 @@ package org.gradle.internal.operations;
 import org.gradle.api.problems.interfaces.Problem;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 public final class OperationFinishEvent {
@@ -34,6 +35,10 @@ public final class OperationFinishEvent {
         this.failure = failure;
         this.result = result;
         this.problems = problems;
+    }
+
+    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
+        this(startTime, endTime, failure, result, Collections.<Problem>emptyList());
     }
 
     public long getStartTime() {

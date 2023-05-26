@@ -76,7 +76,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
             .build()
 
         when:
-        evaluator.finished(descriptor, new OperationFinishEvent(0, 1, null, result))
+        evaluator.finished(descriptor, new OperationFinishEvent(0, 1, null, result, []))
         evaluator.evaluate()
 
         then:
@@ -131,7 +131,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
         when:
         evaluator.started(taskBuildOperation, new OperationStartEvent(0))
-        evaluator.finished(testBuildOperation, new OperationFinishEvent(0, 0, null, result))
+        evaluator.finished(testBuildOperation, new OperationFinishEvent(0, 0, null, result, []))
         evaluator.evaluate()
 
         then:
