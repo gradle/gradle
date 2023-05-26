@@ -86,7 +86,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * @since 8.3
      */
     @Incubating
-    void setPermissions(ImmutableFilePermissions permissions);
+    void setPermissions(FilePermissions permissions);
 
     /**
      * The strategy to use if there is already a file at this file's destination.

@@ -24,7 +24,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.UserClassFilePermissions
-import org.gradle.api.file.ImmutableFilePermissions
+import org.gradle.api.file.FilePermissions
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions
 import org.gradle.api.internal.file.TestFiles
@@ -511,7 +511,7 @@ class DefaultCopySpecTest extends Specification {
         RelativePath.parse(true, segments)
     }
 
-    static String toPermissionString(ImmutableFilePermissions permissions) {
+    static String toPermissionString(FilePermissions permissions) {
         def user = toPermissionString(permissions.user)
         def group = toPermissionString(permissions.group)
         def other = toPermissionString(permissions.other)

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.ImmutableFilePermissions;
+import org.gradle.api.file.FilePermissions;
 
-public abstract class AbstractImmutableFilePermissions implements ImmutableFilePermissions {
+public abstract class AbstractFilePermissions implements FilePermissions {
 
     @Override
     public int toUnixNumeric() {

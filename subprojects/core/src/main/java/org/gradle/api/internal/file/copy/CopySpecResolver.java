@@ -21,7 +21,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.ImmutableFilePermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -37,8 +37,8 @@ public interface CopySpecResolver {
     Integer getFileMode();
     @Nullable
     Integer getDirMode();
-    Provider<ImmutableFilePermissions> getImmutableFilePermissions();
-    Provider<ImmutableFilePermissions> getImmutableDirPermissions();
+    Provider<FilePermissions> getImmutableFilePermissions();
+    Provider<FilePermissions> getImmutableDirPermissions();
     boolean getIncludeEmptyDirs();
     String getFilteringCharset();
 

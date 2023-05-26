@@ -34,7 +34,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.ImmutableFilePermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -768,21 +768,21 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Nullable
-        private Integer getMode(Provider<ImmutableFilePermissions> permissions) {
-            return permissions.map(ImmutableFilePermissions::toUnixNumeric).getOrNull();
+        private Integer getMode(Provider<FilePermissions> permissions) {
+            return permissions.map(FilePermissions::toUnixNumeric).getOrNull();
         }
 
         @Override
-        public Provider<ImmutableFilePermissions> getImmutableFilePermissions() {
+        public Provider<FilePermissions> getImmutableFilePermissions() {
             return getPermissions(filePermissions, CopySpecResolver::getImmutableFilePermissions);
         }
 
         @Override
-        public Provider<ImmutableFilePermissions> getImmutableDirPermissions() {
+        public Provider<FilePermissions> getImmutableDirPermissions() {
             return getPermissions(dirPermissions, CopySpecResolver::getImmutableDirPermissions);
         }
 
-        private Provider<ImmutableFilePermissions> getPermissions(Property<ConfigurableFilePermissions> property, Function<CopySpecResolver, Provider<ImmutableFilePermissions>> parentMapper) {
+        private Provider<FilePermissions> getPermissions(Property<ConfigurableFilePermissions> property, Function<CopySpecResolver, Provider<FilePermissions>> parentMapper) {
             if (property.isPresent() || parentResolver == null) {
                 property.finalizeValueOnRead();
                 return Cast.uncheckedCast(property);

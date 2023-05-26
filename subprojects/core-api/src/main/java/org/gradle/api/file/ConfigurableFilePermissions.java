@@ -22,12 +22,12 @@ import org.gradle.api.Incubating;
 /**
  * Provides the means of specifying file and directory access permissions for all classes of system users.
  * <p>
- * For details on classes of users and file/directory permissions see {@link ImmutableFilePermissions}.
+ * For details on classes of users and file/directory permissions see {@link FilePermissions}.
  *
  * @since 8.3
  */
 @Incubating
-public interface ConfigurableFilePermissions extends ImmutableFilePermissions {
+public interface ConfigurableFilePermissions extends FilePermissions {
 
     /**
      * Returns the permissions the owner of the file has for the file/directory.

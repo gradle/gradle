@@ -36,7 +36,7 @@ import org.gradle.api.Incubating;
  * @since 8.3
  */
 @Incubating
-public interface ImmutableFilePermissions {
+public interface FilePermissions {
 
     /**
      * Describes what actions the owner of the file can perform on the file/directory.

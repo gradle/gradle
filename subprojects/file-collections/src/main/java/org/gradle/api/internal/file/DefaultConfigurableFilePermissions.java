@@ -27,7 +27,7 @@ import javax.inject.Inject;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_DIR_MODE;
 import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_FILE_MODE;
 
-public class DefaultConfigurableFilePermissions extends AbstractImmutableFilePermissions implements ConfigurableFilePermissions {
+public class DefaultConfigurableFilePermissions extends AbstractFilePermissions implements ConfigurableFilePermissions {
 
     public static int getDefaultUnixNumeric(boolean isDirectory) {
         return isDirectory ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;

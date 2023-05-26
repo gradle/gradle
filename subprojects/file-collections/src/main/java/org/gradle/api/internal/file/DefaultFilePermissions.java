@@ -19,11 +19,11 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.UserClassFilePermissions;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
-public class DefaultImmutableFilePermissions extends AbstractImmutableFilePermissions {
+public class DefaultFilePermissions extends AbstractFilePermissions {
 
-    public static final DefaultImmutableFilePermissions DEFAULT_FILE_PERMISSIONS = new DefaultImmutableFilePermissions(FileSystem.DEFAULT_FILE_MODE);
+    public static final DefaultFilePermissions DEFAULT_FILE_PERMISSIONS = new DefaultFilePermissions(FileSystem.DEFAULT_FILE_MODE);
 
-    public static final DefaultImmutableFilePermissions DEFAULT_DIR_PERMISSIONS = new DefaultImmutableFilePermissions(FileSystem.DEFAULT_DIR_MODE);
+    public static final DefaultFilePermissions DEFAULT_DIR_PERMISSIONS = new DefaultFilePermissions(FileSystem.DEFAULT_DIR_MODE);
 
     private final UserClassFilePermissions user;
 
@@ -31,7 +31,7 @@ public class DefaultImmutableFilePermissions extends AbstractImmutableFilePermis
 
     private final UserClassFilePermissions other;
 
-    public DefaultImmutableFilePermissions(int unixNumeric) {
+    public DefaultFilePermissions(int unixNumeric) {
         user = new DefaultUserClassFilePermissions(getUserPartOf(unixNumeric));
         group = new DefaultUserClassFilePermissions(getGroupPartOf(unixNumeric));
         other = new DefaultUserClassFilePermissions(getOtherPartOf(unixNumeric));

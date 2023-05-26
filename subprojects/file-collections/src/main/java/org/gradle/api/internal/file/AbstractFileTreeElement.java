@@ -19,7 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.ImmutableFilePermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.file.Chmod;
 import org.gradle.util.internal.GFileUtils;
@@ -111,9 +111,9 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     }
 
     @Override
-    public ImmutableFilePermissions getImmutablePermissions() {
-        return isDirectory() ? DefaultImmutableFilePermissions.DEFAULT_DIR_PERMISSIONS :
-            DefaultImmutableFilePermissions.DEFAULT_FILE_PERMISSIONS;
+    public FilePermissions getImmutablePermissions() {
+        return isDirectory() ? DefaultFilePermissions.DEFAULT_DIR_PERMISSIONS :
+            DefaultFilePermissions.DEFAULT_FILE_PERMISSIONS;
     }
 
     @Contextual

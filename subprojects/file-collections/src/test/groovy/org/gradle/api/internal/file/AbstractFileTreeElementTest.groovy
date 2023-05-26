@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.api.file.ImmutableFilePermissions
+import org.gradle.api.file.FilePermissions
 import org.gradle.api.file.RelativePath
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -121,11 +121,11 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
             return GFileUtils.openInputStream(file)
         }
 
-        ImmutableFilePermissions getImmutablePermissions() {
+        FilePermissions getImmutablePermissions() {
             if (mode == null) {
                 return super.getImmutablePermissions()
             }
-            return new DefaultImmutableFilePermissions(mode)
+            return new DefaultFilePermissions(mode)
         }
     }
 }

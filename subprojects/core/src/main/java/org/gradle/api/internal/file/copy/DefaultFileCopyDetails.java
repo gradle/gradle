@@ -24,7 +24,7 @@ import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.ImmutableFilePermissions;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
@@ -153,12 +153,12 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public ImmutableFilePermissions getImmutablePermissions() {
+    public FilePermissions getImmutablePermissions() {
         if (permissions != null) {
             return permissions;
         }
 
-        Provider<ImmutableFilePermissions> specMode = getSpecMode();
+        Provider<FilePermissions> specMode = getSpecMode();
         if (specMode.isPresent()) {
             return specMode.get();
         }
@@ -166,7 +166,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         return fileDetails.getImmutablePermissions();
     }
 
-    private Provider<ImmutableFilePermissions> getSpecMode() {
+    private Provider<FilePermissions> getSpecMode() {
         return fileDetails.isDirectory() ? specResolver.getImmutableDirPermissions() : specResolver.getImmutableFilePermissions();
     }
 
@@ -205,7 +205,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public void setPermissions(ImmutableFilePermissions permissions) {
+    public void setPermissions(FilePermissions permissions) {
         getPermissions().unix(permissions.toUnixNumeric());
     }
 
