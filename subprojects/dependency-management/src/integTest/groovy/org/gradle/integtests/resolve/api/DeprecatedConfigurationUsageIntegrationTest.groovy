@@ -38,19 +38,19 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         failureCauseContains(message)
 
         where:
-        methodName                   | role         | methodCall                                                                                                                           || message
-        'resolve()'                  | 'consumable' | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'resolve()'                  | 'bucket'     | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'files(Closure)'             | 'consumable' | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'files(Closure)'             | 'bucket'     | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Closure)'    | 'consumable' | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Closure)'    | 'bucket'     | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Dependency)' | 'consumable' | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Dependency)' | 'bucket'     | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getResolvedConfiguration()' | 'consumable' | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getResolvedConfiguration()' | 'bucket'     | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getBuildDependencies()'     | 'consumable' | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getBuildDependencies()'     | 'bucket'     | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        methodName                   | role             | methodCall                                                                                                                           || message
+        'resolve()'                  | 'consumable'     | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'resolve()'                  | 'dependencies'   | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'             | 'consumable'     | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'             | 'dependencies'   | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Closure)'    | 'consumable'     | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Closure)'    | 'dependencies'   | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Dependency)' | 'consumable'     | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Dependency)' | 'dependencies'   | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getResolvedConfiguration()' | 'consumable'     | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getResolvedConfiguration()' | 'dependencies'   | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'     | 'consumable'     | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'     | 'dependencies'   | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
     }
 
     def "calling an invalid public API method #methodName for role #role produces a deprecation warning"() {
@@ -67,22 +67,22 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         succeeds('help')
 
         where:
-        methodName                                     | role         | methodCall                                                     || allowed
-        'attributes(Action)'                           | 'bucket'     | "attributes { attribute(Attribute.of('foo', String), 'bar') }" || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
-        'defaultDependencies(Action)'                  | 'consumable' | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
-        'defaultDependencies(Action)'                  | 'resolvable' | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
-        'shouldResolveConsistentlyWith(Configuration)' | 'consumable' | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
-        'shouldResolveConsistentlyWith(Configuration)' | 'bucket'     | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
-        'disableConsistentResolution()'                | 'consumable' | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
-        'disableConsistentResolution()'                | 'bucket'     | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
-        'copy()'                                       | 'consumable' | 'copy()'                                                       || [ProperMethodUsage.RESOLVABLE]
-        'copy()'                                       | 'bucket'     | 'copy()'                                                       || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive()'                              | 'consumable' | 'copyRecursive()'                                              || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive()'                              | 'bucket'     | 'copyRecursive()'                                              || [ProperMethodUsage.RESOLVABLE]
-        'copy(Spec)'                                   | 'consumable' | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
-        'copy(Spec)'                                   | 'bucket'     | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive(Spec)'                          | 'consumable' | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
-        'copyRecursive(Spec)'                          | 'bucket'     | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
+        methodName                                     | role           | methodCall                                                     || allowed
+        'attributes(Action)'                           | 'dependencies' | "attributes { attribute(Attribute.of('foo', String), 'bar') }" || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
+        'defaultDependencies(Action)'                  | 'consumable'   | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
+        'defaultDependencies(Action)'                  | 'resolvable'   | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
+        'shouldResolveConsistentlyWith(Configuration)' | 'consumable'   | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
+        'shouldResolveConsistentlyWith(Configuration)' | 'dependencies' | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
+        'disableConsistentResolution()'                | 'consumable'   | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
+        'disableConsistentResolution()'                | 'dependencies' | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
+        'copy()'                                       | 'consumable'   | 'copy()'                                                       || [ProperMethodUsage.RESOLVABLE]
+        'copy()'                                       | 'dependencies' | 'copy()'                                                       || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive()'                              | 'consumable'   | 'copyRecursive()'                                              || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive()'                              | 'dependencies' | 'copyRecursive()'                                              || [ProperMethodUsage.RESOLVABLE]
+        'copy(Spec)'                                   | 'consumable'   | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
+        'copy(Spec)'                                   | 'dependencies' | 'copy { } as Spec'                                             || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive(Spec)'                          | 'consumable'   | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
+        'copyRecursive(Spec)'                          | 'dependencies' | 'copyRecursive { } as Spec'                                    || [ProperMethodUsage.RESOLVABLE]
 
     }
 
@@ -100,20 +100,20 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         succeeds('help')
 
         where:
-        methodName                         | role         | methodCall                         || allowed
-        'setExcludeRules(Set)'             | 'consumable' | "setExcludeRules([] as Set)"       || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
-        'getConsistentResolutionSource()'  | 'consumable' | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
-        'getConsistentResolutionSource()'  | 'bucket'     | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
-        'getDependenciesResolverFactory()' | 'consumable' | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]
-        'getDependenciesResolverFactory()' | 'bucket'     | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]
-        'getResolvedState()'               | 'consumable' | "getResolvedState()"               || [ProperMethodUsage.RESOLVABLE]
-        'getResolvedState()'               | 'bucket'     | "getResolvedState()"               || [ProperMethodUsage.RESOLVABLE]
-        'getSyntheticDependencies()'       | 'consumable' | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
-        'getSyntheticDependencies()'       | 'bucket'     | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
-        'resetResolutionState()'           | 'consumable' | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]
-        'resetResolutionState()'           | 'bucket'     | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]
-        'toRootComponentMetaData()'        | 'consumable' | "toRootComponentMetaData()"        || [ProperMethodUsage.RESOLVABLE]
-        'toRootComponentMetaData()'        | 'bucket'     | "toRootComponentMetaData()"        || [ProperMethodUsage.RESOLVABLE]
+        methodName                         | role           | methodCall                         || allowed
+        'setExcludeRules(Set)'             | 'consumable'   | "setExcludeRules([] as Set)"       || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
+        'getConsistentResolutionSource()'  | 'consumable'   | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
+        'getConsistentResolutionSource()'  | 'dependencies' | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
+        'getDependenciesResolverFactory()' | 'consumable'   | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]
+        'getDependenciesResolverFactory()' | 'dependencies' | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]
+        'getResolvedState()'               | 'consumable'   | "getResolvedState()"               || [ProperMethodUsage.RESOLVABLE]
+        'getResolvedState()'               | 'dependencies' | "getResolvedState()"               || [ProperMethodUsage.RESOLVABLE]
+        'getSyntheticDependencies()'       | 'consumable'   | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
+        'getSyntheticDependencies()'       | 'dependencies' | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
+        'resetResolutionState()'           | 'consumable'   | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]
+        'resetResolutionState()'           | 'dependencies' | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]
+        'toRootComponentMetaData()'        | 'consumable'   | "toRootComponentMetaData()"        || [ProperMethodUsage.RESOLVABLE]
+        'toRootComponentMetaData()'        | 'dependencies' | "toRootComponentMetaData()"        || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "forcing resolve of a non-resolvable configuration via calling invalid internal API method #methodName for role #role warns and then throws an exception"() {
@@ -137,20 +137,15 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
     def "calling deprecated usage produces a deprecation warning"() {
         given:
         buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            configurations.consumable('custom')
 
-            ConfigurationRole customRole = new org.gradle.api.internal.artifacts.configurations.DefaultConfigurationRole("custom", true, false, false, true, false, false)
-            configurations.createWithRole('custom', customRole)
-
-            configurations.custom.attributes {
-                attribute(Attribute.of('foo', String), 'bar')
-            }
+            configurations.custom.getConsistentResolutionSource()
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'attributes(Action)' is deprecated for configuration 'custom', which has permitted usage(s):
-\tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: ${documentationRegistry.getDocumentationFor("upgrading_version_8", "deprecated_configuration_usage")}""")
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getConsistentResolutionSource()' is deprecated for configuration 'custom', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+This method is only meant to be called on configurations which allow the usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: ${documentationRegistry.getDocumentationFor("upgrading_version_8", "deprecated_configuration_usage")}""")
         succeeds('help')
     }
 
@@ -158,10 +153,9 @@ This method is only meant to be called on configurations which allow the (non-de
         given:
         buildFile << """
             configurations {
-                createWithRole('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET) {
-                    attributes {
-                        attribute(Attribute.of('foo', String), 'bar')
-                    }
+                migratingUnlocked('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET)
+                foo.attributes {
+                    attribute(Attribute.of('foo', String), 'bar')
                 }
             }
         """
@@ -173,7 +167,7 @@ This method is only meant to be called on configurations which allow the (non-de
     def "configuration explicitly deprecated for resolution will warn if resolved, but not fail"() {
         buildFile << """
             configurations {
-                createWithRole('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_BUCKET)
+                migratingUnlocked('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
             }
 
             ${mavenCentralRepository()}
@@ -186,6 +180,7 @@ This method is only meant to be called on configurations which allow the (non-de
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         succeeds("help")
     }
@@ -202,7 +197,7 @@ This method is only meant to be called on configurations which allow the ${allow
 
     private String buildAllowedUsages(String role) {
         switch (role) {
-            case 'bucket':
+            case 'dependencies':
                 return "\tDeclarable - this configuration can have dependencies added to it"
             case 'consumable':
                 return "\tConsumable - this configuration can be selected by another project as a dependency"

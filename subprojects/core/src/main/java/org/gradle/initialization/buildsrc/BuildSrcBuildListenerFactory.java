@@ -78,9 +78,10 @@ public class BuildSrcBuildListenerFactory {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public void applyTasksTo(Context context, ExecutionPlan plan) {
             rootProjectState.applyToMutableState(rootProject -> {
-                classpathConfiguration = rootProject.getConfigurations().resolvableBucket("buildScriptClasspath");
+                classpathConfiguration = rootProject.getConfigurations().resolvableDependenciesUnlocked("buildScriptClasspath").get();
                 resolver.prepareClassPath(classpathConfiguration, rootProject.getDependencies());
                 classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
                 plan.addEntryTasks(TaskDependencyUtil.getDependenciesForInternalUse(classpathConfiguration.getBuildDependencies(), null));

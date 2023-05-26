@@ -15,19 +15,20 @@
  */
 package org.gradle.api.plugins.catalog;
 
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependenciesConfiguration;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
+import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.TomlFileGenerator;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.tasks.TaskProvider;
@@ -54,29 +55,30 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        Configuration dependenciesConfiguration = createDependenciesConfiguration((ProjectInternal) project);
+        NamedDomainObjectProvider<DependenciesConfiguration> dependenciesConfiguration = createDependenciesConfiguration((ProjectInternal) project);
         CatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
         TaskProvider<TomlFileGenerator> generator = createGenerator(project, extension);
         createPublication((ProjectInternal) project, generator);
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().createWithRole(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, cnf -> {
-            cnf.setDescription("Artifacts for the version catalog");
-            cnf.getOutgoing().artifact(generator);
-            cnf.attributes(attrs -> {
+        Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, conf -> {
+            conf.setDescription("Artifacts for the version catalog");
+            conf.getOutgoing().artifact(generator);
+            conf.attributes(attrs -> {
                 attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
                 attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.VERSION_CATALOG));
             });
-        });
+        }).get();
+
         AdhocComponentWithVariants versionCatalog = softwareComponentFactory.adhoc("versionCatalog");
         project.getComponents().add(versionCatalog);
         versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));
     }
 
-    private Configuration createDependenciesConfiguration(ProjectInternal project) {
-        return project.getConfigurations().createWithRole(GRADLE_PLATFORM_DEPENDENCIES, ConfigurationRoles.BUCKET, cnf -> {
-            cnf.setVisible(false);
+    private NamedDomainObjectProvider<DependenciesConfiguration> createDependenciesConfiguration(ProjectInternal project) {
+        return project.getConfigurations().dependenciesUnlocked(GRADLE_PLATFORM_DEPENDENCIES, conf -> {
+            conf.setVisible(false);
         });
     }
 
@@ -91,9 +93,9 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
         task.getDependenciesModel().convention(extension.getVersionCatalog());
     }
 
-    private CatalogExtensionInternal createExtension(Project project, Configuration dependenciesConfiguration) {
+    private CatalogExtensionInternal createExtension(Project project, NamedDomainObjectProvider<DependenciesConfiguration> dependenciesConfiguration) {
         return (CatalogExtensionInternal) project.getExtensions()
-            .create(CatalogPluginExtension.class, "catalog", DefaultVersionCatalogPluginExtension.class, dependenciesConfiguration);
+            .create(CatalogPluginExtension.class, "catalog", DefaultVersionCatalogPluginExtension.class, dependenciesConfiguration.get());
     }
 
 }

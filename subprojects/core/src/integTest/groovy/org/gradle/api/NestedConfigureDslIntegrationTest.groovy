@@ -272,7 +272,7 @@ configurations {
 
         expect:
         fails()
-        failure.assertHasCause("Could not find method noExist() for arguments [12] on configuration ':broken' of type org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.")
+        failure.assertHasCause("Could not find method noExist() for arguments [12] on configuration ':broken' of type org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration.")
     }
 
     def "reports set unknown property from polymorphic container configure closure"() {

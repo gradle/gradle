@@ -80,6 +80,8 @@ public interface JvmFeatureInternal {
      */
     void withApi();
 
+    // TODO: Expose all configurations as providers
+
     /**
      * Gets the consumable configuration created by {@link #withJavadocJar()}.
      *

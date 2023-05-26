@@ -18,7 +18,10 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -124,4 +127,99 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @return The configuration.
      */
     Configuration detachedConfiguration(Dependency... dependencies);
+
+    /**
+     * Registers a {@link ResolvableConfiguration} with an immutable role. Resolvable configurations
+     * are meant to resolve dependency graphs and their artifacts.
+     *
+     * @param name The name of the configuration to register.
+     *
+     * @return A provider which creates a new resolvable configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name);
+
+    /**
+     * Registers a {@link ResolvableConfiguration} via {@link #resolvable(String)} and then executes
+     * the provided action against it.
+     *
+     * @param name The name of the configuration to register.
+     * @param action The action to execute against the new configuration.
+     *
+     * @return A provider which creates a new resolvable configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action);
+
+    /**
+     * Registers a new {@link ConsumableConfiguration} with an immutable role. Consumable configurations
+     * are meant to act as a variant in the context of Dependency Management and Publishing.
+     *
+     * @param name The name of the configuration to register.
+     *
+     * @return A provider which creates a new consumable configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name);
+
+    /**
+     * Registers a {@link ConsumableConfiguration} via {@link #consumable(String)} and then executes
+     * the provided action against it.
+     *
+     * @param name The name of the configuration to register.
+     * @param action The action to execute against the new configuration.
+     *
+     * @return A provider which creates a new consumable configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action);
+
+    /**
+     * Registers a new {@link DependenciesConfiguration} with an immutable role. Dependency configurations
+     * collect dependencies, dependency constraints, and exclude rules to be used by both resolvable
+     * and consumable configurations.
+     *
+     * @param name The name of the configuration to register.
+     *
+     * @return A provider which creates a new dependencies configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    NamedDomainObjectProvider<DependenciesConfiguration> dependencies(String name);
+
+    /**
+     * Registers a {@link DependenciesConfiguration} via {@link #dependencies(String)} and then executes
+     * the provided action against it.
+     *
+     * @param name The name of the configuration to register.
+     * @param action The action to execute against the new configuration.
+     *
+     * @return A provider which creates a new dependencies configuration.
+     *
+     * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    NamedDomainObjectProvider<DependenciesConfiguration> dependencies(String name, Action<? super DependenciesConfiguration> action);
+
 }

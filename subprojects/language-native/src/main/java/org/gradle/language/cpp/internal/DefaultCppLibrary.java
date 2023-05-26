@@ -56,7 +56,6 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final MainLibraryVariant mainVariant;
     private final DefaultLibraryDependencies dependencies;
 
-    @SuppressWarnings("deprecation")
     @Inject
     public DefaultCppLibrary(String name, ObjectFactory objectFactory, RoleBasedConfigurationContainerInternal configurations, ImmutableAttributesFactory immutableAttributesFactory) {
         super(name, objectFactory);
@@ -72,7 +71,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
         Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
 
-        apiElements = configurations.createWithRole(getNames().withSuffix("cppApiElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        apiElements = configurations.migratingUnlocked(getNames().withSuffix("cppApiElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE).get();
         apiElements.extendsFrom(dependencies.getApiDependencies());
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
         apiElements.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);

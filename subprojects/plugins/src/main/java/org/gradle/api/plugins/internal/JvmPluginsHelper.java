@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.AttributeContainer;
@@ -126,7 +128,7 @@ public class JvmPluginsHelper {
         }
     }
 
-    public static Configuration createDocumentationVariantWithArtifact(
+    public static NamedDomainObjectProvider<Configuration> createDocumentationVariantWithArtifact(
         String variantName,
         @Nullable String featureName,
         String docsType,
@@ -135,36 +137,43 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        @SuppressWarnings("deprecation") Configuration variant = project.getConfigurations().maybeCreateWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
-        variant.setVisible(false);
-        variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
+        Action<Configuration> action = variant -> {
+            variant.setVisible(false);
+            variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 
-        ObjectFactory objectFactory = project.getObjects();
-        AttributeContainer attributes = variant.getAttributes();
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
-        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
-        capabilities.forEach(variant.getOutgoing()::capability);
+            ObjectFactory objectFactory = project.getObjects();
+            AttributeContainer attributes = variant.getAttributes();
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
+            capabilities.forEach(variant.getOutgoing()::capability);
 
-        TaskContainer tasks = project.getTasks();
+            TaskContainer tasks = project.getTasks();
 
-        if (!tasks.getNames().contains(jarTaskName)) {
-            TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
-                jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
-                jar.setGroup(BasePlugin.BUILD_GROUP);
-                jar.from(artifactSource);
-                jar.getArchiveClassifier().set(camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
-            });
-            if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
-                tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
+            if (!tasks.getNames().contains(jarTaskName)) {
+                TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
+                    jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
+                    jar.setGroup(BasePlugin.BUILD_GROUP);
+                    jar.from(artifactSource);
+                    jar.getArchiveClassifier().set(camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
+                });
+                if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
+                    tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
+                }
             }
+
+            TaskProvider<Jar> jar = tasks.named(jarTaskName, Jar.class);
+            variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));
+        };
+
+        Configuration variant = project.getConfigurations().findByName(variantName);
+        if (variant == null) {
+            return project.getConfigurations().migratingUnlocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, action);
+        } else {
+            // TODO: Deprecate & warn the user. They should not be creating Gradle-managed configurations on their own.
+            return project.getConfigurations().named(variantName, action);
         }
-
-        TaskProvider<Jar> jar = tasks.named(jarTaskName, Jar.class);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));
-
-        return variant;
     }
 
 }

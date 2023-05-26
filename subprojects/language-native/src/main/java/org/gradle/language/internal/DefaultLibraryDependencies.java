@@ -30,7 +30,7 @@ public class DefaultLibraryDependencies extends DefaultComponentDependencies imp
     @Inject
     public DefaultLibraryDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName, String apiName) {
         super(configurations, implementationName);
-        apiDependencies = configurations.bucket(apiName);
+        apiDependencies = configurations.dependenciesUnlocked(apiName).get();
         getImplementationDependencies().extendsFrom(apiDependencies);
     }
 

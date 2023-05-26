@@ -1037,7 +1037,7 @@ compileClasspath - Compile classpath for source set 'main'.
         buildFile << """
             subprojects {
                 configurations {
-                    createWithRole('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE)
+                    migratingUnlocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE)
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1086,7 +1086,7 @@ compileClasspath - Compile classpath for source set 'main'.
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                createWithRole('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_BUCKET)
+                migratingUnlocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
                 implementation.extendsFrom compileOnly
             }
             dependencies {
@@ -1096,6 +1096,7 @@ compileClasspath - Compile classpath for source set 'main'.
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         run ":dependencies"
 
         then:
@@ -1111,6 +1112,7 @@ implementation
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         run ":dependencies", "--configuration", "compileOnly"
 
         then:
