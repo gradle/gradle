@@ -37,6 +37,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.ComponentArtifactResolveState
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.resolver.ArtifactResolver
@@ -146,7 +147,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         _ * metadata.getModuleVersionId() >> Mock(ModuleVersionIdentifier)
 
         numberOfComponentsToResolve * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
-            resolveResult.resolved(state)
+            resolveResult.resolved(state, Stub(ComponentGraphSpecificResolveState))
         }
     }
 

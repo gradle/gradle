@@ -250,6 +250,8 @@ public class Path implements Comparable<Path> {
     public Path removeFirstSegments(int n) {
         if (n == 0) {
             return this;
+        } else if (n == segments.length && absolute) {
+            return ROOT;
         } else if (n < 0 || n >= segments.length) {
             throw new IllegalArgumentException("Cannot remove " + n + " segments from path " + getPath());
         }

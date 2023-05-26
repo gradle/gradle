@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.gradle.java.fixtures
 
-
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenPom
 
-abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrationSpec {
+/**
+ * Base class for integration tests for the `java-test-fixtures` plugin that involve `java` or `java-library` projects.
+ */
+abstract class AbstractJavaProjectTestFixturesIntegrationTest extends AbstractTestFixturesIntegrationTest {
     abstract String getPluginName()
 
     abstract List getSkippedJars(boolean compileClasspathPackaging)
@@ -71,10 +71,10 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         def skippedJars = getSkippedJars(compileClasspathPackaging)
         def producedJars = [':jar', ':testFixturesJar'] - skippedJars
         executedAndNotSkipped(
-            ":compileJava",
-            ":compileTestFixturesJava",
-            ":compileTestJava",
-            *producedJars
+                ":compileJava",
+                ":compileTestFixturesJava",
+                ":compileTestJava",
+                *producedJars
         )
         notExecuted(*skippedJars)
         outputContains """Test compile classpath
@@ -128,10 +128,10 @@ hamcrest-core-1.3.jar
         def skippedJars = getSkippedJars(compileClasspathPackaging)
         def producedJars = [':jar', ':testFixturesJar'] - skippedJars
         executedAndNotSkipped(
-            ":compileJava",
-            ":compileTestFixturesJava",
-            ":compileTestJava",
-            *producedJars
+                ":compileJava",
+                ":compileTestFixturesJava",
+                ":compileTestJava",
+                *producedJars
         )
         notExecuted(*skippedJars)
 
@@ -220,7 +220,7 @@ hamcrest-core-1.3.jar
 
         then:
         executedAndNotSkipped(
-            ":sub:compileTestFixturesJava"
+                ":sub:compileTestFixturesJava"
         )
     }
 
@@ -249,7 +249,7 @@ hamcrest-core-1.3.jar
 
         then:
         executedAndNotSkipped(
-            ":sub:compileTestFixturesJava"
+                ":sub:compileTestFixturesJava"
         )
     }
 
@@ -292,7 +292,7 @@ hamcrest-core-1.3.jar
         MavenPom pom = new MavenPom(file("build/repo/com/acme/root/1.3/root-1.3.pom"))
         pom.scope("runtime") {
             assertOptionalDependencies(
-                "org.apache.commons:commons-lang3:3.9"
+                    "org.apache.commons:commons-lang3:3.9"
             )
         }
 
@@ -360,19 +360,19 @@ hamcrest-core-1.3.jar
 
     def "can consume test fixtures of an external module"() {
         mavenRepo.module("com.acme", "external-module", "1.3")
-            .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {
-                capability('com.acme', 'external-module-test-fixtures', '1.3')
-                dependsOn("com.acme:external-module:1.3")
-                artifact("external-module-1.3-test-fixtures.jar")
-            }
-            .variant("testFixturesRuntimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar']) {
-                capability('com.acme', 'external-module-test-fixtures', '1.3')
-                dependsOn("com.acme:external-module:1.3")
-                dependsOn("org.apache.commons:commons-lang3:3.9")
-                artifact("external-module-1.3-test-fixtures.jar")
-            }
-            .withModuleMetadata()
-            .publish()
+                .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {
+                    capability('com.acme', 'external-module-test-fixtures', '1.3')
+                    dependsOn("com.acme:external-module:1.3")
+                    artifact("external-module-1.3-test-fixtures.jar")
+                }
+                .variant("testFixturesRuntimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar']) {
+                    capability('com.acme', 'external-module-test-fixtures', '1.3')
+                    dependsOn("com.acme:external-module:1.3")
+                    dependsOn("org.apache.commons:commons-lang3:3.9")
+                    artifact("external-module-1.3-test-fixtures.jar")
+                }
+                .withModuleMetadata()
+                .publish()
         buildFile << """
             dependencies {
                 testImplementation(testFixtures('com.acme:external-module:1.3'))
@@ -397,7 +397,7 @@ hamcrest-core-1.3.jar
                 }
                 module('com.acme:external-module:1.3') {
                     variant("testFixturesApiElements", [
-                        'org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar'
+                            'org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar'
                     ])
                     firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
@@ -423,7 +423,7 @@ hamcrest-core-1.3.jar
                 }
                 module('com.acme:external-module:1.3') {
                     variant("testFixturesRuntimeElements", [
-                        'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'
+                            'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'
                     ])
                     firstLevelConfigurations = ['testFixturesRuntimeElements']
                     module('com.acme:external-module:1.3') {
@@ -437,104 +437,5 @@ hamcrest-core-1.3.jar
                 }
             }
         }
-    }
-
-    protected TestFile addPersonTestUsingTestFixtures(String subproject = "") {
-        file("${subproject ? "${subproject}/" : ""}src/test/java/org/PersonTest.java") << """
-            import org.PersonFixture;
-            import org.Person;
-            import org.junit.Test;
-            import static org.junit.Assert.*;
-
-            public class PersonTest {
-                @Test
-                public void testAny() {
-                    Person anyone = PersonFixture.anyone();
-                    assertEquals("John", anyone.getFirstName());
-                    assertEquals("Doe", anyone.getLastName());
-                }
-            }
-        """
-    }
-
-    protected TestFile addPersonDomainClass(String subproject = "", String lang = 'java') {
-        file("${subproject ? "${subproject}/" : ""}src/main/$lang/org/Person.$lang") << """
-            package org;
-
-            public class Person {
-                private final String firstName;
-                private final String lastName;
-
-                public Person(String first, String last) {
-                    this.firstName = first;
-                    this.lastName = last;
-                }
-
-                public String getFirstName() {
-                    return firstName;
-                }
-
-                public String getLastName() {
-                    return lastName;
-                }
-            }
-        """
-    }
-
-    protected TestFile addPersonTestFixture(String subproject = "", String lang = "java") {
-        file("${subproject ? "${subproject}/" : ""}src/testFixtures/$lang/org/PersonFixture.$lang") << """
-            package org;
-
-            public class PersonFixture {
-                public static Person anyone() {
-                    return new Person("John", "Doe");
-                }
-            }
-        """
-    }
-
-    protected TestFile addPersonTestFixtureUsingApacheCommons(String subproject = "") {
-        file("${subproject ? "${subproject}/" : ""}src/testFixtures/java/org/PersonFixture.java") << """
-            package org;
-            import org.apache.commons.lang3.StringUtils;
-
-            public class PersonFixture {
-                public static Person anyone() {
-                    return new Person(StringUtils.capitalize("john"), StringUtils.capitalize("doe"));
-                }
-            }
-        """
-    }
-
-    protected void dumpCompileAndRuntimeTestClasspath() {
-        buildFile << """
-            class Utils {
-                static void printClasspathFile(File it) {
-                    if (it.absolutePath.contains('intTestHomeDir')) {
-                        println it.name
-                    } else {
-                        println it.absolutePath.substring(it.absolutePath.lastIndexOf('build') + 6).replace(File.separatorChar, (char) '/')
-                    }
-                }
-            }
-
-            compileTestJava {
-               doFirst {
-                   println "Test compile classpath"
-                   println "---"
-                   classpath.each { Utils.printClasspathFile(it) }
-                   println "---"
-               }
-            }
-
-            test {
-               doFirst {
-                  println "Test runtime classpath"
-                  println "---"
-                  classpath.each { Utils.printClasspathFile(it) }
-                  println "---"
-               }
-            }
-"""
     }
 }

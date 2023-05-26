@@ -76,6 +76,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
+        result.buildTreePath == identifier.buildTreePath
         result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
     }
@@ -90,6 +91,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
+        result.buildTreePath == identifier.buildTreePath
         result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
     }
@@ -104,6 +106,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
+        result.buildTreePath == identifier.buildTreePath
         result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
     }
@@ -118,6 +121,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         then:
         result.identityPath == identifier.identityPath
         result.projectPath == identifier.projectPath
+        result.buildTreePath == identifier.buildTreePath
         result.projectPath() == identifier.projectPath()
         result.projectName == identifier.projectName
     }

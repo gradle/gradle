@@ -46,12 +46,12 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final List<ResolvedVariantResult> selectedVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariantsById;
     private final List<ResolvedVariantResult> allVariants;
-    private final String repositoryId;
+    private final String repositoryName;
     private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = ArrayListMultimap.create();
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
-        Map<Long, ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, @Nullable String repositoryId
+        Map<Long, ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, @Nullable String repositoryName
     ) {
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
@@ -59,7 +59,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         this.selectedVariantsById = selectedVariants;
         this.selectedVariants = ImmutableList.copyOf(selectedVariants.values());
         this.allVariants = allVariants.isEmpty() ? this.selectedVariants : allVariants;
-        this.repositoryId = repositoryId;
+        this.repositoryName = repositoryName;
     }
 
     @Override
@@ -70,13 +70,13 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     @Override
     @Deprecated
     public String getRepositoryName() {
-        return repositoryId;
+        return repositoryName;
     }
 
     @Nullable
     @Override
     public String getRepositoryId() {
-        return repositoryId;
+        return repositoryName;
     }
 
     @Override

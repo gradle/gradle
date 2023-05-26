@@ -25,19 +25,21 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.problems.Location;
+import org.gradle.problems.ProblemDiagnostics;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
     public static final String WARNING_SUMMARY = "Deprecated Gradle features were used in this build, making it incompatible with Gradle";
-    public static final String WARNING_LOGGING_DOCS_MESSAGE = "See";
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
@@ -45,41 +47,55 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
     private static boolean traceLoggingEnabled;
 
-    private final Set<String> messages = new HashSet<String>();
+    private final Set<String> loggedMessages = new CopyOnWriteArraySet<String>();
+    private final Set<String> loggedUsages = new CopyOnWriteArraySet<String>();
     private boolean deprecationsFound = false;
-    private UsageLocationReporter locationReporter;
+    private ProblemDiagnosticsFactory problemDiagnosticsFactory = new NoOpProblemDiagnosticsFactory();
 
     private WarningMode warningMode = WarningMode.Summary;
     private BuildOperationProgressEventEmitter progressEventEmitter;
     private GradleException error;
 
-    public LoggingDeprecatedFeatureHandler() {
-        this.locationReporter = DoNothingReporter.INSTANCE;
-    }
-
-    public void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
-        this.locationReporter = reporter;
+    public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
+        this.problemDiagnosticsFactory = problemDiagnosticsFactory;
         this.warningMode = warningMode;
         this.progressEventEmitter = progressEventEmitter;
     }
 
     @Override
-    public void featureUsed(DeprecatedFeatureUsage usage) {
+    public void featureUsed(final DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
-        String featureMessage = usage.formattedMessage();
+        ProblemDiagnostics diagnostics = problemDiagnosticsFactory.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
         if (warningMode.shouldDisplayMessages()) {
-            StringBuilder message = new StringBuilder();
-            locationReporter.reportLocation(usage, message);
-            if (message.length() > 0) {
-                message.append(SystemProperties.getInstance().getLineSeparator());
-            }
-            message.append(featureMessage);
-            displayDeprecationIfSameMessageNotDisplayedBefore(message, usage.getStack());
+            maybeLogUsage(usage, diagnostics);
         }
+        if (warningMode == WarningMode.Fail) {
+            if (error == null) {
+                error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
+            }
+        }
+        Problems.reportWarning(ProblemId.KnownIds.DEPRECATION, usage.formattedMessage(), usage.getSummary(), usage.getDocumentationUrl(), usage.getAdvice());
+        fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
+    }
 
-
-        Problems.reportWarning(ProblemId.KnownIds.DEPRECATION, featureMessage, usage.getSummary(), usage.getDocumentationUrl(), usage.getAdvice());
-        fireDeprecatedUsageBuildOperationProgress(usage);
+    private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
+        String featureMessage = usage.formattedMessage();
+        Location location = diagnostics.getLocation();
+        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getStack().isEmpty()) {
+            // This usage does not contain any useful diagnostics and the usage has already been logged, so skip it
+            return;
+        }
+        StringBuilder message = new StringBuilder();
+        if (location != null) {
+            message.append(location.getFormatted());
+            message.append(SystemProperties.getInstance().getLineSeparator());
+        }
+        message.append(featureMessage);
+        if (location != null && !loggedUsages.add(message.toString()) && diagnostics.getStack().isEmpty()) {
+            // This usage has no stack trace and has already been logged with the same location, so skip it
+            return;
+        }
+        displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getStack());
     }
 
     private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, List<StackTraceElement> callStack) {
@@ -87,26 +103,23 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         // Even when two deprecation messages are emitted from the same location,
         // the stack traces at very bottom might be different due to thread pool scheduling.
         appendLogTraceIfNecessary(message, callStack, 0, 10);
-        if (messages.add(message.toString())) {
+        if (loggedMessages.add(message.toString())) {
             appendLogTraceIfNecessary(message, callStack, 10, callStack.size());
             LOGGER.warn(message.toString());
-            if (warningMode == WarningMode.Fail) {
-                if (error == null) {
-                    error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
-                }
-            }
         }
     }
 
-    private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage) {
+    private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         if (progressEventEmitter != null) {
-            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage));
+            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics));
         }
     }
 
     public void reset() {
+        problemDiagnosticsFactory = new NoOpProblemDiagnosticsFactory();
         progressEventEmitter = null;
-        messages.clear();
+        loggedMessages.clear();
+        loggedUsages.clear();
         deprecationsFound = false;
         error = null;
     }
@@ -146,7 +159,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {
         message.append(lineSeparator);
         message.append(ELEMENT_PREFIX);
-        message.append(frame.toString());
+        message.append(frame);
     }
 
     private static void appendRunWithStacktraceInfo(StringBuilder message, String lineSeparator) {
@@ -191,13 +204,4 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     public GradleException getDeprecationFailure() {
         return error;
     }
-
-    private enum DoNothingReporter implements UsageLocationReporter {
-        INSTANCE;
-
-        @Override
-        public void reportLocation(FeatureUsage usage, StringBuilder target) {
-        }
-    }
-
 }

@@ -30,6 +30,7 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         id.projectPath == ':project:path'
         id.projectName == 'projectName'
         id.displayName == 'project :id:path'
+        id.buildTreePath == ':id:path'
         id.toString() == 'project :id:path'
     }
 
