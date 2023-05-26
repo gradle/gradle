@@ -67,6 +67,32 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         nestedBuildSrc.editableBuilds.empty
     }
 
+    def "includes included builds of buildSrc"() {
+        given:
+        buildsWithBuildSrc()
+
+        def buildSrcIncluded = projectDir.file('buildSrcIncluded').mkdir()
+        projectDir.file("buildSrc/settings.gradle") << """
+            includeBuild("../buildSrcIncluded")
+        """
+
+        when:
+        def model = withConnection {
+            it.getModel(GradleBuild)
+        }
+
+        then:
+        model.includedBuilds.size() == 1
+        model.editableBuilds.size() == 5
+
+        def buildSrc = model.editableBuilds[0]
+        buildSrc.buildIdentifier.rootDir == file("buildSrc")
+        buildSrc.includedBuilds.size() == 1
+        buildSrc.includedBuilds[0].rootProject.name == 'buildSrcIncluded'
+        buildSrc.editableBuilds.size() == 1
+        buildSrc.editableBuilds[0].rootProject.name == 'buildSrcIncluded'
+    }
+
     @TargetGradleVersion(">4.9 <7.1")
     // versions 4.9 and older do not like nested included builds or nested buildSrc builds
     def "older versions do not include buildSrc builds in model"() {
