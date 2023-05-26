@@ -89,8 +89,10 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class ProjectCacheDirOption extends StringBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.projectcachedir";
+        
         public ProjectCacheDirOption() {
-            super(null, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory."));
+            super(PROPERTY_NAME, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory."));
         }
 
         @Override
@@ -122,16 +124,25 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class ContinueOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+    public static class ContinueOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String LONG_OPTION = "continue";
 
+        public static final String PROPERTY_NAME = "org.gradle.continue";
+
         public ContinueOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Continue task execution after a task failure."));
+            super(
+                PROPERTY_NAME,
+                BooleanCommandLineOptionConfiguration.create(
+                    LONG_OPTION,
+                    "Continue task execution after a task failure.",
+                    "Stop task execution after a task failure."
+                )
+            );
         }
 
         @Override
-        public void applyTo(StartParameterInternal settings, Origin origin) {
-            settings.setContinueOnFailure(true);
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setContinueOnFailure(value);
         }
     }
 
