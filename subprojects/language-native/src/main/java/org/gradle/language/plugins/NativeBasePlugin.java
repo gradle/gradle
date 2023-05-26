@@ -341,7 +341,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         components.withType(ConfigurableComponentWithLinkUsage.class, component -> {
             Names names = component.getNames();
 
-            @SuppressWarnings("deprecation") Configuration linkElements = configurations.createWithRole(names.withSuffix("linkElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+            Configuration linkElements = configurations.migratingUnlocked(names.withSuffix("linkElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE).get();
             linkElements.extendsFrom(component.getImplementationDependencies());
             AttributeContainer attributes = component.getLinkAttributes();
             copyAttributesTo(attributes, linkElements);
@@ -356,7 +356,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, component -> {
             Names names = component.getNames();
 
-            @SuppressWarnings("deprecation") Configuration runtimeElements = configurations.createWithRole(names.withSuffix("runtimeElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+            Configuration runtimeElements = configurations.migratingUnlocked(names.withSuffix("runtimeElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE).get();
             runtimeElements.extendsFrom(component.getImplementationDependencies());
 
             AttributeContainer attributes = component.getRuntimeAttributes();

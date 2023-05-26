@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Provider
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.nativeplatform.internal.Names
@@ -49,9 +50,9 @@ class DefaultSwiftBinaryTest extends Specification {
     DefaultSwiftBinary binary
 
     def setup() {
-        _ * configurations.resolvableBucket("swiftCompileDebug") >> compile
-        _ * configurations.resolvableBucket("nativeLinkDebug") >> link
-        _ * configurations.createWithRole('nativeRuntimeDebug', ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE) >> runtime
+        _ * configurations.resolvableDependenciesUnlocked("swiftCompileDebug") >> Providers.ofNamed(compile)
+        _ * configurations.resolvableDependenciesUnlocked("nativeLinkDebug") >> Providers.ofNamed(link)
+        _ * configurations.migratingUnlocked('nativeRuntimeDebug', ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE) >> Providers.ofNamed(runtime)
 
         binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }

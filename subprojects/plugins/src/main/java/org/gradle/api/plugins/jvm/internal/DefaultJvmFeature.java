@@ -16,7 +16,9 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -24,8 +26,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -89,25 +90,25 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private final TaskProvider<JavaCompile> compileJava;
 
     // Dependency configurations
-    private final Configuration implementation;
-    private final Configuration runtimeOnly;
-    private final Configuration compileOnly;
+    private final NamedDomainObjectProvider<? extends Configuration> implementation;
+    private final NamedDomainObjectProvider<? extends Configuration> runtimeOnly;
+    private final NamedDomainObjectProvider<? extends Configuration> compileOnly;
 
     // Configurable dependency configurations
-    private Configuration compileOnlyApi;
-    private Configuration api;
+    private NamedDomainObjectProvider<? extends Configuration> compileOnlyApi;
+    private NamedDomainObjectProvider<? extends Configuration> api;
 
     // Resolvable configurations
-    private final Configuration runtimeClasspath;
-    private final Configuration compileClasspath;
+    private final NamedDomainObjectProvider<? extends Configuration> runtimeClasspath;
+    private final NamedDomainObjectProvider<? extends Configuration> compileClasspath;
 
     // Outgoing variants
-    private final Configuration apiElements;
-    private final Configuration runtimeElements;
+    private final NamedDomainObjectProvider<? extends Configuration> apiElements;
+    private final NamedDomainObjectProvider<? extends Configuration> runtimeElements;
 
     // Configurable outgoing variants
-    private Configuration javadocElements;
-    private Configuration sourcesElements;
+    private NamedDomainObjectProvider<? extends Configuration> javadocElements;
+    private NamedDomainObjectProvider<? extends Configuration> sourcesElements;
 
     public DefaultJvmFeature(
         String name,
@@ -117,7 +118,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         // The elements configurations' roles should always be consumable only, but
         // some users of this class are still migrating towards that. In 9.0, we can remove this
         // parameter and hard-code the elements configurations' roles to consumable only.
-        ConfigurationRole elementsConfigurationRole,
+        boolean useMigrationRoleForElementsConfigurations,
         boolean extendProductionCode
     ) {
         this.name = name;
@@ -141,16 +142,16 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         // If extendProductionCode=false, the source set has already created these configurations.
         // If extendProductionCode=true, then we create new buckets and later update the main and
         // test source sets to extend from these buckets.
-        this.implementation = bucket("Implementation", JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME);
-        this.compileOnly = bucket("Compile-only", JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME);
-        this.runtimeOnly = bucket("Runtime-only", JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME);
+        this.implementation = bucket("Implementation", JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, extendProductionCode, false);
+        this.compileOnly = bucket("Compile-only", JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
+        this.runtimeOnly = bucket("Runtime-only", JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
 
-        this.runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
-        this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        this.runtimeClasspath = configurations.named(sourceSet.getRuntimeClasspathConfigurationName());
+        this.compileClasspath = configurations.named(sourceSet.getCompileClasspathConfigurationName());
 
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
-        this.apiElements = createApiElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
-        this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
+        this.apiElements = registerApiElements(configurations, jarArtifact, compileJava, useMigrationRoleForElementsConfigurations);
+        this.runtimeElements = registerRuntimeElements(configurations, jarArtifact, compileJava, useMigrationRoleForElementsConfigurations);
 
         if (extendProductionCode) {
             doExtendProductionCode();
@@ -187,11 +188,11 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
             .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
         // Update the main feature's source set to extend our "extension" feature's buckets.
-        configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly);
-        configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation, runtimeOnly);
+        configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation.get(), compileOnly.get());
+        configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation.get(), runtimeOnly.get());
         // Update the default test suite's source set to extend our "extension" feature's buckets.
-        configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation);
-        configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
+        configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation.get());
+        configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation.get(), runtimeOnly.get());
     }
 
     /**
@@ -213,66 +214,85 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private Configuration createApiElements(
+    private NamedDomainObjectProvider<? extends Configuration> registerApiElements(
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact,
         TaskProvider<JavaCompile> compileJava,
-        ConfigurationRole elementsRole
+        boolean useMigrationRoleForElementsConfigurations
     ) {
         String configName = getConfigurationName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration apiElements = configurations.maybeCreateWithRole(configName, elementsRole, false, false);
+        return maybeRegisterElementsConfiguration(configName, configurations, useMigrationRoleForElementsConfigurations, apiElements -> {
+            apiElements.setVisible(false);
+            jvmPluginServices.useDefaultTargetPlatformInference(apiElements, compileJava);
+            jvmPluginServices.configureAsApiElements(apiElements);
+            capabilities.forEach(apiElements.getOutgoing()::capability);
+            apiElements.setDescription("API elements for the '" + name + "' feature.");
 
-        apiElements.setVisible(false);
-        jvmPluginServices.useDefaultTargetPlatformInference(apiElements, compileJava);
-        jvmPluginServices.configureAsApiElements(apiElements);
-        capabilities.forEach(apiElements.getOutgoing()::capability);
-        apiElements.setDescription("API elements for the '" + name + "' feature.");
-
-        // Configure variants
-        addJarArtifactToConfiguration(apiElements, jarArtifact);
-
-        return apiElements;
+            // Configure variants
+            addJarArtifactToConfiguration(apiElements, jarArtifact);
+        });
     }
 
-    private Configuration createRuntimeElements(
+    private NamedDomainObjectProvider<? extends Configuration> registerRuntimeElements(
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact,
         TaskProvider<JavaCompile> compileJava,
-        ConfigurationRole elementsRole
+        boolean useMigrationRoleForElementsConfigurations
     ) {
         String configName = getConfigurationName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeElements = configurations.maybeCreateWithRole(configName, elementsRole, false, false);
+        return maybeRegisterElementsConfiguration(configName, configurations, useMigrationRoleForElementsConfigurations, runtimeElements -> {
+            runtimeElements.setVisible(false);
+            jvmPluginServices.useDefaultTargetPlatformInference(runtimeElements, compileJava);
+            jvmPluginServices.configureAsRuntimeElements(runtimeElements);
+            capabilities.forEach(runtimeElements.getOutgoing()::capability);
+            runtimeElements.setDescription("Runtime elements for the '" + name + "' feature.");
 
-        runtimeElements.setVisible(false);
-        jvmPluginServices.useDefaultTargetPlatformInference(runtimeElements, compileJava);
-        jvmPluginServices.configureAsRuntimeElements(runtimeElements);
-        capabilities.forEach(runtimeElements.getOutgoing()::capability);
-        runtimeElements.setDescription("Runtime elements for the '" + name + "' feature.");
+            runtimeElements.extendsFrom(implementation.get(), runtimeOnly.get());
 
-        runtimeElements.extendsFrom(implementation, runtimeOnly);
+            // Configure variants
+            addJarArtifactToConfiguration(runtimeElements, jarArtifact);
+            jvmPluginServices.configureClassesDirectoryVariant(runtimeElements, sourceSet);
+            jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
+        });
+    }
 
-        // Configure variants
-        addJarArtifactToConfiguration(runtimeElements, jarArtifact);
-        jvmPluginServices.configureClassesDirectoryVariant(runtimeElements, sourceSet);
-        jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
-
-        return runtimeElements;
+    private static NamedDomainObjectProvider<? extends Configuration> maybeRegisterElementsConfiguration(
+        String name,
+        RoleBasedConfigurationContainerInternal configurations,
+        boolean useMigrationRoleForElementsConfigurations,
+        Action<? super Configuration> action
+    ) {
+        if (useMigrationRoleForElementsConfigurations) {
+            return configurations.maybeRegisterMigratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, action);
+        } else {
+            return configurations.maybeRegisterConsumableUnlocked(name, action);
+        }
     }
 
     @Override
     public void withApi() {
-        this.api = bucket("API", JvmConstants.API_CONFIGURATION_NAME);
-        this.compileOnlyApi = bucket("Compile-only API", JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME);
+        // If the Kotlin JVM plugin is applied, after it applies the Java plugin, it will create the API configuration.
+        // We need to suppress the deprecation warning for creating duplicate configurations or else if the java-library
+        // plugin was subsequently applied we'd get a warning that the API configuration was created twice.
+        // * If Kotlin is always creating libraries then it should always apply the java-library plugin.
+        // * Otherwise, if it could create an application, it should not automatically create the api configuration.
+        this.api = bucket("API", JvmConstants.API_CONFIGURATION_NAME, true, false);
+        this.compileOnlyApi = bucket("Compile-only API", JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME, true, true);
 
-        this.apiElements.extendsFrom(api, compileOnlyApi);
-        this.implementation.extendsFrom(api);
-        this.compileOnly.extendsFrom(compileOnlyApi);
+        this.apiElements.configure(it -> {
+            it.extendsFrom(api.get(), compileOnlyApi.get());
 
-        // TODO: Why do we not always do this? Why only when we have an API?
-        jvmPluginServices.configureClassesDirectoryVariant(apiElements, sourceSet);
+            // TODO: Why do we not always do this? Why only when we have an API?
+            jvmPluginServices.configureClassesDirectoryVariant(it, sourceSet);
+        });
+        this.implementation.configure(it -> it.extendsFrom(api.get()));
+        this.compileOnly.configure(it -> it.extendsFrom(compileOnlyApi.get()));
+
 
         if (extendProductionCode) {
-            project.getConfigurations().getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(compileOnlyApi);
+            project.getConfigurations().named(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME, testCompileClasspath -> {
+                testCompileClasspath.extendsFrom(compileOnlyApi.get());
+            });
         }
     }
 
@@ -308,12 +328,15 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         );
     }
 
-    private Configuration bucket(String kind, String suffix) {
+    private NamedDomainObjectProvider<? extends Configuration> bucket(String kind, String suffix, boolean create, boolean warnOnDuplicate) {
+        Action<? super Configuration> action = configuration -> {
+            configuration.setDescription(kind + " dependencies for the '" + name + "' feature.");
+            configuration.setVisible(false);
+        };
         String configName = getConfigurationName(suffix);
-        Configuration configuration = project.getConfigurations().maybeCreateWithRole(configName, ConfigurationRoles.BUCKET, false, false);
-        configuration.setDescription(kind + " dependencies for the '" + name + "' feature.");
-        configuration.setVisible(false);
-        return configuration;
+        return create
+            ? project.getConfigurations().maybeRegisterDependenciesUnlocked(configName, warnOnDuplicate, action)
+            : project.getConfigurations().named(configName, action);
     }
 
     private TaskProvider<Jar> registerOrGetJarTask(SourceSet sourceSet, TaskContainer tasks) {
@@ -353,57 +376,57 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
 
     @Override
     public Configuration getImplementationConfiguration() {
-        return implementation;
+        return implementation.get();
     }
 
     @Override
     public Configuration getRuntimeOnlyConfiguration() {
-        return runtimeOnly;
+        return runtimeOnly.get();
     }
 
     @Override
     public Configuration getCompileOnlyConfiguration() {
-        return compileOnly;
+        return compileOnly.get();
     }
 
     @Override
     public Configuration getApiConfiguration() {
-        return api;
+        return api.get();
     }
 
     @Override
     public Configuration getCompileOnlyApiConfiguration() {
-        return compileOnlyApi;
+        return compileOnlyApi.get();
     }
 
     @Override
     public Configuration getRuntimeClasspathConfiguration() {
-        return runtimeClasspath;
+        return runtimeClasspath.get();
     }
 
     @Override
     public Configuration getCompileClasspathConfiguration() {
-        return compileClasspath;
+        return compileClasspath.get();
     }
 
     @Override
     public Configuration getApiElementsConfiguration() {
-        return apiElements;
+        return apiElements.get();
     }
 
     @Override
     public Configuration getRuntimeElementsConfiguration() {
-        return runtimeElements;
+        return runtimeElements.get();
     }
 
     @Override
     public Configuration getJavadocElementsConfiguration() {
-        return javadocElements;
+        return javadocElements.get();
     }
 
     @Override
     public Configuration getSourcesElementsConfiguration() {
-        return sourcesElements;
+        return sourcesElements.get();
     }
 
 }

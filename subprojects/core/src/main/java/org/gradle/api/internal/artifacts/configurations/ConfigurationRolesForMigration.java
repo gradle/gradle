@@ -37,21 +37,29 @@ public final class ConfigurationRolesForMigration {
         // Private to prevent instantiation.
     }
 
+    /**
+     * A legacy configuration that will become a resolvable dependencies configuration in the next major version.
+     */
     @Deprecated
     public static final ConfigurationRole LEGACY_TO_RESOLVABLE_BUCKET = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_BUCKET);
-    @Deprecated
-    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE);
-
-    @Deprecated
-    public static final ConfigurationRole RESOLVABLE_BUCKET_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.RESOLVABLE);
-    @Deprecated
-    public static final ConfigurationRole CONSUMABLE_BUCKET_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE);
 
     /**
-     * A resolvable bucket that will become a bucket in the next major version.
+     * A legacy configuration that will become a consumable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
-    public static final ConfigurationRole RESOLVABLE_BUCKET_TO_BUCKET = difference(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.BUCKET);
+    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE);
+
+    /**
+     * A resolvable bucket that will become a resolvable configuration in the next major version.
+     */
+    @SuppressWarnings("deprecation")
+    public static final ConfigurationRole RESOLVABLE_BUCKET_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.RESOLVABLE);
+
+    /**
+     * A consumable bucket that will become a consumable configuration in the next major version.
+     */
+    @SuppressWarnings("deprecation")
+    public static final ConfigurationRole CONSUMABLE_BUCKET_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE);
 
     /**
      * Computes the difference between two roles, such that any usage that is allowed in the

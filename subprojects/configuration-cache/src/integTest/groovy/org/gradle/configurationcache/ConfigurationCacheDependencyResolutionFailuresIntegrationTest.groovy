@@ -55,7 +55,7 @@ class ConfigurationCacheDependencyResolutionFailuresIntegrationTest extends Abst
         configurationCacheFails 'test'
 
         then:
-        failure.assertHasFailure("Configuration cache state could not be cached: field `files` of `Bean` bean found in field `__bean__` of task `:test` of type `Test`: error writing value of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'") {
+        failure.assertHasFailure("Configuration cache state could not be cached: field `files` of `Bean` bean found in field `__bean__` of task `:test` of type `Test`: error writing value of type 'org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration'") {
             it.assertHasFirstCause("Could not resolve all files for configuration ':implementation'.")
         }
     }

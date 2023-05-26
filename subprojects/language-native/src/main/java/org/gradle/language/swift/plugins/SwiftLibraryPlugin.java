@@ -18,7 +18,6 @@ package org.gradle.language.swift.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -148,32 +147,34 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
 
             library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, sharedLibrary -> {
                 Names names = ((ComponentWithNames) sharedLibrary).getNames();
-                @SuppressWarnings("deprecation") Configuration apiElements = configurations.createWithRole(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
-                // TODO This should actually extend from the api dependencies, but since Swift currently
-                // requires all dependencies to be treated like api dependencies (with transitivity) we just
-                // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
-                apiElements.extendsFrom(((DefaultSwiftSharedLibrary) sharedLibrary).getImplementationDependencies());
-                apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-                apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
-                apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
-                apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
-                apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, sharedLibrary.getTargetMachine().getOperatingSystemFamily());
-                apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
+                configurations.migratingUnlocked(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, apiElements -> {
+                    // TODO This should actually extend from the api dependencies, but since Swift currently
+                    // requires all dependencies to be treated like api dependencies (with transitivity) we just
+                    // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
+                    apiElements.extendsFrom(((DefaultSwiftSharedLibrary) sharedLibrary).getImplementationDependencies());
+                    apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                    apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
+                    apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
+                    apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
+                    apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, sharedLibrary.getTargetMachine().getOperatingSystemFamily());
+                    apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
+                });
             });
 
             library.getBinaries().whenElementKnown(SwiftStaticLibrary.class, staticLibrary -> {
                 Names names = ((ComponentWithNames) staticLibrary).getNames();
-                @SuppressWarnings("deprecation") Configuration apiElements = configurations.createWithRole(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
-                // TODO This should actually extend from the api dependencies, but since Swift currently
-                // requires all dependencies to be treated like api dependencies (with transitivity) we just
-                // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
-                apiElements.extendsFrom(((DefaultSwiftStaticLibrary) staticLibrary).getImplementationDependencies());
-                apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-                apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
-                apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
-                apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
-                apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, staticLibrary.getTargetMachine().getOperatingSystemFamily());
-                apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
+                configurations.migratingUnlocked(names.withSuffix("SwiftApiElements"), ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, apiElements -> {
+                    // TODO This should actually extend from the api dependencies, but since Swift currently
+                    // requires all dependencies to be treated like api dependencies (with transitivity) we just
+                    // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
+                    apiElements.extendsFrom(((DefaultSwiftStaticLibrary) staticLibrary).getImplementationDependencies());
+                    apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                    apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
+                    apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
+                    apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
+                    apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, staticLibrary.getTargetMachine().getOperatingSystemFamily());
+                    apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
+                });
             });
 
             library.getBinaries().realizeNow();
