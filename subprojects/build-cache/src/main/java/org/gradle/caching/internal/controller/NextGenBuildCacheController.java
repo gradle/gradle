@@ -240,7 +240,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 .flatMap(List::stream)
                 .map(ManifestEntry::getLength)
                 .reduce(manifestSize.get(), Long::sum);
-            handlerFactory.startUnpack(totalSize);
+            handlerFactory.ensureUnpackOperationStrated(totalSize);
             ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = loadContent(cacheableEntity, manifest, handlerFactory);
             return Optional.of(new BuildCacheLoadResult() {
                 @Override
@@ -270,7 +270,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         private volatile BuildOperationContext context;
         private final List<Throwable> failures = new CopyOnWriteArrayList<>();
 
-        public void start(Supplier<BuildOperationDescriptor.Builder> describer) {
+        public void ensureStarted(Supplier<BuildOperationDescriptor.Builder> describer) {
             if (context == null) {
                 synchronized (this) {
                     if (context == null) {
@@ -284,7 +284,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
             failures.add(failure);
         }
 
-        public void finish(Supplier<Object> result) {
+        public void finishIfNecessary(Supplier<Object> result) {
             if (context != null) {
                 if (failures.isEmpty()) {
                     context.setResult(result.get());
@@ -324,8 +324,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void startLoadOperation(BuildCacheKey key) {
-                    loadBuildOp.start(() -> BuildOperationDescriptor.displayName("Load entry " + manifestKey.getDisplayName() + " from remote build cache")
+                public void ensureLoadOperationStarted(BuildCacheKey key) {
+                    loadBuildOp.ensureStarted(() -> BuildOperationDescriptor.displayName("Load entry " + manifestKey.getDisplayName() + " from remote build cache")
                         .details(new LoadOperationDetails(manifestKey))
                         .progressDisplayName("Requesting from remote build cache"));
                     if (parentOp == null) {
@@ -351,14 +351,14 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 @Override
                 public void recordUnpackFailure(BuildCacheKey key, Throwable failure) {
                     // Make sure an unpack operation is running
-                    startUnpack(-1);
+                    ensureUnpackOperationStrated(-1);
                     unpackBuildOp.fail(failure);
                 }
             };
         }
 
-        public void startUnpack(long totalSize) {
-            unpackBuildOp.start(() -> {
+        public void ensureUnpackOperationStrated(long totalSize) {
+            unpackBuildOp.ensureStarted(() -> {
                 // TODO Use "load" instead of "unpack" here
                 return BuildOperationDescriptor.displayName("Unpack build cache entry " + manifestKey.getHashCode())
                     .details(new UnpackOperationDetails(manifestKey, totalSize))
@@ -371,24 +371,24 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         @Override
         public void close() {
-            // Load and unpack operations can be started in either order, but then we have to finish them in the same order
+            // Load and unpack operations can be started in any order, and we have to finish them in child-first-then-parent order
             if (parentOp == loadBuildOp) {
-                finishUnpack();
-                finishLoad();
+                finishUnpackIfNecessary();
+                finishLoadIfNecessary();
             } else {
-                finishLoad();
-                finishUnpack();
+                finishLoadIfNecessary();
+                finishUnpackIfNecessary();
             }
         }
 
-        private void finishLoad() {
-            loadBuildOp.finish(() -> missEncountered.get()
+        private void finishLoadIfNecessary() {
+            loadBuildOp.finishIfNecessary(() -> missEncountered.get()
                 ? LoadOperationMissResult.INSTANCE
                 : new LoadOperationHitResult(totalDownloadedSize.get()));
         }
 
-        private void finishUnpack() {
-            unpackBuildOp.finish(() -> new UnpackOperationResult(unpackedEntryCount.get()));
+        private void finishUnpackIfNecessary() {
+            unpackBuildOp.finishIfNecessary(() -> new UnpackOperationResult(unpackedEntryCount.get()));
         }
     }
 
@@ -587,7 +587,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         public OperationFiringStoreHandlerFactory(BuildCacheKey manifestKey, long totalUploadSize) {
             this.manifestKey = manifestKey;
             this.totalUploadSize = totalUploadSize;
-            this.packBuildOp.start(() -> BuildOperationDescriptor.displayName("Pack build cache entry " + manifestKey)
+            this.packBuildOp.ensureStarted(() -> BuildOperationDescriptor.displayName("Pack build cache entry " + manifestKey)
                 .details(new PackOperationDetails(manifestKey))
                 .progressDisplayName("Packing build cache entry"));
         }
@@ -600,8 +600,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 @Override
-                public void startStoreOperation(BuildCacheKey key) {
-                    storeBuildOp.start(() -> BuildOperationDescriptor.displayName("Store entry " + manifestKey.getDisplayName() + " in remote build cache")
+                public void ensureStoreOperationStarted(BuildCacheKey key) {
+                    storeBuildOp.ensureStarted(() -> BuildOperationDescriptor.displayName("Store entry " + manifestKey.getDisplayName() + " in remote build cache")
                         .details(new StoreOperationDetails(manifestKey, totalUploadSize))
                         .progressDisplayName("Uploading to remote build cache"));
                 }
@@ -627,10 +627,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         @Override
         public void close() {
-            storeBuildOp.finish(() -> storeEncountered.get()
+            storeBuildOp.finishIfNecessary(() -> storeEncountered.get()
                 ? StoreOperationResult.STORED
                 : StoreOperationResult.NOT_STORED);
-            packBuildOp.finish(() -> new PackOperationResult(packEntryCount.get(), totalPackSize.get()));
+            packBuildOp.finishIfNecessary(() -> new PackOperationResult(packEntryCount.get(), totalPackSize.get()));
         }
     }
 

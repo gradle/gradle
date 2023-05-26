@@ -88,7 +88,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 }
                 if (!foundLocally && remote.canLoad()) {
                     // TODO Improve error handling
-                    handler.startLoadOperation(key);
+                    handler.ensureLoadOperationStarted(key);
                     return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteDownload<>(key, payload, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
@@ -115,7 +115,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 }
                 // TODO Improve error handling
                 if (remote.canStore()) {
-                    handler.startStoreOperation(key);
+                    handler.ensureStoreOperationStarted(key);
                     return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteUpload(key, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
