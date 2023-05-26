@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.api.problems.internal.GradleExceptionWithContext;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationContextTracker;
 
@@ -42,8 +42,10 @@ public class Problems {
             operationContext.addProblem(problem);
             if (problem.getSeverity() == Severity.ERROR) {
                 operationContext.failed(problem.getCause());
-                throw new GradleExceptionWithContext(problem.getCause());
             }
+        }
+        if (problem.getSeverity() == Severity.ERROR) {
+            throw UncheckedException.throwAsUncheckedException(problem.getCause());
         }
     }
 }
