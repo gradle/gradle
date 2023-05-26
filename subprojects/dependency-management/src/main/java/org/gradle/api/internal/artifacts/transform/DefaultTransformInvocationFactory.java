@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.internal.tasks.execution.ExecuteTaskActionBuildOperationType;
 import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.provider.Provider;
@@ -57,6 +56,7 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
 
@@ -333,7 +333,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                         resultSerializer.writeToFile(getResultsFile(workspace), result);
                         return result;
                     } finally {
-                        context.setResult(ExecuteTaskActionBuildOperationType.RESULT_INSTANCE);
+                        context.setResult(ExecuteTransformActionBuildOperationType.RESULT_INSTANCE);
                     }
                 }
 
@@ -341,7 +341,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 public BuildOperationDescriptor.Builder description() {
                     String displayName = transform.getDisplayName() + " " + inputArtifact.getName();
                     return BuildOperationDescriptor.displayName(displayName)
-                        .details(ExecuteTaskActionBuildOperationType.DETAILS_INSTANCE)
+                        .details(ExecuteTransformActionBuildOperationType.DETAILS_INSTANCE)
                         .metadata(UncategorizedBuildOperations.TRANSFORM_ACTION)
                         .progressDisplayName(displayName);
                 }

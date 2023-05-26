@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.operations.dependencies.transforms;
 
 import org.gradle.internal.operations.BuildOperationType;
 
 /**
- * Executing a task action.
+ * Executing a transform action.
  *
- * @since 5.6
+ * @since 8.3
  */
-public final class ExecuteTaskActionBuildOperationType implements BuildOperationType<ExecuteTaskActionBuildOperationType.Details, ExecuteTaskActionBuildOperationType.Result> {
+public final class ExecuteTransformActionBuildOperationType implements BuildOperationType<ExecuteTransformActionBuildOperationType.Details, ExecuteTransformActionBuildOperationType.Result> {
 
     // Info about the owning task can be inferred, and we don't provide any further info at this point.
-    // This is largely to expose timing information about executed tasks
+    // This is largely to expose timing information about executed transforms
 
     public interface Details {
     }
@@ -34,6 +34,6 @@ public final class ExecuteTaskActionBuildOperationType implements BuildOperation
     public interface Result {
     }
 
-    static final Details DETAILS_INSTANCE = new Details() {};
-    static final Result RESULT_INSTANCE = new Result() {};
+    public static final Details DETAILS_INSTANCE = new Details() {};
+    public static final Result RESULT_INSTANCE = new Result() {};
 }
