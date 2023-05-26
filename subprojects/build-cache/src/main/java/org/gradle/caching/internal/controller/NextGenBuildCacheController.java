@@ -66,8 +66,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -95,7 +93,6 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -116,30 +113,32 @@ import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirecto
  * <h3>Legacy build operations</h3>
  *
  * <p>
- *     Uses legacy build operations to capture next-gen build cache logic.
- *     Since the new protocol is more fine-grained, some peculiarities can be observed.
+ * Uses legacy build operations to capture next-gen build cache logic.
+ * Since the new protocol is more fine-grained, some peculiarities can be observed.
  * </p>
  *
  * <ul>
  *   <li>
- *     When downloading entries from the remote cache, only a single {@link BuildCacheRemoteLoadBuildOperationType}
- *     is emitted per cached result. The cache key is the key for the manifest, the reported archive size is the sum
- *     number of bytes downloaded (including manifest and content pieces).
+ *     When downloading entries from the remote cache, a single {@link BuildCacheRemoteLoadBuildOperationType}
+ *     is emitted per cached result, but only if we had to touch the remote cache.
+ *     The cache key is the key for the manifest, the reported archive size is the sum number of bytes downloaded
+ *     (including manifest and content pieces).
  *   </li>
  *   <li>
- *       Similarly during upload a single {@link BuildCacheRemoteStoreBuildOperationType} is emitted. The cache key
- *       reported is the manifest key, and the size reported is the total size of all the entries in the manifest
- *       plus the size of the manifest itself. Note: unlike with downloading, we do not report the actual amount
- *       of uploaded data; this is because the operation requires the size to be specified up front,
- *       before we know what has been stored and what hasn't.
+ *       Similarly during upload at most one {@link BuildCacheRemoteStoreBuildOperationType} is emitted,
+ *       if we actually tried to upload something to the remote cache (a manifest or a content entry).
+ *       The cache key reported is the manifest key, and the size reported is the total size of all the entries
+ *       in the manifest plus the size of the manifest itself. Note: unlike with downloading, we do not report
+ *       the actual amount of uploaded data; this is because the operation requires the size to be specified
+ *       up front, before we know what has been stored and what hasn't.
  *   </li>
  *   <li>
- *       For packing we once again report only one {@link BuildCacheArchivePackBuildOperationType}, the number of
+ *       For packing we report exactly one {@link BuildCacheArchivePackBuildOperationType}, the number of
  *       stored entries and the total size reflect the actual number of entries and number of (uncompressed) bytes
  *       stored in the local cache. (This includes the manifest's size and count.)
  *   </li>
  *   <li>
- *       For unpacking we report a single {@link BuildCacheArchiveUnpackBuildOperationType}; similarly to the upload
+ *       For unpacking we report exactly one {@link BuildCacheArchiveUnpackBuildOperationType}; similarly to the upload
  *       case the archive size reported is actually not the copied amount, but the total size in the manifest
  *       (plus the size of the manifest). The entry count reflects the actual files unpacked (plus one for the manifest).
  *       However, for now this should always match the total number of files in the manifest, as (for now) we always
@@ -308,6 +307,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
         private final AtomicLong totalDownloadedSize = new AtomicLong(0L);
         private final AtomicBoolean missEncountered = new AtomicBoolean(false);
 
+        private OnDemandBuildOperationWrapper parentOp;
+
         public OperationFiringLoadHandlerFactory(BuildCacheKey manifestKey) {
             this.manifestKey = manifestKey;
         }
@@ -327,6 +328,9 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     loadBuildOp.start(() -> BuildOperationDescriptor.displayName("Load entry " + manifestKey.getDisplayName() + " from remote build cache")
                         .details(new LoadOperationDetails(manifestKey))
                         .progressDisplayName("Requesting from remote build cache"));
+                    if (parentOp == null) {
+                        parentOp = loadBuildOp;
+                    }
                 }
 
                 @Override
@@ -360,13 +364,30 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     .details(new UnpackOperationDetails(manifestKey, totalSize))
                     .progressDisplayName("Unpacking build cache entry");
             });
+            if (parentOp == null) {
+                parentOp = unpackBuildOp;
+            }
         }
 
         @Override
         public void close() {
+            // Load and unpack operations can be started in either order, but then we have to finish them in the same order
+            if (parentOp == loadBuildOp) {
+                finishUnpack();
+                finishLoad();
+            } else {
+                finishLoad();
+                finishUnpack();
+            }
+        }
+
+        private void finishLoad() {
             loadBuildOp.finish(() -> missEncountered.get()
                 ? LoadOperationMissResult.INSTANCE
                 : new LoadOperationHitResult(totalDownloadedSize.get()));
+        }
+
+        private void finishUnpack() {
             unpackBuildOp.finish(() -> new UnpackOperationResult(unpackedEntryCount.get()));
         }
     }
@@ -557,7 +578,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
         private final BuildCacheKey manifestKey;
         private final long totalUploadSize;
 
-        private final BuildOperationRef parentOp;
         private final OnDemandBuildOperationWrapper packBuildOp = new OnDemandBuildOperationWrapper();
         private final AtomicLong packEntryCount = new AtomicLong(0L);
         private final AtomicLong totalPackSize = new AtomicLong(0L);
@@ -565,7 +585,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
         private final AtomicBoolean storeEncountered = new AtomicBoolean(false);
 
         public OperationFiringStoreHandlerFactory(BuildCacheKey manifestKey, long totalUploadSize) {
-            this.parentOp = Objects.requireNonNull(CurrentBuildOperationRef.instance().get());
             this.manifestKey = manifestKey;
             this.totalUploadSize = totalUploadSize;
             this.packBuildOp.start(() -> BuildOperationDescriptor.displayName("Pack build cache entry " + manifestKey)
@@ -584,8 +603,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 public void startStoreOperation(BuildCacheKey key) {
                     storeBuildOp.start(() -> BuildOperationDescriptor.displayName("Store entry " + manifestKey.getDisplayName() + " in remote build cache")
                         .details(new StoreOperationDetails(manifestKey, totalUploadSize))
-                        .progressDisplayName("Uploading to remote build cache")
-                        .parent(parentOp));
+                        .progressDisplayName("Uploading to remote build cache"));
                 }
 
                 @Override
@@ -609,10 +627,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         @Override
         public void close() {
-            packBuildOp.finish(() -> new PackOperationResult(packEntryCount.get(), totalPackSize.get()));
             storeBuildOp.finish(() -> storeEncountered.get()
                 ? StoreOperationResult.STORED
                 : StoreOperationResult.NOT_STORED);
+            packBuildOp.finish(() -> new PackOperationResult(packEntryCount.get(), totalPackSize.get()));
         }
     }
 
