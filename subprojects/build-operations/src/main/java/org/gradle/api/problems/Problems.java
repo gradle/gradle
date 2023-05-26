@@ -17,17 +17,12 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.api.problems.interfaces.Solution;
 import org.gradle.api.problems.internal.GradleExceptionWithContext;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationContextTracker;
-import org.gradle.internal.problems.DefaultProblem;
-import org.gradle.internal.problems.DefaultProblemLocation;
-import org.gradle.internal.problems.DefaultSolution;
-
-import java.util.Collections;
 
 /**
  * Prototype Problems API.
@@ -37,19 +32,18 @@ import java.util.Collections;
 @Incubating
 public class Problems {
 
-    public static void reportWarning(ProblemId id, String message, String summary, String documentationUrl, String solution) {
-        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
-        if (operationContext != null) {
-            operationContext.addProblem(new DefaultProblem(id, message, Severity.WARNING, null, summary, documentationUrl, "description", Collections.<Solution>singletonList(new DefaultSolution(documentationUrl, solution))));
-        }
+    public static ProblemBuilder createNew(ProblemId problemId, String message, Severity severity) {
+        return new ProblemBuilder(problemId, message, severity);
     }
 
-    public static void reportFailure(ProblemId id, String message, String file, Integer line, Throwable cause) {
+    static void report(Problem problem) {
         BuildOperationContext operationContext = BuildOperationContextTracker.peek();
         if (operationContext != null) {
-            operationContext.addProblem(new DefaultProblem(id, message, Severity.ERROR, new DefaultProblemLocation(file, line), null, null, null, null));
-            operationContext.failed(cause);
+            operationContext.addProblem(problem);
+            if (problem.getSeverity() == Severity.ERROR) {
+                operationContext.failed(problem.getCause());
+                throw new GradleExceptionWithContext(problem.getCause());
+            }
         }
-        throw new GradleExceptionWithContext(cause);
     }
 }

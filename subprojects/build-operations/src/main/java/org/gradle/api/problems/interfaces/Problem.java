@@ -29,7 +29,7 @@ import java.util.List;
 @Incubating
 public interface Problem {
 
-    ProblemId getId();
+    ProblemId getProblemId();
 
     String getMessage();
 
@@ -39,13 +39,13 @@ public interface Problem {
     ProblemLocation getWhere();
 
     @Nullable
-    String getWhy();
-
-    @Nullable
     String getDocumentationLink();
 
     @Nullable
     String getDescription();
 
-    List<Solution> getSolutions();
+    List<String> getSolutions();
+
+    @Nullable
+    Throwable getCause();
 }

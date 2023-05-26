@@ -20,7 +20,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.api.problems.interfaces.Solution;
 import org.gradle.api.problems.interfaces.Problem;
 
 import javax.annotation.Nullable;
@@ -30,29 +29,29 @@ import java.util.List;
 @NonNullApi
 public class DefaultProblem implements Problem {
 
-    private final ProblemId id;
+    private final ProblemId problemId;
     private final String message;
     private final Severity severity;
     private final ProblemLocation where;
-    private final String why;
     private final String documentationLink;
     private final String description;
-    private final List<Solution> solutions;
+    private final List<String> solutions;
+    private final Throwable cause;
 
-    public DefaultProblem(ProblemId id, String message, Severity severity, ProblemLocation where, String why, String documentationLink, String description, List<Solution> solutions) {
-        this.id = id;
+    public DefaultProblem(ProblemId problemId, String message, Severity severity, @Nullable ProblemLocation location, @Nullable String documentationUrl, @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause) {
+        this.problemId = problemId;
         this.message = message;
         this.severity = severity;
-        this.where = where;
-        this.why = why;
-        this.documentationLink = documentationLink;
+        this.where = location;
+        this.documentationLink = documentationUrl;
         this.description = description;
-        this.solutions = solutions == null ? Collections.<Solution>emptyList() : solutions;
+        this.solutions = solutions == null ? Collections.<String>emptyList() : solutions;
+        this.cause = cause;
     }
 
     @Override
-    public ProblemId getId() {
-        return id;
+    public ProblemId getProblemId() {
+        return problemId;
     }
 
     @Override
@@ -66,15 +65,8 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    @Nullable
     public ProblemLocation getWhere() {
         return where;
-    }
-
-    @Nullable
-    @Override
-    public String getWhy() {
-        return why;
     }
 
     @Nullable
@@ -83,14 +75,18 @@ public class DefaultProblem implements Problem {
         return documentationLink;
     }
 
-    @Nullable
     @Override
     public String getDescription() {
         return description;
     }
 
     @Override
-    public List<Solution> getSolutions() {
+    public List<String> getSolutions() {
         return solutions;
+    }
+
+    @Override
+    public Throwable getCause() {
+        return cause;
     }
 }

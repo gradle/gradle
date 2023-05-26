@@ -21,8 +21,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
 
@@ -87,11 +88,9 @@ public class DefaultTaskSelector implements TaskSelector {
             if (context.getOriginalPath().getPath().equals(taskName)) {
                 throw new TaskSelectionException(matcher.formatErrorMessage("Task", searchContext));
             } else {
-                Problems.reportFailure(
-                    ProblemId.KnownIds.GENERIC,
-                    "Should not happen", null, null,
-                    new TaskSelectionException(String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), matcher.formatErrorMessage("task", searchContext)))
-                );
+                Problems.createNew(ProblemId.KnownIds.GENERIC, "Should not happen", Severity.ERROR)
+                    .cause(new TaskSelectionException(String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), matcher.formatErrorMessage("task", searchContext))))
+                    .report(); // TODO: consider declaring Problem as an argument of the thrown exception
                 return null; // Should not happen
             }
         }

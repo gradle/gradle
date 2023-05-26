@@ -18,7 +18,6 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.interfaces.ProblemLocation;
-import org.gradle.api.problems.interfaces.Solution;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.tooling.internal.protocol.InternalProblem;
 
@@ -44,7 +43,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
 
     private static InternalProblem from(Problem problem) {
         Map<String, String> rawAttributes = new HashMap<>();
-        rawAttributes.put("id", problem.getId().getId());
+        rawAttributes.put("id", problem.getProblemId().getId());
         rawAttributes.put("message", problem.getMessage());
         rawAttributes.put("severity", problem.getSeverity().toString());
         ProblemLocation where = problem.getWhere();
@@ -58,11 +57,6 @@ public class DefaultProblem implements Serializable, InternalProblem {
                 rawAttributes.put("line", line.toString());
             }
         }
-        String why = problem.getWhy();
-        if (why != null) {
-            rawAttributes.put("why", why);
-        }
-
         String doc = problem.getDocumentationLink();
         if (doc != null) {
             rawAttributes.put("doc", doc);
@@ -74,13 +68,8 @@ public class DefaultProblem implements Serializable, InternalProblem {
         }
 
         int i = 1;
-        for (Solution solution : problem.getSolutions()) {
-            if (solution.getDescription() != null) {
-                rawAttributes.put("solution" + i + "description", solution.getDescription());
-            }
-            if (solution.getDocumentationUrl() != null) {
-                rawAttributes.put("solution" + i + "documentation", solution.getDocumentationUrl());
-            }
+        for (String solution : problem.getSolutions()) {
+            rawAttributes.put("solution" + i, solution);
             i++;
         }
         return new DefaultProblem(rawAttributes);
