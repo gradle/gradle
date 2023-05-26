@@ -50,7 +50,7 @@ public interface ArtifactView extends HasAttributes {
      */
     @Incubating
     default String getDisplayName() {
-        return "Artifact View";
+        return "artifact view";
     }
 
     /**

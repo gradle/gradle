@@ -69,7 +69,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         fails("verifyFiles")
-        failureCauseContains("Could not resolve all files for ArtifactView for configuration ':consumerConf'.")
+        failureCauseContains("Could not resolve all files for artifact view for configuration ':consumerConf'.")
         !errorOutput.contains("Could not resolve all files for configuration ':consumerConf'.")
     }
 
@@ -114,6 +114,6 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         expect:
         fails("verifyFiles")
         failureCauseContains("Could not resolve all files for configuration ':consumerConf'.")
-        !errorOutput.contains("Could not resolve all files for ArtifactView for configuration ':consumerConf'.")
+        !errorOutput.contains("Could not resolve all files for artifact view for configuration ':consumerConf'.")
     }
 }

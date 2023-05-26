@@ -2241,7 +2241,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
             @Override
             public String getDisplayName() {
-                return "ArtifactView for " + DefaultConfiguration.this.getDisplayName();
+                return "artifact view for " + DefaultConfiguration.this.getDisplayName();
             }
 
             @Override

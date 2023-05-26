@@ -31,7 +31,7 @@ final class ArtifactViewDependencyResolutionFailure extends DependencyResolution
 
     @Override
     DependencyResolutionFailure assertFailedConfiguration(String configuration) {
-        failure.assertThatCause(matchesRegexp("Could not resolve all (dependencies|artifacts|files) for ArtifactView for configuration '${Pattern.quote(configuration)}'."))
+        failure.assertThatCause(matchesRegexp("Could not resolve all (dependencies|artifacts|files) for artifact view for configuration '${Pattern.quote(configuration)}'."))
         this
     }
 }

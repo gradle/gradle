@@ -432,7 +432,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for ArtifactView for configuration ':a:resolver'.")
+        failure.assertHasCause("Could not resolve all files for artifact view for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
@@ -524,7 +524,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for ArtifactView for configuration ':a:resolver'.")
+        failure.assertHasCause("Could not resolve all files for artifact view for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
@@ -576,7 +576,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for ArtifactView for configuration ':a:resolver'.")
+        failure.assertHasCause("Could not resolve all files for artifact view for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
