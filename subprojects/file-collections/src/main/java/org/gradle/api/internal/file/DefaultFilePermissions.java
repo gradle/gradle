@@ -18,8 +18,8 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableUserClassFilePermissions;
 import org.gradle.api.file.FilePermissions;
-import org.gradle.api.file.UserClassFilePermissions;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
@@ -33,46 +33,46 @@ public class DefaultFilePermissions extends AbstractImmutableFilePermissions imp
         return isDirectory ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
     }
 
-    private final UserClassFilePermissionsInternal user;
+    private final ConfigurableUserClassFilePermissionsInternal user;
 
-    private final UserClassFilePermissionsInternal group;
+    private final ConfigurableUserClassFilePermissionsInternal group;
 
-    private final UserClassFilePermissionsInternal other;
+    private final ConfigurableUserClassFilePermissionsInternal other;
 
     @Inject
     public DefaultFilePermissions(ObjectFactory objectFactory, int unixNumeric) {
-        this.user = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getUserPartOf(unixNumeric));
-        this.group = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getGroupPartOf(unixNumeric));
-        this.other = objectFactory.newInstance(DefaultUserClassFilePermissions.class, getOtherPartOf(unixNumeric));
+        this.user = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getUserPartOf(unixNumeric));
+        this.group = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getGroupPartOf(unixNumeric));
+        this.other = objectFactory.newInstance(DefaultConfigurableUserClassFilePermissions.class, getOtherPartOf(unixNumeric));
     }
 
     @Override
-    public UserClassFilePermissions getUser() {
+    public ConfigurableUserClassFilePermissions getUser() {
         return user;
     }
 
     @Override
-    public void user(Action<? super UserClassFilePermissions> configureAction) {
+    public void user(Action<? super ConfigurableUserClassFilePermissions> configureAction) {
         configureAction.execute(user);
     }
 
     @Override
-    public UserClassFilePermissions getGroup() {
+    public ConfigurableUserClassFilePermissions getGroup() {
         return group;
     }
 
     @Override
-    public void group(Action<? super UserClassFilePermissions> configureAction) {
+    public void group(Action<? super ConfigurableUserClassFilePermissions> configureAction) {
         configureAction.execute(group);
     }
 
     @Override
-    public UserClassFilePermissions getOther() {
+    public ConfigurableUserClassFilePermissions getOther() {
         return other;
     }
 
     @Override
-    public void other(Action<? super UserClassFilePermissions> configureAction) {
+    public void other(Action<? super ConfigurableUserClassFilePermissions> configureAction) {
         configureAction.execute(other);
     }
 

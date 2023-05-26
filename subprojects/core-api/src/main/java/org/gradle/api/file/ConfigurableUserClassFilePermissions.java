@@ -26,7 +26,7 @@ import org.gradle.api.Incubating;
  * @since 8.3
  */
 @Incubating
-public interface UserClassFilePermissions extends ImmutableUserClassFilePermissions {
+public interface ConfigurableUserClassFilePermissions extends ImmutableUserClassFilePermissions {
 
     /**
      * Enables or disables read access to a file or directory for a certain class of users.

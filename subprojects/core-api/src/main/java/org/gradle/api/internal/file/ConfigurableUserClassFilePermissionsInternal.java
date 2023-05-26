@@ -17,9 +17,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FilePermissions;
-import org.gradle.api.file.UserClassFilePermissions;
+import org.gradle.api.file.ConfigurableUserClassFilePermissions;
 
-public interface UserClassFilePermissionsInternal extends UserClassFilePermissions {
+public interface ConfigurableUserClassFilePermissionsInternal extends ConfigurableUserClassFilePermissions {
 
     /**
      * Sets the permission for a specific class of users from a PARTIAL Unix-style symbolic permission

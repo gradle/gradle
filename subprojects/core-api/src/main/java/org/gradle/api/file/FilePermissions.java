@@ -34,64 +34,64 @@ public interface FilePermissions extends ImmutableFilePermissions {
      * <p>
      * The returned object is live, modifying it will change the user's permissions.
      * <p>
-     * For further details on permissions see {@link UserClassFilePermissions}.
+     * For further details on permissions see {@link ConfigurableUserClassFilePermissions}.
      */
     @Override
-    UserClassFilePermissions getUser();
+    ConfigurableUserClassFilePermissions getUser();
 
     /**
      * Modifies the permissions the owner of the file has for the file/directory.
      * <p>
-     * For further details on permissions see {@link UserClassFilePermissions}.
+     * For further details on permissions see {@link ConfigurableUserClassFilePermissions}.
      * <p>
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
      * (see {@link ImmutableUserClassFilePermissions}).
      */
-    void user(Action<? super UserClassFilePermissions> configureAction);
+    void user(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
     /**
      * Returns the permissions a user, who is a member of the group that the file/directory belongs to, has for the file/directory.
      * <p>
      * The returned object is live, modifying it will change the user's permissions.
      * <p>
-     * For further details on permissions see {@link UserClassFilePermissions}.
+     * For further details on permissions see {@link ConfigurableUserClassFilePermissions}.
      */
     @Override
-    UserClassFilePermissions getGroup();
+    ConfigurableUserClassFilePermissions getGroup();
 
     /**
      * Modifies the permissions a user, who is a member of the group that the file/directory belongs to, has for the file/directory.
      * <p>
-     * For further details on permissions see {@link UserClassFilePermissions}.
+     * For further details on permissions see {@link ConfigurableUserClassFilePermissions}.
      * <p>
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
      * (see {@link ImmutableUserClassFilePermissions}).
      */
-    void group(Action<? super UserClassFilePermissions> configureAction);
+    void group(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
     /**
      * Returns the permissions all other users (non-owner, non-group) have for the file/directory.
      * <p>
      * The returned object is live, modifying it will change the user's permissions.
      * <p>
-     * For further details on permissions see {@link UserClassFilePermissions}.
+     * For further details on permissions see {@link ConfigurableUserClassFilePermissions}.
      */
     @Override
-    UserClassFilePermissions getOther();
+    ConfigurableUserClassFilePermissions getOther();
 
     /**
      * Modifies the permissions all other users (non-owner, non-group) have
      * for the file/directory.
      * <p>
-     * For further details on permissions see {@link UserClassFilePermissions}.
+     * For further details on permissions see {@link ConfigurableUserClassFilePermissions}.
      * <p>
      * Note that the provided configuration action only applies incremental modifications on top of whatever permission
      * the user has at the moment and that the default values permissions start out are different for files and directories
      * (see {@link ImmutableUserClassFilePermissions}).
      */
-    void other(Action<? super UserClassFilePermissions> configureAction);
+    void other(Action<? super ConfigurableUserClassFilePermissions> configureAction);
 
     /**
      * Sets Unix style permissions. Accept values in two styles of notation:
