@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.compile;
 
-public class CompilationFailedException extends RuntimeException {
-    public CompilationFailedException() {
-        super("Compilation failed; see the compiler error output for details.");
-    }
+/**
+ * Indicates a fatal error during compilation. Gradle will not try to recover output files from a previous compilation.
+ */
+public class CompilationFatalException extends RuntimeException {
 
-    public CompilationFailedException(int exitCode) {
-        super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
-    }
-
-    public CompilationFailedException(Throwable cause) {
-        super(cause);
+    public CompilationFatalException(Throwable cause) {
+        super("Unrecoverable compilation error: " + cause.getMessage(), cause);
     }
 }

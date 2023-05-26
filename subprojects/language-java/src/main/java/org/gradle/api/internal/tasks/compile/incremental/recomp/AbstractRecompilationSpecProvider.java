@@ -67,7 +67,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     @Override
-    public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
+    public RecompilationSpec provideRecompilationSpec(JavaCompileSpec spec, CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec recompilationSpec = new RecompilationSpec();
         SourceFileClassNameConverter sourceFileClassNameConverter = new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
 
@@ -75,6 +75,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
         processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
+        processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
         collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
 
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
@@ -121,6 +122,13 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     private String rebuildClauseForChangedNonSourceFile(FileChange fileChange) {
         return String.format("%s '%s' has been %s", "resource", fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
+
+    protected abstract void processCompilerSpecificDependencies(
+        JavaCompileSpec spec,
+        RecompilationSpec recompilationSpec,
+        SourceFileChangeProcessor sourceFileChangeProcessor,
+        SourceFileClassNameConverter sourceFileClassNameConverter
+    );
 
     protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
 
@@ -198,10 +206,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePaths(MODULE_INFO_CLASS_NAME);
         if (!moduleInfoSources.isEmpty()) {
             // Always recompile module-info.java if present.
-            // This solves case for incremental compilation for manual --module-path when not combined with --module-source-path or --source-path,
-            // since compiled module-info is not in the output after we change compile outputs in the CompileTransaction.
-            // Alternative would be, that we would move/copy the module-info class to transaction outputs and add transaction outputs to classpath.
-            // First part of fix for: https://github.com/gradle/gradle/issues/23067
+            // This solves case for incremental compilation where some package was deleted and exported in module-info, but compilation doesn't fail.
             spec.addClassToCompile(MODULE_INFO_CLASS_NAME);
             spec.addSourcePaths(moduleInfoSources);
         }
@@ -211,7 +216,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     public CompileTransaction initCompilationSpecAndTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
             spec.setSourceFiles(ImmutableSet.of());
-            spec.setClasses(Collections.emptySet());
+            spec.setClassesToProcess(Collections.emptySet());
             return new CompileTransaction(spec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter);
         }
 
@@ -222,8 +227,8 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
+        spec.setClassesToCompile(recompilationSpec.getClassesToCompile());
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
-        spec.setIsIncrementalCompilationOfJavaModule(recompilationSpec.hasClassToCompile(MODULE_INFO_CLASS_NAME));
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 
@@ -256,7 +261,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     private static void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         Set<String> classesToProcess = new HashSet<>(recompilationSpec.getClassesToProcess());
         classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
-        spec.setClasses(classesToProcess);
+        spec.setClassesToProcess(classesToProcess);
     }
 
     private static void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {

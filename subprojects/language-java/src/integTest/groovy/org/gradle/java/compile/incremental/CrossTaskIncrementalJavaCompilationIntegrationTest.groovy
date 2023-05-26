@@ -121,6 +121,41 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "incremental compilation detects if some exported package for compiled module was deleted #description"() {
+        file("impl/build.gradle") << """
+            def layout = project.layout
+            tasks.compileJava {
+                modularity.inferModulePath = $inferModulePath
+                options.compilerArgs.addAll($compileArgs)
+                doFirst {
+                    $doFirst
+                }
+            }
+        """
+        source impl: ["package a; public class A {}", "package b; public class B {}"]
+        file("impl/src/main/$languageName/module-info.$languageName").text = """
+            module impl {
+                exports a;
+                exports b;
+            }
+        """
+        succeeds "impl:${language.compileTaskName}"
+
+        when:
+        impl.snapshot { file("impl/src/main/$languageName/b/B.$languageName").delete() }
+
+        then:
+        runAndFail "impl:${language.compileTaskName}", "--info"
+        impl.noneRecompiled()
+        result.hasErrorOutput("module-info.java:4: error: package is empty or does not exist: b")
+
+        where:
+        description                 | inferModulePath | compileArgs                                                  | doFirst
+        "with inferred module-path" | "true"          | "[]"                                                         | ""
+        "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "incremental compilation works for multi-module project with manual module paths"() {
         file("impl/build.gradle") << """
             def layout = project.layout
