@@ -78,10 +78,18 @@ public class DefaultFilePermissions extends AbstractImmutableFilePermissions imp
 
     @Override
     public void unix(String permissions) {
-        String normalizedPermissions = normalizeUnixPermissions(permissions);
-        user.unix(normalizedPermissions, 0);
-        group.unix(normalizedPermissions, 1);
-        other.unix(normalizedPermissions, 2);
+        try {
+            String normalizedPermissions = normalizeUnixPermissions(permissions);
+            if (normalizedPermissions.length() == 3) {
+                unix(toUnixNumericPermissions(normalizedPermissions));
+            } else {
+                user.unix(getUserPartOf(normalizedPermissions));
+                group.unix(getGroupPartOf(normalizedPermissions));
+                other.unix(getOtherPartOf(normalizedPermissions));
+            }
+        } catch (IllegalArgumentException cause) {
+            throw new InvalidUserDataException("'" + permissions + "' isn't a proper Unix permission. " + cause.getMessage());
+        }
     }
 
     public void unix(int unixNumeric) {
@@ -90,14 +98,22 @@ public class DefaultFilePermissions extends AbstractImmutableFilePermissions imp
         other.unix(getOtherPartOf(unixNumeric));
     }
 
-    private static String normalizeUnixPermissions(String p) {
-        String trimmed = p.trim();
+    private static String normalizeUnixPermissions(String permissions) {
+        String trimmed = permissions.trim();
         if (trimmed.length() == 4 && trimmed.startsWith("0")) {
             return trimmed.substring(1);
         }
         if (trimmed.length() != 3 && trimmed.length() != 9) {
-            throw new InvalidUserDataException("'" + p + "' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+            throw new IllegalArgumentException("Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
         }
         return trimmed;
+    }
+
+    private static int toUnixNumericPermissions(String permissions) {
+        try {
+            return Integer.parseInt(permissions, 8);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Can't be parsed as octal number.");
+        }
     }
 }

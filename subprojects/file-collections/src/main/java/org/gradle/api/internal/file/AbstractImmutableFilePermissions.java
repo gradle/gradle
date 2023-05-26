@@ -33,14 +33,26 @@ public abstract class AbstractImmutableFilePermissions implements ImmutableFileP
         return (unixNumeric & 0_700) >> 6;
     }
 
+    protected static String getUserPartOf(String unixSymbolic) {
+        return unixSymbolic.substring(0, 3);
+    }
+
     @SuppressWarnings("OctalInteger")
     protected static int getGroupPartOf(int unixNumeric) {
         return (unixNumeric & 0_070) >> 3;
     }
 
+    protected static String getGroupPartOf(String unixSymbolic) {
+        return unixSymbolic.substring(3, 6);
+    }
+
     @SuppressWarnings("OctalInteger")
     protected static int getOtherPartOf(int unixNumeric) {
         return unixNumeric & 0_007;
+    }
+
+    protected static String getOtherPartOf(String unixSymbolic) {
+        return unixSymbolic.substring(6, 9);
     }
 
 }
