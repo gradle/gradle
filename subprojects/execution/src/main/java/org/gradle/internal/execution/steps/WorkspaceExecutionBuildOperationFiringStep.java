@@ -42,15 +42,22 @@ public class WorkspaceExecutionBuildOperationFiringStep<C extends IdentityContex
             },
             BuildOperationDescriptor
                 .displayName("Execute Unit of Work")
-                .details(new ExecuteUnitOfWorkDetails(context)));
+                .details(new ExecuteUnitOfWorkDetails(work, context)));
     }
 
     private class ExecuteUnitOfWorkDetails implements ExecuteUnitOfWorkBuildOperationType.Details {
 
+        private final UnitOfWork work;
         private final C context;
 
-        public ExecuteUnitOfWorkDetails(C context) {
+        public ExecuteUnitOfWorkDetails(UnitOfWork work, C context) {
+            this.work = work;
             this.context = context;
+        }
+
+        @Override
+        public String getWorkType() {
+            return work.getWorkType();
         }
 
         @Override

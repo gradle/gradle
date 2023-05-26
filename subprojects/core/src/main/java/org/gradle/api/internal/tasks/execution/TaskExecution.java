@@ -151,6 +151,11 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
+    public String getWorkType() {
+        return "TASK";
+    }
+
+    @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
         return task::getPath;
     }

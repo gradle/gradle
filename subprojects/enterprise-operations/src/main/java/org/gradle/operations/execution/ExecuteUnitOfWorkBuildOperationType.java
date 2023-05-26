@@ -21,6 +21,7 @@ import org.gradle.internal.operations.BuildOperationType;
 public final class ExecuteUnitOfWorkBuildOperationType implements BuildOperationType<ExecuteUnitOfWorkBuildOperationType.Details, ExecuteUnitOfWorkBuildOperationType.Result> {
 
     public interface Details {
+        String getWorkType();
         String getWorkspaceId();
     }
 

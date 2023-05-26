@@ -197,6 +197,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
         @Override
         public Class<?> getType() {
+            // TODO: Use work.getWorkType() here
             return work.getClass();
         }
 

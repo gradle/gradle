@@ -43,6 +43,16 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
+
+    /**
+     * String that identifies the type of the work.
+     * <p>
+     * This is used, so we don't need to use the class name to distinguish between different types of work.
+     */
+    default String getWorkType() {
+        return getClass().getName();
+    }
+
     /**
      * Determine the identity of the work unit that uniquely identifies it
      * among the other work units of the same type in the current build.
