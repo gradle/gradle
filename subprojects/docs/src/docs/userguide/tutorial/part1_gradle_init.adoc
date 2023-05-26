@@ -13,29 +13,36 @@
 // limitations under the License.
 
 [[part1_gradle_init]]
-= Part 1: Gradle Init
+= Part 1: Install and Initialize Gradle
 
-Learn the basics of Gradle by creating a App through the Gradle init.
+Learn the basics of Gradle by creating a Java App using Gradle init.
 
-In this section you will:
+****
+**In this section you will:**
 
 - Initialize a new Gradle project
 - Build the project
 - Open the project in IntelliJ IDE
 - Explore Gradle files and build scripts
 - Understand the Gradle wrapper
+****
 
 [[part1_begin]]
 == Before you begin
 
 1. Install link:https://jdk.java.net/[JDK 11 - JDK 17]. +
-Find the installation on the link:https://www.oracle.com/java/technologies/downloads/[Oracle site] for your machine. You can install any SDK between 11 and 17. Do not install JDK 20.
+Find the installation on the link:https://www.oracle.com/java/technologies/downloads/[Oracle site] for your machine. +
+You can install any SDK between 11 and 17. +
+Do not install JDK 20. +
 
 2. Install link:https://www.jetbrains.com/idea/download/[IntelliJ IDE]. +
 IDEA is the free version of IntelliJ.
 
-3. Make sure you have <<installation.adoc#installation,Gradle installed>>. +
-To test the Gradle installation, run Gradle from the command-line: +
+== Step 1. Install Gradle
+
+Make sure you have <<installation.adoc#installation,Gradle installed>>.
+
+To test the Gradle installation, run Gradle from the command-line:
 [source]
 ----
 $ gradle
@@ -47,7 +54,9 @@ Directory '/' does not contain a Gradle build.
 To create a new build in this directory, run gradle init
 ----
 
-== 1. Run Gradle init
+If Gradle is not installed, please refer to the <<installation.adoc#installation, installation section>>.
+
+== Step 2. Run Gradle init
 Once Gradle is installed, you can run `init` to initialize a new project with Gradle.
 
 Create a new directory called `tutorial` and `cd` into it:
@@ -57,7 +66,7 @@ $ mkdir tutorial
 $ cd tutorial
 ----
 
-From the command-line run `gradle init` and continue with the prompt as indicated below:
+Run `gradle init` and continue with the prompt as indicated below:
 [source]
 ----
 $ gradle init
@@ -100,7 +109,7 @@ Project name (default: Tutorial): tutorial
 Source package (default: tutorial): com.gradle.tutorial
 ----
 
-Note that in this tutorial, Kotlin will be used to build a Java project.
+NOTE: In this tutorial, Kotlin and the Kotlin DSL will be used to build a simple Java project. All examples are OSX based.
 
 When you are done, the directory should look as follows:
 
@@ -126,14 +135,16 @@ When you are done, the directory should look as follows:
 <6> The tutorial App Java source code and build configuration
 <7> Some additional GIT files may be present such as `.gitignore`.
 
-== 2. The Gradle Wrapper
-In your newly created project, it is important to first take a look at the Gradle Wrapper (item +++<i class="conum" data-value="3"></i>+++ and +++<i class="conum" data-value="4"></i>+++ above).
+== Step 3. The Gradle Wrapper
+The Gradle Wrapper is the preferred way of starting a Gradle build.
+The Wrapper simply invokes a declared version of Gradle.
 
-The Gradle Wrapper is the preferred way of starting a Gradle build. It consists of a batch script for Windows +++<i class="conum" data-value="4"></i>+++ and a shell script for OS X and Linux +++<i class="conum" data-value="3"></i>+++. The Wrapper simply invokes a declared version of Gradle.
+In your newly created project, it is important to first take a look at the Gradle Wrapper.
+It consists of a batch script for Windows +++<i class="conum" data-value="4"></i>+++ and a shell script for OS X and Linux +++<i class="conum" data-value="3"></i>+++.
 
 The wrapper script allow you to run a Gradle build without requiring that Gradle be installed on your system. From now on, you will never invoke gradle directly; instead you will use the gradle wrapper.
 
-== 3. Use the Wrapper
+== Step 4. Use the Wrapper
 Let's go ahead and use the wrapper by entering the following command:
 [source]
 ----
@@ -144,35 +155,35 @@ The first time you run the wrapper, it downloads and caches the Gradle binaries 
 
 The Gradle Wrapper is designed to be committed to source control so that anyone can build the project without having to first install and configure a specific version of Gradle.
 
-In this case, we invoked Gradle to build our tutorial project and we can see that the `app` directory now includes a new `build` folder:
+In this case, we invoked Gradle through the wrapper to build our tutorial project and we can see that the `app` directory now includes a new `build` folder:
 [source]
 ----
 $ cd app
 $ ls -al
+
 drwxr-xr-x  10 gradle-user  staff  320 May 24 18:07 build
 -rw-r--r--   1 gradle-user  staff  862 May 24 17:45 build.gradle.kts
 drwxr-xr-x   4 gradle-user  staff  128 May 24 17:45 src
 ----
 
-We will look into this in detail in the next section.
-
-== 4. Your App in the IDE
+== Step 5. Your App in the IDE
 Open the tutorial project in IntelliJ IDEA by double-clicking on the `settings.gradle.kts` file in the `tutorial` directory:
 
 image::tutorial/intellij-idea-ide.png[]
 
-Take a moment to look around and open up the `settings.gradle.kts` and `build.gradle.kts` files in the IDE:
+Open the `settings.gradle.kts` and `build.gradle.kts` files in the IDE:
 
 image::tutorial/intellij-idea-open.png[]
 
-== 5. The Build script
+== Step 6. The Build script
 The `build.gradle` file is the core component of the build process and has all of the instructions necessary to build the project.
 
 The `build.gradle` file is read and executed by Gradle.
 
-Each subproject contains its own `build.gradle` file. In this case our project only contains the `app` subproject.
+Each subproject contains its own `build.gradle` file.
+In this case our project only contains the `app` subproject.
 
-Take a look at the build file in your `app` subproject (under the `app` directory):
+Take a closer look at the build file in your `app` subproject (under the `app` directory):
 [source]
 ----
 plugins {
@@ -198,9 +209,10 @@ application {
 }
 ----
 
-This build script lets Gradle know which dependencies and plugins the `app` subproject is using and where to find them. We will look at this in more detail in the following sections.
+This build script lets Gradle know which dependencies and plugins the `app` subproject is using and where to find them.
+We will look at this in more detail in the following sections.
 
-== 5. The Settings file
+== Step 7. The Settings file
 Gradle reads the `settings.gradle` file to figure out which subprojects are to take part in a project build.
 
 Take a look at the file in your project:
@@ -210,4 +222,7 @@ rootProject.name = "tutorial"
 include("app")
 ----
 
-In this tutorial, the overall project is simple and only includes the `app` subproject.
+In this tutorial, the `tutorial` project only includes the `app` subproject.
+
+[.text-right]
+**Next Step:** <<part2_gradle_tasks#part2_begin,Run and Explore Gradle Tasks>> >>
