@@ -75,7 +75,8 @@ public class WorkspaceExecutionBuildOperationFiringStep<C extends IdentityContex
             this.executionReasons = executionReasons;
         }
 
-        public List<String> getUpToDateMessages() {
+        @Override
+        public List<String> getExecutionReasons() {
             return executionReasons;
         }
     }

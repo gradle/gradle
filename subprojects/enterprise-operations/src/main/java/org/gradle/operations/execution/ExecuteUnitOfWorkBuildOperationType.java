@@ -18,6 +18,8 @@ package org.gradle.operations.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
 
+import java.util.List;
+
 public final class ExecuteUnitOfWorkBuildOperationType implements BuildOperationType<ExecuteUnitOfWorkBuildOperationType.Details, ExecuteUnitOfWorkBuildOperationType.Result> {
 
     public interface Details {
@@ -26,5 +28,6 @@ public final class ExecuteUnitOfWorkBuildOperationType implements BuildOperation
     }
 
     public interface Result {
+        List<String> getExecutionReasons();
     }
 }
