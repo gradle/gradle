@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 
 /**
@@ -41,6 +42,14 @@ public interface ArtifactView extends HasAttributes {
      * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
      */
     FileCollection getFiles();
+
+    /**
+     * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    Property<String> getCustomName();
 
     /**
      * Describes this artifact view for diagnostic and error reporting purposes.
@@ -107,5 +116,14 @@ public interface ArtifactView extends HasAttributes {
          */
         @Incubating
         ViewConfiguration withVariantReselection();
+
+
+        /**
+         * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
+         *
+         * @since 8.3
+         */
+        @Incubating
+        void setCustomName(String name);
     }
 }

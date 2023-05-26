@@ -59,7 +59,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
             }
 
             tasks.register("verifyFiles") {
-                val artifactViewFiles = configurations.named("consumerConf").get().incoming.artifactView { }.files
+                val artifactViewFiles = configurations.named("consumerConf").get().incoming.artifactView { setCustomName("TOM") }.files
 
                 doLast {
                     artifactViewFiles.forEach { it.exists() } // Force resolution

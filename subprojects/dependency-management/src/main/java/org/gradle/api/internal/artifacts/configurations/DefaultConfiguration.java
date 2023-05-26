@@ -98,9 +98,12 @@ import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -2152,6 +2155,11 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         @Override
+        public Property<String> getCustomName() {
+            return null;
+        }
+
+        @Override
         public DependencySet getDependencies() {
             runDependencyActions();
             return getAllDependencies();
@@ -2207,6 +2215,7 @@ since users cannot create non-legacy configurations and there is no current publ
             boolean allowNoMatchingVariants = config.attributesUsed;
             ArtifactView view;
             view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
+            view.getCustomName().set(config.displayName);
             return view;
         }
 
@@ -2230,6 +2239,7 @@ since users cannot create non-legacy configurations and there is no current publ
             private final boolean lenient;
             private final boolean allowNoMatchingVariants;
             private final boolean selectFromAllVariants;
+            private final Property<String> displayName = new DefaultProperty<>(PropertyHost.NO_OP, String.class);
 
             ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
                 this.viewAttributes = viewAttributes;
@@ -2237,11 +2247,17 @@ since users cannot create non-legacy configurations and there is no current publ
                 this.lenient = lenient;
                 this.allowNoMatchingVariants = allowNoMatchingVariants;
                 this.selectFromAllVariants = selectFromAllVariants;
+                this.displayName.convention("artifact view");
+            }
+
+            @Override
+            public Property<String> getCustomName() {
+                return displayName;
             }
 
             @Override
             public String getDisplayName() {
-                return "artifact view for " + DefaultConfiguration.this.getDisplayName();
+                return displayName.get() + " for " + DefaultConfiguration.this.getDisplayName();
             }
 
             @Override
@@ -2397,6 +2413,7 @@ since users cannot create non-legacy configurations and there is no current publ
         private boolean lenient;
         private boolean reselectVariant;
         private boolean attributesUsed;
+        private String displayName;
 
         public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
             this.attributesFactory = attributesFactory;
@@ -2471,6 +2488,11 @@ since users cannot create non-legacy configurations and there is no current publ
                 viewAttributes = viewAttributes.asImmutable();
             }
             return viewAttributes.asImmutable();
+        }
+
+        @Override
+        public void setCustomName(String name) {
+            this.displayName = name;
         }
     }
 
