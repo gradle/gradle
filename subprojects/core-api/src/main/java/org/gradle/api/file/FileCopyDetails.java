@@ -62,10 +62,10 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
 
     /**
      * Sets the Unix permissions of this file.
-     * <p>
-     * Use {@link #permissions(Action)} instead.
      *
      * @param mode the Unix permissions, e.g. {@code 0644}.
+     *
+     * @apiNote Consider using {@link #permissions(Action)} instead.
      */
     void setMode(int mode);
 

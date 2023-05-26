@@ -90,6 +90,8 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * will actually be applied.
      *
      * @return The file permissions, or {@code null} if existing permissions should be preserved.
+     *
+     * @apiNote Consider using {@link #getFilePermissions()} instead.
      */
     @Nullable
     Integer getFileMode();
@@ -101,6 +103,8 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @param mode The file permissions.
      * @return this
+     *
+     * @apiNote Consider using {@link #filePermissions(Action)} instead.
      */
     CopyProcessingSpec setFileMode(@Nullable Integer mode);
 
@@ -110,6 +114,8 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * will actually be applied.
      *
      * @return The directory permissions, or {@code null} if existing permissions should be preserved.
+     *
+     * @apiNote Consider using {@link #getDirPermissions()} instead.
      */
     @Nullable
     Integer getDirMode();
@@ -121,6 +127,8 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @param mode The directory permissions.
      * @return this
+     *
+     * @apiNote Consider using {@link #dirPermissions(Action)} instead.
      */
     CopyProcessingSpec setDirMode(@Nullable Integer mode);
 
