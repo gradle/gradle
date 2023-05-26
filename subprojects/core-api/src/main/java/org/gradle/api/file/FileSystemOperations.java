@@ -96,7 +96,20 @@ public interface FileSystemOperations {
      * @since 8.3
      */
     @Incubating
-    FilePermissions permissions(String permissions);
+    FilePermissions permissions(String unixNumericOrSymbolic);
+
+    /**
+     * Creates file/directory access permissions and initializes them via a Unix style numeric permissions.
+     * For details see {@link FilePermissions#unix(int)}.
+     * <p>
+     * Doesn't have separate variants for files and directories, like other configuration methods,
+     * because the Unix style permission input completely overwrites the default values, so
+     * the distinction doesn't matter.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    FilePermissions permissions(int unixNumeric);
 
     /**
      * {@link Provider} based version of {@link #permissions(String)},  to facilitate wiring into property chains.

@@ -183,6 +183,11 @@ public interface FilePermissions extends ImmutableFilePermissions {
      *   </tr>
      * </table>
      */
-    void unix(String permissions);
+    void unix(String unixNumericOrSymbolic);
+
+    /**
+     * Sets Unix style numeric permissions. See {@link #unix(String)} for details.
+     */
+    void unix(int unixNumeric);
 
 }

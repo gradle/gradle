@@ -64,8 +64,13 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     }
 
     @Override
-    public FilePermissions permissions(String permissions) {
-        return permissions(false, filePermissions -> filePermissions.unix(permissions));
+    public FilePermissions permissions(String unixNumericOrSymbolic) {
+        return permissions(false, filePermissions -> filePermissions.unix(unixNumericOrSymbolic));
+    }
+
+    @Override
+    public FilePermissions permissions(int unixNumeric) {
+        return permissions(false, filePermissions -> filePermissions.unix(unixNumeric));
     }
 
     @Override

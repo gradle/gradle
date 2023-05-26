@@ -84,10 +84,10 @@ class DefaultCopySpecCodec(
             copySpec.isCaseSensitive = isCaseSensitive
             copySpec.filteringCharset = filteringCharset
             if (dirMode != null) {
-                copySpec.dirPermissions.set(fileSystemOperations.permissions(Integer.toOctalString(dirMode)))
+                copySpec.dirPermissions.set(fileSystemOperations.permissions(dirMode))
             }
             if (fileMode != null) {
-                copySpec.filePermissions.set(fileSystemOperations.permissions(Integer.toOctalString(fileMode)))
+                copySpec.filePermissions.set(fileSystemOperations.permissions(fileMode))
             }
             isolate.identities.putInstance(id, copySpec)
             copySpec

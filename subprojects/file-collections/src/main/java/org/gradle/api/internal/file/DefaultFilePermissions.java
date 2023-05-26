@@ -77,9 +77,9 @@ public class DefaultFilePermissions extends AbstractImmutableFilePermissions imp
     }
 
     @Override
-    public void unix(String permissions) {
+    public void unix(String unixNumericOrSymbolic) {
         try {
-            String normalizedPermissions = normalizeUnixPermissions(permissions);
+            String normalizedPermissions = normalizeUnixPermissions(unixNumericOrSymbolic);
             if (normalizedPermissions.length() == 3) {
                 unix(toUnixNumericPermissions(normalizedPermissions));
             } else {
@@ -88,10 +88,11 @@ public class DefaultFilePermissions extends AbstractImmutableFilePermissions imp
                 other.unix(getOtherPartOf(normalizedPermissions));
             }
         } catch (IllegalArgumentException cause) {
-            throw new InvalidUserDataException("'" + permissions + "' isn't a proper Unix permission. " + cause.getMessage());
+            throw new InvalidUserDataException("'" + unixNumericOrSymbolic + "' isn't a proper Unix permission. " + cause.getMessage());
         }
     }
 
+    @Override
     public void unix(int unixNumeric) {
         user.unix(getUserPartOf(unixNumeric));
         group.unix(getGroupPartOf(unixNumeric));
