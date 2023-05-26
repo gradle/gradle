@@ -53,7 +53,7 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
             def packageGroup = (body =~ "\\s*package ([\\w.]+).*")
             String packageName = packageGroup.size() > 0 ? packageGroup[0][1] : ""
             String packageFolder = packageName.replaceAll("[.]", "/")
-            def className = (body =~ /(?s).*?(?:class|interface|enum) ([\w$]+) .*/)[0][1]
+            def className = (body =~ /(?s).*?(?:class|interface|enum|trait) ([\w$]+) .*/)[0][1]
             assert className: "unable to find class name"
             def f
             if (packageFolder.isEmpty()) {
