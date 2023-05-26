@@ -1708,12 +1708,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public SelectedArtifactSet getTaskDependencyValue() {
-            return resultProvider.getTaskDependencyValue().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, selectFromAllVariants);
+            return resultProvider.getTaskDependencyValue().select(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants, selectFromAllVariants);
         }
 
         @Override
         public SelectedArtifactSet getValue() {
-            return resultProvider.getValue().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, selectFromAllVariants);
+            return resultProvider.getValue().select(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants, selectFromAllVariants);
         }
     }
 
