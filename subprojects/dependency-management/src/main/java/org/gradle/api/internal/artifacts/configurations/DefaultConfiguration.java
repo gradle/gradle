@@ -2213,7 +2213,16 @@ since users cannot create non-legacy configurations and there is no current publ
             boolean allowNoMatchingVariants = config.attributesUsed;
             ArtifactView view;
             view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
-            view.getDisplayName().set(config.displayName.map(name -> name + " for " + DefaultConfiguration.this.getName()));
+            view.getDisplayName().set(config.displayName.map(name -> {
+                StringBuilder result = new StringBuilder();
+                if (name.equals(ViewConfiguration.DEFAULT_DISPLAY_NAME)) {
+                    result.append(name);
+                } else {
+                    result.append("artifact view: '").append(name).append("'");
+                }
+                result.append(" for ").append(DefaultConfiguration.this.getDisplayName());
+                return result.toString();
+            }));
             return view;
         }
 
