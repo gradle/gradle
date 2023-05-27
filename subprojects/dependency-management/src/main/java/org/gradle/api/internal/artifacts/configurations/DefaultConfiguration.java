@@ -324,6 +324,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.intrinsicFiles = fileCollectionFromSpec(Specs.satisfyAll());
         this.exceptionContextualizer = exceptionContextualizer;
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+        this.resolvableDependencies.getDisplayName().convention(this.resolvableDependencies.getName());
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
@@ -2127,10 +2128,7 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
-        @Override
-        public String getDisplayName() {
-            return name;
-        }
+        private final Property<String> displayName = new DefaultProperty<>(PropertyHost.NO_OP, String.class);
 
         @Override
         public String getName() {
@@ -2155,8 +2153,8 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         @Override
-        public Property<String> getCustomName() {
-            return null;
+        public Property<String> getDisplayName() {
+            return displayName;
         }
 
         @Override
@@ -2215,12 +2213,14 @@ since users cannot create non-legacy configurations and there is no current publ
             boolean allowNoMatchingVariants = config.attributesUsed;
             ArtifactView view;
             view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
-            view.getCustomName().set(config.displayName);
+            view.getDisplayName().set(config.displayName.map(name -> name + " for " + DefaultConfiguration.this.getName()));
             return view;
         }
 
         private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
-            return instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes);
+            DefaultConfiguration.ArtifactViewConfiguration config = instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes);
+            config.displayName.convention(ArtifactViewConfiguration.DEFAULT_DISPLAY_NAME);
+            return config;
         }
 
         @Override
@@ -2251,13 +2251,8 @@ since users cannot create non-legacy configurations and there is no current publ
             }
 
             @Override
-            public Property<String> getCustomName() {
+            public Property<String> getDisplayName() {
                 return displayName;
-            }
-
-            @Override
-            public String getDisplayName() {
-                return displayName.get() + " for " + DefaultConfiguration.this.getDisplayName();
             }
 
             @Override
@@ -2284,12 +2279,12 @@ since users cannot create non-legacy configurations and there is no current publ
             private final class ArtifactViewResolutionHost extends ContextualizingResolutionHost {
                 @Override
                 public String getDisplayName() {
-                    return ConfigurationArtifactView.this.getDisplayName();
+                    return ConfigurationArtifactView.this.getDisplayName().get();
                 }
 
                 @Override
                 public DisplayName displayName(String type) {
-                    return Describables.of(ConfigurationArtifactView.this, type);
+                    return Describables.of(getDisplayName(), type);
                 }
             }
         }
@@ -2413,7 +2408,7 @@ since users cannot create non-legacy configurations and there is no current publ
         private boolean lenient;
         private boolean reselectVariant;
         private boolean attributesUsed;
-        private String displayName;
+        private Property<String> displayName = new DefaultProperty<>(PropertyHost.NO_OP, String.class);
 
         public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
             this.attributesFactory = attributesFactory;
@@ -2468,6 +2463,11 @@ since users cannot create non-legacy configurations and there is no current publ
             return this;
         }
 
+        @Override
+        public Property<String> getDisplayName() {
+            return displayName;
+        }
+
         private void assertComponentFilterUnset() {
             if (componentFilter != null) {
                 throw new IllegalStateException("The component filter can only be set once before the view was computed");
@@ -2488,11 +2488,6 @@ since users cannot create non-legacy configurations and there is no current publ
                 viewAttributes = viewAttributes.asImmutable();
             }
             return viewAttributes.asImmutable();
-        }
-
-        @Override
-        public void setCustomName(String name) {
-            this.displayName = name;
         }
     }
 

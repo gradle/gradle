@@ -20,6 +20,11 @@ import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
 
+/**
+ * This type is associated with {@link DefaultProperty}, and can be used to conditionally reject reads of a property.
+ *
+ * When creating simple properties that have no need of this optional behavior, provide the {@link #NO_OP} instance.
+ */
 public interface PropertyHost {
     PropertyHost NO_OP = producer -> null;
 
