@@ -82,7 +82,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
      * @since 6.0
      */
     public static final String DEFAULT_ZINC_VERSION = "1.6.1";
-    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
+    protected static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
 
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
@@ -107,7 +107,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
+        ScalaRuntime scalaRuntime = createScalaRuntime(project);
         ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", DefaultScalaPluginExtension.class);
 
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
@@ -119,7 +119,11 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         configureScaladoc(project, scalaRuntime);
     }
 
-    private void configureConfigurations(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
+    protected ScalaRuntime createScalaRuntime(final Project project) {
+        return project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
+    }
+
+    protected void configureConfigurations(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
         DependencyHandler dependencyHandler = project.getDependencies();
 
         Configuration plugins = project.getConfigurations().resolvableBucket(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
@@ -171,7 +175,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureSourceSetDefaults(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage) {
+    protected void configureSourceSetDefaults(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage) {
         javaPluginExtension(project).getSourceSets().all(sourceSet -> {
 
             ScalaSourceDirectorySet scalaSource = getScalaSourceDirectorySet(sourceSet);
@@ -205,7 +209,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return scalaSourceSet.getScala();
     }
 
-    private static Configuration createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
+    protected static Configuration createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
         @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.createWithRole("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
         incrementalAnalysis.setVisible(false);
@@ -216,7 +220,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return incrementalAnalysis;
     }
 
-    private void createScalaCompileTask(final Project project, final SourceSet sourceSet, ScalaSourceDirectorySet scalaSource, final Configuration incrementalAnalysis) {
+    protected void createScalaCompileTask(final Project project, final SourceSet sourceSet, ScalaSourceDirectorySet scalaSource, final Configuration incrementalAnalysis) {
         final TaskProvider<ScalaCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, scalaCompile -> {
             JvmPluginsHelper.compileAgainstJavaOutputs(scalaCompile, sourceSet, objectFactory);
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, scalaSource, scalaCompile.getOptions(), project);
@@ -231,7 +235,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         project.getTasks().named(sourceSet.getClassesTaskName(), task -> task.dependsOn(compileTask));
     }
 
-    private void configureIncrementalAnalysis(Project project, SourceSet sourceSet, Configuration incrementalAnalysis, ScalaCompile scalaCompile) {
+    protected void configureIncrementalAnalysis(Project project, SourceSet sourceSet, Configuration incrementalAnalysis, ScalaCompile scalaCompile) {
         scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
         // cannot compute at task execution time because we need association with source set
@@ -259,7 +263,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
     }
 
-    private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime, final DefaultJavaPluginExtension javaExtension) {
+    protected static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
             conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(compile.getClasspath()));
@@ -271,7 +275,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private static JavaVersion computeJavaSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
+    protected static JavaVersion computeJavaSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
         JavaVersion rawSourceCompatibility = javaExtension.getRawSourceCompatibility();
         if (rawSourceCompatibility != null) {
             return rawSourceCompatibility;
@@ -279,7 +283,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return JavaVersion.toVersion(compileTask.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
     }
 
-    private static JavaVersion computeJavaTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
+    protected static JavaVersion computeJavaTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
         JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
         if (rawTargetCompatibility != null) {
             return rawTargetCompatibility;
@@ -287,7 +291,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return JavaVersion.toVersion(compileTask.getSourceCompatibility());
     }
 
-    private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
+    protected void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
             scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
             scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
