@@ -162,7 +162,7 @@ private constructor(
      * @param dependencyNotation notation for the dependency to be added.
      * @return The dependency.
      * @see [DependencyHandler.add]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency? =
@@ -186,7 +186,7 @@ private constructor(
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      * @see [DependencyHandler.add]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     inline operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
@@ -227,7 +227,7 @@ private constructor(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     operator fun NamedDomainObjectProvider<Configuration>.invoke(
@@ -280,7 +280,7 @@ private constructor(
      *
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     inline operator fun NamedDomainObjectProvider<Configuration>.invoke(
@@ -314,7 +314,7 @@ private constructor(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     inline operator fun <T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
@@ -340,7 +340,7 @@ private constructor(
      * @param dependencyConfiguration the configuration to be applied to the dependency
      *
      * @see [DependencyHandler.addProvider]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
@@ -363,7 +363,7 @@ private constructor(
      * @param dependency the dependency provider to be added.
      *
      * @see [DependencyHandler.addProvider]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>) =
@@ -389,7 +389,7 @@ private constructor(
      * @param dependencyConfiguration the configuration to be applied to the dependency
      *
      * @see [DependencyHandler.addProviderConvertible]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
@@ -412,7 +412,7 @@ private constructor(
      * @param dependency the dependency provider to be added.
      *
      * @see [DependencyHandler.addProviderConvertible]
-     * @since 8.2
+     * @since 8.3
      */
     @Incubating
     operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>) =
