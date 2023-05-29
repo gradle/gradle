@@ -61,6 +61,12 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             // Too early to resolve excludes
             return new Filter(defaultBuild, Specs.satisfyNone());
         }
+        for (ProjectState project : defaultBuild.getProjects().getAllProjects()) {
+            if (!project.isCreated()) {
+                // Too early to resolve excludes
+                return new Filter(defaultBuild, Specs.satisfyNone());
+            }
+        }
         TaskSelector.SelectionContext selection = sanityCheckPath(taskName, "excluded tasks");
         ProjectResolutionResult resolutionResult = resolveProject(selection, selection.getOriginalPath(), defaultBuild);
         return new Filter(resolutionResult.build, new LazyFilter(selection, resolutionResult));
