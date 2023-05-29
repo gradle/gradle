@@ -207,7 +207,7 @@ class CallInterceptingMetaClassTest extends Specification {
 
         and:
         def methodByTypes = withEntryPoint(INVOKE_METHOD, name) {
-            instance.metaClass.pickMethod(name, args.collect { it == null ? it : it.class }.toArray(Class[]::new))
+            instance.metaClass.pickMethod(name, args.collect { it == null ? null : it.class }.toArray(new Class[0]) as Class[])
         }
         intercepted == methodByTypes instanceof CallInterceptingMetaClass.InterceptedMetaMethod
 
