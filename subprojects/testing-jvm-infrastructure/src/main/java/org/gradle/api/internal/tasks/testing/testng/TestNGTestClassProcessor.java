@@ -134,18 +134,16 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             }
         }
 
-        TestFilterSpec filterSpec = spec.getFilter();
-        if (!filterSpec.getIncludedTests().isEmpty() || !filterSpec.getIncludedTestsCommandLine().isEmpty() || !filterSpec.getExcludedTests().isEmpty()) {
-            testNg.addListener(new SelectedTestsFilter(filterSpec));
+        TestFilterSpec filter = spec.getFilter();
+        if (!filter.getIncludedTests().isEmpty() || !filter.getIncludedTestsCommandLine().isEmpty() || !filter.getExcludedTests().isEmpty()) {
+            testNg.addListener(new SelectedTestsFilter(filter));
         }
-
 
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
             testNg.setTestClasses(testClasses.toArray(new Class<?>[0]));
         }
-
         testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, clock)));
         testNg.run();
     }
