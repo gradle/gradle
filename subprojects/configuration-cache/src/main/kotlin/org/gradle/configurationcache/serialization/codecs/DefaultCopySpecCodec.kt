@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Action
+import org.gradle.api.file.ConfigurableFilePermissions
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileCopyDetails
@@ -58,8 +59,8 @@ class DefaultCopySpecCodec(
             writeBoolean(value.includeEmptyDirs)
             writeBoolean(value.isCaseSensitive)
             writeString(value.filteringCharset)
-            writeNullableSmallInt(value.dirPermissions.map { it.toUnixNumeric() }.orNull)
-            writeNullableSmallInt(value.filePermissions.map { it.toUnixNumeric() }.orNull)
+            writeNullableSmallInt(value.dirPermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
+            writeNullableSmallInt(value.filePermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
             writeCollection(value.copyActions)
             writeCollection(value.children)
         }
