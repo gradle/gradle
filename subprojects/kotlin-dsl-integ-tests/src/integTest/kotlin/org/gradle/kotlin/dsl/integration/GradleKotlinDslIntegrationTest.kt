@@ -302,15 +302,24 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         withBuildScript(
             """
-            val foo by configurations.registering
+            buildscript {
+                val classpath2 = configurations.named("classpath")
+                dependencies { classpath2(files("fixture.jar")) }
+            }
 
-            dependencies {
-              foo(files("fixture.jar"))
+            task("compute") {
+                doLast {
+                    val computer = ${DeepThought::class.qualifiedName}()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
             }
             """
         )
 
-        build("dependencies")
+        assert(
+            build("compute").output.contains("*42*")
+        )
     }
 
     @Test
