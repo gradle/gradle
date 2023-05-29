@@ -16,18 +16,26 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
+/**
+ * A serializer used for resolution results that will be consumed from the same Gradle invocation that produces them.
+ *
+ * <p>Writes a reference to the {@link VariantGraphResolveState} instance to build the result from, rather than persisting the associated data.</p>
+ */
+@ThreadSafe
 public class ThisBuildOnlySelectedVariantSerializer implements SelectedVariantSerializer {
-    private final ConcurrentMap<Long, VariantGraphResolveState> variants = new ConcurrentHashMap<>();
+    private final Long2ObjectMap<VariantGraphResolveState> variants = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
     @Override
     public void writeVariantResult(ResolvedGraphVariant variant, Encoder encoder) throws IOException {

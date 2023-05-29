@@ -35,6 +35,55 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.3]]
+== Upgrading from 8.2 and earlier
+
+=== Potential breaking changes
+
+[[legacy_attribute_snapshotting]]
+==== Fixed variant selection behavior with `ArtifactView` and `ArtifactCollection`
+
+The dependency resolution APIs for selecting different artifacts or files (`Configuration.getIncoming().artifactView { }` and `Configuration.getIncoming().getArtifacts()`) captured immutable copies of the underlying `Configuration`'s attributes to use for variant selection.
+If the `Configuration`'s attributes were changed after these methods were called, the artifacts selected by these methods could be unexpected.
+
+Consider the case where the set of attributes on a `Configuration` is changed after an `ArtifactView` is created.
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks {
+    myTask {
+        inputFiles.from(configurations.classpath.incoming.artifactView {
+            attributes {
+                // Add attributes to select a different type of artifact
+            }
+        }.files)
+    }
+}
+
+configurations {
+    classpath {
+        attributes {
+            // Add more attributes to the configuration
+        }
+    }
+}
+
+----
+=====
+
+The `inputFiles` property of `myTask` uses an artifact view to select a different type of artifact from the configuration `classpath`.
+Since the artifact view was created before the attributes were added to the configuration, Gradle was not able to select the correct artifact.
+
+Some builds may have worked around this by also putting the additional attributes into the artifact view. This is no longer necessary.
+
+[[kotlin_1_8.20]]
+==== Upgrade to Kotlin 1.8.21
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 

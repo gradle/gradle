@@ -29,4 +29,15 @@ public interface CacheInitializationAction {
      * The lock is not released between calling {@link #requiresInitialization(FileLock)} and this method.
      */
     void initialize(FileLock fileLock);
+
+    CacheInitializationAction NO_INIT_REQUIRED = new CacheInitializationAction() {
+        @Override
+        public boolean requiresInitialization(FileLock fileLock) {
+            return false;
+        }
+
+        @Override
+        public void initialize(FileLock fileLock) {
+        }
+    };
 }

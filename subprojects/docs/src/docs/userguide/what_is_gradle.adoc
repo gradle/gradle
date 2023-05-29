@@ -16,86 +16,24 @@
 [[what_is_gradle]]
 = What is Gradle?
 
-Gradle is an open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool flexible enough to build almost any type of software.
-Gradle makes few assumptions about what you're trying to build or how to build it.
-This makes Gradle particularly flexible.
+== Gradle Build Tool
 
-== Design
+Gradle Build Tool is a fast, dependable, and adaptable open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool with an elegant and extensible declarative build language.
 
-Gradle bases its design on the following fundamentals:
+In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
 
-High performance::
-Gradle avoids unnecessary work by only running tasks that need to do work because inputs or outputs have changed.
-Gradle uses various caches to reuse outputs from previous builds.
-With a shared build cache, you can even reuse outputs from other machines.
-JVM foundation::
-Gradle runs on the JVM. This is a bonus for users familiar with Java, since build logic can use the standard Java APIs.
-It also makes it easy to run Gradle on different platforms.
-Conventions::
-Gradle makes common types of projects easy to build through conventions. Plugins set sensible defaults to keep build scripts minimal.
-But these conventions don't limit you: you can configure settings, add your own tasks, and make many other customizations in your builds.
-Extensibility::
-Most builds have special requirements that require custom build logic.
-You can readily extend Gradle to provide your own build logic with custom tasks and plugins.
-See Android builds for an example: they add many new build concepts such as flavors and build types.
-IDE support::
-Several major IDEs provide interaction with Gradle builds, including Android Studio, IntelliJ IDEA, Eclipse, VSCode, and NetBeans.
-Gradle can also generate the solution files required to load a project into Visual Studio.
-Insight::
-https://scans.gradle.com/[Build Scan™] provides extensive information about a build that you can use to identify issues.
-You can use Build Scans to identify problems with a build's performance and even share them for debugging help.
+== Why Gradle?
 
-== Terminology
+Gradle is a widely used and mature tool with an active community and a strong developer ecosystem.
 
-It's helpful to know the following terminology before you dive into the details of Gradle.
+* Gradle is the most popular build system for the JVM and is the default system for Android and Kotlin Multi-Platform projects.
+It has a rich community plugin ecosystem.
+* Gradle can automate a wide range of software build scenarios using either its built-in functionality, third-party plugins, or custom build logic.
+* Gradle provides a high-level, declarative, and expressive build language that makes it easy to read and write build logic.
+* Gradle is fast, scalable, and can build projects of any size and complexity.
+* Gradle produces dependable results while benefiting from optimizations such as incremental builds, build caching, and parallel execution.
 
-=== Projects
+All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
-Projects are the things that Gradle builds.
-Projects contain a build script, which is a file located in the project's root directory usually named `build.gradle` or `build.gradle.kts`.
-Builds scripts define tasks, dependencies, plugins, and other configuration for that project.
-A single build can contain one or more projects and each project can contain their own subprojects.
-
-=== Tasks
-
-Tasks contain the logic for executing some work--compiling code, running tests or deploying software.
-In most use cases, you'll use existing tasks.
-Gradle provides tasks that implement many common build system needs, like the built-in Java `Test` task that can run tests.
-Plugins provide even more types of tasks.
-
-Tasks themselves consist of:
-
- * Actions: pieces of work that do something, like copy files or compile source
- * Inputs: values, files and directories that the actions use or operate on
- * Outputs: files and directories that the actions modify or generate
-
-=== Plugins
-
-Plugins allow you to introduce new concepts into a build beyond tasks, files and dependency configurations.
-For example, most language plugins add the concept of <<building_java_projects#sec:java_source_sets,source sets>> to a build.
-
-Plugins provide a means of reusing logic and configuration across multiple projects.
-With plugins, you can write a task once and use it in multiple builds.
-Or you can store common configuration, like logging, dependencies, and version management, in one place.
-This reduces duplication in build scripts.
-Appropriately modeling build processes with plugins can greatly improve ease of use and efficiency.
-
-=== Build Phases
-
-Gradle evaluates and executes build scripts in three *build phases* of the <<build_lifecycle#build_lifecycle,Build Lifecycle>>:
-
-Initialization::
-Sets up the environment for the build and determine which projects will take part in it.
-
-Configuration::
-Constructs and configures the task graph for the build. Determines which tasks need to run and in which order, based on the task the user wants to run.
-
-Execution::
-Runs the tasks selected at the end of the configuration phase.
-
-=== Builds
-
-A build is an execution of a collection of tasks in a Gradle project.
-You run a build via the command line interface (CLI) or an IDE by specifying task selectors.
-Gradle configures the build and selects the tasks to run.
-Gradle runs the smallest complete set of tasks based on the requested tasks and their dependencies.
+Gradle, Inc. provides a free service called https://scans.gradle.com/[Build Scan®] that provides extensive information and insights about your builds.
+You can view scans to identify problems or share them for debugging help.

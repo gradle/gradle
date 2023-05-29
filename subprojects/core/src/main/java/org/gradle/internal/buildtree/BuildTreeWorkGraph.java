@@ -19,11 +19,14 @@ package org.gradle.internal.buildtree;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.execution.EntryTaskSelector;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 
 import java.util.Collection;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -61,5 +64,10 @@ public interface BuildTreeWorkGraph {
          * Adds add task filter to the given build.
          */
         void addFilter(BuildState target, Spec<Task> filter);
+
+        /**
+         * Adds a {@link ExecutionPlan} finalization step to the given build.
+         */
+        void addFinalization(BuildState target, BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization);
     }
 }

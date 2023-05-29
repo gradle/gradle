@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
-class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAccess {
+public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final BlockingQueue<Runnable> workQueue;
     private final String displayName;
     private final ExclusiveCacheAccessCoordinator cacheAccess;
@@ -47,7 +47,7 @@ class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAc
     private final CountDownLatch doneSignal = new CountDownLatch(1);
     private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
 
-    ExclusiveCacheAccessingWorker(String displayName, ExclusiveCacheAccessCoordinator cacheAccess) {
+    public ExclusiveCacheAccessingWorker(String displayName, ExclusiveCacheAccessCoordinator cacheAccess) {
         this.displayName = displayName;
         this.cacheAccess = cacheAccess;
         this.batchWindowMillis = 200;

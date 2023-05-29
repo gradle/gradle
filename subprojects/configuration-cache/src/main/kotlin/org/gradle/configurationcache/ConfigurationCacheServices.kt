@@ -118,12 +118,13 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             listenerManager: ListenerManager,
             modelParameters: BuildModelParameters,
             configurationTimeBarrier: ConfigurationTimeBarrier
-        ): ExecutionAccessChecker {
-            val broadcaster = listenerManager.getBroadcaster(ExecutionAccessListener::class.java)
-            return when {
-                modelParameters.isConfigurationCache -> ConfigurationTimeBarrierBasedExecutionAccessChecker(configurationTimeBarrier, broadcaster)
-                else -> DefaultExecutionAccessChecker()
+        ): ExecutionAccessChecker = when {
+            modelParameters.isConfigurationCache -> {
+                val broadcaster = listenerManager.getBroadcaster(ExecutionAccessListener::class.java)
+                ConfigurationTimeBarrierBasedExecutionAccessChecker(configurationTimeBarrier, broadcaster)
             }
+
+            else -> DefaultExecutionAccessChecker()
         }
     }
 

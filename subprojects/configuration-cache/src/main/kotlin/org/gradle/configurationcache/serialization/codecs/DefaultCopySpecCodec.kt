@@ -17,12 +17,15 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Action
+import org.gradle.api.file.ConfigurableFilePermissions
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
@@ -42,7 +45,9 @@ internal
 class DefaultCopySpecCodec(
     private val patternSetFactory: Factory<PatternSet>,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val instantiator: Instantiator
+    private val objectFactory: ObjectFactory,
+    private val instantiator: Instantiator,
+    private val fileSystemOperations: FileSystemOperations
 ) : Codec<DefaultCopySpec> {
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
@@ -54,8 +59,8 @@ class DefaultCopySpecCodec(
             writeBoolean(value.includeEmptyDirs)
             writeBoolean(value.isCaseSensitive)
             writeString(value.filteringCharset)
-            writeNullableSmallInt(value.dirMode)
-            writeNullableSmallInt(value.fileMode)
+            writeNullableSmallInt(value.dirPermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
+            writeNullableSmallInt(value.filePermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
             writeCollection(value.copyActions)
             writeCollection(value.children)
         }
@@ -74,16 +79,16 @@ class DefaultCopySpecCodec(
             val fileMode = readNullableSmallInt()
             val actions = readList().uncheckedCast<List<Action<FileCopyDetails>>>()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
-            val copySpec = DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
+            val copySpec = DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
             copySpec.duplicatesStrategy = duplicatesStrategy
             copySpec.includeEmptyDirs = includeEmptyDirs
             copySpec.isCaseSensitive = isCaseSensitive
             copySpec.filteringCharset = filteringCharset
             if (dirMode != null) {
-                copySpec.dirMode = dirMode
+                copySpec.dirPermissions.set(fileSystemOperations.permissions(dirMode))
             }
             if (fileMode != null) {
-                copySpec.fileMode = fileMode
+                copySpec.filePermissions.set(fileSystemOperations.permissions(fileMode))
             }
             isolate.identities.putInstance(id, copySpec)
             copySpec

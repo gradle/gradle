@@ -16,6 +16,7 @@
 package org.gradle.execution;
 
 import org.gradle.TaskExecutionRequest;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -43,7 +44,7 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     @Override
     public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
         if (selector != null) {
-            selector.applyTasksTo(new ContextImpl(gradle), plan);
+            selector.applyTasksTo(new EntryTaskSelectorContext(gradle), plan);
         }
         List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
         for (TaskExecutionRequest taskParameter : taskParameters) {
@@ -55,10 +56,11 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
         }
     }
 
-    private class ContextImpl implements EntryTaskSelector.Context {
+    @NonNullApi
+    private class EntryTaskSelectorContext implements EntryTaskSelector.Context {
         final GradleInternal gradle;
 
-        public ContextImpl(GradleInternal gradle) {
+        public EntryTaskSelectorContext(GradleInternal gradle) {
             this.gradle = gradle;
         }
 

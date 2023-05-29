@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -64,19 +63,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     @Override
     public ComponentIdentifier getId() {
         return graphMetadata.getId();
-    }
-
-    @Override
-    public ModuleSources getSources() {
-        return artifactMetadata.getSources();
-    }
-
-    @Nullable
-    @Override
-    public String getRepositoryId() {
-        return getSources().withSource(RepositoryChainModuleSource.class, source -> source
-            .map(RepositoryChainModuleSource::getRepositoryId)
-            .orElse(null));
     }
 
     @Override

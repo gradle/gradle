@@ -81,7 +81,7 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
 
         @Override
         public Set<File> getFiles() {
-            Set<File> files = new LinkedHashSet<File>();
+            Set<File> files = new LinkedHashSet<>();
             for (IvyArtifact artifact : DefaultIvyArtifactSet.this) {
                 files.add(artifact.getFile());
             }

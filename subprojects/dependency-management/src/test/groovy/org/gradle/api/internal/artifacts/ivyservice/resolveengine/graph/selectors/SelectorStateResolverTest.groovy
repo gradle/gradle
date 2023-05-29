@@ -40,6 +40,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -47,6 +48,7 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.util.Path
+import org.jetbrains.annotations.Nullable
 import spock.lang.Specification
 
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_10
@@ -57,10 +59,12 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.RANG
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_EMPTY
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
-import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER_BATCH1
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER_BATCH2
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_SINGLE
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
-import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES_BATCH1
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES_BATCH2
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
 
 /**
@@ -90,7 +94,7 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_SINGLE
     }
 
-    def "resolve pair #permutation"() {
+    def "resolve pair #permutation (batch 1)"() {
         given:
         def candidates = permutation.candidates
         def expected = permutation.expectedSingle
@@ -99,7 +103,19 @@ class SelectorStateResolverTest extends Specification {
         resolver(permutation.conflicts).resolve(candidates) == expected
 
         where:
-        permutation << SCENARIOS_TWO_DEPENDENCIES
+        permutation << SCENARIOS_TWO_DEPENDENCIES_BATCH1
+    }
+
+    def "resolve pair #permutation (batch 2)"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expectedSingle
+
+        expect:
+        resolver(permutation.conflicts).resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_TWO_DEPENDENCIES_BATCH2
     }
 
     def "resolve empty pair #permutation"() {
@@ -114,7 +130,7 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_EMPTY
     }
 
-    def "resolve prefer pair #permutation"() {
+    def "resolve prefer pair #permutation (batch 1)"() {
         given:
         def candidates = permutation.candidates
         def expected = permutation.expectedSingle
@@ -123,7 +139,19 @@ class SelectorStateResolverTest extends Specification {
         resolver(permutation.conflicts).resolve(candidates) == expected
 
         where:
-        permutation << SCENARIOS_PREFER
+        permutation << SCENARIOS_PREFER_BATCH1
+    }
+
+    def "resolve prefer pair #permutation (batch 2)"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expectedSingle
+
+        expect:
+        resolver(permutation.conflicts).resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_PREFER_BATCH2
     }
 
     def "resolve reject pair #permutation"() {
@@ -268,7 +296,7 @@ class SelectorStateResolverTest extends Specification {
 
     static class TestComponentFactory implements ComponentStateFactory<ComponentResolutionState> {
         @Override
-        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state) {
+        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, @Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState) {
             return new TestComponentResolutionState(componentIdentifier, id)
         }
     }

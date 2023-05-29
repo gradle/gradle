@@ -17,31 +17,53 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
+import org.gradle.cache.CacheCleanupStrategy;
+import org.gradle.cache.CleanupAction;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.HasCleanupAction;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.time.Time;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.function.Function;
+
+import static org.gradle.cache.FileLockManager.LockMode.None;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     private static final String BUILD_CACHE_VERSION = "2";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
     private static final String H2_BUILD_CACHE_TYPE = "h2";
 
+    private final FileLockManager lockManager;
+    private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ParallelismConfiguration parallelismConfiguration;
     private final PathToFileResolver resolver;
+    private final CleanupActionDecorator cleanupActionDecorator;
 
     @Inject
     public H2BuildCacheServiceFactory(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-            ParallelismConfiguration parallelismConfiguration,
-            PathToFileResolver resolver
+        FileLockManager lockManager,
+        CleanupActionDecorator cleanupActionDecorator,
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        ParallelismConfiguration parallelismConfiguration,
+        PathToFileResolver resolver
     ) {
+        this.lockManager = lockManager;
+        this.cleanupActionDecorator = cleanupActionDecorator;
+        this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.parallelismConfiguration = parallelismConfiguration;
         this.resolver = resolver;
@@ -59,10 +81,25 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
         checkDirectory(target);
 
         int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
-        describer.type(H2_BUILD_CACHE_TYPE).
-            config("location", target.getAbsolutePath());
+        describer.type(H2_BUILD_CACHE_TYPE)
+            .config("location", target.getAbsolutePath())
+            .config("removeUnusedEntriesAfter", removeUnusedEntriesAfterDays + " days");
+        // TODO: H2Cache could be provided by PersistentCache
+        // TODO: Add open/close functionality to LockOptionsBuilder, so we can open and close database when process acquires a lock
+        //  and we can remove crossProcessCacheAccess logic from LockOnDemandCrossProcessBuildCacheService
+        // For now PersistentCache is used just so we can reuse cleanup infrastructure, but in future H2Cache could be provided by PersistentCache
+        Function<HasCleanupAction, PersistentCache> persistentCacheFactory = buildCacheService -> unscopedCacheBuilderFactory
+            .cache(target)
+            .withCleanupStrategy(createCacheCleanupStrategy((cleanableStore, progressMonitor) -> buildCacheService.cleanup()))
+            .withDisplayName("Build cache NG")
+            .withLockOptions(mode(None))
+            .open();
+        H2BuildCacheService h2Service = new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount(), removeUnusedEntriesAfterDays, Time.clock());
+        return new LockOnDemandCrossProcessBuildCacheService("build-cache-2", target, lockManager, h2Service, persistentCacheFactory);
+    }
 
-        return new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount());
+    private CacheCleanupStrategy createCacheCleanupStrategy(CleanupAction cleanupAction) {
+        return DefaultCacheCleanupStrategy.from(cleanupActionDecorator.decorate(cleanupAction));
     }
 
     private static void checkDirectory(File directory) {

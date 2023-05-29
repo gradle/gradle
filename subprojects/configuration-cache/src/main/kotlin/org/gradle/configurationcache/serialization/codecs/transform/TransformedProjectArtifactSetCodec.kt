@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
-import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
@@ -41,7 +41,7 @@ class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> 
     override suspend fun ReadContext.decode(): TransformedProjectArtifactSet {
         return decodePreservingSharedIdentity {
             val targetVariant = readNonNull<ComponentVariantIdentifier>()
-            val nodes: List<TransformationNode> = readList().uncheckedCast()
+            val nodes: List<TransformStepNode> = readList().uncheckedCast()
             TransformedProjectArtifactSet(targetVariant, nodes)
         }
     }
