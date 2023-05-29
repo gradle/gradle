@@ -223,6 +223,12 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
+        @Override
+        TestClassExecutionResult assertTestFailed(String name) {
+            testClassResults*.assertTestFailed(removeParentheses(name))
+            this
+        }
+
         boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
             List<Boolean> results = testClassResults*.testFailed(name, messageMatchers)
             return results.inject { a, b -> a && b }
