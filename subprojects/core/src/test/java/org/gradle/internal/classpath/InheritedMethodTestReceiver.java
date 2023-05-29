@@ -18,7 +18,7 @@ package org.gradle.internal.classpath;
 
 public class InheritedMethodTestReceiver {
 
-    public String call() {
+    public String sayHello() {
         return "Hello";
     }
 

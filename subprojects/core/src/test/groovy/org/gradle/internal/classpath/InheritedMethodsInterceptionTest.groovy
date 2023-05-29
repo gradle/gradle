@@ -16,8 +16,6 @@
 
 package org.gradle.internal.classpath
 
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
 
 import java.util.function.Predicate
 
@@ -25,39 +23,40 @@ import static java.util.function.Predicate.isEqual
 import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
 
 /**
- * See {@link BasicCallInterceptionTest} for example
+ * See {@link BasicCallInterceptionTest} for a basic example
  */
 class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
     @Override
     protected Predicate<String> shouldInstrumentAndReloadClassByName() {
-        nestedClassesOf(InheritedMethodsInterceptionTest.class) | isEqual(InheritedMethodTestReceiver.class.name) | isEqual(JavaCallerForBasicCallInterceptorTest.class.name)
+        nestedClassesOf(InheritedMethodsInterceptionTest.class) | nestedClassesOf(InheritedMethodTestReceiver.class) | isEqual(JavaCallerForBasicCallInterceptorTest.class.name)
     }
 
     @Override
     protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        return { [InheritedMethodsInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
+        return { [BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
     }
 
     @Override
     protected GroovyCallInterceptorsProvider groovyCallInterceptors() {
-        return { [InheritedMethodsInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
+        return { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
     }
 
-    String interceptedWhen(@ClosureParams(value = SimpleType, options = "InheritedMethodTestReceiver") Closure<?> call) {
-        def receiver = new InheritedMethodTestReceiver()
+    String interceptedFor(InheritedMethodTestReceiver receiver) {
+        def call = { JavaCallerForBasicCallInterceptorTest.doCallSayHello(it) }
         return instrumentedClasses.instrumentedClosure(call).call(receiver)
     }
 
-    def 'intercepts inherited method #name'() {
+    def 'intercepts inherited method for #description'() {
         when:
-        def intercepted = interceptedWhen(invocation)
+        def intercepted = interceptedFor(interceptionReceiver)
 
         then:
         intercepted == expected
 
         where:
-        // TODO: the set of the test cases should be extended; the ones listed currently are an example
-        name           | invocation                                                 | expected
-        "basic method" | { JavaCallerForBasicCallInterceptorTest.doCallNoArg2(it) } | "Hello World"
+        description          | interceptionReceiver                | expected
+        "base class"         | new InheritedMethodTestReceiver()   | "Hello from: InheritedMethodTestReceiver"
+        "direct subclass"    | new InheritedMethodTestReceiver.A() | "Hello from: InheritedMethodTestReceiver\$A"
+        "transient subclass" | new InheritedMethodTestReceiver.B() | "Hello from: InheritedMethodTestReceiver\$B"
     }
 }

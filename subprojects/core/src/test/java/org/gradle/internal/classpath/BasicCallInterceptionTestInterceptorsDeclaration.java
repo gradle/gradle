@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
+import org.gradle.internal.instrumentation.api.annotations.InterceptInherited;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
@@ -30,6 +31,7 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
     public static final String GROOVY_GENERATED_CLASS = "org.gradle.internal.classpath.Test_interceptors_groovy_generated";
 
     @InterceptCalls
+    @InterceptInherited
     @CallableKind.InstanceMethod
     public static void intercept_call(
         @ParameterKind.Receiver InterceptorTestReceiver self,

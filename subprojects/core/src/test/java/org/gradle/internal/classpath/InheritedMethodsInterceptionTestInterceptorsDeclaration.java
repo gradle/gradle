@@ -23,20 +23,18 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
-import static org.gradle.internal.classpath.InheritedMethodsInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS;
-import static org.gradle.internal.classpath.InheritedMethodsInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS;
+import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS;
+import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS;
 
 @SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = JVM_BYTECODE_GENERATED_CLASS)
 @SpecificGroovyCallInterceptors(generatedClassName = GROOVY_GENERATED_CLASS)
 public class InheritedMethodsInterceptionTestInterceptorsDeclaration {
-    public static final String JVM_BYTECODE_GENERATED_CLASS = "org.gradle.internal.classpath.Test_interceptors_jvmbytecode_generated";
-    public static final String GROOVY_GENERATED_CLASS = "org.gradle.internal.classpath.Test_interceptors_groovy_generated";
 
     @InterceptCalls
     @InterceptInherited
     @CallableKind.InstanceMethod
-    public static String intercept_call(@ParameterKind.Receiver InheritedMethodTestReceiver self) {
-        return self.call() + " World";
+    public static String intercept_sayHello(@ParameterKind.Receiver InheritedMethodTestReceiver self) {
+        return self.sayHello() + " from: " + self.getClass().getName().replace(self.getClass().getPackage().getName() + ".", "");
     }
 }

@@ -18,10 +18,8 @@ package org.gradle.internal.classpath;
 
 public class JavaCallerForBasicCallInterceptorTest {
 
-    public static String doCallNoArg2(InheritedMethodTestReceiver receiver) {
-        String v = receiver.call();
-        System.out.println(v);
-        return v;
+    public static String doCallSayHello(InheritedMethodTestReceiver receiver) {
+        return receiver.sayHello();
     }
     public static void doCallNoArg(InterceptorTestReceiver receiver) {
         receiver.call();
