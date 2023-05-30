@@ -51,7 +51,7 @@ public abstract class AbstractResult implements Serializable {
         return Collections.emptyList();
     }
 
-    public List<? extends InternalProblem> getProblems() {
+    public List<? extends InternalProblem> getProblems(List<? extends InternalProblem> defaults) {
         return problems;
     }
 }

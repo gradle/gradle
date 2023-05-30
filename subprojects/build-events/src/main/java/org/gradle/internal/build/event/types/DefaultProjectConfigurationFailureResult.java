@@ -40,7 +40,7 @@ public class DefaultProjectConfigurationFailureResult extends AbstractProjectCon
 
 
     @Override
-    public List<InternalProblem> getProblems() {
+    public List<InternalProblem> getProblems(List<? extends InternalProblem> defaults) {
         return problems;
     }
 }
