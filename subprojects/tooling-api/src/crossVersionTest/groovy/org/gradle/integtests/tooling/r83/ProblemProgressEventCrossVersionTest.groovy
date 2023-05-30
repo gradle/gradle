@@ -71,7 +71,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         (problems[0].rawAttributes['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
         (problems[0].rawAttributes['doc'] as String).contains('https://docs.gradle.org/')
         (problems[0].rawAttributes['severity'] as String).contains('WARNING')
-        (problems[1].rawAttributes['message'] as String).contains('Should not happen')
+        (problems[1].rawAttributes['message'] as String).contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
         (problems[1].rawAttributes['severity'] as String).contains('ERROR')
     }
 

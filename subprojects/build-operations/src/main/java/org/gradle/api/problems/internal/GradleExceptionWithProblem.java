@@ -16,13 +16,21 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.interfaces.Problem;
+
 /**
  * Represents some chunk of work.
  *
  * @since 8.3
  */
-public class GradleExceptionWithContext extends RuntimeException {
-    public GradleExceptionWithContext(Throwable cause) {
-        super(cause);
+public class GradleExceptionWithProblem extends RuntimeException {
+    private final Problem problem;
+
+    public GradleExceptionWithProblem(Problem problem) {
+        this.problem = problem;
+    }
+
+    public Problem getProblem() {
+        return problem;
     }
 }

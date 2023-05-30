@@ -35,6 +35,10 @@ public class Problems {
         return new ProblemBuilder(problemId, message, severity);
     }
 
+    public static ProblemBuilder throwing(Exception e, ProblemId problemId) { // TODO should be a different builder; that throws as a terminal operation
+        return new ProblemBuilder(problemId, e.getMessage(), Severity.ERROR);
+    }
+
     static void report(Problem problem) {
         BuildOperationContext operationContext = BuildOperationContextTracker.peek();
         if (operationContext != null) {

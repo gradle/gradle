@@ -17,7 +17,7 @@
 package org.gradle.internal.operations;
 
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.internal.GradleExceptionWithContext;
+import org.gradle.api.problems.internal.GradleExceptionWithProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,11 +69,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     try {
                         worker.execute(buildOperation, context);
                     } catch (Throwable t) {
-                        Throwable cause = getCause(t);
-                        if (context.getFailure() == null) {
-                             context.failed(cause);
+                        Problem cause = getProblem(t);
+                        if (context.getFailure() == null && cause != null) {
+                             context.failed(cause.getCause());
                         }
-                        failure = cause;
+                        failure = cause == null ? t : cause.getCause();
                     }
                     listener.stop(descriptor, operationState, parent, context);
                     if (failure != null) {
@@ -88,12 +88,13 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         });
     }
 
-    private static Throwable getCause(Throwable t) {
-        if (t instanceof GradleExceptionWithContext) {
-            return t.getCause();
+    private static @Nullable Problem getProblem(Throwable t) {
+        if (t instanceof GradleExceptionWithProblem) {
+            return ((GradleExceptionWithProblem)t).getProblem();
         }
-        return t;
+        return null;
     }
+
     @Override
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder) {
         return execute(descriptorBuilder, getCurrentBuildOperation(), new BuildOperationExecution<BuildOperationContext>() {

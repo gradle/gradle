@@ -20,6 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.internal.GradleExceptionWithProblem;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationContextTracker;
 import org.gradle.internal.problems.DefaultProblem;
 import org.gradle.internal.problems.DefaultProblemLocation;
 
@@ -93,5 +96,17 @@ public class ProblemBuilder {
 
     public void report() {
         Problems.report(build());
+    }
+
+    public RuntimeException createException() {
+        Problem problem = build();
+        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
+        if (operationContext != null) {
+            operationContext.addProblem(problem);
+            if (problem.getSeverity() == Severity.ERROR) {
+                operationContext.failed(problem.getCause());
+            }
+        }
+        return new GradleExceptionWithProblem(problem);
     }
 }
