@@ -64,24 +64,26 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
                 "You can't map a property that does not exist: propertyName=" + propertyName);
         }
 
-        // When there's a Property, use its `.convention()` method instead
-        // This is something we added to support properties migrated in the future from
-        // Java bean to Property where old code uses ConventionMapping to set conventions.
-        Class<? extends IConventionAware> sourceType = _source.getClass();
-        Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
-        if (getter != null && Property.class.isAssignableFrom(getter.getReturnType())) {
-            Property<Object> property;
-            try {
-                property = Cast.uncheckedNonnullCast(getter.invoke(_source));
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new IllegalStateException(String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName), e);
+        if (_ineligiblePropertyNames.contains(propertyName)) {
+            // When there's a Property, use its `.convention()` method instead
+            // This is something we added to support properties migrated in the future from
+            // Java bean to Property where old code uses ConventionMapping to set conventions.
+            Class<? extends IConventionAware> sourceType = _source.getClass();
+            Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
+            if (getter != null && Property.class.isAssignableFrom(getter.getReturnType())) {
+                Property<Object> property;
+                try {
+                    property = Cast.uncheckedNonnullCast(getter.invoke(_source));
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new IllegalStateException(String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName), e);
+                }
+                property.convention(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+            } else {
+                throw DocumentedFailure.builder()
+                    .withSummary("Using internal convention mapping with a Provider backed property.")
+                    .withUpgradeGuideSection(7, "convention_mapping")
+                    .build();
             }
-            property.convention(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
-        } else if (_ineligiblePropertyNames.contains(propertyName)) {
-            throw DocumentedFailure.builder()
-                .withSummary("Using internal convention mapping with a Provider backed property.")
-                .withUpgradeGuideSection(7, "convention_mapping")
-                .build();
         } else {
             _mappings.put(propertyName, mapping);
         }
