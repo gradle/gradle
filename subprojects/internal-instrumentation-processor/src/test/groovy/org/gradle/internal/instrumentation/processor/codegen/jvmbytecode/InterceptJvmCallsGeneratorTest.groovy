@@ -65,7 +65,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "java/io/File")) {
-                        if (name.equals("listFiles") && descriptor.equals("()[Ljava/io/File;") && opcode == Opcodes.INVOKEVIRTUAL) {
+                        if (name.equals("listFiles") && descriptor.equals("()[Ljava/io/File;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                             _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION_TYPE, "intercept_listFiles", "(Ljava/io/File;)[Ljava/io/File;");
                             return true;
                         }

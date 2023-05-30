@@ -250,9 +250,16 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static CodeBlock matchOpcodeExpression(CallableInfo interceptedCallable) {
-        CodeBlock result = interceptedCallable.getKind() == CallableKindInfo.STATIC_METHOD ? CodeBlock.of("opcode == $T.INVOKESTATIC", Opcodes.class) :
-            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? CodeBlock.of("opcode == $T.INVOKEVIRTUAL", Opcodes.class) :
-                interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? CodeBlock.of("opcode == $T.INVOKESPECIAL", Opcodes.class) : null;
+        CodeBlock result = null;
+        if (interceptedCallable.getKind() == CallableKindInfo.STATIC_METHOD) {
+            result = CodeBlock.of("opcode == $T.INVOKESTATIC", Opcodes.class);
+        } else if (interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD && interceptedCallable.getOwner().isInterceptSubtypes()) {
+            result = CodeBlock.of("(opcode == $T.INVOKEVIRTUAL || opcode == $T.INVOKEINTERFACE)", Opcodes.class, Opcodes.class);
+        } else if (interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD) {
+            result = CodeBlock.of("opcode == $T.INVOKEVIRTUAL", Opcodes.class);
+        } else if (interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
+            result = CodeBlock.of("opcode == $T.INVOKESPECIAL", Opcodes.class);
+        }
         if (result == null) {
             throw new Failure("Could not determine the opcode for intercepting the call");
         }
