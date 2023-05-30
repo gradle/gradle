@@ -30,12 +30,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 public class Jvm implements JavaInfo {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
     private static final HashSet<String> VENDOR_PROPERTIES = Sets.newHashSet("java.vendor", "java.vm.vendor");
     private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
+    private static final Pattern APP_NAME_REGEX = Pattern.compile("APP_NAME_\\d+");
+    private static final Pattern JAVA_MAIN_CLASS_REGEX = Pattern.compile("JAVA_MAIN_CLASS_\\d+");
 
     private final OperatingSystem os;
     //supplied java location
@@ -344,8 +347,8 @@ public class Jvm implements JavaInfo {
         Map<String, Object> vars = new HashMap<String, Object>();
         for (Map.Entry<String, ?> entry : envVars.entrySet()) {
             // The following are known variables that can change between builds and should not be inherited
-            if (entry.getKey().matches("APP_NAME_\\d+")
-                || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")
+            if (APP_NAME_REGEX.matcher(entry.getKey()).matches()
+                || JAVA_MAIN_CLASS_REGEX.matcher(entry.getKey()).matches()
                 || entry.getKey().equals("TERM_SESSION_ID")
                 || entry.getKey().equals("ITERM_SESSION_ID")) {
                 continue;
