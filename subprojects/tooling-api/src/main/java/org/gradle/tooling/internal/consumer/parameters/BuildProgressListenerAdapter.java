@@ -820,8 +820,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
 //            return r.getProblems();
             return result.getProblems(Collections.<InternalProblem>emptyList());
-        }
-        catch (AbstractMethodError e) {
+        } catch (AbstractMethodError e) {
             return Collections.emptyList();
         }
 //        catch (Throwable e) {

@@ -16,13 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 
 import java.util.Collections;
 import java.util.List;
 
+@NonNullApi
 public class DefaultOperationSuccessResultMixin {
 
     public DefaultOperationSuccessResultMixin(InternalOperationResult result) {
