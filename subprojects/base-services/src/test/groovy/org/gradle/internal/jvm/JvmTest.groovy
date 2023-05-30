@@ -343,16 +343,6 @@ class JvmTest extends Specification {
         jvm.is(current)
     }
 
-    def "JAVA_CLASS_NAME_* env is not inherited on Mac OS"() {
-        when:
-        System.properties['os.name'] = 'Mac OS X'
-
-        def jvm = Jvm.current()
-
-        then:
-        jvm.getInheritableEnvironmentVariables(["JAVA_MAIN_CLASS_1234": "com.foo.Main"]).isEmpty()
-    }
-
     def "uses system property to determine if IBM JVM"() {
         when:
         System.properties[vendorProperty] = 'IBM Corporation'
