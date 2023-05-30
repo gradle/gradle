@@ -115,7 +115,7 @@ public class JdkTools {
                     for (JavaCompiler compilerCandidate : ServiceLoader.load(JavaCompiler.class, isolatedToolsLoader)) {
                         if (!compilerCandidate.getClass().getName().equals(DEFAULT_COMPILER_IMPL_NAME)) {
                             // take the first compiler found on the custom compiler classpath that is not the JavacTool system compiler (if any)
-                            LOG.debug("Using Java compiler {}", compilerCandidate.getClass().getName());
+                            LOG.info("Using Java compiler {}", compilerCandidate.getClass().getName());
                             compiler = compilerCandidate;
                             break;
                         }
