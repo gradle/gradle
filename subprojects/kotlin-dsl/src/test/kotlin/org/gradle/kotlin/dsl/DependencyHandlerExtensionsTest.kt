@@ -299,8 +299,14 @@ class DependencyHandlerExtensionsTest {
     @Issue("https://github.com/gradle/gradle/issues/24503")
     fun `given configuration provider and dependency notation, it will add the dependency to the configuration provider`() {
 
+        val constraint = mock<DependencyConstraint>()
+        val constraintHandler = mock<DependencyConstraintHandler> {
+            on { add(any(), any()) } doReturn constraint
+            on { add(any(), any(), any()) } doReturn constraint
+        }
         val dependencyHandler = newDependencyHandlerMock {
             on { add(any(), any()) } doReturn mock<Dependency>()
+            on { constraints } doReturn constraintHandler
         }
         val configuration = mock<NamedDomainObjectProvider<Configuration>> {
             on { name } doReturn "c"
@@ -308,10 +314,17 @@ class DependencyHandlerExtensionsTest {
 
         val dependencies = DependencyHandlerScope.of(dependencyHandler)
         dependencies {
-            configuration("notation")
+            configuration("some:thing:1.0")
+            (constraints) {
+                configuration("other:thing:1.0")
+            }
         }
 
-        verify(dependencyHandler).add("c", "notation")
+        verify(dependencyHandler).add("c", "some:thing:1.0")
+        inOrder(constraintHandler) {
+            verify(constraintHandler).add(eq("c"), eq("other:thing:1.0"))
+            verifyNoMoreInteractions()
+        }
     }
 
     @Test
