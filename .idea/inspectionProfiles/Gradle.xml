@@ -31,9 +31,6 @@
         <option name="m_maxLength" value="999" />
       </extension>
     </inspection_tool>
-    <inspection_tool class="OptionalAssignedToNull" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="WARN_ON_COMPARISON" value="false" />
-    </inspection_tool>
     <inspection_tool class="SafeVarargsDetector" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="UNUSED_IMPORT" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryParentheses" enabled="true" level="ERROR" enabled_by_default="true">
