@@ -30,10 +30,12 @@ public class GradleDocsHtmlAsciidoctorExtensionRegistry implements ExtensionRegi
 
     private static final String HEAD_HTML_PATH = "/head.html";
     private static final String HEADER_HTML_PATH = "/header.html";
+    private static final String GOOGLE_ANALYTICS_HTML_PATH = "/googleAnalytics.html";
     private static final String FOOTER_HTML_PATH = "/footer.html";
 
     private String headHtml;
     private String headerHtml;
+    private String googleAnalyticsHtml;
     private String footerHtml;
 
 
@@ -44,6 +46,8 @@ public class GradleDocsHtmlAsciidoctorExtensionRegistry implements ExtensionRegi
         JavaExtensionRegistry registry = asciidoctor.javaExtensionRegistry();
 
         registry.docinfoProcessor(new NavigationDocinfoProcessor(new HashMap<>(), headHtml));
+
+        registry.postprocessor(new AnalyticsInjectingPostprocessor(new HashMap<>(), googleAnalyticsHtml));
 
         registry.postprocessor(new HeaderInjectingPostprocessor(new HashMap<>(), headerHtml));
 
@@ -56,6 +60,7 @@ public class GradleDocsHtmlAsciidoctorExtensionRegistry implements ExtensionRegi
     private void initializeHtmlToInject() {
         headHtml = loadResource(HEAD_HTML_PATH);
         headerHtml = loadResource(HEADER_HTML_PATH);
+        googleAnalyticsHtml = loadResource(GOOGLE_ANALYTICS_HTML_PATH);
         footerHtml = loadResource(FOOTER_HTML_PATH);
     }
 
