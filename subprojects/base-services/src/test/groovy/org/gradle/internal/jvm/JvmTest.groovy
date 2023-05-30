@@ -44,8 +44,6 @@ class JvmTest extends Specification {
     def setup() {
         JavaVersion.resetCurrent()
         OperatingSystem.resetCurrent()
-        // if tests run on Mac OS, they might pick up an Apple JVM based on this property
-        System.properties['os.name'] = 'Dummy'
     }
 
     def cleanup() {
