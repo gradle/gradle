@@ -17,10 +17,10 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractTestProgressLoggingIntegrationTest
+import org.gradle.testing.AbstractDefaultTestOrderingIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_ASSUMPTIONS
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
 
-@TargetCoverage({ JUNIT4_ASSUMPTIONS })
-class JUnit4TestProgressLoggingIntegrationTest extends AbstractTestProgressLoggingIntegrationTest implements JUnit4MultiVersionTest {
+@TargetCoverage({ JUNIT_4 })
+class JUnit4DefaultTestOrderingIntegrationTest extends AbstractDefaultTestOrderingIntegrationTest implements JUnit4MultiVersionTest {
 }

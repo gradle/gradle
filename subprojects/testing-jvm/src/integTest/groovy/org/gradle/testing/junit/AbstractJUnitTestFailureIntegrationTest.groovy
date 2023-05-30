@@ -36,6 +36,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
     abstract String getBeforeClassErrorTestName()
     abstract String getAfterClassErrorTestName()
     abstract Matcher<? super String>[] getBrokenBeforeAndAfterMatchers()
+    abstract boolean hasStableInitializationErrors()
 
     def "reports and breaks build when tests fail"() {
         given:
@@ -279,12 +280,14 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
         result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
         result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', brokenBeforeAndAfterMatchers)
-        result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
         result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
         result.testClass('org.gradle.CustomException').assertTestFailed('custom', startsWith('Exception with a custom toString implementation'))
-        result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
         result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
+        if (hasStableInitializationErrors()) {
+            result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+            result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
+            result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23602")

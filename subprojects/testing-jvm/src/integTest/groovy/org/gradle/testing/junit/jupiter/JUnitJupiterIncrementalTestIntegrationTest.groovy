@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.junit4
+package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractTestProgressLoggingIntegrationTest
+import org.gradle.testing.AbstractIncrementalTestIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_ASSUMPTIONS
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
-@TargetCoverage({ JUNIT4_ASSUMPTIONS })
-class JUnit4TestProgressLoggingIntegrationTest extends AbstractTestProgressLoggingIntegrationTest implements JUnit4MultiVersionTest {
+@TargetCoverage({ JUNIT_JUPITER })
+class JUnitJupiterIncrementalTestIntegrationTest extends AbstractIncrementalTestIntegrationTest implements JUnitJupiterMultiVersionTest {
 }
