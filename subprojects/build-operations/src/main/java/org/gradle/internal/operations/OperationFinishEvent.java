@@ -34,7 +34,7 @@ public final class OperationFinishEvent {
         this.endTime = endTime;
         this.failure = failure;
         this.result = result;
-        this.problems = problems;
+        this.problems = problems == null ? Collections.<Problem>emptyList() : problems;
     }
 
     public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
