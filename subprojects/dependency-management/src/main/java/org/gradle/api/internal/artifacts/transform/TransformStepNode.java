@@ -148,7 +148,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         };
     }
 
-    private static ComponentIdentifier getComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
+    public static ComponentIdentifier getComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
         if (componentId instanceof ProjectComponentIdentifier) {
             ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) componentId;
             return new org.gradle.operations.dependencies.variants.ProjectComponentIdentifier() {

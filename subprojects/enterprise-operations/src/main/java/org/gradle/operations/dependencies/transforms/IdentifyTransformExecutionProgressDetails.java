@@ -16,10 +16,14 @@
 
 package org.gradle.operations.dependencies.transforms;
 
+import org.gradle.operations.dependencies.variants.ComponentIdentifier;
+
 import java.util.Map;
 
 public interface IdentifyTransformExecutionProgressDetails {
     String getUniqueId();
+
+    ComponentIdentifier getInputArtifactComponentIdentifier();
 
     String getConsumerBuildPath();
 
