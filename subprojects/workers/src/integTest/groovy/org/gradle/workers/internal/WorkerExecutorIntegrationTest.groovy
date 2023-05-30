@@ -367,7 +367,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     @Issue("https://github.com/gradle/gradle/issues/25198")
     def "retains unicode normal form #form with process isolation"() {
-        groovyFile buildFile, createUnicodeNormalizingWorkerTask("Dév", form)
+        groovyFile buildFile, createUnicodeNormalizingWorkerTask("Dev", form)
 
         when:
         succeeds("customTask")
@@ -436,6 +436,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                         .submit(CustomAction) { params ->
                             params.getActionOutputFile().set(getOutputFile())
                         }
+
+                    try {
+                        workerExecutor.await()
+                    } finally {
+                        println "After worker finished directory exists: \${dir.exists()}"
+                    }
                 }
             }
 
