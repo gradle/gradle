@@ -216,7 +216,7 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void onRealize(Action<S> action) { }
+    public void onPendingAdded(Action<S> action) { }
 
     @Override
     public void realizeExternal(ProviderInternal<? extends S> provider) {

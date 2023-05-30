@@ -51,7 +51,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
-    private Action<T> realizeAction;
+    private Action<T> pendingAddedAction;
 
     protected int modCount;
 
@@ -149,7 +149,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        final Element<T> element = new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
+        final Element<T> element = new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), this::doAddRealized);
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> clearCachedElement(element));
         }
@@ -157,11 +157,17 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
+        final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), this::doAddRealized);
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> clearCachedElement(element));
         }
         return element;
+    }
+
+    private void doAddRealized(T value) {
+        if (addRealized(value) && pendingAddedAction != null) {
+            pendingAddedAction.execute(value);
+        }
     }
 
     @Override
@@ -188,8 +194,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
-    public void onRealize(final Action<T> action) {
-        this.realizeAction = action;
+    public void onPendingAdded(final Action<T> action) {
+        this.pendingAddedAction = action;
     }
 
     @Override

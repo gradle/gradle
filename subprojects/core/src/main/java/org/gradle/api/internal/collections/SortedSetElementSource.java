@@ -36,7 +36,7 @@ import java.util.TreeSet;
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
     private final List<Collectors.TypedCollector<T>> pending = Lists.newArrayList();
-    private Action<T> flushAction;
+    private Action<T> addRealizedAction;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
@@ -135,18 +135,20 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     private void realize(Iterable<Collectors.TypedCollector<T>> collectors) {
         for (Collectors.TypedCollector<T> collector : collectors) {
-            if (flushAction != null) {
-                pending.remove(collector);
-                ImmutableList.Builder<T> builder = ImmutableList.builder();
-                // Collect elements discarding potential side effects aggregated in the returned value
-                collector.collectInto(builder);
-                List<T> realized = builder.build();
-                for (T element : realized) {
-                    flushAction.execute(element);
-                }
-            } else {
-                throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
+            pending.remove(collector);
+            ImmutableList.Builder<T> builder = ImmutableList.builder();
+            // Collect elements discarding potential side effects aggregated in the returned value
+            collector.collectInto(builder);
+            List<T> realized = builder.build();
+            for (T element : realized) {
+                doAddRealized(element);
             }
+        }
+    }
+
+    private void doAddRealized(T value) {
+        if (addRealized(value) && addRealizedAction != null) {
+            addRealizedAction.execute(value);
         }
     }
 
@@ -205,8 +207,8 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public void onRealize(Action<T> action) {
-        this.flushAction = action;
+    public void onPendingAdded(Action<T> action) {
+        this.addRealizedAction = action;
     }
 
     @Override

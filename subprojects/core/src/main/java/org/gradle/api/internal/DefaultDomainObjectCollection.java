@@ -56,11 +56,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.store.onRealize(new Action<T>() {
-            @Override
-            public void execute(T value) {
-                doAddRealized(value, eventRegister.getAddActions());
-            }
+        this.store.onPendingAdded(toAdd -> {
+            didAdd(toAdd);
+            eventRegister.fireObjectAdded(toAdd);
         });
     }
 
@@ -266,10 +264,13 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    private <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
+    // TODO: This method should go.
+    // The store should not expose addRealized
+    // Instead, when adding a pending element, the store should determine whether to realize it immediately.
+    private <I extends T> boolean doAddRealized(I toAdd) {
         if (getStore().addRealized(toAdd)) {
             didAdd(toAdd);
-            notification.execute(toAdd);
+            eventRegister.fireObjectAdded(toAdd);
             return true;
         } else {
             return false;
@@ -283,7 +284,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         ProviderInternal<? extends T> providerInternal = Providers.internal(provider);
         store.addPending(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getType())) {
-            doAddRealized(provider.get(), eventRegister.getAddActions());
+            doAddRealized(provider.get());
         }
     }
 
@@ -303,7 +304,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         store.addPendingCollection(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getElementType())) {
             for (T value : provider.get()) {
-                doAddRealized(value, eventRegister.getAddActions());
+                doAddRealized(value);
             }
         }
     }
