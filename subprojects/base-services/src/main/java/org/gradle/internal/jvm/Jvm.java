@@ -27,13 +27,15 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Jvm implements JavaInfo {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
+    private static final HashSet<String> VENDOR_PROPERTIES = Sets.newHashSet("java.vendor", "java.vm.vendor");
+    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
 
     private final OperatingSystem os;
     //supplied java location
@@ -43,7 +45,6 @@ public class Jvm implements JavaInfo {
     private final boolean userSupplied;
     private final String implementationJavaVersion;
     private final JavaVersion javaVersion;
-    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
 
     // Cached resolved executables
     private File javaExecutable;
@@ -355,8 +356,7 @@ public class Jvm implements JavaInfo {
     }
 
     public boolean isIbmJvm() {
-        Set<String> vendorProperties = Sets.newHashSet("java.vendor", "java.vm.vendor");
-        for (String vendorProperty : vendorProperties) {
+        for (String vendorProperty : VENDOR_PROPERTIES) {
             if (System.getProperties().containsKey(vendorProperty)
                 && System.getProperty(vendorProperty).toLowerCase().startsWith("ibm corporation")) {
                 return true;
