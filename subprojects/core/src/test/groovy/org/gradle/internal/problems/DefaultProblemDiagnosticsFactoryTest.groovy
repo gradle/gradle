@@ -17,7 +17,7 @@
 package org.gradle.internal.problems
 
 import org.gradle.problems.Location
-import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
+import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
 
 import java.util.function.Supplier
@@ -29,9 +29,10 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
     def "uses caller's stack trace to calculate problem location"() {
         given:
         def location = Stub(Location)
+        def stream = factory.newStream()
 
         when:
-        def diagnostics = factory.forCurrentCaller()
+        def diagnostics = stream.forCurrentCaller()
 
         then:
         diagnostics.exception == null
@@ -51,9 +52,10 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
             get() >> exception
         }
         def location = Stub(Location)
+        def stream = factory.newStream()
 
         when:
-        def diagnostics = factory.forCurrentCaller(supplier)
+        def diagnostics = stream.forCurrentCaller(supplier)
 
         then:
         diagnostics.exception == exception
@@ -67,45 +69,70 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
     }
 
     def "does not populate stack traces after limit has been reached"() {
-        def transformer = Stub(ProblemDiagnosticsFactory.StackTraceTransformer) {
+        def transformer = Stub(ProblemStream.StackTraceTransformer) {
             transform(_) >> { StackTraceElement[] original -> original.toList() }
         }
         def supplier = Stub(Supplier) {
             get() >> { throw new Exception() }
         }
+        def stream = factory.newStream()
 
         expect:
-        def diagnostics1 = factory.forCurrentCaller(transformer)
+        def diagnostics1 = stream.forCurrentCaller(transformer)
         diagnostics1.exception == null
         !diagnostics1.stack.empty
 
-        def diagnostics2 = factory.forCurrentCaller(transformer)
+        def diagnostics2 = stream.forCurrentCaller(transformer)
         diagnostics2.exception == null
         !diagnostics2.stack.empty
 
-        def diagnostics3 = factory.forCurrentCaller(transformer)
+        def diagnostics3 = stream.forCurrentCaller(transformer)
         diagnostics3.exception == null
         diagnostics3.stack.empty
 
-        def diagnostics4 = factory.forCurrentCaller()
+        def diagnostics4 = stream.forCurrentCaller()
         diagnostics4.exception == null
         diagnostics4.stack.empty
 
-        def diagnostics5 = factory.forCurrentCaller(supplier)
+        def diagnostics5 = stream.forCurrentCaller(supplier)
         diagnostics5.exception == null
         diagnostics5.stack.empty
     }
 
-    def "keeps stack trace after limit has been reached when diagnostics constructed from exception"() {
+    def "each stream has an independent stack trace limit"() {
+        def transformer = Stub(ProblemStream.StackTraceTransformer) {
+            transform(_) >> { StackTraceElement[] original -> original.toList() }
+        }
+        def supplier = Stub(Supplier) {
+            get() >> { throw new Exception() }
+        }
+        def stream1 = factory.newStream()
+        def stream2 = factory.newStream()
+
         given:
-        factory.forCurrentCaller()
-        factory.forCurrentCaller()
+        stream1.forCurrentCaller()
 
         expect:
-        factory.forCurrentCaller().stack.empty
+        !stream1.forCurrentCaller().stack.empty
+
+        !stream2.forCurrentCaller().stack.empty
+        !stream2.forCurrentCaller().stack.empty
+        stream2.forCurrentCaller().stack.empty
+
+        stream1.forCurrentCaller().stack.empty
+    }
+
+    def "keeps stack trace after limit has been reached when diagnostics constructed from exception"() {
+        given:
+        def stream = factory.newStream()
+        stream.forCurrentCaller()
+        stream.forCurrentCaller()
+
+        expect:
+        stream.forCurrentCaller().stack.empty
 
         def failure1 = new Exception("broken")
-        def diagnostics1 = factory.forCurrentCaller(failure1)
+        def diagnostics1 = stream.forCurrentCaller(failure1)
         diagnostics1.exception == failure1
         !diagnostics1.stack.empty
 

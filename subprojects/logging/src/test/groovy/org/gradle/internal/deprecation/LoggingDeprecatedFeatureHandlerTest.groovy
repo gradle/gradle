@@ -35,6 +35,7 @@ import org.gradle.internal.time.Clock
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
+import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -48,7 +49,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()
-    final diagnosticsFactory = Mock(ProblemDiagnosticsFactory)
+    final problemStream = Mock(ProblemStream)
+    final diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
     final handler = new LoggingDeprecatedFeatureHandler()
     final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()
@@ -58,6 +60,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     )
 
     def setup() {
+        _ * diagnosticsFactory.newStream() >> problemStream
         handler.init(diagnosticsFactory, WarningMode.All, progressBroadcaster)
     }
 
@@ -492,14 +495,14 @@ feature1 removal""")
     }
 
     private void useStackTrace(List<StackTraceElement> stackTrace = []) {
-        1 * diagnosticsFactory.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
+        1 * problemStream.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
             _ * getLocation() >> null
             _ * getStack() >> stackTrace
         }
     }
 
     private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
-        1 * diagnosticsFactory.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
+        1 * problemStream.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
             _ * getStack() >> stackTrace
             _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
         }

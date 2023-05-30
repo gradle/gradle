@@ -26,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
+import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,14 +49,14 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private final Set<String> loggedMessages = new CopyOnWriteArraySet<String>();
     private final Set<String> loggedUsages = new CopyOnWriteArraySet<String>();
     private boolean deprecationsFound = false;
-    private ProblemDiagnosticsFactory problemDiagnosticsFactory = new NoOpProblemDiagnosticsFactory();
+    private ProblemStream problemStream = NoOpProblemDiagnosticsFactory.EMPTY_STREAM;
 
     private WarningMode warningMode = WarningMode.Summary;
     private BuildOperationProgressEventEmitter progressEventEmitter;
     private GradleException error;
 
     public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter) {
-        this.problemDiagnosticsFactory = problemDiagnosticsFactory;
+        this.problemStream = problemDiagnosticsFactory.newStream();
         this.warningMode = warningMode;
         this.progressEventEmitter = progressEventEmitter;
     }
@@ -63,7 +64,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     @Override
     public void featureUsed(final DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
-        ProblemDiagnostics diagnostics = problemDiagnosticsFactory.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
+        ProblemDiagnostics diagnostics = problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
         if (warningMode.shouldDisplayMessages()) {
             maybeLogUsage(usage, diagnostics);
         }
@@ -113,7 +114,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     public void reset() {
-        problemDiagnosticsFactory = new NoOpProblemDiagnosticsFactory();
+        problemStream = NoOpProblemDiagnosticsFactory.EMPTY_STREAM;
         progressEventEmitter = null;
         loggedMessages.clear();
         loggedUsages.clear();
