@@ -16,11 +16,34 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.Rule;
+
 public class JavaCallerForBasicCallInterceptorTest {
 
     public static String doCallSayHello(InheritedMethodTestReceiver receiver) {
         return receiver.sayHello();
     }
+
+    public static String doCallSayHello(InheritedMethodTestReceiver.A receiver) {
+        return receiver.sayHello();
+    }
+
+    public static String doCallSayHello(InheritedMethodTestReceiver.B receiver) {
+        return receiver.sayHello();
+    }
+
+    public static String doCallDescription(Rule rule) {
+        return rule.getDescription();
+    }
+
+    public static String doCallDescription(InheritedMethodsInterceptionTest.MyDirectRule rule) {
+        return rule.getDescription();
+    }
+
+    public static String doCallDescription(InheritedMethodsInterceptionTest.MyTransientRule rule) {
+        return rule.getDescription();
+    }
+
     public static void doCallNoArg(InterceptorTestReceiver receiver) {
         receiver.call();
     }

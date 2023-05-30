@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.Rule;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptInherited;
@@ -36,5 +37,12 @@ public class InheritedMethodsInterceptionTestInterceptorsDeclaration {
     @CallableKind.InstanceMethod
     public static String intercept_sayHello(@ParameterKind.Receiver InheritedMethodTestReceiver self) {
         return self.sayHello() + " from: " + self.getClass().getName().replace(self.getClass().getPackage().getName() + ".", "");
+    }
+
+    @InterceptCalls
+    @InterceptInherited
+    @CallableKind.InstanceMethod
+    public static String intercept_getDescription(@ParameterKind.Receiver Rule self) {
+        return self.getDescription() + " for: " + self.getClass().getName().replace(self.getClass().getPackage().getName() + ".", "");
     }
 }
