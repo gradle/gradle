@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.NonNullApi;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 
@@ -31,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 
+@NonNullApi
 public class TypeHierarchyRegistry {
 
     private final Map<String, Set<String>> superTypes = new ConcurrentHashMap<>();
@@ -104,6 +106,7 @@ public class TypeHierarchyRegistry {
         return typeRegistry;
     }
 
+    @NonNullApi
     private static class TypeHierarchyClassVisitor extends ClassVisitor {
 
         private final TypeHierarchyRegistry typeRegistry;

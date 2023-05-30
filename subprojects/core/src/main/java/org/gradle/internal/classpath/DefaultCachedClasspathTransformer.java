@@ -172,7 +172,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        TypeHierarchyRegistry typeRegistry = getTypeRegistry(classPath.getAsFiles());;
+        TypeHierarchyRegistry typeRegistry = getTypeRegistry(classPath.getAsFiles());
         return DefaultClassPath.of(
             transformAll(
                 classPath.getAsFiles(),
