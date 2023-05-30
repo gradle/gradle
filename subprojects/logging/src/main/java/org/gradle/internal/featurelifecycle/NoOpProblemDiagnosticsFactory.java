@@ -19,6 +19,7 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
+import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -45,24 +46,31 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
         }
     };
 
-    @Override
-    public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
-        return EMPTY_DIAGNOSTICS;
-    }
+    public static final ProblemStream EMPTY_STREAM = new ProblemStream() {
+        @Override
+        public ProblemDiagnostics forCurrentCaller(ProblemStream.StackTraceTransformer transformer) {
+            return EMPTY_DIAGNOSTICS;
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
+            return EMPTY_DIAGNOSTICS;
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCaller() {
+            return EMPTY_DIAGNOSTICS;
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
+            return EMPTY_DIAGNOSTICS;
+        }
+    };
 
     @Override
-    public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
-        return EMPTY_DIAGNOSTICS;
-    }
-
-    @Override
-    public ProblemDiagnostics forCurrentCaller() {
-        return EMPTY_DIAGNOSTICS;
-    }
-
-    @Override
-    public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
-        return EMPTY_DIAGNOSTICS;
+    public ProblemStream newStream() {
+        return EMPTY_STREAM;
     }
 
     @Override

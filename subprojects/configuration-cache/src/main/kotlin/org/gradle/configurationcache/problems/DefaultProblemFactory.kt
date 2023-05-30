@@ -26,8 +26,11 @@ import java.util.function.Supplier
 
 class DefaultProblemFactory(
     private val userCodeContext: UserCodeApplicationContext,
-    private val problemDiagnosticsFactory: ProblemDiagnosticsFactory
+    problemDiagnosticsFactory: ProblemDiagnosticsFactory
 ) : ProblemFactory {
+    private
+    val problemStream = problemDiagnosticsFactory.newStream()
+
     override fun locationForCaller(consumer: String?): PropertyTrace {
         val currentApplication = userCodeContext.current()
         return if (currentApplication != null) {
@@ -40,7 +43,7 @@ class DefaultProblemFactory(
     }
 
     override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?): PropertyProblem {
-        val trace = locationForCaller(null, problemDiagnosticsFactory.forCurrentCaller(exception))
+        val trace = locationForCaller(null, problemStream.forCurrentCaller(exception))
         return PropertyProblem(trace, message, exception, documentationSection)
     }
 
@@ -78,9 +81,9 @@ class DefaultProblemFactory(
 
             override fun build(): PropertyProblem {
                 val diagnostics = if (exceptionMessage == null) {
-                    problemDiagnosticsFactory.forCurrentCaller()
+                    problemStream.forCurrentCaller()
                 } else {
-                    problemDiagnosticsFactory.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage!!) })
+                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage!!) })
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
                 return PropertyProblem(location, message, diagnostics.exception, documentationSection)
