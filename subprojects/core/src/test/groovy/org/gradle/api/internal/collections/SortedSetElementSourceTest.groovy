@@ -17,9 +17,17 @@
 package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ValueSupplier
 
 
 class SortedSetElementSourceTest extends ElementSourceSpec {
+
+    def realize = Mock(Action)
+    def provider1 = Mock(ProviderInternal)
+    def provider2 = Mock(ProviderInternal)
+    def provider3 = Mock(ProviderInternal)
+
     ElementSource source = new SortedSetElementSource<CharSequence>()
 
     def setup() {
@@ -29,6 +37,9 @@ class SortedSetElementSourceTest extends ElementSourceSpec {
                 source.addRealized(t)
             }
         })
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of("provider1")
+        _ * provider2.calculateValue(_) >> ValueSupplier.Value.of("provider2")
+        _ * provider3.calculateValue(_) >> ValueSupplier.Value.of("provider3")
     }
 
     def "can remove elements using iteratorNoFlush"() {
@@ -166,6 +177,110 @@ class SortedSetElementSourceTest extends ElementSourceSpec {
         then:
         source.iterator().collect() == []
     }
+
+    def "realizes pending elements on flush"() {
+        given:
+        source.onRealize(realize)
+
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.realizePending()
+
+        then:
+        1 * realize.execute("provider1")
+        1 * realize.execute("provider2")
+        1 * realize.execute("provider3")
+
+        and:
+        source.isEmpty()
+    }
+
+    def "realizes only pending elements with a given type"() {
+        given:
+        source.onRealize(realize)
+        _ * provider1.getType() >> SomeType.class
+        _ * provider2.getType() >> SomeOtherType.class
+        _ * provider3.getType() >> SomeType.class
+
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.realizePending(SomeType.class)
+
+        then:
+        1 * realize.execute("provider1")
+        0 * realize.execute("provider2")
+        1 * realize.execute("provider3")
+
+        and:
+        source.size() == 1
+    }
+
+    def "cannot realize pending elements when realize action is not set"() {
+        given:
+        source.onRealize(null)
+
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.realizePending()
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "can remove pending elements"() {
+        given:
+        source.onRealize(realize)
+
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.removePending(provider1)
+
+        then:
+        source.size() == 2
+
+        when:
+        source.realizePending()
+
+        then:
+        0 * realize.execute("provider1")
+        1 * realize.execute("provider2")
+        1 * realize.execute("provider3")
+
+        and:
+        source.isEmpty()
+    }
+
+    def "can clear pending elements"() {
+        given:
+        source.onRealize(realize)
+
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.clear()
+
+        then:
+        source.isEmpty()
+
+        when:
+        source.realizePending()
+
+        then:
+        0 * realize.execute()
+    }
+
+    class BaseType {}
+    class SomeType extends BaseType {}
+    class SomeOtherType extends BaseType {}
 
     @Override
     List<CharSequence> iterationOrder(CharSequence... values) {

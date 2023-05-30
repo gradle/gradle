@@ -402,7 +402,6 @@ Class <org.gradle.api.internal.collections.CollectionFilter> is not annotated (d
 Class <org.gradle.api.internal.collections.DefaultCollectionEventRegister$FilteredEventRegister> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCollectionEventRegister.java:0)
 Class <org.gradle.api.internal.collections.DefaultCollectionEventRegister> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCollectionEventRegister.java:0)
 Class <org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultDomainObjectCollectionFactory.java:0)
-Class <org.gradle.api.internal.collections.DefaultPendingSource> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultPendingSource.java:0)
 Class <org.gradle.api.internal.collections.DomainObjectCollectionFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DomainObjectCollectionFactory.java:0)
 Class <org.gradle.api.internal.collections.ElementSource> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ElementSource.java:0)
 Class <org.gradle.api.internal.collections.FilteredElementSource$FilteringIterator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (FilteredElementSource.java:0)

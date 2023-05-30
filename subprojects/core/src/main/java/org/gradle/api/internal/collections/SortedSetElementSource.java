@@ -16,22 +16,27 @@
 
 package org.gradle.api.internal.collections;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.Collectors;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
-    private final PendingSource<T> pending = new DefaultPendingSource<T>();
+    private final List<Collectors.TypedCollector<T>> pending = Lists.newArrayList();
+    private Action<T> flushAction;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
@@ -50,17 +55,22 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public int size() {
-        return values.size() + pending.size();
+        int pendingSize = 0;
+        for (Collectors.TypedCollector<T> collector : pending) {
+            pendingSize += collector.size();
+        }
+
+        return values.size() + pendingSize;
     }
 
     @Override
     public int estimatedSize() {
-        return values.size() + pending.size();
+        return size();
     }
 
     @Override
     public Iterator<T> iterator() {
-        pending.realizePending();
+        realizePending();
         return values.iterator();
     }
 
@@ -71,13 +81,13 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public boolean contains(Object element) {
-        pending.realizePending();
+        realizePending();
         return values.contains(element);
     }
 
     @Override
     public boolean containsAll(Collection<?> elements) {
-        pending.realizePending();
+        realizePending();
         return values.containsAll(elements);
     }
 
@@ -104,12 +114,40 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void realizePending() {
-        pending.realizePending();
+        if (!pending.isEmpty()) {
+            List<Collectors.TypedCollector<T>> copied = Lists.newArrayList(pending);
+            realize(copied);
+        }
     }
 
     @Override
     public void realizePending(Class<?> type) {
-        pending.realizePending(type);
+        if (!pending.isEmpty()) {
+            List<Collectors.TypedCollector<T>> copied = Lists.newArrayList();
+            for (Collectors.TypedCollector<T> collector : pending) {
+                if (collector.getType() == null || type.isAssignableFrom(collector.getType())) {
+                    copied.add(collector);
+                }
+            }
+            realize(copied);
+        }
+    }
+
+    private void realize(Iterable<Collectors.TypedCollector<T>> collectors) {
+        for (Collectors.TypedCollector<T> collector : collectors) {
+            if (flushAction != null) {
+                pending.remove(collector);
+                ImmutableList.Builder<T> builder = ImmutableList.builder();
+                // Collect elements discarding potential side effects aggregated in the returned value
+                collector.collectInto(builder);
+                List<T> realized = builder.build();
+                for (T element : realized) {
+                    flushAction.execute(element);
+                }
+            } else {
+                throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
+            }
+        }
     }
 
     @Override
@@ -117,15 +155,31 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> {
                 values.remove(previousValue);
-                pending.addPending(provider);
+                doAddPending(provider);
             });
         }
-        return pending.addPending(provider);
+        return doAddPending(provider);
+    }
+
+    private boolean doAddPending(ProviderInternal<? extends T> provider) {
+        return pending.add(new Collectors.TypedCollector<T>(provider.getType(), new Collectors.ElementFromProvider<T>(provider)));
     }
 
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
-        return pending.removePending(provider);
+        return removeByProvider(provider);
+    }
+
+    private boolean removeByProvider(ProviderInternal<?> provider) {
+        Iterator<Collectors.TypedCollector<T>> iterator = pending.iterator();
+        while (iterator.hasNext()) {
+            Collectors.TypedCollector<T> collector = iterator.next();
+            if (collector.isProvidedBy(provider)) {
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -135,25 +189,29 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                 for (T value : previousValues) {
                     values.remove(value);
                 }
-                pending.addPendingCollection(provider);
+                doAddPendingCollection(provider);
             });
         }
-        return pending.addPendingCollection(provider);
+        return doAddPendingCollection(provider);
+    }
+
+    private boolean doAddPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return pending.add(new Collectors.TypedCollector<T>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<T>(provider)));
     }
 
     @Override
     public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        return pending.removePendingCollection(provider);
+        return removeByProvider(provider);
     }
 
     @Override
     public void onRealize(Action<T> action) {
-        pending.onRealize(action);
+        this.flushAction = action;
     }
 
     @Override
     public void realizeExternal(ProviderInternal<? extends T> provider) {
-        pending.realizeExternal(provider);
+        removePending(provider);
     }
 
     @Override
