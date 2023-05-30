@@ -20,12 +20,12 @@ import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.WithEstimatedSize;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.function.Predicate;
 
 public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     protected final ElementSource<T> collection;
@@ -215,7 +215,7 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     public void onPendingAdded(Action<S> action) { }
 
     @Override
-    public void setImmediateRealizationSpec(Predicate<Class<? extends S>> immediateRealizationSpec) { }
+    public void setImmediateRealizationSpec(Spec<Class<? extends S>> immediateRealizationSpec) { }
 
     @Override
     public void realizeExternal(ProviderInternal<? extends S> provider) {

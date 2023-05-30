@@ -24,6 +24,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.DefaultCollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredElementSource;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -56,11 +57,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.store.onPendingAdded(toAdd -> {
+        this.store.onPendingAdded(SerializableLambdas.action(toAdd -> {
             didAdd(toAdd);
             eventRegister.fireObjectAdded(toAdd);
-        });
-        this.store.setImmediateRealizationSpec(eventRegister::isSubscribed);
+        }));
+        this.store.setImmediateRealizationSpec(SerializableLambdas.spec(eventRegister::isSubscribed));
     }
 
     protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {

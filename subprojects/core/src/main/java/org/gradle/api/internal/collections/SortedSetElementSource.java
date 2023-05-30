@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collectors;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
@@ -35,13 +36,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
     private final Set<Collectors.TypedCollector<T>> pending = new LinkedHashSet<>();
     private Action<T> addRealizedAction;
-    private Predicate<Class<? extends T>> immediateRealizationSpec = type -> false;
+    private Spec<Class<? extends T>> immediateRealizationSpec = type -> false;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
@@ -166,7 +166,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        if (immediateRealizationSpec.test(provider.getType())) {
+        if (immediateRealizationSpec.isSatisfiedBy(provider.getType())) {
             realize(Collections.singleton(collector));
 
             // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
@@ -211,7 +211,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        if (immediateRealizationSpec.test(provider.getElementType())) {
+        if (immediateRealizationSpec.isSatisfiedBy(provider.getElementType())) {
             realize(Collections.singleton(collector));
 
             // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
@@ -234,7 +234,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public void setImmediateRealizationSpec(Predicate<Class<? extends T>> immediateRealizationSpec) {
+    public void setImmediateRealizationSpec(Spec<Class<? extends T>> immediateRealizationSpec) {
         this.immediateRealizationSpec = immediateRealizationSpec;
     }
 
