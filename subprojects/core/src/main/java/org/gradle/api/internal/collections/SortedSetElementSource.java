@@ -31,13 +31,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
-    private final List<Collectors.TypedCollector<T>> pending = Lists.newArrayList();
+    private final Set<Collectors.TypedCollector<T>> pending = new LinkedHashSet<>();
     private Action<T> addRealizedAction;
     private Predicate<Class<? extends T>> immediateRealizationSpec = type -> false;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
@@ -166,6 +168,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         //  onValueChange callback above.
         if (immediateRealizationSpec.test(provider.getType())) {
             realize(Collections.singleton(collector));
+
+            // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
+            // actually telling the ElementSource that the element was realized.
+            // We can avoid this in the future if we make ChangingValue more widespread -- particularly
+            // if we make CollectionProviders implement ChangingValue
+            pending.add(collector);
         }
         return added;
     }
@@ -205,6 +213,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         //  onValueChange callback above.
         if (immediateRealizationSpec.test(provider.getElementType())) {
             realize(Collections.singleton(collector));
+
+            // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
+            // actually telling the ElementSource that the element was realized.
+            // We can avoid this in the future if we make ChangingValue more widespread -- particularly
+            // if we make CollectionProviders implement ChangingValue
+            pending.add(collector);
         }
         return added;
     }

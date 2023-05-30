@@ -211,6 +211,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         boolean added = inserted.add(element);
         if (immediateRealizationSpec.test(element.getType())) {
             element.realize();
+
+            // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
+            // actually telling the ElementSource that the element was realized.
+            // We can avoid this in the future if we make ChangingValue more widespread -- particularly
+            // if we make CollectionProviders implement ChangingValue
+            element.clearCache();
         }
         return added;
     }
