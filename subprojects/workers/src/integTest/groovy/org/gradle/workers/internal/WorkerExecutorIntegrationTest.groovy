@@ -382,6 +382,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
     private String createUnicodeNormalizingWorkerTask(String dirName, Normalizer.Form form) {
         """
             import $Charset.name
+            import $Locale.name
             import $Normalizer.name
 
             abstract class CustomAction implements WorkAction<CustomAction.Params> {
@@ -396,6 +397,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                     String dirName = outputFile.parentFile.name
                     println "Received the dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
                     println "Default charset in worker process: \${Charset.defaultCharset()}"
+                    println "Locale in worker process: \${Locale.getDefault()}"
                     assert Normalizer.isNormalized(dirName, Normalizer.Form.$form)
                     outputFile.createNewFile()
                 }
@@ -423,7 +425,8 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             tasks.register("customTask", CustomTask) {
                 String dirName = Normalizer.normalize('$dirName', Normalizer.Form.$form)
                 println "Running with dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
-                println "Default charset in daemon process: \${Charset.defaultCharset() }"
+                println "Default charset in daemon process: \${Charset.defaultCharset()}"
+                println "Locale in daemon process: \${Locale.getDefault()}"
                 outputFile = layout.buildDirectory.file(dirName + "/output.txt")
             }
         """
