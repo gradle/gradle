@@ -34,9 +34,13 @@ public class NestedValidationUtil  {
      * Validates that the {@link org.gradle.api.tasks.Nested} annotation
      * supports the given bean type.
      * <p>
-     * Only types with annotated properties are supported. Types of
-     * the Java SE API, types of the Kotlin stdlib, and Groovy's GString type
-     * are not supported.
+     * Nested types are expected to either declare some annotated properties,
+     * which themselves are checked for annotations, or some conditional
+     * behaviour where capturing the type itself as input is important.
+     * <p>
+     * Types of the Java SE API, types of the Kotlin stdlib, and Groovy's
+     * GString type are not supported because they meet neither of those
+     * requirements.
      *
      * @param validationContext the validation context
      * @param propertyName the name of the property
@@ -52,9 +56,9 @@ public class NestedValidationUtil  {
                 problem.withId(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
                     .reportAs(WARNING)
                     .forProperty(propertyName)
-                    .withDescription(() -> "where nested type '" + beanType.getName() + "' is not supported")
-                    .happensBecause("Nested types must declare annotated properties")
-                    .addPossibleSolution("Declare annotated properties on the nested type, e.g. 'Provider<T>', 'Iterable<T>', or '<MapProperty<K, V>>', where 'T' and 'V' must have one or more annotated properties")
+                    .withDescription(() -> "with nested type '" + beanType.getName() + "' is not supported")
+                    .happensBecause("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input")
+                    .addPossibleSolution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input")
                     .documentedAt("validation_problems", "unsupported_nested_type")
             );
         }

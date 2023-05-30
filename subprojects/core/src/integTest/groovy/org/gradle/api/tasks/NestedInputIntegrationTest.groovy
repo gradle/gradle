@@ -892,8 +892,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
 
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
-            "Type 'CustomTask' property 'my$type' where nested type '$className' is not supported. " +
-                "Reason: Nested types must declare annotated properties.",
+            "Type 'CustomTask' property 'my$type' with nested type '$className' is not supported. " +
+                "Reason: Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.",
             'validation_problems',
             'unsupported_nested_type')
 
@@ -960,8 +960,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
 
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
-            "Type 'Build_gradle.CustomTask' property 'my$type' where nested type '$className' is not supported. " +
-                "Reason: Nested types must declare annotated properties.",
+            "Type 'Build_gradle.CustomTask' property 'my$type' with nested type '$className' is not supported. " +
+                "Reason: Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.",
             'validation_problems',
             'unsupported_nested_type')
 

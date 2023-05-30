@@ -1025,10 +1025,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
             @CacheableTransform @CacheableTask
             class Options {
-                @Input
-                String getProperty() {
-                    "some-property"
-                }
             }
 
             tasks.create('broken', MyTask)
