@@ -84,6 +84,11 @@ Since the previous version was 6.48.0, all changes since then are included.
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.9].
 
+==== Plugin compatibility changes
+
+A plugin compiled with Gradle >= 8.2 that makes use of the Kotlin DSL functions link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the<T>()`], link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the(KClass)`] or link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/configure.html[`Project.configure<T> {}`] cannot run on Gradle <= 6.1.
+
+
 === Deprecations
 
 [[compile_options_generated_sources_directory]]
@@ -147,6 +152,9 @@ Prominent community plugins already migrated to using extensions to provide cust
 Some of them still registers conventions for backwards compatibility.
 Registering conventions does not emit a deprecation warning yet to provide a migration window.
 Future Gradle versions will do.
+
+Also note that Plugins compiled with Gradle <= 8.1 that make use of the Kotlin DSL functions link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the<T>()`], link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the(KClass)`] or link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/configure.html[`Project.configure<T> {}`] will emit a deprecation warning when run on Gradle >= 8.2.
+To fix this these plugins should be recompiled with Gradle >= 8.2 or changed to access extensions directly using `extensions.getByType<T>()` instead.
 
 [[base_convention_deprecation]]
 ==== Deprecated `base` plugin conventions
