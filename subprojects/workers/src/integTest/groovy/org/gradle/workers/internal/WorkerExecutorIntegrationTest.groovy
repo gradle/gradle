@@ -23,6 +23,7 @@ import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.Issue
 
+import java.nio.charset.Charset
 import java.text.Normalizer
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -380,6 +381,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     private String createUnicodeNormalizingWorkerTask(String dirName, Normalizer.Form form) {
         """
+            import $Charset.name
             import $Normalizer.name
 
             abstract class CustomAction implements WorkAction<CustomAction.Params> {
@@ -393,6 +395,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                     def outputFile = parameters.actionOutputFile.get().asFile
                     String dirName = outputFile.parentFile.name
                     println "Received the dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
+                    println "Default charset in worker process: \${Charset.defaultCharset()}"
                     assert Normalizer.isNormalized(dirName, Normalizer.Form.$form)
                     outputFile.createNewFile()
                 }
@@ -420,6 +423,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             tasks.register("customTask", CustomTask) {
                 String dirName = Normalizer.normalize('$dirName', Normalizer.Form.$form)
                 println "Running with dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
+                println "Default charset in daemon process: \${Charset.defaultCharset() }"
                 outputFile = layout.buildDirectory.file(dirName + "/output.txt")
             }
         """
