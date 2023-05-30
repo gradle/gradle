@@ -23,6 +23,8 @@ import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 import spock.lang.Issue
 
+import java.text.Normalizer
+
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
@@ -362,6 +364,67 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         workerMethod << ISOLATION_MODES
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/25198")
+    def "retains unicode normal form #form with process isolation"() {
+        groovyFile buildFile, createUnicodeNormalizingWorkerTask("Dév", form)
+
+        when:
+        succeeds("customTask")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        form << [Normalizer.Form.NFC, Normalizer.Form.NFD]
+    }
+
+    private String createUnicodeNormalizingWorkerTask(String dirName, Normalizer.Form form) {
+        """
+            import $Normalizer.name
+
+            abstract class CustomAction implements WorkAction<CustomAction.Params> {
+                static interface Params extends WorkParameters {
+                    RegularFileProperty getActionOutputFile()
+                }
+
+                @Override
+                void execute() {
+                    println("Running with normal form $form...")
+                    def outputFile = parameters.actionOutputFile.get().asFile
+                    String dirName = outputFile.parentFile.name
+                    println "Received the dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
+                    assert Normalizer.isNormalized(dirName, Normalizer.Form.$form)
+                    outputFile.createNewFile()
+                }
+            }
+
+            abstract class CustomTask extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @Inject
+                WorkerExecutor getWorkerExecutor() {
+                    throw new UnsupportedOperationException()
+                }
+
+                @TaskAction
+                void execute() {
+                    workerExecutor
+                        .processIsolation({})
+                        .submit(CustomAction) { params ->
+                            params.getActionOutputFile().set(getOutputFile())
+                        }
+                }
+            }
+
+            tasks.register("customTask", CustomTask) {
+                String dirName = Normalizer.normalize('$dirName', Normalizer.Form.$form)
+                println "Running with dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
+                outputFile = layout.buildDirectory.file(dirName + "/output.txt")
+            }
+        """
+    }
+
     def "uses an inferred display name for work items in #isolationMode"() {
         given:
         fixture.withWorkActionClassInBuildSrc()
@@ -377,7 +440,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         then:
         def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
         operation.displayName == "org.gradle.test.TestWorkAction"
-        with (operation.details) {
+        with(operation.details) {
             className == "org.gradle.test.TestWorkAction"
             displayName == "org.gradle.test.TestWorkAction"
         }
