@@ -392,12 +392,19 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
                 @Override
                 void execute() {
-                    println("Running with normal form $form...")
+                    println("Running worker action in external process with normal form $form...")
                     def outputFile = parameters.actionOutputFile.get().asFile
-                    String dirName = outputFile.parentFile.name
+
+                    def dir = outputFile.parentFile
+                    String dirName = dir.name
+
                     println "Received the dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
-                    println "Default charset in worker process: \${Charset.defaultCharset()}"
-                    println "Locale in worker process: \${Locale.getDefault()}"
+                    println "    Dir: \${dir.absolutePath} (NFC: \${Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.NFC)}, NFD: \${Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.NFD)})"
+                    println "        [\${dir.absolutePath.bytes.encodeHex()}]"
+                    println "        exists: \${dir.exists()}"
+                    println "    Default charset in worker process: \${Charset.defaultCharset()}"
+                    println "    Locale in worker process: \${Locale.getDefault()}"
+
                     assert Normalizer.isNormalized(dirName, Normalizer.Form.$form)
                     outputFile.createNewFile()
                 }
@@ -414,6 +421,16 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
                 @TaskAction
                 void execute() {
+                    def dir = outputFile.get().asFile.parentFile
+                    def dirName = dir.name
+
+                    println "Running task in daemon with dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
+                    println "    Dir: \${dir.absolutePath} (NFC: \${Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.NFC)}, NFD: \${Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.NFD)})"
+                    println "        [\${dir.absolutePath.bytes.encodeHex()}]"
+                    println "        exists: \${dir.exists()}"
+                    println "    Default charset in daemon process: \${Charset.defaultCharset()}"
+                    println "    Locale in daemon process: \${Locale.getDefault()}"
+
                     workerExecutor
                         .processIsolation({})
                         .submit(CustomAction) { params ->
@@ -424,9 +441,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
             tasks.register("customTask", CustomTask) {
                 String dirName = Normalizer.normalize('$dirName', Normalizer.Form.$form)
-                println "Running with dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
-                println "Default charset in daemon process: \${Charset.defaultCharset()}"
-                println "Locale in daemon process: \${Locale.getDefault()}"
                 outputFile = layout.buildDirectory.file(dirName + "/output.txt")
             }
         """
