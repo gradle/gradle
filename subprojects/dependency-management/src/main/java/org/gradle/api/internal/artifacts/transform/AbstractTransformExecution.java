@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -218,7 +219,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     protected void emitIdentifyTransformExecutionProgressDetails(TransformWorkspaceIdentity transformWorkspaceIdentity) {
-        progressEventEmitter.emitNowIfCurrent(new DefaultIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity, transform, owningProject));
+        progressEventEmitter.emitNowIfCurrent(new DefaultIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity, transform, owningProject, subject.getInitialComponentIdentifier()));
     }
 
     @Override
@@ -260,15 +261,18 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         private final TransformWorkspaceIdentity transformWorkspaceIdentity;
         private final Transform transform;
         private final ProjectInternal owningProject;
+        private final ComponentIdentifier componentIdentifier;
 
         public DefaultIdentifyTransformExecutionProgressDetails(
             TransformWorkspaceIdentity transformWorkspaceIdentity,
             Transform transform,
-            ProjectInternal owningProject
+            ProjectInternal owningProject,
+            ComponentIdentifier componentIdentifier
         ) {
             this.transformWorkspaceIdentity = transformWorkspaceIdentity;
             this.transform = transform;
             this.owningProject = owningProject;
+            this.componentIdentifier = componentIdentifier;
         }
 
         @Override
@@ -294,6 +298,11 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         @Override
         public Map<String, String> getToAttributes() {
             return AttributesToMapConverter.convertToMap(transform.getToAttributes());
+        }
+
+        @Override
+        public org.gradle.operations.dependencies.variants.ComponentIdentifier getInputArtifactComponentIdentifier() {
+            return ComponentToOperationConverter.convertComponentIdentifier(componentIdentifier);
         }
 
         @Override
