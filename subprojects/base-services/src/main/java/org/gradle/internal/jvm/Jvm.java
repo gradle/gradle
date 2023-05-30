@@ -16,6 +16,7 @@
 
 package org.gradle.internal.jvm;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.FileUtils;
@@ -53,7 +54,7 @@ public class Jvm implements JavaInfo {
     private File javaExecutable;
     private File javacExecutable;
     private File javadocExecutable;
-    private File toolsJar;
+    private Optional<File> toolsJar;
     private Boolean jdk;
 
     public static Jvm current() {
@@ -251,9 +252,9 @@ public class Jvm implements JavaInfo {
     }
 
     private File findJavaHome(File javaBase) {
-        File toolsJar = findToolsJar(javaBase);
-        if (toolsJar != null) {
-            return toolsJar.getParentFile().getParentFile();
+        Optional<File> toolsJar = findToolsJar(javaBase);
+        if (toolsJar.isPresent()) {
+            return toolsJar.get().getParentFile().getParentFile();
         } else if (javaBase.getName().equalsIgnoreCase("jre") && new File(javaBase.getParentFile(), "bin/java").exists()) {
             return javaBase.getParentFile();
         } else {
@@ -267,10 +268,12 @@ public class Jvm implements JavaInfo {
     @Override
     public File getToolsJar() {
         if (toolsJar != null) {
-            return toolsJar;
+            return toolsJar.orNull();
+        } else {
+            toolsJar = findToolsJar(javaHome);
         }
-        toolsJar = findToolsJar(javaHome);
-        return toolsJar;
+
+        return toolsJar.orNull();
     }
 
     /**
@@ -316,16 +319,16 @@ public class Jvm implements JavaInfo {
         return getEmbeddedJre();
     }
 
-    private File findToolsJar(File javaHome) {
+    private Optional<File> findToolsJar(File javaHome) {
         File toolsJar = new File(javaHome, "lib/tools.jar");
         if (toolsJar.exists()) {
-            return toolsJar;
+            return Optional.of(toolsJar);
         }
         if (javaHome.getName().equalsIgnoreCase("jre")) {
             javaHome = javaHome.getParentFile();
             toolsJar = new File(javaHome, "lib/tools.jar");
             if (toolsJar.exists()) {
-                return toolsJar;
+                return Optional.of(toolsJar);
             }
         }
 
@@ -335,12 +338,12 @@ public class Jvm implements JavaInfo {
                 javaHome = new File(javaHome.getParentFile(), "jdk" + version);
                 toolsJar = new File(javaHome, "lib/tools.jar");
                 if (toolsJar.exists()) {
-                    return toolsJar;
+                    return Optional.of(toolsJar);
                 }
             }
         }
 
-        return null;
+        return Optional.absent();
     }
 
     public static Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
