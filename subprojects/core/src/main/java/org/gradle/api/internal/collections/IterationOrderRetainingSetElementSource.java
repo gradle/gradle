@@ -109,7 +109,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         modCount++;
         Element<T> element = cachingElement(provider);
         if (!getInserted().contains(element)) {
-            getInserted().add(element);
+            addPendingElement(element);
             return true;
         } else {
             return false;
@@ -121,7 +121,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         modCount++;
         Element<T> element = cachingElement(provider);
         if (!getInserted().contains(element)) {
-            getInserted().add(element);
+            addPendingElement(element);
             return true;
         } else {
             return false;

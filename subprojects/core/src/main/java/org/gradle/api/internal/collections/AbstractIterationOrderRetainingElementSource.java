@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.Predicate;
 
 abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T> {
     // This set represents the order in which elements are inserted to the store, either actual
@@ -52,6 +53,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     private Action<T> pendingAddedAction;
+    private Predicate<Class<? extends T>> immediateRealizationSpec = type -> false;
 
     protected int modCount;
 
@@ -170,6 +172,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
     }
 
+    abstract boolean addRealized(T element);
+
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
         return removeByProvider(provider);
@@ -196,6 +200,19 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     @Override
     public void onPendingAdded(final Action<T> action) {
         this.pendingAddedAction = action;
+    }
+
+    @Override
+    public void setImmediateRealizationSpec(Predicate<Class<? extends T>> immediateRealizationSpec) {
+        this.immediateRealizationSpec = immediateRealizationSpec;
+    }
+
+    protected boolean addPendingElement(Element<T> element) {
+        boolean added = inserted.add(element);
+        if (immediateRealizationSpec.test(element.getType())) {
+            element.realize();
+        }
+        return added;
     }
 
     @Override

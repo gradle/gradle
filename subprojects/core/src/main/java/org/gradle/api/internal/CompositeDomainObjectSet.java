@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
@@ -230,11 +231,6 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public boolean addRealized(T element) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public boolean remove(Object o) {
             throw new UnsupportedOperationException();
         }
@@ -315,6 +311,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
         @Override
         public void onPendingAdded(Action<T> action) {
+
+        }
+
+        @Override
+        public void setImmediateRealizationSpec(Predicate<Class<? extends T>> immediateRealizationSpec) {
 
         }
 

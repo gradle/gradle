@@ -21,6 +21,7 @@ import org.gradle.api.internal.WithMutationGuard;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, PendingSource<T>, WithMutationGuard {
     /**
@@ -51,7 +52,11 @@ public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, Pendin
 
     boolean add(T element);
 
-    boolean addRealized(T element);
+    /**
+     * Sets a spec used to determine whether a pending element should be realized immediately
+     * upon addition to this source. Defaults to always false.
+     */
+    void setImmediateRealizationSpec(Predicate<Class<? extends T>> immediateRealizationSpec);
 
     @Override
     void clear();

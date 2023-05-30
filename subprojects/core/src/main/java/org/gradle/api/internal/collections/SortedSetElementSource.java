@@ -28,15 +28,18 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
     private final List<Collectors.TypedCollector<T>> pending = Lists.newArrayList();
     private Action<T> addRealizedAction;
+    private Predicate<Class<? extends T>> immediateRealizationSpec = type -> false;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
@@ -97,11 +100,6 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public boolean addRealized(T element) {
-        return values.add(element);
-    }
-
-    @Override
     public boolean remove(Object o) {
         return values.remove(o);
     }
@@ -147,7 +145,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     private void doAddRealized(T value) {
-        if (addRealized(value) && addRealizedAction != null) {
+        if (values.add(value) && addRealizedAction != null) {
             addRealizedAction.execute(value);
         }
     }
@@ -157,14 +155,19 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> {
                 values.remove(previousValue);
-                doAddPending(provider);
+                pending.add(new Collectors.TypedCollector<>(provider.getType(), new Collectors.ElementFromProvider<>(provider)));
             });
         }
-        return doAddPending(provider);
-    }
+        Collectors.TypedCollector<T> collector =
+            new Collectors.TypedCollector<>(provider.getType(), new Collectors.ElementFromProvider<>(provider));
 
-    private boolean doAddPending(ProviderInternal<? extends T> provider) {
-        return pending.add(new Collectors.TypedCollector<T>(provider.getType(), new Collectors.ElementFromProvider<T>(provider)));
+        boolean added = pending.add(collector);
+        // TODO: We likely want to also immediately realize ChangingValue providers in the
+        //  onValueChange callback above.
+        if (immediateRealizationSpec.test(provider.getType())) {
+            realize(Collections.singleton(collector));
+        }
+        return added;
     }
 
     @Override
@@ -191,14 +194,19 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                 for (T value : previousValues) {
                     values.remove(value);
                 }
-                doAddPendingCollection(provider);
+                pending.add(new Collectors.TypedCollector<>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<>(provider)));
             });
         }
-        return doAddPendingCollection(provider);
-    }
+        Collectors.TypedCollector<T> collector =
+            new Collectors.TypedCollector<T>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<T>(provider));
 
-    private boolean doAddPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        return pending.add(new Collectors.TypedCollector<T>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<T>(provider)));
+        boolean added = pending.add(collector);
+        // TODO: We likely want to also immediately realize ChangingValue providers in the
+        //  onValueChange callback above.
+        if (immediateRealizationSpec.test(provider.getElementType())) {
+            realize(Collections.singleton(collector));
+        }
+        return added;
     }
 
     @Override
@@ -209,6 +217,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public void onPendingAdded(Action<T> action) {
         this.addRealizedAction = action;
+    }
+
+    @Override
+    public void setImmediateRealizationSpec(Predicate<Class<? extends T>> immediateRealizationSpec) {
+        this.immediateRealizationSpec = immediateRealizationSpec;
     }
 
     @Override

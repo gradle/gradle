@@ -25,6 +25,7 @@ import org.gradle.internal.Cast;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 
 public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     protected final ElementSource<T> collection;
@@ -37,11 +38,6 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
 
     @Override
     public boolean add(S o) {
-        throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
-    }
-
-    @Override
-    public boolean addRealized(S o) {
         throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
     }
 
@@ -217,6 +213,9 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
 
     @Override
     public void onPendingAdded(Action<S> action) { }
+
+    @Override
+    public void setImmediateRealizationSpec(Predicate<Class<? extends S>> immediateRealizationSpec) { }
 
     @Override
     public void realizeExternal(ProviderInternal<? extends S> provider) {
