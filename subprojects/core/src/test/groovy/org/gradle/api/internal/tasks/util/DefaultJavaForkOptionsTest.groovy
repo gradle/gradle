@@ -853,5 +853,3 @@ class DefaultJavaForkOptionsTest extends Specification {
         }
     }
 }
-
-
