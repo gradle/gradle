@@ -518,7 +518,14 @@ class JvmTest extends Specification {
     }
 
     def "filters environment variables"() {
-        def env = ['APP_NAME_1234': 'App', 'JAVA_MAIN_CLASS_1234': 'MainClass', 'OTHER': 'value']
+        def env = [
+            'APP_NAME_1234': 'App',
+            'JAVA_MAIN_CLASS_1234': 'MainClass',
+            'OTHER': 'value',
+            'TERM_SESSION_ID': '1234',
+            'ITERM_SESSION_ID': '1234'
+        ]
+
         def jvm = Jvm.current()
 
         expect:

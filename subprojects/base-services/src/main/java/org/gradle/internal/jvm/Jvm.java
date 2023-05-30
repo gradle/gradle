@@ -342,7 +342,11 @@ public class Jvm implements JavaInfo {
     public static Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
         Map<String, Object> vars = new HashMap<String, Object>();
         for (Map.Entry<String, ?> entry : envVars.entrySet()) {
-            if (entry.getKey().matches("APP_NAME_\\d+") || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")) {
+            // The following are known variables that can change between builds and should not be inherited
+            if (entry.getKey().matches("APP_NAME_\\d+")
+                || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")
+                || entry.getKey().equals("TERM_SESSION_ID")
+                || entry.getKey().equals("ITERM_SESSION_ID")) {
                 continue;
             }
             vars.put(entry.getKey(), entry.getValue());
