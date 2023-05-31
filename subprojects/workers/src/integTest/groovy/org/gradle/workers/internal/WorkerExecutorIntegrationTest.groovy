@@ -367,7 +367,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     @Issue("https://github.com/gradle/gradle/issues/25198")
     def "retains unicode normal form #form with process isolation"() {
-        groovyFile buildFile, createUnicodeNormalizingWorkerTask("Dev", form)
+        groovyFile buildFile, createUnicodeNormalizingWorkerTask("Dév", form)
 
         when:
         succeeds("customTask")
