@@ -387,6 +387,24 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             import $Locale.name
             import $Normalizer.name
 
+            class Util {
+                static void printUnicodeString(String title, String value) {
+                    println "  \$title: \$value (NFC: \${Normalizer.isNormalized(value, Normalizer.Form.NFC)}, NFD: \${Normalizer.isNormalized(value, Normalizer.Form.NFD)})"
+                    println "    [\${value.bytes.encodeHex()}]"
+                }
+
+                static void printDebug(String process, File dir) {
+                    String dirName = dir.name
+                    println ">>> From \$process process..."
+                    printUnicodeString("File.getName()", dir.name)
+                    printUnicodeString("File.getAbsolutePath()", dir.absolutePath)
+                    printUnicodeString("File.toPath()", dir.toPath().toString())
+                    println "    exists: \${dir.exists()}"
+                    println "  Default charset: \${Charset.defaultCharset()}"
+                    println "  Locale: \${Locale.getDefault()}"
+                }
+            }
+
             abstract class CustomAction implements WorkAction<CustomAction.Params> {
                 static interface Params extends WorkParameters {
                     RegularFileProperty getActionOutputFile()
@@ -398,16 +416,9 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                     def outputFile = parameters.actionOutputFile.get().asFile
 
                     def dir = outputFile.parentFile
-                    String dirName = dir.name
+                    Util.printDebug("worker", dir)
 
-                    println "Received the dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
-                    println "    Dir: \${dir.absolutePath} (NFC: \${Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.NFC)}, NFD: \${Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.NFD)})"
-                    println "        [\${dir.absolutePath.bytes.encodeHex()}]"
-                    println "        exists: \${dir.exists()}"
-                    println "    Default charset in worker process: \${Charset.defaultCharset()}"
-                    println "    Locale in worker process: \${Locale.getDefault()}"
-
-                    assert Normalizer.isNormalized(dirName, Normalizer.Form.$form)
+                    assert Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.$form)
                     outputFile.createNewFile()
                 }
             }
@@ -424,14 +435,8 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 @TaskAction
                 void execute() {
                     def dir = outputFile.get().asFile.parentFile
-                    def dirName = dir.name
 
-                    println "Running task in daemon with dir name: '\$dirName' [bytes: \${dirName.bytes.encodeHex()}]"
-                    println "    Dir: \${dir.absolutePath} (NFC: \${Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.NFC)}, NFD: \${Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.NFD)})"
-                    println "        [\${dir.absolutePath.bytes.encodeHex()}]"
-                    println "        exists: \${dir.exists()}"
-                    println "    Default charset in daemon process: \${Charset.defaultCharset()}"
-                    println "    Locale in daemon process: \${Locale.getDefault()}"
+                    Util.printDebug("daemon", dir)
 
                     workerExecutor
                         .processIsolation({ spec ->
@@ -448,7 +453,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                             }
                         })
                         .submit(CustomAction) { params ->
-                            params.getActionOutputFile().set(getOutputFile())
+                            params.actionOutputFile = outputFile
                         }
 
                     try {
