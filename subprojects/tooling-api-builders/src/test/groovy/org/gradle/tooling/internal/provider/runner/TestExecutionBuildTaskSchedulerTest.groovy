@@ -94,7 +94,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         1 * testExecutionRequest.getTaskAndTests() >> [:]
 
         setup:
-        def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
+        def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest)
         when:
         buildConfigurationAction.applyTasksTo(context, executionPlan)
         then:
@@ -113,10 +113,10 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
             getTasks() >> [testTask]
         }
 
-        def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
+        def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest)
         when:
         buildConfigurationAction.applyTasksTo(context, executionPlan)
-        buildConfigurationAction.postProcessExecutionPlan(context, executionPlan)
+        buildConfigurationAction.postProcessExecutionPlan(context, executionPlanContents)
 
         then:
         1 * testFilter.includeTest(expectedClassFilter, expectedMethodFilter)
@@ -124,7 +124,6 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         1 * testTask.setIgnoreFailures(true)
         1 * testFilter.setFailOnNoMatchingTests(false)
         1 * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
-        _ * executionPlan.getContents() >> executionPlanContents
 
         where:
         requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter | tasksAndTests

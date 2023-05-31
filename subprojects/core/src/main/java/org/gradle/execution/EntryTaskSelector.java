@@ -18,11 +18,12 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 
 public interface EntryTaskSelector {
     void applyTasksTo(Context context, ExecutionPlan plan);
 
-    default void postProcessExecutionPlan(Context context, ExecutionPlan plan) {
+    default void postProcessExecutionPlan(Context context, QueryableExecutionPlan plan) {
     }
 
     interface Context {

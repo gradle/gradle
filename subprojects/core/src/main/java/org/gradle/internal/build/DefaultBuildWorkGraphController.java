@@ -25,8 +25,8 @@ import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
-import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.UncheckedException;
@@ -175,7 +175,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
-        public void addFinalization(BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization) {
+        public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
             getOwnedPlan().addFinalization(finalization);
         }
 
