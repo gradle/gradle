@@ -21,8 +21,7 @@ import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.problems.internal.GradleExceptionWithProblem;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationContextTracker;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.problems.DefaultProblem;
 import org.gradle.internal.problems.DefaultProblemLocation;
 
@@ -58,6 +57,7 @@ public class ProblemBuilder {
         this.line = line;
         return this;
     }
+
     public ProblemBuilder description(String description) {
         this.description = description;
         return this;
@@ -95,18 +95,24 @@ public class ProblemBuilder {
     }
 
     public void report() {
-        Problems.report(build());
+        Problem problem = build();
+        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+        throwPossibleError(problem);
     }
 
-    public RuntimeException createException() {
-        Problem problem = build();
-        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
-        if (operationContext != null) {
-            operationContext.addProblem(problem);
-            if (problem.getSeverity() == Severity.ERROR) {
-                operationContext.failed(problem.getCause());
+    private static void throwPossibleError(Problem problem) {
+        if (problem.getSeverity() == Severity.ERROR) {
+            Throwable t = problem.getCause();
+            if (t instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
             }
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
+            if (t instanceof Error) {
+                throw (Error) t;
+            }
+            throw new GradleExceptionWithProblem(problem);
         }
-        return new GradleExceptionWithProblem(problem);
     }
 }
