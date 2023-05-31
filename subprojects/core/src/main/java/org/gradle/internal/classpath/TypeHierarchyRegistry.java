@@ -21,6 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -47,8 +48,10 @@ public class TypeHierarchyRegistry {
         classReader.accept(new TypeHierarchyClassVisitor(this), 0);
     }
 
-    private void registerSuperType(String className, String superType) {
-        directSuperTypes.computeIfAbsent(className, k -> ConcurrentHashMap.newKeySet()).add(superType);
+    private void registerSuperType(String className, @Nullable String superType) {
+        if (superType != null) {
+            directSuperTypes.computeIfAbsent(className, k -> ConcurrentHashMap.newKeySet()).add(superType);
+        }
     }
 
     private void registerInterfaces(String className, String[] interfaces) {
@@ -117,7 +120,7 @@ public class TypeHierarchyRegistry {
         }
 
         @Override
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        public void visit(int version, int access, String name, String signature, @Nullable String superName, String[] interfaces) {
             typeRegistry.registerSuperType(name, superName);
             typeRegistry.registerInterfaces(name, interfaces);
         }
