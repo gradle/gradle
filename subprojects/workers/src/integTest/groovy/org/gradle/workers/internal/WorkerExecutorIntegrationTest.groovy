@@ -387,21 +387,30 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             import $Locale.name
             import $Normalizer.name
 
-            class Util {
-                static void printUnicodeString(String title, String value) {
-                    println "  \$title: \$value (NFC: \${Normalizer.isNormalized(value, Normalizer.Form.NFC)}, NFD: \${Normalizer.isNormalized(value, Normalizer.Form.NFD)})"
-                    println "    [\${value.bytes.encodeHex()}]"
+            class Debug {
+                private final String process
+
+                Debug(String process) {
+                    this.process = process
                 }
 
-                static void printDebug(String process, File dir) {
+                void printDebug(File dir) {
                     String dirName = dir.name
-                    println ">>> From \$process process..."
                     printUnicodeString("File.getName()", dir.name)
                     printUnicodeString("File.getAbsolutePath()", dir.absolutePath)
                     printUnicodeString("File.toPath()", dir.toPath().toString())
-                    println "    exists: \${dir.exists()}"
-                    println "  Default charset: \${Charset.defaultCharset()}"
-                    println "  Locale: \${Locale.getDefault()}"
+                    printLine "Dir exists: \${dir.exists()}"
+                    printLine "Default charset: \${Charset.defaultCharset()}"
+                    printLine "Locale: \${Locale.getDefault()}"
+                }
+
+                void printUnicodeString(String title, String value) {
+                    printLine "\$title: \$value (NFC: \${Normalizer.isNormalized(value, Normalizer.Form.NFC)}, NFD: \${Normalizer.isNormalized(value, Normalizer.Form.NFD)})"
+                    printLine "  bytes: [\${value.bytes.encodeHex()}]"
+                }
+
+                void printLine(Object line) {
+                    println "\$process: \$line"
                 }
             }
 
@@ -416,7 +425,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                     def outputFile = parameters.actionOutputFile.get().asFile
 
                     def dir = outputFile.parentFile
-                    Util.printDebug("worker", dir)
+                    new Debug("worker").printDebug(dir)
 
                     assert Normalizer.isNormalized(dir.absolutePath, Normalizer.Form.$form)
                     outputFile.createNewFile()
@@ -436,7 +445,14 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 void execute() {
                     def dir = outputFile.get().asFile.parentFile
 
-                    Util.printDebug("daemon", dir)
+                    new Debug("daemon").printDebug(dir)
+
+                    new Debug("daemon").printLine("Recreating output directory...")
+
+                    assert dir.delete()
+                    dir.mkdirs()
+
+                    new Debug("daemon").printDebug(dir)
 
                     workerExecutor
                         .processIsolation({ spec ->
