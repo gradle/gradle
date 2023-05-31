@@ -52,7 +52,7 @@ abstract class PreconditionProbingTests extends Specification {
         }
     }
 
-    def "test precondition combination"() {
+    def "#classNames"() {
         given:
         def classes = classNames.collect { loadClass(it) }
 
