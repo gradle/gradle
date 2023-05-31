@@ -381,6 +381,8 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     private String createUnicodeNormalizingWorkerTask(String dirName, Normalizer.Form form) {
         """
+            apply plugin: "java-gradle-plugin"
+
             import $Charset.name
             import $Locale.name
             import $Normalizer.name
@@ -432,7 +434,19 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                     println "    Locale in daemon process: \${Locale.getDefault()}"
 
                     workerExecutor
-                        .processIsolation({})
+                        .processIsolation({ spec ->
+                            def extension = project.extensions.findByType(JavaPluginExtension)
+                            def service = project.extensions.findByType(JavaToolchainService)
+                            def launcher = service.launcherFor(extension.toolchain)
+
+                            if (launcher.present) {
+                                println "Using launcher \${launcher.get().metadata}"
+                                spec.forkOptions.executable = launcher.get().executablePath
+                            } else {
+                                println "Using runtime JVm"
+                                spec.forkOptions.executable = Jvm.current().javaExecutable
+                            }
+                        })
                         .submit(CustomAction) { params ->
                             params.getActionOutputFile().set(getOutputFile())
                         }
