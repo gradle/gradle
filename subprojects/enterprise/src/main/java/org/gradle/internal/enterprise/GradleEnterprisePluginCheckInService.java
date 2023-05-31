@@ -17,7 +17,7 @@
 package org.gradle.internal.enterprise;
 
 /**
- * The plugin uses this to announce its presence and provide its service.
+ * The Gradle Enterprise plugin 3.4+ uses this to announce its presence and provide its service.
  *
  * It is obtained via the settings object's service registry for the root build only.
  */
