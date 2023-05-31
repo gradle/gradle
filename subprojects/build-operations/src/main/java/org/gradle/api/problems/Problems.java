@@ -20,8 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationContextTracker;
 
 /**
  * Prototype Problems API.
@@ -40,29 +38,29 @@ public class Problems {
     }
 
     static void report(Problem problem) {
-        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
-        if (operationContext != null) {
-            operationContext.addProblem(problem);
-            if (problem.getSeverity() == Severity.ERROR) {
-                operationContext.failed(problem.getCause());
-            }
-        }
-        if (problem.getSeverity() == Severity.ERROR) {
-            Throwable t = problem.getCause();
-            RuntimeException result;
-            if (t instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            if (t instanceof RuntimeException) {
-                throw (RuntimeException) t;
-            }
-            if (t instanceof Error) {
-                throw (Error) t;
-            }
-//            if (t instanceof IOException) {
-//                throw new UncheckedIOException(t);
+//        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
+//        if (operationContext != null) {
+//            operationContext.addProblem(problem);
+//            if (problem.getSeverity() == Severity.ERROR) {
+//                operationContext.failed(problem.getCause());
 //            }
-            throw new RuntimeException(t);
-        }
+//        }
+//        if (problem.getSeverity() == Severity.ERROR) {
+//            Throwable t = problem.getCause();
+//            RuntimeException result;
+    //            if (t instanceof InterruptedException) {
+//                Thread.currentThread().interrupt();
+//            }
+//            if (t instanceof RuntimeException) {
+//                throw (RuntimeException) t;
+//            }
+//            if (t instanceof Error) {
+//                throw (Error) t;
+//            }
+////            if (t instanceof IOException) {
+////                throw new UncheckedIOException(t);
+////            }
+//            throw new RuntimeException(t);
+//        }
     }
 }

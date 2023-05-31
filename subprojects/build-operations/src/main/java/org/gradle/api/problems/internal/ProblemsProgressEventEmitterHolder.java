@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.testfixtures.internal;
+package org.gradle.api.problems.internal;
 
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 
-import javax.annotation.Nullable;
+public class ProblemsProgressEventEmitterHolder {
+    private static BuildOperationProgressEventEmitter eventEmitter = new NoOpBuildOperationProgressEventEmitter();
 
-public class NoOpBuildOperationProgressEventEmitter implements BuildOperationProgressEventEmitter {
-    @Override
-    public void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {}
+    public static void init(BuildOperationProgressEventEmitter eventEmitter) {
+        ProblemsProgressEventEmitterHolder.eventEmitter = eventEmitter;
+    }
 
-    @Override
-    public void emitNowIfCurrent(Object details) {}
-
-    @Override
-    public void emitIfCurrent(long time, Object details) {}
-
-    @Override
-    public void emitNowForCurrent(Object details) {}
+    public static BuildOperationProgressEventEmitter get() {
+        return eventEmitter;
+    }
 }
