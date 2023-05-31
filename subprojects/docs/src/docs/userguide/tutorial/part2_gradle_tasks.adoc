@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[part2_gradle_tasks]]
-= Part 2: Run and Explore Gradle Tasks
+= Part 2: Explore and Run Gradle Tasks
 
 Learn the basics of Gradle tasks by running one and looking at its output.
 
@@ -31,16 +31,16 @@ Learn the basics of Gradle tasks by running one and looking at its output.
 
 1. Complete <<part1_gradle_init.adoc#part1_begin,part 1>>.
 
-== Step 1. List tasks
+== Step 1. List Tasks
 A _task_ is a piece of work that must be done by Gradle as part of the build.
 
 In the `tutorial` directory, enter the command below to list all of the available tasks:
 [source]
 ----
-$ ./gradlew tasks --all
+$ ./gradlew tasks
 ----
 
-These are all of the default Gradle tasks available to run in your project:
+These are all of the Gradle tasks currently available to run in your project. It includes tasks contributed by the `application` plugin and the plugin it applies:
 
 [source]
 ----
@@ -67,44 +67,65 @@ compileJava - Compiles main Java source.
 
 ...
 ----
-Some of the default tasks available assemble, run, compile code and much more.
-A task might be compiling some classes, storing class files into separate target folder, creating JAR, generating Javadoc, or publishing some achieves to the repositories.
+Some of the available tasks assemble, run, compile code, and much more.
+A task might be compiling some classes, storing class files into separate target folder, creating JAR files, generating Javadoc, or publishing artifacts to repositories.
 
-You can also list the tasks only available in the `app` subproject by running `./gradlew :app:tasks --all`.
+You can also list the tasks only available in the `app` subproject by running `./gradlew :app:tasks`.
 
 In <<part1_gradle_init.adoc#part1_begin,part 1>>, we ran the `build` task using the `./gradlew build` command.
 
-It's important to know that there are two types of tasks:
+== Step 2. Understanding Tasks
+We've listed the tasks available when Gradle is initialized.
+However, users can create custom tasks that perform some specific work.
 
-Default tasks :: the tasks available when Gradle is initialized
-Custom tasks :: the user-defined tasks that perform some specific work
+Custom task code is typically available in the `build.gradle` file or it can come as part of a custom plugin which we will learn more about in <<part4_gradle_plugins#part4_begin,part 4>> of the tutorial.
 
-So far, only default tasks are listed when running `./gradlew tasks --all`.
-That's because we haven't created any custom tasks.
-
-Custom task code is typically available in the `build.gradle` file.
 Here is a example `Hello World` task:
 [source]
 ----
 task welcome {
     doLast {
-        println 'Welcome to the Gradle tutorial!'
+        println('Welcome to the Gradle tutorial!')
     }
 }
 ----
 
 This custom task, if added to `build.gradle.kts` file in the `app` subproject directory, would be executed using the command `./gradlew :app:welcome`.
 
-== Step 2. Tasks in the IDE
-Let's take a look at all of the default Gradle tasks in the IntelliJ IDE.
+== Step 3. Task Ordering and Dependencies
+Many times, a task requires another task to run first, especially if the task depends on the produced output of its dependency task.
+A task may declare its dependencies explicitly.
+A task may depend on other tasks implicitly.
+
+Task execution order is automatically determined by Gradle, taking into account explicit dependencies and implicit dependencies.
+If dependency is not available, Gradle enables users to request an execution order between tasks.
+
+Here is an example of explicit task dependency:
+[source]
+----
+task hello {
+    println('Hello!')
+}
+
+task greet {
+    println('How are you?')
+}
+
+greet.dependsOn(hello)
+----
+
+In this case, `hello` prints before `greet`: `Hello! How are you?`.
+
+== Step 3. Tasks in the IDE
+Let's take a look at all the tasks in IntelliJ.
 The project should still be open following <<part1_gradle_init.adoc#part1_begin,part 1>>.
 
 On the right hand side of your window, open the `Gradle` pane:
 
 image::tutorial/intellij-idea-tasks.png[]
 
-== Step 3. Run Tasks in the IDE
-You can run a task in the IDE by double-clicking it in the pane.
+== Step 4. Run Tasks in the IDE
+You can run a task in IntelliJ by double-clicking it in the pane.
 
 Double-click **tutorial > app > build > build**.
 
@@ -118,7 +139,7 @@ BUILD SUCCESSFUL in 966ms
 3:18:24 AM: Execution finished 'build'.
 ----
 
-== Step 4. Run Tasks in the terminal
+== Step 5. Run Tasks in the terminal
 The `jar` default task can be used to create an executable JAR file of the App.
 
 Run the following command in your terminal:
@@ -152,7 +173,7 @@ public class App {
     }
 }
 ----
-== Step 5. Typed Tasks
+== Step 6. Typed Tasks
 Custom and default Gradle tasks can be typed.
 _Typed tasks_ are a subclass of the type link:{javadocPath}/org/gradle/api/Task.html[@Task].
 
@@ -182,4 +203,4 @@ Popular tasks types include:
 Many more types are included in the DSL documentation.
 
 [.text-right]
-**Next Step:** <<part3_gradle_dep_man#part3_begin,Understand Gradle's Dependency Management>> >>
+**Next Step:** <<part3_gradle_dep_man#part3_begin,About Gradle's Dependency Management>> >>

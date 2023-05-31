@@ -37,12 +37,12 @@ _Training time_: **45 minutes**
 
 The tutorial covers:
 
-1. Gradle init
-2. Tasks
-3. Dependency management
-4. Plugins
-5. Caching
-6. Reference material
+1. Install and Initialize Gradle
+2. Run Gradle Tasks
+3. About Dependency management
+4. Apply Gradle Plugins
+5. Enable the Grade Cache
+6. Gradle Reference Materials
 
 == Reference Docs
 It's always useful to have reference documentation available during a tutorial:

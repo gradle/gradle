@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[part3_gradle_dep_man]]
-= Part 3: Understand Gradle's Dependency Management
+= Part 3: About Gradle's Dependency Management
 
 Learn the basics of Gradle's dependency management.
 
@@ -165,8 +165,8 @@ Gradle provides the following dependencies configuration types:
 |required only at test runtime
 |===
 
-The `api` configurations are not applicable in a Java app project.
-If you recall in <<part1_gradle_init.adoc#part1_begin,part 1>>, the Gradle init script gave you the option to create an api project instead of the Java project. In that case, the `api` configuration would be available.
+The `api` configurations are not available in an `application` project.
+If you recall in <<part1_gradle_init.adoc#part1_begin,part 1>>, the Gradle init script gave you the option to create an api project instead of an application project; we chose to build a Java application.
 
 Returning to our build script:
 [source]

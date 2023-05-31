@@ -13,23 +13,35 @@
 // limitations under the License.
 
 [[part5_gradle_caching]]
-= Part 5: Gradle Cache
+= Part 5: Enable the Gradle Cache
 
 Learn the basics of Gradle's caching system.
 
-In this section you will:
+****
+**In this section you will:**
 
 - Update Gradle Properties
 - Turn on Local cache
 - Understand caching
 - Explore remote caching
+****
 
 [[part5_begin]]
 == Before you begin
 
 1. Complete <<part4_gradle_plugins#part4_begin,part 4>>.
 
-== 1. Gradle Properties
+== Step 1. Incremental Builds
+In <<part2_gradle_tasks#part2_begin,part 2>>, you learned about tasks and in <<part4_gradle_plugins#part4_begin,part4>> you learned about plugins.
+
+It's important to know that Gradle optimizes your build in a variety of ways.
+
+One such optimization is called _incremental builds_.
+An _incremental build_ is a build that avoids running tasks whose inputs and outputs did not change since the previous build, making the execution of such tasks unnecessary.
+
+Another optimization is called caching. Let's turn on caching for your app.
+
+== Step 2. Gradle Properties
 In the top level folder of your app (`tutorial), create a `gradle.properties` file.
 
 [source]
@@ -46,7 +58,7 @@ org.gradle.caching=true
 
 TIP: It's also a good time to add verbose outputs to Gradle by setting `org.gradle.console=verbose`.
 
-== 2. Use Local Cache
+== Step 3. Use Local Cache
 Run the clean task and then the build task to populate the cache.
 [source]
 ----
@@ -95,7 +107,9 @@ $ ./gradlew :app:build
 > Task :app:build UP-TO-DATE
 ----
 
-As we can see, Gradle knows absolutely nothing has changed so it has decided not to re-run any tasks. Instead letting us know with the _outcome label_ `UP-TO-DATE`.
+As we can see, Gradle used the _incremental build_ optimization.
+Nothing has changed so Gradle has decided not to re-run some tasks.
+Instead letting us know that inputs and outputs have not changed using the _outcome label_ `UP-TO-DATE`.
 
 Now let's delete all the files by running the clean and build back to back:
 [source]
@@ -124,13 +138,28 @@ BUILD SUCCESSFUL in 551ms
 
 Nothing has changed but files were deleted during the clean task so Gradle has to re-run tasks to re-build the App.
 
-Gradle is efficient, especially with the local cache turn on. Gradle will attempt to reuse outputs from previous builds for all builds.
-
-Gradle will look at the cache directory on your machine to check that those files don't already exist. If they do, instead of running that task, it will copy its results (outputs) into your project.
+Gradle is efficient, especially with the local cache turn on.
+Gradle will look at the cache directory on your machine to check for output files that may already exist. If they do, instead of running that task, it will copy its (output) results into your project `build` directory.
 
 The _outcome label_ `FROM-CACHE` lets the user know that Gradle has fetched the task results from the local cache.
 
-== 3. Explore the Cache
+|===
+|Outcome Label |Description
+
+|UP-TO-DATE
+|Task that has been already executed and hasn't changed (incremental build feature)
+
+|SKIPPED
+|Task has been skipped for some reason
+
+|FROM-CACHE
+|Task output has been copied to local directory from previous builds in the build cache (caching feature)
+
+|NO-SOURCE
+|Task is unexecuted because the input data required for its execution was not found
+|===
+
+== Step 4. Explore the Cache
 The Gradle cache is located at:
 
 - **On Windows**: %USERPROFILE%\.gradle\caches
@@ -189,13 +218,13 @@ total 40
 ----
 `7e6149c74419964bc38b387f6639a655` is a TAR file.
 
-When the file is decompressed, we can see it contains our App class:
+When the file is decompressed, we can see it contains our `App` class:
 
 image::tutorial/mac-tar-cache-exp.png[]
 
 Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 
-== 4. Remote Caching
+== Step 5. Remote Caching
 The remote cache (called a Build Cache Node) is a shared build cache available via HTTP.
 
 The idea of a remote cache is to share commonly built task outputs across remote builds to improve build times.
@@ -204,3 +233,6 @@ When both remote and local caches are enabled, then the build output is first ch
 If the output isn't present in the local cache, it'll be downloaded from the remote cache and also stored in the local cache.
 
 A remote build cache is available for free from Gradle. Individuals and organizations can also deploy their own cache node which is distributed as a Docker image and a executable JAR.
+
+[.text-right]
+**Next Step:** <<part6_gradle_refs#part6_begin,Gradle Reference Materials>> >>

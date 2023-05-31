@@ -15,21 +15,23 @@
 [[part4_gradle_plugins]]
 = Part 4: Apply Gradle Plugins and Distribute your App
 
-Learn the basics of Gradle's dependency management.
+Learn about how Plugins extend Gradle's capabilities and use a popular plugin to distribute your app.
 
-In this section you will:
+****
+**In this section you will:**
 
 - Apply a plugin
 - Use the plugin
 - Learn about distribution
 - Explore other plugins
+****
 
 [[part4_begin]]
 == Before you begin
 
 1. Complete <<part3_gradle_dep_man#part3_begin,part 3>>.
 
-== 1. Apply the Plugin
+== Step 1. Apply the Plugin
 A plugin is simply a set of tasks, available as packaged code that use the Gradle API to provide additional functionality and extend Gradle core.
 Applying a plugin to a project means that it allows the plugin to extend the project’s capabilities.
 
@@ -67,10 +69,10 @@ Don't forget to sync Gradle if you are using IntelliJ IDEA.
 
 Let's make sure the plugin has been applied by looking at the new tasks it has created.
 
-Run `./gradlew :app:tasks --all` in your command line:
+Run `./gradlew :app:tasks` in your command line:
 [source]
 ----
-./gradlew :app:tasks --all
+./gradlew :app:tasks
 
 > Task :app:tasks
 
@@ -94,7 +96,7 @@ Similarly, the new tasks from the Distribution plugin are now available in Intel
 
 image::tutorial/intellij-idea-plugin.png[]
 
-== 2. Use the Plugin
+== Step 2. Use the Plugin
 To use the plugin, simple run the `assembleDist` task by running `./gradlew :app:assembleDist`.
 [source]
 ----
@@ -107,12 +109,12 @@ The `assembleDist` task builds the project and creates a `app.tar` and `app.zip`
 
 image::tutorial/intellij-idea-dist.png[]
 
-== 3. Distribute the App
+== Step 3. Distribute the App
 A TAR or ZIP file can be used internally to distribute the app amount peers.
 
 A distribution can also be published to the public using the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>> or the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>.
 
-For example, if you wanted to publish your new App to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, you would modify your build script as follows:
+For example, if you wanted to publish your new app to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, you would modify your build script as follows:
 [source]
 ----
 plugins {
@@ -129,7 +131,7 @@ publishing {
 }
 ----
 
-== 4. Explore Plugins
+== Step 4. Explore Plugins
 Plugin authors can either keep their plugins private or distribute them to the public.
 
 As such, there are three types of plugins:
@@ -138,3 +140,5 @@ As such, there are three types of plugins:
 2. **Community plugins** - Gradle has a community of plugin developers who contribute plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
 3. **Custom plugins** - Gradle enables user to create custom plugins, that are typically private, to modify the build process beyond the standard Gradle configuration.
 
+[.text-right]
+**Next Step:** <<part5_gradle_caching#part5_begin,Enable the Gradle Cache>> >>

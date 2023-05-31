@@ -13,21 +13,23 @@
 // limitations under the License.
 
 [[part6_gradle_refs]]
-= Part 6: Gradle References
+= Part 6: Gradle Reference Materials
 
 Learn about the references you will need as you work with Gradle.
 
-In this section you will:
+****
+**In this section you will:**
 
 - Learn about References
 - Finish the Tutorial
+****
 
 [[part6_begin]]
 == Before you begin
 
 1. Complete <<part5_gradle_caching#part5_begin,part 5>>.
 
-== 1. Gradle References
+== Step 1. Gradle References
 To work with Gradle, the following references are useful:
 
 - Gradle API http://gradle.org/docs/current/javadoc/[Javadocs]
@@ -43,5 +45,8 @@ To view all Gradle releases:
 - https://gradle.org/releases/[Gradle Releases]
 - http://gradle.org/docs/current/release-notes[Release Notes]
 
-== 2. Next steps
+== Step 2. Next steps
 We recommend going through each section of the User Manual.
+
+[.text-right]
+**Next Step:** <<command_line_interface#command_line_interface,Running Gradle Builds>> >>
