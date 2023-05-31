@@ -17,9 +17,14 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT_4 })
 class JUnit4TestEnvironmentIntegrationTest extends AbstractJUnit4TestEnvironmentIntegrationTest implements JUnit4MultiVersionTest {
+    @Override
+    boolean isFrameworkSupportsModularJava() {
+        return VersionNumber.parse(version) >= VersionNumber.parse('4.13')
+    }
 }

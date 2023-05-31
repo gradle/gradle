@@ -2166,7 +2166,11 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             task (copy, type:Copy) {
                from ('src') {
                   def newValue = providers.systemProperty('new-value').present
-                  $property = newValue ? $newValue : $oldValue
+                  if (newValue) {
+                        $newValue
+                  } else {
+                        $oldValue
+                  }
                }
                into 'dest'
             }
@@ -2194,13 +2198,13 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         skipped(':copy')
 
         where:
-        property             | oldValue                     | newValue
-        "caseSensitive"      | false                        | true
-        "includeEmptyDirs"   | false                        | true
-        "duplicatesStrategy" | "DuplicatesStrategy.EXCLUDE" | "DuplicatesStrategy.INCLUDE"
-        "dirMode"            | "0700"                       | "0755"
-        "fileMode"           | "0600"                       | "0644"
-        "filteringCharset"   | "'iso8859-1'"                | "'utf-8'"
+        property             | oldValue                                          | newValue
+        "caseSensitive"      | "caseSensitive = false"                           | "caseSensitive = true"
+        "includeEmptyDirs"   | "includeEmptyDirs = false"                        | "includeEmptyDirs = true"
+        "duplicatesStrategy" | "duplicatesStrategy = DuplicatesStrategy.EXCLUDE" | "duplicatesStrategy = DuplicatesStrategy.INCLUDE"
+        "dirPermissions"     | "dirPermissions { unix(\"0700\") }"               | "dirPermissions { unix(\"0755\") }"
+        "filePermissions"    | "filePermissions { unix(\"0600\") }"              | "filePermissions { unix(\"0644\") }"
+        "filteringCharset"   | "filteringCharset = 'iso8859-1'"                  | "filteringCharset = 'utf-8'"
     }
 
     def "null action is forbidden for #method"() {

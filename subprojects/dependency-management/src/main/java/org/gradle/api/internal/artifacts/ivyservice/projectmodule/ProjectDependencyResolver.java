@@ -30,6 +30,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -89,7 +90,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
                 if (rejector != null && rejector.accept(component.getModuleVersionId().getVersion())) {
                     result.rejected(projectId, component.getModuleVersionId());
                 } else {
-                    result.resolved(component);
+                    result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
                 }
             }
         }
@@ -103,7 +104,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             if (component == null) {
                 result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), () -> projectId + " not found."));
             } else {
-                result.resolved(component);
+                result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
             }
         }
     }

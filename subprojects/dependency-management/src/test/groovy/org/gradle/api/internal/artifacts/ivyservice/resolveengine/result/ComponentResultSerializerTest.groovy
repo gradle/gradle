@@ -88,12 +88,12 @@ class ComponentResultSerializerTest extends Specification {
         def componentState = Stub(ComponentGraphResolveState) {
             id >> componentIdentifier
             metadata >> componentMetadata
-            repositoryId >> 'repoName'
         }
         def component = Stub(ResolvedGraphComponent) {
             resolveState >> componentState
             selectionReason >> ComponentSelectionReasons.requested()
             selectedVariants >> [v1, v2]
+            repositoryName >> 'repoName'
         }
 
         when:

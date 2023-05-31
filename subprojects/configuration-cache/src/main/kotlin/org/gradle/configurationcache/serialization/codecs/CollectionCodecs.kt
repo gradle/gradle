@@ -27,6 +27,7 @@ import org.gradle.configurationcache.serialization.readMapInto
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeMap
 import java.util.Hashtable
+import java.util.ArrayDeque
 import java.util.LinkedList
 import java.util.Properties
 import java.util.TreeMap
@@ -41,7 +42,11 @@ val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList(it) }
 
 
 internal
-val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec { LinkedList<Any?>() }
+val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec { LinkedList() }
+
+
+internal
+val arrayDequeCodec: Codec<ArrayDeque<Any?>> = collectionCodec { ArrayDeque(it) }
 
 
 internal

@@ -19,7 +19,7 @@ package org.gradle.internal.deprecation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
+import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
@@ -33,9 +33,10 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
 
     def setup() {
-        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(BuildOperationProgressEventEmitter))
+        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, Mock(BuildOperationProgressEventEmitter))
     }
 
     def cleanup() {
@@ -54,6 +55,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         when:
         DeprecationLogger.reset()
+        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, Mock(BuildOperationProgressEventEmitter))
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
@@ -150,7 +152,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     def "reports suppressed deprecation messages with --warning-mode summary"() {
         given:
         def documentationReference = new DocumentationRegistry().getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")
-        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.Summary, Mock(BuildOperationProgressEventEmitter))
+        DeprecationLogger.init(diagnosticsFactory, WarningMode.Summary, Mock(BuildOperationProgressEventEmitter))
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         when:

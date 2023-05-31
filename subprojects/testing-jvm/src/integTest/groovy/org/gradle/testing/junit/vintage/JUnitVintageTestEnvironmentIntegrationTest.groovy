@@ -23,4 +23,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageTestEnvironmentIntegrationTest extends AbstractJUnit4TestEnvironmentIntegrationTest implements JUnitVintageMultiVersionTest {
+    @Override
+    boolean isFrameworkSupportsModularJava() {
+        return true
+    }
 }

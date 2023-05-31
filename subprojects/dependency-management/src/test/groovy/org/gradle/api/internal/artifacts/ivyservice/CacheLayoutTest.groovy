@@ -64,6 +64,17 @@ class CacheLayoutTest extends Specification {
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == CacheVersion.of(2, 1)
     }
 
+    def "metadata store layout for 7.6.2 and before and after versions can be retrieved"() {
+        when:
+        CacheLayout cacheLayout = CacheLayout.META_DATA
+
+        then:
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("7.6.1")).get() == CacheVersion.parse("2.99")
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("7.6.2")).get() == CacheVersion.parse("2.101")
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("7.7")).get() == CacheVersion.parse("2.101")
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("8.0")).get() == CacheVersion.parse("2.100")
+    }
+
     def "use transforms layout"() {
         when:
         CacheLayout cacheLayout = CacheLayout.TRANSFORMS

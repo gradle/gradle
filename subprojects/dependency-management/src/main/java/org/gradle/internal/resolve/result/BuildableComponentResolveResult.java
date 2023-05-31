@@ -18,13 +18,14 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public interface BuildableComponentResolveResult extends ComponentResolveResult, ResourceAwareResolveResult {
     /**
      * Marks the component as resolved, with the given graph resolution state.
      */
-    void resolved(ComponentGraphResolveState state);
+    void resolved(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState);
 
     /**
      * Marks the resolve as failed with the given exception.

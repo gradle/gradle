@@ -1306,7 +1306,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withBuildCacheNgEnabled() {
-        return withArguments("--build-cache", "-D" + NEXT_GEN_CACHE_SYSTEM_PROPERTY + "=true");
+        return withBuildCacheEnabled()
+            .withArgument("-D" + NEXT_GEN_CACHE_SYSTEM_PROPERTY + "=true");
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

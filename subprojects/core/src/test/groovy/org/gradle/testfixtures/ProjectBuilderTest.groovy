@@ -21,8 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.IncubationLogger
@@ -179,7 +179,7 @@ class ProjectBuilderTest extends Specification {
     def "does not emit deprecation warning when using the builder() method"() {
         given:
         def broadcaster = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.None, broadcaster)
+        DeprecationLogger.init(Mock(ProblemDiagnosticsFactory), WarningMode.None, broadcaster)
 
         when:
         ProjectBuilder.builder()

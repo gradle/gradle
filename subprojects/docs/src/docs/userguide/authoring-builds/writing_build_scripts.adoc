@@ -117,8 +117,8 @@ implements link:{groovyDslPath}/org.gradle.api.Script.html[Script]. As a result,
 have access to all of the properties and methods declared by the `Script` interface.
 
 When Gradle executes a Kotlin build script (`.gradle.kts`), it compiles the script into a subclass
-of link:https://gradle.github.io/kotlin-dsl-docs/api/org.gradle.kotlin.dsl/-kotlin-build-script/index.html[KotlinBuildScript].
-As a result, builds scripts have access to all visible properties and functions declared by the `KotlinBuildScript` type.
+of link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-project-script-template/index.html[KotlinProjectScriptTemplate].
+As a result, builds scripts have access to all visible properties and functions declared by the `KotlinProjectScriptTemplate` type.
 
 [[sec:declaring_variables]]
 == Declare Variables

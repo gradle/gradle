@@ -41,45 +41,51 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
     @Override
     public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
-        delegate.load(entries, (inputStream, payload) -> {
-            try (GZIPInputStream zipInput = new GZIPInputStream(inputStream)) {
-                handler.handle(zipInput, payload);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+        delegate.load(entries, new DelegatingLoadHandler<T>(handler) {
+            @Override
+            public void handle(InputStream inputStream, T payload) {
+                try (GZIPInputStream zipInput = new GZIPInputStream(inputStream)) {
+                    handler.handle(zipInput, payload);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         });
     }
 
     @Override
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
-        delegate.store(entries, payload -> {
-            NextGenBuildCacheService.NextGenWriter delegateWriter = handler.handle(payload);
-            // TODO Make this more performant for large files
-            UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
-            try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
-                try (InputStream delegateInput = delegateWriter.openStream()) {
-                    IOUtils.copyLarge(delegateInput, zipOutput, bufferProvider.getBuffer());
+        delegate.store(entries, new DelegatingStoreHandler<T>(handler) {
+            @Override
+            public NextGenBuildCacheService.NextGenWriter createWriter(T payload) {
+                NextGenBuildCacheService.NextGenWriter delegateWriter = handler.createWriter(payload);
+                // TODO Make this more performant for large files
+                UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
+                try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
+                    try (InputStream delegateInput = delegateWriter.openStream()) {
+                        IOUtils.copyLarge(delegateInput, zipOutput, bufferProvider.getBuffer());
+                    }
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
                 }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+
+                return new NextGenBuildCacheService.NextGenWriter() {
+                    @Override
+                    public InputStream openStream() {
+                        return compressed.toInputStream();
+                    }
+
+                    @Override
+                    public void writeTo(OutputStream output) throws IOException {
+                        compressed.writeTo(output);
+                    }
+
+                    @Override
+                    public long getSize() {
+                        return compressed.size();
+                    }
+                };
             }
-
-            return new NextGenBuildCacheService.NextGenWriter() {
-                @Override
-                public InputStream openStream() {
-                    return compressed.toInputStream();
-                }
-
-                @Override
-                public void writeTo(OutputStream output) throws IOException {
-                    compressed.writeTo(output);
-                }
-
-                @Override
-                public long getSize() {
-                    return compressed.size();
-                }
-            };
         });
     }
 

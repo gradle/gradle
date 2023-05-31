@@ -82,7 +82,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public Map<String, Object> getEnvironment() {
         if (environment == null) {
-            setEnvironment(Jvm.current().getInheritableEnvironmentVariables(System.getenv()));
+            setEnvironment(Jvm.getInheritableEnvironmentVariables(System.getenv()));
         }
         return environment;
     }

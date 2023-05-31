@@ -19,7 +19,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
+
+import javax.annotation.Nullable;
 
 public interface ComponentStateFactory<T extends ComponentResolutionState> {
-    T getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state);
+    T getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, @Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState);
 }
