@@ -68,7 +68,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Kotlin DSL improvements
 
-Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing experience in supported IDEs compared to the traditional Groovy DSL — superior content assistance, refactoring, documentation, and more.
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing experience in supported IDEs compared to the traditional Groovy DSL — auto-completion, smart content assist, quick access to documentation, navigation to source, and context-aware refactoring.
 
 Kotlin DSL has received substantial improvements in the recent releases, leading to the announcement that [Kotlin DSL is Now the Default for New Gradle Builds](https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds).
 This release brings another series of improvements.
@@ -77,21 +77,21 @@ This release brings another series of improvements.
 
 A brand new [reference documentation](kotlin-dsl/index.html) for the Gradle Kotlin DSL is now published and versioned alongside the user manual.
 
-You can use the [Kotlin DSL reference search functionality to drill through the APIs.
+You can use the Kotlin DSL reference search functionality to drill through the APIs.
 
-#### Simple property assignment in Kotlin DSL scripts enabled by default
+#### Simple property assignment in Kotlin DSL enabled by default
 
 The last release [introduced](/8.1.1/release-notes.html#experimental-simple-property-assignment-in-kotlin-dsl-scripts) the simpler way to assign values to [lazy property types](userguide/lazy_configuration.html#lazy_properties) in Kotlin scripts using the `=` operator instead of  the `set()` method.
-This feature is now available by default.
+This new assignment operator is now available by default.
 
-The new assignment operator is still incubating.
+This feature is still incubating.
 In case of any issues you can opt-out by adding  `systemProp.org.gradle.unsafe.kotlin.assignment=false` to the `gradle.properties` file.
 
 For more information see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
 
 #### Gradle `init` defaults to the Kotlin DSL
 
-Starting with this release, bootstrapping a new project with the [`gradle init` command](userguide/build_init_plugin.html) now defaults to generating new builds using the Kotlin DSL instead of Groovy DSL.
+Starting with this release, generating a new project with the [`gradle init` command](userguide/build_init_plugin.html) now defaults to using the Kotlin DSL instead of Groovy DSL.
 
 In interactive mode you can choose which DSL to use and the Kotlin one is now listed first:
 
@@ -133,7 +133,8 @@ The [Gradle Wrapper](userguide/gradle_wrapper.html) stores the URL of Gradle dis
 
 Previously, specifying an invalid URL led to I/O exceptions during the build execution.
 
-Starting from this release, the wrapper task automatically validates the configured distribution URL before writing it to the `gradle-wrapper.properties` file.This surfaces invalid URLSs early and prevents exceptions at execution time.
+Starting from this release, the wrapper task automatically validates the configured distribution URL before writing it to the `gradle-wrapper.properties` file.
+This surfaces invalid URLSs early and prevents exceptions at execution time.
 
 More details can be found in the dedicated section of the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) user manual chapter.
 
@@ -181,16 +182,19 @@ Without these backreferences, the conversion process would fail.
 
 The process has been updated to succeed also when the `parent` element is absent from the submodules.
 
-### Dependency Configurations Usage Checking
+### Configuration API improvements
 
-Certain methods in the Configuration API should only be called when the configuration is in a [particular “role”](userguide/declaring_dependencies.html#sec:resolvable-consumable-configs) as determined by the `isCanBeResolved()`/`isCanBeConsumed()`/`isCanBeDeclared()` methods.
-For example, calling `resolve()` on a non-resolvable Configuration should not be done.
+Using the [`Configuration API`](javadoc/org/gradle/api/artifacts/Configuration.html) is a fundamental piece of writing Gradle builds.
+This is a large and multipurpose API that is easy to accidentally misuse.
+This release of Gradle will provide additional feedback if configurations are used inconsistently.
+
+#### Call time configuration usage checking
+
+Certain methods in the Configuration API should only be called when the configuration is in a [particular “role”](userguide/declaring_dependencies.html#sec:resolvable-consumable-configs) as determined by the `isCanBeResolved()`/`isCanBeConsumed()`/`isCanBeDeclared()` flags.
+For example, calling `shouldResolveConsistentlyWith(Configuration)` should only be done on a resolvable Configuration.
+Calling a method that is not appropriate for a configuration’s current role will now in many cases emit a deprecation warning.
+
 These proper usages are now mentioned on the `Configuration` type’s [javadoc](javadoc/org/gradle/api/artifacts/Configuration.html).
-Calling a method that is not appropriate will now in many cases emit a deprecation warning.
-
-### Dependency Configurations Name Checking
-
-Creating a configuration with the same naming pattern used to create [detached configurations](dsl/org.gradle.api.artifacts.ConfigurationContainer.html#org.gradle.api.artifacts.ConfigurationContainer:detachedConfiguration(org.gradle.api.artifacts.Dependency[])) will now emit a warning.
 
 ## Fixed issues
 
