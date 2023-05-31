@@ -24,6 +24,7 @@ import org.junit.Rule
 import spock.lang.Issue
 
 import java.nio.charset.Charset
+import java.nio.file.Files
 import java.text.Normalizer
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -384,6 +385,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             apply plugin: "java-gradle-plugin"
 
             import $Charset.name
+            import $Files.name
             import $Locale.name
             import $Normalizer.name
 
@@ -447,10 +449,12 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
                     new Debug("daemon").printDebug(dir)
 
+                    new Debug("daemon").printLine("---")
                     new Debug("daemon").printLine("Recreating output directory...")
+                    new Debug("daemon").printLine("---")
 
                     assert dir.delete()
-                    dir.mkdirs()
+                    Files.createDirectories(dir.toPath())
 
                     new Debug("daemon").printDebug(dir)
 
