@@ -31,9 +31,23 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         prepareGroovyPluginTest """
             project.tasks.register("myCheckstyle", Checkstyle) {
                 maxErrors = 1
-                // int currentMaxErrors = maxErrors doesn't work yet
                 int currentMaxErrors = it.maxErrors
                 assert currentMaxErrors == 1
+                assert maxErrors == 1
+                def call = {
+                     def inner = {
+                        currentMaxErrors = maxErrors
+                        assert maxErrors == 2
+                    }
+                    maxErrors = 2
+                    inner.call()
+                }
+                assert maxErrors == 1
+                assert currentMaxErrors == 1
+                call.call()
+                assert maxErrors == 2
+                assert it.maxErrors == 2
+                assert currentMaxErrors == 2
             }
         """
 
