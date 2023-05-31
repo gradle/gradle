@@ -34,6 +34,7 @@ import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.Describables;
 import org.gradle.internal.composite.IncludedBuildInternal;
@@ -195,13 +196,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
                 workPlan.plan.onComplete(handler);
             }
-            List<BiConsumer<EntryTaskSelector.Context, ExecutionPlan>> finalizations = workPlan.finalizations;
-            if (!finalizations.isEmpty()) {
-                EntryTaskSelectorContext context = new EntryTaskSelectorContext();
-                for (BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization : finalizations) {
-                    finalization.accept(context, workPlan.plan);
-                }
-            }
             workPlan.finalizedPlan = workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
         });
     }
@@ -258,7 +252,17 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         if (workPlan.empty) {
             return ExecutionResult.succeeded();
         }
-        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.finalizedPlan));
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> {
+            List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = workPlan.finalizations;
+            if (!finalizations.isEmpty()) {
+                EntryTaskSelectorContext context = new EntryTaskSelectorContext();
+                for (BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization : finalizations) {
+                    finalization.accept(context, workPlan.finalizedPlan.getContents());
+                }
+                workPlan.finalizations.clear();
+            }
+            return workExecutor.execute(gradle, workPlan.finalizedPlan);
+        });
     }
 
     private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
@@ -305,7 +309,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private final DefaultBuildLifecycleController owner;
         private final ExecutionPlan plan;
         private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
-        private final List<BiConsumer<EntryTaskSelector.Context, ExecutionPlan>> finalizations = new ArrayList<>();
+        private final List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = new ArrayList<>();
         private FinalizedExecutionPlan finalizedPlan;
         private boolean empty = true;
 
@@ -325,7 +329,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addFinalization(BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization) {
+        public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
             finalizations.add(finalization);
         }
 
