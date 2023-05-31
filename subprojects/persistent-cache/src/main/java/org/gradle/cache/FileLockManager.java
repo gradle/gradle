@@ -63,7 +63,7 @@ public interface FileLockManager {
 
     enum LockMode {
         /**
-         * No synchronisation is done.
+         * Support processes asking for access.
          */
         OnDemand,
         /**
@@ -75,7 +75,7 @@ public interface FileLockManager {
          */
         Exclusive,
         /**
-         * No locking whatsoever
+         * No locking whatsoever.
          */
         None
     }

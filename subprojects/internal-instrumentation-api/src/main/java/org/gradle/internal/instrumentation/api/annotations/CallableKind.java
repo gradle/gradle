@@ -40,6 +40,11 @@ public final class CallableKind {
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.CLASS)
-    public @interface GroovyProperty {
+    public @interface GroovyPropertyGetter {
+    }
+
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.CLASS)
+    public @interface GroovyPropertySetter {
     }
 }

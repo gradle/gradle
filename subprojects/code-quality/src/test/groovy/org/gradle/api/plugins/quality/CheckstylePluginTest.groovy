@@ -15,6 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
@@ -22,7 +27,9 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
 import static spock.util.matcher.HamcrestSupport.that
 
 class CheckstylePluginTest extends AbstractProjectBuilderSpec {
@@ -213,5 +220,16 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         }
         expect:
         project.checkstyle.configFile == project.file("custom/checkstyle.xml") // computed property
+    }
+
+    def "tool configuration has correct attributes"() {
+        expect:
+        with(project.configurations.checkstyle.attributes) {
+            assert getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.LIBRARY
+            assert getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
+            assert getAttribute(Bundling.BUNDLING_ATTRIBUTE).name == Bundling.EXTERNAL
+            assert getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).name == LibraryElements.JAR
+            assert getAttribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE).name == TargetJvmEnvironment.STANDARD_JVM
+        }
     }
 }

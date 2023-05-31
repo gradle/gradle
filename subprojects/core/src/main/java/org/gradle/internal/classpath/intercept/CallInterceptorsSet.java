@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
@@ -31,11 +32,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY;
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD;
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.withEntryPoint;
+
 /**
  * Holds a collection of interceptors and can decorate a Groovy CallSite if it is within a scope of a registered interceptor.
  */
 @NonNullApi
-public class CallInterceptorsSet implements CallSiteDecorator {
+public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorResolver {
     private final Map<InterceptScope, CallInterceptor> interceptors = new HashMap<>();
     private final Set<String> interceptedCallSiteNames = new HashSet<>();
 
@@ -45,7 +50,7 @@ public class CallInterceptorsSet implements CallSiteDecorator {
     // dedicated MethodHandle decorator method just for constructors.
     private final CallInterceptor dispatchingConstructorInterceptor = new CallInterceptor() {
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
             if (receiver instanceof Class) {
                 CallInterceptor realConstructorInterceptor = interceptors.get(InterceptScope.constructorsOf((Class<?>) receiver));
@@ -129,6 +134,12 @@ public class CallInterceptorsSet implements CallSiteDecorator {
         return interceptedCallSiteNames.contains(callSite.getName());
     }
 
+    @Override
+    @Nullable
+    public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
+        return interceptors.get(scope);
+    }
+
     private class DecoratingCallSite extends AbstractCallSite {
         public DecoratingCallSite(CallSite prev) {
             super(prev);
@@ -136,21 +147,21 @@ public class CallInterceptorsSet implements CallSiteDecorator {
 
         @Override
         public Object call(Object receiver, Object[] args) throws Throwable {
-            CallInterceptor interceptor = interceptors.get(InterceptScope.methodsNamed(getName()));
+            CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.methodsNamed(getName()));
             if (interceptor != null) {
                 return interceptor.doIntercept(new AbstractInvocation<Object>(receiver, args) {
                     @Override
                     public Object callOriginal() throws Throwable {
                         return DecoratingCallSite.super.call(receiver, args);
                     }
-                }, array.owner.getName());
+                }, callSiteOwnerClassName());
             }
             return super.call(receiver, args);
         }
 
         @Override
         public Object callGetProperty(Object receiver) throws Throwable {
-            CallInterceptor interceptor = interceptors.get(InterceptScope.readsOfPropertiesNamed(getName()));
+            CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.readsOfPropertiesNamed(getName()));
             if (interceptor != null) {
                 return interceptor.doIntercept(new AbstractInvocation<Object>(receiver, new Object[0]) {
                     @Override
@@ -164,14 +175,14 @@ public class CallInterceptorsSet implements CallSiteDecorator {
 
         @Override
         public Object callStatic(Class receiver, Object[] args) throws Throwable {
-            CallInterceptor interceptor = interceptors.get(InterceptScope.methodsNamed(getName()));
+            CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.methodsNamed(getName()));
             if (interceptor != null) {
                 return interceptor.doIntercept(new AbstractInvocation<Class<?>>(receiver, args) {
                     @Override
                     public Object callOriginal() throws Throwable {
                         return DecoratingCallSite.super.callStatic(receiver, args);
                     }
-                }, array.owner.getName());
+                }, callSiteOwnerClassName());
             }
             return super.callStatic(receiver, args);
         }
@@ -183,7 +194,46 @@ public class CallInterceptorsSet implements CallSiteDecorator {
                 public Object callOriginal() throws Throwable {
                     return DecoratingCallSite.super.callConstructor(receiver, args);
                 }
-            }, array.owner.getName());
+            }, callSiteOwnerClassName());
+        }
+
+        @Override
+        public @Nullable Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
+            return withEntryPoint(callSiteOwnerClassName(), getName(), GET_PROPERTY, () -> super.callGroovyObjectGetProperty(receiver));
+        }
+
+        @Override
+        public @Nullable Object callCurrent(GroovyObject receiver, Object[] args) throws Throwable {
+            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, args));
+        }
+
+        @Override
+        public @Nullable Object callCurrent(GroovyObject receiver) throws Throwable {
+            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver));
+        }
+
+        @Override
+        public @Nullable Object callCurrent(GroovyObject receiver, Object arg1) throws Throwable {
+            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, arg1));
+        }
+
+        @Override
+        public @Nullable Object callCurrent(GroovyObject receiver, Object arg1, Object arg2) throws Throwable {
+            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, arg1, arg2));
+        }
+
+        @Override
+        public @Nullable Object callCurrent(GroovyObject receiver, Object arg1, Object arg2, Object arg3) throws Throwable {
+            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, arg1, arg2, arg3));
+        }
+
+        @Override
+        public @Nullable Object callCurrent(GroovyObject receiver, Object arg1, Object arg2, Object arg3, Object arg4) throws Throwable {
+            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, arg1, arg2, arg3, arg4));
+        }
+
+        private String callSiteOwnerClassName() {
+            return array.owner.getName();
         }
     }
 

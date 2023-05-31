@@ -31,6 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -40,30 +41,28 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
+    private final long instanceId;
     private final T graphMetadata;
     private final S artifactMetadata;
     private final AttributeDesugaring attributeDesugaring;
-    // The public view for each variant of this component
-    private final ConcurrentMap<VariantGraphResolveMetadata, ResolvedVariantResult> publicViews = new ConcurrentHashMap<>();
 
-    public AbstractComponentGraphResolveState(T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
+    public AbstractComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
+        this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
         this.artifactMetadata = artifactMetadata;
         this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
-    public ComponentIdentifier getId() {
-        return graphMetadata.getId();
+    public long getInstanceId() {
+        return instanceId;
     }
 
     @Override
-    public ModuleSources getSources() {
-        return artifactMetadata.getSources();
+    public ComponentIdentifier getId() {
+        return graphMetadata.getId();
     }
 
     @Override
@@ -77,58 +76,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     @Override
     public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        Optional<List<? extends VariantGraphResolveMetadata>> variants = graphMetadata.getVariantsForGraphTraversal();
-        return new GraphSelectionCandidates() {
-            @Override
-            public boolean isUseVariants() {
-                return variants.isPresent() && !variants.get().isEmpty();
-            }
-
-            @Override
-            public List<? extends VariantGraphResolveMetadata> getVariants() {
-                return variants.get();
-            }
-
-            @Nullable
-            @Override
-            public ConfigurationGraphResolveMetadata getLegacyConfiguration() {
-                return graphMetadata.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
-            }
-
-            @Override
-            public List<? extends ConfigurationGraphResolveMetadata> getCandidateConfigurations() {
-                Set<String> configurationNames = graphMetadata.getConfigurationNames();
-                ImmutableList.Builder<ConfigurationGraphResolveMetadata> builder = new ImmutableList.Builder<>();
-                for (String configurationName : configurationNames) {
-                    ConfigurationGraphResolveMetadata configuration = graphMetadata.getConfiguration(configurationName);
-                    if (configuration.isCanBeConsumed()) {
-                        builder.add(configuration);
-                    }
-                }
-                return builder.build();
-            }
-        };
+        Optional<List<? extends VariantGraphResolveState>> variants = getVariantsForGraphTraversal();
+        return new DefaultGraphSelectionCandidates(variants);
     }
 
-    @Override
-    public ResolvedVariantResult getVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant) {
-        if (externalVariant != null) {
-            // Don't cache the result
-            // Note that the external variant is a function of the metadata of the component, so should be constructed by this state object and cached rather than passed in
-            return createVariantResult(metadata, externalVariant);
-        } else {
-            return publicViews.computeIfAbsent(metadata, m -> createVariantResult(metadata, null));
-        }
-    }
-
-    private DefaultResolvedVariantResult createVariantResult(VariantGraphResolveMetadata metadata, @Nullable ResolvedVariantResult externalVariant) {
-        return new DefaultResolvedVariantResult(
-            getId(),
-            Describables.of(metadata.getName()),
-            attributeDesugaring.desugar(metadata.getAttributes()),
-            capabilitiesFor(metadata.getCapabilities()),
-            externalVariant);
-    }
+    protected abstract Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal();
 
     @Nullable
     @Override
@@ -158,5 +110,71 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
             capabilities = ImmutableList.copyOf(capabilities);
         }
         return capabilities;
+    }
+
+    protected abstract class AbstractVariantGraphResolveState implements VariantGraphResolveState {
+        private final Lazy<ResolvedVariantResult> publicView;
+
+        public AbstractVariantGraphResolveState() {
+            this.publicView = Lazy.locking().of(() -> createVariantResult(null));
+        }
+
+        @Override
+        public ResolvedVariantResult getVariantResult(@Nullable ResolvedVariantResult externalVariant) {
+            if (externalVariant != null) {
+                // Don't cache the result
+                // Note that the external variant is a function of the metadata of the component, so should be constructed by this state object and cached rather than passed in
+                return createVariantResult(externalVariant);
+            } else {
+                return publicView.get();
+            }
+        }
+
+        private DefaultResolvedVariantResult createVariantResult(@Nullable ResolvedVariantResult externalVariant) {
+            VariantGraphResolveMetadata metadata = getMetadata();
+            return new DefaultResolvedVariantResult(
+                getId(),
+                Describables.of(metadata.getName()),
+                attributeDesugaring.desugar(metadata.getAttributes()),
+                capabilitiesFor(metadata.getCapabilities()),
+                externalVariant);
+        }
+    }
+
+    private class DefaultGraphSelectionCandidates implements GraphSelectionCandidates {
+        private final Optional<List<? extends VariantGraphResolveState>> variants;
+
+        public DefaultGraphSelectionCandidates(Optional<List<? extends VariantGraphResolveState>> variants) {
+            this.variants = variants;
+        }
+
+        @Override
+        public boolean isUseVariants() {
+            return variants.isPresent() && !variants.get().isEmpty();
+        }
+
+        @Override
+        public List<? extends VariantGraphResolveState> getVariants() {
+            return variants.get();
+        }
+
+        @Nullable
+        @Override
+        public ConfigurationGraphResolveState getLegacyConfiguration() {
+            return getConfiguration(Dependency.DEFAULT_CONFIGURATION);
+        }
+
+        @Override
+        public List<? extends ConfigurationGraphResolveMetadata> getCandidateConfigurations() {
+            Set<String> configurationNames = graphMetadata.getConfigurationNames();
+            ImmutableList.Builder<ConfigurationGraphResolveMetadata> builder = new ImmutableList.Builder<>();
+            for (String configurationName : configurationNames) {
+                ConfigurationGraphResolveMetadata configuration = graphMetadata.getConfiguration(configurationName);
+                if (configuration.isCanBeConsumed()) {
+                    builder.add(configuration);
+                }
+            }
+            return builder.build();
+        }
     }
 }

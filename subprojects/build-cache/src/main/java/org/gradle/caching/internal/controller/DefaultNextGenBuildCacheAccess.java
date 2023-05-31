@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.gradle.internal.file.BufferProvider;
@@ -34,28 +35,40 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+/**
+ * Coordinates loading and storing entries in a local and a remote cache.
+ *
+ * When loading, entries unavailable locally are loaded tried from the remote cache.
+ * Entries found in the remote cache are missored in the local cache.
+ *
+ * Downloads and uploads to and from the remote cache are handled via a thread pool in parallel.
+ * However, both {@link #load(Map, LoadHandler)} and {@link #store(Map, StoreHandler)} wait for all
+ * async operations to finish before returning.
+ */
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNextGenBuildCacheAccess.class);
 
-    private final NextGenBuildCacheHandler local;
-    private final NextGenBuildCacheHandler remote;
+    private final NextGenBuildCacheService local;
+    private final RemoteNextGenBuildCacheServiceHandler remote;
     private final BufferProvider bufferProvider;
     private final ManagedThreadPoolExecutor remoteProcessor;
     private final ConcurrencyCounter counter;
 
     public DefaultNextGenBuildCacheAccess(
-        NextGenBuildCacheHandler local,
-        NextGenBuildCacheHandler remote,
+        NextGenBuildCacheService local,
+        RemoteNextGenBuildCacheServiceHandler remote,
         BufferProvider bufferProvider,
         ExecutorFactory executorFactory
     ) {
         this.local = local;
         this.remote = remote;
         this.bufferProvider = bufferProvider;
-        // TODO Configure this properly
+        // TODO Configure this properly, or better yet, replace with async HTTP and no thread pool
         this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 256, 256, 10, TimeUnit.SECONDS);
         this.counter = new ConcurrencyCounter(remoteProcessor);
     }
@@ -66,9 +79,16 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             .flatMap(entry -> {
                 BuildCacheKey key = entry.getKey();
                 T payload = entry.getValue();
-                boolean foundLocally = local.canLoad() && local.load(key, input -> handler.handle(input, payload));
+                boolean foundLocally;
+                try {
+                    foundLocally = local.load(key, input -> handler.handle(input, payload));
+                } catch (Exception e) {
+                    handler.recordUnpackFailure(key, e);
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
                 if (!foundLocally && remote.canLoad()) {
                     // TODO Improve error handling
+                    handler.ensureLoadOperationStarted(key);
                     return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteDownload<>(key, payload, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
@@ -85,16 +105,18 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             .flatMap(entry -> {
                 BuildCacheKey key = entry.getKey();
                 T payload = entry.getValue();
-                if (!local.canStore()) {
-                    // TODO Handle the case when local store is disabled but the remote is not?
-                    return Stream.empty();
-                }
                 if (!local.contains(key)) {
-                    local.store(key, handler.handle(payload));
+                    try {
+                        local.store(key, handler.createWriter(payload));
+                    } catch (Exception e) {
+                        handler.recordPackFailure(key, e);
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
                 }
                 // TODO Improve error handling
                 if (remote.canStore()) {
-                    return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteUpload(key)), remoteProcessor));
+                    handler.ensureStoreOperationStarted(key);
+                    return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteUpload(key, handler)), remoteProcessor));
                 } else {
                     return Stream.empty();
                 }
@@ -161,46 +183,60 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
         @Override
         public void run() {
+            try {
+                long size = load();
+                if (size >= 0) {
+                    handler.recordLoadHit(key, size);
+                } else {
+                    handler.recordLoadMiss(key);
+                }
+            } catch (Exception e) {
+                handler.recordLoadFailure(key, e);
+                remote.disableOnError();
+            }
+        }
+
+        private long load() {
             LOGGER.warn("Loading {} from remote", key);
+            AtomicLong size = new AtomicLong(-1);
             remote.load(key, input -> {
                 // TODO Make this work for large pieces of content, too
                 UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
                 byte[] buffer = bufferProvider.getBuffer();
                 IOUtils.copyLarge(input, data, buffer);
                 LOGGER.warn("Found {} in remote (size: {})", key, data.size());
+                size.set(data.size());
 
                 // Mirror data in local cache
-                // TODO Do we need to support local push = false?
-                if (local.canStore()) {
-                    local.store(key, new NextGenBuildCacheService.NextGenWriter() {
-                        @Override
-                        public InputStream openStream() {
-                            return data.toInputStream();
-                        }
+                local.store(key, new NextGenBuildCacheService.NextGenWriter() {
+                    @Override
+                    public InputStream openStream() {
+                        return data.toInputStream();
+                    }
 
-                        @Override
-                        public void writeTo(OutputStream output) throws IOException {
-                            data.writeTo(output);
-                        }
+                    @Override
+                    public void writeTo(OutputStream output) throws IOException {
+                        data.writeTo(output);
+                    }
 
-                        @Override
-                        public long getSize() {
-                            return data.size();
-                        }
-                    });
-                    handler.handle(data.toInputStream(), payload);
-                } else {
-                    handler.handle(input, payload);
-                }
+                    @Override
+                    public long getSize() {
+                        return data.size();
+                    }
+                });
+                handler.handle(data.toInputStream(), payload);
             });
+            return size.get();
         }
     }
 
     private class RemoteUpload implements Runnable {
         private final BuildCacheKey key;
+        private final StoreHandler<?> handler;
 
-        public RemoteUpload(BuildCacheKey key) {
+        public RemoteUpload(BuildCacheKey key, StoreHandler<?> handler) {
             this.key = key;
+            this.handler = handler;
         }
 
         @Override
@@ -212,7 +248,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             }
 
             // TODO Use a buffer fit for large files
-            @SuppressWarnings("resource")
             UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
             boolean foundLocally = local.load(key, input -> IOUtils.copyLarge(input, data, bufferProvider.getBuffer()));
             // TODO Handle this better? Do we need to hadnle it at all?
@@ -220,7 +255,22 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 throw new IllegalStateException("Couldn't store " + key + " in remote cache because it was missing from local cache");
             }
 
+            store(data);
+        }
+
+        private void store(UnsynchronizedByteArrayOutputStream data) {
+            try {
+                boolean stored = storeInner(data);
+                handler.recordStoreFinished(key, stored);
+            } catch (Exception e) {
+                handler.recordStoreFailure(key, e);
+                remote.disableOnError();
+            }
+        }
+
+        private boolean storeInner(UnsynchronizedByteArrayOutputStream data) {
             LOGGER.warn("Storing {} in remote (size: {})", key, data.size());
+            AtomicBoolean stored = new AtomicBoolean(false);
             remote.store(key, new NextGenBuildCacheService.NextGenWriter() {
                 @Override
                 public InputStream openStream() {
@@ -230,6 +280,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
                     data.writeTo(output);
+                    stored.set(true);
                 }
 
                 @Override
@@ -237,6 +288,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                     return data.size();
                 }
             });
+            return stored.get();
         }
     }
 }

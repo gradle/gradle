@@ -35,6 +35,55 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.3]]
+== Upgrading from 8.2 and earlier
+
+=== Potential breaking changes
+
+[[legacy_attribute_snapshotting]]
+==== Fixed variant selection behavior with `ArtifactView` and `ArtifactCollection`
+
+The dependency resolution APIs for selecting different artifacts or files (`Configuration.getIncoming().artifactView { }` and `Configuration.getIncoming().getArtifacts()`) captured immutable copies of the underlying `Configuration`'s attributes to use for variant selection.
+If the `Configuration`'s attributes were changed after these methods were called, the artifacts selected by these methods could be unexpected.
+
+Consider the case where the set of attributes on a `Configuration` is changed after an `ArtifactView` is created.
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks {
+    myTask {
+        inputFiles.from(configurations.classpath.incoming.artifactView {
+            attributes {
+                // Add attributes to select a different type of artifact
+            }
+        }.files)
+    }
+}
+
+configurations {
+    classpath {
+        attributes {
+            // Add more attributes to the configuration
+        }
+    }
+}
+
+----
+=====
+
+The `inputFiles` property of `myTask` uses an artifact view to select a different type of artifact from the configuration `classpath`.
+Since the artifact view was created before the attributes were added to the configuration, Gradle was not able to select the correct artifact.
+
+Some builds may have worked around this by also putting the additional attributes into the artifact view. This is no longer necessary.
+
+[[kotlin_1_8.20]]
+==== Upgrade to Kotlin 1.8.21
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
@@ -1141,6 +1190,12 @@ This is done to reduce confusion about what such relative paths should resolve a
 Calling link:{javadocPath}/org/gradle/api/Task.html#getConvention--[Task.getConvention()], link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
 
 See the <<configuration_cache#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
+
+[[test_task_fail_on_no_test_executed]]
+==== Deprecated running test task successfully when no test executed
+Running the `Test` task successfully when no test was executed is now deprecated and will become an error in Gradle 9.
+Note that it is not an error when no test sources are present, in this case the `test` task is simply skipped. It is only an error when test sources are present, but no test was selected for execution.
+This is changed to avoid accidental successful test runs due to erroneous configuration.
 
 === Changes in the IDE integration
 

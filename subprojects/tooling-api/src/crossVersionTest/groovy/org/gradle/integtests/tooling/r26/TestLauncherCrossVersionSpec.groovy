@@ -20,10 +20,11 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.TestLauncherSpec
-import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
@@ -36,7 +37,6 @@ import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.util.GradleVersion
-import spock.lang.Requires
 import spock.lang.Timeout
 
 @Timeout(120)
@@ -150,7 +150,14 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":test")
     }
 
-    @Requires({ ContinuousBuildToolingApiSpecification.canUseContinuousBuildViaToolingApi() })
+    @Requires(
+        value = IntegTestPreconditions.NotEmbeddedExecutor,
+        reason = """
+            We have problems loading the file system watching library when starting a Gradle build via the tooling API in debug (= embedded) mode.
+            The problem there is that Gradle then tries to load the native library in two different classloaders in the same JDK, which isn't allowed.
+            We could try to fix this problems, though this is only a problem for testing.
+        """
+    )
     @TargetGradleVersion(">=3.0")
     def "can run and cancel test execution in continuous mode"() {
         given:

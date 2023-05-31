@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
@@ -91,7 +91,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
      * a native executable that can retrieve the session id of a process so that we can verify that the session id
      * of the daemon is different than the session id of the client.
      */
-    @Requires([TestPrecondition.NOT_WINDOWS])
+    @Requires([UnitTestPreconditions.NotWindows])
     @ToBeFixedForConfigurationCache(because = "fixture uses the software model")
     def "session id of daemon is different from daemon client"() {
         given:
@@ -129,7 +129,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
      * that allows us to attach to the same console some other process is attached to.  If that process is not attached
      * to any console, we get a specific error that we check for.
      */
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "daemon is not attached to a console"() {
         given:
         withAttachConsoleProject()

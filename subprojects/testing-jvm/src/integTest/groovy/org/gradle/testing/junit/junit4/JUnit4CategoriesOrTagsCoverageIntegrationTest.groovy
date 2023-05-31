@@ -18,8 +18,8 @@ package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import spock.lang.Issue
@@ -133,7 +133,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3189')
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "can work with PowerMock"() {
         given:
         file('src/test/java/FastTest.java') << '''
@@ -182,8 +182,8 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         testSources.with {
             ['test', 'integTest'].each { sourceSet ->
                 testClass('SomeTestClass', sourceSet).with {
-                    testMethod('ok1')
-                    testMethod('ok2')
+                    testMethod('ok1').withCategoryOrTag('CategoryA')
+                    testMethod('ok2').withCategoryOrTag('CategoryB')
                 }
                 testCategory('CategoryA', sourceSet)
                 testCategory('CategoryB', sourceSet)
@@ -256,8 +256,8 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         given:
         testSources.with {
             testClass('SomeTestClass').with {
-                testMethod('ok1')
-                testMethod('ok2')
+                testMethod('ok1').withCategoryOrTag('CategoryA')
+                testMethod('ok2').withCategoryOrTag('CategoryB')
             }
             testCategory('CategoryA')
             testCategory('CategoryB')

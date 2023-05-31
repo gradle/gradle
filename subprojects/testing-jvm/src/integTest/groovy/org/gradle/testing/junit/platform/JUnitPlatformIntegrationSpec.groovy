@@ -55,4 +55,23 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
             }
             '''
     }
+
+    void createSimpleJupiterTests() {
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Tag;
+            import org.junit.jupiter.api.Test;
+
+            public class JUnitJupiterTest {
+                @Test
+                @Tag("good")
+                public void good() { }
+
+                @Test
+                @Tag("bad")
+                public void bad() { }
+            }
+            '''
+    }
 }

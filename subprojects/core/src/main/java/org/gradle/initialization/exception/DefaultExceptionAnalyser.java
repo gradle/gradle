@@ -23,18 +23,17 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.problems.Location;
-import org.gradle.problems.buildtree.ProblemLocationAnalyzer;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 public class DefaultExceptionAnalyser implements ExceptionCollector {
-    private final ProblemLocationAnalyzer locationAnalyzer;
+    private final ProblemDiagnosticsFactory diagnosticsFactory;
 
-    public DefaultExceptionAnalyser(ProblemLocationAnalyzer locationAnalyzer) {
-        this.locationAnalyzer = locationAnalyzer;
+    public DefaultExceptionAnalyser(ProblemDiagnosticsFactory diagnosticsFactory) {
+        this.diagnosticsFactory = diagnosticsFactory;
     }
 
     @Override
@@ -83,7 +82,7 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
                 currentException != null;
                 currentException = currentException.getCause()
             ) {
-                Location location = locationAnalyzer.locationForUsage(Arrays.asList(currentException.getStackTrace()), true);
+                Location location = diagnosticsFactory.forException(currentException).getLocation();
                 if (location != null) {
                     source = location.getSourceLongDisplayName().getCapitalizedDisplayName();
                     lineNumber = location.getLineNumber();

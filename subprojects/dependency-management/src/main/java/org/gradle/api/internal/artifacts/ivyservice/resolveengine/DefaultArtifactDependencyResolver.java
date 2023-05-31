@@ -16,12 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -60,9 +59,10 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Actions;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -98,6 +98,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final AttributeDesugaring attributeDesugaring;
     private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
+    private final ComponentIdGenerator idGenerator;
 
     public DefaultArtifactDependencyResolver(
         BuildOperationExecutor buildOperationExecutor,
@@ -117,7 +118,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         ResolvedVariantCache resolvedVariantCache,
         AttributeDesugaring attributeDesugaring,
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
-        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory
+        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
+        ComponentIdGenerator idGenerator
     ) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
@@ -137,6 +139,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.attributeDesugaring = attributeDesugaring;
         this.localResolveStateFactory = localResolveStateFactory;
         this.moduleResolveStateFactory = moduleResolveStateFactory;
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -176,7 +179,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         AttributesSchemaInternal attributesSchema,
         ModuleExclusions moduleExclusions
     ) {
-
         DependencyToComponentIdResolver componentIdResolver = componentSource.getComponentIdResolver();
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyMetadataFactory, moduleResolveStateFactory);
 
@@ -184,13 +186,13 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = createCapabilitiesConflictHandler(resolutionStrategy.getCapabilitiesResolutionRules());
 
         DependencySubstitutionApplicator applicator = createDependencySubstitutionApplicator(resolutionStrategy);
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, applicator, componentSelectorConverter, attributesFactory, attributeDesugaring, versionSelectorScheme, versionComparator.asVersionComparator(), localResolveStateFactory, versionParser);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, applicator, componentSelectorConverter, attributesFactory, attributeDesugaring, versionSelectorScheme, versionComparator.asVersionComparator(), localResolveStateFactory, idGenerator, versionParser);
     }
 
     private DependencySubstitutionApplicator createDependencySubstitutionApplicator(ResolutionStrategyInternal resolutionStrategy) {
-        Action<DependencySubstitution> rule = resolutionStrategy.getDependencySubstitutionRule();
+        ImmutableActionSet<DependencySubstitutionInternal> rule = resolutionStrategy.getDependencySubstitutionRule();
         DependencySubstitutionApplicator applicator;
-        if (Actions.<DependencySubstitution>doNothing() == rule) {
+        if (rule.isEmpty()) {
             applicator = NO_OP;
         } else {
             applicator = new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(componentSelectionDescriptorFactory, rule, instantiator));

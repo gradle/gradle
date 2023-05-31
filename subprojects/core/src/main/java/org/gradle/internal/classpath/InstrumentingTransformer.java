@@ -69,7 +69,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 30;
+    private static final int DECORATION_FORMAT = 33;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
@@ -190,7 +190,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)), classData::readClassAsNode, externalInterceptors.interceptorClassNames()));
+        return Pair.of(entry.getPath(),
+            new InstrumentingVisitor(
+                new CallInterceptionClosureInstrumentingClassVisitor(
+                    new LambdaSerializationTransformer(
+                        new InstrumentingBackwardsCompatibilityVisitor(visitor)
+                    )
+                ),
+                classData::readClassAsNode, externalInterceptors.interceptorClassNames()
+            )
+        );
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
@@ -263,21 +272,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             this.asNode = asNode;
             this.externalInterceptors = externalInterceptors.stream()
                 .map(className -> newInterceptor(className, methodVisitor))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .collect(toImmutableList());
         }
 
-        private static Optional<JvmBytecodeCallInterceptor> newInterceptor(String className, MethodVisitor methodVisitor) {
+        private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor methodVisitor) {
             try {
                 //noinspection Convert2MethodRef
                 InstrumentationMetadata metadata = (type, superType) -> type.equals(superType); // TODO implement properly
                 Constructor<?> constructor = Class.forName(className).getConstructor(MethodVisitor.class, InstrumentationMetadata.class);
-                return Optional.of((JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata));
-            } catch (ClassNotFoundException e) {
-                // No interceptor definition for this class
-                return Optional.empty();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                return (JvmBytecodeCallInterceptor) constructor.newInstance(methodVisitor, metadata);
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         }

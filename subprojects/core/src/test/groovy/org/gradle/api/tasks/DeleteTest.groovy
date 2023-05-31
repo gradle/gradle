@@ -17,8 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.ConventionTask
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.WrapUtil
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
@@ -72,7 +72,7 @@ class DeleteTest extends AbstractConventionTaskTest {
         delete.getTargetFiles().getFiles() == getProject().files(delete.getDelete()).getFiles()
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "can follow symlinks"() {
         given:
         def keepTxt = temporaryFolder.createFile("originalDir", "keep.txt")
@@ -91,7 +91,7 @@ class DeleteTest extends AbstractConventionTaskTest {
         !keepTxt.exists()
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "will not follow symlinks by default"() {
         given:
         def keepTxt = temporaryFolder.createFile("originalDir", "keep.txt")

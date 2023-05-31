@@ -547,6 +547,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     String getPath();
 
     /**
+     * Returns a path to the project for the full build tree.
+     *
+     * @return The build tree path
+     * @since 8.3
+     */
+    @Incubating
+    String getBuildTreePath();
+
+    /**
      * <p>Returns the names of the default tasks of this project. These are used when no tasks names are provided when
      * starting the build.</p>
      *

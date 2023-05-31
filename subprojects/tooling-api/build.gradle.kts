@@ -40,6 +40,7 @@ dependencies {
     testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":base-services-groovy"))
+    testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)

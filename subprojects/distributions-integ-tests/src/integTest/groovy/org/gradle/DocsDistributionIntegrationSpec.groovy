@@ -18,8 +18,8 @@ package org.gradle
 
 
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Shared
 
 class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
@@ -32,7 +32,7 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 58 * 1024 * 1024
+        return 60 * 1024 * 1024
     }
 
     @Override
@@ -40,7 +40,7 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
         0
     }
 
-    @Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.STABLE_GROOVY]) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/
+    @Requires([UnitTestPreconditions.NotWindows, UnitTestPreconditions.StableGroovy]) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/
     def docsZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()

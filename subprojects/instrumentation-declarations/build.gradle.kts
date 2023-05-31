@@ -5,6 +5,8 @@ plugins {
 description = "Contains declarations for instrumentation of plugins. Adds interceptors, bytecode upgrades etc."
 
 dependencies {
+    // All dependencies should be compileOnly, since this project is added also to worker classpath, so we don't pollute it.
+    // If we need some dependency also at runtime we need to build a separate classpath and add it to :launcher project or :distributions-core project directly.
     compileOnly(project(":core"))
     compileOnly(project(":base-services"))
     compileOnly(project(":core-api"))
