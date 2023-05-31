@@ -92,7 +92,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: 'example2.MyOtherTest2', methodName: 'baz', task: ':secondTest')
     }
 
-    @TargetGradleVersion("current")
+    @TargetGradleVersion(">=8.2")
     def "hits configuration cache with test filters changed"() {
         setup:
 
@@ -118,9 +118,10 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
                 specs.forTaskPath(':secondTest').includeClass("example.MyTest")
             }
         }
+
         then:
-        noExceptionThrown()
         stdout.toString().contains("Reusing configuration cache.")
+        events.testClassesAndMethods.size() == 3
         assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
         assertTestExecuted(className: 'example.MyTest', methodName: 'foo2', task: ':secondTest')
     }

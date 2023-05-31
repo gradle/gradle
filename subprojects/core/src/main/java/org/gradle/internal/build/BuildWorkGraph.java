@@ -19,7 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
-import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Collection;
@@ -45,7 +45,7 @@ public interface BuildWorkGraph extends Stoppable {
     /**
      * Adds a finalization step to this work graph.
      */
-    void addFinalization(BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization);
+    void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
 
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.

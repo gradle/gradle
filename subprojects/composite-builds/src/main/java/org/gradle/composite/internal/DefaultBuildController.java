@@ -22,8 +22,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
-import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -83,7 +83,7 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
-    public void addFinalization(BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization) {
+    public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
         assertInState(State.DiscoveringTasks);
         workGraph.addFinalization(finalization);
     }

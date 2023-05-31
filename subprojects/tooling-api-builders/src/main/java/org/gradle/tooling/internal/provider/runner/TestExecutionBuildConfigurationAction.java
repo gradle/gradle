@@ -29,6 +29,7 @@ import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
@@ -65,7 +66,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     @Override
-    public void postProcessExecutionPlan(Context context, ExecutionPlan plan) {
+    public void postProcessExecutionPlan(Context context, QueryableExecutionPlan plan) {
         configureTestTasksForTestDescriptors(context);
         configureTestTasksForInternalJvmTestRequest(plan);
         configureTestTasksInBuild(context);
@@ -138,7 +139,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
-    private void configureTestTasksForInternalJvmTestRequest(ExecutionPlan plan) {
+    private void configureTestTasksForInternalJvmTestRequest(QueryableExecutionPlan plan) {
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
         if (internalJvmTestRequests.isEmpty()) {
             return;
@@ -245,8 +246,8 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
-    private static void forEachTaskIn(ExecutionPlan plan, Consumer<Task> taskConsumer) {
-        plan.getContents().getTasks().forEach(taskConsumer);
+    private static void forEachTaskIn(QueryableExecutionPlan plan, Consumer<Task> taskConsumer) {
+        plan.getTasks().forEach(taskConsumer);
     }
 
     private static String taskPathOf(InternalTestDescriptor descriptor) {
