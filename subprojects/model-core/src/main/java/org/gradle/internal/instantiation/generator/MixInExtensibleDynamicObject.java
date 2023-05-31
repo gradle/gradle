@@ -31,8 +31,15 @@ import javax.annotation.Nullable;
  */
 public class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
     // Used by generated code
-    public MixInExtensibleDynamicObject(Object decoratedObject, Class<?> publicType, @Nullable DynamicObject selfProvidedDynamicObject, ServiceLookup services) {
-        super(decoratedObject, wrap(decoratedObject, publicType, selfProvidedDynamicObject), instantiator(services));
+    public MixInExtensibleDynamicObject(Object decoratedObject, Class<?> implType, @Nullable DynamicObject selfProvidedDynamicObject, ServiceLookup services) {
+        super(decoratedObject, wrap(decoratedObject, getPublicType(implType), selfProvidedDynamicObject), instantiator(services));
+    }
+
+    private static Class<?> getPublicType(Class<?> implType) {
+        if (implType.getSuperclass() == Object.class) {
+            return implType.getInterfaces()[0];
+        }
+        return implType.getSuperclass();
     }
 
     private static InstanceGenerator instantiator(ServiceLookup services) {

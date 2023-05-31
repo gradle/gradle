@@ -849,14 +849,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // }
             addLazyGetter("getAsDynamicObject", DYNAMIC_OBJECT_TYPE, RETURN_DYNAMIC_OBJECT, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
                 if (extensible) {
-                    // GENERATE new MixInExtensibleDynamicObject(this, getClass().getSuperClass(), super.getAsDynamicObject(), this.services())
+                    // GENERATE new MixInExtensibleDynamicObject(this, this.getClass(), super.getAsDynamicObject(), this.services())
                     _NEW(EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE);
                     _DUP();
 
                     _ALOAD(0);
+
                     _ALOAD(0);
                     _INVOKEVIRTUAL(generatedType, "getClass", RETURN_CLASS);
-                    _INVOKEVIRTUAL(CLASS_TYPE, "getSuperclass", RETURN_CLASS);
 
                     if (providesOwnDynamicObject) {
                         // GENERATE super.getAsDynamicObject()
