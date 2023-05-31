@@ -12,6 +12,7 @@ dependency for any projects working directly with Test tasks.
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":base-annotations"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":file-temp"))
