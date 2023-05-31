@@ -25,6 +25,7 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
+import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
@@ -32,6 +33,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -207,5 +209,10 @@ public class DefaultObjectFactory implements ObjectFactory {
             return Cast.uncheckedNonnullCast(mapProperty(keyType, JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
         return propertyFactory.mapProperty(keyType, valueType);
+    }
+
+    @Override
+    public DependencyAdder dependencyAdder() {
+        return newInstance(DefaultDependencyAdder.class);
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.api.provider.SetProperty;
 
 /**
  * A {@code DependencyAdder} is used to add dependencies to a specific configuration.
@@ -173,4 +174,5 @@ public interface DependencyAdder {
      */
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
+    SetProperty<Dependency> getDeclaredDependencies();
 }
