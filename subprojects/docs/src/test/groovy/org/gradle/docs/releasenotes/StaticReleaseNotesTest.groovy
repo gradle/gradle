@@ -74,11 +74,23 @@ class StaticReleaseNotesTest extends Specification {
 
         def absoluteLinks = links.grep {
             def href = it.attr("href")
-            return href.startsWith("https://docs.gradle.org/current") || href.startsWith("/")
+            return href.startsWith("https://docs.gradle.org")
         }
 
+        then:
+        assert absoluteLinks.empty : "all links to docs.gradle.org need to be relative and not hardcode the host"
+    }
+
+    def "no root links to current"() {
+        when:
+        def links = renderedDocument.select("a")
+
+        def linksToCurrent = links.grep {
+            def href = it.attr("href")
+            return href.startsWith("/current")
+        }
 
         then:
-        assert absoluteLinks.empty : "all links to docs.gradle.org/current need to be relative"
+        assert linksToCurrent.empty : "there should be no links to /current as our docs need to work on /<version> as well"
     }
 }
