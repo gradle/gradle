@@ -20,8 +20,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
-import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -159,7 +159,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
 
         @Override
-        public void addFinalization(BuildState target, BiConsumer<EntryTaskSelector.Context, ExecutionPlan> finalization) {
+        public void addFinalization(BuildState target, BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
             buildControllerOf(target).addFinalization(finalization);
         }
 
