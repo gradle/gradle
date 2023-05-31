@@ -81,7 +81,7 @@ You can use the [Kotlin DSL reference search functionality to drill through the 
 
 #### Simple property assignment in Kotlin DSL scripts enabled by default
 
-The last release [introduced](/8.1/release-notes.html#experimental-simple-property-assignment-in-kotlin-dsl-scripts) the simpler way to assign values to [lazy property types](userguide/lazy_configuration.html#lazy_properties) in Kotlin scripts using the `=` operator instead of  the `set()` method.
+The last release [introduced](/8.1.1/release-notes.html#experimental-simple-property-assignment-in-kotlin-dsl-scripts) the simpler way to assign values to [lazy property types](userguide/lazy_configuration.html#lazy_properties) in Kotlin scripts using the `=` operator instead of  the `set()` method.
 This feature is now available by default.
 
 The new assignment operator is still incubating.
@@ -129,7 +129,7 @@ You can review the complete list of these console output enhancements [here](htt
 
 ### Wrapper task validates distribution URL
 
-The [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) stores the URL of Gradle distribution in the `gradle-wrapper.properties` file.
+The [Gradle Wrapper](userguide/gradle_wrapper.html) stores the URL of Gradle distribution in the `gradle-wrapper.properties` file.
 
 Previously, specifying an invalid URL led to I/O exceptions during the build execution.
 
@@ -139,7 +139,7 @@ More details can be found in the dedicated section of the [Gradle Wrapper](userg
 
 ### Java toolchains discovery progress display
 
-Using [Toolchains](https://docs.gradle.org/current/userguide/toolchains.html) is a recommended way of specifying Java versions for JVM projects.
+Using [Toolchains](userguide/toolchains.html) is a recommended way of specifying Java versions for JVM projects.
 
 Progress is now displayed during [Java toolchains discovery](userguide/toolchains.html#sec:auto_detection).
 
