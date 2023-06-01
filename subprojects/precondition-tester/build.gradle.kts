@@ -22,10 +22,6 @@ plugins {
 description = "Internal project testing and collecting information about all the test preconditions."
 
 dependencies {
-    testRuntimeOnly(project(":distributions-core")) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
-    }
-
     /**
      * List subprojects, which has their own preconditions.
      * These projects should have their preconditions in the "src/testFixtures" sourceSet
@@ -35,6 +31,12 @@ dependencies {
     testRuntimeOnly(testFixtures(project(":test-kit")))
     testRuntimeOnly(testFixtures(project(":smoke-test")))
 
+    testRuntimeOnly(project(":distributions-core")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    crossVersionTestRuntimeOnly(project(":test-kit")) {
+        because("Test engine 'cross-version-test-engine' comes from here")
+    }
     testImplementation(libs.junit5JupiterApi) {
         because("Assume API comes from here")
     }
