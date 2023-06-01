@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Internal project testing and collecting information about all the test preconditions."
