@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInResult;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginMetadata;
@@ -54,23 +55,35 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor(),
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor());
 
+    // Gradle versions 9+ are not compatible Gradle Enterprise plugin < 3.13.1
+    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9 = VersionNumber.parse("3.13.1");
+
     @Override
     public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             manager.unsupported();
-            return checkInResult(UNSUPPORTED_TOGGLE_MESSAGE, () -> {
-                throw new IllegalStateException();
-            });
+            return checkInUnsupportedResult(UNSUPPORTED_TOGGLE_MESSAGE);
         }
-        if (isUnsupportedWithConfigurationCaching(pluginMetadata)) {
+
+        VersionNumber pluginBaseVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
+        if (isUnsupportedWithConfigurationCaching(pluginBaseVersion)) {
             manager.unsupported();
-            return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE, () -> {
-                throw new IllegalStateException();
-            });
+            return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE);
         }
+
+        if (isDeprecatedPluginVersion(pluginBaseVersion)) {
+            nagAboutDeprecatedPluginVersion();
+        }
+
         GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
         manager.registerAdapter(adapter);
         return checkInResult(null, () -> ref);
+    }
+
+    private static GradleEnterprisePluginCheckInResult checkInUnsupportedResult(String unsupportedMessage) {
+        return checkInResult(unsupportedMessage, () -> {
+            throw new IllegalStateException();
+        });
     }
 
     private static GradleEnterprisePluginCheckInResult checkInResult(String unsupportedMessage, Supplier<GradleEnterprisePluginServiceRef> pluginServiceRefSupplier) {
@@ -87,9 +100,24 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         };
     }
 
-    private boolean isUnsupportedWithConfigurationCaching(GradleEnterprisePluginMetadata pluginMetadata) {
-        VersionNumber version = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
-        return isConfigurationCacheEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(version) > 0;
+    private boolean isUnsupportedWithConfigurationCaching(VersionNumber pluginBaseVersion) {
+        return isConfigurationCacheEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(pluginBaseVersion) > 0;
     }
 
+    private static boolean isDeprecatedPluginVersion(VersionNumber pluginBaseVersion) {
+        return MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.compareTo(pluginBaseVersion) > 0;
+    }
+
+    private static void nagAboutDeprecatedPluginVersion() {
+        DeprecationLogger.deprecate("Usage of this Gradle Enterprise plugin version")
+            .withContext("The plugin application will be ignored.")
+            .withAdvice(String.format("Please upgrade to version %s.%s.%s or later of the Gradle Enterprise plugin.",
+                MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMajor(),
+                MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMinor(),
+                MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMicro()
+            ))
+            .willChangeInGradle9()
+            .withUpgradeGuideSection(8, "unsupported_ge_plugin_3.13")
+            .nagUser();
+    }
 }
