@@ -324,7 +324,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
             extensions.getByType(MyExtension::class).some("api.get")
             extensions.configure<MyExtension> { some("api.configure") }
-            the<MyExtension>().some("kotlin.get")
+            the<MyExtension>().some("kotlin.reified.get")
+            the(MyExtension::class).some("kotlin.kclass.get")
             configure<MyExtension> { some("kotlin.configure") }
             my.some("accessor.get")
             my { some("accessor.configure") }
@@ -336,13 +337,54 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 """
                 api.get
                 api.configure
-                kotlin.get
+                kotlin.reified.get
+                kotlin.kclass.get
                 kotlin.configure
                 accessor.get
                 accessor.configure
                 """.trimIndent()
             )
         )
+
+        // Deprecation warnings assertion
+        build("noop")
+    }
+
+    @Test
+    fun `can access project conventions`() {
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/MyConvention.kt", """
+            interface MyConvention {
+                fun some(message: String) { println(message) }
+            }
+        """)
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            convention.plugins["my"] = objects.newInstance<MyConvention>()
+            tasks.register("noop")
+        """)
+        withBuildScript("""
+            plugins { id("my-plugin") }
+
+            convention.getPlugin(MyConvention::class).some("api.get")
+            the<MyConvention>().some("kotlin.reified.get")
+            the(MyConvention::class).some("kotlin.kclass.get")
+            configure<MyConvention> { some("kotlin.configure") }
+        """)
+
+        assertThat(
+            build("noop", "-q").output.trim(),
+            equalTo(
+                """
+                api.get
+                kotlin.reified.get
+                kotlin.kclass.get
+                kotlin.configure
+                """.trimIndent()
+            )
+        )
+
+        // Deprecation warnings assertion
+        build("noop")
     }
 
     @Test
