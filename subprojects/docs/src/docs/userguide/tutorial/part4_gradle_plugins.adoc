@@ -27,12 +27,13 @@ Learn about how Plugins extend Gradle's capabilities and use a popular plugin to
 ****
 
 [[part4_begin]]
-== Before you begin
+== Step 0. Before you Begin
 
 1. Complete <<part3_gradle_dep_man#part3_begin,part 3>>.
 
-== Step 1. Apply the Plugin
+== Step 1. Understanding Plugins
 A plugin is simply a set of tasks, available as packaged code that use the Gradle API to provide additional functionality and extend Gradle core.
+
 Applying a plugin to a project means that it allows the plugin to extend the project’s capabilities.
 
 Plugins can:
@@ -41,8 +42,9 @@ Plugins can:
 - Extend the basic Gradle model (e.g. add new DSL elements that can be configured).
 - Configure the project, according to conversions (e.g. add new tasks or configure sensible defaults).
 - Apply specific configuration (e.g. add organisational repositories or enforce standards).
-- Add new properties and methods to existing type via extensions.
+- Add new properties and methods to existing types via extensions.
 
+== Step 2. Applying a Plugin
 Our build file currently contains the `application` as the plugin:
 [source]
 ----
@@ -96,8 +98,8 @@ Similarly, the new tasks from the Distribution plugin are now available in Intel
 
 image::tutorial/intellij-idea-plugin.png[]
 
-== Step 2. Use the Plugin
-To use the plugin, simple run the `assembleDist` task by running `./gradlew :app:assembleDist`.
+== Step 3. Using the Plugin
+To use the plugin, run the `assembleDist` task by running `./gradlew :app:assembleDist`.
 [source]
 ----
 ./gradlew :app:assembleDist
@@ -109,7 +111,7 @@ The `assembleDist` task builds the project and creates a `app.tar` and `app.zip`
 
 image::tutorial/intellij-idea-dist.png[]
 
-== Step 3. Distribute the App
+== Step 4. Distributing the App
 A TAR or ZIP file can be used internally to distribute the app amount peers.
 
 A distribution can also be published to the public using the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>> or the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>.
@@ -131,7 +133,7 @@ publishing {
 }
 ----
 
-== Step 4. Explore Plugins
+== Step 5. Exploring Plugins
 Plugin authors can either keep their plugins private or distribute them to the public.
 
 As such, there are three types of plugins:
@@ -140,5 +142,7 @@ As such, there are three types of plugins:
 2. **Community plugins** - Gradle has a community of plugin developers who contribute plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
 3. **Custom plugins** - Gradle enables user to create custom plugins, that are typically private, to modify the build process beyond the standard Gradle configuration.
 
+Custom plugins are the recommended way to extend build capability and customize Gradle.
+
 [.text-right]
-**Next Step:** <<part5_gradle_caching#part5_begin,Enable the Gradle Cache>> >>
+**Next Step:** <<part5_gradle_inc_builds.adoc#part5_begin,Exploring Incremental Builds>> >>

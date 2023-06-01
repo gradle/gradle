@@ -27,7 +27,7 @@ Learn about the references you will need as you work with Gradle.
 [[part6_begin]]
 == Before you begin
 
-1. Complete <<part5_gradle_caching#part5_begin,part 5>>.
+1. Complete <<part5_gradle_inc_builds.adoc#part5_begin,part 5>>.
 
 == Step 1. Gradle References
 To work with Gradle, the following references are useful:

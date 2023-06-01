@@ -13,24 +13,25 @@
 // limitations under the License.
 
 [[part3_gradle_dep_man]]
-= Part 3: About Gradle's Dependency Management
+= Part 3: Understanding Dependencies and Gradle's Dependency Management
 
-Learn the basics of Gradle's dependency management.
+Learn the basics of Project dependencies and Gradle's dependency management.
 
 ****
 **In this section you will:**
 
 - View dependencies in the project
-- Add dependencies to the project
+- Use and analyze a Build Scan
+- Update dependencies in the project
 - Understand transitive dependencies
 ****
 
 [[part3_begin]]
-== Before you begin
+== Step 0. Before you Begin
 
 1. Complete <<part2_gradle_tasks#part2_begin,part 2>>.
 
-== Step 1. View dependencies
+== Step 1. Understanding Project Dependencies
 Gradle provides excellent support for dependency management and automation.
 
 Let's take another look at our build script (the `gradle.build` file).
@@ -64,7 +65,7 @@ It also includes https://mvnrepository.com/artifact/com.google.guava/guava[Guava
 Gradle needs specific information to find a dependency.
 Let's look at `com.google.guava:guava:31.1-jre` and `junit:junit:4.13.2`; they are broken down as follows:
 
-[cols="10h,30,30,30"]
+[cols="10h,30,40,20"]
 |===
 | |Description | com.google.guava:guava:31.1-jre | junit:junit:4.13.2
 
@@ -84,7 +85,57 @@ Let's look at `com.google.guava:guava:31.1-jre` and `junit:junit:4.13.2`; they a
 |`4.13.2`
 |===
 
-In the `tutorial` directory, enter the command below to list all the dependencies:
+== Step 2. Using Build Scan
+To view dependencies in our app, run the build task with an optional `--scan` flag.
+
+In the `tutorial` directory, enter the command below and follow the prompt to accept the terms:
+[source]
+----
+$ ./gradlew build --scan
+
+BUILD SUCCESSFUL in 423ms
+7 actionable tasks: 7 up-to-date
+
+Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service defined at https://gradle.com/terms-of-service. Do you accept these terms? [yes, no] yes
+
+Gradle Terms of Service accepted.
+
+Publishing build scan...
+https://gradle.com/s/link
+----
+
+A https://scans.gradle.com/[Build Scan] is a shareable and centralized record of a build and is available as a free service from Gradle.
+
+Click the link provided in the prompt: `https://gradle.com/s/link`.
+
+You will need to activate the Build Scan by using your email:
+
+image::tutorial/build-scan-prompt.png[]
+
+You will receive the final link to the scan in your inbox which should look as follows:
+
+image::tutorial/build-scan-results.png[]
+
+Open the **Dependencies** tab in the menu and expand `compileClasspath`, `runtimeClasspath`, `testCompileClasspath`, and `testRuntimeClasspath`:
+
+image::tutorial/build-scan-dependencies.png[]
+
+As expected, we can see the declared dependencies `junit` and `guava` are used by Gradle to compile, run, and test the app.
+
+== Step 3. Understanding Transitive Dependencies
+Expand `com.google.guava:guava:31.1-jre` and `org.junit.jupiter:junit-jupiter:5.9.1` in the window:
+
+image::tutorial/build-scan-trans-dependencies.png[]
+
+There are a number of dependencies under `junit` and `guava` which are called _transitive dependencies_.
+
+Transitive dependencies are the dependencies `junit` and `guava` need to work.
+A _transitive dependency_ is a dependency of a dependency.
+
+For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:31.1-jre` dependency.
+
+== Step 4. Viewing Project Dependencies
+You can also view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
 [source]
 ----
 $ ./gradlew :app:dependencies
@@ -95,174 +146,56 @@ $ ./gradlew :app:dependencies
 Project ':app'
 ------------------------------------------------------------
 
+annotationProcessor - Annotation processors and their dependencies for source set 'main'.
+No dependencies
+
 compileClasspath - Compile classpath for source set 'main'.
 \--- com.google.guava:guava:31.1-jre
-     +--- com.google.guava:failureaccess:1.0.1
-     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-     +--- com.google.code.findbugs:jsr305:3.0.2
-     +--- org.checkerframework:checker-qual:3.12.0
-     +--- com.google.errorprone:error_prone_annotations:2.11.0
-     \--- com.google.j2objc:j2objc-annotations:1.3
++--- com.google.guava:failureaccess:1.0.1
++--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
++--- com.google.code.findbugs:jsr305:3.0.2
++--- org.checkerframework:checker-qual:3.12.0
++--- com.google.errorprone:error_prone_annotations:2.11.0
+\--- com.google.j2objc:j2objc-annotations:1.3
+
+...
 ----
 
-As you can see, there is a lot more than just `junit` and `guava` here.
-The reason for this is called _transitive dependencies_.
+== Step 4. Updating Project Dependencies
+Adding and changing dependencies is done in the build file.
 
-Transitive dependencies are the dependencies `junit` and `guava` need to work.
-A _transitive dependency_ is a dependency of a dependency.
+Let's change the `junit` version and look at how this affects the dependency tree.
 
-When listing dependencies in the project using `./gradlew :app:dependencies`, we see that to compile the code, the `guava` dependency is used.
-At compilation time (`compileClasspath`), `guava` requires `failureaccess`, `listenablefuture`, `findbugs`, `checker-qual`, `error_prone_annotations`, and `j2objc-annotations` as additional dependencies.
-
+Change the `junit` dependency to the `gradle.build.kts` file to:
 [source]
 ----
-testRuntimeClasspath - Runtime classpath of source set 'test'.
-+--- com.google.guava:guava:31.1-jre
-|    +--- com.google.guava:failureaccess:1.0.1
-|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-|    +--- com.google.code.findbugs:jsr305:3.0.2
-|    +--- org.checkerframework:checker-qual:3.12.0
-|    +--- com.google.errorprone:error_prone_annotations:2.11.0
-|    \--- com.google.j2objc:j2objc-annotations:1.3
-\--- junit:junit:4.13.2
-     \--- org.hamcrest:hamcrest-core:1.3
-----
-
-At testing time (`testRuntimeClasspath`), `guava` requires `failureaccess`, `listenablefuture`, `findbugs`, `checker-qual`, `error_prone_annotations`, and `j2objc-annotations`. `junit` has only one transitive dependency called `hamcrest-core`.
-
-If you are interested, you can view `hamcrest-core` in the https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core[Maven repository].
-
-So what is `testRuntimeClasspath` and `compileClasspath`? What about `runtimeOnly`, `testCompileClasspath` and `runtimeClasspath`? These are called _configurations_ and are dependent on the type of project your are building.
-
-Gradle provides the following dependencies configuration types:
-
-[width=100%]
-|===
-|Configuration |Description
-
-|**api**
-|required for compile and runtime (exposed to consumers)
-
-|**implementation**
-|required for compile and runtime
-
-|**compileOnly**
-|required only at app compile time
-
-|**compileOnlyApi**
-|required only at app compile time (exposed to consumers)
-
-|**runtimeOnly**
-|required only at app runtime
-
-|**testImplementation**
-|required to compile tests
-
-|**testCompileOnly**
-|required only at test compile time
-
-|**testRuntimeOnly**
-|required only at test runtime
-|===
-
-The `api` configurations are not available in an `application` project.
-If you recall in <<part1_gradle_init.adoc#part1_begin,part 1>>, the Gradle init script gave you the option to create an api project instead of an application project; we chose to build a Java application.
-
-Returning to our build script:
-[source]
-----
-dependencies {
-    // Use JUnit test framework.
-    testImplementation("junit:junit:4.13.2")
-
-    // This dependency is used by the application.
-    implementation("com.google.guava:guava:31.1-jre")
-}
-----
-
-We've specifically told Gradle to add `junit` as a requirement only when building tests (so it is not used to build the `app` source code).
-
-We have also configured `guava` to be used both a compile and runtime.
-
-== Step 2. Add dependencies
-Let's add logging to our app.
-We will used a popular dependency called https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j[log4j].
-
-Log4j 2 is a powerful logging framework for Java applications, which provides many advanced features such as asynchronous logging, custom appenders, and multiple logging levels.
-
-Add the `log4j` dependency to the `gradle.build.kts` file:
-[source]
-----
-implementation("org.apache.logging.log4j:log4j-core:2.16.0")
-implementation("org.apache.logging.log4j:log4j-api:2.16.0")
+implementation("com.google.guava:guava:30.0-jre")
 ----
 
 If you change the file using the IntelliJ IDE, don't forget to click the `sync` Gradle button:
 
 image::tutorial/intellij-idea-dep-man.png[]
 
-Run `./gradlew :app:dependencies` in the terminal, to check that `log4j` has been added to the dependency tree:
+Run `./gradlew build --scan` and view the Build Scan results:
+
+image::tutorial/build-scan-change.png[]
+
+Run `./gradlew :app:dependencies` in the terminal to check the changes in the dependency tree:
 [source]
 ----
-testRuntimeClasspath - Runtime classpath of source set 'test'.
-+--- com.google.guava:guava:31.1-jre
-|    +--- com.google.guava:failureaccess:1.0.1
-|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-|    +--- com.google.code.findbugs:jsr305:3.0.2
-|    +--- org.checkerframework:checker-qual:3.12.0
-|    +--- com.google.errorprone:error_prone_annotations:2.11.0
-|    \--- com.google.j2objc:j2objc-annotations:1.3
-+--- org.apache.logging.log4j:log4j-core:2.16.0
-|    \--- org.apache.logging.log4j:log4j-api:2.16.0
-+--- org.apache.logging.log4j:log4j-api:2.16.0
-\--- junit:junit:4.13.2
-     \--- org.hamcrest:hamcrest-core:1.3
+compileClasspath - Compile classpath for source set 'main'.
+\--- com.google.guava:guava:30.0-jre
+     +--- com.google.guava:failureaccess:1.0.1
+     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- org.checkerframework:checker-qual:3.5.0
+     +--- com.google.errorprone:error_prone_annotations:2.3.4
+     \--- com.google.j2objc:j2objc-annotations:1.3
+
+...
 ----
 
-== Step 3. Update the Java Code
-To use Log4j in your app, you need to create a logger object and call its methods to log messages.
-
-Update `tutorial/app/src/main/java/com.gradle.tutorial/App.java` with the code below:
-[source,java]
-----
-package com.gradle.tutorial;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
-
-    private static final Logger logger = LogManager.getLogger(App.class);
-
-    public static void main(String[] args) {
-
-        logger.info("Application started");
-        logger.warn("Something went wrong");
-
-        System.out.println(new App().getGreeting());
-    }
-}
-----
-
-In this example, we create a logger object using the `LogManager.getLogger` method, passing in the class name of the logger (`App.class`).
-We then call the logger’s `info` and `warn` methods to log messages at the _info_ and _warn_ levels, respectively.
-
-== Step 4. Run the Java Code
-In your terminal, run `./gradlew :app:run`:
-[source]
-----
-./gradlew :app:run
-
-> Task :app:run
-17:17:39.659 [main] INFO  com.gradle.tutorial.App - Application started
-17:17:39.660 [main] WARN  com.gradle.tutorial.App - Something went wrong
-Hello World!
-----
-
-Gradle added the Log4j dependency, built the app by resolving all dependencies, and ran it successfully.
+It is clear the `guava` dependency has been updated to version `30.0` and the transitive dependencies have changed as well.
 
 [.text-right]
-**Next Step:** <<part4_gradle_plugins#part4_begin,Apply Gradle Plugins and Distribute your App>> >>
+**Next Step:** <<part4_gradle_plugins#part4_begin,Applying Plugins>> >>
