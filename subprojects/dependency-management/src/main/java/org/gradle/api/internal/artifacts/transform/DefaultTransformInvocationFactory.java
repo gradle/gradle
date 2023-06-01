@@ -93,6 +93,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 inputArtifact,
                 dependencies,
                 subject,
+                producerProject,
 
                 transformExecutionListener,
                 buildOperationExecutor,

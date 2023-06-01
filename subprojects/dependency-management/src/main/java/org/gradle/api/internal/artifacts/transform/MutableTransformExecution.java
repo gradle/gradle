@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -26,11 +27,14 @@ import java.io.File;
 import java.util.Map;
 
 class MutableTransformExecution extends AbstractTransformExecution {
+    private final String rootProjectLocation;
+
     public MutableTransformExecution(
         Transform transform,
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
+        ProjectInternal producerProject,
 
         TransformExecutionListener transformExecutionListener,
         BuildOperationExecutor buildOperationExecutor,
@@ -42,14 +46,23 @@ class MutableTransformExecution extends AbstractTransformExecution {
             transform, inputArtifact, dependencies, subject,
             transformExecutionListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
         );
+        this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;
     }
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
         return new MutableTransformWorkspaceIdentity(
-            inputArtifact.getAbsolutePath(),
+            normalizeAbsolutePath(inputArtifact.getAbsolutePath()),
             identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
             identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
         );
+    }
+
+    private String normalizeAbsolutePath(String path) {
+        // We try to normalize the absolute path, so the workspace id is stable between machines for cacheable transforms.
+        if (path.startsWith(rootProjectLocation)) {
+            return path.substring(rootProjectLocation.length());
+        }
+        return path;
     }
 }
