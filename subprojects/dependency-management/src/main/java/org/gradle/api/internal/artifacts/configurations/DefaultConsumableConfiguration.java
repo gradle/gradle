@@ -70,9 +70,7 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        ConfigurationRole roleAtCreation,
-        boolean lockUsage
+        TaskDependencyFactory taskDependencyFactory
     ) {
         super(
             domainObjectContext,
@@ -100,11 +98,9 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
             calculatedValueContainerFactory,
             defaultConfigurationFactory,
             taskDependencyFactory,
-            roleAtCreation,
-            lockUsage
+            ConfigurationRoles.CONSUMABLE,
+            true
         );
-
-        assert roleAtCreation.isConsumable() && !roleAtCreation.isResolvable() && !roleAtCreation.isDeclarable();
     }
 
 }

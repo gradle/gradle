@@ -42,6 +42,7 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 // TODO: We should eventually consider making the DefaultConfigurationContainer extend DefaultPolymorphicDomainObjectContainer
@@ -74,7 +75,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @SuppressWarnings("deprecation")
     protected Configuration doCreate(String name) {
         // TODO: Deprecate legacy configurations for consumption
-        return doCreate(name, DefaultLegacyConfiguration.class, ConfigurationRoles.LEGACY, false);
+        validateNameIsAllowed(name);
+        return defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY);
     }
 
     @Override
@@ -117,14 +119,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         RootComponentMetadataBuilder componentMetadataBuilder = rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider);
 
         @SuppressWarnings("deprecation")
-        DefaultConfiguration detachedConfiguration = defaultConfigurationFactory.create(
+        DefaultUnlockedConfiguration detachedConfiguration = defaultConfigurationFactory.create(
             name,
-            DefaultLegacyConfiguration.class,
             detachedConfigurationsProvider,
             resolutionStrategyFactory,
             componentMetadataBuilder,
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET,
-            false
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET
         );
 
         copyAllTo(detachedConfiguration, dependencies);
@@ -146,87 +146,87 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name) {
         assertMutable("resolvable(String)");
-        return registerConfiguration(name, ConfigurationRoles.RESOLVABLE, true, Actions.doNothing(), DefaultResolvableConfiguration.class);
+        return registerResolvableConfiguration(name, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action) {
         assertMutable("resolvableUnlocked(String, Action)");
-        return registerConfiguration(name, ConfigurationRoles.RESOLVABLE, true, action, DefaultResolvableConfiguration.class);
+        return registerResolvableConfiguration(name, action);
     }
 
     @Override
-    public NamedDomainObjectProvider<ResolvableConfiguration> resolvableUnlocked(String name) {
+    public NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name) {
         assertMutable("resolvableUnlocked(String)");
-        return registerConfiguration(name, ConfigurationRoles.RESOLVABLE, false, Actions.doNothing(), DefaultResolvableConfiguration.class);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<ResolvableConfiguration> resolvableUnlocked(String name, Action<? super ResolvableConfiguration> action) {
+    public NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("resolvableUnlocked(String, Action)");
-        return registerConfiguration(name, ConfigurationRoles.RESOLVABLE, false, action, DefaultResolvableConfiguration.class);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
     }
 
     @Override
     public NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name) {
         assertMutable("consumable(String)");
-        return registerConfiguration(name, ConfigurationRoles.CONSUMABLE, true, Actions.doNothing(), DefaultConsumableConfiguration.class);
+        return registerConsumableConfiguration(name, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action) {
         assertMutable("consumable(String, Action)");
-        return registerConfiguration(name, ConfigurationRoles.CONSUMABLE, true, action, DefaultConsumableConfiguration.class);
+        return registerConsumableConfiguration(name, action);
     }
 
     @Override
-    public NamedDomainObjectProvider<ConsumableConfiguration> consumableUnlocked(String name) {
+    public NamedDomainObjectProvider<Configuration> consumableUnlocked(String name) {
         assertMutable("consumableUnlocked(String)");
-        return registerConfiguration(name, ConfigurationRoles.CONSUMABLE, false, Actions.doNothing(), DefaultConsumableConfiguration.class);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<ConsumableConfiguration> consumableUnlocked(String name, Action<? super ConsumableConfiguration> action) {
+    public NamedDomainObjectProvider<Configuration> consumableUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("consumableUnlocked(String, Action)");
-        return registerConfiguration(name, ConfigurationRoles.CONSUMABLE, false, action, DefaultConsumableConfiguration.class);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
     }
 
     @Override
     public NamedDomainObjectProvider<DependenciesConfiguration> dependencies(String name) {
         assertMutable("dependencies(String)");
-        return this.registerConfiguration(name, ConfigurationRoles.BUCKET, true, Actions.doNothing(), DefaultDependenciesConfiguration.class);
+        return registerDependenciesConfiguration(name, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<DependenciesConfiguration> dependencies(String name, Action<? super DependenciesConfiguration> action) {
         assertMutable("dependencies(String, Action)");
-        return registerConfiguration(name, ConfigurationRoles.BUCKET, true, action, DefaultDependenciesConfiguration.class);
+        return registerDependenciesConfiguration(name, action);
     }
 
     @Override
-    public NamedDomainObjectProvider<DependenciesConfiguration> dependenciesUnlocked(String name) {
+    public NamedDomainObjectProvider<Configuration> dependenciesUnlocked(String name) {
         assertMutable("dependenciesUnlocked(String)");
-        return registerConfiguration(name, ConfigurationRoles.BUCKET, false, Actions.doNothing(), DefaultDependenciesConfiguration.class);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.BUCKET, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<DependenciesConfiguration> dependenciesUnlocked(String name, Action<? super DependenciesConfiguration> action) {
+    public NamedDomainObjectProvider<Configuration> dependenciesUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("dependenciesUnlocked(String, Action)");
-        return registerConfiguration(name, ConfigurationRoles.BUCKET, false, action, DefaultDependenciesConfiguration.class);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.BUCKET, action);
     }
 
     @Override
     @Deprecated
     public NamedDomainObjectProvider<Configuration> resolvableDependenciesUnlocked(String name) {
         assertMutable("resolvableDependenciesUnlocked(String)");
-        return registerConfiguration(name, ConfigurationRoles.RESOLVABLE_BUCKET, false, Actions.doNothing(), DefaultResolvableDependenciesConfiguration.class);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_BUCKET, Actions.doNothing());
     }
 
     @Override
     @Deprecated
     public NamedDomainObjectProvider<Configuration> resolvableDependenciesUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("resolvableDependenciesUnlocked(String, Action)");
-        return registerConfiguration(name, ConfigurationRoles.RESOLVABLE_BUCKET, false, action, DefaultResolvableDependenciesConfiguration.class);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_BUCKET, action);
     }
 
     public NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role) {
@@ -235,22 +235,14 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
         assertMutable("migratingUnlocked(String, ConfigurationRole, Action)");
 
-        Class<? extends DefaultConfiguration> configurationType;
-        if (role == ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET || role == ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
-            configurationType = DefaultLegacyConfiguration.class;
-        } else if (role == ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE) {
-            configurationType = DefaultResolvableDependenciesConfiguration.class;
-        } else if (role == ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE) {
-            configurationType = DefaultConsumableDependenciesConfiguration.class;
-        } else {
+        if (!ConfigurationRolesForMigration.ALL.contains(role)) {
             throw new InvalidUserDataException("Unknown migration role: " + role);
         }
 
-        return registerConfiguration(name, role, false, action, configurationType);
+        return registerUnlockedConfiguration(name, role, action);
     }
 
     @Override
@@ -311,42 +303,60 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return named(name, action);
     }
 
-    private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, ConfigurationRole role, boolean lockUsage, Action<? super T> configureAction, Class<? extends T> configurationType) {
+    private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
+        return registerConfiguration(name, configureAction, ConsumableConfiguration.class, n ->
+            defaultConfigurationFactory.createConsumable(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+        );
+    }
+
+    private NamedDomainObjectProvider<ResolvableConfiguration> registerResolvableConfiguration(String name, Action<? super ResolvableConfiguration> configureAction) {
+        return registerConfiguration(name, configureAction, ResolvableConfiguration.class, n ->
+            defaultConfigurationFactory.createResolvable(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+        );
+    }
+
+    private NamedDomainObjectProvider<DependenciesConfiguration> registerDependenciesConfiguration(String name, Action<? super DependenciesConfiguration> configureAction) {
+        return registerConfiguration(name, configureAction, DependenciesConfiguration.class, n ->
+            defaultConfigurationFactory.createDependencies(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+        );
+    }
+
+    @SuppressWarnings("deprecation")
+    private NamedDomainObjectProvider<Configuration> registerUnlockedConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         // Sanity check to make sure we are locking all non-legacy configurations by 9.0
-        assert lockUsage || GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0;
+        assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.LEGACY;
 
         // TODO: Deprecate changing roles of unlocked non-legacy configurations.
 
+        return registerConfiguration(name, configureAction, Configuration.class, n ->
+            defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role)
+        );
+    }
+
+    private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, Action<? super T> configureAction, Class<T> publicType, Function<String, T> factory) {
         assertCanAdd(name);
+        validateNameIsAllowed(name);
+
         NamedDomainObjectProvider<T> configuration = Cast.uncheckedCast(
-            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, this, name, configurationType, configureAction, role, lockUsage));
+            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, this, name, publicType, configureAction, factory));
         addLater(configuration);
         return configuration;
     }
 
     // Cannot be private due to reflective instantiation
-    public class NamedDomainObjectCreatingProvider<I extends DefaultConfiguration> extends AbstractDomainObjectCreatingProvider<I> {
+    public class NamedDomainObjectCreatingProvider<I extends Configuration> extends AbstractDomainObjectCreatingProvider<I> {
 
-        private final ConfigurationRole role;
-        private final boolean lockUsage;
+        private final Function<String, I> factory;
 
-        public NamedDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction, ConfigurationRole role, boolean lockUsage) {
+        public NamedDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction, Function<String, I> factory) {
             super(name, type, configureAction);
-            this.role = role;
-            this.lockUsage = lockUsage;
+            this.factory = factory;
         }
 
         @Override
         protected I createDomainObject() {
-            return doCreate(getName(), getType(), role, lockUsage);
+            return factory.apply(getName());
         }
-    }
-
-    private <T extends DefaultConfiguration> T doCreate(String name, Class<T> configurationType, ConfigurationRole role, boolean lockUsage) {
-        validateNameIsAllowed(name);
-        T configuration = defaultConfigurationFactory.create(name, configurationType, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role, lockUsage);
-        configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return configuration;
     }
 
     private static void emitConfigurationExistsDeprecation(String configurationName) {

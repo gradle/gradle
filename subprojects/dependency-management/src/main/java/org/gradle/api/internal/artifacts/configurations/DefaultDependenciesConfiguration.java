@@ -70,9 +70,7 @@ public class DefaultDependenciesConfiguration extends DefaultConfiguration imple
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        ConfigurationRole roleAtCreation,
-        boolean lockUsage
+        TaskDependencyFactory taskDependencyFactory
     ) {
         super(
             domainObjectContext,
@@ -100,11 +98,9 @@ public class DefaultDependenciesConfiguration extends DefaultConfiguration imple
             calculatedValueContainerFactory,
             defaultConfigurationFactory,
             taskDependencyFactory,
-            roleAtCreation,
-            lockUsage
+            ConfigurationRoles.BUCKET,
+            true
         );
-
-        assert roleAtCreation.isDeclarable() && !roleAtCreation.isResolvable() && !roleAtCreation.isConsumable();
     }
 
 }

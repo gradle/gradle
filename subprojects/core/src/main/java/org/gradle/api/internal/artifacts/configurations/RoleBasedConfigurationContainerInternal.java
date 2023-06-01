@@ -20,9 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ConsumableConfiguration;
-import org.gradle.api.artifacts.DependenciesConfiguration;
-import org.gradle.api.artifacts.ResolvableConfiguration;
 
 /**
  * Extends {@link ConfigurationContainer} to define internal-only methods for creating configurations.
@@ -39,37 +36,37 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     /**
      * Creates a consumable configuration which can change roles.
      */
-    NamedDomainObjectProvider<ConsumableConfiguration> consumableUnlocked(String name);
+    NamedDomainObjectProvider<Configuration> consumableUnlocked(String name);
 
     /**
      * Creates a consumable configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<ConsumableConfiguration> consumableUnlocked(String name, Action<? super ConsumableConfiguration> action);
+    NamedDomainObjectProvider<Configuration> consumableUnlocked(String name, Action<? super Configuration> action);
 
     /**
      * Creates a resolvable configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<ResolvableConfiguration> resolvableUnlocked(String name);
+    NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name);
 
     /**
      * Creates a resolvable configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<ResolvableConfiguration> resolvableUnlocked(String name, Action<? super ResolvableConfiguration> action);
+    NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name, Action<? super Configuration> action);
 
     /**
      * Creates a dependencies configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<DependenciesConfiguration> dependenciesUnlocked(String name);
+    NamedDomainObjectProvider<Configuration> dependenciesUnlocked(String name);
 
     /**
      * Creates a dependencies configuration which can change role and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<DependenciesConfiguration> dependenciesUnlocked(String name, Action<? super DependenciesConfiguration> action);
+    NamedDomainObjectProvider<Configuration> dependenciesUnlocked(String name, Action<? super Configuration> action);
 
     /**
      * Creates a new configuration, which can change roles, with initial role {@code role}.
