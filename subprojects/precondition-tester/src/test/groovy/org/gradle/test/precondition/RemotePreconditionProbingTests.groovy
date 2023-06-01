@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.test.predicate
+package org.gradle.test.precondition
 
 
 import com.gradle.enterprise.testing.annotations.RemoteOnly

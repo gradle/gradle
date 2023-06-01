@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.test.predicate
+package org.gradle.test.precondition
 
-import org.gradle.test.precondition.PredicatesFile
-import org.gradle.test.precondition.TestPrecondition
+
 import spock.lang.Specification
 import org.junit.jupiter.api.Assumptions
 
