@@ -22,6 +22,8 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.internal.dispatch.Dispatch
+import org.gradle.internal.dispatch.MethodInvocation
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 
@@ -32,7 +34,7 @@ class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Cod
         val broadcast: AnonymousListenerBroadcast<Any> = value.uncheckedCast()
         writeClass(value.type)
         val listeners = mutableListOf<Any>()
-        broadcast.visitListeners {
+        broadcast.visitListenersUntyped {
             listeners.add(this)
         }
         writeCollection(listeners) {
@@ -44,8 +46,10 @@ class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Cod
         val type: Class<Any> = readClass().uncheckedCast()
         val broadcast = listenerManager.createAnonymousBroadcaster(type)
         readCollection {
-            val listener = read()
-            broadcast.add(listener)
+            when (val listener = read()) {
+                is Dispatch<*> -> broadcast.add(listener.uncheckedCast<Dispatch<MethodInvocation>>())
+                else -> broadcast.add(listener)
+            }
         }
         return broadcast
     }
