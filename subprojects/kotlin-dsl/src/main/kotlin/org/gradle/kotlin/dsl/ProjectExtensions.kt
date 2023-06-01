@@ -94,9 +94,9 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
     typeOf<T>().let { type ->
         // Find and configure extension
         extensions.findByType(type)?.let(configuration)
-        // Find and configure convention
-        // Reflective look up to still support plugins that inlined this function once conventions will be removed
             ?: DeprecationLogger.whileDisabled(Factory {
+                // Find and configure convention
+                // Reflective look up to still support plugins that inlined this function once conventions will be removed
                 this::class.java.methods
                     .firstOrNull { it.name == "getConvention" }
                     ?.invoke(this)
@@ -128,9 +128,9 @@ inline fun <reified T : Any> Project.the(): T =
     typeOf<T>().let { type ->
         // Find extension
         extensions.findByType(type)
-        // Find convention
-        // Reflective look up to still support plugins that inlined this function once conventions will be removed
             ?: DeprecationLogger.whileDisabled(Factory {
+                // Find convention
+                // Reflective look up to still support plugins that inlined this function once conventions will be removed
                 this::class.java.methods.firstOrNull { it.name == "getConvention" }
                     ?.invoke(this)?.let { convention ->
                         @Suppress("UNCHECKED_CAST")
@@ -141,6 +141,7 @@ inline fun <reified T : Any> Project.the(): T =
             // Get the non-existent extension for error handling
             ?: extensions.getByType(type)
     }
+
 
 /**
  * Returns the [project extension][org.gradle.api.plugins.ExtensionAware] of the specified type.
@@ -155,9 +156,9 @@ inline fun <reified T : Any> Project.the(): T =
 fun <T : Any> Project.the(extensionType: KClass<T>): T =
     // Find extension
     extensions.findByType(extensionType.java)
-    // Find convention
-    // Reflective look up to still support plugins that inlined this function once conventions will be removed
         ?: DeprecationLogger.whileDisabled(Factory {
+            // Find convention
+            // Reflective look up to still support plugins that inlined this function once conventions will be removed
             this::class.java.methods.firstOrNull { it.name == "getConvention" }
                 ?.invoke(this)?.let { convention ->
                     @Suppress("UNCHECKED_CAST")
