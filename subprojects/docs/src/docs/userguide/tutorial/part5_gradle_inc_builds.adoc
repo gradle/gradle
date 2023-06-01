@@ -27,7 +27,10 @@ Learn the basics of Gradle's incremental builds.
 [[part5_begin]]
 == Step 0. Before you Begin
 
-1. Complete <<part4_gradle_plugins#part4_begin,part 4>>.
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
+3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
+4. You applied a plugin to your app in <<part4_gradle_plugins#part4_begin,part 4>>.
 
 == Step 1. Understanding Incremental Builds
 It's important to know that Gradle optimizes your build in a variety of ways.
@@ -38,14 +41,14 @@ An _incremental build_ is a build that avoids running tasks whose inputs and out
 To re-iterate, tasks can define their own inputs and outputs. At build time, Gradle will determine whether they have changed or not. If the inputs have changed, Gradle will execute the task. Otherwise, it won’t.
 
 == Step 2. Updating Gradle Properties
-In the top level folder of your app (`tutorial`), create a `gradle.properties` file.
+In the top-level folder of your app (`tutorial`), create a `gradle.properties` file.
 
 [source]
 ----
 $ touch gradle.properties
 ----
 
-Add `org.gradle.console=verbose` so the contents of the file look like:
+Add `org.gradle.console=verbose` so the contents of the file look like this:
 [source]
 ----
 org.gradle.console=verbose
@@ -119,13 +122,13 @@ There are four outcome labels:
 |Task that has been already executed and hasn't changed (incremental build feature)
 
 |SKIPPED
-|Task has been skipped for some reason
+|Task was explicitly prevented from running
 
 |FROM-CACHE
 |Task output has been copied to local directory from previous builds in the build cache (caching feature)
 
 |NO-SOURCE
-|Task is not executed because the input data required for its execution was not found
+|Task was not executed because its required inputs were not available
 |===
 
 If there is no label, the task was newly executed by Gradle (locally).
@@ -133,4 +136,4 @@ If there is no label, the task was newly executed by Gradle (locally).
 We will look at the `FROM-CACHE` label in the next section.
 
 [.text-right]
-**Next Step:** <<part6_gradle_caching#part6_begin,Enabling the Gradle Cache>> >>
+**Next Step:** <<part6_gradle_caching#part6_begin,Enabling the Cache>> >>

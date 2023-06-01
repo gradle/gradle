@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[part6_gradle_refs]]
-= Part 6: Gradle Reference Materials
+[[part7_gradle_refs]]
+= Part 7: Using Gradle's Reference Materials
 
 Learn about the references you will need as you work with Gradle.
 
@@ -24,10 +24,15 @@ Learn about the references you will need as you work with Gradle.
 - Finish the Tutorial
 ****
 
-[[part6_begin]]
+[[part7_begin]]
 == Before you begin
 
-1. Complete <<part5_gradle_inc_builds.adoc#part5_begin,part 5>>.
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
+3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
+4. You applied a plugin to your app in <<part4_gradle_plugins#part4_begin,part 4>>.
+5. You learned about incremental builds in <<part5_gradle_inc_builds#part5_begin,part 5>>.
+6. You turned on the local cache in <<part6_gradle_caching#part6_begin,part 6>>.
 
 == Step 1. Gradle References
 To work with Gradle, the following references are useful:
@@ -44,6 +49,12 @@ To view all Gradle releases:
 
 - https://gradle.org/releases/[Gradle Releases]
 - http://gradle.org/docs/current/release-notes[Release Notes]
+
+For Gradle support:
+
+- link:https://discuss.gradle.org/[Gradle Forum]
+- link:https://gradle-community.slack.com/[Gradle Slack Channel]
+- link:https://gradle.org/courses/[Fee Gradle Training]
 
 == Step 2. Next steps
 We recommend going through each section of the User Manual.

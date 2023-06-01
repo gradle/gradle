@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[part3_gradle_dep_man]]
-= Part 3: Understanding Dependencies and Gradle's Dependency Management
+= Part 3: Understanding Dependencies and Dependency Management
 
 Learn the basics of Project dependencies and Gradle's dependency management.
 
@@ -29,13 +29,13 @@ Learn the basics of Project dependencies and Gradle's dependency management.
 [[part3_begin]]
 == Step 0. Before you Begin
 
-1. Complete <<part2_gradle_tasks#part2_begin,part 2>>.
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
 
 == Step 1. Understanding Project Dependencies
 Gradle provides excellent support for dependency management and automation.
 
-Let's take another look at our build script (the `gradle.build` file).
-Specifically the following section:
+Let's take another look at our build script (the `gradle.build` file), specifically the following section:
 [source]
 ----
 repositories {
@@ -52,15 +52,12 @@ dependencies {
 }
 ----
 
-The key concepts to Gradle dependency management:
+Some key concepts in Gradle dependency management include:
 
-Repositories :: `mavenCentral()` - a source of dependencies
-Dependencies :: `junit` and `guava` - dependencies declared via configuration types
-
-For the repositories, the build file contains https://mvnrepository.com/repos/central[Maven Central] which is a collection of jar files, plugins, and libraries provided by the Maven community.
-
-For the dependencies, the build file contains https://mvnrepository.com/artifact/junit/junit[JUnit] which is a unit testing framework to write and run repeatable automated tests on Java.
-It also includes https://mvnrepository.com/artifact/com.google.guava/guava[Guava], a suite of core and expanded libraries from Google that include utility classes, Google's collections, I/O classes, and more.
+Repositories :: The source of dependencies - `mavenCentral()` +
+https://mvnrepository.com/repos/central[Maven Central] is a collection of jar files, plugins, and libraries provided by the Maven community.
+Dependencies :: Dependencies declared via configuration types - `junit` and `guava` +
+https://mvnrepository.com/artifact/junit/junit[JUnit] is a unit testing framework and https://mvnrepository.com/artifact/com.google.guava/guava[Guava] is a suite of core and expanded libraries from Google.
 
 Gradle needs specific information to find a dependency.
 Let's look at `com.google.guava:guava:31.1-jre` and `junit:junit:4.13.2`; they are broken down as follows:
@@ -127,7 +124,7 @@ Expand `com.google.guava:guava:31.1-jre` and `org.junit.jupiter:junit-jupiter:5.
 
 image::tutorial/build-scan-trans-dependencies.png[]
 
-There are a number of dependencies under `junit` and `guava` which are called _transitive dependencies_.
+There are several dependencies under `junit` and `guava` which are called _transitive dependencies_.
 
 Transitive dependencies are the dependencies `junit` and `guava` need to work.
 A _transitive dependency_ is a dependency of a dependency.
@@ -172,7 +169,7 @@ Change the `junit` dependency to the `gradle.build.kts` file to:
 implementation("com.google.guava:guava:30.0-jre")
 ----
 
-If you change the file using the IntelliJ IDE, don't forget to click the `sync` Gradle button:
+If you change the file using IntelliJ, don't forget to click the `sync` Gradle button:
 
 image::tutorial/intellij-idea-dep-man.png[]
 

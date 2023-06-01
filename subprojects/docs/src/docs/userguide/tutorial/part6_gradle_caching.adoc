@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[part6_gradle_caching]]
-= Part 6: Enable the Gradle Cache
+= Part 6: Enabling the Gradle Cache
 
 Learn the basics of Gradle's caching system.
 
@@ -29,7 +29,11 @@ Learn the basics of Gradle's caching system.
 [[part6_begin]]
 == Step 0. Before you Begin
 
-1. Complete <<part5_gradle_inc_builds#part5_begin,part 5>>.
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
+3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
+4. You applied a plugin to your app in <<part4_gradle_plugins#part4_begin,part 4>>.
+5. You learned about incremental builds in <<part5_gradle_inc_builds#part5_begin,part 5>>.
 
 == Step 1. Understanding Caching
 Another optimization is called caching. Let's turn on caching for your app.
@@ -118,7 +122,7 @@ BUILD SUCCESSFUL in 525ms
 8 actionable tasks: 5 executed, 3 from cache
 ----
 
-Gradle is efficient, especially with the local cache turn on.
+Gradle is efficient, especially with the local cache turned on.
 Gradle will look at the cache directory on your machine to check for output files that may already exist. If they do, instead of running that task, it will copy its (output) results into your project `build` directory.
 
 The _outcome label_ `FROM-CACHE` lets the user know that Gradle has fetched the task results from the local cache.
@@ -128,10 +132,10 @@ The Gradle cache is located at:
 - **On Windows**: %USERPROFILE%\.gradle\caches
 - **On OS X / UNIX**: ~/.gradle/caches/
 
-Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
+Gradle will periodically clean up the local cache directory by removing entries that have not been used recently to conserve disk space.
 
 == Step 5. Understanding Remote Caching
-The remote cache (called a Build Cache Node) is a shared build cache available via HTTP.
+In addition to the local cache present on a developer's machine, Gradle can make use of remote caches which can be used by multiple developers.
 
 The idea of a remote cache is to share commonly built task outputs across remote builds to improve build times.
 

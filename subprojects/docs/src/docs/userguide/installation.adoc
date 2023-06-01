@@ -17,7 +17,7 @@
 
 You can install Gradle Build Tool on Linux, macOS, or Windows.
 
-The install can be done manually or using a package manager like SDKMAN! or Homebrew.
+The installation can be done manually or using a package manager like https://sdkman.io/[SDKMAN!] or https://brew.sh/[Homebrew].
 
 Please use the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> to upgrade Gradle.
 You can find all Gradle releases and their checksums on the link:{website}/releases[releases page].
@@ -39,7 +39,14 @@ Java(TM) SE Runtime Environment (build 1.8.0_151-b12)
 Java HotSpot(TM) 64-Bit Server VM (build 25.151-b12, mixed mode)
 ----
 
-Gradle uses any JDK it finds in your path. Alternatively, you can set the `JAVA_HOME` environment variable to point to a specific JDK installation directory.
+Gradle uses the JDK it finds in your path, the JDK used by your IDE, or the JDK specified by your project.
+
+----
+echo $PATH
+/opt/homebrew/opt/openjdk@17/bin
+----
+
+You can also set the `JAVA_HOME` environment variable to point to a specific JDK installation directory.
 
 ----
 ❯ echo %JAVA_HOME%
@@ -52,7 +59,7 @@ C:\Program Files\Java\jdk1.7.0_80
 ----
 
 Gradle supports Kotlin and Groovy as the main build languages.
-Gradle ships with its own Kotlin and Groovy library, therefore they do not need to be installed.
+Gradle ships with its own Kotlin and Groovy libraries, therefore they do not need to be installed.
 Existing installations are ignored by Gradle.
 
 <<compatibility.adoc#compatibility, See the full compatibility notes for Java, Groovy, Kotlin and Android.>>
@@ -80,7 +87,7 @@ The distribution ZIP file comes in two flavors:
 - Binary-only (bin)
 - Complete (all) with docs and sources
 
-We recommend downloading the bin file.
+We recommend downloading the bin file; it is a smaller file that is quick to download (and the latest documentation is available online).
 
 ==== Step 2 - Unpack the distribution
 
@@ -150,7 +157,7 @@ The distribution ZIP file comes in two flavors:
 - Binary-only (bin)
 - Complete (all) with docs and sources
 
-We recommend downloading the bin file.
+We recommend downloading the bin file; it is a smaller file that is quick to download (and the latest documentation is available online).
 
 ==== Step 2 - Unpack the distribution
 

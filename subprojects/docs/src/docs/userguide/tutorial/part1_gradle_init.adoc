@@ -121,19 +121,19 @@ When you are done, the directory should look as follows:
 <4> Windows script for executing builds using the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>
 <5> The project's <<organizing_gradle_projects.adoc#sec:settings_file, settings file>> where the list of subprojects is defined
 <6> The source code and build configuration for the Java app
-<7> Some additional Git files may be present such as `.gitignore`.
+<7> Some additional Git files may be present such as `.gitignore`
 
 == Step 3. Understanding the Gradle Wrapper
-The Gradle Wrapper is the preferred way of starting a Gradle build and downloads it if necessary.
-The Wrapper simply invokes a declared version of Gradle.
+The Gradle Wrapper is the preferred way of starting a Gradle build.
+The Wrapper downloads (if needed) and then invokes a specific version of Gradle declared in the build, that the build is meant to work with.
 
-In your newly created project, first take a look at the Gradle Wrapper.
+In your newly created project, take a look at the files used by the Gradle Wrapper first.
 It consists of a batch script for Windows +++<i class="conum" data-value="4"></i>+++ and a shell script for macOS and Linux +++<i class="conum" data-value="3"></i>+++.
 
-The wrapper script allows you to run a Gradle build without requiring that Gradle be installed on your system.
+These scripts allow you to run a Gradle build without requiring that Gradle be installed on your system.
 It also helps ensure that the same version of Gradle is used for builds by different developers and between local and CI machines.
 
-From now on, you will never invoke gradle directly; instead, you will use the Gradle wrapper.
+From now on, you will never invoke Gradle directly; instead, you will use the Gradle wrapper.
 
 == Step 4. Invoking the Gradle Wrapper
 Use the wrapper by entering the following command:
@@ -168,14 +168,32 @@ Open the `settings.gradle.kts` and `build.gradle.kts` files in the IDE:
 
 image::tutorial/intellij-idea-open.png[]
 
-== Step 6. Understanding the Build script
-The `build.gradle` file is the core component of the build process and defines the tasks necessary to build the project.
-
-The `build.gradle` file is read and executed by Gradle.
-
+== Step 6. Understanding the Settings file
 A project is composed of one or more subprojects (sometimes referred to as modules).
-Each subproject contains its own `build.gradle` file.
-In this case our project only contains the `app` subproject.
+
+Gradle reads the `settings.gradle.kts` file to figure out which subprojects comprise a project build.
+
+Take a look at the file in your project:
+[source]
+----
+plugins {
+    // Apply the foojay-resolver plugin to allow automatic download of JDKs
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+}
+
+rootProject.name = "tutorial"
+include("app")
+----
+
+The `tutorial` project includes the `app` subproject.
+The presence of the `include` call turns the `app` directory into a subproject.
+
+== Step 7. Understanding the Build script
+Each subproject contains its own `build.gradle.kts` file.
+
+The `build.gradle.kts` file is the core component of the build process and defines the tasks necessary to build the project.
+
+The `build.gradle.kts` file is read and executed by Gradle.
 
 Take a closer look at the build file in your `app` subproject (under the `app` directory):
 [source]
@@ -218,23 +236,6 @@ tasks.named<Test>("test") {
 
 This build script lets Gradle know which dependencies and plugins the `app` subproject is using and where to find them.
 We will look at this in more detail in the following sections.
-
-== Step 7. Understanding the Settings file
-Gradle reads the `settings.gradle` file to figure out which subprojects are to take part in a project build.
-
-Take a look at the file in your project:
-[source]
-----
-plugins {
-    // Apply the foojay-resolver plugin to allow automatic download of JDKs
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
-}
-
-rootProject.name = "tutorial"
-include("app")
-----
-
-As expected, the `tutorial` project only includes the `app` subproject.
 
 [.text-right]
 **Next Step:** <<part2_gradle_tasks#part2_begin,Running Tasks>> >>

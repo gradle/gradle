@@ -13,39 +13,41 @@
 // limitations under the License.
 
 [[part4_gradle_plugins]]
-= Part 4: Apply Gradle Plugins and Distribute your App
+= Part 4: Applying Gradle Plugins
 
-Learn about how Plugins extend Gradle's capabilities and use a popular plugin to distribute your app.
+Learn about how Plugins extend Gradle's capabilities and use a popular plugin.
 
 ****
 **In this section you will:**
 
 - Apply a plugin
 - Use the plugin
-- Learn about distribution
 - Explore other plugins
 ****
 
 [[part4_begin]]
 == Step 0. Before you Begin
 
-1. Complete <<part3_gradle_dep_man#part3_begin,part 3>>.
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
+3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
 
 == Step 1. Understanding Plugins
-A plugin is simply a set of tasks, available as packaged code that use the Gradle API to provide additional functionality and extend Gradle core.
+Plugins are the primary method of distributing custom tasks as packaged code.
+They use the Gradle API to provide additional functionality and extend Gradle's core features.
 
-Applying a plugin to a project means that it allows the plugin to extend the project’s capabilities.
+Applying a plugin to a project executes code that can create tasks, configure properties, and otherwise extend the project's capabilities.
 
 Plugins can:
 
-- Add tasks to the project (e.g. compile, test)
+- Add tasks to the project (e.g. compile, test).
 - Extend the basic Gradle model (e.g. add new DSL elements that can be configured).
-- Configure the project, according to conversions (e.g. add new tasks or configure sensible defaults).
-- Apply specific configuration (e.g. add organisational repositories or enforce standards).
+- Configure the project, according to conventions (e.g. add new tasks or configure sensible defaults).
+- Apply specific configuration (e.g. add organizational repositories or enforce standards).
 - Add new properties and methods to existing types via extensions.
 
 == Step 2. Applying a Plugin
-Our build file currently contains the `application` as the plugin:
+Our project currently applies a single plugin, the `application` plugin:
 [source]
 ----
 plugins {
@@ -112,7 +114,7 @@ The `assembleDist` task builds the project and creates a `app.tar` and `app.zip`
 image::tutorial/intellij-idea-dist.png[]
 
 == Step 4. Distributing the App
-A TAR or ZIP file can be used internally to distribute the app amount peers.
+A TAR or ZIP file can be used internally to distribute the app to peers.
 
 A distribution can also be published to the public using the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>> or the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>.
 
