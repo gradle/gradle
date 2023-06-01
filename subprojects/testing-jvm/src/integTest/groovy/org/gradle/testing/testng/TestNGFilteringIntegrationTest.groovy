@@ -19,6 +19,7 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
@@ -67,6 +68,7 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
         """
     }
 
+    @ToBeFixedForConfigurationCache(because = "load-after-store")
     @Issue("GRADLE-3112")
     def "suites can be filtered from the command-line"() {
         given:
@@ -85,6 +87,7 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
         result.testClass('BarTest').assertTestsExecuted('pass')
     }
 
+    @ToBeFixedForConfigurationCache(because = "load-after-store")
     @Issue("GRADLE-3112")
     def "suites can be filtered from the build file"() {
         given:

@@ -18,6 +18,7 @@ package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
@@ -27,6 +28,7 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
     abstract boolean isEmitsTestClassOperations()
     abstract void writeTestSources()
 
+    @ToBeFixedForConfigurationCache(because = "load-after-store")
     def "emits build operations for junit tests"() {
         given:
         buildFile << """
