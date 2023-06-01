@@ -21,8 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.DependenciesConfiguration;
-import org.gradle.api.artifacts.ResolvableConfiguration;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.TestSuiteType;
@@ -64,7 +63,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("org.gradle.reporting-base");
 
         RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
-        NamedDomainObjectProvider<DependenciesConfiguration> testAggregation = configurations.dependenciesUnlocked(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, conf -> {
+        NamedDomainObjectProvider<Configuration> testAggregation = configurations.dependenciesUnlocked(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, conf -> {
             conf.setDescription("A configuration to collect test execution results");
             conf.setVisible(false);
 
@@ -88,7 +87,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         });
 
         // A resolvable configuration to collect test results
-        NamedDomainObjectProvider<ResolvableConfiguration> testResultsConf = configurations.resolvableUnlocked("aggregateTestReportResults", conf -> {
+        NamedDomainObjectProvider<Configuration> testResultsConf = configurations.resolvableUnlocked("aggregateTestReportResults", conf -> {
             conf.extendsFrom(testAggregation.get());
             conf.setDescription("Graph needed for the aggregated test results report.");
             conf.setVisible(false);

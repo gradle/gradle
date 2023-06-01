@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
 
 /**
  * This class defines a set of configuration roles which each describe an intermediate state between a current role
@@ -60,6 +63,16 @@ public final class ConfigurationRolesForMigration {
      */
     @SuppressWarnings("deprecation")
     public static final ConfigurationRole CONSUMABLE_BUCKET_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE);
+
+    /**
+     * All known migration roles.
+     */
+    public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
+        LEGACY_TO_RESOLVABLE_BUCKET,
+        LEGACY_TO_CONSUMABLE,
+        RESOLVABLE_BUCKET_TO_RESOLVABLE,
+        CONSUMABLE_BUCKET_TO_CONSUMABLE
+    );
 
     /**
      * Computes the difference between two roles, such that any usage that is allowed in the

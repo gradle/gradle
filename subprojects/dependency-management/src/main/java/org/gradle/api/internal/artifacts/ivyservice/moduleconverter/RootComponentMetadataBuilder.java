@@ -16,10 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
+import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 public interface RootComponentMetadataBuilder {
     LocalComponentMetadata toRootComponentMetaData();
 
     RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider provider);
+
+    MutationValidator getValidator();
 }

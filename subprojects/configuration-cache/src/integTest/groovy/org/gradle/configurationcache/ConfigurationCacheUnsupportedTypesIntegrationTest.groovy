@@ -60,7 +60,7 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.Con
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.ConfigurationArtifactView
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.LenientResolutionResult
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration
+import org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler
@@ -381,8 +381,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("beanWithSameType.reference = null")
 
         where:
-        concreteType               | baseType           | reference                                            | deserializedValue
-        DefaultLegacyConfiguration | Configuration      | "project.configurations.maybeCreate('some')"         | 'file collection'
-        DefaultSourceDirectorySet  | SourceDirectorySet | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+        concreteType                 | baseType           | reference                                            | deserializedValue
+        DefaultUnlockedConfiguration | Configuration      | "project.configurations.maybeCreate('some')"         | 'file collection'
+        DefaultSourceDirectorySet    | SourceDirectorySet | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 }

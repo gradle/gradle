@@ -22,7 +22,6 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependenciesConfiguration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
@@ -69,7 +68,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("jacoco");
 
         RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
-        NamedDomainObjectProvider<DependenciesConfiguration> jacocoAggregation = configurations.dependenciesUnlocked(JACOCO_AGGREGATION_CONFIGURATION_NAME, conf -> {
+        NamedDomainObjectProvider<Configuration> jacocoAggregation = configurations.dependenciesUnlocked(JACOCO_AGGREGATION_CONFIGURATION_NAME, conf -> {
             conf.setDescription("Collects project dependencies for purposes of JaCoCo coverage report aggregation");
             conf.setVisible(false);
 

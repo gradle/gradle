@@ -1352,12 +1352,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = defaultConfigurationFactory.create(
             newName,
-            DefaultLegacyConfiguration.class,
             configurationsProvider,
             childResolutionStrategy,
             rootComponentMetadataBuilder,
-            role,
-            false
+            role
         );
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;

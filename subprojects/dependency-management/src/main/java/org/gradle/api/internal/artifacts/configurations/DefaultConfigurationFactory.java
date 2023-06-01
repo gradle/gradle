@@ -114,21 +114,19 @@ public class DefaultConfigurationFactory {
     }
 
     /**
-     * Creates a new configuration instance.
+     * Creates a new unlocked configuration instance.
      */
-    <T extends DefaultConfiguration> T create(
+    DefaultUnlockedConfiguration create(
         String name,
-        Class<T> configurationType,
         ConfigurationsProvider configurationsProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
-        ConfigurationRole role,
-        boolean lockUsage
+        ConfigurationRole role
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
-                listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        return instantiator.newInstance(
-                configurationType,
+            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        DefaultUnlockedConfiguration instance = instantiator.newInstance(
+                DefaultUnlockedConfiguration.class,
                 domainObjectContext,
                 name,
                 configurationsProvider,
@@ -154,8 +152,138 @@ public class DefaultConfigurationFactory {
                 calculatedValueContainerFactory,
                 this,
                 taskDependencyFactory,
-                role,
-                lockUsage
+                role
         );
+        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
+        return instance;
+    }
+
+    /**
+     * Creates a new locked resolvable configuration instance.
+     */
+    DefaultResolvableConfiguration createResolvable(
+        String name,
+        ConfigurationsProvider configurationsProvider,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+        RootComponentMetadataBuilder rootComponentMetadataBuilder
+    ) {
+        ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
+            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        DefaultResolvableConfiguration instance = instantiator.newInstance(
+            DefaultResolvableConfiguration.class,
+            domainObjectContext,
+            name,
+            configurationsProvider,
+            resolver,
+            dependencyResolutionListeners,
+            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
+            metaDataProvider,
+            componentIdentifierFactory,
+            dependencyLockingProvider,
+            resolutionStrategyFactory,
+            fileCollectionFactory,
+            buildOperationExecutor,
+            instantiator,
+            artifactNotationParser,
+            capabilityNotationParser,
+            attributesFactory,
+            rootComponentMetadataBuilder,
+            exceptionContextualizer,
+            userCodeApplicationContext,
+            projectStateRegistry,
+            workerThreadRegistry,
+            domainObjectCollectionFactory,
+            calculatedValueContainerFactory,
+            this,
+            taskDependencyFactory
+        );
+        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
+        return instance;
+    }
+
+    /**
+     * Creates a new locked consumable configuration instance.
+     */
+    DefaultConsumableConfiguration createConsumable(
+        String name,
+        ConfigurationsProvider configurationsProvider,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+        RootComponentMetadataBuilder rootComponentMetadataBuilder
+    ) {
+        ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
+            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        DefaultConsumableConfiguration instance = instantiator.newInstance(
+            DefaultConsumableConfiguration.class,
+            domainObjectContext,
+            name,
+            configurationsProvider,
+            resolver,
+            dependencyResolutionListeners,
+            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
+            metaDataProvider,
+            componentIdentifierFactory,
+            dependencyLockingProvider,
+            resolutionStrategyFactory,
+            fileCollectionFactory,
+            buildOperationExecutor,
+            instantiator,
+            artifactNotationParser,
+            capabilityNotationParser,
+            attributesFactory,
+            rootComponentMetadataBuilder,
+            exceptionContextualizer,
+            userCodeApplicationContext,
+            projectStateRegistry,
+            workerThreadRegistry,
+            domainObjectCollectionFactory,
+            calculatedValueContainerFactory,
+            this,
+            taskDependencyFactory
+        );
+        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
+        return instance;
+    }
+
+    /**
+     * Creates a new locked dependencies configuration instance.
+     */
+    DefaultDependenciesConfiguration createDependencies(
+        String name,
+        ConfigurationsProvider configurationsProvider,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+        RootComponentMetadataBuilder rootComponentMetadataBuilder
+    ) {
+        ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
+            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        DefaultDependenciesConfiguration instance = instantiator.newInstance(
+            DefaultDependenciesConfiguration.class,
+            domainObjectContext,
+            name,
+            configurationsProvider,
+            resolver,
+            dependencyResolutionListeners,
+            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
+            metaDataProvider,
+            componentIdentifierFactory,
+            dependencyLockingProvider,
+            resolutionStrategyFactory,
+            fileCollectionFactory,
+            buildOperationExecutor,
+            instantiator,
+            artifactNotationParser,
+            capabilityNotationParser,
+            attributesFactory,
+            rootComponentMetadataBuilder,
+            exceptionContextualizer,
+            userCodeApplicationContext,
+            projectStateRegistry,
+            workerThreadRegistry,
+            domainObjectCollectionFactory,
+            calculatedValueContainerFactory,
+            this,
+            taskDependencyFactory
+        );
+        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
+        return instance;
     }
 }

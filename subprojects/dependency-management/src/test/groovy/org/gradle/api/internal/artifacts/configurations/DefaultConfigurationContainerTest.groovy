@@ -208,9 +208,9 @@ class DefaultConfigurationContainerTest extends Specification {
         def legacy = action()
 
         then:
-        legacy instanceof ResolvableConfiguration
-        legacy instanceof ConsumableConfiguration
-        legacy instanceof DependenciesConfiguration
+        !(legacy instanceof ResolvableConfiguration)
+        !(legacy instanceof ConsumableConfiguration)
+        !(legacy instanceof DependenciesConfiguration)
         legacy.isCanBeResolved()
         legacy.isCanBeConsumed()
         legacy.isCanBeDeclared()
@@ -232,13 +232,13 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.RESOLVABLE, "b") {
             resolvable("b", {})
         }
-        verifyRole(ConfigurationRoles.RESOLVABLE, "c") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "c") {
             resolvableUnlocked("c")
         }
-        verifyRole(ConfigurationRoles.RESOLVABLE, "d") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "d") {
             resolvableUnlocked("d", {})
         }
-        verifyRole(ConfigurationRoles.RESOLVABLE, "e") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "e") {
             maybeRegisterResolvableUnlocked("e", {})
         }
     }
@@ -251,13 +251,13 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.CONSUMABLE, "b") {
             consumable("b", {})
         }
-        verifyRole(ConfigurationRoles.CONSUMABLE, "c") {
+        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "c") {
             consumableUnlocked("c")
         }
-        verifyRole(ConfigurationRoles.CONSUMABLE, "d") {
+        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "d") {
             consumableUnlocked("d", {})
         }
-        verifyRole(ConfigurationRoles.CONSUMABLE, "e") {
+        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "e") {
             maybeRegisterConsumableUnlocked("e", {})
         }
     }
@@ -270,42 +270,42 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.BUCKET, "b") {
             dependencies("b", {})
         }
-        verifyRole(ConfigurationRoles.BUCKET, "c") {
+        verifyUnlocked(ConfigurationRoles.BUCKET, "c") {
             dependenciesUnlocked("c")
         }
-        verifyRole(ConfigurationRoles.BUCKET, "d") {
+        verifyUnlocked(ConfigurationRoles.BUCKET, "d") {
             dependenciesUnlocked("d", {})
         }
-        verifyRole(ConfigurationRoles.BUCKET, "e") {
+        verifyUnlocked(ConfigurationRoles.BUCKET, "e") {
             maybeRegisterDependenciesUnlocked("e", {})
         }
-        verifyRole(ConfigurationRoles.BUCKET, "f") {
+        verifyUnlocked(ConfigurationRoles.BUCKET, "f") {
             maybeRegisterDependenciesUnlocked("f", false, {})
         }
     }
 
     def "#name creates resolvable dependencies configuration"() {
         expect:
-        verifyRole(ConfigurationRoles.RESOLVABLE_BUCKET, "a") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "a") {
             resolvableDependenciesUnlocked("a")
         }
-        verifyRole(ConfigurationRoles.RESOLVABLE_BUCKET, "b") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "b") {
             resolvableDependenciesUnlocked("b", {})
         }
-        verifyRole(ConfigurationRoles.RESOLVABLE_BUCKET, "c") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "c") {
             maybeRegisterResolvableDependenciesUnlocked("c", {})
         }
     }
 
     def "can create migrating configurations"() {
         expect:
-        verifyRole(role, "a") {
+        verifyUnlocked(role, "a") {
             migratingUnlocked("a", role)
         }
-        verifyRole(role, "b") {
+        verifyUnlocked(role, "b") {
             migratingUnlocked("b", role) {}
         }
-        verifyRole(role, "c") {
+        verifyUnlocked(role, "c") {
             maybeRegisterMigratingUnlocked("c", role) {}
         }
 
@@ -387,7 +387,7 @@ class DefaultConfigurationContainerTest extends Specification {
     }
 
     def verifyRole(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
-        def action = {
+        verifyConfiguration(name, producer) {
             assert role.resolvable == it instanceof ResolvableConfiguration
             assert role.declarable == it instanceof DependenciesConfiguration
             assert role.consumable == it instanceof ConsumableConfiguration
@@ -395,7 +395,20 @@ class DefaultConfigurationContainerTest extends Specification {
             assert role.declarable == it.isCanBeDeclared()
             assert role.consumable == it.isCanBeConsumed()
         }
+    }
 
+    def verifyUnlocked(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
+        verifyConfiguration(name, producer) {
+            assert !(it instanceof ResolvableConfiguration)
+            assert !(it instanceof DependenciesConfiguration)
+            assert !(it instanceof ConsumableConfiguration)
+            assert role.resolvable == it.isCanBeResolved()
+            assert role.declarable == it.isCanBeDeclared()
+            assert role.consumable == it.isCanBeConsumed()
+        }
+    }
+
+    def verifyConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {
         producer.delegate = configurationContainer
         def provider = producer()
 

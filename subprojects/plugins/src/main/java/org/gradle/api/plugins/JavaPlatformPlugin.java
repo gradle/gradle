@@ -21,7 +21,6 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependenciesConfiguration;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
@@ -110,11 +109,11 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         Capability enforcedCapability = new ShadowedImmutableCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
 
-        NamedDomainObjectProvider<DependenciesConfiguration> api = configurations.dependenciesUnlocked(API_CONFIGURATION_NAME);
+        NamedDomainObjectProvider<Configuration> api = configurations.dependenciesUnlocked(API_CONFIGURATION_NAME);
         NamedDomainObjectProvider<Configuration> apiElements = createConsumableApi(project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptyList());
         createConsumableApi(project, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singletonList(enforcedCapability));
 
-        NamedDomainObjectProvider<DependenciesConfiguration> runtime = project.getConfigurations().dependenciesUnlocked(RUNTIME_CONFIGURATION_NAME, conf -> {
+        NamedDomainObjectProvider<Configuration> runtime = project.getConfigurations().dependenciesUnlocked(RUNTIME_CONFIGURATION_NAME, conf -> {
             conf.extendsFrom(api.get());
         });
 
@@ -129,7 +128,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         createSoftwareComponent(project, apiElements, runtimeElements);
     }
 
-    private NamedDomainObjectProvider<Configuration> createConsumableRuntime(ProjectInternal project, NamedDomainObjectProvider<DependenciesConfiguration> runtime, String name, String platformKind, List<Capability> capabilities) {
+    private NamedDomainObjectProvider<Configuration> createConsumableRuntime(ProjectInternal project, NamedDomainObjectProvider<? extends Configuration> runtime, String name, String platformKind, List<Capability> capabilities) {
         return project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, runtimeElements -> {
             runtimeElements.extendsFrom(runtime.get());
             declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
@@ -138,7 +137,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         });
     }
 
-    private NamedDomainObjectProvider<Configuration> createConsumableApi(ProjectInternal project, NamedDomainObjectProvider<DependenciesConfiguration> api, String name, String platformKind, List<Capability> capabilities) {
+    private NamedDomainObjectProvider<Configuration> createConsumableApi(ProjectInternal project, NamedDomainObjectProvider<? extends Configuration> api, String name, String platformKind, List<Capability> capabilities) {
         return project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, apiElements -> {
             apiElements.extendsFrom(api.get());
             declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);

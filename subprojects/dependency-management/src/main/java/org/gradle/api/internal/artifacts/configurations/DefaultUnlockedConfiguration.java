@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
-import org.gradle.api.artifacts.ConsumableConfiguration;
-import org.gradle.api.artifacts.DependenciesConfiguration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
@@ -42,11 +40,11 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
- * Extends a {@link DefaultConfiguration} to expose it as a {@link ConsumableConfiguration} and a {@link DependenciesConfiguration}.
+ * A concrete {@link DefaultConfiguration} implementation which can change roles.
  */
-public class DefaultConsumableDependenciesConfiguration extends DefaultConfiguration implements ConsumableConfiguration, DependenciesConfiguration {
+public class DefaultUnlockedConfiguration extends DefaultConfiguration {
 
-    public DefaultConsumableDependenciesConfiguration(
+    public DefaultUnlockedConfiguration(
         DomainObjectContext domainObjectContext,
         String name,
         ConfigurationsProvider configurationsProvider,
@@ -72,8 +70,7 @@ public class DefaultConsumableDependenciesConfiguration extends DefaultConfigura
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
-        ConfigurationRole roleAtCreation,
-        boolean lockUsage
+        ConfigurationRole roleAtCreation
     ) {
         super(
             domainObjectContext,
@@ -102,10 +99,8 @@ public class DefaultConsumableDependenciesConfiguration extends DefaultConfigura
             defaultConfigurationFactory,
             taskDependencyFactory,
             roleAtCreation,
-            lockUsage
+            false
         );
-
-        assert roleAtCreation.isConsumable() && roleAtCreation.isDeclarable() && !roleAtCreation.isResolvable();
     }
 
 }
