@@ -67,9 +67,19 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.remove(testDescriptor);
-        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, currentTime, testResult.getException(), new Result(testResult)));
+        if (runningOp == null) {
+            //TODO:configuration-cache
+            return;
+        }
+        long currentTime = clock.getCurrentTime();
+        OperationFinishEvent finishEvent = new OperationFinishEvent(
+            runningOp.startTime,
+            currentTime,
+            testResult.getException(),
+            new Result(testResult)
+        );
+        listener.finished(runningOp.descriptor, finishEvent);
     }
 
     @Override
