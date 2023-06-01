@@ -353,6 +353,20 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    fun `accessing absent extension fails with reasonable error message`() {
+        listOf(
+            "the<SourceDirectorySet>()",
+            "the(SourceDirectorySet::class)",
+            "configure<SourceDirectorySet> {}",
+        ).forEach { accessFlavor ->
+            withBuildScript(accessFlavor)
+            buildAndFail("help").apply {
+                assertHasFailure("Extension of type 'SourceDirectorySet' does not exist. Currently registered extension types: [ExtraPropertiesExtension]") {}
+            }
+        }
+    }
+
+    @Test
     @UnsupportedWithConfigurationCache(because = "test configuration phase")
     fun `can access project conventions`() {
         withKotlinBuildSrc()
