@@ -87,6 +87,20 @@ alt="gradle kotlin DSL reference screenshot"/>
 The last release [introduced](/8.1.1/release-notes.html#experimental-simple-property-assignment-in-kotlin-dsl-scripts) the simpler way to assign values to [lazy property types](userguide/lazy_configuration.html#lazy_properties) in Kotlin scripts using the `=` operator instead of  the `set()` method.
 This new assignment operator is now available by default.
 
+```kotlin
+interface Extension {
+    val description: Property<String>
+}
+
+// register "extension" with type Extension
+extension {
+    // Using the set() method call
+    description.set("Hello Property")
+    // Incubating: using lazy property assignment
+    description = "Hello Property"
+}
+```
+
 This feature is still incubating.
 In case of any issues you can opt-out by adding  `systemProp.org.gradle.unsafe.kotlin.assignment=false` to the `gradle.properties` file.
 
