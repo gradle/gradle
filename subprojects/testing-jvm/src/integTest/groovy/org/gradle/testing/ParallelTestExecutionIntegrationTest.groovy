@@ -16,6 +16,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -127,6 +128,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    @ToBeFixedForConfigurationCache(because = "load-after-store")
     def "does not run tests from multiple tasks from the same project in parallel"() {
         withBlockingJUnitTests(2)
         withBlockingJUnitTests(2, "other")

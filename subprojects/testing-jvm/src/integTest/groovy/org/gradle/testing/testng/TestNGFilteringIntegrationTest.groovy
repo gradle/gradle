@@ -19,8 +19,97 @@ package org.gradle.testing.testng
 
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 
 @TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-class TestNGFilteringIntegrationTest extends AbstractTestNGFilteringIntegrationTest {
+class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
+
+    void theUsualFiles() {
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test {
+              ${configureTestFramework} {
+                suiteXmlBuilder().suite(name: 'AwesomeSuite') {
+                    test (name: 'AwesomeTest') {
+                        classes([:]) {
+                            'class' (name: 'FooTest')
+                            'class' (name: 'BarTest')
+                        }
+                    }
+                }
+              }
+            }
+        """
+
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
+            public class FooTest {
+                @Test public void pass() {}
+            }
+        """
+        file("src/test/java/BarTest.java") << """
+            ${testFrameworkImports}
+            public class BarTest {
+                @Test public void pass() {}
+            }
+        """
+        file("src/test/java/BazTest.java") << """
+            ${testFrameworkImports}
+            public class BazTest {
+                @Test public void pass() {}
+            }
+        """
+    }
+
+    @ToBeFixedForConfigurationCache(because = "load-after-store")
+    @Issue("GRADLE-3112")
+    def "suites can be filtered from the command-line"() {
+        given:
+        theUsualFiles()
+
+        when:
+        run("test", "--tests", "*AwesomeSuite*")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+
+        result.assertTestClassesExecuted('FooTest', 'BarTest')
+        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestsExecuted('pass')
+        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestsExecuted('pass')
+    }
+
+    @ToBeFixedForConfigurationCache(because = "load-after-store")
+    @Issue("GRADLE-3112")
+    def "suites can be filtered from the build file"() {
+        given:
+        theUsualFiles()
+        // and this addition to the build file ...
+        buildFile << """
+            test {
+              filter {
+                includeTestsMatching "*AwesomeSuite*"
+              }
+            }
+        """
+
+        when:
+        run("test")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+
+        result.assertTestClassesExecuted('FooTest', 'BarTest')
+        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestsExecuted('pass')
+        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestsExecuted('pass')
+    }
 }
