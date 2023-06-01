@@ -91,10 +91,26 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
  * @see [org.gradle.api.plugins.ExtensionAware]
  */
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
-    @Suppress("deprecation")
     typeOf<T>().let { type ->
-        val c: org.gradle.api.plugins.Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
-        c.findByType(type)?.let(configuration) ?: c.findPlugin<T>()?.let(configuration) ?: c.configure(type, configuration)
+        // Find and configure extension
+        extensions.findByType(type)?.let(configuration)
+        // Find and configure convention
+        // Reflective look up to still support plugins that inlined this function once conventions will be removed
+            ?: DeprecationLogger.whileDisabled(Factory {
+                this::class.java.methods
+                    .firstOrNull { it.name == "getConvention" }
+                    ?.invoke(this)
+                    ?.let { convention ->
+                        convention::class.java
+                            .getMethod("findPlugin", Class::class.java)
+                            .invoke(convention, T::class.java)
+                    }
+            })?.let { plugin ->
+                @Suppress("UNCHECKED_CAST")
+                configuration(plugin as T)
+            }
+            // Configure the non-existent extension for error handling
+            ?: extensions.configure(type, configuration)
     }
 
 
@@ -109,12 +125,22 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
  * @see [org.gradle.api.plugins.ExtensionAware]
  */
 inline fun <reified T : Any> Project.the(): T =
-    @Suppress("deprecation")
     typeOf<T>().let { type ->
-        val c: org.gradle.api.plugins.Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
-        c.findByType(type) ?: c.findPlugin(T::class.java) ?: c.getByType(type)
+        // Find extension
+        extensions.findByType(type)
+        // Find convention
+        // Reflective look up to still support plugins that inlined this function once conventions will be removed
+            ?: DeprecationLogger.whileDisabled(Factory {
+                this::class.java.methods.firstOrNull { it.name == "getConvention" }
+                    ?.invoke(this)?.let { convention ->
+                        @Suppress("UNCHECKED_CAST")
+                        convention::class.java.getMethod("findPlugin", Class::class.java)
+                            .invoke(convention, T::class.java) as? T
+                    }
+            })
+            // Get the non-existent extension for error handling
+            ?: extensions.getByType(type)
     }
-
 
 /**
  * Returns the [project extension][org.gradle.api.plugins.ExtensionAware] of the specified type.
@@ -126,11 +152,21 @@ inline fun <reified T : Any> Project.the(): T =
  * @param T the project extension type.
  * @see [org.gradle.api.plugins.ExtensionAware]
  */
-@Suppress("deprecation")
-fun <T : Any> Project.the(extensionType: KClass<T>): T {
-    val c = DeprecationLogger.whileDisabled(Factory { convention })!!
-    return c.findByType(extensionType.java) ?: c.findPlugin(extensionType.java) ?: c.getByType(extensionType.java)
-}
+fun <T : Any> Project.the(extensionType: KClass<T>): T =
+    // Find extension
+    extensions.findByType(extensionType.java)
+    // Find convention
+    // Reflective look up to still support plugins that inlined this function once conventions will be removed
+        ?: DeprecationLogger.whileDisabled(Factory {
+            this::class.java.methods.firstOrNull { it.name == "getConvention" }
+                ?.invoke(this)?.let { convention ->
+                    @Suppress("UNCHECKED_CAST")
+                    convention::class.java.getMethod("findPlugin", Class::class.java)
+                        .invoke(convention, extensionType.java) as? T
+                }
+        })
+        // Get the non-existent extension for error handling
+        ?: extensions.getByType(extensionType.java)
 
 
 /**
