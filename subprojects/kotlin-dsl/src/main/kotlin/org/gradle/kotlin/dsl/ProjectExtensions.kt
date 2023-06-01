@@ -94,7 +94,7 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
     typeOf<T>().let { type ->
         // Find and configure extension
         extensions.findByType(type)?.let(configuration)
-            ?: DeprecationLogger.whileDisabled(Factory {
+            ?: Factory {
                 // Find and configure convention
                 // Reflective look up to still support plugins that inlined this function once conventions will be removed
                 this::class.java.methods
@@ -105,9 +105,13 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
                             .getMethod("findPlugin", Class::class.java)
                             .invoke(convention, T::class.java)
                     }
-            })?.let { plugin ->
-                @Suppress("UNCHECKED_CAST")
-                configuration(plugin as T)
+            }.let { findPlugin ->
+                DeprecationLogger.whileDisabled(findPlugin)?.let { plugin ->
+                    // Second lookup to trigger deprecation warning if convention is found
+                    findPlugin.create()
+                    @Suppress("UNCHECKED_CAST")
+                    configuration(plugin as T)
+                }
             }
             // Configure the non-existent extension for error handling
             ?: extensions.configure(type, configuration)
@@ -128,16 +132,20 @@ inline fun <reified T : Any> Project.the(): T =
     typeOf<T>().let { type ->
         // Find extension
         extensions.findByType(type)
-            ?: DeprecationLogger.whileDisabled(Factory {
+            ?: Factory {
                 // Find convention
                 // Reflective look up to still support plugins that inlined this function once conventions will be removed
-                this::class.java.methods.firstOrNull { it.name == "getConvention" }
-                    ?.invoke(this)?.let { convention ->
-                        @Suppress("UNCHECKED_CAST")
-                        convention::class.java.getMethod("findPlugin", Class::class.java)
-                            .invoke(convention, T::class.java) as? T
-                    }
-            })
+                this::class.java.methods.firstOrNull { it.name == "getConvention" }?.invoke(this)?.let { convention ->
+                    convention::class.java.getMethod("findPlugin", Class::class.java).invoke(convention, T::class.java)
+                }
+            }.let { findPlugin ->
+                DeprecationLogger.whileDisabled(findPlugin)?.let { plugin ->
+                    // Second lookup to trigger deprecation warning if convention is found
+                    findPlugin.create()
+                    @Suppress("UNCHECKED_CAST")
+                    plugin as T
+                }
+            }
             // Get the non-existent extension for error handling
             ?: extensions.getByType(type)
     }
@@ -156,16 +164,20 @@ inline fun <reified T : Any> Project.the(): T =
 fun <T : Any> Project.the(extensionType: KClass<T>): T =
     // Find extension
     extensions.findByType(extensionType.java)
-        ?: DeprecationLogger.whileDisabled(Factory {
+        ?: Factory {
             // Find convention
             // Reflective look up to still support plugins that inlined this function once conventions will be removed
-            this::class.java.methods.firstOrNull { it.name == "getConvention" }
-                ?.invoke(this)?.let { convention ->
-                    @Suppress("UNCHECKED_CAST")
-                    convention::class.java.getMethod("findPlugin", Class::class.java)
-                        .invoke(convention, extensionType.java) as? T
-                }
-        })
+            this::class.java.methods.firstOrNull { it.name == "getConvention" }?.invoke(this)?.let { convention ->
+                convention::class.java.getMethod("findPlugin", Class::class.java).invoke(convention, extensionType.java)
+            }
+        }.let { findPlugin ->
+            DeprecationLogger.whileDisabled(findPlugin)?.let { plugin ->
+                // Second lookup to trigger deprecation warning if convention is found
+                findPlugin.create()
+                @Suppress("UNCHECKED_CAST")
+                plugin as T
+            }
+        }
         // Get the non-existent extension for error handling
         ?: extensions.getByType(extensionType.java)
 

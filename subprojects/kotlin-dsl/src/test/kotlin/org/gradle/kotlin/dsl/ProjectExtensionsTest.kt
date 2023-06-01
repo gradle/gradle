@@ -5,6 +5,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.whenever
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
@@ -81,7 +82,7 @@ class ProjectExtensionsTest {
 
         inOrder(convention) {
             verify(convention).findByType(any<TypeOf<CustomConvention>>())
-            verify(convention).findPlugin(eq(CustomConvention::class.java))
+            verify(convention, times(2)).findPlugin(eq(CustomConvention::class.java))
             verifyNoMoreInteractions()
         }
     }
@@ -106,7 +107,7 @@ class ProjectExtensionsTest {
 
         inOrder(convention) {
             verify(convention).findByType(any<TypeOf<CustomConvention>>())
-            verify(convention).findPlugin(eq(CustomConvention::class.java))
+            verify(convention, times(2)).findPlugin(eq(CustomConvention::class.java))
             verifyNoMoreInteractions()
         }
     }
