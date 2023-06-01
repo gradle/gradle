@@ -18,16 +18,9 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
-description = "Internal project testing and collecting information about all the test preconditons."
+description = "Internal project testing and collecting information about all the test preconditions."
 
 dependencies {
-    testImplementation(platform(project(":distributions-dependencies"))) {
-        because("Then there will be actual versions for the `lib.*` coming from 'gradlebuild.dependency-modules'")
-    }
-
-    testImplementation(project(":internal-testing")) {
-        because("Basic predicate classes come from here")
-    }
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
@@ -52,8 +45,12 @@ tasks {
         testClassesDirs = sourceSets.test.get().output.classesDirs
         classpath = sourceSets.test.get().runtimeClasspath
 
+        // These tests should not be impacted by the predictive selection
         predictiveSelection {
             enabled = false
         }
+
+        // These tests should always run
+        outputs.upToDateWhen { false }
     }
 }
