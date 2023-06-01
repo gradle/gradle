@@ -199,7 +199,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     protected class RealizedElementCollectionIterator implements Iterator<T> {
         final List<Element<T>> backingList;
-        final Spec<ValuePointer<T>> acceptanceSpec;
+        final Spec<ValuePointer<?>> acceptanceSpec;
         int nextIndex = -1;
         int nextSubIndex = -1;
         int previousIndex = -1;
@@ -207,7 +207,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         T next;
         int expectedModCount = modCount;
 
-        RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<ValuePointer<T>> acceptanceSpec) {
+        RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<ValuePointer<?>> acceptanceSpec) {
             this.backingList = backingList;
             this.acceptanceSpec = acceptanceSpec;
             updateNext();
