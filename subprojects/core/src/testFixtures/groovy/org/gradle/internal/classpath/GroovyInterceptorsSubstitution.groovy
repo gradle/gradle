@@ -141,5 +141,14 @@ class GroovyInterceptorsSubstitution {
             }
             return null
         }
+
+        @Override
+        boolean isAwareOfCallSiteName(String name) {
+            def decorator = threadLocalDecorators.get()
+            if (decorator instanceof CallInterceptorResolver) {
+                return decorator.isAwareOfCallSiteName(name);
+            }
+            return false;
+        }
     }
 }

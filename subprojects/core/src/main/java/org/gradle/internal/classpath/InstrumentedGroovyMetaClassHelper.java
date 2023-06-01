@@ -16,10 +16,13 @@
 
 package org.gradle.internal.classpath;
 
+import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.gradle.api.NonNullApi;
+
+import static org.gradle.internal.classpath.Instrumented.INTERCEPTOR_RESOLVER;
 
 /**
  * Injects the logic for Groovy calls instrumentation into the Groovy metaclasses.
@@ -31,8 +34,10 @@ public class InstrumentedGroovyMetaClassHelper {
      * Should be invoked on an object that a Groovy Closure can dispatch the calls to. Injects the call interception logic into the metaclass of that object.
      * This is normally done for closure delegates, while the owner and thisObject are covered in {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksInClosureConstructor(Object, Object)}
      */
-    public static void addInvocationHooksInClosureDispatchObject(Object object) {
-        addInvocationHooksToMetaClass(object.getClass());
+    public static void addInvocationHooksInClosureDispatchObject(Object object, boolean isEffectivelyInstrumented) {
+        if (isEffectivelyInstrumented) {
+            addInvocationHooksToMetaClass(object.getClass());
+        }
     }
 
     /**
@@ -42,6 +47,18 @@ public class InstrumentedGroovyMetaClassHelper {
     public static void addInvocationHooksInClosureConstructor(Object owner, Object thisObject) {
         addInvocationHooksToMetaClass(owner.getClass());
         addInvocationHooksToMetaClass(thisObject.getClass());
+    }
+
+    public static void addInvocationHooksToEffectivelyInstrumentClosure(Closure<?> closure) {
+        addInvocationHooksToMetaClass(closure.getThisObject().getClass());
+        addInvocationHooksToMetaClass(closure.getOwner().getClass());
+        addInvocationHooksToMetaClass(closure.getDelegate().getClass());
+    }
+
+    public static void addInvocationHooksToMetaClassIfInstrumented(Class<?> javaClass, String callableName) {
+        if (INTERCEPTOR_RESOLVER.isAwareOfCallSiteName(callableName)) {
+            addInvocationHooksToMetaClass(javaClass);
+        }
     }
 
     public static void addInvocationHooksToMetaClass(Class<?> javaClass) {
@@ -54,6 +71,6 @@ public class InstrumentedGroovyMetaClassHelper {
     }
 
     private static CallInterceptingMetaClass interceptedMetaClass(Class<?> javaClass, MetaClassRegistry metaClassRegistry, MetaClass originalMetaClass) {
-        return new CallInterceptingMetaClass(metaClassRegistry, javaClass, originalMetaClass, Instrumented.INTERCEPTOR_RESOLVER);
+        return new CallInterceptingMetaClass(metaClassRegistry, javaClass, originalMetaClass, INTERCEPTOR_RESOLVER);
     }
 }

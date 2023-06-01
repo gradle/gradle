@@ -137,13 +137,29 @@ public class Instrumented {
         GroovyCallInterceptorsProvisionTools.getInterceptorsFromProvider(GroovyCallInterceptorsProvider.DEFAULT).stream()
     );
 
-    public static final CallInterceptorResolver INTERCEPTOR_RESOLVER = scope -> {
-        CallSiteDecorator currentDecorator = currentCallDecorator;
-        if (currentDecorator instanceof CallInterceptorResolver) {
-            return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
+    @NonNullApi
+    private static final class InterceptorResolverImpl implements CallInterceptorResolver {
+        @Nullable
+        @Override
+        public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
+            CallSiteDecorator currentDecorator = currentCallDecorator;
+            if (currentDecorator instanceof CallInterceptorResolver) {
+                return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
+            }
+            return null;
         }
-        return null;
-    };
+
+        @Override
+        public boolean isAwareOfCallSiteName(String name) {
+            CallSiteDecorator currentDecorator = currentCallDecorator;
+            if (currentDecorator instanceof CallInterceptorResolver) {
+                return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
+            }
+            return false;
+        }
+    }
+
+    public static final CallInterceptorResolver INTERCEPTOR_RESOLVER = new InterceptorResolverImpl();
 
     // TODO: We can support getting the interceptors in the instrumented code from different locations, not just `Instrumented.currentCallDecorator`,
     //       so that replacing the call interceptors for tests would instead work by embedding a different location

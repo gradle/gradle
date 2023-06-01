@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
+package org.gradle.internal.classpath;
 
 import org.gradle.api.NonNullApi;
 
-import javax.annotation.Nullable;
-
 @NonNullApi
-public interface CallInterceptorResolver {
-    @Nullable
-    CallInterceptor resolveCallInterceptor(InterceptScope scope);
-
-    boolean isAwareOfCallSiteName(String name);
+public interface InstrumentableClosure {
+    void makeEffectivelyInstrumented();
 }

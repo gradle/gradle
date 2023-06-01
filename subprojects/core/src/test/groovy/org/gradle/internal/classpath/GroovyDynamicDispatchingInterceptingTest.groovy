@@ -23,9 +23,23 @@ import java.util.function.Predicate
 
 class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionTest {
 
+    // We don't want to interfere with other tests that modify the meta class
+    def interceptorTestReceiverClassLock = new ClassBasedLock(InterceptorTestReceiver)
+    def originalMetaClass = null
+
+    def setup() {
+        interceptorTestReceiverClassLock.lock()
+        originalMetaClass = InterceptorTestReceiver.metaClass
+    }
+
+    def cleanup() {
+        InterceptorTestReceiver.metaClass = originalMetaClass
+        interceptorTestReceiverClassLock.unlock()
+    }
+
     @Override
     protected Predicate<String> shouldInstrumentAndReloadClassByName() {
-        InstrumentedClasses.nestedClassesOf(this.class)
+        InstrumentedClasses.nestedClassesOf(this.class) | Predicate.isEqual(JavaCallerForBasicCallInterceptorTest.class.name)
     }
 
     @Override
@@ -35,60 +49,73 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
 
     @Override
     protected GroovyCallInterceptorsProvider groovyCallInterceptors() {
-        GroovyCallInterceptorsProvider.DEFAULT
+        GroovyCallInterceptorsProvider.DEFAULT + { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
     }
 
-    // Define nested classes so that we can freely modify the metaClass of these classes loaded in the child class loader
-    class NestedClassOne {}
+    // Define a nested classes so that we can freely modify the metaClass of it loaded in the child class loader
+    class NestedClass {}
 
-    class NestedClassTwo {}
-
-    def 'setting a delegate of a closure replaces the metaclass of the delegate'() {
+    def 'setting a delegate of a closure before invoking an intercepted method in it replaces the metaclass of the delegate'() {
         given:
-        def transformedClosure = instrumentedClasses.instrumentedClosure {}
+        def transformedClosure = instrumentedClasses.instrumentedClosure {
+            test()
+        }
+        def receiver = new InterceptorTestReceiver()
 
         when:
-        def modifiedMetaClass = instrumentedClasses.instrumentedClosure { Closure<?> closure ->
-            closure.delegate = new NestedClassOne()
-            GroovySystem.metaClassRegistry.getMetaClass(NestedClassOne.class) instanceof CallInterceptingMetaClass
-        }(transformedClosure)
+        transformedClosure.delegate = receiver
+        transformedClosure()
 
         then:
-        modifiedMetaClass
+        GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass
+    }
+
+    def 'setting a delegate of a closure after invoking an intercepted method replaces the metaclass of the new delegate'() {
+        given:
+        def transformedClosure = instrumentedClasses.instrumentedClosure {
+            test()
+            delegate = new NestedClass()
+            return GroovySystem.metaClassRegistry.getMetaClass(NestedClass) instanceof CallInterceptingMetaClass
+        }
+        transformedClosure.delegate = new InterceptorTestReceiver()
+
+        when:
+        def isNewDelegateMetaclassReplaced = transformedClosure()
+
+        then:
+        isNewDelegateMetaclassReplaced
+        GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass
     }
 
     def 'invoking a closure constructor with a specific owner replaces the metaclass of the delegate'() {
         given:
-        def transformedClosureClass = instrumentedClasses.instrumentedClass({}.class)
-        def constructor = transformedClosureClass.getDeclaredConstructor(Object.class, Object.class)
+        def transformedClosureClass = instrumentedClasses.instrumentedClosure {
+            test()
+        }
+        def constructor = transformedClosureClass.class.getDeclaredConstructor(Object.class, Object.class)
 
         when:
-        def modifiedMetaClasses = instrumentedClasses.instrumentedClosure { Constructor<?> ctor ->
-            ctor.newInstance(new NestedClassOne(), new NestedClassTwo())
+        def modifiedMetaClasses = instrumentedClasses.instrumentedClosure { Constructor<?> ctor, Object receiver ->
+            def closure = ctor.newInstance(new InterceptorTestReceiver(), new NestedClass())
+            closure.delegate = receiver
+            closure()
             [
-                GroovySystem.metaClassRegistry.getMetaClass(NestedClassOne.class) instanceof CallInterceptingMetaClass,
-                GroovySystem.metaClassRegistry.getMetaClass(NestedClassTwo.class) instanceof CallInterceptingMetaClass
+                GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass,
+                GroovySystem.metaClassRegistry.getMetaClass(NestedClass) instanceof CallInterceptingMetaClass
             ]
-        }(constructor)
+        }(constructor, new InterceptorTestReceiver())
 
         then:
         modifiedMetaClasses.every()
     }
 
-    def 'constructing a BeanDynamicObject replaces the metaclass of the bean'() {
+    def 'invoking an intercepted method on a BeanDynamicObject replaces the metaclass of the bean'() {
         when:
-        def modifiedMetaClasses = instrumentedClasses.instrumentedClosure {
-            def instanceOne = new NestedClassOne()
-            new BeanDynamicObject(instanceOne)
-            def instanceTwo = new NestedClassTwo()
-            new BeanDynamicObject(instanceTwo, Object)
-            [
-                instanceOne.metaClass instanceof CallInterceptingMetaClass,
-                instanceTwo.metaClass instanceof CallInterceptingMetaClass
-            ]
-        }
+        instrumentedClasses.instrumentedClosure { receiver ->
+            new BeanDynamicObject(receiver).invokeMethod("test")
+        }(new InterceptorTestReceiver())
 
         then:
-        modifiedMetaClasses.every()
+        GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass
     }
 }

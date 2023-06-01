@@ -38,8 +38,10 @@ import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -109,13 +111,17 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         this.delegate = determineDelegate(bean);
     }
 
-    private static Method addInvocationHooksToMetaClassMethod;
+    private static final MethodHandle ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD;
 
     static {
         try {
             Class<?> metaClassHelperClass = Class.forName("org.gradle.internal.classpath.InstrumentedGroovyMetaClassHelper");
-            addInvocationHooksToMetaClassMethod = metaClassHelperClass.getMethod("addInvocationHooksToMetaClass", Class.class);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD = MethodHandles.lookup().findStatic(metaClassHelperClass, "addInvocationHooksToMetaClassIfInstrumented", MethodType.methodType(void.class, Class.class, String.class));
+        } catch (NoSuchMethodException e) {
+            throw new NoSuchMethodError(e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessError(e.getMessage());
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
@@ -126,14 +132,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         } else if (bean instanceof Map) {
             return new MapAdapter();
         } else {
-            // We need to be able to instrument calls on objects that we wrap into BeanDynamicObject, e.g. on tasks.
-            // For that, we need to replace the metaclass of the wrapped object before the BeanDynamicObject is first used.
-            try {
-                addInvocationHooksToMetaClassMethod.invoke(null, bean.getClass());
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-
             if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
                 return new MetaClassAdapter();
             }
@@ -242,6 +240,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.notFound();
             }
 
+            try {
+                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
             MetaClass metaClass = getMetaClass();
 
             // First look for a property known to the meta-class
@@ -379,6 +382,12 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return DynamicInvokeResult.notFound();
             }
 
+            try {
+                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+
             MetaClass metaClass = getMetaClass();
             MetaProperty property = lookupProperty(metaClass, name);
             if (property != null) {
@@ -508,6 +517,12 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         public DynamicInvokeResult invokeMethod(String name, Object... arguments) {
+            try {
+                ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD.invoke(bean.getClass(), name);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+
             MetaClass metaClass = getMetaClass();
             MetaMethod metaMethod = lookupMethod(metaClass, name, inferTypes(arguments));
             if (metaMethod != null) {

@@ -22,6 +22,8 @@ import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.classpath.InstrumentedClosuresTracker;
+import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
@@ -140,6 +142,11 @@ public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorRe
         return interceptors.get(scope);
     }
 
+    @Override
+    public boolean isAwareOfCallSiteName(String name) {
+        return interceptedCallSiteNames.contains(name);
+    }
+
     private class DecoratingCallSite extends AbstractCallSite {
         public DecoratingCallSite(CallSite prev) {
             super(prev);
@@ -197,39 +204,26 @@ public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorRe
             }, callSiteOwnerClassName());
         }
 
+        private @Nullable Object maybeInstrumentedDynamicCall(
+            InstrumentedGroovyCallsTracker.CallKind kind,
+            InstrumentedGroovyCallsTracker.ThrowingCallable<Object> invokeOriginal
+        ) throws Throwable {
+            if (interceptedCallSiteNames.contains(getName())) {
+                InstrumentedClosuresTracker.INSTANCE.hitInstrumentedDynamicCall();
+                return withEntryPoint(callSiteOwnerClassName(), getName(), kind, invokeOriginal);
+            } else {
+                return invokeOriginal.call();
+            }
+        }
+
         @Override
         public @Nullable Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
-            return withEntryPoint(callSiteOwnerClassName(), getName(), GET_PROPERTY, () -> super.callGroovyObjectGetProperty(receiver));
+            return maybeInstrumentedDynamicCall(GET_PROPERTY, () -> super.callGroovyObjectGetProperty(receiver));
         }
 
         @Override
         public @Nullable Object callCurrent(GroovyObject receiver, Object[] args) throws Throwable {
-            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, args));
-        }
-
-        @Override
-        public @Nullable Object callCurrent(GroovyObject receiver) throws Throwable {
-            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver));
-        }
-
-        @Override
-        public @Nullable Object callCurrent(GroovyObject receiver, Object arg1) throws Throwable {
-            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, arg1));
-        }
-
-        @Override
-        public @Nullable Object callCurrent(GroovyObject receiver, Object arg1, Object arg2) throws Throwable {
-            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, arg1, arg2));
-        }
-
-        @Override
-        public @Nullable Object callCurrent(GroovyObject receiver, Object arg1, Object arg2, Object arg3) throws Throwable {
-            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, arg1, arg2, arg3));
-        }
-
-        @Override
-        public @Nullable Object callCurrent(GroovyObject receiver, Object arg1, Object arg2, Object arg3, Object arg4) throws Throwable {
-            return withEntryPoint(callSiteOwnerClassName(), getName(), INVOKE_METHOD, () -> super.callCurrent(receiver, arg1, arg2, arg3, arg4));
+            return maybeInstrumentedDynamicCall(INVOKE_METHOD, () -> super.callCurrent(receiver, args));
         }
 
         private String callSiteOwnerClassName() {
