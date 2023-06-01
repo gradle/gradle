@@ -24,16 +24,22 @@ import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch
 
 
 internal
 class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Codec<AnonymousListenerBroadcast<*>> {
     override suspend fun WriteContext.encode(value: AnonymousListenerBroadcast<*>) {
         val broadcast: AnonymousListenerBroadcast<Any> = value.uncheckedCast()
-        writeClass(value.type)
+        val listenerType = value.type
+        writeClass(listenerType)
         val listeners = mutableListOf<Any>()
-        broadcast.visitListeners {
-            listeners.add(this)
+        broadcast.visitListenersUntyped {
+            val listener = this
+            if (isSupportedListener(listener, listenerType)) {
+                // TODO:configuration-cache consider emitting problems for unsupported listeners
+                listeners.add(this)
+            }
         }
         writeCollection(listeners) {
             write(it)
@@ -44,9 +50,16 @@ class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Cod
         val type: Class<Any> = readClass().uncheckedCast()
         val broadcast = listenerManager.createAnonymousBroadcaster(type)
         readCollection {
-            val listener = read()
-            broadcast.add(listener)
+            when (val listener = read()) {
+                is ClosureBackedMethodInvocationDispatch -> broadcast.add(listener)
+                else -> broadcast.add(listener)
+            }
         }
         return broadcast
     }
+
+    private
+    fun isSupportedListener(listener: Any, listenerType: Class<out Any>) =
+        listener is ClosureBackedMethodInvocationDispatch
+            || listenerType.isInstance(listener)
 }
