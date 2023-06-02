@@ -36,6 +36,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -47,7 +48,7 @@ import java.util.Set;
 abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T> {
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
-    private final List<Element<T>> inserted = new ArrayList<Element<T>>();
+    private final List<Element<T>> inserted = new ArrayList<>();
 
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
@@ -150,7 +151,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        final Element<T> element = new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), this::doAddRealized);
+        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), this::doAddRealized);
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> clearCachedElement(element));
         }
@@ -158,7 +159,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), this::doAddRealized);
+        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), this::doAddRealized);
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(previousValues -> clearCachedElement(element));
         }
@@ -323,7 +324,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         private boolean realized;
         private final Action<T> realizeAction;
 
-        Element(Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction) {
+        Element(@Nullable Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction) {
             super(type, delegate);
             this.realizeAction = realizeAction;
         }

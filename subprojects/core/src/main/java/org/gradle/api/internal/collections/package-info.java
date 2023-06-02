@@ -14,18 +14,5 @@
  * limitations under the License.
  */
 
+@org.gradle.api.NonNullApi
 package org.gradle.api.internal.collections;
-
-import javax.annotation.Nullable;
-
-/**
- * Tracks which types are subscribed to by eager event listeners. Lazy elements of a
- * subscribed type should be immediately realized when added to a container.
- */
-public interface EventSubscriptionVerifier<T> {
-
-    /**
-     * Determines whether events should be emitted for elements of the given type.
-     */
-    boolean isSubscribed(@Nullable Class<? extends T> type);
-}
