@@ -22,9 +22,9 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -60,7 +60,7 @@ public class TypeHierarchyRegistry {
         }
     }
     private Set<String> computeSuperTypes(String type) {
-        Queue<String> superTypes = new LinkedList<>(getOrLoadDirectSuperTypes(type));
+        Queue<String> superTypes = new ArrayDeque<>(getOrLoadDirectSuperTypes(type));
         Set<String> collected = new HashSet<>();
         collected.add(type);
         while (!superTypes.isEmpty()) {
@@ -86,19 +86,28 @@ public class TypeHierarchyRegistry {
 
     private static Set<String> loadDirectSuperTypes(String type) {
         try {
-            Class<?> clazz = Class.forName(type.replace('/', '.'));
+            Class<?> clazz = Class.forName(toClassName(type));
             ImmutableSet.Builder<String> collected = ImmutableSet.builder();
             if (clazz.getSuperclass() != null) {
-                collected.add(clazz.getSuperclass().getName().replace('.', '/'));
+                collected.add(toResourcePath(clazz.getSuperclass()));
             }
             for (Class<?> superType : clazz.getInterfaces()) {
-                collected.add(superType.getName().replace('.', '/'));
+                collected.add(toResourcePath(superType));
             }
             return collected.build();
         } catch (ClassNotFoundException e) {
             return Collections.emptySet();
         }
     }
+
+    private static String toClassName(String type) {
+        return type.replace('/', '.');
+    }
+
+    private static String toResourcePath(Class<?> clazz) {
+        return clazz.getName().replace('.', '/');
+    }
+
 
     public static TypeHierarchyRegistry of(List<TypeHierarchyRegistry> others) {
         TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();

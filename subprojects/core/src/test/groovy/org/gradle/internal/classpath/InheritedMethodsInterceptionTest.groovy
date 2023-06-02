@@ -60,12 +60,12 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
         intercepted == expected
 
         where:
-        description                      | interceptionReceiver                                               | expected
-        "base class"                     | new InheritedMethodTestReceiver()                                  | "Hello from: InheritedMethodTestReceiver"
-        "direct subclass"                | new InheritedMethodTestReceiver.A()                                | "Hello from: InheritedMethodTestReceiver\$A"
-        "transient subclass"             | new InheritedMethodTestReceiver.B()                                | "Hello from: InheritedMethodTestReceiver\$B"
-        "down-casted direct subclass"    | new InheritedMethodTestReceiver.A() as InheritedMethodTestReceiver | "Hello from: InheritedMethodTestReceiver\$A"
-        "down-casted transient subclass" | new InheritedMethodTestReceiver.B() as InheritedMethodTestReceiver | "Hello from: InheritedMethodTestReceiver\$B"
+        description                       | interceptionReceiver                                               | expected
+        "base class"                      | new InheritedMethodTestReceiver()                                  | "Hello from: InheritedMethodTestReceiver"
+        "direct subclass"                 | new InheritedMethodTestReceiver.A()                                | "Hello from: InheritedMethodTestReceiver\$A"
+        "transient subclass"              | new InheritedMethodTestReceiver.B()                                | "Hello from: InheritedMethodTestReceiver\$B"
+        "down-casted direct subclass"     | new InheritedMethodTestReceiver.A() as InheritedMethodTestReceiver | "Hello from: InheritedMethodTestReceiver\$A"
+        "down-casted transitive subclass" | new InheritedMethodTestReceiver.B() as InheritedMethodTestReceiver | "Hello from: InheritedMethodTestReceiver\$B"
     }
 
     def 'intercepts inherited method for interface type from Gradle core #description'() {
@@ -78,7 +78,7 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
         where:
         description          | interceptionReceiver  | expected
         "direct subclass"    | new MyDirectRule()    | "This is a description for: InheritedMethodsInterceptionTest\$MyDirectRule"
-        "transient subclass" | new MyTransientRule() | "This is a description for: InheritedMethodsInterceptionTest\$MyTransientRule"
+        "transitive subclass" | new MyTransientRule() | "This is a description for: InheritedMethodsInterceptionTest\$MyTransientRule"
     }
 
     static class MyDirectRule implements Rule {

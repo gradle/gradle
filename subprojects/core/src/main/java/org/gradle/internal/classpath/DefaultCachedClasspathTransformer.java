@@ -63,6 +63,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final FileLockManager fileLockManager;
     private final AgentStatus agentStatus;
     private final ManagedExecutor executor;
+    private final ParallelTransformExecutor parallelTransformExecutor;
+    private final TypeRegistryProvider typeRegistryProvider;
 
     public DefaultCachedClasspathTransformer(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
@@ -85,6 +87,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.cache = classpathTransformerCacheFactory.createCache(cacheBuilderFactory, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
+        this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
+        this.typeRegistryProvider = new TypeRegistryProvider(parallelTransformExecutor, classpathWalker);
     }
 
     @Override
@@ -163,53 +167,22 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         if (urls.isEmpty()) {
             return ImmutableList.of();
         }
-        TypeHierarchyRegistry typeRegistry = getTypeRegistry(urls);
+        TypeHierarchyRegistry typeRegistry = typeRegistryProvider.getFor(urls);
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
-        return transformAll(
+        return parallelTransformExecutor.transformAll(
             urls,
             (url, seen) -> cachedURL(url, transformer, seen, typeRegistry)
         );
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        TypeHierarchyRegistry typeRegistry = getTypeRegistry(classPath.getAsFiles());
+        TypeHierarchyRegistry typeRegistry = typeRegistryProvider.getFor(classPath.getAsFiles());
         return DefaultClassPath.of(
-            transformAll(
+            parallelTransformExecutor.transformAll(
                 classPath.getAsFiles(),
                 (file, seen) -> cachedFile(file, transformer, seen, typeRegistry)
             )
         );
-    }
-
-    private TypeHierarchyRegistry getTypeRegistry(Collection<URL> urls) {
-        List<File> files = urls.stream()
-            .filter(url -> url.getProtocol().equals("file"))
-            .map(Convert::urlToFile)
-            .collect(Collectors.toList());
-        return getTypeRegistry(files);
-    }
-
-    private TypeHierarchyRegistry getTypeRegistry(List<File> files) {
-        List<TypeHierarchyRegistry> typeRegistries = transformAll(files, this::visitClassHierarchyForFile);
-        return TypeHierarchyRegistry.of(typeRegistries);
-    }
-
-    private Optional<Either<TypeHierarchyRegistry, Callable<TypeHierarchyRegistry>>> visitClassHierarchyForFile(File source, Set<HashCode> seen) {
-        try {
-            TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
-            InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
-            classpathWalker.visit(source, entry -> {
-                if (!policy.includeEntry(entry)) {
-                    return;
-                }
-                if (entry.getName().endsWith(".class")) {
-                    typeRegistry.visit(entry.getContent());
-                }
-            });
-            return Optional.of(Either.left(typeRegistry));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private Transform transformerFor(StandardTransform transform) {
@@ -297,37 +270,89 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         Optional<Either<U, Callable<U>>> apply(T input, Set<HashCode> seen);
     }
 
-    private <T, U> List<U> transformAll(Collection<T> inputs, ValueOrTransformProvider<T, U> valueOrTransformProvider) {
-        assert !inputs.isEmpty();
-        return cache.useCache(() -> {
+    private static class ParallelTransformExecutor {
 
-            final List<U> results = new ArrayList<>(inputs.size());
-            final List<Callable<Void>> transforms = new ArrayList<>(inputs.size());
-            final Set<HashCode> seen = new HashSet<>();
-            for (T input : inputs) {
-                valueOrTransformProvider.apply(input, seen).ifPresent(valueOrTransform ->
-                    valueOrTransform.apply(
-                        value -> results.add(value),
-                        transform -> {
-                            final int index = results.size();
-                            results.add(null);
-                            transforms.add(() -> {
-                                results.set(index, unchecked(transform));
-                                return null;
-                            });
-                        }
-                    )
-                );
+        private final PersistentCache cache;
+        private final ManagedExecutor executor;
+
+        public ParallelTransformExecutor(PersistentCache cache, ManagedExecutor executor) {
+            this.cache = cache;
+            this.executor = executor;
+        }
+
+        public <T, U> List<U> transformAll(Collection<T> inputs, ValueOrTransformProvider<T, U> valueOrTransformProvider) {
+            assert !inputs.isEmpty();
+            return cache.useCache(() -> {
+
+                final List<U> results = new ArrayList<>(inputs.size());
+                final List<Callable<Void>> transforms = new ArrayList<>(inputs.size());
+                final Set<HashCode> seen = new HashSet<>();
+                for (T input : inputs) {
+                    valueOrTransformProvider.apply(input, seen).ifPresent(valueOrTransform ->
+                        valueOrTransform.apply(
+                            value -> results.add(value),
+                            transform -> {
+                                final int index = results.size();
+                                results.add(null);
+                                transforms.add(() -> {
+                                    results.set(index, unchecked(transform));
+                                    return null;
+                                });
+                            }
+                        )
+                    );
+                }
+
+                // Execute all transforms at once
+                for (Future<Void> result : unchecked(() -> executor.invokeAll(transforms))) {
+                    // Propagate first failure
+                    unchecked(result::get);
+                }
+
+                return results;
+            });
+        }
+    }
+
+    private static class TypeRegistryProvider {
+        private final ParallelTransformExecutor parallelExecutor;
+        private final ClasspathWalker classpathWalker;
+
+        public TypeRegistryProvider(ParallelTransformExecutor parallelExecutor, ClasspathWalker classpathWalker) {
+            this.parallelExecutor = parallelExecutor;
+            this.classpathWalker = classpathWalker;
+        }
+
+        public TypeHierarchyRegistry getFor(Collection<URL> urls) {
+            List<File> files = urls.stream()
+                .filter(url -> url.getProtocol().equals("file"))
+                .map(Convert::urlToFile)
+                .collect(Collectors.toList());
+            return getFor(files);
+        }
+
+        public TypeHierarchyRegistry getFor(List<File> files) {
+            List<TypeHierarchyRegistry> typeRegistries = parallelExecutor.transformAll(files, this::visitClassHierarchyForFile);
+            return TypeHierarchyRegistry.of(typeRegistries);
+        }
+
+        private Optional<Either<TypeHierarchyRegistry, Callable<TypeHierarchyRegistry>>> visitClassHierarchyForFile(File source, Set<HashCode> seen) {
+            try {
+                TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
+                InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
+                classpathWalker.visit(source, entry -> {
+                    if (!policy.includeEntry(entry)) {
+                        return;
+                    }
+                    if (entry.getName().endsWith(".class")) {
+                        typeRegistry.visit(entry.getContent());
+                    }
+                });
+                return Optional.of(Either.left(typeRegistry));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-
-            // Execute all transforms at once
-            for (Future<Void> result : unchecked(() -> executor.invokeAll(transforms))) {
-                // Propagate first failure
-                unchecked(result::get);
-            }
-
-            return results;
-        });
+        }
     }
 
     private static class Convert {
