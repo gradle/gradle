@@ -24,8 +24,9 @@ import java.io.File;
  */
 public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider {
     public TestNameTestDirectoryProvider(Class<?> klass) {
-        // NOTE: the space in the directory name is intentional
-        super(new TestFile(new File("build/tmp/test files")), klass);
+        // NOTE: the space in the directory name is intentional to shake out problems with paths that contain spaces
+        // NOTE: and so is the "s with comma below" character (U+0219), to shake out problems with non-ASCII folder names
+        super(new TestFile(new File("build/tmp/teșt files")), klass);
     }
 
     public TestNameTestDirectoryProvider(TestFile root, Class<?> klass) {
