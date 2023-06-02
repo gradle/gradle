@@ -65,14 +65,15 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
             return checkInUnsupportedResult(UNSUPPORTED_TOGGLE_MESSAGE);
         }
 
-        VersionNumber pluginBaseVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
+        String pluginVersion = pluginMetadata.getVersion();
+        VersionNumber pluginBaseVersion = VersionNumber.parse(pluginVersion).getBaseVersion();
         if (isUnsupportedWithConfigurationCaching(pluginBaseVersion)) {
             manager.unsupported();
             return checkInUnsupportedResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE);
         }
 
         if (isDeprecatedPluginVersion(pluginBaseVersion)) {
-            nagAboutDeprecatedPluginVersion();
+            nagAboutDeprecatedPluginVersion(pluginVersion);
         }
 
         GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
@@ -108,8 +109,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         return MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.compareTo(pluginBaseVersion) > 0;
     }
 
-    private static void nagAboutDeprecatedPluginVersion() {
-        DeprecationLogger.deprecate("Usage of this Gradle Enterprise plugin version")
+    private static void nagAboutDeprecatedPluginVersion(String pluginVersion) {
+        DeprecationLogger.deprecateIndirectUsage("Usage of the Gradle Enterprise plugin " + pluginVersion)
             .withContext("The plugin application will be ignored.")
             .withAdvice(String.format("Please upgrade to version %s.%s.%s or later of the Gradle Enterprise plugin.",
                 MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9.getMajor(),

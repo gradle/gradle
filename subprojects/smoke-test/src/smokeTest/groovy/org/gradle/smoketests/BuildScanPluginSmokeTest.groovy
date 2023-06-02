@@ -130,7 +130,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         then:
         scanRunner()
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Usage of this Gradle Enterprise plugin version has been deprecated. " +
+                "Usage of the Gradle Enterprise plugin " + version + " has been deprecated. " +
                     "This will change in Gradle 9.0. " +
                     "The plugin application will be ignored. " +
                     "Please upgrade to version 3.13.1 or later of the Gradle Enterprise plugin. " +
