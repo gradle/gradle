@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -46,6 +47,13 @@ import static org.gradle.internal.properties.InputBehavior.INCREMENTAL;
 import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
+    private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
+    private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
+    private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
+    private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
+    protected static final String INPUT_ARTIFACT_PATH_PROPERTY_NAME = "inputArtifactPath";
+    protected static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
+    protected static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
     protected final Transform transform;
     protected final File inputArtifact;
     private final TransformDependencies dependencies;
@@ -173,8 +181,8 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     @OverridingMethodsMustInvokeSuper
     public void visitIdentityInputs(InputVisitor visitor) {
         // Emulate secondary inputs as a single property for now
-        visitor.visitInputProperty(DefaultTransformInvocationFactory.SECONDARY_INPUTS_HASH_PROPERTY_NAME, transform::getSecondaryInputHash);
-        visitor.visitInputProperty(DefaultTransformInvocationFactory.INPUT_ARTIFACT_PATH_PROPERTY_NAME, () ->
+        visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transform::getSecondaryInputHash);
+        visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () ->
             // We always need the name as an input to the artifact transform,
             // since it is part of the ComponentArtifactIdentifier returned by the transform.
             // For absolute paths, the name is already part of the normalized path,
@@ -182,7 +190,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             transform.getInputArtifactNormalizer() == InputNormalizer.ABSOLUTE_PATH
                 ? inputArtifact.getAbsolutePath()
                 : inputArtifact.getName());
-        visitor.visitInputFileProperty(DefaultTransformInvocationFactory.DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
+        visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
             new InputFileValueSupplier(
                 dependencies,
                 transform.getInputArtifactDependenciesNormalizer(),
@@ -195,7 +203,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     @Override
     @OverridingMethodsMustInvokeSuper
     public void visitRegularInputs(InputVisitor visitor) {
-        visitor.visitInputFileProperty(DefaultTransformInvocationFactory.INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
+        visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
             new InputFileValueSupplier(
                 inputArtifactProvider,
                 transform.getInputArtifactNormalizer(),
@@ -208,9 +216,9 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         File outputDir = getOutputDir(workspace);
         File resultsFile = getResultsFile(workspace);
-        visitor.visitOutputProperty(DefaultTransformInvocationFactory.OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
+        visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
             OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
-        visitor.visitOutputProperty(DefaultTransformInvocationFactory.RESULTS_FILE_PROPERTY_NAME, FILE,
+        visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
             OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
     }
 
@@ -218,7 +226,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
         return transform.isCacheable()
             ? Optional.empty()
-            : Optional.of(DefaultTransformInvocationFactory.NOT_CACHEABLE);
+            : Optional.of(NOT_CACHEABLE);
     }
 
     @Override

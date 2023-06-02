@@ -28,6 +28,8 @@ import java.io.File;
 import java.util.Map;
 
 class ImmutableTransformExecution extends AbstractTransformExecution {
+    private static final String INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME = "inputArtifactSnapshot";
+
     private final FileSystemAccess fileSystemAccess;
 
     public ImmutableTransformExecution(
@@ -56,16 +58,16 @@ class ImmutableTransformExecution extends AbstractTransformExecution {
         // This is a performance hack. We could use the regular fingerprint of the input artifact, but that takes longer than
         // capturing the normalized path and the snapshot of the raw contents, so we are using these to determine the identity
         FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath());
-        visitor.visitInputProperty(DefaultTransformInvocationFactory.INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
+        visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
     }
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
         return new ImmutableTransformWorkspaceIdentity(
-            identityInputs.get(DefaultTransformInvocationFactory.INPUT_ARTIFACT_PATH_PROPERTY_NAME),
-            identityInputs.get(DefaultTransformInvocationFactory.INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
-            identityInputs.get(DefaultTransformInvocationFactory.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            identityFileInputs.get(DefaultTransformInvocationFactory.DEPENDENCIES_PROPERTY_NAME).getHash()
+            identityInputs.get(AbstractTransformExecution.INPUT_ARTIFACT_PATH_PROPERTY_NAME),
+            identityInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
+            identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+            identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
         );
     }
 }

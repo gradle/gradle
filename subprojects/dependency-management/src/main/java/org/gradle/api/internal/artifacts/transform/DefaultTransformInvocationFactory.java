@@ -27,8 +27,6 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.vfs.FileSystemAccess;
 
@@ -36,14 +34,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultTransformInvocationFactory implements TransformInvocationFactory {
-    static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
-    static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
-    static final String INPUT_ARTIFACT_PATH_PROPERTY_NAME = "inputArtifactPath";
-    static final String INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME = "inputArtifactSnapshot";
-    static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
-    static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
-    static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
-    static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
 
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;

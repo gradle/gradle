@@ -48,8 +48,8 @@ class MutableTransformExecution extends AbstractTransformExecution {
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
         return new MutableTransformWorkspaceIdentity(
             inputArtifact.getAbsolutePath(),
-            identityInputs.get(DefaultTransformInvocationFactory.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            identityFileInputs.get(DefaultTransformInvocationFactory.DEPENDENCIES_PROPERTY_NAME).getHash()
+            identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+            identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
         );
     }
 }
