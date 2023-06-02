@@ -125,7 +125,7 @@ When you are done, the directory should look as follows:
 
 == Step 3. Understanding the Gradle Wrapper
 The Gradle Wrapper is the preferred way of starting a Gradle build.
-The Wrapper downloads (if needed) and then invokes a specific version of Gradle declared in the build, that the build is meant to work with.
+The Wrapper downloads (if needed) and then invokes a specific version of Gradle declared in the build.
 
 In your newly created project, take a look at the files used by the Gradle Wrapper first.
 It consists of a batch script for Windows +++<i class="conum" data-value="4"></i>+++ and a shell script for macOS and Linux +++<i class="conum" data-value="3"></i>+++.

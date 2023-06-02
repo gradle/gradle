@@ -66,7 +66,7 @@ Existing installations are ignored by Gradle.
 
 == Linux installation
 
-=== Installing with a package manager
+=== >> Installing with a package manager
 
 link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD).
 Gradle is deployed and maintained by SDKMAN!:
@@ -78,9 +78,9 @@ Gradle is deployed and maintained by SDKMAN!:
 Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc.
 Linux package managers may distribute a modified version of Gradle that is incompatible or incomplete when compared to the official version.
 
-=== Installing manually
+=== >> Installing manually
 
-==== Step 1 - link:{website}/releases[Download] the latest Gradle distribution
+**Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
 
 The distribution ZIP file comes in two flavors:
 
@@ -89,7 +89,7 @@ The distribution ZIP file comes in two flavors:
 
 We recommend downloading the bin file; it is a smaller file that is quick to download (and the latest documentation is available online).
 
-==== Step 2 - Unpack the distribution
+**Step 2 - Unpack the distribution**
 
 Unzip the distribution zip file in the directory of your choosing, e.g.:
 
@@ -103,9 +103,9 @@ LICENSE  NOTICE  bin  README  init.d  lib  media
 
 [[sec:linux_macos_users_2]]
 
-==== Step 3 - Configure your system environment
+**Step 3 - Configure your system environment**
 
-To install Gradle, the path to the unpacked files needs to be on your Path.
+To install Gradle, the path to the unpacked files needs to be in your Path.
 Configure your `PATH` environment variable to include the `bin` directory of the unzipped distribution, e.g.:
 
 [subs="attributes"]
@@ -114,7 +114,7 @@ Configure your `PATH` environment variable to include the `bin` directory of the
 ----
 
 Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.
-Instead of adding a specific version of Gradle to your `PATH`, you can add `__$GRADLE_HOME__/bin` to your `PATH`.
+Instead of adding a specific version of Gradle to your `PATH`, you can add `$GRADLE_HOME/bin` to your `PATH`.
 When upgrading to a different version of Gradle, simply change the `GRADLE_HOME` environment variable.
 
 [subs="attributes"]
@@ -125,7 +125,7 @@ export PATH=${GRADLE_HOME}/bin:${PATH}
 
 == macOS installation
 
-=== Installing with a package manager
+=== >> Installing with a package manager
 
 link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD).
 Gradle is deployed and maintained by SDKMAN!:
@@ -148,9 +148,9 @@ Using link:https://www.macports.org[MacPorts]:
 
 Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc.
 
-=== Installing manually
+=== >> Installing manually
 
-==== Step 1 - link:{website}/releases[Download] the latest Gradle distribution
+**Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
 
 The distribution ZIP file comes in two flavors:
 
@@ -159,7 +159,7 @@ The distribution ZIP file comes in two flavors:
 
 We recommend downloading the bin file; it is a smaller file that is quick to download (and the latest documentation is available online).
 
-==== Step 2 - Unpack the distribution
+**Step 2 - Unpack the distribution**
 
 Unzip the distribution zip file in the directory of your choosing, e.g.:
 
@@ -171,9 +171,9 @@ Unzip the distribution zip file in the directory of your choosing, e.g.:
 LICENSE	NOTICE	README	bin	init.d	lib
 ----
 
-==== Step 3 - Configure your system environment
+**Step 3 - Configure your system environment**
 
-To install Gradle, the path to the unpacked files needs to be on your Path.
+To install Gradle, the path to the unpacked files needs to be in your Path.
 Configure your `PATH` environment variable to include the `bin` directory of the unzipped distribution, e.g.:
 
 [subs="attributes"]
@@ -182,7 +182,7 @@ Configure your `PATH` environment variable to include the `bin` directory of the
 ----
 
 Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.
-Instead of adding a specific version of Gradle to your `PATH`, you can add `__$GRADLE_HOME__/bin` to your `PATH`.
+Instead of adding a specific version of Gradle to your `PATH`, you can add `$GRADLE_HOME/bin` to your `PATH`.
 When upgrading to a different version of Gradle, simply change the `GRADLE_HOME` environment variable.
 
 It's a good idea to edit `.bash_profile` in your home directory to add `GRADLE_HOME` variable:
@@ -195,9 +195,9 @@ export PATH=$GRADLE_HOME/bin:$PATH
 
 == Windows installation
 
-=== Installing manually
+=== >> Installing manually
 
-==== Step 1 - link:{website}/releases[Download] the latest Gradle distribution
+**Step 1 - link:{website}/releases[Download] the latest Gradle distribution**
 
 The distribution ZIP file comes in two flavors:
 
@@ -206,7 +206,7 @@ The distribution ZIP file comes in two flavors:
 
 We recommend downloading the bin file.
 
-==== Step 2 - Unpack the distribution
+**Step 2 - Unpack the distribution**
 
 Create a new directory `C:\Gradle` with **File Explorer**.
 
@@ -215,9 +215,9 @@ Drag the content folder `gradle-{gradleVersion}` to your newly created `C:\Gradl
 
 Alternatively, you can unpack the Gradle distribution ZIP into `C:\Gradle` using the archiver tool of your choice.
 
-==== Step 3 - Configure your system environment
+**Step 3 - Configure your system environment**
 
-To install Gradle, the path to the unpacked files needs to be on your Path.
+To install Gradle, the path to the unpacked files needs to be in your Path.
 
 In **File Explorer** right-click on the `This PC` (or `Computer`) icon, then click `Properties` -> `Advanced System Settings` -> `Environmental Variables`.
 
@@ -226,7 +226,7 @@ Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`.
 Click `OK` to save.
 
 Alternatively, you can add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.
-Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__/bin` to your `Path`.
+Instead of adding a specific version of Gradle to your `Path`, you can add `$GRADLE_HOME/bin` to your `Path`.
 When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
 
 
