@@ -57,22 +57,29 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                 },
                 BuildOperationDescriptor
                     .displayName("Execute unit of work")
-                    .details(new ExecuteWorkDetails(workType))))
+                    .details(new ExecuteWorkDetails(workType, context.getIdentity().getUniqueId()))))
             .orElseGet(() -> delegate.execute(work, context));
     }
 
     private static class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
 
         private final String workType;
+        private final String workspaceId;
 
-        public ExecuteWorkDetails(String workType) {
+        public ExecuteWorkDetails(String workType, String workspaceId) {
             this.workType = workType;
+            this.workspaceId = workspaceId;
         }
 
         @Nullable
         @Override
         public String getWorkType() {
             return workType;
+        }
+
+        @Override
+        public String getWorkspaceId() {
+            return workspaceId;
         }
 
     }

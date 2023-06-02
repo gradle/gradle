@@ -47,6 +47,7 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
          */
         @Nullable
         String getWorkType();
+        String getWorkspaceId();
     }
 
     public interface Result {
