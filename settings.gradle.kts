@@ -83,7 +83,7 @@ include("tooling-api")
 include("build-events")
 include("tooling-api-builders")
 include("signing")
-include("ear")
+includePlatform("ear", "jvm")
 include("native")
 include("reporting")
 include("diagnostics")
@@ -172,8 +172,15 @@ include("build-scan-performance")
 
 rootProject.name = "gradle"
 
+fun includePlatform(projectName: String, platformName: String) {
+    include(projectName)
+    project(":$projectName").projectDir = file("platforms/$platformName/$projectName")
+}
+
 for (project in rootProject.children) {
-    project.projectDir = file("subprojects/${project.name}")
+    if (project.projectDir.parentFile.parentFile.name != "platforms") {
+        project.projectDir = file("subprojects/${project.name}")
+    }
 }
 
 FeaturePreviews.Feature.values().forEach { feature ->
