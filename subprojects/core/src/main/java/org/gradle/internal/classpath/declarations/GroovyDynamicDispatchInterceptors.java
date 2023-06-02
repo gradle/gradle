@@ -20,7 +20,7 @@ import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.classpath.InstrumentedClosuresTracker;
+import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
@@ -62,7 +62,7 @@ public class GroovyDynamicDispatchInterceptors {
             return null;
         };
         if (interceptor == null) {
-            InstrumentedClosuresTracker.INSTANCE.hitInstrumentedDynamicCall();
+            InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
             withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
         } else {
             Invocation invocation = new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}, consumer, messageName, setOriginalProperty);
@@ -109,7 +109,7 @@ public class GroovyDynamicDispatchInterceptors {
         public @Nullable Object callOriginal() throws Throwable {
             // the interceptor did not match the call, but it can resolve
             // dynamically to a different receiver under the hood, so track it:
-            InstrumentedClosuresTracker.INSTANCE.hitInstrumentedDynamicCall();
+            InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
             return withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
         }
     }

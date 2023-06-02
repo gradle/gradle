@@ -96,7 +96,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                     public void visitCode() {
                         _ALOAD(0);
                         String enterLeaveDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, getType(InstrumentableClosure.class));
-                        _INVOKESTATIC(Type.getType(InstrumentedClosuresTracker.class).getInternalName(), "enterInstrumentedClosure", enterLeaveDescriptor, true);
+                        _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "enterInstrumentedClosure", enterLeaveDescriptor, false);
 
                         _ALOAD(0); // receiver reference to this
                         // Invoke the original method:
@@ -107,7 +107,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                         _INVOKESPECIAL(clazz.className, methodNameToVisit, methodData.descriptor, false);
 
                         _ALOAD(0);
-                        _INVOKESTATIC(Type.getType(InstrumentedClosuresTracker.class).getInternalName(), "leaveInstrumentedClosure", enterLeaveDescriptor, true);
+                        _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "leaveInstrumentedClosure", enterLeaveDescriptor, false);
 
                         visitInsn(Type.getReturnType(methodData.descriptor).getOpcode(IRETURN));
                         visitMaxs(argumentTypes.length * 2 + 1, argumentTypes.length + 1);

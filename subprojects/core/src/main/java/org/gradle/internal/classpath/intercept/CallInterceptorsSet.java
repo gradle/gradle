@@ -22,7 +22,7 @@ import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.classpath.InstrumentedClosuresTracker;
+import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
 
 import javax.annotation.Nullable;
@@ -209,7 +209,7 @@ public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorRe
             InstrumentedGroovyCallsTracker.ThrowingCallable<Object> invokeOriginal
         ) throws Throwable {
             if (interceptedCallSiteNames.contains(getName())) {
-                InstrumentedClosuresTracker.INSTANCE.hitInstrumentedDynamicCall();
+                InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
                 return withEntryPoint(callSiteOwnerClassName(), getName(), kind, invokeOriginal);
             } else {
                 return invokeOriginal.call();
