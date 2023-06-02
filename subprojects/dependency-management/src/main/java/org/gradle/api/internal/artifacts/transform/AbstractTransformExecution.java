@@ -319,6 +319,11 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         }
 
         @Override
+        public Class<?> getTransformActionClass() {
+            return transform.getImplementationClass();
+        }
+
+        @Override
         public byte[] getSecondaryInputValueHashBytes() {
             Hasher hasher = Hashing.newHasher();
             transformWorkspaceIdentity.getSecondaryInputsSnapshot().appendToHasher(hasher);
