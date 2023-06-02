@@ -16,17 +16,21 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -39,7 +43,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
+import org.gradle.internal.properties.PropertyValue;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
+import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -61,6 +67,9 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     protected static final String INPUT_ARTIFACT_PATH_PROPERTY_NAME = "inputArtifactPath";
     protected static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
     protected static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
+
+    private static final SnapshotTransformInputsBuildOperationType.Details SNAPSHOT_TRANSFORM_INPUTS_DETAILS = new SnapshotTransformInputsBuildOperationType.Details() {};
+
     protected final Transform transform;
     protected final File inputArtifact;
     private final TransformDependencies dependencies;
@@ -75,6 +84,8 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     private final Provider<FileSystemLocation> inputArtifactProvider;
     protected final InputFingerprinter inputFingerprinter;
     private final TransformWorkspaceServices workspaceServices;
+
+    private BuildOperationContext operationContext;
 
     public AbstractTransformExecution(
         Transform transform,
@@ -247,6 +258,41 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
         visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
             OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
+    }
+
+    @Override
+    public void markLegacySnapshottingInputsStarted() {
+        this.operationContext = buildOperationExecutor.start(BuildOperationDescriptor
+            .displayName("Snapshot transform inputs")
+            .name("Snapshot transform inputs")
+            .details(SNAPSHOT_TRANSFORM_INPUTS_DETAILS));
+    }
+
+    @Override
+    public void markLegacySnapshottingInputsFinished(CachingState cachingState) {
+        if (operationContext != null) {
+            ImmutableSortedSet.Builder<InputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
+            builder.add(new DefaultInputFilePropertySpec(
+                INPUT_ARTIFACT_PROPERTY_NAME,
+                transform.getInputArtifactNormalizer(),
+                FileCollectionFactory.empty(),
+                PropertyValue.ABSENT,
+                INCREMENTAL,
+                transform.getInputArtifactDirectorySensitivity(),
+                transform.getInputArtifactLineEndingNormalization()
+            ));
+            builder.add(new DefaultInputFilePropertySpec(
+                DEPENDENCIES_PROPERTY_NAME,
+                transform.getInputArtifactDependenciesNormalizer(),
+                FileCollectionFactory.empty(),
+                PropertyValue.ABSENT,
+                NON_INCREMENTAL,
+                transform.getInputArtifactDependenciesDirectorySensitivity(),
+                transform.getInputArtifactDependenciesLineEndingNormalization()
+            ));
+            operationContext.setResult(new SnapshotTransformInputsBuildOperationResult(cachingState, builder.build()));
+            operationContext = null;
+        }
     }
 
     @Override
