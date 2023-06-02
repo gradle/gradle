@@ -24,6 +24,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.internal.util.PropertiesUtils
 import org.gradle.util.internal.VersionNumber
+import org.jsoup.Jsoup
 import org.w3c.dom.Element
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
@@ -43,9 +44,6 @@ abstract class UpdateAgpVersions : DefaultTask() {
     abstract val minimumSupportedMinor: Property<String>
 
     @get:Internal
-    abstract val fetchNightly: Property<Boolean>
-
-    @get:Internal
     abstract val propertiesFile: RegularFileProperty
 
     @get:Internal
@@ -53,31 +51,36 @@ abstract class UpdateAgpVersions : DefaultTask() {
 
     @TaskAction
     fun fetch() =
-        fetchLatestAgpVersions().let { (latests, nightly) ->
-            updateProperties(latests, nightly)
-            updateCompatibilityDoc(latests)
+        fetchLatestAgpVersions().let { fetchedVersions ->
+            updateProperties(fetchedVersions)
+            updateCompatibilityDoc(fetchedVersions.latests)
         }
 
     private
-    fun fetchLatestAgpVersions(): Pair<List<String>, String?> {
+    data class FetchedVersions(val latests: List<String>, val nightlyBuildId: String, val nightlyVersion: String)
+
+    private
+    fun fetchLatestAgpVersions(): FetchedVersions {
         val dbf = DocumentBuilderFactory.newInstance()
         val latests = dbf.fetchLatests(
             minimumSupportedMinor.get(),
             "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml"
         )
-        val nightly =
-            if (fetchNightly.get()) dbf.fetchNightly()
-            else null
-        return latests to nightly
+        val nightlyBuildId = fetchNightlyBuildId(
+            "https://androidx.dev/studio/builds"
+        )
+        val nightlyVersion = dbf.fetchNightlyVersion(
+            "https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/com/android/application/com.android.application.gradle.plugin/maven-metadata.xml"
+        )
+        return FetchedVersions(latests, nightlyBuildId, nightlyVersion)
     }
 
     private
-    fun updateProperties(latests: List<String>, nightly: String?) =
+    fun updateProperties(fetchedVersions: FetchedVersions) =
         Properties().run {
-            setProperty("latests", latests.joinToString(","))
-            if (nightly != null) {
-                setProperty("nightly", nightly)
-            }
+            setProperty("latests", fetchedVersions.latests.joinToString(","))
+            setProperty("nightlyBuildId", fetchedVersions.nightlyBuildId)
+            setProperty("nightlyVersion", fetchedVersions.nightlyVersion)
             store(
                 propertiesFile.get().asFile,
                 comment.get()
@@ -129,9 +132,17 @@ abstract class UpdateAgpVersions : DefaultTask() {
     }
 
     private
-    fun DocumentBuilderFactory.fetchNightly(): String =
-        fetchVersionsFromMavenMetadata("https://repo.gradle.org/gradle/ext-snapshots-local/com/android/tools/build/gradle/maven-metadata.xml")
-            .first()
+    fun fetchNightlyBuildId(buildListUrl: String): String =
+        Jsoup.connect(buildListUrl)
+            .get()
+            .select("li a")
+            .first()!!
+            .text()
+
+    private
+    fun DocumentBuilderFactory.fetchNightlyVersion(mavenMetadataUrl: String): String =
+        fetchVersionsFromMavenMetadata(mavenMetadataUrl)
+            .single()
 }
 
 
