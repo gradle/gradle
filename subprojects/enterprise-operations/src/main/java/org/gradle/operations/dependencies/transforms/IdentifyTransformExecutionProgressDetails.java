@@ -33,5 +33,7 @@ public interface IdentifyTransformExecutionProgressDetails {
 
     Map<String, String> getToAttributes();
 
+    String getInputArtifactName();
+
     byte[] getSecondaryInputValueHashBytes();
 }

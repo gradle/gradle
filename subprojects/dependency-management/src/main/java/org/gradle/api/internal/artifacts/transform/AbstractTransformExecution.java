@@ -219,7 +219,12 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     protected void emitIdentifyTransformExecutionProgressDetails(TransformWorkspaceIdentity transformWorkspaceIdentity) {
-        progressEventEmitter.emitNowIfCurrent(new DefaultIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity, transform, owningProject, subject.getInitialComponentIdentifier()));
+        progressEventEmitter.emitNowIfCurrent(new DefaultIdentifyTransformExecutionProgressDetails(
+            inputArtifact,
+            transformWorkspaceIdentity,
+            transform,
+            owningProject,
+            subject.getInitialComponentIdentifier()));
     }
 
     @Override
@@ -258,17 +263,20 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private static class DefaultIdentifyTransformExecutionProgressDetails implements IdentifyTransformExecutionProgressDetails {
 
+        private final File inputArtifact;
         private final TransformWorkspaceIdentity transformWorkspaceIdentity;
         private final Transform transform;
         private final ProjectInternal owningProject;
         private final ComponentIdentifier componentIdentifier;
 
         public DefaultIdentifyTransformExecutionProgressDetails(
+            File inputArtifact,
             TransformWorkspaceIdentity transformWorkspaceIdentity,
             Transform transform,
             ProjectInternal owningProject,
             ComponentIdentifier componentIdentifier
         ) {
+            this.inputArtifact = inputArtifact;
             this.transformWorkspaceIdentity = transformWorkspaceIdentity;
             this.transform = transform;
             this.owningProject = owningProject;
@@ -303,6 +311,11 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         @Override
         public org.gradle.operations.dependencies.variants.ComponentIdentifier getInputArtifactComponentIdentifier() {
             return TransformStepNode.getComponentIdentifier(componentIdentifier);
+        }
+
+        @Override
+        public String getInputArtifactName() {
+            return inputArtifact.getName();
         }
 
         @Override
