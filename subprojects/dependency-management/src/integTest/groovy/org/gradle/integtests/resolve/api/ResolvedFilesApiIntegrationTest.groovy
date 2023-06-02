@@ -307,6 +307,9 @@ task show {
 }
 """
         expect:
+        if (expression.contains("resolvedConfiguration")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
         fails("show")
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
@@ -378,6 +381,9 @@ task show {
 """
 
         expect:
+        if (expression.contains("resolvedConfiguration")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
@@ -437,6 +443,9 @@ task show {
         m.pom.expectGetBroken()
 
         when:
+        if (expression.contains("resolvedConfiguration")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
         fails 'show'
 
         then:
@@ -485,6 +494,9 @@ task show {
         m2.artifact.expectGet()
 
         when:
+        if (expression.contains("resolvedConfiguration")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
         fails 'show'
 
         then:
@@ -520,6 +532,9 @@ task show {
 }
 """
         when:
+        if (expression.contains("resolvedConfiguration")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
         fails 'show'
 
         then:
@@ -578,6 +593,9 @@ task show {
         m2.artifact.expectGetBroken()
 
         when:
+        if (expression.contains("resolvedConfiguration")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getResolvedConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getIncoming().getArtifactView() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#resolved_configuration")
+        }
         fails 'show'
 
         then:
