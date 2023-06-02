@@ -264,11 +264,25 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/25252')
-    def "wrapper task succeeds if file distribution url results in relative uri (no scheme)"() {
+    def "wrapper task succeeds if distribution url results in relative uri (no scheme)"() {
         given:
         def target = file("/distributions/8.0-rc-5") << "some content"
 
         def url = target.toString()
+
+        when:
+        run "wrapper", "--gradle-distribution-url", url
+
+        then:
+        succeeds()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/25252')
+    def "wrapper task succeeds if distribution url results in relative file path"() {
+        given:
+        file("../distributions/8.0-rc-5") << "some content"
+
+        def url = "../distributions/8.0-rc-5"
 
         when:
         run "wrapper", "--gradle-distribution-url", url
