@@ -46,6 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -324,7 +325,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class ViewGraphDetails implements Serializable {
         // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
-        private transient Map<ViewKey, Object> views = new HashMap<ViewKey, Object>();
+        private transient Map<ViewKey, Object> views = new WeakHashMap<>();
         private final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
@@ -333,7 +334,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
-            views = new HashMap<ViewKey, Object>();
+            views = new WeakHashMap<ViewKey, Object>();
         }
     }
 
