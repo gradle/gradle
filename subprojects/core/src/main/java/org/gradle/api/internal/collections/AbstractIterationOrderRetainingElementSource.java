@@ -52,7 +52,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     private Action<T> pendingAddedAction;
-    private Spec<Class<? extends T>> immediateRealizationSpec = type -> false;
+    private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
 
     protected int modCount;
 
@@ -202,13 +202,13 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
-    public void setImmediateRealizationSpec(Spec<Class<? extends T>> immediateRealizationSpec) {
-        this.immediateRealizationSpec = immediateRealizationSpec;
+    public void setSubscriptionVerifier(EventSubscriptionVerifier<T> subscriptionVerifier) {
+        this.subscriptionVerifier = subscriptionVerifier;
     }
 
     protected boolean addPendingElement(Element<T> element) {
         boolean added = inserted.add(element);
-        if (immediateRealizationSpec.isSatisfiedBy(element.getType())) {
+        if (subscriptionVerifier.isSubscribed(element.getType())) {
             element.realize();
 
             // Ugly backwards-compatibility hack. Previous implementations would notify listeners without

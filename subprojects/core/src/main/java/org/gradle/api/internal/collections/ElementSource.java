@@ -18,7 +18,6 @@ package org.gradle.api.internal.collections;
 
 import org.gradle.api.internal.WithEstimatedSize;
 import org.gradle.api.internal.WithMutationGuard;
-import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -53,10 +52,11 @@ public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, Pendin
     boolean add(T element);
 
     /**
-     * Sets a spec used to determine whether a pending element should be realized immediately
-     * upon addition to this source. Defaults to always false.
+     * Sets a verifier that specifies whether there is a subscription for
+     * elements of a given type. This is used to determine whether a 
+     * pending element should be realized upon addition to this source.
      */
-    void setImmediateRealizationSpec(Spec<Class<? extends T>> immediateRealizationSpec);
+    void setSubscriptionVerifier(EventSubscriptionVerifier<T> typeSubscriptions);
 
     @Override
     void clear();

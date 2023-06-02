@@ -20,7 +20,6 @@ import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.WithEstimatedSize;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
@@ -215,7 +214,9 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     public void onPendingAdded(Action<S> action) { }
 
     @Override
-    public void setImmediateRealizationSpec(Spec<Class<? extends S>> immediateRealizationSpec) { }
+    public void setSubscriptionVerifier(EventSubscriptionVerifier<S> immediateRealizationSpec) {
+        // The root element source is responsible for realizing elements of subscribed types.
+    }
 
     @Override
     public void realizeExternal(ProviderInternal<? extends S> provider) {

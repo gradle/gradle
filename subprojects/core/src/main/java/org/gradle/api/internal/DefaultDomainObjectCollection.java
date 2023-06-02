@@ -61,7 +61,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             didAdd(toAdd);
             eventRegister.fireObjectAdded(toAdd);
         }));
-        this.store.setImmediateRealizationSpec(SerializableLambdas.spec(eventRegister::isSubscribed));
+        this.store.setSubscriptionVerifier(eventRegister);
     }
 
     protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {

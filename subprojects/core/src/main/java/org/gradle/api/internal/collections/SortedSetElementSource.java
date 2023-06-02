@@ -25,7 +25,6 @@ import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collectors;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
@@ -41,7 +40,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
     private final Set<Collectors.TypedCollector<T>> pending = new LinkedHashSet<>();
     private Action<T> addRealizedAction;
-    private Spec<Class<? extends T>> immediateRealizationSpec = type -> false;
+    private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
@@ -157,16 +156,15 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> {
                 values.remove(previousValue);
-                pending.add(new Collectors.TypedCollector<>(provider.getType(), new Collectors.ElementFromProvider<>(provider)));
+                pending.add(collectorFromProvider(provider));
             });
         }
-        Collectors.TypedCollector<T> collector =
-            new Collectors.TypedCollector<>(provider.getType(), new Collectors.ElementFromProvider<>(provider));
+        Collectors.TypedCollector<T> collector = collectorFromProvider(provider);
 
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        if (immediateRealizationSpec.isSatisfiedBy(provider.getType())) {
+        if (subscriptionVerifier.isSubscribed(provider.getType())) {
             realize(Collections.singleton(collector));
 
             // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
@@ -176,6 +174,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             pending.add(collector);
         }
         return added;
+    }
+
+    private Collectors.TypedCollector<T> collectorFromProvider(final ProviderInternal<? extends T> provider) {
+        return new Collectors.TypedCollector<>(provider.getType(), new Collectors.ElementFromProvider<>(provider));
     }
 
     @Override
@@ -202,16 +204,15 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                 for (T value : previousValues) {
                     values.remove(value);
                 }
-                pending.add(new Collectors.TypedCollector<>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<>(provider)));
+                pending.add(collectorFromCollectionProvider(provider));
             });
         }
-        Collectors.TypedCollector<T> collector =
-            new Collectors.TypedCollector<T>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<T>(provider));
+        Collectors.TypedCollector<T> collector = collectorFromCollectionProvider(provider);
 
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        if (immediateRealizationSpec.isSatisfiedBy(provider.getElementType())) {
+        if (subscriptionVerifier.isSubscribed(provider.getElementType())) {
             realize(Collections.singleton(collector));
 
             // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
@@ -221,6 +222,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             pending.add(collector);
         }
         return added;
+    }
+
+    private Collectors.TypedCollector<T> collectorFromCollectionProvider(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return new Collectors.TypedCollector<>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<>(provider));
     }
 
     @Override
@@ -234,8 +239,8 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public void setImmediateRealizationSpec(Spec<Class<? extends T>> immediateRealizationSpec) {
-        this.immediateRealizationSpec = immediateRealizationSpec;
+    public void setSubscriptionVerifier(EventSubscriptionVerifier<T> subscriptionVerifier) {
+        this.subscriptionVerifier = subscriptionVerifier;
     }
 
     @Override

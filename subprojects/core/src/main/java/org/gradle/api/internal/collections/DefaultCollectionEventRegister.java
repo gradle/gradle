@@ -40,7 +40,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
     }
 
     @Override
-    public boolean isSubscribed(Class<?> type) {
+    public boolean isSubscribed(Class<? extends T> type) {
         if (baseTypeSubscribed) {
             return true;
         }
@@ -156,7 +156,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
         }
 
         @Override
-        public boolean isSubscribed(Class<?> type) {
+        public boolean isSubscribed(Class<? extends S> type) {
             throw new UnsupportedOperationException();
         }
 
