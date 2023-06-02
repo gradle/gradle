@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -172,7 +173,7 @@ public abstract class Wrapper extends DefaultTask {
     private void validateDistributionUrl() {
         if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
             String url = getDistributionUrl();
-            URI uri = URI.create(url);
+            URI uri = getDistributionUri(url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
@@ -185,6 +186,18 @@ public abstract class Wrapper extends DefaultTask {
                 }
             }
         }
+    }
+
+    private static URI getDistributionUri(String url) {
+        try {
+            return hasRequiredScheme(url) ? new URI(url) : new URI("file", null, url, null);
+        } catch (URISyntaxException e) {
+            throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
+        }
+    }
+
+    private static boolean hasRequiredScheme(String url) {
+        return url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:");
     }
 
     private void writeWrapperTo(File destination) {

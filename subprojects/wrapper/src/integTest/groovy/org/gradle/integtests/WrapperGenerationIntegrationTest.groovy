@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
@@ -257,6 +258,20 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run( "wrapper", "--gradle-distribution-url", url, "--validate-url")
+
+        then:
+        succeeds()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/25252')
+    def "wrapper task succeeds if file distribution url results in relative uri (no scheme)"() {
+        given:
+        def target = file("/distributions/8.0-rc-5") << "some content"
+
+        def url = target.toString()
+
+        when:
+        run "wrapper", "--gradle-distribution-url", url
 
         then:
         succeeds()
