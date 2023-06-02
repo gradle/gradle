@@ -27,12 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 public class IterationOrderRetainingSetElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> {
-    private final Spec<ValuePointer<T>> noDuplicates = new Spec<ValuePointer<T>>() {
-        @Override
-        public boolean isSatisfiedBy(ValuePointer<T> pointer) {
-            return !pointer.getElement().isDuplicate(pointer.getIndex());
-        }
-    };
+    private static final Spec<ValuePointer<?>> NO_DUPLICATES = pointer -> !pointer.getElement().isDuplicate(pointer.getIndex());
 
     /**
      * Tracks the subset of values added with add() (without a Provider), allowing us to filter out duplicates
@@ -43,12 +38,12 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public Iterator<T> iterator() {
         realizePending();
-        return new RealizedElementCollectionIterator(getInserted(), noDuplicates);
+        return new RealizedElementCollectionIterator(getInserted(), NO_DUPLICATES);
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return new RealizedElementCollectionIterator(getInserted(), noDuplicates);
+        return new RealizedElementCollectionIterator(getInserted(), NO_DUPLICATES);
     }
 
     @Override

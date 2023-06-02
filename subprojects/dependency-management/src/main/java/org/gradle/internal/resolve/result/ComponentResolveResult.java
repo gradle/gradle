@@ -18,6 +18,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
@@ -47,6 +48,13 @@ public interface ComponentResolveResult extends ResolveResult {
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
     ComponentGraphResolveState getState() throws ModuleVersionResolveException;
+
+    /**
+     * Returns the graph specific resolution state for the component.
+     *
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
+     */
+    ComponentGraphSpecificResolveState getGraphState() throws ModuleVersionResolveException;
 
     /**
      * Returns the resolve failure, if any.

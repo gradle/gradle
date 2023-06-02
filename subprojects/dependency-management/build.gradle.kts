@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.ant)
     implementation(libs.ivy)
     implementation(libs.maven3SettingsBuilder)
+    implementation(libs.fastutil)
 
     testImplementation(project(":process-services"))
     testImplementation(project(":diagnostics"))

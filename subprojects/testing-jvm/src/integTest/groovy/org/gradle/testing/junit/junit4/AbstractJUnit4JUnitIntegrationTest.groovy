@@ -18,11 +18,16 @@ package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitIntegrationTest
+import org.junit.Assume
 import spock.lang.Issue
 
 abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnit4CommonTestSources {
+    abstract boolean isSupportsBlockJUnit4ClassRunner()
+
     @Issue("https://issues.gradle.org//browse/GRADLE-3114")
     def "creates runner before tests"() {
+        Assume.assumeTrue(supportsBlockJUnit4ClassRunner)
+
         given:
         file('src/test/java/org/gradle/CustomRunner.java') << """
             package org.gradle;

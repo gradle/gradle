@@ -19,9 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -36,6 +36,9 @@ public interface ResolvedGraphComponent {
     Long getResultId();
 
     ComponentGraphResolveState getResolveState();
+
+    @Nullable
+    String getRepositoryName();
 
     /**
      * Returns a unique id for this component.
@@ -58,10 +61,4 @@ public interface ResolvedGraphComponent {
      * @return the resolved/selected variant(s) for this component
      */
     List<ResolvedGraphVariant> getSelectedVariants();
-
-    /**
-     * Returns all the variants of this component available for selection. Does not include variants that cannot be consumed, which means this
-     * may not include all the variants returned by {@link #getSelectedVariants()}.
-     */
-    List<ResolvedVariantResult> getAvailableVariants();
 }

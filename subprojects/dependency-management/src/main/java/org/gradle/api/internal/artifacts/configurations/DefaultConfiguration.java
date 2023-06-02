@@ -84,8 +84,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
-import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -260,7 +260,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
-    private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
+    private TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
     /**
@@ -738,12 +738,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 if (!newState.hasError()) {
                     dependencyResolutionListeners.getSource().afterResolve(incoming);
-                    // Discard listeners
-                    dependencyResolutionListeners.removeAll();
 
                     // Use the current state, which may have changed if the listener queried the result
                     newState = currentResolveState.get();
                 }
+
+                // Discard State
+                dependencyResolutionListeners.removeAll();
+                if (resolutionStrategy != null) {
+                    resolutionStrategy.discardStateRequiredForGraphResolution();
+                }
+
                 captureBuildOperationResult(context, results);
                 return newState;
             }
@@ -874,10 +879,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        warnOnInvalidInternalAPIUsage("getDependenciesResolver()", ProperMethodUsage.RESOLVABLE);
+    public TransformUpstreamDependenciesResolverFactory getDependenciesResolverFactory() {
+        warnOnInvalidInternalAPIUsage("getDependenciesResolverFactory()", ProperMethodUsage.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
-            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
+            dependenciesResolverFactory = new DefaultTransformUpstreamDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
                     return new ResolutionBackedFileCollection(
@@ -1709,12 +1714,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public SelectedArtifactSet getTaskDependencyValue() {
-            return resultProvider.getTaskDependencyValue().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, selectFromAllVariants);
+            return resultProvider.getTaskDependencyValue().select(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants, selectFromAllVariants);
         }
 
         @Override
         public SelectedArtifactSet getValue() {
-            return resultProvider.getValue().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, selectFromAllVariants);
+            return resultProvider.getValue().select(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants, selectFromAllVariants);
         }
     }
 
@@ -1924,7 +1929,7 @@ since users cannot create non-legacy configurations and there is no current publ
      */
     @SuppressWarnings("JavadocReference")
     private boolean isPermittedConfigurationForRedundantActivation() {
-        return name.equals("runtimeClasspath") || name.endsWith("testRuntimeClasspath") || name.endsWith("TestRuntimeClasspath");
+        return name.equals("runtimeClasspath") || name.equals("testFixturesRuntimeClasspath") || name.endsWith("testRuntimeClasspath") || name.endsWith("TestRuntimeClasspath");
     }
 
     @Override
@@ -2037,6 +2042,11 @@ since users cannot create non-legacy configurations and there is no current publ
         return this;
     }
 
+    @Override
+    public ConfigurationRole getRoleAtCreation() {
+        return roleAtCreation;
+    }
+
     private abstract static class ResolveState {
         static final ResolveState NOT_RESOLVED = new ResolveState(UNRESOLVED) {
             @Override
@@ -2111,17 +2121,11 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        ImmutableAttributes viewAttributes = attributes.asImmutable();
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
         ResolutionBackedFileCollection files = new ResolutionBackedFileCollection(
-            new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
+            new SelectedArtifactsProvider(Specs.satisfyAll(), attributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
         );
         return new DefaultArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
-    }
-
-    @Override
-    public ConfigurationRole getRoleAtCreation() {
-        return roleAtCreation;
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
@@ -2199,12 +2203,14 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         private ArtifactView createArtifactView(ArtifactViewConfiguration config) {
-            ImmutableAttributes viewAttributes = config.lockViewAttributes();
+            // As this runs after the action used to configure the ArtifactView has run, the config might already have viewAttributes present
+            // which the user added.  If so, continue to use those attributes, otherwise use the attributes from the creating configuration.
+            AttributeContainerInternal viewAttributes = (config.viewAttributes == null) ? config.configurationAttributes : config.viewAttributes;
+
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
-            ArtifactView view;
-            view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
-            return view;
+
+            return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
         }
 
         private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
@@ -2222,13 +2228,13 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         private class ConfigurationArtifactView implements ArtifactView {
-            private final ImmutableAttributes viewAttributes;
+            private final AttributeContainerInternal viewAttributes;
             private final Spec<? super ComponentIdentifier> componentFilter;
             private final boolean lenient;
             private final boolean allowNoMatchingVariants;
             private final boolean selectFromAllVariants;
 
-            ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
+            ConfigurationArtifactView(AttributeContainerInternal viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
                 this.viewAttributes = viewAttributes;
                 this.componentFilter = componentFilter;
                 this.lenient = lenient;
@@ -2238,7 +2244,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
             @Override
             public AttributeContainer getAttributes() {
-                return viewAttributes;
+                return viewAttributes.asImmutable();
             }
 
             @Override
@@ -2442,15 +2448,6 @@ since users cannot create non-legacy configurations and there is no current publ
                 componentFilter = Specs.satisfyAll();
             }
             return componentFilter;
-        }
-
-        private ImmutableAttributes lockViewAttributes() {
-            if (viewAttributes == null) {
-                viewAttributes = configurationAttributes.asImmutable();
-            } else {
-                viewAttributes = viewAttributes.asImmutable();
-            }
-            return viewAttributes.asImmutable();
         }
     }
 

@@ -36,6 +36,7 @@ Method <org.gradle.api.Project.getNormalization()> does not have raw return type
 Method <org.gradle.api.Project.getObjects()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getParent()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getPath()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
+Method <org.gradle.api.Project.getBuildTreePath()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getProject()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getProjectDir()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getProperties()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)

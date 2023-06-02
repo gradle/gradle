@@ -19,11 +19,16 @@ package org.gradle.testing.junit.junit4
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitLoggingOutputCaptureIntegrationTest
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 import static org.hamcrest.CoreMatchers.is
 
 abstract class AbstractJUnit4LoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggingOutputCaptureIntegrationTest {
     def "captures logging output events"() {
+        // This test checks behavior introduced in JUnit 4.13
+        Assume.assumeTrue(VersionNumber.parse(version) >= VersionNumber.parse("4.13"))
+
         file("src/test/java/OkTest.java") << """
             ${testFrameworkImports}
 

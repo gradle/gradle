@@ -48,7 +48,14 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
         val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
-                listOf("-PflakyTests=only", "-x", ":docs:platformTest", "-x", ":distributions-integ-tests:quickTest", "-x", ":distributions-integ-tests:platformTest") +
+                listOf(
+                    "-PflakyTests=only",
+                    "-x", ":docs:platformTest",
+                    "-x", ":docs:configCacheTest",
+                    "-x", ":distributions-integ-tests:quickTest",
+                    "-x", ":distributions-integ-tests:platformTest",
+                    "-x", ":distributions-integ-tests:configCacheTest"
+                ) +
                 listOf(extraParameters) +
                 functionalTestParameters(os) +
                 listOf(buildScanTag(functionalTestTag))

@@ -18,8 +18,8 @@ package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
 
-import static org.gradle.testing.fixture.JUnitCoverage.IGNORE_ON_CLASS
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_IGNORE_ON_CLASS
 
-@TargetCoverage({ IGNORE_ON_CLASS })
+@TargetCoverage({ JUNIT4_IGNORE_ON_CLASS })
 class JUnit4IgnoreClassIntegrationTest extends AbstractJUnit4IgnoreClassIntegrationTest implements JUnit4MultiVersionTest {
 }

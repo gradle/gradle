@@ -23,8 +23,11 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
 
+import org.junit.Assume
+
 abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getModuleName()
+    abstract boolean isFrameworkSupportsModularJava()
 
     def setup() {
         buildFile << """
@@ -126,6 +129,8 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "can run tests referencing slf4j with modular java"() {
+        Assume.assumeTrue(frameworkSupportsModularJava)
+
         given:
         file('src/test/java/org/gradle/example/TestUsingSlf4j.java') << """
             package org.gradle.example;
