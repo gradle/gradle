@@ -76,7 +76,6 @@ import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.locking.DefaultDependencyLockingState
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.events.LogEvent
