@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.attributes
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -38,7 +37,6 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.prepare()
     }
 
-    @NotYetImplemented // TODO: The ArtifactCollection doesn't handle the main directory artifact correctly
     def "can select both main variant and test fixtures with project dependencies"() {
         given:
         settingsFile << "include 'lib'"
@@ -95,7 +93,6 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         }
     }
 
-    @NotYetImplemented // TODO: The ArtifactCollection doesn't handle the main directory artifact correctly
     def "prefers the variant which strictly matches the requested capabilities"() {
         given:
         settingsFile << "include 'lib'"
