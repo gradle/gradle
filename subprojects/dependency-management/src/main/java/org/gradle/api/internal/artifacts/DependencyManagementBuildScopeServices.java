@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -33,8 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCo
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
@@ -83,16 +80,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
-import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSourceCodec;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
-import org.gradle.api.internal.artifacts.repositories.metadata.MetadataFileSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -135,10 +129,8 @@ import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
-import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
-import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -210,7 +202,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -229,15 +220,17 @@ class DependencyManagementBuildScopeServices {
         registration.add(ProjectDependencyResolver.class);
     }
 
-    DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
-                                                                                    UserCodeApplicationContext context,
-                                                                                    DependencyManagementServices dependencyManagementServices,
-                                                                                    FileResolver fileResolver,
-                                                                                    FileCollectionFactory fileCollectionFactory,
-                                                                                    DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                                                    ObjectFactory objects,
-                                                                                    ProviderFactory providers,
-                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    DependencyResolutionManagementInternal createSharedDependencyResolutionServices(
+        Instantiator instantiator,
+        UserCodeApplicationContext context,
+        DependencyManagementServices dependencyManagementServices,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        DependencyMetaDataProvider dependencyMetaDataProvider,
+        ObjectFactory objects,
+        ProviderFactory providers,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+    ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
@@ -271,7 +264,8 @@ class DependencyManagementBuildScopeServices {
         StartParameter startParameter,
         ImmutableAttributesFactory attributesFactory,
         TaskDependencyFactory taskDependencyFactory,
-        CapabilityNotationParser capabilityNotationParser) {
+        CapabilityNotationParser capabilityNotationParser
+    ) {
         return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory, taskDependencyFactory);
     }
 
@@ -284,7 +278,8 @@ class DependencyManagementBuildScopeServices {
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner,
-        CapabilityNotationParser capabilityNotationParser) {
+        CapabilityNotationParser capabilityNotationParser
+    ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
@@ -304,39 +299,18 @@ class DependencyManagementBuildScopeServices {
         return new ModuleExclusions();
     }
 
-    MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                        ImmutableAttributesFactory attributesFactory,
-                                                                        NamedObjectInstantiator instantiator,
-                                                                        PreferJavaRuntimeVariant schema) {
-        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, instantiator, schema);
-    }
-
-    IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
-        return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, schema);
-    }
-
-    AttributeContainerSerializer createAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
-        return new DesugaredAttributeContainerSerializer(attributesFactory, instantiator);
-    }
-
-    ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {
-        Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs = ImmutableMap.of(
-            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, fileStoreAndIndexProvider.getArtifactIdentifierFileStore()),
-            ModuleDescriptorHashModuleSource.CODEC_ID, new ModuleDescriptorHashCodec()
-        );
-        return new ModuleSourcesSerializer(codecs);
-    }
-
-    ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider,
-                                                                      ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                      ArtifactCachesProvider artifactCaches,
-                                                                      AttributeContainerSerializer attributeContainerSerializer,
-                                                                      MavenMutableModuleMetadataFactory mavenMetadataFactory,
-                                                                      IvyMutableModuleMetadataFactory ivyMetadataFactory,
-                                                                      SimpleMapInterner stringInterner,
-                                                                      FileStoreAndIndexProvider fileStoreAndIndexProvider,
-                                                                      ModuleSourcesSerializer moduleSourcesSerializer,
-                                                                      ChecksumService checksumService) {
+    ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(
+        BuildCommencedTimeProvider timeProvider,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        ArtifactCachesProvider artifactCaches,
+        AttributeContainerSerializer attributeContainerSerializer,
+        MavenMutableModuleMetadataFactory mavenMetadataFactory,
+        IvyMutableModuleMetadataFactory ivyMetadataFactory,
+        SimpleMapInterner stringInterner,
+        FileStoreAndIndexProvider fileStoreAndIndexProvider,
+        ModuleSourcesSerializer moduleSourcesSerializer,
+        ChecksumService checksumService
+    ) {
         ArtifactIdentifierFileStore artifactIdentifierFileStore = fileStoreAndIndexProvider.getArtifactIdentifierFileStore();
         ModuleRepositoryCaches writableCaches = artifactCaches.withWritableCache((md, manager) -> prepareModuleRepositoryCaches(md, manager, timeProvider, moduleIdentifierFactory, attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, artifactIdentifierFileStore, moduleSourcesSerializer, checksumService));
         AtomicReference<Path> roCachePath = new AtomicReference<>();
@@ -454,10 +428,12 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
     }
 
-    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCachesProvider artifactCaches,
-                                                                                                                           LocalMavenRepositoryLocator localMavenRepositoryLocator,
-                                                                                                                           FileStoreAndIndexProvider fileStoreAndIndexProvider,
-                                                                                                                           ChecksumService checksumService) {
+    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(
+        ArtifactCachesProvider artifactCaches,
+        LocalMavenRepositoryLocator localMavenRepositoryLocator,
+        FileStoreAndIndexProvider fileStoreAndIndexProvider,
+        ChecksumService checksumService
+    ) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
             artifactCaches,
             localMavenRepositoryLocator,
@@ -465,16 +441,18 @@ class DependencyManagementBuildScopeServices {
         return finderFactory.create();
     }
 
-    RepositoryTransportFactory createRepositoryTransportFactory(TemporaryFileProvider temporaryFileProvider,
-                                                                FileStoreAndIndexProvider fileStoreAndIndexProvider,
-                                                                BuildCommencedTimeProvider buildCommencedTimeProvider,
-                                                                ArtifactCachesProvider artifactCachesProvider,
-                                                                List<ResourceConnectorFactory> resourceConnectorFactories,
-                                                                BuildOperationExecutor buildOperationExecutor,
-                                                                ProducerGuard<ExternalResourceName> producerGuard,
-                                                                FileResourceRepository fileResourceRepository,
-                                                                ChecksumService checksumService,
-                                                                StartParameterResolutionOverride startParameterResolutionOverride) {
+    RepositoryTransportFactory createRepositoryTransportFactory(
+        TemporaryFileProvider temporaryFileProvider,
+        FileStoreAndIndexProvider fileStoreAndIndexProvider,
+        BuildCommencedTimeProvider buildCommencedTimeProvider,
+        ArtifactCachesProvider artifactCachesProvider,
+        List<ResourceConnectorFactory> resourceConnectorFactories,
+        BuildOperationExecutor buildOperationExecutor,
+        ProducerGuard<ExternalResourceName> producerGuard,
+        FileResourceRepository fileResourceRepository,
+        ChecksumService checksumService,
+        StartParameterResolutionOverride startParameterResolutionOverride
+    ) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
             temporaryFileProvider,
@@ -489,30 +467,34 @@ class DependencyManagementBuildScopeServices {
         ));
     }
 
-    DependencyVerificationOverride createDependencyVerificationOverride(StartParameterResolutionOverride startParameterResolutionOverride,
-                                                                        BuildOperationExecutor buildOperationExecutor,
-                                                                        ChecksumService checksumService,
-                                                                        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                                        DocumentationRegistry documentationRegistry,
-                                                                        ListenerManager listenerManager,
-                                                                        BuildCommencedTimeProvider timeProvider,
-                                                                        ServiceRegistry serviceRegistry) {
+    DependencyVerificationOverride createDependencyVerificationOverride(
+        StartParameterResolutionOverride startParameterResolutionOverride,
+        BuildOperationExecutor buildOperationExecutor,
+        ChecksumService checksumService,
+        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+        DocumentationRegistry documentationRegistry,
+        ListenerManager listenerManager,
+        BuildCommencedTimeProvider timeProvider,
+        ServiceRegistry serviceRegistry
+    ) {
         DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class), listenerManager.getBroadcaster(FileResourceListener.class));
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }
 
-    ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride,
-                                              ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
-                                              DependencyVerificationOverride dependencyVerificationOverride,
-                                              BuildCommencedTimeProvider buildCommencedTimeProvider,
-                                              VersionComparator versionComparator,
-                                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                              RepositoryDisabler repositoryBlacklister,
-                                              VersionParser versionParser,
-                                              ListenerManager listenerManager,
-                                              ModuleComponentGraphResolveStateFactory resolveStateFactory,
-                                              CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    ResolveIvyFactory createResolveIvyFactory(
+        StartParameterResolutionOverride startParameterResolutionOverride,
+        ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
+        DependencyVerificationOverride dependencyVerificationOverride,
+        BuildCommencedTimeProvider buildCommencedTimeProvider,
+        VersionComparator versionComparator,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        RepositoryDisabler repositoryBlacklister,
+        VersionParser versionParser,
+        ListenerManager listenerManager,
+        ModuleComponentGraphResolveStateFactory resolveStateFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
             startParameterResolutionOverride,
@@ -537,25 +519,27 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
-                                                                DependencyMetadataFactory dependencyMetadataFactory,
-                                                                VersionComparator versionComparator,
-                                                                List<ResolverProviderFactory> resolverFactories,
-                                                                ModuleExclusions moduleExclusions,
-                                                                BuildOperationExecutor buildOperationExecutor,
-                                                                ComponentSelectorConverter componentSelectorConverter,
-                                                                ImmutableAttributesFactory attributesFactory,
-                                                                VersionSelectorScheme versionSelectorScheme,
-                                                                VersionParser versionParser,
-                                                                ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                                                                InstantiatorFactory instantiatorFactory,
-                                                                ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                                                CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                                                ResolvedVariantCache resolvedVariantCache,
-                                                                AttributeDesugaring attributeDesugaring,
-                                                                LocalComponentGraphResolveStateFactory localResolveStateFactory,
-                                                                ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-                                                                ComponentIdGenerator idGenerator) {
+    ArtifactDependencyResolver createArtifactDependencyResolver(
+        ResolveIvyFactory resolveIvyFactory,
+        DependencyMetadataFactory dependencyMetadataFactory,
+        VersionComparator versionComparator,
+        List<ResolverProviderFactory> resolverFactories,
+        ModuleExclusions moduleExclusions,
+        BuildOperationExecutor buildOperationExecutor,
+        ComponentSelectorConverter componentSelectorConverter,
+        ImmutableAttributesFactory attributesFactory,
+        VersionSelectorScheme versionSelectorScheme,
+        VersionParser versionParser,
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+        InstantiatorFactory instantiatorFactory,
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ResolvedVariantCache resolvedVariantCache,
+        AttributeDesugaring attributeDesugaring,
+        LocalComponentGraphResolveStateFactory localResolveStateFactory,
+        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
+        ComponentIdGenerator idGenerator
+    ) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -584,10 +568,6 @@ class DependencyManagementBuildScopeServices {
         return selectorScheme;
     }
 
-    SimpleMapInterner createStringInterner() {
-        return SimpleMapInterner.threadSafe();
-    }
-
     ModuleComponentResolveMetadataSerializer createModuleComponentResolveMetadataSerializer(ImmutableAttributesFactory attributesFactory, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator, ModuleSourcesSerializer moduleSourcesSerializer) {
         DesugaringAttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, instantiator);
         return new ModuleComponentResolveMetadataSerializer(new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), attributeContainerSerializer, moduleIdentifierFactory);
@@ -598,20 +578,24 @@ class DependencyManagementBuildScopeServices {
         return new SuppliedComponentMetadataSerializer(moduleVersionIdentifierSerializer, attributeContainerSerializer);
     }
 
-    ComponentMetadataRuleExecutor createComponentMetadataRuleExecutor(ValueSnapshotter valueSnapshotter,
-                                                                      GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-                                                                      InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                                      BuildCommencedTimeProvider timeProvider,
-                                                                      ModuleComponentResolveMetadataSerializer serializer) {
+    ComponentMetadataRuleExecutor createComponentMetadataRuleExecutor(
+        ValueSnapshotter valueSnapshotter,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+        BuildCommencedTimeProvider timeProvider,
+        ModuleComponentResolveMetadataSerializer serializer
+    ) {
         return new ComponentMetadataRuleExecutor(cacheBuilderFactory, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer);
     }
 
-    ComponentMetadataSupplierRuleExecutor createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter,
-                                                                                      GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-                                                                                      InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                                                      final BuildCommencedTimeProvider timeProvider,
-                                                                                      SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer,
-                                                                                      ListenerManager listenerManager) {
+    ComponentMetadataSupplierRuleExecutor createComponentMetadataSupplierRuleExecutor(
+        ValueSnapshotter snapshotter,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+        final BuildCommencedTimeProvider timeProvider,
+        SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer,
+        ListenerManager listenerManager
+    ) {
         if (cacheDecoratorFactory instanceof CleaningInMemoryCacheDecoratorFactory) {
             listenerManager.addListener(new BuildModelLifecycleListener() {
                 @Override
@@ -624,15 +608,16 @@ class DependencyManagementBuildScopeServices {
     }
 
     SignatureVerificationServiceFactory createSignatureVerificationServiceFactory(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-            InMemoryCacheDecoratorFactory decoratorFactory,
-            RepositoryTransportFactory transportFactory,
-            BuildOperationExecutor buildOperationExecutor,
-            BuildCommencedTimeProvider timeProvider,
-            BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
-            FileHasher fileHasher,
-            StartParameter startParameter,
-            ListenerManager listenerManager) {
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        InMemoryCacheDecoratorFactory decoratorFactory,
+        RepositoryTransportFactory transportFactory,
+        BuildOperationExecutor buildOperationExecutor,
+        BuildCommencedTimeProvider timeProvider,
+        BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
+        FileHasher fileHasher,
+        StartParameter startParameter,
+        ListenerManager listenerManager
+    ) {
         return new DefaultSignatureVerificationServiceFactory(transportFactory, cacheBuilderFactory, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCacheBuilderFactory, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
     }
 
@@ -645,15 +630,17 @@ class DependencyManagementBuildScopeServices {
         });
     }
 
-    DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry,
-                                                              DependenciesAccessorsWorkspaceProvider workspace,
-                                                              DefaultProjectDependencyFactory factory,
-                                                              ExecutionEngine executionEngine,
-                                                              FeatureFlags featureFlags,
-                                                              FileCollectionFactory fileCollectionFactory,
-                                                              ImmutableAttributesFactory attributesFactory,
-                                                              CapabilityNotationParser capabilityNotationParser,
-                                                              InputFingerprinter inputFingerprinter) {
+    DependenciesAccessors createDependenciesAccessorGenerator(
+        ClassPathRegistry registry,
+        DependenciesAccessorsWorkspaceProvider workspace,
+        DefaultProjectDependencyFactory factory,
+        ExecutionEngine executionEngine,
+        FeatureFlags featureFlags,
+        FileCollectionFactory fileCollectionFactory,
+        ImmutableAttributesFactory attributesFactory,
+        CapabilityNotationParser capabilityNotationParser,
+        InputFingerprinter inputFingerprinter
+    ) {
         return new DefaultDependenciesAccessors(registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
     }
 

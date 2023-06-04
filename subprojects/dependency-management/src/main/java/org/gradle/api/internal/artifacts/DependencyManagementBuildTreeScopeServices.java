@@ -16,17 +16,23 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlyComponentDetailsSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildOnlySelectedVariantSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSourceCodec;
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataFileSource;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -37,6 +43,7 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
+import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
@@ -45,8 +52,10 @@ import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIn
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.gradle.util.internal.SimpleMapInterner;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * The set of dependency management services that are created per build tree.
@@ -66,6 +75,10 @@ class DependencyManagementBuildTreeScopeServices {
         registration.add(ConnectionFailureRepositoryDisabler.class);
     }
 
+    SimpleMapInterner createStringInterner() {
+        return SimpleMapInterner.threadSafe();
+    }
+
     BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
         return new BuildCommencedTimeProvider(startParameter);
     }
@@ -83,6 +96,7 @@ class DependencyManagementBuildTreeScopeServices {
             artifactCacheMetadata.getCacheDir().toPath()
         );
     }
+
     FileStoreAndIndexProvider createFileStoreAndIndexProvider(
         BuildCommencedTimeProvider timeProvider,
         ArtifactCachesProvider artifactCaches,
@@ -101,6 +115,14 @@ class DependencyManagementBuildTreeScopeServices {
         return new FileStoreAndIndexProvider(
             artifactCaches.withReadOnlyCache((md, manager) -> (CachedExternalResourceIndex<String>) new TwoStageByUrlCachedExternalResourceIndex(md.getCacheDir().toPath(), prepareArtifactUrlCachedResolutionIndex(timeProvider, manager, externalResourceFileStore, md), writableByUrlCachedExternalResourceIndex)).orElse(writableByUrlCachedExternalResourceIndex),
             externalResourceFileStore, artifactIdentifierFileStore);
+    }
+
+    ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {
+        Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs = ImmutableMap.of(
+            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, fileStoreAndIndexProvider.getArtifactIdentifierFileStore()),
+            ModuleDescriptorHashModuleSource.CODEC_ID, new ModuleDescriptorHashCodec()
+        );
+        return new ModuleSourcesSerializer(codecs);
     }
 
     StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {

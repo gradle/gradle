@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scopes.BuildTree.class)
 public class FileStoreAndIndexProvider {
     private final CachedExternalResourceIndex<String> externalResourceIndex;
     private final ExternalResourceFileStore externalResourceFileStore;
