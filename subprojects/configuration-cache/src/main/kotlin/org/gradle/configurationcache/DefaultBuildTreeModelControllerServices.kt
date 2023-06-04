@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
@@ -43,6 +44,7 @@ import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
+import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.util.internal.IncubationLogger
 
@@ -134,11 +136,13 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(BeanStateReaderLookup::class.java)
             registration.add(JavaSerializationEncodingLookup::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
+            registration.add(ConfigurationCacheFingerprintController::class.java)
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
             registration.add(VintageEnvironmentChangeTracker::class.java)
+            registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
         }
     }
