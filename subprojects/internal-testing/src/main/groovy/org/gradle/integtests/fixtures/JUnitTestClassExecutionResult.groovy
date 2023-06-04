@@ -104,7 +104,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     @Override
-    TestClassExecutionResult assertTestFailed(String name) {
+    TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
         def failures = collectTestFailures(name)
         assert !failures.isEmpty()
         return this

@@ -180,7 +180,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         @Override
-        TestClassExecutionResult assertTestFailed(String name) {
+        TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
             def fullMessages = collectTestFailFullMessages(name, name)
             assert !fullMessages.isEmpty()
             return this

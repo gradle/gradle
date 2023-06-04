@@ -50,7 +50,7 @@ public interface TestClassExecutionResult {
                     assertTestPassed(testName);
                     break;
                 case FAILED:
-                    assertTestFailed(testName);
+                    assertTestFailedIgnoreMessages(testName);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown test outcome: " + status);
@@ -80,7 +80,7 @@ public interface TestClassExecutionResult {
 
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
 
-    TestClassExecutionResult assertTestFailed(String name);
+    TestClassExecutionResult assertTestFailedIgnoreMessages(String name);
 
     /**
      *

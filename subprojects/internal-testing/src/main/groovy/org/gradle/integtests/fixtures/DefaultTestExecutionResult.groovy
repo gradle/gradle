@@ -224,8 +224,8 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         @Override
-        TestClassExecutionResult assertTestFailed(String name) {
-            testClassResults*.assertTestFailed(removeParentheses(name))
+        TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
+            testClassResults*.assertTestFailedIgnoreMessages(removeParentheses(name))
             this
         }
 

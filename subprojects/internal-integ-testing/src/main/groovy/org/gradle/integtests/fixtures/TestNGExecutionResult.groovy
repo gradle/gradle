@@ -189,7 +189,7 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     @Override
-    TestClassExecutionResult assertTestFailed(String name) {
+    TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
         def testMethodNode = findTestMethod(name)
         assert testMethodNode.@status as String == 'FAIL'
         return this
