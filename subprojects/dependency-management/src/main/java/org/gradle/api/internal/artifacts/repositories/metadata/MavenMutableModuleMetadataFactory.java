@@ -26,10 +26,13 @@ import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
 import java.util.List;
 
+@ServiceScope(Scopes.BuildSession.class)
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final MavenImmutableAttributesFactory attributesFactory;
