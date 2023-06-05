@@ -21,53 +21,43 @@ plugins {
 description = "Internal project testing and collecting information about all the test preconditions."
 
 dependencies {
-    // testImplementation(xxx)
-    // ...
-    // ..
-    // integrationTestImplementation.extends(testImplementation)
-    // crossVersionTestImplementation.extends(testImplementation)
-    /**
-     * List subprojects, which has their own preconditions.
-     * These projects should have their preconditions in the "src/testFixtures" sourceSet
-     */
-//    listOf(":plugins", "", "").forEach {
-//        testRuntimeOnly(testFixtures(project(it)))
-//        crossVersion(testFixtures(project(it)))
-//    }
+    // ========================================================================
+    // All subprojects, which has their own preconditions.
+    // These projects should have their preconditions in the "src/testFixtures" sourceSet
+    // ========================================================================
     testRuntimeOnly(testFixtures(project(":plugins")))
     testRuntimeOnly(testFixtures(project(":signing")))
     testRuntimeOnly(testFixtures(project(":test-kit")))
     testRuntimeOnly(testFixtures(project(":smoke-test")))
 
+    // ========================================================================
+    // Other, project-related dependencies
+    // ========================================================================
     testRuntimeOnly(project(":distributions-core")) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
-    }
-//    crossVersionTestRuntimeOnly(testFixtures(project(":tooling-api"))) {
-//        because("Test engine 'cross-version-test-engine' comes from here")
-//    }
-    testImplementation(libs.junit5JupiterApi) {
-        because("Assume API comes from here")
-    }
-    testImplementation(libs.spock)
-
-    crossVersionTestImplementation(project(":distributions-core")) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+        because("Distribution is needed to execute cross-version tests")
     }
 
-    crossVersionTestImplementation(sourceSets.test.get().output.classesDirs)
+    // All of these configurations need the "test" source set
+    // This is unusual, hence we need to explicitly add it here
+    crossVersionTestImplementation(sourceSets.test.get().output)
+    archTestImplementation(sourceSets.test.get().output)
 }
 
+// All configurations need access to all the precondition classes.
+// Normally, "testRuntimeOnly" would be inherited by other test suites, but there are a few exceptions, where it's not:
 configurations {
-    val crossVersionTestImplementation by getting {
+    crossVersionTestRuntimeOnly {
+        extendsFrom(testRuntimeOnly.get())
+    }
+
+    archTestRuntimeOnly {
         extendsFrom(testRuntimeOnly.get())
     }
 }
 
-
 tasks {
     withType(Test::class) {
         testClassesDirs = sourceSets.test.get().output.classesDirs
-//        classpath = sourceSets.test.get().runtimeClasspath
 
         // These tests should not be impacted by the predictive selection
         predictiveSelection {
