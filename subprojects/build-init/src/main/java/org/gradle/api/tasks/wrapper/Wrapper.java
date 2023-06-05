@@ -39,6 +39,7 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
+import org.gradle.util.internal.WrapperDistributionUrlConverter;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.Download;
 import org.gradle.wrapper.GradleWrapperMain;
@@ -57,7 +58,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -191,20 +191,11 @@ public abstract class Wrapper extends DefaultTask {
 
     private URI getDistributionUri(String url) {
         try {
-            if (hasNoRequiredScheme(url)) {
-                Path projectDir = getProject().getLayout().getProjectDirectory().getAsFile().toPath();
-                String absolutePath = Paths.get(url).isAbsolute() ? url : projectDir.resolve(url).toAbsolutePath().toString();
-                return new URI("file", null, absolutePath, null);
-            } else {
-                return new URI(url);
-            }
+            File projectDir = getProject().getLayout().getProjectDirectory().getAsFile();
+            return WrapperDistributionUrlConverter.toUri(projectDir, url);
         } catch (URISyntaxException e) {
             throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
         }
-    }
-
-    private static boolean hasNoRequiredScheme(String url) {
-        return !url.startsWith("http:") && !url.startsWith("https:") && !url.startsWith("file:");
     }
 
     private void writeWrapperTo(File destination) {

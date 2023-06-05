@@ -8,6 +8,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
 
+    implementation(project(":base-annotations"))
     testImplementation(project(":base-services"))
     testImplementation(project(":core-api"))
     testImplementation(project(":native"))
