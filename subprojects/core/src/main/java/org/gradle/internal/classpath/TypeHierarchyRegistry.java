@@ -108,7 +108,6 @@ public class TypeHierarchyRegistry {
         return clazz.getName().replace('.', '/');
     }
 
-
     public static TypeHierarchyRegistry of(List<TypeHierarchyRegistry> others) {
         TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
         others.forEach(other -> {
@@ -133,6 +132,5 @@ public class TypeHierarchyRegistry {
             typeRegistry.registerSuperType(name, superName);
             typeRegistry.registerInterfaces(name, interfaces);
         }
-
     }
 }

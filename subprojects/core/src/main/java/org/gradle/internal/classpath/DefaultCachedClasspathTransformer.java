@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.empty;
@@ -88,7 +89,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
         this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
-        this.typeRegistryProvider = new TypeRegistryProvider(parallelTransformExecutor, classpathWalker);
+        this.typeRegistryProvider = new TypeRegistryProvider(parallelTransformExecutor, classpathWalker, this::snapshotOf);
     }
 
     @Override
@@ -275,7 +276,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         private final PersistentCache cache;
         private final ManagedExecutor executor;
 
-        public ParallelTransformExecutor(PersistentCache cache, ManagedExecutor executor) {
+        private ParallelTransformExecutor(PersistentCache cache, ManagedExecutor executor) {
             this.cache = cache;
             this.executor = executor;
         }
@@ -317,10 +318,12 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private static class TypeRegistryProvider {
         private final ParallelTransformExecutor parallelExecutor;
         private final ClasspathWalker classpathWalker;
+        private final Function<File, FileSystemLocationSnapshot> snapshotFun;
 
-        public TypeRegistryProvider(ParallelTransformExecutor parallelExecutor, ClasspathWalker classpathWalker) {
+        public TypeRegistryProvider(ParallelTransformExecutor parallelExecutor, ClasspathWalker classpathWalker, Function<File, FileSystemLocationSnapshot> snapshotFun) {
             this.parallelExecutor = parallelExecutor;
             this.classpathWalker = classpathWalker;
+            this.snapshotFun = snapshotFun;
         }
 
         public TypeHierarchyRegistry getFor(Collection<URL> urls) {
@@ -337,21 +340,25 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
 
         private Optional<Either<TypeHierarchyRegistry, Callable<TypeHierarchyRegistry>>> visitClassHierarchyForFile(File source, Set<HashCode> seen) {
-            try {
-                TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
-                InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
-                classpathWalker.visit(source, entry -> {
-                    if (!policy.includeEntry(entry)) {
-                        return;
-                    }
-                    if (entry.getName().endsWith(".class")) {
-                        typeRegistry.visit(entry.getContent());
-                    }
-                });
-                return Optional.of(Either.left(typeRegistry));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            FileSystemLocationSnapshot snapshot = snapshotFun.apply(source.getAbsoluteFile());
+            if (snapshot.getType() == FileType.Missing || !seen.add(snapshot.getHash())) {
+                return Optional.empty();
             }
+            return Optional.of(Either.right(() -> visitClassHierarchyForFile(source)));
+        }
+
+        private TypeHierarchyRegistry visitClassHierarchyForFile(File source) throws IOException {
+            TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
+            InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
+            classpathWalker.visit(source, entry -> {
+                if (!policy.includeEntry(entry)) {
+                    return;
+                }
+                if (entry.getName().endsWith(".class")) {
+                    typeRegistry.visit(entry.getContent());
+                }
+            });
+            return typeRegistry;
         }
     }
 
