@@ -33,7 +33,7 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    crossVersionTestRuntimeOnly(project(":test-kit")) {
+    crossVersionTestRuntimeOnly(testFixtures(project(":tooling-api"))) {
         because("Test engine 'cross-version-test-engine' comes from here")
     }
     testImplementation(libs.junit5JupiterApi) {
