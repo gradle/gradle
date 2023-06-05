@@ -57,7 +57,7 @@ public interface NextGenBuildCacheAccess extends Closeable {
         /**
          * Starts the legacy {@link BuildCacheRemoteLoadBuildOperationType} build operation when the first download starts.
          */
-        void startLoadOperation(BuildCacheKey key);
+        void ensureLoadOperationStarted(BuildCacheKey key);
 
         /**
          * Record that the load operation was successful in loading a result.
@@ -99,7 +99,7 @@ public interface NextGenBuildCacheAccess extends Closeable {
         /**
          * Starts the legacy {@link BuildCacheRemoteStoreBuildOperationType} build operation when the first upload starts.
          */
-        void startStoreOperation(BuildCacheKey key);
+        void ensureStoreOperationStarted(BuildCacheKey key);
 
         /**
          * Record that the store operation has finished successfully.
@@ -131,8 +131,8 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void startLoadOperation(BuildCacheKey key) {
-            delegate.startLoadOperation(key);
+        public void ensureLoadOperationStarted(BuildCacheKey key) {
+            delegate.ensureLoadOperationStarted(key);
         }
 
         @Override
@@ -164,8 +164,8 @@ public interface NextGenBuildCacheAccess extends Closeable {
         }
 
         @Override
-        public void startStoreOperation(BuildCacheKey key) {
-            delegate.startStoreOperation(key);
+        public void ensureStoreOperationStarted(BuildCacheKey key) {
+            delegate.ensureStoreOperationStarted(key);
         }
 
         @Override

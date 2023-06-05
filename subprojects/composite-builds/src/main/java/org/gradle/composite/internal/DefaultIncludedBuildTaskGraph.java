@@ -19,7 +19,9 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -42,6 +44,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -147,12 +150,17 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
         @Override
         public void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-            owner.controllers.getBuildController(target).populateWorkGraph(action);
+            buildControllerOf(target).populateWorkGraph(action);
         }
 
         @Override
         public void addFilter(BuildState target, Spec<Task> filter) {
-            owner.controllers.getBuildController(target).addFilter(filter);
+            buildControllerOf(target).addFilter(filter);
+        }
+
+        @Override
+        public void addFinalization(BuildState target, BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
+            buildControllerOf(target).addFinalization(finalization);
         }
 
         @Override
@@ -165,6 +173,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 }
                 locateTask(identifier).queueForExecution();
             }
+        }
+
+        private BuildController buildControllerOf(BuildState target) {
+            return owner.controllers.getBuildController(target);
         }
     }
 

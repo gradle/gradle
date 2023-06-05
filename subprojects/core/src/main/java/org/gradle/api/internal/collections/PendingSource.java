@@ -35,7 +35,12 @@ public interface PendingSource<T> {
 
     void realizeExternal(ProviderInternal<? extends T> provider);
 
-    void onRealize(Action<T> action);
+    /**
+     * Adds an action to be executed when a value from a pending element is concretely added.
+     * The provided action is only called when a pending value is realized and the value is not
+     * already present in the concrete values of this source.
+     */
+    void onPendingAdded(Action<T> action);
 
     boolean isEmpty();
 
