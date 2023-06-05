@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.hash;
 
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
+package org.gradle.api.internal.collections;
 
-import java.io.File;
+import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.BuildSession.class)
-public interface ChecksumService {
-    HashCode md5(File file);
+/**
+ * Tracks which types are subscribed to by eager event listeners. Lazy elements of a
+ * subscribed type should be immediately realized when added to a container.
+ */
+public interface EventSubscriptionVerifier<T> {
 
-    HashCode sha1(File file);
-
-    HashCode sha256(File file);
-
-    HashCode sha512(File file);
-
-    HashCode hash(File src, String algorithm);
+    /**
+     * Determines whether events should be emitted for elements of the given type.
+     */
+    boolean isSubscribed(@Nullable Class<? extends T> type);
 }

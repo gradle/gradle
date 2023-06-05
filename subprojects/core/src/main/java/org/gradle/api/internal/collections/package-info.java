@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.hash;
 
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
-
-@ServiceScope(Scopes.BuildSession.class)
-public interface ChecksumService {
-    HashCode md5(File file);
-
-    HashCode sha1(File file);
-
-    HashCode sha256(File file);
-
-    HashCode sha512(File file);
-
-    HashCode hash(File src, String algorithm);
-}
+@org.gradle.api.NonNullApi
+package org.gradle.api.internal.collections;
