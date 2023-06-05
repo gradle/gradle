@@ -33,6 +33,9 @@ dependencies {
     // ========================================================================
     // Other, project-related dependencies
     // ========================================================================
+    testImplementation(libs.junit5JupiterApi) {
+        because("Assume API comes from here")
+    }
     testRuntimeOnly(project(":distributions-core")) {
         because("Distribution is needed to execute cross-version tests")
     }
