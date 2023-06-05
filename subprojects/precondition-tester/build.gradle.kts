@@ -20,15 +20,41 @@ plugins {
 
 description = "Internal project testing and collecting information about all the test preconditions."
 
+// Special configuration containing all the precondition classes
+val precondition by configurations.creating {
+    description = "Configuration for all TestPrecondition classes dynamically loaded by the precondition tester"
+    isCanBeResolved = false
+    isCanBeConsumed = true
+}
+
+configurations {
+    // All other test configurations should extend from the "precondition" configuration
+    listOf(integTestRuntimeOnly, archTestRuntimeOnly, crossVersionTestRuntimeOnly).forEach {
+        it.configure {
+            extendsFrom(precondition)
+        }
+    }
+}
+
 dependencies {
     // ========================================================================
     // All subprojects, which has their own preconditions.
     // These projects should have their preconditions in the "src/testFixtures" sourceSet
     // ========================================================================
-    testRuntimeOnly(testFixtures(project(":plugins")))
-    testRuntimeOnly(testFixtures(project(":signing")))
-    testRuntimeOnly(testFixtures(project(":test-kit")))
-    testRuntimeOnly(testFixtures(project(":smoke-test")))
+    // This whole project is for test support, i.e. it's "main" source set is used
+    precondition(project(":internal-testing"))
+    // This whole project is for test support, i.e. it's "main" source set is used
+    precondition(project(":internal-integ-testing"))
+    precondition(testFixtures(project(":plugins")))
+    precondition(testFixtures(project(":signing")))
+    precondition(testFixtures(project(":test-kit")))
+    precondition(testFixtures(project(":smoke-test")))
+
+    // This is a special dependency, as some of the preconditions might need a distribution.
+    // E.g. see "IntegTestPreconditions.groovy"
+    precondition(project(":distributions-core")) {
+        because("Some preconditions might need a distribution to run against")
+    }
 
     // ========================================================================
     // Other, project-related dependencies
@@ -36,31 +62,15 @@ dependencies {
     testImplementation(libs.junit5JupiterApi) {
         because("Assume API comes from here")
     }
-    testRuntimeOnly(project(":distributions-core")) {
-        because("Distribution is needed to execute cross-version tests")
-    }
-
-    // All of these configurations need the "test" source set
-    // This is unusual, hence we need to explicitly add it here
-    crossVersionTestImplementation(sourceSets.test.get().output)
-    archTestImplementation(sourceSets.test.get().output)
-}
-
-// All configurations need access to all the precondition classes.
-// Normally, "testRuntimeOnly" would be inherited by other test suites, but there are a few exceptions, where it's not:
-configurations {
-    crossVersionTestRuntimeOnly {
-        extendsFrom(testRuntimeOnly.get())
-    }
-
-    archTestRuntimeOnly {
-        extendsFrom(testRuntimeOnly.get())
-    }
 }
 
 tasks {
     withType(Test::class) {
+        // We only want to execute our special tests,
+        // so we override what classes are going to run
         testClassesDirs = sourceSets.test.get().output.classesDirs
+        // All test should have this project's "test" source set on their classpath
+        classpath += sourceSets.test.get().output
 
         // These tests should not be impacted by the predictive selection
         predictiveSelection {
