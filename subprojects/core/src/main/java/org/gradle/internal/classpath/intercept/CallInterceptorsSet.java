@@ -23,6 +23,7 @@ import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
+import org.gradle.internal.classpath.InstrumentedGroovyCallsHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
 
 import javax.annotation.Nullable;
@@ -34,9 +35,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsHelper.withEntryPoint;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD;
-import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.withEntryPoint;
 
 /**
  * Holds a collection of interceptors and can decorate a Groovy CallSite if it is within a scope of a registered interceptor.
@@ -206,7 +207,7 @@ public class CallInterceptorsSet implements CallSiteDecorator, CallInterceptorRe
 
         private @Nullable Object maybeInstrumentedDynamicCall(
             InstrumentedGroovyCallsTracker.CallKind kind,
-            InstrumentedGroovyCallsTracker.ThrowingCallable<Object> invokeOriginal
+            InstrumentedGroovyCallsHelper.ThrowingCallable<Object> invokeOriginal
         ) throws Throwable {
             if (interceptedCallSiteNames.contains(getName())) {
                 InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();

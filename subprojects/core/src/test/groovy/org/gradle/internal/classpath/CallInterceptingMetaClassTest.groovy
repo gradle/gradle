@@ -34,10 +34,15 @@ class CallInterceptingMetaClassTest extends Specification {
     // We don't want to interfere with other tests that modify the meta class
     def interceptorTestReceiverClassLock = new ClassBasedLock(InterceptorTestReceiver)
 
+    def callTracker = new DefaultInstrumentedGroovyCallsTracker()
+
     def setup() {
         interceptorTestReceiverClassLock.lock()
         originalMetaClass = InterceptorTestReceiver.metaClass
-        GroovySystem.metaClassRegistry.setMetaClass(InterceptorTestReceiver, new CallInterceptingMetaClass(GroovySystem.metaClassRegistry, InterceptorTestReceiver, InterceptorTestReceiver.metaClass, callInterceptors))
+        GroovySystem.metaClassRegistry.setMetaClass(
+            InterceptorTestReceiver,
+            new CallInterceptingMetaClass(GroovySystem.metaClassRegistry, InterceptorTestReceiver, InterceptorTestReceiver.metaClass, callTracker, callInterceptors)
+        )
         instance = new InterceptorTestReceiver()
     }
 
@@ -326,12 +331,12 @@ class CallInterceptingMetaClassTest extends Specification {
         properties.every { it instanceof CallInterceptingMetaClass.InterceptedMetaProperty }
     }
 
-    private static Object withEntryPoint(InstrumentedGroovyCallsTracker.CallKind kind, String name, Closure<?> call) {
-        def entryPoint = InstrumentedGroovyCallsTracker.enterCall("from-test", name, kind)
+    private Object withEntryPoint(InstrumentedGroovyCallsTracker.CallKind kind, String name, Closure<?> call) {
+        def entryPoint = callTracker.enterCall("from-test", name, kind)
         try {
             return call()
         } finally {
-            InstrumentedGroovyCallsTracker.leaveCall(entryPoint)
+            callTracker.leaveCall(entryPoint)
         }
     }
 }

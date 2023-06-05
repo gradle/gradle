@@ -62,6 +62,7 @@ import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallK
 public class CallInterceptingMetaClass extends MetaClassImpl implements AdaptingMetaClass, InstrumentedMetaClass {
 
     private MetaClass adaptee;
+    private final InstrumentedGroovyCallsTracker callsTracker;
     private final CallInterceptorResolver interceptorResolver;
 
     private static final Object[] NO_ARG = new Object[0];
@@ -70,11 +71,12 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         MetaClassRegistry registry,
         Class<?> javaClass,
         MetaClass adaptee,
-
+        InstrumentedGroovyCallsTracker callsTracker,
         CallInterceptorResolver interceptorResolver
     ) {
         super(registry, javaClass);
         this.adaptee = adaptee;
+        this.callsTracker = callsTracker;
         this.interceptorResolver = interceptorResolver;
 
         super.initialize();
@@ -131,7 +133,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             if (propertyType != null) {
                 return new InterceptedMetaProperty(name,
                     propertyType, original,
-                    theClass, getterCallerAndInterceptor != null ? getterCallerAndInterceptor.right : null,
+                    theClass, callsTracker, getterCallerAndInterceptor != null ? getterCallerAndInterceptor.right : null,
                     setterCallerAndInterceptor != null ? setterCallerAndInterceptor.right : null,
                     Objects.requireNonNull(consumerClass));
             }
@@ -188,7 +190,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
 
     @Override
     public MetaMethod pickMethod(String methodName, Class[] arguments) {
-        String matchedCaller = InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(methodName, INVOKE_METHOD);
+        String matchedCaller = callsTracker.findCallerForCurrentCallIfNotIntercepted(methodName, INVOKE_METHOD);
         MetaMethod original = adaptee.pickMethod(methodName, arguments);
 
         if (matchedCaller != null) {
@@ -203,8 +205,8 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
                         matchedCaller,
                         callInterceptor,
                         signatureMatch.argClasses,
-                        signatureMatch.isVararg
-                    );
+                        signatureMatch.isVararg,
+                        callsTracker);
                 }
             }
         }
@@ -213,7 +215,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 
     private Object invokeIntercepted(Object receiver, InstrumentedGroovyCallsTracker.CallKind kind, String name, Object[] arguments, Callable<Object> invokeOriginal) {
-        String matchedCaller = InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind);
+        String matchedCaller = callsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind);
         if (matchedCaller != null) {
             InterceptScope scope =
                 kind == INVOKE_METHOD ? InterceptScope.methodsNamed(name) :
@@ -225,7 +227,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             }
             CallInterceptor callInterceptor = interceptorResolver.resolveCallInterceptor(scope);
             if (callInterceptor != null) {
-                return invokeWithInterceptor(callInterceptor, name, kind, receiver, arguments, matchedCaller, invokeOriginal);
+                return invokeWithInterceptor(callsTracker, callInterceptor, name, kind, receiver, arguments, matchedCaller, invokeOriginal);
             }
         }
 
@@ -295,11 +297,11 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
     //endregion
 
-    private static Object invokeWithInterceptor(CallInterceptor interceptor, String name, InstrumentedGroovyCallsTracker.CallKind kind, Object receiver, Object[] arguments, String consumerClass, Callable<Object> doCallOriginal) {
+    private static Object invokeWithInterceptor(InstrumentedGroovyCallsTracker callsTracker, CallInterceptor interceptor, String name, InstrumentedGroovyCallsTracker.CallKind kind, Object receiver, Object[] arguments, String consumerClass, Callable<Object> doCallOriginal) {
         final boolean[] invokedOriginal = {false};
 
         try {
-            if (consumerClass.equals(InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind))) {
+            if (consumerClass.equals(callsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind))) {
                 Invocation invocation = callOriginalReportingInvocation(receiver, arguments, doCallOriginal, () -> invokedOriginal[0] = true);
                 return interceptor.doIntercept(invocation, consumerClass);
             } else {
@@ -311,7 +313,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             throw new IllegalStateException("this is an unreachable statement, the call above always throws an exception");
         } finally {
             if (!invokedOriginal[0]) {
-                InstrumentedGroovyCallsTracker.markCurrentCallAsIntercepted(name, kind);
+                callsTracker.markCurrentCallAsIntercepted(name, kind);
             }
         }
     }
@@ -339,7 +341,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
 
     @Nullable
     private Pair<String, CallInterceptor> findGetterCallerAndInterceptor(String propertyName) {
-        String caller = InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(propertyName, GET_PROPERTY);
+        String caller = callsTracker.findCallerForCurrentCallIfNotIntercepted(propertyName, GET_PROPERTY);
         if (caller == null) {
             return null;
         }
@@ -352,7 +354,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
 
     @Nullable
     private Pair<String, CallInterceptor> findSetterCallerAndInterceptor(String propertyName) {
-        String caller = InstrumentedGroovyCallsTracker.findCallerForCurrentCallIfNotIntercepted(propertyName, SET_PROPERTY);
+        String caller =  callsTracker.findCallerForCurrentCallIfNotIntercepted(propertyName, SET_PROPERTY);
         if (caller == null) {
             return null;
         }
@@ -368,6 +370,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         @Nullable
         private final MetaProperty original;
         private final Class<?> ownerClass;
+        private final InstrumentedGroovyCallsTracker callsTracker;
         private final CallInterceptor getterInterceptor;
         private final CallInterceptor setterInterceptor;
         private final String consumerClass;
@@ -376,13 +379,14 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             String name,
             Class type,
             @Nullable MetaProperty original,
-            Class<?> ownerClass, @Nullable CallInterceptor getterInterceptor,
+            Class<?> ownerClass, InstrumentedGroovyCallsTracker callsTracker, @Nullable CallInterceptor getterInterceptor,
             @Nullable CallInterceptor setterInterceptor,
             String getConsumerClass
         ) {
             super(name, type);
             this.original = original;
             this.ownerClass = ownerClass;
+            this.callsTracker = callsTracker;
             this.getterInterceptor = getterInterceptor;
             this.setterInterceptor = setterInterceptor;
             this.consumerClass = getConsumerClass;
@@ -391,7 +395,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         @Override
         public Object getProperty(Object object) {
             if (getterInterceptor != null) {
-                return invokeWithInterceptor(getterInterceptor, name, GET_PROPERTY, object, NO_ARG, consumerClass, () -> {
+                return invokeWithInterceptor(callsTracker, getterInterceptor, name, GET_PROPERTY, object, NO_ARG, consumerClass, () -> {
                     if (original != null) {
                         return original.getProperty(object);
                     } else {
@@ -408,7 +412,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         @Override
         public void setProperty(Object object, Object newValue) {
             if (setterInterceptor != null) {
-                invokeWithInterceptor(setterInterceptor, name, SET_PROPERTY, object, new Object[]{newValue}, consumerClass, () -> {
+                invokeWithInterceptor(callsTracker, setterInterceptor, name, SET_PROPERTY, object, new Object[]{newValue}, consumerClass, () -> {
                     if (original != null) {
                         original.setProperty(object, newValue);
                         return null;
@@ -427,6 +431,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     @NonNullApi
     public static class InterceptedMetaMethod extends MetaMethod {
         private final @Nullable MetaMethod original;
+        private final InstrumentedGroovyCallsTracker callsTracker;
         private final String name;
         private final Class<?> owner;
         private final String consumerClass;
@@ -439,20 +444,22 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             String consumerClass,
             CallInterceptor callInterceptor,
             Class<?>[] nativeParameterTypes,
-            boolean isVararg
+            boolean isVararg,
+            InstrumentedGroovyCallsTracker callsTracker
         ) {
             this.original = original;
             this.name = name;
             this.owner = owner;
             this.consumerClass = consumerClass;
             this.callInterceptor = callInterceptor;
+            this.callsTracker = callsTracker;
             this.nativeParamTypes = nativeParameterTypes;
             this.isVargsMethod = isVararg;
         }
 
         @Override
         public Object invoke(Object object, Object[] arguments) {
-            return invokeWithInterceptor(callInterceptor, name, INVOKE_METHOD, object, arguments, consumerClass, () -> {
+            return invokeWithInterceptor(callsTracker, callInterceptor, name, INVOKE_METHOD, object, arguments, consumerClass, () -> {
                 if (original != null) {
                     return original.invoke(object, arguments);
                 } else {

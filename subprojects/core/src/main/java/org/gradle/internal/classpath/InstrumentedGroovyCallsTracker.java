@@ -19,12 +19,11 @@ package org.gradle.internal.classpath;
 import org.gradle.api.NonNullApi;
 
 import javax.annotation.Nullable;
-import java.util.Stack;
 
 /**
- * Tracks the call stacks of instrumented Groovy methods, maintaining a call per thread. <p>
+ * Tracks the call stacks of instrumented Groovy methods, maintaining a call stack per thread. <p>
  *
- * A call is registered with {@link InstrumentedGroovyCallsTracker#enterCall} and unregistered {@link InstrumentedGroovyCallsTracker#leaveCall}, which should match exactly. <p>
+ * A call is registered with {@link InstrumentedGroovyCallsTracker#enterCall} and unregistered {@link InstrumentedGroovyCallsTracker#leaveCall}, which should match each other exactly. <p>
  *
  * In between, a third party may query this structure with {@link InstrumentedGroovyCallsTracker#findCallerForCurrentCallIfNotIntercepted} to check if the current innermost call
  * matches a method or property and has not been intercepted yet. <p>
@@ -33,59 +32,18 @@ import java.util.Stack;
  * parties will not be able to match the call.
  */
 @NonNullApi
-public class InstrumentedGroovyCallsTracker {
-    private static final ThreadLocal<Stack<EntryPointCallSite>> CURRENT_CALL_STACK_PER_THREAD = ThreadLocal.withInitial(Stack::new);
-
-    @NonNullApi
-    public interface ThrowingCallable<T> {
-        @Nullable
-        T call() throws Throwable;
-    }
-
+public interface InstrumentedGroovyCallsTracker {
     /**
-     * Executes the given {@code callable} in the context of an entry point produced from entering a dynamically dispatched
-     * call described by the {@code callableName} and {@code kind}
-     * from a class identified by {@code consumerClass}.
-     * After running the callable, ensures that the entry point leaves the context and returns the callable's result.
-     */
-    public static <T> @Nullable T withEntryPoint(String consumerClass, String callableName, InstrumentedGroovyCallsTracker.CallKind kind, ThrowingCallable<T> callable) throws Throwable {
-        InstrumentedGroovyCallsTracker.EntryPointCallSite entryPoint = InstrumentedGroovyCallsTracker.enterCall(consumerClass, callableName, kind);
-        try {
-            return callable.call();
-        } finally {
-            InstrumentedGroovyCallsTracker.leaveCall(entryPoint);
-        }
-    }
-
-    /**
-     * Registers the current call in the thread-specific instrumented call stack.
+     * Registers the current call in the instrumented calls stack.
      * @return an entry point call site token that must later be passed to {@link InstrumentedGroovyCallsTracker#leaveCall}
      */
-    public static EntryPointCallSite enterCall(String callerClassName, String callableName, CallKind callKind) {
-        EntryPointCallSite entryPoint = new EntryPointCallSite(callableName, callerClassName, callKind);
-        CURRENT_CALL_STACK_PER_THREAD.get().push(entryPoint);
-        return entryPoint;
-    }
+    EntryPointCallSite enterCall(String callerClassName, String callableName, CallKind callKind);
 
     /**
      * Unregisters the instrumented call site. The entry point must be the instance returned from the {@link InstrumentedGroovyCallsTracker#enterCall}
      * @throws IllegalStateException if the passed entry point token does not match the current innermost instrumented call tracked for the thread.
      */
-    public static void leaveCall(EntryPointCallSite entryPoint) {
-        Stack<EntryPointCallSite> currentCallStack = CURRENT_CALL_STACK_PER_THREAD.get();
-        EntryPointCallSite top = currentCallStack.peek();
-        if (top != entryPoint) {
-            throwMismatchedCallException(entryPoint, top);
-        }
-        currentCallStack.pop();
-    }
-
-    private static void throwMismatchedCallException(EntryPointCallSite entryPoint, EntryPointCallSite top) {
-        throw new IllegalStateException(
-            "Illegal state of the instrumented Groovy call tracker. " +
-                "Expected the call to " + entryPoint.getCallableName() + " from " + entryPoint.getCallerClassName() + " on top, " +
-                "got a call to " + top.getCallableName() + " from " + top.getCallerClassName());
-    }
+    void leaveCall(EntryPointCallSite entryPoint);
 
     /**
      * Checks if the current thread's innermost instrumented call matches the name and call kind, and has not been marked as intercepted yet.
@@ -94,24 +52,7 @@ public class InstrumentedGroovyCallsTracker {
      */
     // TODO maybe also match the args
     @Nullable
-    public static String findCallerForCurrentCallIfNotIntercepted(String callableName, CallKind kind) {
-        Stack<EntryPointCallSite> callStack = CURRENT_CALL_STACK_PER_THREAD.get();
-        if (callStack.isEmpty()) {
-            return null;
-        }
-
-        EntryPointCallSite top = callStack.peek();
-        if (!callableName.equals(top.callableName)) {
-            return null;
-        }
-        if (kind != top.kind) {
-            return null;
-        }
-        if (top.isMatchedAtDispatchSite()) {
-            return null;
-        }
-        return top.callerClassName;
-    }
+    String findCallerForCurrentCallIfNotIntercepted(String callableName, CallKind kind);
 
     /**
      * Matches the current thread's innermost instrumented call as intercepted, after which it cannot be discovered with
@@ -120,57 +61,14 @@ public class InstrumentedGroovyCallsTracker {
      * @throws IllegalStateException if the provided callable name and kind do not match the current thread's innermost call, or if the call has already been marked as intercepted.
      * The caller should therefore check that {@link InstrumentedGroovyCallsTracker#findCallerForCurrentCallIfNotIntercepted} finds a match.
      */
-    public static void markCurrentCallAsIntercepted(String callableName, CallKind kind) {
-        String result = findCallerForCurrentCallIfNotIntercepted(callableName, kind);
-        Stack<EntryPointCallSite> entryPointCallSites = CURRENT_CALL_STACK_PER_THREAD.get();
-        if (result == null) {
-            throw new IllegalStateException(
-                "Failed to match the current call: tried to intercept " + callableName + ", but " +
-                    (entryPointCallSites.empty() ? "there is no current call" : "the current call is " + entryPointCallSites.peek().callableName)
-            );
-        }
-        entryPointCallSites.peek().markedAsMatchedAtDispatchSite();
+    void markCurrentCallAsIntercepted(String callableName, CallKind kind);
+
+    @NonNullApi
+    interface EntryPointCallSite {
     }
 
     @NonNullApi
-    public static class EntryPointCallSite {
-        private final String callableName;
-        private final String callerClassName;
-        private final CallKind kind;
-        private boolean isMatchedAtDispatchSite = false;
-
-        public EntryPointCallSite(String callableName, String callerClassName, CallKind kind) {
-            this.callableName = callableName;
-            this.callerClassName = callerClassName;
-            this.kind = kind;
-        }
-
-        public String getCallableName() {
-            return callableName;
-        }
-
-        public String getCallerClassName() {
-            return callerClassName;
-        }
-
-        public CallKind getKind() {
-            return kind;
-        }
-
-        public boolean isMatchedAtDispatchSite() {
-            return isMatchedAtDispatchSite;
-        }
-
-        public void markedAsMatchedAtDispatchSite() {
-            if (isMatchedAtDispatchSite) {
-                throw new IllegalStateException("Cannot match a single call more than once");
-            }
-            isMatchedAtDispatchSite = true;
-        }
-    }
-
-    @NonNullApi
-    public enum CallKind {
+    enum CallKind {
         GET_PROPERTY, SET_PROPERTY, INVOKE_METHOD
     }
 }

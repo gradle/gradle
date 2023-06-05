@@ -71,6 +71,6 @@ public class InstrumentedGroovyMetaClassHelper {
     }
 
     private static CallInterceptingMetaClass interceptedMetaClass(Class<?> javaClass, MetaClassRegistry metaClassRegistry, MetaClass originalMetaClass) {
-        return new CallInterceptingMetaClass(metaClassRegistry, javaClass, originalMetaClass, INTERCEPTOR_RESOLVER);
+        return new CallInterceptingMetaClass(metaClassRegistry, javaClass, originalMetaClass, InstrumentedGroovyCallsHelper.INSTANCE, INTERCEPTOR_RESOLVER);
     }
 }

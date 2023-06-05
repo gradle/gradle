@@ -21,7 +21,7 @@ import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
-import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
+import org.gradle.internal.classpath.InstrumentedGroovyCallsHelper;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
@@ -34,8 +34,8 @@ import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclarati
 
 import javax.annotation.Nullable;
 
+import static org.gradle.internal.classpath.InstrumentedGroovyCallsHelper.withEntryPoint;
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY;
-import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.withEntryPoint;
 
 @SuppressWarnings("NewMethodNamingConvention")
 @NonNullApi
@@ -57,16 +57,16 @@ public class GroovyDynamicDispatchInterceptors {
         }
 
         CallInterceptor interceptor = Instrumented.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
-        InstrumentedGroovyCallsTracker.ThrowingCallable<Object> setOriginalProperty = () -> {
+        InstrumentedGroovyCallsHelper.ThrowingCallable<Object> setOriginalProperty = () -> {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return null;
         };
-        if (interceptor == null) {
-            InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
-            withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
-        } else {
+        if (interceptor != null) {
             Invocation invocation = new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}, consumer, messageName, setOriginalProperty);
             interceptor.doIntercept(invocation, consumer);
+        } else {
+            InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
+            withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
         }
     }
 
@@ -96,9 +96,9 @@ public class GroovyDynamicDispatchInterceptors {
     private static class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
         private final String consumer;
         private final String messageName;
-        private final InstrumentedGroovyCallsTracker.ThrowingCallable<?> setOriginalProperty;
+        private final InstrumentedGroovyCallsHelper.ThrowingCallable<?> setOriginalProperty;
 
-        public SetPropertyInvocationImpl(Object receiver, Object[] args, String consumer, String messageName, InstrumentedGroovyCallsTracker.ThrowingCallable<?> setOriginalProperty) {
+        public SetPropertyInvocationImpl(Object receiver, Object[] args, String consumer, String messageName, InstrumentedGroovyCallsHelper.ThrowingCallable<?> setOriginalProperty) {
             super(receiver, args);
             this.consumer = consumer;
             this.messageName = messageName;
