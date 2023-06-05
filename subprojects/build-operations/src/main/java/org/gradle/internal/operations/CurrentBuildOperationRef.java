@@ -46,7 +46,7 @@ public class CurrentBuildOperationRef {
 
     public void set(@Nullable BuildOperationRef state) {
         if (state == null) {
-            ref.remove();
+            clear();
         } else {
             ref.set(state);
         }

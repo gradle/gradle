@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.DefaultFailureResult;
@@ -37,9 +38,10 @@ import java.util.Collections;
  *
  * @since 2.5
  */
+@NonNullApi
 class ClientForwardingBuildOperationListener implements BuildOperationListener {
 
-    private final ProgressEventConsumer eventConsumer;
+    protected final ProgressEventConsumer eventConsumer;
 
     ClientForwardingBuildOperationListener(ProgressEventConsumer eventConsumer) {
         this.eventConsumer = eventConsumer;

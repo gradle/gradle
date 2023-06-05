@@ -21,7 +21,9 @@ import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputResult;
 
-public class DefaultTestOutputEvent extends AbstractProgressEvent<InternalOperationDescriptor> implements InternalTestOutputEvent {
+import java.io.Serializable;
+
+public class DefaultTestOutputEvent extends AbstractProgressEvent<InternalOperationDescriptor> implements Serializable, InternalTestOutputEvent {
 
     private final InternalOperationDescriptor descriptor;
     private final InternalTestOutputResult result;

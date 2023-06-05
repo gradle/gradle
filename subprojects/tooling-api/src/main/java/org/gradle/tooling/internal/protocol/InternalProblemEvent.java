@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.Problem;
+import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
 import java.util.Map;
+
+
+/**
+ * implements org.gradle.tooling.Problem
+ */
 @NonNullApi
-public class DefaultProblem implements Problem {
+public interface InternalProblemEvent extends InternalProgressEvent {
 
-    private final Map<String, String> rawAttributes;
-
-    public DefaultProblem(Map<String, String> rawAttributes) {
-        this.rawAttributes = rawAttributes;
-    }
-
-    @Override
-    public Map<String, String> getRawAttributes() {
-        return rawAttributes;
-    }
+    Map<String, String> getRawAttributes();
 }

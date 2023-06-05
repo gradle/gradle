@@ -49,7 +49,28 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener(events).run()
+                connection.newBuild()
+                    .forTasks('assemble')
+                    .addProgressListener(events)
+                    .run()
+        }
+
+        then: "progress events must be forwarded to the attached listeners"
+        events.assertIsABuild()
+    }
+
+    def "progress it!"() {
+        given:
+        buildFile << """broken!"""
+
+        when: "launching a build"
+        def events = ProgressEvents.create()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .forTasks('assemble')
+                    .addProgressListener(events)
+                    .run()
         }
 
         then: "progress events must be forwarded to the attached listeners"

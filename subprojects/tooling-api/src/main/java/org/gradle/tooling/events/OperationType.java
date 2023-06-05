@@ -17,6 +17,7 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.problems.ProblemEvent;
 
 /**
  * Enumerates the different types of operations for which progress events can be received.
@@ -151,5 +152,19 @@ public enum OperationType {
      * @since 7.6
      */
     @Incubating
-    BUILD_PHASE
+    BUILD_PHASE,
+
+    /**
+     * Flag for problem events.
+     *
+     * <p>
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link ProblemEvent}</li>
+     * </ul>
+     *
+     * @since 8.3
+     */
+    @Incubating
+    PROBLEMS
 }

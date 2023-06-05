@@ -17,22 +17,22 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.tooling.internal.protocol.InternalProblem;
+import org.gradle.api.problems.interfaces.ProblemLocation;
+import org.gradle.tooling.internal.protocol.InternalProblemEvent;
+import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements Serializable, InternalProblem {
+public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements Serializable, InternalProblemEvent {
 
     private final Map<String, String> rawAttributes;
 
-    private DefaultProblem(Map<String, String> rawAttributes) {
+    public DefaultProblemEvent(Map<String, String> rawAttributes, InternalProblemDescriptor descriptor) {
+        super(System.currentTimeMillis(), descriptor);
         this.rawAttributes = rawAttributes;
     }
 
@@ -41,7 +41,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
         return rawAttributes;
     }
 
-    private static InternalProblem from(Problem problem) {
+    public static Map<String, String> createRawAttributes(Problem problem) {
         Map<String, String> rawAttributes = new HashMap<>();
         rawAttributes.put("id", problem.getProblemId().getId());
         rawAttributes.put("message", problem.getMessage());
@@ -72,14 +72,11 @@ public class DefaultProblem implements Serializable, InternalProblem {
             rawAttributes.put("solution" + i, solution);
             i++;
         }
-        return new DefaultProblem(rawAttributes);
+        return rawAttributes;
     }
 
-    public static List<InternalProblem> from(List<Problem> problems) {
-        List<InternalProblem> result = new ArrayList<>(problems.size());
-        for (Problem problem : problems) {
-            result.add(from(problem));
-        }
-        return result;
+    @Override
+    public String getDisplayName() {
+        return "Problem kdkdkd";
     }
 }

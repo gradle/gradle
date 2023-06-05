@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -56,7 +57,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
 
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
 
-        List<Object> listeners = new ArrayList<>();
+        Builder<Object> listeners = ImmutableList.builder();
 
         if (subscriptions.isRequested(OperationType.TEST) && subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
             listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));
@@ -66,10 +67,12 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             listeners.add(new BuildPhaseOperationListener(progressEventConsumer, idFactory));
         }
 
-        BuildOperationListener buildListener = NO_OP;
-        if (subscriptions.isRequested(OperationType.GENERIC)) {
-            buildListener = new ClientForwardingBuildOperationListener(progressEventConsumer);
-        }
+        listeners.add(createClientBuildEventGenerator(subscriptions, consumer, progressEventConsumer));
+        return listeners.build();
+    }
+
+    private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer) {
+        BuildOperationListener buildListener = createBuildOperationListener(subscriptions, progressEventConsumer);
 
         OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
 
@@ -97,9 +100,17 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             transformOperationMapper,
             new WorkItemOperationMapper()
         );
-        ClientBuildEventGenerator generator = new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
-        listeners.add(generator);
-        return listeners;
+        return new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
+    }
+
+    private BuildOperationListener createBuildOperationListener(BuildEventSubscriptions subscriptions, ProgressEventConsumer progressEventConsumer) {
+        if (subscriptions.isRequested(OperationType.PROBLEMS)) {
+            return new ProblemsProgressEventConsumer(progressEventConsumer, idFactory);
+        }
+        if (subscriptions.isRequested(OperationType.GENERIC)) {
+            return new ClientForwardingBuildOperationListener(progressEventConsumer);
+        }
+        return NO_OP;
     }
 
     private static final BuildOperationListener NO_OP = new BuildOperationListener() {

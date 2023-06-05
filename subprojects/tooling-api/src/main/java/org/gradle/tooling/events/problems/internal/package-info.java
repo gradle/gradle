@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
-
-import java.util.Map;
 
 /**
- * A problem.
- *
- * @since 8.3
- */
-@NonNullApi
-@Incubating
-public interface Problem {
+ * Internal problems specisficx.
+ **/
 
-    Map<String, String> getRawAttributes();
-}
+@NonNullApi
+package org.gradle.tooling.events.problems.internal;
+
+import org.gradle.api.NonNullApi;
