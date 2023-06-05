@@ -17,6 +17,9 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
@@ -28,6 +31,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
+import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -168,8 +172,10 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         if (urls.isEmpty()) {
             return ImmutableList.of();
         }
-        TypeHierarchyRegistry typeRegistry = typeRegistryProvider.getFor(urls);
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
+        TypeHierarchyRegistry typeRegistry = transformer instanceof InstrumentingClasspathFileTransformer
+            ? typeRegistryProvider.getFor(urls)
+            : new TypeHierarchyRegistry();
         return parallelTransformExecutor.transformAll(
             urls,
             (url, seen) -> cachedURL(url, transformer, seen, typeRegistry)
@@ -177,7 +183,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        TypeHierarchyRegistry typeRegistry = typeRegistryProvider.getFor(classPath.getAsFiles());
+        TypeHierarchyRegistry typeRegistry = transformer instanceof InstrumentingClasspathFileTransformer
+            ? typeRegistryProvider.getFor(classPath.getAsFiles())
+            : new TypeHierarchyRegistry();
         return DefaultClassPath.of(
             parallelTransformExecutor.transformAll(
                 classPath.getAsFiles(),
@@ -271,6 +279,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         Optional<Either<U, Callable<U>>> apply(T input, Set<HashCode> seen);
     }
 
+    @NonNullApi
     private static class ParallelTransformExecutor {
 
         private final PersistentCache cache;
@@ -315,7 +324,11 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
+    @NonNullApi
     private static class TypeRegistryProvider {
+
+        private static final Logger LOGGER = Logging.getLogger(TypeRegistryProvider.class);
+
         private final ParallelTransformExecutor parallelExecutor;
         private final ClasspathWalker classpathWalker;
         private final Function<File, FileSystemLocationSnapshot> snapshotFun;
@@ -350,14 +363,19 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         private TypeHierarchyRegistry visitClassHierarchyForFile(File source) throws IOException {
             TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
             InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
-            classpathWalker.visit(source, entry -> {
-                if (!policy.includeEntry(entry)) {
-                    return;
-                }
-                if (entry.getName().endsWith(".class")) {
-                    typeRegistry.visit(entry.getContent());
-                }
-            });
+            try {
+                classpathWalker.visit(source, entry -> {
+                    if (!policy.includeEntry(entry)) {
+                        return;
+                    }
+                    if (entry.getName().endsWith(".class")) {
+                        typeRegistry.visit(entry.getContent());
+                    }
+                });
+            } catch (FileException e) {
+                // Badly formed archive, so discard the contents and produce an empty registry
+                LOGGER.debug("Malformed archive '{}'. No type hierarchy to discover.", source.getName(), e);
+            }
             return typeRegistry;
         }
     }
