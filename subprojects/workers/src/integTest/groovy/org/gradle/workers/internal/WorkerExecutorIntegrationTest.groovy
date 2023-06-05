@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
@@ -25,6 +26,7 @@ import spock.lang.Issue
 
 import java.nio.charset.Charset
 import java.nio.file.Files
+import java.nio.file.FileSystems
 import java.text.Normalizer
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -371,7 +373,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         groovyFile buildFile, createUnicodeNormalizingWorkerTask("Dév", form)
 
         when:
-        succeeds("customTask")
+        succeeds("customTask", "--debug", "--stacktrace")
 
         then:
         noExceptionThrown()
@@ -386,6 +388,8 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
             import $Charset.name
             import $Files.name
+            import $FileSystems.name
+            import $Jvm.name
             import $Locale.name
             import $Normalizer.name
 
@@ -397,13 +401,20 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 }
 
                 void printDebug(File dir) {
-                    String dirName = dir.name
-                    printUnicodeString("File.getName()", dir.name)
-                    printUnicodeString("File.getAbsolutePath()", dir.absolutePath)
-                    printUnicodeString("File.toPath()", dir.toPath().toString())
-                    printLine "Dir exists: \${dir.exists()}"
                     printLine "Default charset: \${Charset.defaultCharset()}"
                     printLine "Locale: \${Locale.getDefault()}"
+                    printLine "file.encoding: \${System.getProperty('file.encoding')}"
+                    printLine "sun.jnu.encoding: \${System.getProperty('sun.jnu.encoding')}"
+                    String dirName = dir.name
+                    printUnicodeString("File.getName()", dir.name)
+                    printUnicodeString("File.getPath()", dir.path)
+                    printUnicodeString("File.getAbsolutePath()", dir.absolutePath)
+                    def fs = FileSystems.getDefault()
+                    printLine "File system: \${fs}"
+                    def path = fs.getPath(dir.path)
+                    printUnicodeString("FileSystem.getPath()", path.toString())
+                    printUnicodeString("File.toPath()", dir.toPath().toString())
+                    printLine "Dir exists: \${dir.exists()}"
                 }
 
                 void printUnicodeString(String title, String value) {
@@ -471,6 +482,10 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                                 println "Using runtime JVm"
                                 spec.forkOptions.executable = Jvm.current().javaExecutable
                             }
+                            println "Default encoding: \${spec.forkOptions.defaultCharacterEncoding}"
+                            spec.forkOptions.defaultCharacterEncoding = "UTF-8"
+                            spec.forkOptions.systemProperty("file.encoding", "UTF-8")
+                            spec.forkOptions.systemProperty("sun.jnu.encoding", "UTF-8")
                         })
                         .submit(CustomAction) { params ->
                             params.actionOutputFile = outputFile
