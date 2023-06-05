@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def module = mavenHttpRepo.module("test", "test", "1.0").publish()
@@ -67,13 +66,14 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("graph")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Uses Configuration API in task action")
-    def "downloads only the metadata when resolved artifacts are queried"() {
+    def "downloads only the metadata when all components are queried"() {
         given:
         buildFile << """
+            def allComponents = configurations.compile.incoming.resolutionResult.allComponents
+
             task artifacts {
                 doLast {
-                    println configurations.compile.resolvedConfiguration.resolvedArtifacts
+                    println allComponents*.moduleVersion.name
                 }
             }
 """
@@ -107,10 +107,10 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         failure.assertHasCause("Could not resolve test:test:1.0.")
 
         where:
-        expression                                | _
-        "files"                                   | _
-        "fileCollection { true }"                 | _
-        "resolvedConfiguration.resolvedArtifacts" | _
-        "incoming.artifacts"                      | _
+        expression                                                      | _
+        "files"                                                         | _
+        "fileCollection { true }"                                       | _
+        "resolvedConfiguration.incoming.resolutionResult.allComponents" | _
+        "incoming.artifacts"                                            | _
     }
 }

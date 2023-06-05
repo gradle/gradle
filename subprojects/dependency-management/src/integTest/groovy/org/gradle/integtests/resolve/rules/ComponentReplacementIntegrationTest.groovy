@@ -39,8 +39,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     println "resolved files=" + files*.name.toSorted()
                     if (!${GradleContextualExecuter.configCache}) {
-                        // Hit legacy API to trigger both result loading logic
-                        configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
+                        configurations.conf.incoming.resolutionResult.allComponents
                     }
                 }
             }

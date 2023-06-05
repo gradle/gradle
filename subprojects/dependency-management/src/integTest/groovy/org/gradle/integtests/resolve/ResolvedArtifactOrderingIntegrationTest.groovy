@@ -67,8 +67,8 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
                 doLast {
                     if (${!GradleContextualExecuter.configCache}) {
                         // Don't check eager methods when CC is enabled
-                        assert configurations.${name}.resolvedConfiguration.getFiles { true }.collect { it.name } == [${fileNames}]
                         assert configurations.${name}.files { true }.collect { it.name } == [${fileNames}]
+                        assert configurations.${name}.incoming.artifactView { }.files.collect { it.name } == [${fileNames}]
                     }
                 }
             }
@@ -94,7 +94,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
                         // Don't check eager methods when CC is enabled
                         assert configurations.${name}.resolve().collect { it.name } == [${fileNames}]
                         assert configurations.${name}.files.collect { it.name } == [${fileNames}]
-                        assert configurations.${name}.resolvedConfiguration.files.collect { it.name } == [${fileNames}]
+                        assert configurations.${name}.incoming.artifactView { }.files.collect { it.name } == [${fileNames}]
                     }
                 }
             }
