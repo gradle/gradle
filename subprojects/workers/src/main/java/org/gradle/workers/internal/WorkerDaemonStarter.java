@@ -67,6 +67,7 @@ public class WorkerDaemonStarter {
         builder.onProcessFailure(cleanupAction);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.getJavaForkOptions().copyTo(javaCommand);
+        javaCommand.environment("LANG", System.getenv("LANG"));
         builder.registerArgumentSerializer(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());
         MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
