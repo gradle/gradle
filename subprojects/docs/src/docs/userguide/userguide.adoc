@@ -12,35 +12,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-= Gradle User Manual
+[[gradle_overview]]
+[[what_is_gradle]]
+= What is Gradle?
 
-Gradle Build Tool is a fast, dependable, and adaptable open-source build automation tool with an elegant and extensible declarative build language:
+== Gradle Build Tool
 
-1. Write your App in Java, Kotlin, C++, or any language of your choice.
-2. Use Gradle to package your App for deployment on any platform.
-3. Use Gradle's APIs, plugins, and integrations to automate your build.
-4. Use Gradle's advanced features like caching to scale and optimize your build.
+Gradle Build Tool is a fast, dependable, and adaptable open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool with an elegant and extensible declarative build language.
 
-== Supported Languages
-Gradle Build Tool supports Java, Kotlin, Groovy, Scala, Javascript, and C/C++.
+In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
+
+== Why Gradle?
+
+Gradle is a widely used and mature tool with an active community and a strong developer ecosystem.
+
+* Gradle is the most popular build system for the JVM and is the default system for Android and Kotlin Multi-Platform projects.
+It has a rich community plugin ecosystem.
+* Gradle can automate a wide range of software build scenarios using either its built-in functionality, third-party plugins, or custom build logic.
+* Gradle provides a high-level, declarative, and expressive build language that makes it easy to read and write build logic.
+* Gradle is fast, scalable, and can build projects of any size and complexity.
+* Gradle produces dependable results while benefiting from optimizations such as incremental builds, build caching, and parallel execution.
+
+Gradle, Inc. provides a free service called https://scans.gradle.com/[Build Scan®] that provides extensive information and insights about your builds.
+You can view scans to identify problems or share them for debugging help.
+
+=== Supported Languages and Frameworks
+Gradle Build Tool supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, and C/C++.
 
 image::userguide-languages.png[]
 
-== Supported IDEs
-Gradle is supported on Android Studio, IntelliJ IDEA, Eclipse Buildship, and Netbeans.
+=== Supported IDEs
+All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
 image::userguide-ides.png[]
 
-== Domain Specific Languages
-Gradle build scripts are written using a link:https://groovy-lang.org/[Groovy] or link:https://kotlinlang.org/[Kotlin] DSL.
+You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
 
-image::userguide-dsls.png[]
+== Education
+The **<<about_manual.adoc#about_manual,Gradle User Manual>>** is the official documentation for the Gradle Build Tool.
 
-== Documentation and Support
- * **Gradle User Manual** — This <<about_manual.adoc#about_manual,User Manual>> is the official documentation for the Gradle Build Tool.
- * **Forum** — The fastest way to get help is through the link:https://discuss.gradle.org/[Gradle Forum].
- * **Slack** — Community members and core contributors answer questions directly on our link:https://gradle-community.slack.com/[Slack Channel].
- * **Training** — Head over to the link:https://gradle.org/courses/[courses page] to sign up for free Gradle training.
+* **Getting Started Tutorial** — <<introduction.adoc#getting_started,Learn Gradle basics>> and the benefits of building your App with Gradle.
+* **Training Courses** — Head over to the link:https://gradle.org/courses/[courses page] to sign up for free Gradle training.
+
+== Support
+* **Forum** — The fastest way to get help is through the link:https://discuss.gradle.org/[Gradle Forum].
+* **Slack** — Community members and core contributors answer questions directly on our link:https://gradle-community.slack.com/[Slack Channel].
 
 == Licenses
 [.legalnotice]
