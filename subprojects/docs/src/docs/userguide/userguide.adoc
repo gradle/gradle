@@ -41,7 +41,7 @@ Gradle Build Tool supports Android, Java, Kotlin Multiplatform, Groovy, Scala, J
 
 image::userguide-languages.png[]
 
-=== Supported IDEs
+=== Compatible IDEs
 All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
 image::userguide-ides.png[]
