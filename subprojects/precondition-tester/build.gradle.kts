@@ -16,7 +16,6 @@
 
 plugins {
     id("gradlebuild.internal.java")
-    id("gradlebuild.cross-version-tests")
 }
 
 description = "Internal project testing and collecting information about all the test preconditions."
@@ -46,7 +45,7 @@ dependencies {
 tasks {
     withType(Test::class) {
         testClassesDirs = sourceSets.test.get().output.classesDirs
-        classpath = sourceSets.test.get().runtimeClasspath
+        //classpath = sourceSets.test.get().runtimeClasspath
 
         // These tests should not be impacted by the predictive selection
         predictiveSelection {
