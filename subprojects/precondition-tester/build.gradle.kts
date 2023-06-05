@@ -21,10 +21,19 @@ plugins {
 description = "Internal project testing and collecting information about all the test preconditions."
 
 dependencies {
+    // testImplementation(xxx)
+    // ...
+    // ..
+    // integrationTestImplementation.extends(testImplementation)
+    // crossVersionTestImplementation.extends(testImplementation)
     /**
      * List subprojects, which has their own preconditions.
      * These projects should have their preconditions in the "src/testFixtures" sourceSet
      */
+//    listOf(":plugins", "", "").forEach {
+//        testRuntimeOnly(testFixtures(project(it)))
+//        crossVersion(testFixtures(project(it)))
+//    }
     testRuntimeOnly(testFixtures(project(":plugins")))
     testRuntimeOnly(testFixtures(project(":signing")))
     testRuntimeOnly(testFixtures(project(":test-kit")))
@@ -33,19 +42,32 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    crossVersionTestRuntimeOnly(testFixtures(project(":tooling-api"))) {
-        because("Test engine 'cross-version-test-engine' comes from here")
-    }
+//    crossVersionTestRuntimeOnly(testFixtures(project(":tooling-api"))) {
+//        because("Test engine 'cross-version-test-engine' comes from here")
+//    }
     testImplementation(libs.junit5JupiterApi) {
         because("Assume API comes from here")
     }
     testImplementation(libs.spock)
+
+    crossVersionTestImplementation(project(":distributions-core")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+
+    crossVersionTestImplementation(sourceSets.test.get().output.classesDirs)
 }
+
+configurations {
+    val crossVersionTestImplementation by getting {
+        extendsFrom(testRuntimeOnly.get())
+    }
+}
+
 
 tasks {
     withType(Test::class) {
         testClassesDirs = sourceSets.test.get().output.classesDirs
-        classpath = sourceSets.test.get().runtimeClasspath
+//        classpath = sourceSets.test.get().runtimeClasspath
 
         // These tests should not be impacted by the predictive selection
         predictiveSelection {
