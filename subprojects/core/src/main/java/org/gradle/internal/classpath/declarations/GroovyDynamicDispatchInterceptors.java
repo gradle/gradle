@@ -21,11 +21,9 @@ import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
-import org.gradle.internal.classpath.InstrumentedGroovyCallsHelper;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
-import org.gradle.internal.classpath.intercept.Invocation;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
@@ -55,19 +53,11 @@ public class GroovyDynamicDispatchInterceptors {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return;
         }
-
-        CallInterceptor interceptor = Instrumented.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
-        InstrumentedGroovyCallsHelper.ThrowingCallable<Object> setOriginalProperty = () -> {
+        InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
+        withEntryPoint(consumer, messageName, SET_PROPERTY, () -> {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return null;
-        };
-        if (interceptor != null) {
-            Invocation invocation = new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}, consumer, messageName, setOriginalProperty);
-            interceptor.doIntercept(invocation, consumer);
-        } else {
-            InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
-            withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
-        }
+        });
     }
 
     @InterceptJvmCalls
@@ -81,36 +71,22 @@ public class GroovyDynamicDispatchInterceptors {
         @CallerClassName String consumer
     ) throws Throwable {
         CallInterceptor interceptor = Instrumented.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
-        if (interceptor == null) {
-            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+        if (interceptor != null) {
+            @NonNullApi
+            class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
+                public SetPropertyInvocationImpl(Object receiver, Object[] args) {
+                    super(receiver, args);
+                }
+
+                @Override
+                public @Nullable Object callOriginal() throws Throwable {
+                    ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+                    return null;
+                }
+            }
+            interceptor.doIntercept(new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}), consumer);
         } else {
-            Invocation invocation = new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}, consumer, messageName, () -> {
-                ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
-                return null;
-            });
-            interceptor.doIntercept(invocation, consumer);
-        }
-    }
-
-    @NonNullApi
-    private static class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
-        private final String consumer;
-        private final String messageName;
-        private final InstrumentedGroovyCallsHelper.ThrowingCallable<?> setOriginalProperty;
-
-        public SetPropertyInvocationImpl(Object receiver, Object[] args, String consumer, String messageName, InstrumentedGroovyCallsHelper.ThrowingCallable<?> setOriginalProperty) {
-            super(receiver, args);
-            this.consumer = consumer;
-            this.messageName = messageName;
-            this.setOriginalProperty = setOriginalProperty;
-        }
-
-        @Override
-        public @Nullable Object callOriginal() throws Throwable {
-            // the interceptor did not match the call, but it can resolve
-            // dynamically to a different receiver under the hood, so track it:
-            InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
-            return withEntryPoint(consumer, messageName, SET_PROPERTY, setOriginalProperty);
+            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
         }
     }
 }
