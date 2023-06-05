@@ -93,6 +93,11 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
+    public String getWorkType() {
+        return "TRANSFORM";
+    }
+
+    @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         transformExecutionListener.beforeTransformExecution(transform, subject);
         try {
