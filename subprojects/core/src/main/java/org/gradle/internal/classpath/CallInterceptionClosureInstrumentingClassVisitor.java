@@ -37,6 +37,21 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getType;
 import static org.objectweb.asm.commons.InstructionAdapter.OBJECT_TYPE;
 
+/**
+ * Instruments implementations of {@link Closure} in the following way:
+ * <ul>
+ *     <li> Adds a field {@link CallInterceptionClosureInstrumentingClassVisitor#IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME} that can be set to true to indicate
+ *          that this closure is now in the scope of an instrumented call, so changing its delegate must be reflected in updating the new delegate's
+ *          metaclass for call interception.
+ *     <li> Overrides {@link Closure#setDelegate}, adding a call to {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksInClosureDispatchObject} with
+ *          the new delegate. This ensures the invariant above.
+ *     <li> Adds {@link InstrumentableClosure} to the set of interfaces.
+ *     <li> Renames the {@code doCall} methods to {@code doCall$original} and adds new {@code doCall methods} that surrounds the original call with
+ *          {@link InstrumentedClosuresHelper#enterInstrumentedClosure} and {@link InstrumentedClosuresHelper#leaveInstrumentedClosure}, making sure that
+ *          the closure is tracked and will be taken into account when a dynamically dispatched invocation happens.
+ *     <li> Implements {@link InstrumentableClosure#makeEffectivelyInstrumented}, adding a call to {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksToEffectivelyInstrumentClosure}.
+ * </ul>
+ */
 @NonNullApi
 public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisitor {
     public CallInterceptionClosureInstrumentingClassVisitor(ClassVisitor delegate) {
@@ -46,7 +61,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
     @NonNullApi
     private enum MethodInstrumentationStrategy {
         /**
-         * Whenever the closure's delegate is set, we want to intercept the invocations through the new delegate's metaclass.
+         * Whenever the closure's delegate is set, we want to make sure that the call interception hooks are added to the new delegate's metaclass.
          */
         SET_DELEGATE("setDelegate", getMethodDescriptor(Type.VOID_TYPE, getType(Object.class)), true, (classData, mv) -> {
             @NonNullApi
@@ -58,14 +73,14 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                 @Override
                 public void visitCode() {
                     /*
-                     * InstrumentedGroovyMetaClassHelper.addInvocationHooksInClosureDispatchObject(newDelegate, isEffectivelyInstrumented)
-                     * super.setDelegate(newDelegate)
+                     * // The boolean is passed to this call rather than being checked here at the call site in order to simplify code generation.
+                     * InstrumentedGroovyMetaClassHelper.addInvocationHooksInClosureDispatchObject(newDelegate, isEffectivelyInstrumented);
+                     * super.setDelegate(newDelegate);
                      */
-                    mv.visitVarInsn(Opcodes.ALOAD, 1);
 
+                    mv.visitVarInsn(Opcodes.ALOAD, 1);
                     _ALOAD(0);
                     _GETFIELD(classData.className, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z");
-
                     String descriptor = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, BOOLEAN_TYPE);
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, getType(InstrumentedGroovyMetaClassHelper.class).getInternalName(), "addInvocationHooksInClosureDispatchObject", descriptor, false);
 
@@ -77,9 +92,8 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
             }
             return new MethodVisitorScopeImpl(classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions));
         }),
-        DEFAULT(null, null, false, (classData, mv) -> classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions)),
         /**
-         * Rename the Closure's original `doCall` method and add a wrapper method that invokes the original ones, plus applies the instrumentation to the closure;
+         * Renames the Closure's original `doCall` method and adds a wrapper method that invokes the original one.
          */
         RENAME_ORIGINAL_DO_CALL("doCall", null, false, (clazz, methodData) -> {
             boolean isDoCallMethod = methodData.name.equals("doCall");
@@ -94,6 +108,11 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
                     @Override
                     public void visitCode() {
+                        /*
+                         * enterInstrumentedClosure(this);
+                         * doCall$original(<args>);
+                         * leaveInstrumentedClosure(this);
+                         */
                         _ALOAD(0);
                         String enterLeaveDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, getType(InstrumentableClosure.class));
                         _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "enterInstrumentedClosure", enterLeaveDescriptor, false);
@@ -131,6 +150,11 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
                 @Override
                 public void visitCode() {
+                    /*
+                     * this.isEffectivelyInstrumented = true; // from now on, setDelegate will update the delegate's metaclass
+                     * addInvocationHooksToEffectivelyInstrumentedClosure(this);
+                     */
+
                     _ALOAD(0);
                     _DUP();
 
@@ -141,7 +165,12 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                 }
             }
             return new MethodVisitorScopeImpl(classData.visitor.visitMethod(Opcodes.ACC_PUBLIC, methodData.name, "()V", null, null));
-        });
+        }),
+
+        /**
+         * Does not perform any transformations.
+         */
+        DEFAULT(null, null, false, (classData, mv) -> classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions));
 
         public final @Nullable String methodName;
         public final @Nullable String descriptor;

@@ -18,6 +18,16 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.NonNullApi;
 
+/**
+ * Represents a closure that can participate in dynamic calls instrumentation.
+ * Initially, such a closure may not be completely prepared for participating in dynamic call interception,
+ * which is a performance optimization. <p>
+ *
+ * Upon an invocation of {@link InstrumentableClosure#makeEffectivelyInstrumented} the instance must perform
+ * all the delayed work and become "effectively instrumented".
+ *
+ * @see CallInterceptionClosureInstrumentingClassVisitor
+ */
 @NonNullApi
 public interface InstrumentableClosure {
     void makeEffectivelyInstrumented();

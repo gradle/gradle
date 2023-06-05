@@ -18,6 +18,15 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.NonNullApi;
 
+/**
+ * Tracks the closures that are currently present in the call stack.
+ * An instrumented closure must invoke {@link InstrumentedClosuresTracker#enterClosure} when it starts executing and {@link InstrumentedClosuresTracker#leaveClosure}
+ * right before it leaves the call stack. <p>
+ *
+ * {@link InstrumentedClosuresTracker#hitInstrumentedDynamicCall} is invoked by the instrumentation infrastructure on every invocation that is dynamically dispatched
+ * to the current closures chain. The implementation must ensure that all the closures in the scope are processed in a way that ensures call interception if a call
+ * is dispatched to them.
+ */
 @NonNullApi
 public interface InstrumentedClosuresTracker {
     void enterClosure(InstrumentableClosure thisClosure);
