@@ -70,25 +70,26 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val isolatedProjects = startParameter.isolatedProjects.get()
-        val parallelToolingActions = (isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled) && options.getOption(parallelBuilding).get()
+        val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
+        val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
-            BuildModelParameters(isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+            BuildModelParameters(parallelProjectExecution, isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
-                return BuildModelParameters(configureOnDemand, false, false, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+                return BuildModelParameters(parallelProjectExecution, configureOnDemand, false, false, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
             }
 
             when {
                 configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
                 configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
-                else -> BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+                else -> BuildModelParameters(parallelProjectExecution, configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
             }
         }
 
@@ -112,7 +113,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
-            val buildModelParameters = BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true, false, false, false, LogLevel.LIFECYCLE)
+            val buildModelParameters = BuildModelParameters(startParameter.isParallelProjectExecutionEnabled, startParameter.isConfigureOnDemand, false, false, true, false, false, false, LogLevel.LIFECYCLE)
             val requirements = RunTasksRequirements(startParameter)
             registerServices(registration, buildModelParameters, requirements)
         }

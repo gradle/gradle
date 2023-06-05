@@ -77,14 +77,6 @@ public class BuildSessionLifecycleBuildActionExecuter implements BuildActionExec
         }
     }
 
-    private RuntimeException wrap(Throwable failure) {
-        if (failure instanceof RuntimeException) {
-            return (RuntimeException) failure;
-        } else {
-            return new RuntimeException(failure);
-        }
-    }
-
     private static class ActionImpl implements Function<BuildSessionContext, BuildActionResult> {
         private final BuildAction action;
         private final BuildRequestContext requestContext;

@@ -53,8 +53,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("model-a", "model-b")
 
         when:
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -71,8 +70,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         }
 
         when:
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -96,8 +94,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("configure-a", "configure-b")
         server.expectConcurrent("model-a", "model-b")
 
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -117,8 +114,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         }
 
         when:
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model4 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -155,8 +151,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("model-a", "model-b")
 
         when:
-        // TODO - get rid of usage of --parallel
-        executer.withArguments(ENABLE_CLI, "--parallel")
+        executer.withArguments(ENABLE_CLI)
         def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
