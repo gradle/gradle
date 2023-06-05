@@ -21,10 +21,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class DefaultTaskSelector implements TaskSelector {
@@ -85,7 +89,13 @@ public class DefaultTaskSelector implements TaskSelector {
             if (context.getOriginalPath().getPath().equals(taskName)) {
                 throw new TaskSelectionException(matcher.formatErrorMessage("Task", searchContext));
             } else {
-                throw new TaskSelectionException(String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), matcher.formatErrorMessage("task", searchContext)));
+                String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
+                    matcher.formatErrorMessage("task", searchContext));
+                Problems.createNew(ProblemId.KnownIds.GENERIC, message, Severity.ERROR)
+                    .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
+                    .cause(new TaskSelectionException(message))
+                    .report();
+                return null;
             }
         }
     }
