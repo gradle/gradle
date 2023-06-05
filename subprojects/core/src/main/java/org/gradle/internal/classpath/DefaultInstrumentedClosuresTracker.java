@@ -16,26 +16,25 @@
 
 package org.gradle.internal.classpath;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.gradle.api.NonNullApi;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @NonNullApi
 public class DefaultInstrumentedClosuresTracker implements InstrumentedClosuresTracker {
     /**
      * A multiset counting the entries in a closure, which is needed to correctly track reentrant recursive calls;
      */
-    private final Map<InstrumentableClosure, Integer> currentClosuresEntries = new HashMap<>();
+    private final Object2IntMap<InstrumentableClosure> currentClosuresEntries = new Object2IntOpenHashMap<>();
 
     @Override
     public void enterClosure(InstrumentableClosure thisClosure) {
-        currentClosuresEntries.merge(thisClosure, 1, Integer::sum);
+        currentClosuresEntries.mergeInt(thisClosure, 1, Integer::sum);
     }
 
     @Override
     public void leaveClosure(InstrumentableClosure thisClosure) {
-        currentClosuresEntries.compute(thisClosure, (key, oldValue) -> {
+        currentClosuresEntries.computeInt(thisClosure, (key, oldValue) -> {
             if (oldValue == null) {
                 throw new IllegalStateException("leaveClosure called with an untracked instance");
             } else {
