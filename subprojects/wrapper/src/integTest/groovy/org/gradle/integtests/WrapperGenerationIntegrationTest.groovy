@@ -60,7 +60,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 105 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 62 * 1024
     }
 
     def "generated wrapper scripts for given version from command-line"() {
@@ -77,7 +77,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("8e01a7aa2a4bd01bc1472128da56ffeb7d7f37445df1e53fb98f0da1a9c5a8ea")
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("5c9a1a6f50b4f8c0264b1ac69013bef9f8363733275fafa56c70c84be3276bb8")
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
@@ -266,7 +266,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle/issues/25252')
     def "wrapper task succeeds if distribution url from command-line results in relative uri (no scheme)"() {
         given:
-        def target = file("../distributions/8.0-rc-5") << "some content"
+        file("gradle/wrapper/../distributions/8.0-rc-5") << "some content"
 
         def url = "../distributions/8.0-rc-5"
 
@@ -275,6 +275,5 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds()
-        target.deleteDir()
     }
 }

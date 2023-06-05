@@ -8,7 +8,9 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
 
-    implementation(project(":base-annotations"))
+    compileOnly(project(":base-annotations")) {
+        because("Compile only because we want to keep the wrapper.jar small")
+    }
     testImplementation(project(":base-services"))
     testImplementation(project(":core-api"))
     testImplementation(project(":native"))

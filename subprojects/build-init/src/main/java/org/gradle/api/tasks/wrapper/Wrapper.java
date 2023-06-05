@@ -140,7 +140,7 @@ public abstract class Wrapper extends DefaultTask {
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
         checkProperties(existingProperties);
-        validateDistributionUrl();
+        validateDistributionUrl(propertiesFile.getParentFile());
         writeProperties(propertiesFile, existingProperties);
         writeWrapperTo(jarFileDestination);
 
@@ -171,10 +171,10 @@ public abstract class Wrapper extends DefaultTask {
 
     private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
-    private void validateDistributionUrl() {
+    private void validateDistributionUrl(File uriRoot) {
         if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
             String url = getDistributionUrl();
-            URI uri = getDistributionUri(url);
+            URI uri = getDistributionUri(uriRoot, url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
@@ -189,10 +189,9 @@ public abstract class Wrapper extends DefaultTask {
         }
     }
 
-    private URI getDistributionUri(String url) {
+    private static URI getDistributionUri(File uriRoot, String url) {
         try {
-            File projectDir = getProject().getLayout().getProjectDirectory().getAsFile();
-            return WrapperDistributionUrlConverter.toUri(projectDir, url);
+            return WrapperDistributionUrlConverter.toUri(uriRoot, url);
         } catch (URISyntaxException e) {
             throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
         }

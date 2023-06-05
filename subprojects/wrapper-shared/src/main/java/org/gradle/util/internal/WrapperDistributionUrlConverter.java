@@ -27,12 +27,12 @@ import java.net.URISyntaxException;
  */
 @NonNullApi
 public class WrapperDistributionUrlConverter {
-    public static URI toUri(File projectDir, String distributionUrl) throws URISyntaxException {
+    public static URI toUri(File uriRoot, String distributionUrl) throws URISyntaxException {
         URI source = new URI(distributionUrl);
         if (source.getScheme() == null) {
-            //  no scheme means someone passed a relative url.
+            //  No scheme means someone passed a relative url.
             //  In our context only file relative urls make sense.
-            return new File(projectDir, source.getSchemeSpecificPart()).toURI();
+            return new File(uriRoot, source.getSchemeSpecificPart()).toURI();
         } else {
             return source;
         }
