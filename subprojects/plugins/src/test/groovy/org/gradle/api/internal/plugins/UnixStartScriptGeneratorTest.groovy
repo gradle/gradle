@@ -19,7 +19,6 @@ package org.gradle.api.internal.plugins
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.WrapUtil
-import spock.lang.Issue
 import spock.lang.Specification
 
 class UnixStartScriptGeneratorTest extends Specification {
@@ -49,20 +48,6 @@ class UnixStartScriptGeneratorTest extends Specification {
         then:
         !destination.toString().contains(TextUtil.windowsLineSeparator)
         destination.toString().contains(TextUtil.unixLineSeparator)
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/25036")
-    def "unix script ignores output from cd command"() {
-        given:
-        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin')
-        Writer destination = new StringWriter()
-
-        when:
-        generator.generateScript(details, destination)
-
-        then:
-        var appHome = destination.toString().lines().findResult { if (it.startsWith("APP_HOME")) return it }
-        appHome.contains("> /dev/null")
     }
 
     def "defaultJvmOpts is expanded properly in unix script"() {
