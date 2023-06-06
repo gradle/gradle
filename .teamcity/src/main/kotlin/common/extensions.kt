@@ -17,6 +17,7 @@
 package common
 
 import configurations.CompileAll
+import configurations.FunctionalTest
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
 import configurations.buildScanTag
@@ -98,7 +99,12 @@ fun Requirements.requiresNotSharedHost() {
  */
 const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 
-fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
+fun BuildType.applyDefaultSettings(
+    os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
+    buildJvm: Jvm = BuildToolBuildJvm,
+    timeout: Int = 30
+) {
     artifactRules = """
         *.psoutput => $hiddenArtifactDestination
         build/*.threaddump => $hiddenArtifactDestination
@@ -147,7 +153,8 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
     }
 }
 
-fun javaHome(jvm: Jvm, os: Os, arch: Arch = Arch.AMD64) = "%${os.name.lowercase()}.${jvm.version}.${jvm.vendor}.${arch.suffix}%"
+fun javaHome(jvm: Jvm, os: Os, arch: Arch = Arch.AMD64) =
+    "%${os.name.lowercase()}.${jvm.version}.${jvm.vendor}.${arch.suffix}%"
 
 fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os, arch: Arch = Arch.AMD64) {
     params {
@@ -191,6 +198,9 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
 }
 
 fun BuildStep.skipConditionally(buildType: BuildType? = null) {
+    if (buildType is FunctionalTest && buildType.testCoverage.os == Os.MACOS) {
+        return
+    }
     // we need to run CompileALl unconditionally because of artifact dependency
     if (buildType !is CompileAll) {
         conditions {
@@ -199,7 +209,11 @@ fun BuildStep.skipConditionally(buildType: BuildType? = null) {
     }
 }
 
-fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true, maxParallelForks: String = "%maxParallelForks%"): List<String> =
+fun buildToolGradleParameters(
+    daemon: Boolean = true,
+    isContinue: Boolean = true,
+    maxParallelForks: String = "%maxParallelForks%"
+): List<String> =
     listOf(
         // We pass the 'maxParallelForks' setting as 'workers.max' to limit the maximum number of executers even
         // if multiple test tasks run in parallel. We also pass it to the Gradle build as a maximum (maxParallelForks)
@@ -234,7 +248,13 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     }
 }
 
-fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, testJvmVersion: String, testJvmVendor: String): String {
+fun functionalTestExtraParameters(
+    buildScanTag: String,
+    os: Os,
+    arch: Arch,
+    testJvmVersion: String,
+    testJvmVendor: String
+): String {
     val buildScanValues = mapOf(
         "coverageOs" to os.name.lowercase(),
         "coverageArch" to arch.name.lowercase(),
@@ -259,7 +279,12 @@ fun functionalTestParameters(os: Os): List<String> {
     )
 }
 
-fun promotionBuildParameters(dependencyBuildId: RelativeId, extraParameters: String, gitUserName: String, gitUserEmail: String) =
+fun promotionBuildParameters(
+    dependencyBuildId: RelativeId,
+    extraParameters: String,
+    gitUserName: String,
+    gitUserEmail: String
+) =
     """-PcommitId=%dep.$dependencyBuildId.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" $pluginPortalUrlOverride %additional.gradle.parameters%"""
 
 fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64) {
@@ -267,13 +292,20 @@ fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64)
         script {
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $stepName"
+            scriptContent = "\"${
+                javaHome(
+                    BuildToolBuildJvm,
+                    os,
+                    arch
+                )
+            }/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $stepName"
             skipConditionally(this@killProcessStep)
         }
     }
 }
 
-fun String.toCapitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+fun String.toCapitalized() =
+    this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
 /**
  * Define clean up rules for the project.
