@@ -20,11 +20,21 @@ import com.google.common.collect.Sets
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
-import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
 import spock.lang.Specification
+
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.BUILD_EXECUTION
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.BUILD_PHASE
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.FILE_DOWNLOAD
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.PROBLEMS
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TASK_EXECUTION
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TEST_EXECUTION
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TEST_OUTPUT
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TRANSFORM_EXECUTION
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.WORK_ITEM_EXECUTION
 
 class BuildProgressListenerAdapterTest extends Specification {
 
@@ -42,10 +52,10 @@ class BuildProgressListenerAdapterTest extends Specification {
 
         where:
         operationTypes << Sets.powerSet(EnumSet.allOf(OperationType))
-        expectedSubscribedOperations << Sets.powerSet([InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION,
-                                                       InternalBuildProgressListener.BUILD_EXECUTION, InternalBuildProgressListener.WORK_ITEM_EXECUTION,
-                                                       InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, InternalBuildProgressListener.TRANSFORM_EXECUTION,
-                                                       InternalBuildProgressListener.TEST_OUTPUT, InternalBuildProgressListener.FILE_DOWNLOAD, InternalBuildProgressListener.BUILD_PHASE] as Set)
+        expectedSubscribedOperations << Sets.powerSet([TEST_EXECUTION, TASK_EXECUTION,
+                                                       BUILD_EXECUTION, WORK_ITEM_EXECUTION,
+                                                       PROJECT_CONFIGURATION_EXECUTION, TRANSFORM_EXECUTION,
+                                                       TEST_OUTPUT, FILE_DOWNLOAD, BUILD_PHASE, PROBLEMS] as Set)
     }
 
     def "parent descriptor of a descriptor can be of a different type"() {
