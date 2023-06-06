@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture
 
-
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.StatusEvent
 
