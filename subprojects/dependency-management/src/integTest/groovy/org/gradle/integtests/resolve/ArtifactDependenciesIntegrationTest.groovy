@@ -349,7 +349,6 @@ dependencies {
     compile "org.gradle.test:dist:1.0"
 }
 
-// Resolve outside of TaskAction to work with Configuration Cache
 assert configurations.compile.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
 ArtifactView lenientView = configurations.compile.getIncoming().artifactView(view -> {
     view.setLenient(true)
