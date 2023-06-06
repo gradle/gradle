@@ -28,7 +28,7 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2889")
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "ResolutionResult is not serializable")
     def "detached configurations may have separate dependencies"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -36,6 +36,20 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "bar").publish()
 
         buildFile << """
+            abstract class CheckDependencies extends DefaultTask {
+                @Internal
+                ResolutionResult result
+
+                @Internal
+                Set<Dependency> declared
+
+                @TaskAction
+                void test() {
+                    def resolved = result.root.dependencies
+                    assert declared*.name == resolved*.selected*.moduleVersion*.name
+                }
+            }
+
             allprojects {
                 configurations {
                     foo
@@ -44,15 +58,10 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
 
-                task checkDependencies {
-                    configurations.each { conf ->
-                        doLast {
-                            def declared = conf.dependencies
-                            def detached = project.configurations.detachedConfiguration(declared as Dependency[])
-                            def resolved = detached.incoming.resolutionResult.root.dependencies
-                            assert declared*.name == resolved*.selected*.moduleVersion*.name
-                        }
-                    }
+                tasks.register("checkDependencies", CheckDependencies) {
+                    declared = project.configurations.foo.dependencies
+                    def detached = project.configurations.detachedConfiguration(declared as Dependency[])
+                    result = detached.incoming.resolutionResult
                 }
             }
             project(":a") {
@@ -71,6 +80,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         run "checkDependencies"
     }
 
+    @ToBeFixedForConfigurationCache(because = "ResolutionResult is not serializable")
     def "detached configurations may have dependencies on other projects"() {
         given:
         settingsFile << "include 'other'"
@@ -79,14 +89,31 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-library'
             }
 
+            abstract class CheckDependencies extends DefaultTask {
+                @Internal
+                ResolutionResult result
+
+                @Internal
+                ArtifactCollection artifacts
+
+                @TaskAction
+                void test() {
+                    def depModuleNames = result.root.dependencies*.selected*.moduleVersion*.name
+                    def artifactNames = artifacts.artifacts.collect { it.file.name }
+
+                    assert depModuleNames.contains('other')
+                    assert artifactNames.contains("other.jar")
+                }
+            }
+
             def detached = project.configurations.detachedConfiguration()
             detached.dependencies.add(project.dependencies.create(project(':other')))
 
-            def depModuleNames = detached.incoming.resolutionResult.root.dependencies*.selected*.moduleVersion*.name
-            def artifactNames = detached.incoming.artifacts.artifacts.collect { it.file.name }
+            task checkDependencies(type: CheckDependencies) {
+                result = detached.incoming.resolutionResult
+                artifacts = detached.incoming.artifacts
+            }
 
-            assert depModuleNames.contains('other')
-            assert artifactNames.contains("other.jar")
         """
 
         file("other/build.gradle") << """
@@ -96,7 +123,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        run "help"
+        run "checkDependencies"
     }
 
     // This behavior will be removed in Gradle 9.0
