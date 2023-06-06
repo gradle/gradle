@@ -136,7 +136,7 @@ class ConfigurationCacheKeyTest {
                 ),
                 startParameter,
                 DefaultInternalOptions(mapOf()),
-                BuildModelParameters(false, true, false, false, false, false, false, LogLevel.LIFECYCLE)
+                BuildModelParameters(false, false, true, false, false, false, false, false, LogLevel.LIFECYCLE)
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {
