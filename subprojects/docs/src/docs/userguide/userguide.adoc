@@ -18,7 +18,7 @@
 
 == Gradle Build Tool
 
-Gradle Build Tool is a fast, dependable, and adaptable open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool with an elegant and extensible declarative build language.
+image:gradle.png[float=left] Gradle Build Tool is a fast, dependable, and adaptable open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool with an elegant and extensible declarative build language.
 
 In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
 
