@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Ignore
-
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -25,7 +23,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches execution of BuildAction that queries custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -336,7 +333,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         }
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches execution of BuildAction that queries each model multiple times"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -418,7 +414,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches execution of BuildAction that queries nullable custom tooling model"() {
         given:
         withSomeNullableToolingModelBuilderPluginInBuildSrc()
