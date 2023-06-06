@@ -151,7 +151,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         // Restrict the decorations to those required to decorate all views reachable from this type
         ViewDecoration decorationsForThisType = decoration.isNoOp() ? decoration : decoration.restrictTo(TYPE_INSPECTOR.getReachableTypes(targetType));
 
-        ViewKey viewKey = new ViewKey(viewType, decorationsForThisType);
+        ViewKey viewKey = new ViewKey(viewType, decorationsForThisType, System.identityHashCode(sourceObject));
         Object view = graphDetails.getViewFor(sourceObject, viewKey);
         if (view != null) {
             return targetType.cast(view);
@@ -369,21 +369,23 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class ViewKey implements Serializable {
         private final Class<?> type;
         private final ViewDecoration viewDecoration;
+        private final int sourceIdentity;
 
-        ViewKey(Class<?> type, ViewDecoration viewDecoration) {
+        ViewKey(Class<?> type, ViewDecoration viewDecoration, int sourceIdentity) {
             this.type = type;
             this.viewDecoration = viewDecoration;
+            this.sourceIdentity = sourceIdentity;
         }
 
         @Override
         public boolean equals(Object obj) {
             ViewKey other = (ViewKey) obj;
-            return other.type.equals(type) && other.viewDecoration.equals(viewDecoration);
+            return other.type.equals(type) && other.sourceIdentity == sourceIdentity && other.viewDecoration.equals(viewDecoration);
         }
 
         @Override
         public int hashCode() {
-            return type.hashCode() ^ viewDecoration.hashCode();
+            return type.hashCode() ^ sourceIdentity ^ viewDecoration.hashCode();
         }
     }
 
@@ -407,7 +409,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             setup();
-            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration), proxy);
+            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration, System.identityHashCode(sourceObject)), proxy);
         }
 
         private void setup() {
@@ -466,7 +468,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         void attachProxy(Object proxy) {
             this.proxy = proxy;
-            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration), proxy);
+            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration, System.identityHashCode(sourceObject)), proxy);
         }
     }
 
