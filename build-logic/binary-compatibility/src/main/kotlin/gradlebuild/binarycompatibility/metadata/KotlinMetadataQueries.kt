@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION") // todo: remove in the end
+
 package gradlebuild.binarycompatibility.metadata
 
 import gradlebuild.binarycompatibility.intArrayValue
