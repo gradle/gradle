@@ -40,7 +40,7 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
     }
 
     private static boolean supportsNonAsciiPaths(Class<?> klass) {
-        return klass.isAnnotationPresent(SupportsNonAsciiPaths.class);
+        return !klass.isAnnotationPresent(DoesNotSupportNonAsciiPaths.class);
     }
 
     public static TestNameTestDirectoryProvider forFatDrive(Class<?> klass) {
