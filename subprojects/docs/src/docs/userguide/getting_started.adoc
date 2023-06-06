@@ -19,7 +19,7 @@ Everyone has to start somewhere and if you're new to Gradle, this is where to be
 
 == Before you start
 
-In order to use Gradle effectively, you need to know what it is and understand some of its fundamental concepts. So before you start using Gradle in earnest, we highly recommend you read <<userguide#what_is_gradle,What is Gradle?>>.
+In order to use Gradle effectively, you need to know what it is and understand some of its fundamental concepts. So before you start using Gradle in earnest, we highly recommend you read <<userguide#what_is_gradle,What is Gradle?>>
 
 
 [[gs:installation]]
