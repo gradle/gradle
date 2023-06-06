@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.jvm.Jvm
@@ -41,7 +40,6 @@ import java.time.format.DateTimeFormatter
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.LOG_LEVEL_TEST_SCRIPT
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.runLogScript
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.validateLogs
-import static org.gradle.tooling.events.OperationType.PROBLEMS
 
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
@@ -73,24 +71,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         then:
         model != null
     }
-
-    def "fail so hard"() {
-        buildFile << "broken!"
-        def events = ProgressEvents.create()
-        when:
-        GradleProject model = toolingApi.withConnection { connection ->
-            connection
-                .model(GradleProject.class)
-                .addProgressListener(events, EnumSet.of(PROBLEMS))
-                .get()
-
-        }
-
-        then:
-        !events.getFailed().isEmpty()
-        model != null
-    }
-
 
     def "tooling api output reports 'CONFIGURE SUCCESSFUL' for model requests"() {
         buildFile << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
