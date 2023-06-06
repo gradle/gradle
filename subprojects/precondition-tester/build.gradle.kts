@@ -28,8 +28,8 @@ val precondition by configurations.creating {
 }
 
 configurations {
-    // All other test configurations should extend from the "precondition" configuration
-    listOf(integTestRuntimeOnly, archTestRuntimeOnly, crossVersionTestRuntimeOnly).forEach {
+    // All test runtime configurations should extend from the "precondition" configuration
+    listOf(testRuntimeOnly, integTestRuntimeOnly, archTestRuntimeOnly, crossVersionTestRuntimeOnly).forEach {
         it.configure {
             extendsFrom(precondition)
         }
@@ -80,4 +80,8 @@ tasks {
         // These tests should always run
         outputs.upToDateWhen { false }
     }
+}
+
+afterEvaluate {
+    configurations.forEach(::println)
 }
