@@ -46,9 +46,9 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
@@ -65,35 +65,25 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.Factories
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DependencyMetadata
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.locking.DefaultDependencyLockingState
-import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.events.OutputEvent
-import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
-import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
-import org.junit.Rule
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -105,18 +95,6 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultConfigurationSpec extends Specification implements InspectableConfigurationFixture {
-    final OutputEventListener outputEventListener = new OutputEventListener() {
-        final StringBuilder output = new StringBuilder()
-
-        @Override
-        void onOutput(OutputEvent event) {
-            LogEvent logEvent = event as LogEvent
-            output.append(logEvent.message)
-        }
-    }
-    @Rule
-    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     def configurationsProvider = Mock(ConfigurationsProvider)
@@ -132,20 +110,12 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
     def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
-    def problemDiagnosticFactory = Mock(ProblemDiagnosticsFactory) {
-        newStream() >> NoOpProblemDiagnosticsFactory.EMPTY_STREAM
-    }
 
     def setup() {
-        DeprecationLogger.init(problemDiagnosticFactory, WarningMode.All, Mock(BuildOperationProgressEventEmitter))
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
         _ * resolver.getRepositories() >> []
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
-    }
-
-    def cleanup() {
-        DeprecationLogger.reset()
     }
 
     void defaultValues() {
@@ -1914,30 +1884,30 @@ All Artifacts:
         _ * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
-            instantiator,
-            metaDataProvider,
-            TestFiles.resolver(),
-            TestFiles.taskDependencyFactory(),
+                instantiator,
+                metaDataProvider,
+                TestFiles.resolver(),
+                TestFiles.taskDependencyFactory(),
         )
         def defaultConfigurationFactory = new DefaultConfigurationFactory(
-            DirectInstantiator.INSTANCE,
-            resolver,
-            listenerManager,
-            metaDataProvider,
-            componentIdentifierFactory,
-            dependencyLockingProvider,
-            domainObjectContext,
-            TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(),
-            publishArtifactNotationParser,
-            immutableAttributesFactory,
-            new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
-            userCodeApplicationContext,
-            projectStateRegistry,
-            Stub(WorkerThreadRegistry),
-            TestUtil.domainObjectCollectionFactory(),
-            calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory()
+                DirectInstantiator.INSTANCE,
+                resolver,
+                listenerManager,
+                metaDataProvider,
+                componentIdentifierFactory,
+                dependencyLockingProvider,
+                domainObjectContext,
+                TestFiles.fileCollectionFactory(),
+                new TestBuildOperationExecutor(),
+                publishArtifactNotationParser,
+                immutableAttributesFactory,
+                new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
+                userCodeApplicationContext,
+                projectStateRegistry,
+                Stub(WorkerThreadRegistry),
+                TestUtil.domainObjectCollectionFactory(),
+                calculatedValueContainerFactory,
+                TestFiles.taskDependencyFactory()
         )
         defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role, false)
     }
@@ -1952,13 +1922,13 @@ All Artifacts:
 
     private DefaultPublishArtifact artifact(Map props = [:]) {
         new DefaultPublishArtifact(
-            props.name ?: "artifact",
-            props.extension ?: "artifact",
-            props.type,
-            props.classifier,
-            props.date,
-            props.file,
-            props.tasks ?: []
+                props.name ?: "artifact",
+                props.extension ?: "artifact",
+                props.type,
+                props.classifier,
+                props.date,
+                props.file,
+                props.tasks ?: []
         )
     }
 
