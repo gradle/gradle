@@ -409,7 +409,7 @@ public abstract class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersionResolver.getGradleVersion() != null) {
-            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toASCIIString();
         } else {
             return null;
         }
