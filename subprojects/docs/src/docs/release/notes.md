@@ -142,6 +142,33 @@ In the new release, we have taken the first step towards implementing the [clean
 Suggestions that were previously a part of the error message are now displayed in the `* Try` section, making them more noticeable.
 Additionally, the output is streamlined by eliminating unnecessary links to `help.gradle.org` for recoverable errors, such as compilation failures.
 
+For example, a toolchain selection problem looks like the this on the console:
+
+```
+> Task :compileJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Error while evaluating property 'javaCompiler' of task ':compileJava'.
+   > Failed to calculate the value of task ':compileJava' property 'javaCompiler'.
+  	> No matching toolchains found for requested specification: {languageVersion=14, vendor=ADOPTIUM, implementation=J9} for MAC_OS on aarch64.
+     	> No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.
+
+* Try:
+> Learn more about toolchain auto-detection at https://docs.gradle.org/8.2/userguide/toolchains.html#sec:auto_detection.
+> Learn more about toolchain repositories at https://docs.gradle.org/8.2/userguide/toolchains.html#sub:download_repositories.
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+1 actionable task: 1 executed
+```
+
+
 You can review the complete list of these console output enhancements [here](https://github.com/gradle/gradle/issues?q=is%3Aissue+sort%3Aupdated-desc+milestone%3A%228.2+RC1%22+label%3Ain%3Aconsole+is%3Aclosed).
 
 ### Wrapper task validates distribution URL
