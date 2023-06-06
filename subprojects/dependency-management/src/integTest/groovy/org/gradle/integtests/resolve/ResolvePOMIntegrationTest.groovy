@@ -103,13 +103,15 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         succeeds "resolve"
     }
 
-    def "resolving a @pom artifact from an included build replacing an external library does not fail the build with a lenient artifact view"() {
+    def "resolving a @pom artifact from an included build replacing an external library does not fail the build with a lenient configuration"() {
         given:
         mainProjectDir.file("app/build.gradle") << """
             tasks.register("resolve", Resolve) {
-                artifactFiles.from(configurations.getByName("compileClasspath").incoming.artifactView {
-                    lenient = true
-                }.getFiles())
+                artifactFiles.from {
+                    configurations.getByName("compileClasspath").getResolvedConfiguration()
+                        .getLenientConfiguration()
+                        .getFiles()
+                }
             }
         """
 
