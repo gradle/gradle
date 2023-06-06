@@ -27,9 +27,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
             rootProject.name = "consumer"
             include "producer"
         """
-    }
 
-    def "artifact view resolution error mentions artifact view"() {
         file("producer/build.gradle.kts") << """
             val flavor: Attribute<String> = Attribute.of("flavor", String::class.java)
 
@@ -57,7 +55,11 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
             dependencies {
                 configurations["consumerConf"](project(":producer"))
             }
+        """
+    }
 
+    def "artifact view resolution error mentions artifact view with default name"() {
+        buildKotlinFile << """
             tasks.register("verifyFiles") {
                 val artifactViewFiles = configurations.named("consumerConf").get().incoming.artifactView { }.files
 
@@ -73,35 +75,25 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         !errorOutput.contains("Could not resolve all files for configuration ':consumerConf'.")
     }
 
-    def "configuration resolution error does not mention artifact view"() {
-        file("producer/build.gradle.kts") << """
-            val flavor: Attribute<String> = Attribute.of("flavor", String::class.java)
+    def "artifact view resolution error mentions artifact view with custom display name"() {
+        buildKotlinFile << """
+            tasks.register("verifyFiles") {
+                val artifactViewFiles = configurations.named("consumerConf").get().incoming.artifactView { displayName = "tasty view" }.files
 
-            configurations {
-                register("producerConfVanilla") {
-                    attributes.attribute(flavor, "vanilla")
-                    outgoing.artifact(file("vanilla.jar"))
-                }
-                register("producerConfChocolate") {
-                    attributes.attribute(flavor, "chocolate")
-                    outgoing.artifact(file("chocolate.jar"))
+                doLast {
+                    artifactViewFiles.forEach { it.exists() } // Force resolution
                 }
             }
         """
 
+        expect:
+        fails("verifyFiles")
+        failureCauseContains("Could not resolve all files for artifact view: 'tasty view' for configuration ':consumerConf'.")
+        !errorOutput.contains("Could not resolve all files for configuration ':consumerConf'.")
+    }
+
+    def "configuration resolution error does not mention artifact view"() {
         buildKotlinFile << """
-            val flavor: Attribute<String> = Attribute.of("flavor", String::class.java)
-
-            configurations {
-                register("consumerConf") {
-                    attributes.attribute(flavor, "cinnamon")
-                }
-            }
-
-            dependencies {
-                configurations["consumerConf"](project(":producer"))
-            }
-
             tasks.register("verifyFiles") {
                 val incomingFiles = configurations.named("consumerConf").get().incoming.files
 
@@ -115,5 +107,6 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         fails("verifyFiles")
         failureCauseContains("Could not resolve all files for configuration ':consumerConf'.")
         !errorOutput.contains("Could not resolve all files for artifact view for configuration ':consumerConf'.")
+        !errorOutput.contains("Could not resolve all files for artifact view: 'tasty view' for configuration ':consumerConf'.")
     }
 }

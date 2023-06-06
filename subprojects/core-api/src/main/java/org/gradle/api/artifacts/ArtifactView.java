@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 
 /**
@@ -31,7 +32,6 @@ import org.gradle.api.specs.Spec;
  * @since 3.4
  */
 public interface ArtifactView extends HasAttributes {
-
     /**
      * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
      */
@@ -43,15 +43,12 @@ public interface ArtifactView extends HasAttributes {
     FileCollection getFiles();
 
     /**
-     * Describes this artifact view for diagnostic and error reporting purposes.
+     * Sets a human-readable name to describe this view for diagnostic and error reporting purposes.
      *
-     * @return a human-readable name or description of this view
      * @since 8.3
      */
     @Incubating
-    default String getDisplayName() {
-        return "artifact view";
-    }
+    Property<String> getDisplayName();
 
     /**
      * Configuration for a defined artifact view.
@@ -59,6 +56,13 @@ public interface ArtifactView extends HasAttributes {
      * @since 4.0
      */
     interface ViewConfiguration extends HasConfigurableAttributes<ViewConfiguration> {
+        /**
+         * The default display name to use for {@link #getDisplayName()}.
+         * @since 8.3
+         */
+        @Incubating
+        String DEFAULT_DISPLAY_NAME = "artifact view";
+
         /**
          * Specify a filter for the components that should be included in this view.
          * Only artifacts from components matching the supplied filter will be returned by {@link #getFiles()} or {@link #getArtifacts()}.
@@ -107,5 +111,15 @@ public interface ArtifactView extends HasAttributes {
          */
         @Incubating
         ViewConfiguration withVariantReselection();
+
+        /**
+         * A human-readable name to describe this view for diagnostic and error reporting purposes.
+         *
+         * If not explicitly set, by convention the name will default to {@link #DEFAULT_DISPLAY_NAME}.
+         *
+         * @since 8.3
+         */
+        @Incubating
+        Property<String> getDisplayName();
     }
 }

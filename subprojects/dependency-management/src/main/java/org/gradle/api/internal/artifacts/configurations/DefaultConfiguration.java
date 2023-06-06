@@ -98,9 +98,12 @@ import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -321,6 +324,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.intrinsicFiles = fileCollectionFromSpec(Specs.satisfyAll());
         this.exceptionContextualizer = exceptionContextualizer;
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+        this.resolvableDependencies.getDisplayName().convention(this.resolvableDependencies.getName());
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
@@ -2124,10 +2128,7 @@ since users cannot create non-legacy configurations and there is no current publ
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
-        @Override
-        public String getDisplayName() {
-            return name;
-        }
+        private final Property<String> displayName = new DefaultProperty<>(PropertyHost.NO_OP, String.class);
 
         @Override
         public String getName() {
@@ -2149,6 +2150,11 @@ since users cannot create non-legacy configurations and there is no current publ
         public FileCollection getFiles() {
             assertIsResolvable();
             return intrinsicFiles;
+        }
+
+        @Override
+        public Property<String> getDisplayName() {
+            return displayName;
         }
 
         @Override
@@ -2207,11 +2213,23 @@ since users cannot create non-legacy configurations and there is no current publ
             boolean allowNoMatchingVariants = config.attributesUsed;
             ArtifactView view;
             view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
+            view.getDisplayName().set(config.displayName.map(name -> {
+                StringBuilder result = new StringBuilder();
+                if (name.equals(ViewConfiguration.DEFAULT_DISPLAY_NAME)) {
+                    result.append(name);
+                } else {
+                    result.append("artifact view: '").append(name).append("'");
+                }
+                result.append(" for ").append(DefaultConfiguration.this.getDisplayName());
+                return result.toString();
+            }));
             return view;
         }
 
         private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
-            return instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes);
+            DefaultConfiguration.ArtifactViewConfiguration config = instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes);
+            config.displayName.convention(ArtifactViewConfiguration.DEFAULT_DISPLAY_NAME);
+            return config;
         }
 
         @Override
@@ -2230,6 +2248,7 @@ since users cannot create non-legacy configurations and there is no current publ
             private final boolean lenient;
             private final boolean allowNoMatchingVariants;
             private final boolean selectFromAllVariants;
+            private final Property<String> displayName = new DefaultProperty<>(PropertyHost.NO_OP, String.class);
 
             ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
                 this.viewAttributes = viewAttributes;
@@ -2237,11 +2256,12 @@ since users cannot create non-legacy configurations and there is no current publ
                 this.lenient = lenient;
                 this.allowNoMatchingVariants = allowNoMatchingVariants;
                 this.selectFromAllVariants = selectFromAllVariants;
+                this.displayName.convention("artifact view");
             }
 
             @Override
-            public String getDisplayName() {
-                return "artifact view for " + DefaultConfiguration.this.getDisplayName();
+            public Property<String> getDisplayName() {
+                return displayName;
             }
 
             @Override
@@ -2268,12 +2288,12 @@ since users cannot create non-legacy configurations and there is no current publ
             private final class ArtifactViewResolutionHost extends ContextualizingResolutionHost {
                 @Override
                 public String getDisplayName() {
-                    return ConfigurationArtifactView.this.getDisplayName();
+                    return ConfigurationArtifactView.this.getDisplayName().get();
                 }
 
                 @Override
                 public DisplayName displayName(String type) {
-                    return Describables.of(ConfigurationArtifactView.this, type);
+                    return Describables.of(getDisplayName(), type);
                 }
             }
         }
@@ -2397,6 +2417,7 @@ since users cannot create non-legacy configurations and there is no current publ
         private boolean lenient;
         private boolean reselectVariant;
         private boolean attributesUsed;
+        private Property<String> displayName = new DefaultProperty<>(PropertyHost.NO_OP, String.class);
 
         public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
             this.attributesFactory = attributesFactory;
@@ -2449,6 +2470,11 @@ since users cannot create non-legacy configurations and there is no current publ
         public ArtifactViewConfiguration withVariantReselection() {
             this.reselectVariant = true;
             return this;
+        }
+
+        @Override
+        public Property<String> getDisplayName() {
+            return displayName;
         }
 
         private void assertComponentFilterUnset() {
