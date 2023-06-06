@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[gradle_overview]]
+[[what_is_gradle]]
 = Gradle User Manual
 
-[[what_is_gradle]]
-= What is Gradle?
-
+[[gradle_overview]]
 == Gradle Build Tool
 
 image:gradle.png[float=left] Gradle Build Tool is a fast, dependable, and adaptable open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool with an elegant and extensible declarative build language.
