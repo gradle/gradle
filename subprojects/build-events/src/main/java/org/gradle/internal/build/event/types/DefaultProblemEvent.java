@@ -22,12 +22,11 @@ import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements Serializable, InternalProblemEvent {
+public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements InternalProblemEvent {
 
     private final Map<String, String> rawAttributes;
 
