@@ -134,7 +134,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         GroovyJavaJointCompileSpec spec = createSpec();
         maybeDisableIncrementalCompilationAfterFailure(spec);
         WorkResult result = createCompiler(spec, inputChanges).execute(spec);
-        setDidWork(result.getDidWork());
+        intermediateSetDidWork(result.getDidWork());
     }
 
     private void maybeDisableIncrementalCompilationAfterFailure(GroovyJavaJointCompileSpec spec) {

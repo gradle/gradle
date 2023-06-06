@@ -34,7 +34,7 @@ public abstract class ProcessResources extends Copy {
         boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(getDeleter(), getOutputs().getPreviousOutputFiles(), getDestinationDir());
         super.copy();
         if (cleanedOutputs) {
-            setDidWork(true);
+            intermediateSetDidWork(true);
         }
     }
 

@@ -115,7 +115,7 @@ public abstract class StripSymbols extends DefaultTask {
         Compiler<StripperSpec> symbolStripper = createCompiler();
         symbolStripper = BuildOperationLoggingCompilerDecorator.wrap(symbolStripper);
         WorkResult result = symbolStripper.execute(spec);
-        setDidWork(result.getDidWork());
+        intermediateSetDidWork(result.getDidWork());
     }
 
     private Compiler<StripperSpec> createCompiler() {

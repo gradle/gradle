@@ -35,10 +35,12 @@ public class TaskStateInternal implements TaskState {
     private String skipReasonMessage;
 
     @Override
+    @Deprecated
     public boolean getDidWork() {
         return didWork;
     }
 
+    @Deprecated
     public void setDidWork(boolean didWork) {
         this.didWork = didWork;
     }

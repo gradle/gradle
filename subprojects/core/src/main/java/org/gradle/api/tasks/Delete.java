@@ -53,7 +53,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
         for (File path : paths) {
             didWork |= getDeleter().deleteRecursively(path, followSymlinks);
         }
-        setDidWork(didWork);
+        intermediateSetDidWork(didWork);
     }
 
     /**

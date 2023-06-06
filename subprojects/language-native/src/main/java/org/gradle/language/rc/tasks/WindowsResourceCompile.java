@@ -120,7 +120,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
         NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
         PlatformToolProvider platformToolProvider = nativeToolChain.select(nativePlatform);
         WorkResult result = doCompile(spec, platformToolProvider);
-        setDidWork(result.getDidWork());
+        intermediateSetDidWork(result.getDidWork());
     }
 
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {

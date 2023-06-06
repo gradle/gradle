@@ -218,7 +218,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
         WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
-        setDidWork(result.getDidWork());
+        intermediateSetDidWork(result.getDidWork());
     }
 
     @VisibleForTesting

@@ -139,7 +139,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
         NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
         PlatformToolProvider platformToolProvider = nativeToolChain.select(nativePlatform);
-        setDidWork(doCompile(spec, platformToolProvider).getDidWork());
+        intermediateSetDidWork(doCompile(spec, platformToolProvider).getDidWork());
     }
 
     protected void configureSpec(NativeCompileSpec spec) {

@@ -71,6 +71,7 @@ class ManualUpToDateOutputOriginIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             write.value = "b"
         """
+        expectAbstractTaskSetDidWorkDeprecationWarnings(1)
         succeeds("write")
 
         then:
@@ -84,6 +85,41 @@ class ManualUpToDateOutputOriginIntegrationTest extends AbstractIntegrationSpec 
         then:
         skipped(":write")
         originBuildInvocationId(":write") == secondBuildId
+
+        when:
+        buildFile << """
+            tasks.register("printStatus") {
+                doLast {
+                    println tasks.write.didWork
+                }
+            }
+        """
+        expectAbstractTaskGetDidWorkDeprecationWarnings(1)
+
+        then:
+        succeeds("printStatus")
+    }
+
+    private void expectAbstractTaskGetDidWorkDeprecationWarnings(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The AbstractTask.getDidWork() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_task_did_work"
+            )
+        }
+    }
+
+    private void expectAbstractTaskSetDidWorkDeprecationWarnings(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The AbstractTask.setDidWork(boolean) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_task_did_work"
+            )
+        }
     }
 
 }

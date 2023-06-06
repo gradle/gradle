@@ -84,6 +84,23 @@ Some builds may have worked around this by also putting the additional attribute
 
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
 
+=== Deprecations
+
+[[deprecated_task_did_work]]
+==== Deprecated Task.didWork
+
+The following methods on `Task` are deprecated
+
+- link:{javadocPath}/org/gradle/api/Task.html#setDidWork-boolean-[setDidWork]
+- link:{javadocPath}/org/gradle/api/Task.html#getDidWork--[getDidWork]
+
+For some tasks, `Task.getDidWork` returns false even if the task did execute but the output
+did not change (aka "up-to-date after-the-fact"). This is unexpected, because although the
+task was executed and took time, the output of the task is `UP-TO-DATE`. This will change in
+the future, and as a step in that direction, `Task.didWork` was deprecated. You can check if
+the task was "up-to-date up front" by using
+`task.getState().getExecuted() && !task.getState().getSkipped()`.
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 

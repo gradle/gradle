@@ -114,7 +114,7 @@ public abstract class ExtractSymbols extends DefaultTask {
         Compiler<SymbolExtractorSpec> symbolExtractor = createCompiler();
         symbolExtractor = BuildOperationLoggingCompilerDecorator.wrap(symbolExtractor);
         WorkResult result = symbolExtractor.execute(spec);
-        setDidWork(result.getDidWork());
+        intermediateSetDidWork(result.getDidWork());
     }
 
     private Compiler<SymbolExtractorSpec> createCompiler() {

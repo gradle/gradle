@@ -110,7 +110,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
 
         Compiler<StaticLibraryArchiverSpec> compiler = createCompiler();
         WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
-        setDidWork(result.getDidWork());
+        intermediateSetDidWork(result.getDidWork());
     }
 
     private Compiler<StaticLibraryArchiverSpec> createCompiler() {

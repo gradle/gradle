@@ -105,11 +105,13 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     }
 
     @Override
+    @Deprecated
     public boolean getDidWork() {
         return super.getDidWork();
     }
 
     @Override
+    @Deprecated
     public void setDidWork(boolean didWork) {
         super.setDidWork(didWork);
     }

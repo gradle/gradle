@@ -429,12 +429,31 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
+    @Deprecated
     public boolean getDidWork() {
+        DeprecationLogger.deprecateMethod(AbstractTask.class, "getDidWork()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_task_did_work")
+            .nagUser();
         return state.getDidWork();
     }
 
     @Override
+    @Deprecated
     public void setDidWork(boolean didWork) {
+        DeprecationLogger.deprecateMethod(AbstractTask.class, "setDidWork(boolean)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_task_did_work")
+            .nagUser();
+        state.setDidWork(didWork);
+    }
+
+    /**
+     * Intermediate method to setDidWork in internal code without having to
+     * SuppressWarnings("deprecation") each time. Will be removed together with `didWork`.
+     */
+    @SuppressWarnings("deprecation")
+    protected void intermediateSetDidWork(boolean didWork) {
         state.setDidWork(didWork);
     }
 

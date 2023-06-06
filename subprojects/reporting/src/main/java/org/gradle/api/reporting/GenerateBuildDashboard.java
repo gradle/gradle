@@ -190,7 +190,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
             BuildDashboardGenerator generator = new BuildDashboardGenerator();
             generator.render(getEnabledInputReports(), reports.getHtml().getEntryPoint());
         } else {
-            setDidWork(false);
+            intermediateSetDidWork(false);
         }
     }
 

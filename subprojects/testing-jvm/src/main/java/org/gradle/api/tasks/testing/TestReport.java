@@ -172,7 +172,7 @@ public abstract class TestReport extends DefaultTask {
                 testReport.generateReport(resultsProvider, getDestinationDirectory().get().getAsFile());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());
-                setDidWork(false);
+                intermediateSetDidWork(false);
             }
         } finally {
             stoppable(resultsProvider).stop();

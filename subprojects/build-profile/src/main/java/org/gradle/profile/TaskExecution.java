@@ -40,6 +40,7 @@ public class TaskExecution extends ContinuousOperation {
         return path;
     }
 
+    @SuppressWarnings("deprecation")
     public String getStatus() {
         return state.getSkipped() ? state.getSkipMessage() : (state.getDidWork()) ? "" : NO_WORK_MESSAGE;
     }

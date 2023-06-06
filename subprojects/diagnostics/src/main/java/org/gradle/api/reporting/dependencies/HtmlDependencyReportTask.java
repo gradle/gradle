@@ -150,7 +150,7 @@ public abstract class HtmlDependencyReportTask extends ConventionTask implements
     @TaskAction
     public void generate() {
         if (!reports.getHtml().getRequired().get()) {
-            setDidWork(false);
+            intermediateSetDidWork(false);
             return;
         }
 

@@ -309,7 +309,7 @@ public abstract class SwiftCompile extends DefaultTask {
         );
         Compiler<SwiftCompileSpec> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(baseCompiler);
         WorkResult result = loggingCompiler.execute(spec);
-        setDidWork(result.getDidWork());
+        intermediateSetDidWork(result.getDidWork());
     }
 
     private SwiftCompileSpec createSpec(BuildOperationLogger operationLogger, boolean isIncremental, Collection<File> changedFiles, Collection<File> removedFiles, NativePlatformInternal targetPlatform) {

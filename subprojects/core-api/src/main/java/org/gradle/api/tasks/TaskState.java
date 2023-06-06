@@ -52,7 +52,9 @@ public interface TaskState {
      * task was run.</p>
      *
      * @return true if this task has been executed and did any work.
+     * @deprecated marking a task as did no work during execution is deprecated. See https://github.com/gradle/gradle/issues/23460.
      */
+    @Deprecated
     boolean getDidWork();
 
     /**

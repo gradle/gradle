@@ -392,7 +392,9 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * Sets whether the task actually did any work.  Most built-in tasks will set this automatically, but
      * it may be useful to manually indicate this for custom user tasks.
      * @param didWork indicates if the task did any work
+     * @deprecated marking a task as did no work during execution is deprecated. See https://github.com/gradle/gradle/issues/23460.
      */
+    @Deprecated
     void setDidWork(boolean didWork);
 
     /**
@@ -401,8 +403,10 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * task was run.</p>
      *
      * @return true if this task did any work
+     @deprecated marking a task as did no work during execution is deprecated. See https://github.com/gradle/gradle/issues/23460.
      */
     @Internal
+    @Deprecated
     boolean getDidWork();
 
     /**

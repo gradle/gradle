@@ -113,7 +113,7 @@ public abstract class Assemble extends DefaultTask {
         NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
         Compiler<AssembleSpec> compiler = nativeToolChain.select(nativePlatform).newCompiler(AssembleSpec.class);
         WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
-        setDidWork(result.getDidWork() || cleanedOutputs);
+        intermediateSetDidWork(result.getDidWork() || cleanedOutputs);
     }
 
     @InputFiles
