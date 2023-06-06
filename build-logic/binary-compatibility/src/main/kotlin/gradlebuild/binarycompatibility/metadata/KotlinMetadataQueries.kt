@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION") // todo: remove in the end
-
 package gradlebuild.binarycompatibility.metadata
 
 import gradlebuild.binarycompatibility.intArrayValue
@@ -84,13 +82,13 @@ object KotlinMetadataQueries {
     val CtClass.kotlinClassHeader: KotlinClassHeader?
         get() = ctAnnotation<Metadata>()?.let { annotation ->
             KotlinClassHeader(
-                kind = annotation.getMemberValue("k")?.intValue,
-                metadataVersion = annotation.getMemberValue("mv")?.intArrayValue,
-                data1 = annotation.getMemberValue("d1")?.stringArrayValue,
-                data2 = annotation.getMemberValue("d2")?.stringArrayValue,
-                extraString = annotation.getMemberValue("xs")?.stringValue,
-                packageName = annotation.getMemberValue("pn")?.stringValue,
-                extraInt = annotation.getMemberValue("xi")?.intValue
+                annotation.getMemberValue("k")?.intValue,
+                annotation.getMemberValue("mv")?.intArrayValue,
+                annotation.getMemberValue("d1")?.stringArrayValue,
+                annotation.getMemberValue("d2")?.stringArrayValue,
+                annotation.getMemberValue("xs")?.stringValue,
+                annotation.getMemberValue("pn")?.stringValue,
+                annotation.getMemberValue("xi")?.intValue
             )
         }
 
