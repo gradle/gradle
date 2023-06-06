@@ -3,7 +3,7 @@ package configurations
 import model.CIBuildModel
 import model.Stage
 
-class CompileAllBuildCacheNG(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
+class CompileAllBuildCacheNG(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, failStage = false, init = {
     id("${model.projectId}_CompileAllBuild_BuildCacheNG")
     name = "Compile All BuildCacheNG"
     description = "Compiles all production/test source code and warms up the build cache NG"

@@ -36,6 +36,7 @@ import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.slf4j.Logger
 import spock.lang.Specification
 
 class NextGenBuildCacheControllerTest extends Specification {
@@ -50,6 +51,7 @@ class NextGenBuildCacheControllerTest extends Specification {
         fileSystemAccess = TestFiles.fileSystemAccess()
         controller = new NextGenBuildCacheController(
             "id",
+            Stub(Logger),
             TestFiles.deleter(),
             fileSystemAccess,
             new ThreadLocalBufferProvider(64 * 1024),
