@@ -47,7 +47,7 @@ public class DefaultLocallyAvailableExternalResource implements LocallyAvailable
 
     @Override
     public String getDisplayName() {
-        return source.toString();
+        return source.toASCIIString();
     }
 
     @Override

@@ -43,7 +43,7 @@ public class ResolvedPattern {
     }
 
     private String constructAbsolutePattern(URI baseUri, String patternPart) {
-        String uriPart = baseUri.toString();
+        String uriPart = baseUri.toASCIIString();
         String join = uriPart.endsWith("/") || patternPart.length() == 0 ? "" : "/";
         return uriPart + join + patternPart;
     }

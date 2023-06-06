@@ -117,7 +117,7 @@ public class ClosureBackedRuleFactory {
             if ("file".equalsIgnoreCase(scheme)) {
                 description = relativeFilePathResolver.resolveAsRelativePath(uri);
             } else {
-                description = uri.toString();
+                description = uri.toASCIIString();
             }
 
             return new SourceLocation(uri, description, sourceLocation.getExpression(), sourceLocation.getLineNumber(), sourceLocation.getColumnNumber());

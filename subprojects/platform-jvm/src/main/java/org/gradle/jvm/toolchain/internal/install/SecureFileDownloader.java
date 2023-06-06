@@ -68,7 +68,7 @@ public class SecureFileDownloader {
         final ExternalResourceName resourceName = new ExternalResourceName(source) {
             @Override
             public String getShortDisplayName() {
-                return source.toString();
+                return source.toASCIIString();
             }
         };
         return getTransport(source, authentications).getRepository().withProgressLogging().resource(resourceName);

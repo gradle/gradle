@@ -64,7 +64,7 @@ public class GcsClient {
             builder.setHttpRequestInitializer(new RetryHttpInitializerWrapper(credentialSupplier));
         }
         if (gcsConnectionProperties.getEndpoint().isPresent()) {
-            builder.setRootUrl(gcsConnectionProperties.getEndpoint().get().toString());
+            builder.setRootUrl(gcsConnectionProperties.getEndpoint().get().toASCIIString());
         }
         if (gcsConnectionProperties.getServicePath().isPresent()) {
             builder.setServicePath(gcsConnectionProperties.getServicePath().get());
@@ -100,7 +100,7 @@ public class GcsClient {
 
     @Nullable
     public StorageObject getResource(URI uri) throws ResourceException {
-        LOGGER.debug("Attempting to get gcs resource: [{}]", uri.toString());
+        LOGGER.debug("Attempting to get gcs resource: [{}]", uri);
 
         String path = cleanResourcePath(uri);
         try {

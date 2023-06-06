@@ -39,7 +39,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
     @Override
     @Nullable
     public HttpResponseResource openResource(final ExternalResourceName location, boolean revalidate) {
-        String uri = location.getUri().toString();
+        String uri = location.getUri().toASCIIString();
         LOGGER.debug("Constructing external resource: {}", location);
 
         HttpClientResponse response = http.performGet(uri, revalidate);
@@ -51,7 +51,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
      * irrespective of the returned HTTP status code. Never returns {@code null}.
      */
     public HttpResponseResource getRawResource(final URI uri, boolean revalidate) {
-        String location = uri.toString();
+        String location = uri.toASCIIString();
         LOGGER.debug("Constructing external resource: {}", location);
         HttpClientResponse response = http.performRawGet(location, revalidate);
         return wrapResponse(uri, response);
@@ -59,7 +59,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
 
     @Override
     public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
-        String uri = location.getUri().toString();
+        String uri = location.getUri().toASCIIString();
         LOGGER.debug("Constructing external resource metadata: {}", location);
         HttpClientResponse response = http.performHead(uri, revalidate);
 

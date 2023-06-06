@@ -60,7 +60,7 @@ public class DuplicatePublicationTracker {
     }
 
     private String normalizeLocation(URI location) {
-        String repoUrl = location.toString();
+        String repoUrl = location.toASCIIString();
         if (!repoUrl.endsWith("/")) {
             return repoUrl + "/";
         }

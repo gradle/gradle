@@ -335,7 +335,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             }
             if (RuleVisitor.SOURCE_URI_TOKEN.equals(name)) {
                 URI uri = scriptSource.getResource().getLocation().getURI();
-                return uri == null ? null : uri.toString();
+                return uri == null ? null : uri.toASCIIString();
             }
             if (RuleVisitor.SOURCE_DESC_TOKEN.equals(name)) {
                 return scriptSource.getDisplayName();

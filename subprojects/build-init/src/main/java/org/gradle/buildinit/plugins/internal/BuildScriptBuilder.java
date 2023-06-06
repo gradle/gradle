@@ -2283,7 +2283,7 @@ public class BuildScriptBuilder {
             }
 
             protected void handleSecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
-                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", singletonList(new StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", singletonList(new StringValue(repoLocation.toASCIIString()))), true);
             }
 
             protected abstract void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements);
@@ -2318,7 +2318,7 @@ public class BuildScriptBuilder {
                 LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. {}",
                     documentationRegistry.getDocumentationRecommendationFor("information on how to do this", "build_init_plugin", "sec:allow_insecure"));
                 // use the insecure URL as-is
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toASCIIString()))), true);
                 // Leave a commented out block for opting into using the insecure repository
                 statements.comment(buildAllowInsecureProtocolComment(dsl));
             }
@@ -2342,7 +2342,7 @@ public class BuildScriptBuilder {
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 // convert the insecure url for this repository from http to https
                 final URI secureUri = GUtil.toSecureUrl(repoLocation);
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))), true);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(secureUri.toASCIIString()))), true);
             }
         }
 
@@ -2350,7 +2350,7 @@ public class BuildScriptBuilder {
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 // use the insecure URL as-is
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toASCIIString()))), true);
                 // Opt into using an insecure protocol with this repository
                 statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
             }

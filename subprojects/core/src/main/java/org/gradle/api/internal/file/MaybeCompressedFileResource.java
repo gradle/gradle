@@ -38,7 +38,7 @@ public class MaybeCompressedFileResource implements ReadableResourceInternal {
             // Already in something to uncompress it
             this.resource = resource;
         } else {
-            String ext = FilenameUtils.getExtension(resource.getURI().toString());
+            String ext = FilenameUtils.getExtension(resource.getURI().getPath());
 
             if (Compression.BZIP2.getSupportedExtensions().contains(ext)) {
                 this.resource = new Bzip2Archiver(resource);

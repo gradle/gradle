@@ -246,7 +246,7 @@ public class HttpClientHelper implements Closeable {
 
         URI effectiveUri = stripUserCredentials(response.getEffectiveUri());
         LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusLine(), effectiveUri);
-        throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+        throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toASCIIString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
     }
 
     private synchronized CloseableHttpClient getClient() {

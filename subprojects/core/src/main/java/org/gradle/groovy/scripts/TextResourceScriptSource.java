@@ -49,8 +49,8 @@ public class TextResourceScriptSource implements ScriptSource {
         if (location.getFile() != null) {
             return location.getFile().getPath();
         }
-        if (location.getURI() != null) {
-            return location.getURI().toString();
+        if (location.getURI() != null && location.getURI().getPath() != null) {
+            return location.getURI().getPath();
         }
         return getClassName();
     }
@@ -84,15 +84,15 @@ public class TextResourceScriptSource implements ScriptSource {
 
     private String initClassName() {
         URI sourceUri = getResource().getLocation().getURI();
-        if (sourceUri != null) {
-            String path = sourceUri.toString();
+        if (sourceUri != null && sourceUri.getPath() != null) {
+            String path = sourceUri.getPath();
             return classNameFromPath(path);
         }
 
         return "script_" + hashString(resource.getText()).toCompactString();
     }
 
-    private String classNameFromPath(String path) {
+    private static String classNameFromPath(String path) {
         String name = substringBeforeLast(substringAfterLast(path, "/"), ".");
 
         StringBuilder className = new StringBuilder(name.length());

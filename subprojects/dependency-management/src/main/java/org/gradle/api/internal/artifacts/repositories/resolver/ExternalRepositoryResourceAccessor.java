@@ -19,8 +19,8 @@ import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.internal.resolve.caching.ImplicitInputRecord;
-import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
+import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -39,7 +39,7 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
 
     public ExternalRepositoryResourceAccessor(URI rootUri, CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor, FileStore<String> fileStore) {
         this.rootUri = rootUri;
-        this.rootUriAsString = rootUri.toString();
+        this.rootUriAsString = rootUri.toASCIIString();
         this.resourceResolver = new DefaultExternalResourceAccessor(fileStore, cacheAwareExternalResourceAccessor);
     }
 

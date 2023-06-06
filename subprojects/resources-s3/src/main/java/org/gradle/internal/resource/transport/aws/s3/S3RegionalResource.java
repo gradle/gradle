@@ -56,7 +56,7 @@ public class S3RegionalResource {
 
 
     private void configure() {
-        Matcher matcher = REGIONAL_ENDPOINT_PATTERN.matcher(uri.toString());
+        Matcher matcher = REGIONAL_ENDPOINT_PATTERN.matcher(uri.toASCIIString());
         if (matcher.find()) {
             String bucketName = matcher.group(1);
             String region = matcher.group(2);
@@ -75,7 +75,7 @@ public class S3RegionalResource {
             return;
         }
 
-        matcher = FALLBACK_ENDPOINT_PATTERN.matcher(uri.toString());
+        matcher = FALLBACK_ENDPOINT_PATTERN.matcher(uri.toASCIIString());
         if (matcher.find()) {
             this.region = Optional.absent();
             this.bucketName = getBucketName(matcher.group(1));

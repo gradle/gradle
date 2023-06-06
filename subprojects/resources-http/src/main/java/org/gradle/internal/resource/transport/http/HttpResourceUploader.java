@@ -41,7 +41,7 @@ public class HttpResourceUploader implements ExternalResourceUploader {
         try (HttpClientResponse response = http.performHttpRequest(method)) {
             if (!response.wasSuccessful()) {
                 URI effectiveUri = response.getEffectiveUri();
-                throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+                throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toASCIIString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
             }
         }
     }

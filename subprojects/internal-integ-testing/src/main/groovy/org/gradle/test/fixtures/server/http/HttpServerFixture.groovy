@@ -60,7 +60,7 @@ trait HttpServerFixture {
         if (!server.started) {
             server.start()
         }
-        getUri().toString()
+        getUri().toASCIIString()
     }
 
     URI getUri() {

@@ -40,8 +40,8 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
+import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.slf4j.Logger;
@@ -93,7 +93,7 @@ public class S3Client {
         S3ClientOptions.Builder clientOptionsBuilder = S3ClientOptions.builder();
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
-            amazonS3Client.setEndpoint(endpoint.get().toString());
+            amazonS3Client.setEndpoint(endpoint.get().toASCIIString());
             clientOptionsBuilder.setPathStyleAccess(true).disableChunkedEncoding();
         }
         amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
@@ -190,13 +190,13 @@ public class S3Client {
     }
 
     public S3Object getMetaData(URI uri) {
-        LOGGER.debug("Attempting to get s3 meta-data: [{}]", uri.toString());
+        LOGGER.debug("Attempting to get s3 meta-data: [{}]", uri);
         //Would typically use GetObjectMetadataRequest but it does not work with v4 signatures
         return doGetS3Object(uri, true);
     }
 
     public S3Object getResource(URI uri) {
-        LOGGER.debug("Attempting to get s3 resource: [{}]", uri.toString());
+        LOGGER.debug("Attempting to get s3 resource: [{}]", uri);
         return doGetS3Object(uri, false);
     }
 
@@ -248,7 +248,7 @@ public class S3Client {
     private void configureClient(S3RegionalResource s3RegionalResource) {
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
-            amazonS3Client.setEndpoint(endpoint.get().toString());
+            amazonS3Client.setEndpoint(endpoint.get().toASCIIString());
         } else {
             Optional<Region> region = s3RegionalResource.getRegion();
             if (region.isPresent()) {

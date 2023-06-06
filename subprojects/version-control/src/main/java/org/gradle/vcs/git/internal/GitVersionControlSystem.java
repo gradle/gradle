@@ -171,7 +171,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static String normalizeUri(URI uri) throws URISyntaxException {
         // We have to go through URIish and back to deal with differences between how
         // Java File and Git implement file URIs.
-        return new URIish(uri.toString()).toPrivateASCIIString();
+        return new URIish(uri.toASCIIString()).toPrivateASCIIString();
     }
 
     private static GitVersionControlSpec cast(VersionControlSpec spec) {

@@ -209,7 +209,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         @Override
         public String transform(MavenArtifactRepository repository) {
             URI url = repository.getUrl();
-            if (url == null || defaultUrl.equals(url.toString())) {
+            if (url == null || defaultUrl.equals(url.toASCIIString())) {
                 return repository.getName();
             }
             return repository.getName() + '(' + url + ')';

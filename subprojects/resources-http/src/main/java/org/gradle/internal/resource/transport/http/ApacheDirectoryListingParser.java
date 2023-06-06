@@ -45,7 +45,7 @@ public class ApacheDirectoryListingParser {
             throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
         }
         Charset contentEncoding = UriTextResource.extractCharacterEncoding(contentType, Charsets.UTF_8);
-        Document document = Jsoup.parse(content, contentEncoding.name(), baseURI.toString());
+        Document document = Jsoup.parse(content, contentEncoding.name(), baseURI.toASCIIString());
         Elements elements = document.select("a[href]");
         List<String> hrefs = elements.stream()
             .map(it -> it.attr("href"))

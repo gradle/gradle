@@ -192,7 +192,7 @@ public class ExternalResourceName implements Describable {
             throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", uri));
         }
 
-        StringBuilder builder = new StringBuilder(uri.toString());
+        StringBuilder builder = new StringBuilder(uri.toASCIIString());
 
         String fragment = uri.getRawFragment();
         if (fragment != null) {
