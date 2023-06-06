@@ -543,7 +543,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
         if (progressEvent instanceof InternalProblemEvent) {
-            ProblemDescriptor clientDescriptor = addDescriptor(progressEvent.getDescriptor(), toProblemDescriptor(descriptor));
+            ProblemDescriptor clientDescriptor = addDescriptor(progressEvent.getDescriptor(), toProblemDescriptor((InternalProblemEvent)progressEvent, descriptor));
             return new DefaultProblemEvent(progressEvent.getEventTime(), clientDescriptor);
         }
         return null;
@@ -714,9 +714,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
     }
 
-    private ProblemDescriptor toProblemDescriptor(InternalProblemDescriptor descriptor) {
+    private ProblemDescriptor toProblemDescriptor(InternalProblemEvent progressEvent, InternalProblemDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        return new DefaultProblemsOperationDescriptor(descriptor, parent, descriptor.getRawAttributes());
+        return new DefaultProblemsOperationDescriptor(descriptor, parent, progressEvent.getProblemId(), progressEvent.getSeverity(),
+            progressEvent.getMessage(), progressEvent.getDescription(), progressEvent.getSolutions(), progressEvent.getPath(), progressEvent.getLine(), progressEvent.getDocumentationLink(), progressEvent.getCause());
     }
 
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {

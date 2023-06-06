@@ -19,7 +19,8 @@ package org.gradle.tooling.internal.protocol;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.List;
 
 
 /**
@@ -28,5 +29,26 @@ import java.util.Map;
 @NonNullApi
 public interface InternalProblemEvent extends InternalProgressEvent {
 
-    Map<String, String> getRawAttributes();
+    String getProblemId();
+
+    String getMessage();
+
+    String getSeverity();
+
+    @Nullable
+    String getPath();
+
+    @Nullable
+    Integer getLine();
+
+    @Nullable
+    String getDocumentationLink();
+
+    @Nullable
+    String getDescription();
+
+    List<String> getSolutions();
+
+    @Nullable
+    Throwable getCause();
 }
