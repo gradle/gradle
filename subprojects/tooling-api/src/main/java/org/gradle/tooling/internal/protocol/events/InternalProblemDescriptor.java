@@ -18,9 +18,6 @@ package org.gradle.tooling.internal.protocol.events;
 
 import org.gradle.api.NonNullApi;
 
-import java.util.Map;
-
 @NonNullApi
 public interface InternalProblemDescriptor extends InternalOperationDescriptor {
-    Map<String, String> getRawAttributes();
 }

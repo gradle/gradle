@@ -22,23 +22,48 @@ import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements InternalProblemEvent {
 
-    private final Map<String, String> rawAttributes;
+    private String problemId;
+    private String message;
+    private String severity;
+    private String docLink;
+    private String description;
+    private List<String> solutions;
+    private Throwable cause;
+    private Integer line;
+    private String path;
 
-    public DefaultProblemEvent(Map<String, String> rawAttributes, InternalProblemDescriptor descriptor) {
+    public DefaultProblemEvent(
+        InternalProblemDescriptor descriptor,
+        String problemId,
+        String message,
+        String severity,
+        @Nullable String path,
+        @Nullable Integer line,
+        @Nullable String docLink,
+        @Nullable String description,
+        List<String> solutions,
+        @Nullable Throwable cause
+    ) {
         super(System.currentTimeMillis(), descriptor);
-        this.rawAttributes = rawAttributes;
+        this.problemId = problemId;
+        this.message = message;
+        this.severity = severity;
+        this.path = path;
+        this.line = line;
+        this.docLink = docLink;
+        this.description = description;
+        this.solutions = solutions;
+        this.cause = cause;
     }
 
-    @Override
-    public Map<String, String> getRawAttributes() {
-        return rawAttributes;
-    }
 
     public static Map<String, String> createRawAttributes(Problem problem) {
         Map<String, String> rawAttributes = new HashMap<>();
@@ -77,5 +102,55 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     @Override
     public String getDisplayName() {
         return "Problem kdkdkd";
+    }
+
+    @Override
+    public String getProblemId() {
+        return problemId;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public String getSeverity() {
+        return severity;
+    }
+
+    @Nullable
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    @Nullable
+    @Override
+    public Integer getLine() {
+        return line;
+    }
+
+    @Nullable
+    @Override
+    public String getDocumentationLink() {
+        return docLink;
+    }
+
+    @Nullable
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public List<String> getSolutions() {
+        return solutions;
+    }
+
+    @Nullable
+    @Override
+    public Throwable getCause() {
+        return cause;
     }
 }

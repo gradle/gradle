@@ -19,7 +19,8 @@ package org.gradle.tooling.events.problems;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Describes a problem operation.
@@ -28,5 +29,26 @@ import java.util.Map;
  */
 @Incubating
 public interface ProblemDescriptor extends OperationDescriptor {
-    Map<String, String> getRawAttributes();
+    String getProblemId();
+
+    String getMessage();
+
+    String getSeverity();
+
+    @Nullable
+    String getPath();
+
+    @Nullable
+    Integer getLine();
+
+    @Nullable
+    String getDocumentationLink();
+
+    @Nullable
+    String getDescription();
+
+    List<String> getSolutions();
+
+    @Nullable
+    Throwable getCause();
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r83
 
-
+import org.gradle.api.problems.interfaces.Severity
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -69,11 +69,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         def problems = listener.allProblems
         problems.size() == 2
-        (problems[0].rawAttributes['message'] as String).contains('The RepositoryHandler.jcenter() method has been deprecated.')
+        problems[0].message.contains('The RepositoryHandler.jcenter() method has been deprecated.')
 //        (problems[0].rawAttributes['doc'] as String).contains('https://docs.gradle.org/')
-        (problems[0].rawAttributes['severity'] as String).contains('WARNING')
-        (problems[1].rawAttributes['message'] as String).contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
-        (problems[1].rawAttributes['severity'] as String).contains('ERROR')
+        problems[0].severity == Severity.WARNING.toString()
+        problems[1].message.contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
+        problems[1].severity == Severity.ERROR.toString()
     }
 
     def "Test line number"() {
@@ -94,9 +94,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         def problems = listener.allProblems
-        problems[0].rawAttributes['message'].contains('Could not compile build file')
-        problems[0].rawAttributes['severity'] == 'ERROR'
-        problems[0].rawAttributes['path'].endsWith('build.gradle')
-        problems[0].rawAttributes['line'] == "3"
+        problems[0].message.contains('Could not compile build file')
+        problems[0].severity == Severity.ERROR.toString()
+        problems[0].path.endsWith('build.gradle')
+        problems[0].line == 3
     }
 }

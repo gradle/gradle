@@ -22,19 +22,95 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.List;
 
 @NonNullApi
 public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
-    private final Map<String, String> rawAttributes;
+    private final String problemId;
+    private final String severity;
+    private final String message;
+    private final String description;
+    private final List<String> solutions;
+    @Nullable
+    private final String path;
+    @Nullable
+    private final Integer line;
+    private final String documentationLink;
+    private final Throwable cause;
 
-    public DefaultProblemsOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent, Map<String, String> rawAttributes) {
+    public DefaultProblemsOperationDescriptor(
+        InternalOperationDescriptor internalDescriptor,
+        OperationDescriptor parent,
+        String problemId,
+        String severity,
+        String message,
+        @Nullable String description,
+        List<String> solutions,
+        @Nullable String path,
+        @Nullable Integer line,
+        @Nullable String documentationLink,
+        @Nullable Throwable cause
+    ) {
         super(internalDescriptor, parent);
-        this.rawAttributes = rawAttributes;
+        this.problemId = problemId;
+        this.severity = severity;
+        this.message = message;
+        this.description = description;
+        this.solutions = solutions;
+        this.path = path;
+        this.line = line;
+        this.documentationLink = documentationLink;
+        this.cause = cause;
     }
 
     @Override
-    public Map<String, String> getRawAttributes() {
-        return rawAttributes;
+    public String getProblemId() {
+        return problemId;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public String getSeverity() {
+        return severity;
+    }
+
+    @Nullable
+    @Override
+    public String getDocumentationLink() {
+        return documentationLink;
+    }
+
+    @Nullable
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public List<String> getSolutions() {
+        return solutions;
+    }
+
+    @Nullable
+    @Override
+    public Throwable getCause() {
+        return cause;
+    }
+
+    @Nullable
+    @Override
+    public Integer getLine() {
+        return line;
+    }
+
+    @Nullable
+    @Override
+    public String getPath() {
+        return path;
     }
 }

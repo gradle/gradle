@@ -22,19 +22,16 @@ import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemDescriptor implements Serializable, InternalProblemDescriptor {
 
     private final OperationIdentifier id;
     private final OperationIdentifier parentId;
-    private final Map<String, String> rawAttributes;
 
-    public DefaultProblemDescriptor(OperationIdentifier id, @Nullable OperationIdentifier parentId, Map<String, String> rawAttributes) {
+    public DefaultProblemDescriptor(OperationIdentifier id, @Nullable OperationIdentifier parentId) {
         this.id = id;
         this.parentId = parentId;
-        this.rawAttributes = rawAttributes;
     }
 
     @Override
@@ -56,10 +53,5 @@ public class DefaultProblemDescriptor implements Serializable, InternalProblemDe
     @Override
     public String getDisplayName() {
         return getName();
-    }
-
-    @Override
-    public Map<String, String> getRawAttributes() {
-        return rawAttributes;
     }
 }

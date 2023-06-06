@@ -18,14 +18,13 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
-
-import java.util.Map;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
@@ -41,9 +40,19 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         Object details = progressEvent.getDetails();
         if (details instanceof Problem) {
             Problem problem = (Problem) details;
-            Map<String, String> rawAttributes = DefaultProblemEvent.createRawAttributes(problem);
-            DefaultProblemDescriptor descriptor = new DefaultProblemDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId, rawAttributes);
-            DefaultProblemEvent event = new DefaultProblemEvent(rawAttributes, descriptor);
+            DefaultProblemDescriptor descriptor = new DefaultProblemDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
+            ProblemLocation where = problem.getWhere();
+            DefaultProblemEvent event = new DefaultProblemEvent(
+                descriptor,
+                problem.getProblemId().toString(),
+                problem.getMessage(),
+                problem.getSeverity().toString(),
+                where == null ? null : where.getPath(),
+                where == null ? null : where.getLine(),
+                problem.getDocumentationLink(),
+                problem.getDescription(),
+                problem.getSolutions(),
+                problem.getCause());
             eventConsumer.progress(event);
         }
     }
