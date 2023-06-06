@@ -90,7 +90,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         given:
         buildFile << """
             task artifacts {
-                def files = configurations.compile
+                def files = configurations.compile.${expression}.each { it }
                 doLast {
                     files*.name
                 }
@@ -110,7 +110,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         expression << [
             "files",
             "fileCollection { true }",
-            "resolvedConfiguration.incoming.resolutionResult.allComponents",
+            "resolvedConfiguration.resolvedArtifacts",
             "incoming.artifacts"
         ]
     }
