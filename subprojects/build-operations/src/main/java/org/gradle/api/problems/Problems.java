@@ -63,4 +63,8 @@ public class Problems {
 //            throw new RuntimeException(t);
 //        }
     }
+
+    public static void collect(Throwable failure) {
+        new ProblemBuilder(ProblemId.KnownIds.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report();
+    }
 }
