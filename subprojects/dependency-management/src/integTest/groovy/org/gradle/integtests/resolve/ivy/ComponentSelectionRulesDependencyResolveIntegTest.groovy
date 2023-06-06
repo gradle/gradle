@@ -399,7 +399,7 @@ Required by:
             }
 
             checkDeps.doLast {
-                def artifacts = configurations.conf.getIncoming().artifactView { }.artifacts.artifacts
+                def artifacts = configurations.conf.incoming.artifacts.artifacts
                 assert artifacts.size() == 2
                 assert artifacts[0].id.componentIdentifier.version == '${chosen}'
                 assert candidates == ${candidates}

@@ -492,7 +492,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 
             checkDeps.doLast {
-                def artifacts = configurations.conf.getIncoming().artifactView { }.artifacts.artifacts
+                def artifacts = configurations.conf.incoming.artifacts.artifacts
                 assert artifacts.size() == 1
                 assert artifacts[0].id.componentIdentifier.version == '1.1'
                 assert ruleSource.candidates == ['1.2', '1.1']
