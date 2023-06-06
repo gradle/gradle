@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.api.problems.Problems;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +72,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     }
                     listener.stop(descriptor, operationState, parent, context);
                     if (failure != null) {
-                        Problems.collect(failure);
                         throw throwAsBuildOperationInvocationException(failure);
                     }
                     return buildOperation;

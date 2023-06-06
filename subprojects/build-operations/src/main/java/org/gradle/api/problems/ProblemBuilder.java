@@ -116,6 +116,13 @@ public class ProblemBuilder {
         }
     }
 
+
+    /**
+     * allows to throw problems in a builder like fashion
+     *
+     * @since 8.3
+     */
+    @Incubating
     public static class ProblemThrower {
         private final Problem problem;
 
