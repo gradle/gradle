@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.test.precondition.meta
+package org.gradle.test.precondition
 
 import org.gradle.test.precondition.PredicatesFile
 import spock.lang.Specification
