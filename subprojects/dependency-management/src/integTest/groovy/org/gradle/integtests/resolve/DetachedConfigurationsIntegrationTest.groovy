@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -27,6 +28,7 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2889")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "detached configurations may have separate dependencies"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -42,11 +44,15 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
 
-                configurations.each { conf ->
-                    def declared = conf.dependencies
-                    def detached = project.configurations.detachedConfiguration(declared as Dependency[])
-                    def resolved = detached.incoming.resolutionResult.root.dependencies
-                    assert declared*.name == resolved*.selected*.moduleVersion*.name
+                task checkDependencies {
+                    configurations.each { conf ->
+                        doLast {
+                            def declared = conf.dependencies
+                            def detached = project.configurations.detachedConfiguration(declared as Dependency[])
+                            def resolved = detached.incoming.resolutionResult.root.dependencies
+                            assert declared*.name == resolved*.selected*.moduleVersion*.name
+                        }
+                    }
                 }
             }
             project(":a") {
@@ -62,7 +68,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        run "help"
+        run "checkDependencies"
     }
 
     def "detached configurations may have dependencies on other projects"() {
