@@ -153,6 +153,31 @@ Previously, specifying an invalid URL led to I/O exceptions during the build exe
 Starting from this release, the wrapper task automatically validates the configured distribution URL before writing it to the `gradle-wrapper.properties` file.
 This surfaces invalid URLSs early and prevents exceptions at execution time.
 
+For example,
+```
+./gradlew wrapper --gradle-version 9.9.9
+```
+now fails with
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':wrapper'.
+> Test of distribution url https://services.gradle.org/distributions/gradle-9.9.9-bin.zip failed. Please check the values set with --gradle-distribution-url and --gradle-version.
+```
+and similarly
+```
+./gradlew wrapper --gradle-distribution-url http://localhost:8080/gradlew/invalid
+```
+now fails with
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':wrapper'.
+> Test of distribution url http://localhost:8080/gradlew/invalid failed. Please check the values set with --gradle-distribution-url and --gradle-version.
+```
+
 More details can be found in the dedicated section of the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) user manual chapter.
 
 ### Java toolchains discovery progress display
