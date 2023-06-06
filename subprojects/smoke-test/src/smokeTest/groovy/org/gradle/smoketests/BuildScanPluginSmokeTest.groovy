@@ -156,6 +156,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         version << UNSUPPORTED
     }
 
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "can inject plugin #version"() {
         def versionNumber = VersionNumber.parse(version)
         def initScript = "init-script.gradle"
