@@ -45,7 +45,7 @@ class CustomBuilder implements ToolingModelBuilder {
     }
     Object buildAll(String modelName, Project project) {
         try {
-            List<File> compileDependencies = project.configurations.getByName('compileClasspath').incoming.files.files
+            List<File> compileDependencies = project.configurations.getByName('compileClasspath').files
             return new CustomArtifactModel(files: compileDependencies)
         } catch (e) {
             return new CustomArtifactModel(failure: e)

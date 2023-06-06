@@ -906,7 +906,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def copy = config.copy()
 
         when:
-        copy.incoming.files.files
+        copy.files
 
         then:
         interaction { resolveConfig(copy) }
@@ -1031,7 +1031,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.beforeResolve(action)
 
         when:
-        config.incoming.files.files
+        config.files
 
         then:
         interaction { resolveConfig(config) }
@@ -1050,7 +1050,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         when:
-        config.incoming.files.files
+        config.files
 
         then:
         called
@@ -1064,7 +1064,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.afterResolve(action)
 
         when:
-        config.incoming.files.files
+        config.files
 
         then:
         interaction { resolveConfig(config) }
@@ -1084,7 +1084,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         }
 
         when:
-        config.incoming.files.files
+        config.files
 
         then:
         called
