@@ -350,10 +350,7 @@ dependencies {
 }
 
 assert configurations.compile.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
-ArtifactView lenientView = configurations.compile.getIncoming().artifactView(view -> {
-    view.setLenient(true)
-})
-def artifacts = lenientView.artifacts.artifacts.collect { it.id.name }
+def artifacts = configurations.compile.getIncoming().artifactView { }.artifacts.artifacts.collect { it.id.name }
 
 task test {
     doLast {
