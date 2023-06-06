@@ -18,6 +18,7 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ZincCoverage
 
 @TargetCoverage({ZincCoverage.ALL_VERSIONS})
@@ -36,15 +37,17 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
             }
             task assertZincVersion {
                 dependsOn configurations.zinc
+                def result = configurations.zinc.incoming.resolutionResult
+
                 doLast {
-                    def resolvedDependencies = configurations.zinc.incoming.dependencies
-                    assert resolvedDependencies.find { it.group == "org.scala-sbt" && it.name == "zinc_2.13" && it.version == "${version}" }
+                    assert result.allDependencies.find { it.selected.moduleVersion.group == "org.scala-sbt" && it.selected.moduleVersion.name == "zinc_2.13" && it.selected.moduleVersion.version == "${version}" }
                 }
             }
         """
         args("--info")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Uses ResolutionResult which is not cacheable")
     def "can build with configured zinc compiler version" () {
         given:
         withScalaSources()
