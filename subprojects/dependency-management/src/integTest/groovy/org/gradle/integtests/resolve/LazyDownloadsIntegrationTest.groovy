@@ -107,10 +107,11 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         failure.assertHasCause("Could not resolve test:test:1.0.")
 
         where:
-        expression                                                      | _
-        "files"                                                         | _
-        "fileCollection { true }"                                       | _
-        "resolvedConfiguration.incoming.resolutionResult.allComponents" | _
-        "incoming.artifacts"                                            | _
+        expression << [
+            "files",
+            "fileCollection { true }",
+            "resolvedConfiguration.incoming.resolutionResult.allComponents",
+            "incoming.artifacts"
+        ]
     }
 }
