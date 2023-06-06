@@ -37,7 +37,7 @@ Gradle, Inc. provides a free service called https://scans.gradle.com/[Build Scan
 You can view scans to identify problems or share them for debugging help.
 
 === Supported Languages and Frameworks
-Gradle Build Tool supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, and C/C++.
+Gradle supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, and C/C++.
 
 image::userguide-languages.png[]
 
@@ -60,5 +60,5 @@ The **<<about_manual.adoc#about_manual,Gradle User Manual>>** is the official do
 
 == Licenses
 [.legalnotice]
-Gradle build tool source code is open and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
+Gradle Build Tool source code is open and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
 Gradle user manual and DSL reference manual are licensed under link:https://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
