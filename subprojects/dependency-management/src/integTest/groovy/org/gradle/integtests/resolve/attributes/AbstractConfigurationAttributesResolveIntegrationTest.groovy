@@ -1841,6 +1841,53 @@ The following variants were also considered but didn't match the requested attri
         result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
     }
 
+    def "configurations with only outgoing attributes can be selected"() {
+        given:
+        file('settings.gradle') << "include 'producer'"
+        file("producer/build.gradle") << """
+            plugins {
+                id("base")
+            }
+            $typeDefs
+
+            task zip(type: Zip) { }
+            configurations {
+                foo {
+                    outgoing {
+                        attributes {
+                            ${debug}
+                        }
+                        artifact(tasks.zip)
+                    }
+                }
+            }
+        """
+        buildFile << """
+            $typeDefs
+            configurations {
+                consumer {
+                    attributes {
+                        ${debug}
+                    }
+                }
+            }
+
+            dependencies {
+                consumer project(":producer")
+            }
+
+            task resolve {
+                def files = configurations.consumer
+                doLast {
+                    assert files*.name == ["producer.zip"]
+                }
+            }
+        """
+
+        expect:
+        succeeds "resolve"
+    }
+
     private String fooAndBarJars() {
         '''
                 task fooJar(type: Jar) {

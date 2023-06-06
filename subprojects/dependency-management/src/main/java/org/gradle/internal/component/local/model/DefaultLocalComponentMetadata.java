@@ -341,7 +341,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
 
                     @Override
                     public boolean hasAttributes() {
-                        return !configuration.getAttributes().isEmpty();
+                        return !configuration.getOutgoing().getAttributes().isEmpty();
                     }
                 });
             });
