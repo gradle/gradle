@@ -45,7 +45,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 configurations.each { conf ->
                     def declared = conf.dependencies
                     def detached = project.configurations.detachedConfiguration(declared as Dependency[])
-                    def resolved = detached.incoming.resolutionResult.allComponents[0].dependencies // first item is root
+                    def resolved = detached.incoming.resolutionResult.root.dependencies
                     assert declared*.name == resolved*.selected*.moduleVersion*.name
                 }
             }
@@ -76,7 +76,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             def detached = project.configurations.detachedConfiguration()
             detached.dependencies.add(project.dependencies.create(project(':other')))
 
-            def depModuleNames = detached.incoming.resolutionResult.allComponents[0].dependencies*.selected*.moduleVersion*.name
+            def depModuleNames = detached.incoming.resolutionResult.root.dependencies*.selected*.moduleVersion*.name
             def artifactNames = detached.incoming.artifacts.artifacts.collect { it.file.name }
 
             assert depModuleNames.contains('other')
@@ -118,7 +118,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             detached.outgoing.artifact(tasks.makeArtifact)
 
             task checkDependencies {
-                def depModuleNames = detached.incoming.resolutionResult.allComponents[0].dependencies*.selected*.moduleVersion*.name
+                def depModuleNames = detached.incoming.resolutionResult.root.dependencies*.selected*.moduleVersion*.name
                 def artifactNames = detached.incoming.artifacts.artifacts.collect { it.file.name }
 
                 doLast {
