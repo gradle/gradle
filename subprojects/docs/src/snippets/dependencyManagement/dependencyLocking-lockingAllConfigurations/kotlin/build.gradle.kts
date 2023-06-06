@@ -12,7 +12,9 @@ dependencyLocking {
 tasks.register("resolveAndLockAll") {
     notCompatibleWithConfigurationCache("Filters configurations at execution time")
     doFirst {
-        require(gradle.startParameter.isWriteDependencyLocks) { "missing '--write-locks' argument" }
+        require(gradle.startParameter.isWriteDependencyLocks) {
+            "Cannot run $name - it must be run from the command line with the `--write-locks` flag"
+        }
     }
     doLast {
         configurations.filter {
