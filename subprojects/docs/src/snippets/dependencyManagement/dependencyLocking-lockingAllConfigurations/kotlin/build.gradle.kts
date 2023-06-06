@@ -12,7 +12,7 @@ dependencyLocking {
 tasks.register("resolveAndLockAll") {
     notCompatibleWithConfigurationCache("Filters configurations at execution time")
     doFirst {
-        require(gradle.startParameter.isWriteDependencyLocks)
+        require(gradle.startParameter.isWriteDependencyLocks) { "missing '--write-locks' argument" }
     }
     doLast {
         configurations.filter {
