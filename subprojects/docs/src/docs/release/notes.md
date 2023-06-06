@@ -4,7 +4,19 @@ The Gradle team is excited to announce Gradle @version@.
 This is the second patch release for Gradle 7.6.
 
 It fixes the following issues:
-* TODO
+* [#23201](https://github.com/gradle/gradle/issues/23201) Backport dependency upgrades to 7.x
+* [#23202](https://github.com/gradle/gradle/issues/23202) Backport Scala incremental compilation fixes
+* [#23325](https://github.com/gradle/gradle/issues/23325) Backport JSoup update to resolve CVE-2022-36033
+* [#23458](https://github.com/gradle/gradle/issues/23458) Backport JUnit5 dynamic test logging bug fix
+* [#23681](https://github.com/gradle/gradle/issues/23681) Dependency graph resolution: Equivalent excludes can cause un-necessary graph mutations [backport 7.x]
+* [#23922](https://github.com/gradle/gradle/issues/23922) Backport "Use Compiler API data for incremental compilation after a failure" to 7.x
+* [#23951](https://github.com/gradle/gradle/issues/23951) Exclude rule merging: missing optimization [Backport 7.x]
+* [#24132](https://github.com/gradle/gradle/issues/24132) Extending an already resolved configuration no longer works correctly [backport 7.x]
+* [#24234](https://github.com/gradle/gradle/issues/24234) 7.6.1 breaks gradle-consistent-versions
+* [#24390](https://github.com/gradle/gradle/issues/24390) Gradle 7.4 fails on multi release jar's with JDK 19 code
+* [#24439](https://github.com/gradle/gradle/issues/24439) Gradle complains about invalid tool chain - picking up the source package location - it should just ignore them [Backport]
+* [#24443](https://github.com/gradle/gradle/issues/24443) Maven artifact referenced only in dependency constraints raises IllegalStateException: Corrupt serialized resolution result [backport]
+* [#24901](https://github.com/gradle/gradle/issues/24901) Backport fix for test exception that cannot be deserialized to 7.x
 
 Issues fixed in the first patch release:
 * [#19065](https://github.com/gradle/gradle/issues/19065) Platform dependencies not possible in dependency block of test suite plugin
