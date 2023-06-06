@@ -17,31 +17,19 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.events.problems.ProblemEvent;
 
 @NonNullApi
-public class DefaultProblemEvent implements ProblemEvent {
-    private final long eventTime;
-    private final ProblemDescriptor problemDescriptor;
-
+public class DefaultProblemEvent extends BaseProgressEvent implements ProblemEvent {
     public DefaultProblemEvent(long eventTime, ProblemDescriptor problemDescriptor) {
-        this.eventTime = eventTime;
-        this.problemDescriptor = problemDescriptor;
-    }
-
-    @Override
-    public long getEventTime() {
-        return eventTime;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return null;
+        super(eventTime, problemDescriptor.getDisplayName(), problemDescriptor);
     }
 
     @Override
     public ProblemDescriptor getDescriptor() {
-        return problemDescriptor;
+        return (ProblemDescriptor) super.getDescriptor();
     }
+
 }

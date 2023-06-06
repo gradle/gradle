@@ -17,15 +17,11 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements InternalProblemEvent {
@@ -64,40 +60,6 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         this.cause = cause;
     }
 
-
-    public static Map<String, String> createRawAttributes(Problem problem) {
-        Map<String, String> rawAttributes = new HashMap<>();
-        rawAttributes.put("id", problem.getProblemId().getId());
-        rawAttributes.put("message", problem.getMessage());
-        rawAttributes.put("severity", problem.getSeverity().toString());
-        ProblemLocation where = problem.getWhere();
-        if (where != null) {
-            String path = where.getPath();
-            if (path != null) {
-                rawAttributes.put("path", path);
-            }
-            Integer line = where.getLine();
-            if (line != null) {
-                rawAttributes.put("line", line.toString());
-            }
-        }
-        String doc = problem.getDocumentationLink();
-        if (doc != null) {
-            rawAttributes.put("doc", doc);
-        }
-
-        String description = problem.getDescription();
-        if (description != null) {
-            rawAttributes.put("description", description);
-        }
-
-        int i = 1;
-        for (String solution : problem.getSolutions()) {
-            rawAttributes.put("solution" + i, solution);
-            i++;
-        }
-        return rawAttributes;
-    }
 
     @Override
     public String getDisplayName() {
