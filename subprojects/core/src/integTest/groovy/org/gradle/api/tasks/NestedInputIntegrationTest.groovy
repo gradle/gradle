@@ -909,7 +909,31 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         'Iterable' | '<Integer>'        | '[[Integer.valueOf(1)], [Integer.valueOf(2)]]'         | 'java.lang.Integer'
         'List'     | '<String>'         | '["value1", "value2"]'                                 | 'java.lang.String'
         'Map'      | '<String,Integer>' | '[a: Integer.valueOf(1), b: Integer.valueOf(2)]'       | 'java.lang.Integer'
-        'Provider' | '<Boolean>'        | 'project.providers.provider { Boolean.valueOf(true) }' | 'java.lang.Boolean'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested Provider<Boolean> is validated with warning"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                Provider<Boolean> myProvider = project.providers.provider { Boolean.valueOf(true) }
+
+                @TaskAction
+                void execute() { }
+            }
+
+            tasks.register("customTask", CustomTask) { }
+        """
+
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'CustomTask' property 'myProvider' with nested type 'java.lang.Boolean' is not supported. " +
+                "Reason: Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.",
+            'validation_problems',
+            'unsupported_nested_type')
+
+        expect:
+        succeeds("customTask")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
@@ -941,7 +965,26 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         'SomeEnum'   | ''                    | 'SomeEnum.A'
         'Iterable'   | '<NestedBean>'        | 'Arrays.asList(new NestedBean("input"), new NestedBean("input"))'
         'Map'        | '<String,NestedBean>' | 'Collections.singletonMap("a", new NestedBean("input"))'
-        'Provider'   | '<NestedBean>'        | 'getProject().getProviders().provider(() -> new NestedBean("input"))'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
+    def "nested Provider<NestedBean> is validated without warning"() {
+        buildFile << nestedBeanWithStringInput()
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                Provider<NestedBean> myProvider = project.providers.provider { new NestedBean("input") }
+
+                @TaskAction
+                void execute() { }
+            }
+
+            tasks.register("customTask", CustomTask) { }
+        """
+
+        expect:
+        succeeds("customTask")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
