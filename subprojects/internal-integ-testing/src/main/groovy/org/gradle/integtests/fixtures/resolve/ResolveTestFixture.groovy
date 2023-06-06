@@ -83,37 +83,32 @@ class ResolveTestFixture {
         }
         def buildScriptBlock = """
 buildscript {
-    dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
+    dependencies.classpath files("${ClasspathUtil.getClasspathForClass(ConfigurationCacheCompatibleGenerateGraphTask).toURI()}")
 }
 """
         String generatedContent = ""
         builder.configs.forEach { config, taskName ->
-            def inputs = buildArtifacts ? "it.inputs.files configurations." + config : ""
-            if (configurationCacheEnabled) {
-                generatedContent += """
+            generatedContent += """
 allprojects {
     tasks.register("${taskName}", ${ConfigurationCacheCompatibleGenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
         it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
         it.files.from(configurations.${config})
-        it.artifacts = configurations.${config}.incoming.artifacts
+
+        it.incomingFiles = configurations.${config}.incoming.files
+        it.incomingArtifacts = configurations.${config}.incoming.artifacts
+
+        it.artifactViewFiles = configurations.${config}.incoming.artifactView { }.files
+        it.artifactViewArtifacts = configurations.${config}.incoming.artifactView { }.artifacts
+
+        it.lenientArtifactViewFiles = configurations.${config}.incoming.artifactView { it.lenient = true }.files
+        it.lenientArtifactViewArtifacts = configurations.${config}.incoming.artifactView { it.lenient = true }.artifacts
+
         it.buildArtifacts = ${buildArtifacts}
-        ${inputs}
+        ${addConfigurationInputs()}
     }
 }
 """
-            } else {
-                generatedContent += """
-allprojects {
-    tasks.register("${taskName}", ${GenerateGraphTask.name}) {
-        it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
-        it.configuration = configurations.$config
-        it.buildArtifacts = ${buildArtifacts}
-        ${inputs}
-    }
-}
-"""
-            }
         }
 
         buildFile.text = """
@@ -125,12 +120,23 @@ $END_MARKER
 """
     }
 
+    /**
+     * We only want to add the configuration itself as a task input if we're building artifacts.
+     *
+     * Some tests, such as {@link CompositeBuildDependencyCycleIntegrationTest}, have a dependency cycle between two projects, and if we add this input, then
+     * the build will fail because of a circular task dependency.
+     */
+    @SuppressWarnings('GroovyDocCheck')
+    private String addConfigurationInputs() {
+        return buildArtifacts ? "it.inputs.files configurations." + config : ""
+    }
+
     def getResultFile() {
         buildFile.parentFile.file("build/last-graph.txt")
     }
 
     /**
-     * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
+     * Verifies the result of executing the task injected by {@link #prepare()}.
      */
     void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
         def graph = new GraphBuilder()
@@ -168,97 +174,51 @@ $END_MARKER
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
-
-        if (buildArtifacts) {
-            def actualFiles = findLines(configDetails, 'file')
-            compare("files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-artifact-incoming')
-            compare("incoming.artifacts", actualFiles, expectedFiles)
-        }
-
         def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files
-
-        def actualArtifacts = findLines(configDetails, 'artifact-incoming')
-        compare("artifacts", actualArtifacts, expectedArtifacts)
-
-        if (configurationCacheEnabled) {
-            return
-        }
-
-        def expectedFirstLevel = root.deps.findAll { !it.constraint }.collect { d ->
-            def configs = d.selected.firstLevelConfigurations.collect {
-                "[${d.selected.moduleVersionId}:${it}]"
-            }
-            if (configs.empty) {
-                configs = ["[${d.selected.moduleVersionId}:$defaultConfig"]
-            }
-            configs
-        }.flatten() as Set
-
-        def actualFirstLevel = findLines(configDetails, 'first-level')
-        compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-        actualFirstLevel = findLines(configDetails, 'first-level-filtered')
-        compare("filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-        actualFirstLevel = findLines(configDetails, 'lenient-first-level')
-        compare("lenient first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-        actualFirstLevel = findLines(configDetails, 'lenient-first-level-filtered')
-        compare("lenient filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-        def actualConfigurations = findLines(configDetails, 'configuration') as Set
-        def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } - graph.virtualConfigurations.collect { "[${it}]".toString() } as Set
-        compare("configurations in graph", actualConfigurations, expectedConfigurations)
-
         def expectedLegacyArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.legacyArtifactName}]" }
 
-        actualArtifacts = findLines(configDetails, 'artifact')
-        compare("artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        actualArtifacts = findLines(configDetails, 'lenient-artifact')
-        compare("lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        actualArtifacts = findLines(configDetails, 'filtered-lenient-artifact')
-        compare("filtered lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
+        def actualArtifacts = findLines(configDetails, 'incoming-artifact-artifact')
+        compare("incoming.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
         if (buildArtifacts) {
-            def actualFiles = findLines(configDetails, 'file-files')
-            compare("this.files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-incoming')
-            compare("incoming.files", actualFiles, expectedFiles)
+            def actualFiles = findLines(configDetails, 'file-file')
+            compare("files", actualFiles, expectedFiles)
 
             actualFiles = findLines(configDetails, 'file-filtered')
-            compare("filtered files", actualFiles, expectedFiles)
+            compare("files (filtered)", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-collection-filtered')
-            compare("filtered FileCollection", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'incoming-file')
+            compare("incoming.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-resolved-config')
-            compare("resolved configuration files", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'incoming-artifact')
+            compare("incoming.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'file-resolved-config-filtered')
-            compare("resolved configuration filtered files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'incoming-artifact-file')
+            compare("incoming.artifacts.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-lenient-config')
-            compare("lenient configuration files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'artifact-view-file')
+            compare("artifactView.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-lenient-config-filtered')
-            compare("lenient configuration filtered files", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'artifact-view-artifact')
+            compare("artifactView.artifacts", actualArtifacts, expectedArtifacts)
 
-            // The following do not include file dependencies
-            expectedFiles = graph.artifactNodes.collect { it.fileName }
+            actualFiles = findLines(configDetails, 'artifact-view-file-file')
+            compare("artifactView.files.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-artifact-resolved-config')
-            compare("resolved configuration artifact files", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'artifact-view-artifact-artifact')
+            compare("artifactView.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'file-artifact-lenient-config')
-            compare("lenient configuration artifact files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'lenient-artifact-view-file')
+            compare("artifactView.files (lenient)", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-artifact-lenient-config-filtered')
-            compare("filtered lenient configuration artifact files", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact')
+            compare("artifactView.artifacts (lenient)", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'lenient-artifact-view-file-file')
+            compare("artifactView.files.files (lenient)", actualFiles, expectedFiles)
+
+            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact-artifact')
+            compare("artifactView.artifacts.artifacts (lenient)", actualArtifacts, expectedArtifacts)
         }
     }
 

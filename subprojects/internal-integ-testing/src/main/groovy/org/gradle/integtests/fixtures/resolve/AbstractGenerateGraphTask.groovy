@@ -39,7 +39,7 @@ class AbstractGenerateGraphTask extends DefaultTask {
         outputs.upToDateWhen { false }
     }
 
-    void writeResolutionResult(PrintWriter writer, ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+    void writeRootAndComponentsAndDependencies(PrintWriter writer, ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
         writer.println("root:${formatComponent(root)}")
         components.each {
             writer.println("component:${formatComponent(it)}")

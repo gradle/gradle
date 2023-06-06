@@ -18,9 +18,11 @@ package org.gradle.integtests.fixtures.resolve
 
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.result.DependencyResult
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
@@ -33,10 +35,25 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
     abstract ConfigurableFileCollection getFiles()
 
     @Internal
-    ArtifactCollection artifacts
+    FileCollection incomingFiles
+
+    @Internal
+    ArtifactCollection incomingArtifacts
+
+    @Internal
+    FileCollection artifactViewFiles
+
+    @Internal
+    ArtifactCollection artifactViewArtifacts
+
+    @Internal
+    FileCollection lenientArtifactViewFiles
+
+    @Internal
+    ArtifactCollection lenientArtifactViewArtifacts
 
     @TaskAction
-    def generateOutput() {
+    void generateOutput() {
         outputFile.parentFile.mkdirs()
         outputFile.withPrintWriter { writer ->
             def root = rootComponent.get()
@@ -45,24 +62,73 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
             def dependencies = new LinkedHashSet()
             collectAllComponentsAndEdges(root, components, dependencies)
 
-            writeResolutionResult(writer, root, components, dependencies)
+            // These are always checked
+            writeRootAndComponentsAndDependencies(writer, root, components, dependencies)
+
+            // As are these
+            incomingArtifacts.artifacts.each {
+                writeArtifact("incoming-artifact-artifact", writer, it)
+            }
 
             if (buildArtifacts) {
                 files.each {
-                    writer.println("file:${it.name}")
+                    writeFile("file-file", writer, it)
                 }
-                artifacts.artifacts.each {
-                    writer.println("file-artifact-incoming:${it.file.name}")
+                files.filter { true }.each {
+                    writeFile("file-filtered", writer, it)
                 }
-            }
 
-            artifacts.artifacts.each {
-                writer.println("artifact-incoming:${it.id}")
+                incomingFiles.each {
+                    writeFile("incoming-file", writer, it)
+                }
+                incomingArtifacts.each {
+                    writeArtifact("incoming-artifact", writer, it)
+                }
+                incomingArtifacts.each {
+                    writeFile("incoming-artifact-file", writer, it)
+                }
+
+                artifactViewFiles.each {
+                    writeFile("artifact-view-file", writer, it)
+                }
+                artifactViewArtifacts.each {
+                    writeArtifact("artifact-view-artifact", writer, it)
+                }
+                artifactViewFiles.files.each {
+                    writeFile("artifact-view-file-file", writer, it)
+                }
+                artifactViewArtifacts.artifacts.each {
+                    writeArtifact("artifact-view-artifact-artifact", writer, it)
+                }
+
+                lenientArtifactViewFiles.each {
+                    writeFile("lenient-artifact-view-file", writer, it)
+                }
+                lenientArtifactViewArtifacts.each {
+                    writeArtifact("lenient-artifact-view-artifact", writer, it)
+                }
+                lenientArtifactViewFiles.files.each {
+                    writeFile("lenient-artifact-view-file-file", writer, it)
+                }
+                lenientArtifactViewArtifacts.artifacts.each {
+                    writeArtifact("lenient-artifact-view-artifact-artifact", writer, it)
+                }
             }
         }
     }
 
-    static void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+    @SuppressWarnings('GrMethodMayBeStatic')
+    protected void writeFile(String linePrefix, PrintWriter writer, File file) {
+        writer.println("$linePrefix:${file.name}")
+    }
+
+    @SuppressWarnings('GrMethodMayBeStatic')
+    protected void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
+        writer.println("$linePrefix:${artifact.id}")
+    }
+
+    @SuppressWarnings('GrMethodMayBeStatic')
+    protected void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
         def queue = [root]
         def seen = new HashSet()
 
