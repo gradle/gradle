@@ -715,7 +715,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         """
         buildC.buildFile << """
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url '$mavenRepo' }
             }
 
             configurations {

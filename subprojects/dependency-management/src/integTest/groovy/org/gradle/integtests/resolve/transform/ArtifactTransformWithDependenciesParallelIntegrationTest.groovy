@@ -36,7 +36,7 @@ class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractH
         buildFile """
             allprojects {
                 repositories {
-                    maven { url = "$mavenRepo.uri" }
+                    maven { url = "$mavenRepo" }
                 }
             }
             dependencies {

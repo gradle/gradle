@@ -86,7 +86,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 baseName = 'test'
             }
             publishing {
-                repositories { maven { url '$mavenRepo.uri' } }
+                repositories { maven { url '$mavenRepo' } }
             }
         """
         app.writeToProject(testDirectory)
@@ -434,7 +434,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 targetMachines = [machines.windows.x86, machines.linux.x86, machines.macOS.x86_64]
             }
             publishing {
-                repositories { maven { url '$mavenRepo.uri' } }
+                repositories { maven { url '$mavenRepo' } }
             }
         """
         app.writeToProject(testDirectory)
@@ -485,7 +485,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 targetMachines = [machines.os('${currentOsFamilyName}').x86, machines.os('${currentOsFamilyName}').x86_64]
             }
             publishing {
-                repositories { maven { url '$mavenRepo.uri' } }
+                repositories { maven { url '$mavenRepo' } }
             }
         """
         app.writeToProject(testDirectory)

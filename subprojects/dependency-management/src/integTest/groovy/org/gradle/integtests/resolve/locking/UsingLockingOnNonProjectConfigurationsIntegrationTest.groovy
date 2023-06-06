@@ -41,7 +41,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
     configurations.classpath {
@@ -77,7 +77,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
     dependencyLocking {
@@ -119,7 +119,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
     configurations.classpath {
@@ -135,7 +135,7 @@ buildscript {
 
 repositories {
     maven {
-        url = '$mavenRepo.uri'
+        url = '$mavenRepo'
     }
 }
 
@@ -177,7 +177,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
     dependencyLocking {
@@ -216,7 +216,7 @@ rootProject.name = 'foo-plugin'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
     configurations.classpath {
@@ -264,7 +264,7 @@ rootProject.name = 'foo-plugin'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
     configurations.classpath {
@@ -326,7 +326,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
     configurations.classpath {
@@ -338,7 +338,7 @@ buildscript {
 }
 repositories {
     maven {
-        url = '$mavenRepo.uri'
+        url = '$mavenRepo'
     }
 }
 configurations {
@@ -369,7 +369,7 @@ dependencies {
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
 
@@ -387,7 +387,7 @@ rootProject.name = 'foo-bar-locking'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = '$mavenRepo'
         }
     }
     configurations.classpath {

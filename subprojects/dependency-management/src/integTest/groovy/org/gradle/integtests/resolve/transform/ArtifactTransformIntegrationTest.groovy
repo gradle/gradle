@@ -2204,7 +2204,7 @@ Found the following transforms:
             }
 
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url '$mavenRepo' }
             }
 
             dependencies {
@@ -2265,7 +2265,7 @@ Found the following transforms:
 
         buildFile << """
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url '$mavenRepo' }
             }
 
             dependencies {

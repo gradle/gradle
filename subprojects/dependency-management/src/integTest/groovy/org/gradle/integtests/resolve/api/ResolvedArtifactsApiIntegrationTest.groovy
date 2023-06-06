@@ -56,7 +56,7 @@ allprojects {
 
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url '$mavenRepo' } }
 }
 dependencies {
     compile files('test-lib.jar')
@@ -506,7 +506,7 @@ abstract class VariantArtifactTransform implements TransformAction<TransformPara
 }
 
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url '$mavenRepo' } }
     configurations.compile.attributes.attribute(usage, 'compile')
 }
 

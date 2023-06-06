@@ -152,12 +152,12 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         publishTestPlugin('plugin2', 'org.example.plugin2', 'org.example.plugin:plugin2:1.0')
         settingsFile << """
         pluginManagement {
-            repositories { maven { url = '$mavenRepo.uri' } }
+            repositories { maven { url = '$mavenRepo' } }
         }
         """
         buildFile << """
             buildscript {
-                repositories { maven { url = '$mavenRepo.uri' } }
+                repositories { maven { url = '$mavenRepo' } }
                 dependencies { classpath "org.example.plugin:plugin2:1.0" }
             }
             plugins {
@@ -165,7 +165,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 id 'java'
             }
             apply plugin: 'org.example.plugin2'
-            repositories { maven { url = '$mavenRepo.uri' } }
+            repositories { maven { url = '$mavenRepo' } }
             task resolve {
                 def files = configurations.compileClasspath
                 doLast { files.files }

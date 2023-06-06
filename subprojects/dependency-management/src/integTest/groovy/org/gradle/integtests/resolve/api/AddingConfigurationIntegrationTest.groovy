@@ -90,7 +90,7 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url '$mavenRepo' }
             }
 
             task resolve {

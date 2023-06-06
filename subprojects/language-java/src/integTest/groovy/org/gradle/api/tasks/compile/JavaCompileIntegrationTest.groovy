@@ -283,7 +283,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java-library'
 
                 repositories {
-                   maven { url '$mavenRepo.uri' }
+                   maven { url '$mavenRepo' }
                 }
             }
         """
@@ -436,7 +436,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
 
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url '$mavenRepo' }
             }
 
             dependencies {
