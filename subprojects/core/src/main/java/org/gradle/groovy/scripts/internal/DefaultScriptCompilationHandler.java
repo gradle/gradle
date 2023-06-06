@@ -205,7 +205,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         Problems.createNew(ProblemId.KnownIds.GENERIC, message, Severity.ERROR)
             .location(source.getFileName(), lineNumber)
             .cause(new ScriptCompilationException(message, e, source, lineNumber))
-            .report();
+            .report()
+            .throwIt();
     }
 
     private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {

@@ -94,7 +94,8 @@ public class DefaultTaskSelector implements TaskSelector {
                 Problems.createNew(ProblemId.KnownIds.GENERIC, message, Severity.ERROR)
                     .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
                     .cause(new TaskSelectionException(message))
-                    .report();
+                    .report()
+                    .throwIt();
                 return null;
             }
         }

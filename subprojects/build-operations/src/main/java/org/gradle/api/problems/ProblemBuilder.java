@@ -94,10 +94,10 @@ public class ProblemBuilder {
         );
     }
 
-    public void report() {
+    public ProblemThrower report() {
         Problem problem = build();
         ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
-        throwPossibleError(problem);
+        return new ProblemThrower(problem);
     }
 
     private static void throwPossibleError(Problem problem) {
@@ -113,6 +113,18 @@ public class ProblemBuilder {
                 throw (Error) t;
             }
             throw new GradleExceptionWithProblem(problem);
+        }
+    }
+
+    public static class ProblemThrower {
+        private final Problem problem;
+
+        public ProblemThrower(Problem problem) {
+            this.problem = problem;
+        }
+
+        public void throwIt(){
+            throwPossibleError(problem);
         }
     }
 }
