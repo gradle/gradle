@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -150,8 +151,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         // Restrict the decorations to those required to decorate all views reachable from this type
         ViewDecoration decorationsForThisType = decoration.isNoOp() ? decoration : decoration.restrictTo(TYPE_INSPECTOR.getReachableTypes(targetType));
 
-        ViewKey viewKey = new ViewKey(viewType, sourceObject, decorationsForThisType);
-        Object view = graphDetails.views.get(viewKey);
+        ViewKey viewKey = new ViewKey(viewType, decorationsForThisType);
+        Object view = graphDetails.getViewFor(sourceObject, viewKey);
         if (view != null) {
             return targetType.cast(view);
         }
@@ -175,36 +176,36 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         @SuppressWarnings("unchecked")
-        T result = (T) toEnum((Class<Enum>)targetType, literal);
+        T result = (T) toEnum((Class<Enum>) targetType, literal);
         return result;
     }
 
     // Copied from GUtils.toEnum(). We can't use that class here as it depends on Java 8 classe
     // which breaks the TAPI build actions when the target Gradle version is running on Java 6.
     public static <T extends Enum<T>> T toEnum(Class<? extends T> enumType, String literal) {
-            T match = findEnumValue(enumType, literal);
-            if (match != null) {
-                return match;
-            }
+        T match = findEnumValue(enumType, literal);
+        if (match != null) {
+            return match;
+        }
 
-            final String alternativeLiteral = toWords(literal, '_');
-            match = findEnumValue(enumType, alternativeLiteral);
-            if (match != null) {
-                return match;
-            }
+        final String alternativeLiteral = toWords(literal, '_');
+        match = findEnumValue(enumType, alternativeLiteral);
+        if (match != null) {
+            return match;
+        }
 
-            String sep = "";
-            StringBuilder builder = new StringBuilder();
-            for (T ec : enumType.getEnumConstants()) {
-                builder.append(sep);
-                builder.append(ec.name());
-                sep = ", ";
-            }
+        String sep = "";
+        StringBuilder builder = new StringBuilder();
+        for (T ec : enumType.getEnumConstants()) {
+            builder.append(sep);
+            builder.append(ec.name());
+            sep = ", ";
+        }
 
-            throw new IllegalArgumentException(
-                String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                    literal, enumType.getName(), builder.toString())
-            );
+        throw new IllegalArgumentException(
+            String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
+                literal, enumType.getName(), builder.toString())
+        );
     }
 
     private static <T extends Enum<T>> T findEnumValue(Class<? extends T> enumType, final String literal) {
@@ -325,39 +326,64 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class ViewGraphDetails implements Serializable {
         // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
-        private transient Map<ViewKey, Object> views = new WeakHashMap<>();
+        // In fact, Map<SourceObject, HashMap<ViewKey, Proxy>>
+        private transient Map<Object, HashMap<ViewKey, WeakReference<Object>>> views = new WeakHashMap<>();
         private final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
             this.typeProvider = typeProvider;
         }
 
+        private void putViewFor(Object sourceObject, ViewKey key, Object proxy) {
+            HashMap<ViewKey, WeakReference<Object>> viewsForSource = views.get(sourceObject);
+
+            if (viewsForSource == null) {
+                viewsForSource = new HashMap<>();
+                views.put(sourceObject, viewsForSource);
+            }
+
+            viewsForSource.put(key, new WeakReference<>(proxy));
+        }
+
+        private Object getViewFor(Object sourceObject, ViewKey key) {
+            HashMap<ViewKey, WeakReference<Object>> viewsForSource = views.get(sourceObject);
+
+            if (viewsForSource == null) {
+                return null;
+            }
+
+            WeakReference<Object> viewWeakRef = viewsForSource.get(key);
+            if (viewWeakRef == null) {
+                return null;
+            }
+
+            return viewWeakRef.get();
+        }
+
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
-            views = new WeakHashMap<ViewKey, Object>();
+            views = new WeakHashMap<>();
         }
     }
 
     private static class ViewKey implements Serializable {
         private final Class<?> type;
-        private final Object source;
         private final ViewDecoration viewDecoration;
 
-        ViewKey(Class<?> type, Object source, ViewDecoration viewDecoration) {
+        ViewKey(Class<?> type, ViewDecoration viewDecoration) {
             this.type = type;
-            this.source = source;
             this.viewDecoration = viewDecoration;
         }
 
         @Override
         public boolean equals(Object obj) {
             ViewKey other = (ViewKey) obj;
-            return other.source == source && other.type.equals(type) && other.viewDecoration.equals(viewDecoration);
+            return other.type.equals(type) && other.viewDecoration.equals(viewDecoration);
         }
 
         @Override
         public int hashCode() {
-            return type.hashCode() ^ System.identityHashCode(source) ^ viewDecoration.hashCode();
+            return type.hashCode() ^ viewDecoration.hashCode();
         }
     }
 
@@ -381,7 +407,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             setup();
-            graphDetails.views.put(new ViewKey(targetType, sourceObject, decoration), proxy);
+            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration), proxy);
         }
 
         private void setup() {
@@ -440,7 +466,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         void attachProxy(Object proxy) {
             this.proxy = proxy;
-            graphDetails.views.put(new ViewKey(targetType, sourceObject, decoration), proxy);
+            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration), proxy);
         }
     }
 
