@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def module = mavenHttpRepo.module("test", "test", "1.0").publish()
@@ -66,17 +67,17 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("graph")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Uses ResolutionResult which is not serializable")
     def "downloads only the metadata when all components are queried"() {
         given:
         buildFile << """
-            def allComponents = configurations.compile.incoming.resolutionResult.allComponents
-
             task artifacts {
+                def result = configurations.compile.incoming.resolutionResult
                 doLast {
-                    println allComponents*.moduleVersion.name
+                    println result.allComponents*.moduleVersion.name
                 }
             }
-"""
+        """
 
         when:
         module.pom.expectGet()
