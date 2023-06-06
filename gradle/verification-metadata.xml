@@ -766,9 +766,9 @@
             </sha256>
          </artifact>
       </component>
-      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="1.3.0">
-         <artifact name="dokkatoo-plugin-1.3.0.jar">
-            <sha256 value="70ba2b912d823dd511be2ed6a033e86b0e62faef9f17d09eb5c50d96542a4254" origin="Verified" reason="Artifact is not signed"/>
+      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="1.4.0">
+         <artifact name="dokkatoo-plugin-1.4.0.jar">
+            <sha256 value="6f04531f457902eae155e3132e602fa57dcd454d853cb99f7d09ee3e7a559a5a" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="flot" name="flot" version="0.8.1">
