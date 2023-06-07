@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection GrMethodMayBeStatic
 
 package org.gradle.integtests.fixtures.resolve
 
@@ -26,6 +27,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
@@ -35,7 +37,17 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.Path
 
-@SuppressWarnings('GrMethodMayBeStatic')
+/**
+ * This task writes information about a resolved graph to a file in a flat format (one line per item).
+ *
+ * It exists in order to compare the result of resolution to an expectation; and to ensure that the multiple
+ * ways of accessing artifacts and files from a resolved graph are consistent.
+ *
+ * This task intentionally does <strong>NOT</strong> test the {@link org.gradle.api.artifacts.ResolvedConfiguration ResolvedConfiguration} API,
+ * which ought to be considered legacy and deprecated for internal use.  That type's behavior will be verified elsewhere.
+ * This is meant to be Configuration Cache compatible, so it does not test the {@link org.gradle.api.artifacts.result.ResolutionResult ResolutionResult} API
+ * yet - when that type is made CC compatible, this task should be updated to test it as well.
+ */
 abstract class GenerateGraphTask extends DefaultTask {
     @Internal
     File outputFile
@@ -74,6 +86,7 @@ abstract class GenerateGraphTask extends DefaultTask {
     @TaskAction
     void generateOutput() {
         outputFile.parentFile.mkdirs()
+        //noinspection GroovyMissingReturnStatement
         outputFile.withPrintWriter { writer ->
             def root = rootComponent.get()
 
@@ -81,10 +94,9 @@ abstract class GenerateGraphTask extends DefaultTask {
             def dependencies = new LinkedHashSet()
             collectAllComponentsAndEdges(root, components, dependencies)
 
-            // These are always checked
-            writeRootAndComponentsAndDependencies(writer, root, components, dependencies)
+            // These are always checked regardless of whether or not building artifacts is requested
+            writeGraphStructure(writer, root, components, dependencies)
 
-            // As are these
             incomingArtifacts.artifacts.each {
                 writeArtifact("incoming-artifact-artifact", writer, it)
             }
@@ -154,7 +166,7 @@ abstract class GenerateGraphTask extends DefaultTask {
         }
     }
 
-    protected void writeRootAndComponentsAndDependencies(PrintWriter writer, ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+    protected void writeGraphStructure(PrintWriter writer, ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
         writer.println("root:${formatComponent(root)}")
         components.each {
             writer.println("component:${formatComponent(it)}")
@@ -176,7 +188,7 @@ abstract class GenerateGraphTask extends DefaultTask {
         String variants = result.variants.collect { variant ->
             "variant:${formatVariant(variant)}"
         }.join('@@')
-        "[$type][id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][$variants]"
+        "[$type][id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason as ComponentSelectionReasonInternal)}][$variants]"
     }
 
     protected String formatVariant(ResolvedVariantResult variant) {
@@ -185,7 +197,7 @@ abstract class GenerateGraphTask extends DefaultTask {
 
     protected String formatAttributes(AttributeContainer attributes) {
         attributes.keySet().collect {
-            "$it.name=${attributes.getAttribute(it)}"
+            "$it.name=${attributes.getAttribute(it as Attribute<Object>)}"
         }.sort().join(',')
     }
 

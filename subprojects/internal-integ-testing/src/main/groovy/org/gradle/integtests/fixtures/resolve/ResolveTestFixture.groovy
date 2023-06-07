@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection GrMethodMayBeStatic
 
 package org.gradle.integtests.fixtures.resolve
 
@@ -135,7 +136,13 @@ $END_MARKER
     }
 
     /**
-     * Verifies the result of executing the task injected by {@link #prepare()}.
+     * Verifies the result of executing the {@link GenerateGraphTask} injected by {@link #prepare()}.
+     *
+     * That task writes information about the graph, files and artifacts to a flat file accessible here via {@link #getResultFile()}.
+     * This method reads that file (the actual result) and compares it to the expected result - the graph info provided to this fixture via
+     * the DSL supplied as an argument.
+     *
+     * @param closure a closure containing DSL that configures the expected graph
      */
     void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
         def graph = new GraphBuilder()
@@ -173,8 +180,7 @@ $END_MARKER
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
-        def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files
-        def expectedLegacyArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.legacyArtifactName}]" }
+        def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files as List<String>
 
         def actualArtifacts = findLines(configDetails, 'incoming-artifact-artifact')
         compare("incoming.artifacts.artifacts", actualArtifacts, expectedArtifacts)
