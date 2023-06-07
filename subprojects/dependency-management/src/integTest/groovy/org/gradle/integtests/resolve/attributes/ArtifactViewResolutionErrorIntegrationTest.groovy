@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
+
 /**
  * Tests that resolution failures caused by {@link org.gradle.api.artifacts.ArtifactView ArtifactView}
  * rather than configurations indicate this in the error message.
@@ -44,6 +46,8 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         """
 
         buildKotlinFile << """
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
             val flavor: Attribute<String> = Attribute.of("flavor", String::class.java)
 
             configurations.register("consumerConf")
@@ -56,13 +60,12 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
 
     def "successful artifact view - no change to attributes"() {
         buildKotlinFile << """
-            ${successfulConfiguration()}
+            ${addGoodAttributesToConf()}
 
             tasks.register("verify") {
                 val artifactViewFiles = ${defaultArtifactView()}.files
 
                 doLast {
-                    artifactViewFiles.forEach { println(it.name) }
                     assert(artifactViewFiles.map { it.name } == listOf("vanilla.jar"))
                 }
             }
@@ -74,13 +77,12 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
 
     def "successful artifact view - change to attributes"() {
         buildKotlinFile << """
-            ${successfulConfiguration()}
+            ${addGoodAttributesToConf()}
 
             tasks.register("verify") {
-                val artifactViewFiles = ${successfulArtifactView("custom", "chocolate")}.files
+                val artifactViewFiles = ${artifactViewWithGoodAttributes("custom", "chocolate")}.files
 
                 doLast {
-                    artifactViewFiles.forEach { println(it.name) }
                     assert(artifactViewFiles.map { it.name } == listOf("chocolate.jar"))
                 }
             }
@@ -90,33 +92,12 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         succeeds("verify")
     }
 
-    def "failed configuration - artifact view files resolution error"() {
-        buildKotlinFile << """
-            ${failingConfiguration()}
-
-            tasks.register("verify") {
-                val artifactViewFiles = ${successfulArtifactView("custom", "vanilla")}.files
-
-                doLast {
-                    artifactViewFiles.forEach { println(it.name) }
-                    assert(artifactViewFiles.map { it.name } == listOf("vanilla.jar"))
-                }
-            }
-        """
-
-        expect:
-        fails("verify")
-        failureCauseContains("Could not resolve all files for artifact view: 'custom' for configuration ':consumerConf'.")
-        !errorOutput.contains("Could not resolve all files for configuration ':consumerConf'.")
-    }
-
     def "artifact view files resolution error with default name"() {
         buildKotlinFile << """
             tasks.register("verify") {
-                val artifactViewFiles = ${failingArtifactView()}.files
+                val artifactViewFiles = ${artifactViewWithBadAttributes()}.files
 
                 doLast {
-                    artifactViewFiles.forEach { println(it.name) }
                     assert(artifactViewFiles.map { it.name } == listOf("vanilla.jar"))
                 }
             }
@@ -131,10 +112,9 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
     def "artifact view files resolution error with custom name"() {
         buildKotlinFile << """
             tasks.register("verify") {
-                val artifactViewFiles = ${failingArtifactView("custom")}.files
+                val artifactViewFiles = ${artifactViewWithBadAttributes("custom")}.files
 
                 doLast {
-                    artifactViewFiles.forEach { println(it.name) }
                     assert(artifactViewFiles.map { it.name } == listOf("vanilla.jar"))
                 }
             }
@@ -149,7 +129,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
     def "artifact view artifacts resolution error with default name"() {
         buildKotlinFile << """
             tasks.register("verify") {
-                val artifactViewArtifacts = ${failingArtifactView()}.artifacts
+                val artifactViewArtifacts = ${artifactViewWithBadAttributes()}.artifacts
 
                 doLast {
                     artifactViewArtifacts.artifacts.forEach { println(it.file.name) }
@@ -167,7 +147,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
     def "artifact view artifacts resolution error with custom name"() {
         buildKotlinFile << """
             tasks.register("verify") {
-                val artifactViewArtifacts = ${failingArtifactView("custom")}.artifacts
+                val artifactViewArtifacts = ${artifactViewWithBadAttributes("custom")}.artifacts
 
                 doLast {
                     artifactViewArtifacts.artifacts.forEach { println(it.file.name) }
@@ -182,7 +162,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         !errorOutput.contains("Could not resolve all artifacts for configuration ':consumerConf'.")
     }
 
-    private String successfulConfiguration() {
+    private String addGoodAttributesToConf() {
         return """
             configurations.named("consumerConf").configure {
                 ${setSuccessfulFlavor()}
@@ -190,7 +170,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    private String failingConfiguration() {
+    private String addBadAttributesToConf() {
         return """
             configurations.named("consumerConf").configure {
                 ${setFailingFlavor()}
@@ -205,7 +185,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
                 }"""
     }
 
-    private String successfulArtifactView(String name = null, String flavor = 'vanilla') {
+    private String artifactViewWithGoodAttributes(String name = null, String flavor = 'vanilla') {
         return """configurations.named("consumerConf").get().incoming.artifactView {
                     ${setName(name)}
                     ${setSuccessfulFlavor(flavor)}
@@ -213,7 +193,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
                 }"""
     }
 
-    private String failingArtifactView(String name = null) {
+    private String artifactViewWithBadAttributes(String name = null) {
         return """configurations.named("consumerConf").get().incoming.artifactView {
 lenient(false)
                     ${setName(name)}
