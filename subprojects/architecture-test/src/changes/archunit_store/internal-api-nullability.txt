@@ -2930,7 +2930,6 @@ Class <org.gradle.internal.operations.trace.BuildOperationTrace$1> is not annota
 Class <org.gradle.internal.operations.trace.BuildOperationTrace$2$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildOperationTrace.java:0)
 Class <org.gradle.internal.operations.trace.BuildOperationTrace$2> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildOperationTrace.java:0)
 Class <org.gradle.internal.operations.trace.BuildOperationTrace$3> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildOperationTrace.java:0)
-Class <org.gradle.internal.operations.trace.BuildOperationTrace$4> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildOperationTrace.java:0)
 Class <org.gradle.internal.operations.trace.BuildOperationTrace$PendingOperation> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildOperationTrace.java:0)
 Class <org.gradle.internal.operations.trace.BuildOperationTrace> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildOperationTrace.java:0)
 Class <org.gradle.internal.operations.trace.BuildOperationTree$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildOperationTree.java:0)

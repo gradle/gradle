@@ -18,12 +18,15 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.StandardSystemProperty;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonGenerator;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -395,20 +398,41 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
+    @NonNullApi
+    private static class JsonClassConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return Class.class.equals(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            Class<?> clazz = (Class<?>) value;
+            return clazz.getName();
+        }
+    }
+
     private static JsonGenerator createJsonGenerator() {
         return new JsonGenerator.Options()
-            .addConverter(new JsonGenerator.Converter() {
-                @Override
-                public boolean handles(Class<?> type) {
-                    return Class.class.equals(type);
-                }
-
-                @Override
-                public Object convert(Object value, String key) {
-                    Class<?> clazz = (Class<?>) value;
-                    return clazz.getName();
-                }
-            })
+            .addConverter(new JsonClassConverter())
+            .addConverter(new JsonThrowableConverter())
             .build();
+    }
+
+    @NonNullApi
+    private static class JsonThrowableConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return Throwable.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            Throwable throwable = (Throwable) value;
+            return ImmutableMap.of(
+                "message", throwable.getMessage(),
+                "stackTrace", Throwables.getStackTraceAsString(throwable)
+            );
+        }
     }
 }
