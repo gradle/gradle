@@ -29,10 +29,10 @@ subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt
 subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
 
 # JVM platform
+platforms/jvm/                              @gradle/bt-jvm
 subprojects/code-quality/                   @gradle/bt-jvm
 subprojects/distributions-jvm/              @gradle/bt-jvm
 subprojects/distributions-publishing/       @gradle/bt-jvm
-subprojects/ear/                            @gradle/bt-jvm
 subprojects/jacoco/                         @gradle/bt-jvm
 subprojects/java-compiler-plugin/           @gradle/bt-jvm
 subprojects/jvm-services/                   @gradle/bt-jvm

@@ -68,7 +68,7 @@ This results in a special mark for them in the DSL and API references.
 If an _incubating_ feature is discussed in this User Manual, it will be explicitly said to be in the _incubating_ state.
 
 [[feature_preview]]
-===== Feature Preview API
+==== Feature Preview API
 
 The feature preview API allows certain _incubating_ features to be activated by adding `enableFeaturePreview('FEATURE')` in your _settings_ file.
 Individual preview features will be announced in release notes.
