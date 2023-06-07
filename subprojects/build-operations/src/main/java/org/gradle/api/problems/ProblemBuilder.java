@@ -96,22 +96,24 @@ public class ProblemBuilder {
 
     public ProblemThrower report() {
         Problem problem = build();
-        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+        if (problem.getSeverity() == Severity.WARNING) {
+            ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+        }
         return new ProblemThrower(problem);
     }
 
     private static void throwPossibleError(Problem problem) {
         if (problem.getSeverity() == Severity.ERROR) {
-            Throwable t = problem.getCause();
-            if (t instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            if (t instanceof RuntimeException) {
-                throw (RuntimeException) t;
-            }
-            if (t instanceof Error) {
-                throw (Error) t;
-            }
+//            Throwable t = problem.getCause();
+//            if (t instanceof InterruptedException) {
+//                Thread.currentThread().interrupt();
+//            }
+//            if (t instanceof RuntimeException) {
+//                throw (RuntimeException) t;
+//            }
+//            if (t instanceof Error) {
+//                throw (Error) t;
+//            }
             throw new GradleExceptionWithProblem(problem);
         }
     }
@@ -130,7 +132,7 @@ public class ProblemBuilder {
             this.problem = problem;
         }
 
-        public void throwIt(){
+        public void throwIt() {
             throwPossibleError(problem);
         }
     }

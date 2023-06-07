@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
 /**
  * Prototype Problems API.
@@ -37,34 +38,11 @@ public class Problems {
         return new ProblemBuilder(problemId, e.getMessage(), Severity.ERROR);
     }
 
-    static void report(Problem problem) {
-//        BuildOperationContext operationContext = BuildOperationContextTracker.peek();
-//        if (operationContext != null) {
-//            operationContext.addProblem(problem);
-//            if (problem.getSeverity() == Severity.ERROR) {
-//                operationContext.failed(problem.getCause());
-//            }
-//        }
-//        if (problem.getSeverity() == Severity.ERROR) {
-//            Throwable t = problem.getCause();
-//            RuntimeException result;
-    //            if (t instanceof InterruptedException) {
-//                Thread.currentThread().interrupt();
-//            }
-//            if (t instanceof RuntimeException) {
-//                throw (RuntimeException) t;
-//            }
-//            if (t instanceof Error) {
-//                throw (Error) t;
-//            }
-////            if (t instanceof IOException) {
-////                throw new UncheckedIOException(t);
-////            }
-//            throw new RuntimeException(t);
-//        }
+    public static void collect(Throwable failure) {
+        new ProblemBuilder(ProblemId.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report();
     }
 
-    public static void collect(Throwable failure) {
-        new ProblemBuilder(ProblemId.KnownIds.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report();
+    public static void collect(Problem problem) {
+        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
     }
 }

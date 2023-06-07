@@ -17,12 +17,13 @@
 package org.gradle.internal.problems;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.api.problems.interfaces.Problem;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -88,5 +89,33 @@ public class DefaultProblem implements Problem {
     @Override
     public Throwable getCause() {
         return cause;
+    }
+
+    private static boolean equals(@Nullable  Object a, @Nullable Object b) {
+        return (a == b) || (a != null && a.equals(b));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultProblem that = (DefaultProblem) o;
+        return equals(problemId, that.problemId) &&
+            equals(message, that.message) &&
+            severity == that.severity &&
+            equals(where, that.where) &&
+            equals(documentationLink, that.documentationLink) &&
+            equals(description, that.description) &&
+            equals(solutions, that.solutions) &&
+            equals(cause, that.cause);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(new Object[]{problemId, message, severity, where, documentationLink, description, solutions, cause});
     }
 }

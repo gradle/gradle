@@ -91,7 +91,7 @@ public class DefaultTaskSelector implements TaskSelector {
             } else {
                 String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
                     matcher.formatErrorMessage("task", searchContext));
-                Problems.createNew(ProblemId.KnownIds.GENERIC, message, Severity.ERROR)
+                Problems.createNew(ProblemId.GENERIC, message, Severity.ERROR)
                     .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
                     .cause(new TaskSelectionException(message))
                     .report()

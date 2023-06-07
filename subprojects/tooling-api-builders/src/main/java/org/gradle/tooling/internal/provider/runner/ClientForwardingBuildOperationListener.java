@@ -61,7 +61,7 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), toOperationResult(result)));
     }
 
-    private DefaultOperationDescriptor toBuildOperationDescriptor(BuildOperationDescriptor buildOperation) {
+    protected DefaultOperationDescriptor toBuildOperationDescriptor(BuildOperationDescriptor buildOperation) {
         OperationIdentifier id = buildOperation.getId();
         String name = buildOperation.getName();
         String displayName = buildOperation.getDisplayName();

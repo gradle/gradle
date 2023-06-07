@@ -77,7 +77,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         Problems
-            .createNew(ProblemId.KnownIds.DEPRECATION, usage.formattedMessage(), Severity.WARNING)
+            .createNew(ProblemId.DEPRECATION, usage.formattedMessage(), Severity.WARNING)
 //            .documentedAt(DOCUMENTATION_REGISTRY.get(usage.getFeature()))
             .report();
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);

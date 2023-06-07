@@ -27,6 +27,7 @@ public class GradleExceptionWithProblem extends RuntimeException {
     private final Problem problem;
 
     public GradleExceptionWithProblem(Problem problem) {
+        super(problem.getCause());
         this.problem = problem;
     }
 
