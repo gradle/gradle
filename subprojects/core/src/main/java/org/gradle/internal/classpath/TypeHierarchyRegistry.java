@@ -19,7 +19,6 @@ package org.gradle.internal.classpath;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -39,8 +38,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
-
 @NonNullApi
 public class TypeHierarchyRegistry {
 
@@ -53,7 +50,8 @@ public class TypeHierarchyRegistry {
 
     public void visit(byte[] classBytes) {
         ClassReader classReader = new ClassReader(classBytes);
-        classReader.accept(new TypeHierarchyClassVisitor(this), 0);
+        registerSuperType(classReader.getClassName(), classReader.getSuperName());
+        registerInterfaces(classReader.getClassName(), classReader.getInterfaces());
     }
 
     private void registerSuperType(String className, @Nullable String superType) {
@@ -123,23 +121,6 @@ public class TypeHierarchyRegistry {
             other.directSuperTypes.forEach((k, v) -> typeRegistry.directSuperTypes.computeIfAbsent(k, __ -> ConcurrentHashMap.newKeySet()).addAll(v));
         });
         return typeRegistry;
-    }
-
-    @NonNullApi
-    private static class TypeHierarchyClassVisitor extends ClassVisitor {
-
-        private final TypeHierarchyRegistry typeRegistry;
-
-        public TypeHierarchyClassVisitor(TypeHierarchyRegistry typeRegistry) {
-            super(ASM_LEVEL);
-            this.typeRegistry = typeRegistry;
-        }
-
-        @Override
-        public void visit(int version, int access, String name, String signature, @Nullable String superName, String[] interfaces) {
-            typeRegistry.registerSuperType(name, superName);
-            typeRegistry.registerInterfaces(name, interfaces);
-        }
     }
 
     @NonNullApi
