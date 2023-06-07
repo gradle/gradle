@@ -25,7 +25,6 @@ import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.ProcessWorkerSpec;
 
 import javax.inject.Inject;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -56,16 +55,9 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
         if (!OperatingSystem.current().isUnix()) {
             return ImmutableMap.of();
         }
-        Map<String, Object> environment = forkOptions.getEnvironment();
-        Iterator<String> iterator = environment.keySet().iterator();
-        //noinspection Java8CollectionRemoveIf
-        while (iterator.hasNext()) {
-            String key = iterator.next();
-            if (!INHERITED_UNIX_ENVIRONMENT.matcher(key).matches()) {
-                iterator.remove();
-            }
-        }
-        return environment;
+        return forkOptions.getEnvironment().entrySet().stream()
+            .filter(entry -> INHERITED_UNIX_ENVIRONMENT.matcher(entry.getKey()).matches())
+            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
