@@ -25,6 +25,7 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
     private static final VersionNumber AGP_VERSION_WITH_FIXED_NEW_WORKERS_API = VersionNumber.parse('4.2')
     private static final VersionNumber AGP_VERSION_WITHOUT_CONVENTION_USAGES = VersionNumber.parse('7.4')
     private static final VersionNumber AGP_VERSION_WITHOUT_CONFIG_UTIL = VersionNumber.parse('8.0.0-rc01')
+    private static final VersionNumber AGP_VERSION_WITHOUT_CLIENT_MODULE = VersionNumber.parse('8.2.0-alpha06')
 
     boolean androidPluginUsesOldWorkerApi(String agpVersion) {
         versionIsLower(agpVersion, AGP_VERSION_WITH_FIXED_NEW_WORKERS_API)
@@ -73,6 +74,16 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use getBuildPath() to get a unique identifier for the build. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+        )
+    }
+
+    void expectClientModuleDeprecationWarning(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(
+            versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CLIENT_MODULE),
+            "Declaring client module dependencies has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use component metadata rules instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#declaring_client_module_dependencies",
         )
     }
 

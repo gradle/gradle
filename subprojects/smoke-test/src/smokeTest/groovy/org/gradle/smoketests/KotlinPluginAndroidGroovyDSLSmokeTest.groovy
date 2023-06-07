@@ -49,6 +49,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
                 expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
                 expectReportDestinationPropertyDeprecation(androidPluginVersion)
                 expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersion)
+                expectClientModuleDeprecationWarning(androidPluginVersion)
                 if (GradleContextualExecuter.configCache || VersionNumber.parse(kotlinPluginVersion) >= VersionNumber.parse("1.8.0")) {
                     expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
                 }

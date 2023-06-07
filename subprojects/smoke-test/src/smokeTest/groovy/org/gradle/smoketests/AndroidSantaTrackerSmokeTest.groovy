@@ -119,6 +119,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
             expectBuildIdentifierIsCurrentBuildDeprecation()
+            expectClientModuleDeprecationWarning(agpVersion)
             if (agpVersion.startsWith('7.')) {
                 expectBuildIdentifierNameDeprecation()
             }
@@ -142,6 +143,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectClientModuleDeprecationWarning(agpVersion)
             }
         }
         result = runner.buildAndFail()

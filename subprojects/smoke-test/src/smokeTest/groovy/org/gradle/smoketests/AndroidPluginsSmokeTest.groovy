@@ -66,6 +66,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         runner.deprecations(AndroidDeprecations) {
             expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            expectClientModuleDeprecationWarning(agpVersion)
             if (GradleContextualExecuter.isNotConfigCache()) {
                 expectBasePluginConventionDeprecation(agpVersion)
             }
@@ -108,6 +109,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectBasePluginConventionDeprecation(agpVersion)
             expectBuildIdentifierNameDeprecation()
             expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+            expectClientModuleDeprecationWarning(agpVersion)
         }.build()
 
         then:
@@ -143,6 +145,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectBasePluginConventionDeprecation(agpVersion)
             expectBuildIdentifierNameDeprecation()
             expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+            expectClientModuleDeprecationWarning(agpVersion)
         }.build()
 
         then:
@@ -165,6 +168,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectClientModuleDeprecationWarning(agpVersion)
             }
         }.build()
 
@@ -188,6 +192,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectClientModuleDeprecationWarning(agpVersion)
             }
         }.build()
 
@@ -206,6 +211,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
+            expectClientModuleDeprecationWarning(agpVersion)
         }.build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner.deprecations(AndroidDeprecations) {
@@ -217,6 +223,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectClientModuleDeprecationWarning(agpVersion)
             }
         }.build()
 
