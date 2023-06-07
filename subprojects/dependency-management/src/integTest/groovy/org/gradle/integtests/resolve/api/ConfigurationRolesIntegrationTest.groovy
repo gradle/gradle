@@ -211,4 +211,28 @@ This method is only meant to be called on configurations which allow the (non-de
         'query or resolve only' | 'canBeConsumed = false'
         'bucket'                | 'canBeResolved = false; canBeConsumed = false'
     }
+
+    def "cannot create #first and #second configuration with the same name"() {
+        buildFile << """
+            configurations {
+                $first("foo")
+                $second("foo")
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failureHasCause("Cannot add a configuration with name 'foo' as a configuration with that name already exists.")
+
+        where:
+        first          | second
+        "consumable"   | "resolvable"
+        "consumable"   | "dependencies"
+        "resolvable"   | "consumable"
+        "resolvable"   | "dependencies"
+        "dependencies" | "consumable"
+        "dependencies" | "resolvable"
+    }
 }
