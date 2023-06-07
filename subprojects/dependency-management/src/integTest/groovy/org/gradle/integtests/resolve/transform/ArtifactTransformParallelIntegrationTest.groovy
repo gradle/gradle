@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -266,6 +267,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming b.jar to b.jar.txt")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Files are downloaded when cache entry is written")
     def "files are transformed as soon as they are downloaded"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -290,10 +292,10 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 compile 'test:test2:2.3'
             }
             task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
                     assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'test-1.3.jar.txt', 'test2-2.3.jar.txt']
                 }
             }

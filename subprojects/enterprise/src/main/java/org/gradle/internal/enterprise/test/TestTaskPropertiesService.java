@@ -17,9 +17,28 @@
 package org.gradle.internal.enterprise.test;
 
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+/**
+ * Provides access to the configuration of {@link Test} tasks and allows
+ * disabling storing their outputs in the build cache.
+ */
+@ServiceScope(Scopes.Project.class)
 public interface TestTaskPropertiesService {
 
+    /**
+     * Collect the configuration of the given task.
+     */
     TestTaskProperties collectProperties(Test task);
+
+    /**
+     * Avoid storing the task's outputs in the build cache.
+     * <p>
+     * This allows disabling storing a task's outputs in the build cache if it only executed a subset of tests
+     * while still allowing the task to be loaded from the build cache if a prior execution with the same
+     * cache key executed all tests.
+     */
+    void doNotStoreInCache(Test task);
 
 }

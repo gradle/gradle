@@ -35,7 +35,7 @@ public class ReadOnlyModuleVersionsCache extends DefaultModuleVersionsCache {
     }
 
     @Override
-    public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
+    public void cacheModuleVersionList(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
         throw operationShouldNotHaveBeenCalled();
     }
 

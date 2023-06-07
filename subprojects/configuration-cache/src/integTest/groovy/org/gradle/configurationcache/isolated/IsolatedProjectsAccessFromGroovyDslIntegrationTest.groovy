@@ -503,7 +503,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a $kind in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up a $kind in the parent project ':'")
         }
 
         where:
@@ -539,8 +539,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:sub-a", ":sub:sub-b")
-            problem("Build file 'sub/sub-a/build.gradle': Project ':sub:sub-a' cannot dynamically look up a property in the parent project ':sub'")
-            problem("Build file 'sub/sub-b/build.gradle': Project ':sub:sub-b' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up a property in the parent project ':sub'")
         }
     }
 
@@ -568,6 +568,18 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         file("sub/sub-sub/build.gradle") << """
             println(bar)
         """
+        executer.expectDocumentedDeprecationWarning(
+            "The Project.getConvention() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
 
         when:
         configurationCacheFails(":sub:sub-sub:help")
@@ -575,8 +587,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:sub-sub")
-            problem("Build file 'sub/sub-sub/build.gradle': Project ':sub' cannot dynamically look up a property in the parent project ':'")
-            problem("Build file 'sub/sub-sub/build.gradle': Project ':sub:sub-sub' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/build.gradle': line 7: Project ':sub' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'sub/sub-sub/build.gradle': line 2: Project ':sub:sub-sub' cannot dynamically look up a property in the parent project ':sub'")
         }
     }
 
@@ -606,8 +618,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a method in the parent project ':'")
-            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 6: Project ':a' cannot dynamically look up a method in the parent project ':'")
         }
     }
 

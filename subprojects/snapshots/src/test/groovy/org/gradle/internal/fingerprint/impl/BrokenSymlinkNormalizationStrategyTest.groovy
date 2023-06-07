@@ -25,12 +25,12 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
-@Requires(TestPrecondition.SYMLINKS)
+@Requires(UnitTestPreconditions.Symlinks)
 @CleanupTestDirectory
 class BrokenSymlinkNormalizationStrategyTest extends Specification {
     @Rule

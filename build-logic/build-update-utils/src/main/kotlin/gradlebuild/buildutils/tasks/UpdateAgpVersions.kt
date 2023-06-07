@@ -21,8 +21,10 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.gradle.internal.util.PropertiesUtils
-import org.gradle.work.DisableCachingByDefault
+import org.gradle.util.internal.VersionNumber
+import org.jsoup.Jsoup
 import org.w3c.dom.Element
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
@@ -32,7 +34,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  * Fetch the latest AGP versions and write a properties file.
  * Never up-to-date, non-cacheable.
  */
-@DisableCachingByDefault(because = "Not worth caching")
+@UntrackedTask(because = "Not worth tracking")
 abstract class UpdateAgpVersions : DefaultTask() {
 
     @get:Internal
@@ -42,34 +44,86 @@ abstract class UpdateAgpVersions : DefaultTask() {
     abstract val minimumSupportedMinor: Property<String>
 
     @get:Internal
-    abstract val fetchNightly: Property<Boolean>
-
-    @get:Internal
     abstract val propertiesFile: RegularFileProperty
 
+    @get:Internal
+    abstract val compatibilityDocFile: RegularFileProperty
+
     @TaskAction
-    fun fetch() {
-
-        val dbf = DocumentBuilderFactory.newInstance()
-        val properties = Properties().apply {
-
-            val latests = dbf.fetchLatests(minimumSupportedMinor.get())
-            setProperty("latests", latests.joinToString(","))
-
-            if (fetchNightly.get()) {
-                val nightly = dbf.fetchNightly()
-                setProperty("nightly", nightly)
-            }
+    fun fetch() =
+        fetchLatestAgpVersions().let { fetchedVersions ->
+            updateProperties(fetchedVersions)
+            updateCompatibilityDoc(fetchedVersions.latests)
         }
-        properties.store(
-            propertiesFile.get().asFile,
-            comment.get()
+
+    private
+    data class FetchedVersions(val latests: List<String>, val nightlyBuildId: String, val nightlyVersion: String)
+
+    private
+    fun fetchLatestAgpVersions(): FetchedVersions {
+        val dbf = DocumentBuilderFactory.newInstance()
+        val latests = dbf.fetchLatests(
+            minimumSupportedMinor.get(),
+            "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml"
         )
+        val nightlyBuildId = fetchNightlyBuildId(
+            "https://androidx.dev/studio/builds"
+        )
+        val nightlyVersion = dbf.fetchNightlyVersion(
+            "https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/com/android/application/com.android.application.gradle.plugin/maven-metadata.xml"
+        )
+        return FetchedVersions(latests, nightlyBuildId, nightlyVersion)
     }
 
     private
-    fun DocumentBuilderFactory.fetchLatests(minimumSupported: String): List<String> {
-        var latests = fetchVersionsFromMavenMetadata("https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml")
+    fun updateProperties(fetchedVersions: FetchedVersions) =
+        Properties().run {
+            setProperty("latests", fetchedVersions.latests.joinToString(","))
+            setProperty("nightlyBuildId", fetchedVersions.nightlyBuildId)
+            setProperty("nightlyVersion", fetchedVersions.nightlyVersion)
+            store(
+                propertiesFile.get().asFile,
+                comment.get()
+            )
+        }
+
+    private
+    fun updateCompatibilityDoc(latestAgpVersions: List<String>) {
+        val docFile = compatibilityDocFile.get().asFile
+        val linePrefix = "Gradle is tested with Android Gradle Plugin"
+        var lineFound = false
+        docFile.writeText(
+            docFile.readLines().joinToString(separator = "\n", postfix = "\n") { line ->
+                if (line.startsWith(linePrefix)) {
+                    lineFound = true
+                    "$linePrefix ${latestAgpVersions.firstBaseVersion} through ${latestAgpVersions.lastBaseVersion}."
+                } else {
+                    line
+                }
+            }
+        )
+        require(lineFound) {
+            "File '$docFile' does not contain the expected Kotlin compatibility line"
+        }
+    }
+
+    private
+    val List<String>.firstBaseVersion: String
+        get() = VersionNumber.parse(first()).minorBaseVersion
+
+    private
+    val List<String>.lastBaseVersion: String
+        get() = map { VersionNumber.parse(it) }
+            .last { it.qualifier == null || it.qualifier?.startsWith("rc") == true }
+            .minorBaseVersion
+
+    private
+    val VersionNumber.minorBaseVersion: String
+        get() = "$major.$minor"
+
+    private
+    fun DocumentBuilderFactory.fetchLatests(minimumSupported: String, mavenMetadataUrl: String): List<String> {
+        var latests = fetchVersionsFromMavenMetadata(mavenMetadataUrl)
             .groupBy { it.take(3) }
             .map { (_, versions) -> versions.first() }
         latests = (latests + minimumSupported).sorted()
@@ -78,22 +132,32 @@ abstract class UpdateAgpVersions : DefaultTask() {
     }
 
     private
-    fun DocumentBuilderFactory.fetchNightly(): String =
-        fetchVersionsFromMavenMetadata("https://repo.gradle.org/gradle/ext-snapshots-local/com/android/tools/build/gradle/maven-metadata.xml")
-            .first()
+    fun fetchNightlyBuildId(buildListUrl: String): String =
+        Jsoup.connect(buildListUrl)
+            .get()
+            .select("li a")
+            .first()!!
+            .text()
 
     private
-    fun DocumentBuilderFactory.fetchVersionsFromMavenMetadata(url: String): List<String> =
-        newDocumentBuilder()
-            .parse(url)
-            .getElementsByTagName("version").let { versions ->
-                (0 until versions.length)
-                    .map { idx -> (versions.item(idx) as Element).textContent }
-                    .reversed()
-            }
+    fun DocumentBuilderFactory.fetchNightlyVersion(mavenMetadataUrl: String): String =
+        fetchVersionsFromMavenMetadata(mavenMetadataUrl)
+            .single()
+}
 
-    private
-    fun Properties.store(file: java.io.File, comment: String? = null) {
-        PropertiesUtils.store(this, file, comment, Charsets.ISO_8859_1, "\n")
-    }
+
+internal
+fun DocumentBuilderFactory.fetchVersionsFromMavenMetadata(url: String): List<String> =
+    newDocumentBuilder()
+        .parse(url)
+        .getElementsByTagName("version").let { versions ->
+            (0 until versions.length)
+                .map { idx -> (versions.item(idx) as Element).textContent }
+                .reversed()
+        }
+
+
+internal
+fun Properties.store(file: java.io.File, comment: String? = null) {
+    PropertiesUtils.store(this, file, comment, Charsets.ISO_8859_1, "\n")
 }

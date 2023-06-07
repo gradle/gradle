@@ -37,12 +37,15 @@ class MemInfoOsMemoryInfoTest extends Specification {
         snapshot.totalPhysicalMemory == 33_594_605_568L
     }
 
-    def "returns -1 given unparsable file"() {
-        given:
-        def snapshot = new MemInfoOsMemoryInfo().getOsSnapshotFromMemInfo(["bogustown"])
-        expect:
-        snapshot.freePhysicalMemory == -1L
-        snapshot.totalPhysicalMemory == -1L
+    def "throws unsupported operation exception when non-numeric values are provided"() {
+        when:
+        new MemInfoOsMemoryInfo().getOsSnapshotFromMemInfo(meminfo)
+
+        then:
+        thrown(UnsupportedOperationException)
+
+        where:
+        meminfo << [["bogustown"], bogusMeminfoLinux3(), bogusMeminfoLinux4()]
     }
 
     private static List<String> meminfoLinux3() {
@@ -95,6 +98,102 @@ DirectMap2M:    50223104 kB
         """MemTotal:       32807232 kB
 MemFree:          315332 kB
 MemAvailable:    2112564 kB
+Buffers:          452252 kB
+Cached:          1425068 kB
+SwapCached:        80148 kB
+Active:          1587152 kB
+Inactive:        1029860 kB
+Active(anon):     213704 kB
+Inactive(anon):   526268 kB
+Active(file):    1373448 kB
+Inactive(file):   503592 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+SwapTotal:      16777212 kB
+SwapFree:       16550088 kB
+Dirty:               104 kB
+Writeback:             0 kB
+AnonPages:        714372 kB
+Mapped:            26076 kB
+Shmem:               280 kB
+Slab:             209636 kB
+SReclaimable:     173608 kB
+SUnreclaim:        36028 kB
+KernelStack:        6960 kB
+PageTables:        23980 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    18435228 kB
+Committed_AS:    2004416 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      186088 kB
+VmallocChunk:   34359452624 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:    194560 kB
+CmaTotal:              0 kB
+CmaFree:               0 kB
+HugePages_Total:   14400
+HugePages_Free:       60
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:      197056 kB
+DirectMap2M:     5953536 kB
+DirectMap1G:    28311552 kB
+""".split(/\n/)
+    }
+
+    private static List<String> bogusMeminfoLinux3() {
+        """MemTotal:       foo
+MemFree:        bar
+Buffers:          baz
+Cached:         14152476 kB
+SwapCached:            0 kB
+Active:         17791108 kB
+Inactive:       13818288 kB
+Active(anon):   17189920 kB
+Inactive(anon):      460 kB
+Active(file):     601188 kB
+Inactive(file): 13817828 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+SwapTotal:             0 kB
+SwapFree:              0 kB
+Dirty:                20 kB
+Writeback:             0 kB
+AnonPages:      17189100 kB
+Mapped:            24008 kB
+Shmem:              1312 kB
+Slab:            1291916 kB
+SReclaimable:    1236196 kB
+SUnreclaim:        55720 kB
+KernelStack:        2888 kB
+PageTables:        41200 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    24731588 kB
+Committed_AS:   22081020 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      173104 kB
+VmallocChunk:   34359438128 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:  17104896 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:      107840 kB
+DirectMap2M:    50223104 kB
+""".split(/\n/)
+    }
+
+    private static List<String> bogusMeminfoLinux4() {
+        """MemTotal:       foo
+MemFree:          315332 kB
+MemAvailable:    bar
 Buffers:          452252 kB
 Cached:          1425068 kB
 SwapCached:        80148 kB

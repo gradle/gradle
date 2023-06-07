@@ -23,11 +23,11 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.Describables
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.state.ModelObject
-import org.gradle.util.internal.RedirectStdOutAndErr
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -38,7 +38,7 @@ class TransformBackedProviderTest extends Specification {
 
     def setup() {
         DeprecationLogger.reset()
-        DeprecationLogger.init(Stub(UsageLocationReporter), WarningMode.All, progressEventEmitter)
+        DeprecationLogger.init(Stub(ProblemDiagnosticsFactory), WarningMode.All, progressEventEmitter)
     }
 
     def teardown() {

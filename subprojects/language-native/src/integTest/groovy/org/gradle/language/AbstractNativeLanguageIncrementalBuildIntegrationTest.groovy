@@ -23,11 +23,10 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.GUtil
 import org.junit.Assume
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
@@ -104,7 +103,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         allSkipped()
     }
 
-    @IgnoreIf({!TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "rebuilds executable with source file change"() {
         given:
@@ -158,7 +157,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "recompiles library and relinks executable after library source file change"() {
         given:
@@ -292,7 +291,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "rebuilds binary with compiler option change"() {
         given:
@@ -327,7 +326,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         install.exec().out == app.frenchOutput
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     @ToBeFixedForConfigurationCache
     def "rebuilds binary with target platform change"() {
@@ -468,7 +467,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         then:
         String objectFilesPath = "build/objs/hello/static/hello${sourceType}"
         def oldObjFile = objectFileFor(librarySourceFiles[0], objectFilesPath)
-        def newObjFile = objectFileFor( librarySourceFiles[0].getParentFile().file("changed_${librarySourceFiles[0].name}"), objectFilesPath)
+        def newObjFile = objectFileFor(librarySourceFiles[0].getParentFile().file("changed_${librarySourceFiles[0].name}"), objectFilesPath)
         assert oldObjFile.file
         assert !newObjFile.file
 
@@ -504,7 +503,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     @ToBeFixedForConfigurationCache
     def "recompiles binary when imported header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
-        if(buildingCorCppWithGcc()) {
+        if (buildingCorCppWithGcc()) {
             buildFile << """
                 model {
                     //support for #import on c/cpp is deprecated in gcc
@@ -529,7 +528,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-        if(objectiveCWithAslr){
+        if (objectiveCWithAslr) {
             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executed ":linkMainExecutable", ":mainExecutable"
         } else {

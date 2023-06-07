@@ -19,13 +19,15 @@ package org.gradle.internal.deprecation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.internal.featurelifecycle.UsageLocationReporter
+import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
+
+import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 
 class DeprecationMessagesTest extends Specification {
 
@@ -38,7 +40,8 @@ class DeprecationMessagesTest extends Specification {
     private final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(BuildOperationProgressEventEmitter))
+        def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
+        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, Mock(BuildOperationProgressEventEmitter))
     }
 
     def cleanup() {
@@ -324,8 +327,8 @@ class DeprecationMessagesTest extends Specification {
             .nagUser()
 
         then:
-        def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-        expectMessage "Some behavior. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. See ${expectedDocumentationUrl} for more details."
+        def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", "viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
+        expectMessage "Some behavior. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. ${expectedDocumentationUrl}"
     }
 
     def "logs DSL property documentation reference"() {
@@ -337,7 +340,10 @@ class DeprecationMessagesTest extends Specification {
 
         then:
         def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "bar")
-        expectMessage "The DeprecationLogger.archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+        expectMessage "The DeprecationLogger.archiveName property has been deprecated. " +
+            "This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. " +
+            "Please use the archiveFileName property instead. " +
+            String.format(RECOMMENDATION, "information", dslReference)
     }
 
     def "logs DSL documentation reference for deprecated property implicitly"() {
@@ -349,7 +355,10 @@ class DeprecationMessagesTest extends Specification {
 
         then:
         def dslReference = DOCUMENTATION_REGISTRY.getDslRefForProperty(AbstractArchiveTask, "archiveName")
-        expectMessage "The AbstractArchiveTask.archiveName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the archiveFileName property instead. See ${dslReference} for more details."
+        expectMessage "The AbstractArchiveTask.archiveName property has been deprecated. " +
+            "This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. " +
+            "Please use the archiveFileName property instead. " +
+            String.format(RECOMMENDATION, "information", dslReference)
     }
 
     private void expectMessage(String expectedMessage) {

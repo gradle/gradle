@@ -104,11 +104,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public Path getCurrentPrefixForProjectsInChildBuilds() {
-        return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildDefinition.getName());
-    }
-
-    @Override
     public Path calculateIdentityPathForProject(Path projectPath) {
         return getBuildController().getGradle().getIdentityPath().append(projectPath);
     }
@@ -133,22 +128,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         @Nullable
         public RuntimeException finishBuildTree(List<Throwable> failures) {
             return exceptionAnalyser.transform(failures);
-        }
-    }
-
-    private class FinishThisBuildOnlyFinishExecutor implements BuildTreeFinishExecutor {
-        private final ExceptionAnalyser exceptionAnalyser;
-
-        public FinishThisBuildOnlyFinishExecutor(ExceptionAnalyser exceptionAnalyser) {
-            this.exceptionAnalyser = exceptionAnalyser;
-        }
-
-        @Override
-        @Nullable
-        public RuntimeException finishBuildTree(List<Throwable> failures) {
-            RuntimeException reportable = exceptionAnalyser.transform(failures);
-            ExecutionResult<Void> finishResult = getBuildController().finishBuild(reportable);
-            return exceptionAnalyser.transform(ExecutionResult.maybeFailed(reportable).withFailures(finishResult).getFailures());
         }
     }
 }

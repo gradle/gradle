@@ -18,9 +18,9 @@ package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.GroovyPlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
-import org.gradle.api.plugins.JavaPlugin;
 
 public class GroovyBuildSrcProjectConfigurationAction implements BuildSrcProjectConfigurationAction {
 
@@ -30,7 +30,7 @@ public class GroovyBuildSrcProjectConfigurationAction implements BuildSrcProject
         project.getPluginManager().apply(GroovyPlugin.class);
 
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.gradleApi());
-        dependencies.add(JavaPlugin.API_CONFIGURATION_NAME, dependencies.localGroovy());
+        dependencies.add(JvmConstants.API_CONFIGURATION_NAME, dependencies.gradleApi());
+        dependencies.add(JvmConstants.API_CONFIGURATION_NAME, dependencies.localGroovy());
     }
 }

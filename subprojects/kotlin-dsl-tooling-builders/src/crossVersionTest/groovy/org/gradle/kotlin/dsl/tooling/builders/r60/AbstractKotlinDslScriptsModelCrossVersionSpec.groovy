@@ -16,94 +16,12 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r60
 
+import org.gradle.integtests.fixtures.build.BuildSpec
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
-import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
-
 class AbstractKotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
-
-    protected BuildSpec withMultiProjectBuildWithBuildSrc() {
-        withBuildSrc()
-        def someJar = withEmptyJar("classes_some.jar")
-        def settingsJar = withEmptyJar("classes_settings.jar")
-        def rootJar = withEmptyJar("classes_root.jar")
-        def aJar = withEmptyJar("classes_a.jar")
-        def bJar = withEmptyJar("classes_b.jar")
-        def precompiledJar = withEmptyJar("classes_b_precompiled.jar")
-
-        def some = withFile("some.gradle.kts", """
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(someJar)}"))
-                }
-            }
-        """)
-        def settings = withSettings("""
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(settingsJar)}"))
-                }
-            }
-            apply(from = "some.gradle.kts")
-            include("a", "b")
-        """)
-        def root = withBuildScript("""
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(rootJar)}"))
-                }
-            }
-            apply(from = "some.gradle.kts")
-        """)
-        def a = withBuildScriptIn("a", """
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(aJar)}"))
-                }
-            }
-            apply(from = "../some.gradle.kts")
-        """)
-        def b = withBuildScriptIn("b", """
-            plugins {
-                `kotlin-dsl`
-            }
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(bJar)}"))
-                }
-            }
-            apply(from = "../some.gradle.kts")
-
-            $repositoriesBlock
-
-            dependencies {
-                implementation(files("${escapeString(precompiledJar)}"))
-            }
-        """)
-        def precompiled = withFile("b/src/main/kotlin/precompiled/precompiled.gradle.kts", "")
-        return new BuildSpec(
-            scripts: [
-                settings: settings,
-                root: root,
-                a: a,
-                b: b,
-                precompiled: precompiled
-            ],
-            appliedScripts: [
-                some: some
-            ],
-            jars: [
-                some: someJar,
-                settings: settingsJar,
-                root: rootJar,
-                a: aJar,
-                b: bJar,
-                precompiled: precompiledJar
-            ]
-        )
-    }
 
     protected static void assertModelMatchesBuildSpec(KotlinDslScriptsModel model, BuildSpec spec) {
 

@@ -21,13 +21,13 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
 import javax.net.ssl.SSLHandshakeException
 
 class DeprecatedTLSVersionTest extends Specification {
-    private static final String SUPPORTED_TLS_VERSION_STRING = String.join(", ", HttpClientConfigurer.supportedTlsVersions())
     private static final List<String> DEPRECATED_TLS_VERSIONS = ["TLSv1", "TLSv1.1"]
     private static final List<String> MODERN_TLS_VERSIONS = ["TLSv1.2", "TLSv1.3"]
     @Rule
@@ -39,15 +39,20 @@ class DeprecatedTLSVersionTest extends Specification {
     TestKeyStore keyStore = TestKeyStore.init(resources.dir)
     HttpSettings settings = DefaultHttpSettings.builder()
         .withAuthenticationSettings([])
-        .withSslContextFactory { keyStore.asSSLContext() }
+        .withSslContextFactory(new DefaultSslContextFactory())
         .withRedirectVerifier({})
         .build()
+
+    private final String supportedTlsVersionsString = String.join(", ", new HttpClientConfigurer(settings).supportedTlsVersions())
+
+    @Rule
+    SetSystemProperties properties = new SetSystemProperties(keyStore.getServerAndClientCertSettings())
 
     def "server that only supports deprecated TLS versions"() {
         given:
         HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
         // Only support older TLS versions
-        server.configure(keyStore) { it -> DEPRECATED_TLS_VERSIONS.contains(it) }
+        server.configure(keyStore, false) { it -> DEPRECATED_TLS_VERSIONS.contains(it) }
         server.start()
         // The server '/test' endpoint will never get called because the SSL exception will trip first.
         // Thus, we don't need to add the `expect('/test')` to the server for this test to work correctly.
@@ -59,8 +64,8 @@ class DeprecatedTLSVersionTest extends Specification {
         and:
         HttpRequestException humanReadableException = exception.cause as HttpRequestException
         humanReadableException.message.startsWith(
-            "The server may not support the client's requested TLS protocol versions: ($SUPPORTED_TLS_VERSION_STRING). You may need to configure the client to allow other protocols to be used. See: "
-        )
+            "The server may not support the client's requested TLS protocol versions: ($supportedTlsVersionsString). You may need to configure the client to allow other protocols to be used. "
+                + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "build_environment", "sec:gradle_system_properties"))
         and:
         humanReadableException.cause instanceof SSLHandshakeException
         cleanup:
@@ -71,7 +76,7 @@ class DeprecatedTLSVersionTest extends Specification {
         given:
         HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
         // Only support modern TLS versions
-        server.configure(keyStore) { it -> MODERN_TLS_VERSIONS.contains(it) }
+        server.configure(keyStore, false) { it -> MODERN_TLS_VERSIONS.contains(it) }
         server.start()
         server.expect('/test')
         when:

@@ -783,9 +783,56 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "Gradle.addBuildListener"                     | "gradle.addBuildListener(new BuildAdapter())"
         "Gradle.addListener"                          | "gradle.addListener(new BuildAdapter())"
         "Gradle.buildFinished"                        | "gradle.buildFinished {}"
+        "Gradle.useLogger"                            | "gradle.useLogger(new TaskExecutionAdapter())"
         "TaskExecutionGraph.addTaskExecutionListener" | "gradle.taskGraph.addTaskExecutionListener(new TaskExecutionAdapter())"
         "TaskExecutionGraph.beforeTask"               | "gradle.taskGraph.beforeTask {}"
         "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
+    }
+
+    def "reports unsupported build listener #listenerType registration on #registrationPoint"() {
+        given:
+        buildFile("""
+            class TestAdapter implements TestListener {
+                @Override void beforeSuite(TestDescriptor suite) {}
+                @Override void afterSuite(TestDescriptor suite, TestResult result) {}
+                @Override void beforeTest(TestDescriptor testDescriptor) {}
+                @Override void afterTest(TestDescriptor testDescriptor, TestResult result) {}
+            }
+
+            class TestOutputAdapter implements TestOutputListener {
+                @Override void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {}
+            }
+
+            gradle.$registrationPoint(new ${listenerType}())
+        """)
+
+        expect:
+        executer.noDeprecationChecks()
+        configurationCacheFails 'help'
+
+        where:
+        [registrationPoint, listenerType] << [
+            ["addListener", "useLogger"],
+            ["BuildAdapter", "TaskExecutionAdapter", "TestAdapter", "TestOutputAdapter"]
+        ].combinations()
+    }
+
+    def "reports registration of unsupported build listener implementing supported listener too on #registrationPoint"() {
+        given:
+        buildFile("""
+            class SneakyListener extends TaskExecutionAdapter implements TaskExecutionGraphListener {
+                @Override void graphPopulated(TaskExecutionGraph graph) {}
+            }
+
+            gradle.$registrationPoint(new SneakyListener())
+        """)
+
+        expect:
+        executer.noDeprecationChecks()
+        configurationCacheFails 'help'
+
+        where:
+        registrationPoint << ["addListener", "useLogger"]
     }
 
     def "does not report problems on configuration listener registration on #registrationPoint"() {
@@ -794,8 +841,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         buildFile << """
 
             class ProjectEvaluationAdapter implements ProjectEvaluationListener {
-                void beforeEvaluate(Project project) {}
-                void afterEvaluate(Project project, ProjectState state) {}
+                @Override void beforeEvaluate(Project project) {}
+                @Override void afterEvaluate(Project project, ProjectState state) {}
+            }
+
+            class DependencyResolutionAdapter implements DependencyResolutionListener {
+                @Override void beforeResolve(ResolvableDependencies dependencies) {}
+                @Override void afterResolve(ResolvableDependencies dependencies) {}
             }
 
             $code
@@ -806,15 +858,21 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         postBuildOutputContains("Configuration cache entry stored.")
 
         where:
-        registrationPoint                     | code
-        "Gradle.addProjectEvaluationListener" | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
-        "Gradle.addListener"                  | "gradle.addListener(new ProjectEvaluationAdapter())"
-        "Gradle.beforeSettings"               | "gradle.beforeSettings {}"
-        "Gradle.settingsEvaluated"            | "gradle.settingsEvaluated {}"
-        "Gradle.projectsLoaded"               | "gradle.projectsLoaded {}"
-        "Gradle.beforeProject"                | "gradle.beforeProject {}"
-        "Gradle.afterProject"                 | "gradle.afterProject {}"
-        "Gradle.projectsEvaluated"            | "gradle.projectsEvaluated {}"
+        registrationPoint                                  | code
+        "Gradle.addProjectEvaluationListener"              | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener(ProjectEvaluationListener)"    | "gradle.addListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener(TaskExecutionGraphListener)"   | "gradle.addListener({g -> } as TaskExecutionGraphListener)"
+        "Gradle.addListener(DependencyResolutionListener)" | "gradle.addListener(new DependencyResolutionAdapter())"
+        "Gradle.beforeSettings"                            | "gradle.beforeSettings {}"
+        "Gradle.settingsEvaluated"                         | "gradle.settingsEvaluated {}"
+        "Gradle.projectsLoaded"                            | "gradle.projectsLoaded {}"
+        "Gradle.beforeProject"                             | "gradle.beforeProject {}"
+        "Gradle.afterProject"                              | "gradle.afterProject {}"
+        "Gradle.projectsEvaluated"                         | "gradle.projectsEvaluated {}"
+        "Gradle.taskGraph.whenReady"                       | "gradle.taskGraph.whenReady {}"
+        "Gradle.useLogger(ProjectEvaluationListener)"      | "gradle.useLogger(new ProjectEvaluationAdapter())"
+        "Gradle.useLogger(TaskExecutionGraphListener)"     | "gradle.useLogger({g -> } as TaskExecutionGraphListener)"
+        "Gradle.useLogger(DependencyResolutionListener)"   | "gradle.useLogger(new DependencyResolutionAdapter())"
     }
 
     def "summarizes unsupported properties"() {
@@ -1113,22 +1171,23 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 530 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 100: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1000: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1005: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1010: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1015: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1020: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1025: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1030: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1035: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1040: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1045: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 105: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1050: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 1055: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 50: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 500: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 505: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 510: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 515: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 520: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 525: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 530: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 535: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 540: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 545: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 55: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 550: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 555: invocation of 'Task.project' at execution time is unsupported.")
             totalProblemsCount = 530
+            problemsWithStackTraceCount = 50
         }
         failure.assertHasFailure("Configuration cache problems found in this build.") { failure ->
             failure.assertHasCauses(5)

@@ -216,7 +216,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     private void clearEnvironmentVars(MutableCommandLineToolContext invocation, String... names) {
         // TODO: This check should really be done in the compiler process
-        Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
+        Map<String, ?> environmentVariables = Jvm.getInheritableEnvironmentVariables(System.getenv());
         for (String name : names) {
             Object value = environmentVariables.get(name);
             if (value != null) {

@@ -47,7 +47,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
                 assert task instanceof CodeNarc
                 task.with {
                     assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
-                    assert source as List == sourceSet.allGroovy  as List
+                    assert source as List == sourceSet.groovy  as List
                     assert codenarcClasspath == project.configurations.codenarc
                     assert config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
                     assert configFile == project.file("config/codenarc/codenarc.xml")
@@ -111,7 +111,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
                 assert task instanceof CodeNarc
                 task.with {
                     assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
-                    assert source as List == sourceSet.allGroovy as List
+                    assert source as List == sourceSet.groovy as List
                     assert codenarcClasspath == project.configurations.codenarc
                     assert config.inputFiles.singleFile == project.file("codenarc-config")
                     assert configFile == project.file("codenarc-config")
@@ -191,7 +191,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     private void writeBuildFile() {
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: "groovy"
             apply plugin: "codenarc"
 

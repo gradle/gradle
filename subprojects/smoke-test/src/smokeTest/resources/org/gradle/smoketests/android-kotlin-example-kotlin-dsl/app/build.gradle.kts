@@ -32,9 +32,6 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
     }
-    buildFeatures {
-        viewBinding = true
-    }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
@@ -105,8 +102,8 @@ project.afterEvaluate {
                 sourceDirectories.from(files(coverageSourceDirs))
                 executionData.from(files("${project.buildDir}/jacoco/${testTaskName}.exec"))
                 reports {
-                    xml.required.set(true)
-                    html.required.set(true)
+                    xml.required = true
+                    html.required = true
                 }
             }
         }

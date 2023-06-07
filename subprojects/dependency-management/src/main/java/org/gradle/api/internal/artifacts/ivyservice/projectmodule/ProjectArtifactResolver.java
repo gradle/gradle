@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
@@ -31,8 +30,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
@@ -57,12 +55,12 @@ public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectSt
     }
 
     @Override
-    public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
         // NOTE: This isn't thread-safe because we're not locking around allResolvedArtifacts to ensure we're not inserting multiple resolvableArtifacts for
         // the same artifact id.
         //
@@ -70,13 +68,13 @@ public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectSt
         // This is not thread-safe because of lock juggling that happens for project state. When calculating the dependencies for an IDEA model, we can easily
         // deadlock when there are multiple projects that need to be locked at the same time.
         ResolvableArtifact resolvableArtifact = allResolvedArtifacts.get(artifact.getId());
-        if (resolvableArtifact==null) {
+        if (resolvableArtifact == null) {
             LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
             File localArtifactFile = projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());
             if (localArtifactFile != null) {
                 CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), resolveArtifactLater(artifact));
-                resolvableArtifact = new DefaultResolvableArtifact(ownerId, artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+                resolvableArtifact = new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
                 allResolvedArtifacts.put(artifact.getId(), resolvableArtifact);
             }
         }

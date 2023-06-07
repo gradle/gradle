@@ -58,10 +58,10 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         // Select 'kotlin'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
-            assert handle.standardOutput.contains("1: Groovy")
-            assert handle.standardOutput.contains("2: Kotlin")
+            assert handle.standardOutput.contains("1: Kotlin")
+            assert handle.standardOutput.contains("2: Groovy")
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
@@ -77,7 +77,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // after generating the project, we suggest the user reads some documentation
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Get more help with your project")
+            assert handle.standardOutput.contains(documentationRegistry.getSampleForMessage())
         }
         handle.stdinPipe.close()
         handle.waitForFinish()
@@ -100,8 +100,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // after generating the project, we suggest the user reads some documentation
+        def msg = documentationRegistry.getSampleForMessage()
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Get more help with your project")
+            assert handle.standardOutput.contains(msg)
         }
         handle.stdinPipe.close()
         handle.waitForFinish()
@@ -125,13 +126,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'java'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Select implementation language:")
-            assert handle.standardOutput.contains("1: C++")
-            assert handle.standardOutput.contains("2: Groovy")
-            assert handle.standardOutput.contains("3: Java")
-            assert handle.standardOutput.contains("4: Kotlin")
-            assert handle.standardOutput.contains("5: Scala")
-            assert handle.standardOutput.contains("6: Swift")
+            ["Select implementation language:","1: C++","2: Groovy","3: Java","4: Kotlin","5: Scala","6: Swift"].each {
+                assert handle.standardOutput.contains(it)
+            }
         }
         handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
 
@@ -145,7 +142,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'junit'
         ConcurrentTestUtil.poll(60) {
@@ -180,7 +177,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // after generating the project, we suggest the user reads some documentation
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Get more help with your project")
+            assert handle.standardOutput.contains(documentationRegistry.getSampleForMessage())
         }
         handle.stdinPipe.close()
         handle.waitForFinish()
@@ -226,7 +223,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
@@ -236,7 +233,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // after generating the project, we suggest the user reads some documentation
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Get more help with your project")
+            assert handle.standardOutput.contains(documentationRegistry.getDocumentationRecommendationFor("information", "migrating_from_maven"))
         }
         handle.stdinPipe.close()
         handle.waitForFinish()
@@ -276,7 +273,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
@@ -292,7 +289,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // after generating the project, we suggest the user reads some documentation
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Get more help with your project")
+            assert handle.standardOutput.contains(documentationRegistry.getSampleForMessage())
         }
         handle.stdinPipe.close()
         handle.waitForFinish()

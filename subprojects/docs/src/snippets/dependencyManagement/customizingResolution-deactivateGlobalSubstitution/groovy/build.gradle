@@ -11,7 +11,6 @@ configurations.create('publishedRuntimeClasspath') {
 
     extendsFrom(configurations.runtimeClasspath)
     canBeConsumed = false
-    canBeResolved = true
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
 }
 // end::disableGlobalDependencySubstitutionRules[]

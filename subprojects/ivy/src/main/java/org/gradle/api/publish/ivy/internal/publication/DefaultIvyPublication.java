@@ -528,10 +528,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, DerivedArtifact fileProvider) {
-        if (originalArtifact == gradleModuleDescriptorArtifact) {
-            return null;
-        }
-        IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, fileProvider, taskDependencyFactory);
+        DerivedArtifact effectiveFileProvider = originalArtifact == gradleModuleDescriptorArtifact
+            ? new GradleModuleDescriptorDerivedArtifact(fileProvider, gradleModuleDescriptorArtifact)
+            : fileProvider;
+
+        IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, effectiveFileProvider, taskDependencyFactory);
         derivedArtifacts.add(artifact);
         return artifact;
     }
@@ -726,4 +727,27 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return globalExcludes;
     }
 
+    private static class GradleModuleDescriptorDerivedArtifact implements DerivedArtifact {
+
+        private final DerivedArtifact derivedArtifact;
+
+        private final SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
+
+        public GradleModuleDescriptorDerivedArtifact(DerivedArtifact derivedArtifact, SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact) {
+            this.derivedArtifact = derivedArtifact;
+            this.gradleModuleDescriptorArtifact = gradleModuleDescriptorArtifact;
+        }
+
+        @Nullable
+        @Override
+        public File create() {
+            return derivedArtifact.create();
+        }
+
+        @Override
+        public boolean shouldBePublished() {
+            return gradleModuleDescriptorArtifact.shouldBePublished() &&
+                derivedArtifact.shouldBePublished();
+        }
+    }
 }

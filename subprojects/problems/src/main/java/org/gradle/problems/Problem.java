@@ -85,7 +85,7 @@ public interface Problem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, C
 
     /**
      * If possible, a problem should tell why it happened
-     * @return a description of the why the problem happened
+     * @return a description of why the problem happened
      */
     default Optional<String> getWhy() {
         return Optional.empty();

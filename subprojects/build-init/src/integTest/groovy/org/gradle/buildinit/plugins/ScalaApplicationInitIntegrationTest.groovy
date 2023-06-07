@@ -81,6 +81,29 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppSuite", "App has a greeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello, world!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "specifying JUnit4 is not supported with #scriptDsl build scripts"() {
         when:
         fails('init', '--type', 'scala-application', '--test-framework', 'junit-4', '--dsl', scriptDsl.id)
@@ -132,6 +155,9 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
                 package org.acme;
 
                 class SampleMainSuite {
+
+                    @org.junit.Test
+                    def sampleTest : Unit = { }
                 }
         """
         when:

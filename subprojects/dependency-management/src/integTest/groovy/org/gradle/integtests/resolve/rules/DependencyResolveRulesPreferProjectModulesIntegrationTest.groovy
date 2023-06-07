@@ -82,7 +82,9 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
             root(":Subproject_with_preferProjectModules", "test:Subproject_with_preferProjectModules:") {
                 module("myorg:ModuleB:1.0") {
                     // Prefers project, regardless of version
-                    edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0")
+                    edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0") {
+                        byConflictResolution("between versions 1.0 and 2.0")
+                    }
                 }
                 project(":ModuleC", "myorg:ModuleC:1.0") {
                     noArtifacts()
@@ -99,7 +101,9 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                 project(":Subproject_with_preferProjectModules", "test:Subproject_with_preferProjectModules:") {
                     noArtifacts()
                     module("myorg:ModuleB:1.0") {
-                        module("myorg:ModuleC:2.0")
+                        module("myorg:ModuleC:2.0") {
+                            byConflictResolution("between versions 1.0 and 2.0")
+                        }
                     }
                     // 'Subproject_with_preferProjectModules' config DOES NOT influence this dependency
                     // and hence the higher version is picked from repo
@@ -156,7 +160,9 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         resolve.expectGraph {
             root(":ProjectA", "test:ProjectA:") {
                 module("myorg:ModuleB:1.0") {
-                    module("myorg:ModuleC:2.0")
+                    module("myorg:ModuleC:2.0") {
+                        byConflictResolution("between versions 1.0 and 2.0")
+                    }
                 }
                 // 'preferProjectModules()' is not inherited from 'baseConf'
                 // and hence the higher version is picked from repo
@@ -172,7 +178,9 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         resolve.expectGraph {
             root(":ProjectA", "test:ProjectA:") {
                 module("myorg:ModuleB:1.0") {
-                    edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0")
+                    edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0") {
+                        byConflictResolution("between versions 1.0 and 2.0")
+                    }
                 }
                 project("project :ModuleC", "myorg:ModuleC:1.0") {
                     noArtifacts()

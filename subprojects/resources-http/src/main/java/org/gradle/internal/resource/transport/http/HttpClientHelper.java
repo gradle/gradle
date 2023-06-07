@@ -36,15 +36,19 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static java.lang.String.join;
 import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIONS;
 
 /**
@@ -56,6 +60,8 @@ public class HttpClientHelper implements Closeable {
     private CloseableHttpClient client;
     private final DocumentationRegistry documentationRegistry;
     private final HttpSettings settings;
+
+    private Collection<String> supportedTlsVersions;
 
     /**
      * Maintains a queue of contexts which are shared between threads when authentication
@@ -107,7 +113,7 @@ public class HttpClientHelper implements Closeable {
         } catch (FailureFromRedirectLocation e) {
             throw createHttpRequestException(method, e.getCause(), e.getLastRedirectLocation());
         } catch (IOException e) {
-            throw createHttpRequestException(method, createCause(e), request.getURI());
+            throw createHttpRequestException(method, wrapWithExplanation(e), request.getURI());
         }
     }
 
@@ -116,33 +122,42 @@ public class HttpClientHelper implements Closeable {
         return new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(uri)), cause);
     }
 
-    private Exception createCause(IOException e) {
-        Exception cause = e;
-        if (e instanceof SSLHandshakeException) {
-            SSLHandshakeException sslException = (SSLHandshakeException) e;
-            String message = String.format(
-                "%s support the client's requested TLS protocol versions: (%s). " +
-                    "You may need to configure the client to allow other protocols to be used. " +
-                    "See: %s",
-                getConfidenceNote(sslException),
-                String.join(", ", HttpClientConfigurer.supportedTlsVersions()),
-                documentationRegistry.getDocumentationFor("build_environment", "sec:gradle_system_properties")
-            );
-            return new HttpRequestException(message, cause);
+    private Exception wrapWithExplanation(IOException e) {
+        if (e instanceof SocketException || (e instanceof SSLException && e.getMessage().contains("readHandshakeRecord"))) {
+            return new HttpRequestException("Got socket exception during request. It might be caused by SSL misconfiguration", e);
         }
-        return cause;
+
+        if (!(e instanceof SSLHandshakeException)) {
+            return e;
+        }
+
+        SSLHandshakeException sslException = (SSLHandshakeException) e;
+        String message;
+
+        if (e.getMessage().contains("PKIX path building failed") || e.getMessage().contains("certificate_unknown")) {
+            message = "Got SSL handshake exception during request. It might be caused by SSL misconfiguration";
+        } else {
+            message = String.format(
+                "The server %s not support the client's requested TLS protocol versions: (%s). " +
+                    "You may need to configure the client to allow other protocols to be used. " +
+                    "%s",
+                getConfidenceNote(sslException),
+                join(", ", supportedTlsVersions),
+                documentationRegistry.getDocumentationRecommendationFor("on this", "build_environment", "sec:gradle_system_properties")
+            );
+        }
+        return new HttpRequestException(message, e);
     }
 
     @Nonnull
     private static String getConfidenceNote(SSLHandshakeException sslException) {
-        final String confidence;
         if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
             // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
-            return "The server does not";
+            return "does";
         }
         // Sometimes the SSLHandshakeException doesn't include the 'protocol_version', even though this is the cause of the error.
         // Tell the user this but with less confidence.
-        return "The server may not";
+        return "may";
     }
 
     protected HttpClientResponse executeGetOrHead(HttpRequestBase method) throws IOException {
@@ -237,7 +252,9 @@ public class HttpClientHelper implements Closeable {
     private synchronized CloseableHttpClient getClient() {
         if (client == null) {
             HttpClientBuilder builder = HttpClientBuilder.create();
-            new HttpClientConfigurer(settings).configure(builder);
+            HttpClientConfigurer configurer = new HttpClientConfigurer(settings);
+            configurer.configure(builder);
+            this.supportedTlsVersions = configurer.supportedTlsVersions();
             this.client = builder.build();
         }
         return client;

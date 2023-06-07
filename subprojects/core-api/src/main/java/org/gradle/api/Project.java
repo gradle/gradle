@@ -547,6 +547,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     String getPath();
 
     /**
+     * Returns a path to the project for the full build tree.
+     *
+     * @return The build tree path
+     * @since 8.3
+     */
+    @Incubating
+    String getBuildTreePath();
+
+    /**
      * <p>Returns the names of the default tasks of this project. These are used when no tasks names are provided when
      * starting the build.</p>
      *
@@ -1763,6 +1772,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The components for this project.
      */
     SoftwareComponentContainer getComponents();
+
+    /**
+     * Configures software components.
+     *
+     * @param configuration Action to configure the software components.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    void components(Action<? super SoftwareComponentContainer> configuration);
 
     /**
      * Provides access to configuring input normalization.

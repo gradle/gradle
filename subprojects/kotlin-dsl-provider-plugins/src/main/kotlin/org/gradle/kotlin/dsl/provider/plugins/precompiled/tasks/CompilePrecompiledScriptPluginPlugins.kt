@@ -101,10 +101,10 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
                         PrecompiledPluginsBlock::class,
                         implicitImportsForPrecompiledScriptPlugins(implicitImports)
                     ),
-                    classPathFiles,
+                    classPathFiles.filter { it.exists() },
                     logger,
-                    { it } // TODO: translate paths
-                )
+                    allWarningsAsErrors = false
+                ) { it } // TODO: translate paths
         }
     }
 

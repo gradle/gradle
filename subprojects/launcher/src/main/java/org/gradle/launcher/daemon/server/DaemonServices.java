@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.server;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.agents.AgentControl;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -83,10 +83,10 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingManager = loggingManager;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
-        addProvider(new GlobalScopeServices(!configuration.isSingleUse(), additionalModuleClassPath));
+        addProvider(new GlobalScopeServices(!configuration.isSingleUse(), AgentStatus.of(configuration.isInstrumentationAgentAllowed()), additionalModuleClassPath));
     }
 
-    protected DaemonContext createDaemonContext() {
+    protected DaemonContext createDaemonContext(AgentStatus agentStatus) {
         DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
         builder.setDaemonRegistryDir(configuration.getBaseDir());
         builder.setIdleTimeout(configuration.getIdleTimeout());
@@ -96,7 +96,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
 
         builder.setDaemonOpts(configuration.getJvmOptions());
-        builder.setApplyInstrumentationAgent(AgentControl.isInstrumentationAgentApplied());
+        builder.setApplyInstrumentationAgent(agentStatus.isAgentInstrumentationEnabled());
 
         return builder.create();
     }

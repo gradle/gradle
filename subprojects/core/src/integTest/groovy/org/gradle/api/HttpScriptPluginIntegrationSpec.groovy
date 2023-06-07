@@ -19,7 +19,6 @@ import org.gradle.api.resources.TextResourceFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -89,12 +88,10 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 """
 
         then:
-        ExecutionFailure failure = fails(":help")
-        failure.assertHasCause("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. " +
-            "The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP). " +
-            "Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")' to fix this. " +
-            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
-        )
+        fails(":help")
+            .assertHasCause("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. The provided URI '${server.uri("/external.gradle")}' uses an insecure protocol (HTTP).")
+            .assertHasResolution("Use '${GUtil.toSecureUrl(server.uri("/external.gradle"))}' instead or try 'apply from: resources.text.fromInsecureUri(\"${server.uri("/external.gradle")}\")'.")
+            .assertHasResolution(Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage())
     }
 
     def "does not complain when applying script plugin via http using text resource"() {

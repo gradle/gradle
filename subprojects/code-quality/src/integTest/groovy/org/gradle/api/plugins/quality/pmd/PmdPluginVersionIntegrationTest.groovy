@@ -20,6 +20,7 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
@@ -36,8 +37,12 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
             ${mavenCentralRepository()}
 
+            testing.suites.test.useJUnit()
+
             pmd {
                 toolVersion = '$version'
+                // Set target JDK for PMD <5.x tests, so the test code is accepted
+                targetJdk = TargetJdk.VERSION_1_7
                 ${supportIncrementalAnalysis() ? "" : "incrementalAnalysis = false"}
             }
 
@@ -67,6 +72,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        failure.assertHasResolutions(SCAN)
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
@@ -349,7 +355,21 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("src/main/java/org/gradle/Class1.java") <<
             "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
         file("src/test/java/org/gradle/Class1Test.java") <<
-            "package org.gradle; class Class1Test { public boolean isFoo(Object arg) { return true; } }"
+            """
+            package org.gradle;
+
+            import static org.junit.Assert.assertTrue;
+
+            import org.junit.Test;
+
+            public class Class1Test {
+                @Test
+                public void testFoo() {
+                    Class1 c = new Class1();
+                    assertTrue(c.isFoo("foo"));
+                }
+            }
+            """
     }
 
     private badCode() {
@@ -359,7 +379,23 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         // PMD Lvl 2 Warning AvoidMultipleUnaryOperators
         // PMD Lvl 3 Warning OverrideBothEqualsAndHashcode
         file("src/test/java/org/gradle/Class1Test.java") <<
-            "package org.gradle; class Class1Test { public boolean equals(Object arg) { return !!true; } }"
+            """
+            package org.gradle;
+
+            import static org.junit.Assert.assertTrue;
+
+            import org.junit.Test;
+
+            public class Class1Test {
+                @Test
+                public void testFoo() {
+                    Class1 c = new Class1();
+                    assertTrue(c.isFoo("foo"));
+                }
+
+                public boolean equals(Object arg) { return !!true; }
+            }
+            """
     }
 
     private customCode() {

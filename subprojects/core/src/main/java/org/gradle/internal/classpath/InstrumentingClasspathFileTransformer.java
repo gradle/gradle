@@ -37,8 +37,13 @@ import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -46,6 +51,10 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
     private static final int CACHE_FORMAT = 5;
+    private static final int AGENT_INSTRUMENTATION_VERSION = 2;
+
+    // We cannot use Attributes.Name.MULTI_RELEASE as it is only available since Java 9;
+    private static final String MULTI_RELEASE_ATTRIBUTE = "Multi-Release";
 
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
@@ -54,11 +63,43 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private final CachedClasspathTransformer.Transform transform;
     private final HashCode configHash;
 
+    /**
+     * Instrumentation policy. There are some differences when instrumenting classes to be loaded by the instrumenting agent, this interface encapsulates them.
+     */
     public interface Policy {
+        /**
+         * Modifies JAR content hash according to the algorithm implemented by this policy.
+         *
+         * @param hasher the hasher to modify
+         */
         void applyConfigurationTo(Hasher hasher);
 
+        /**
+         * Checks if the file/directory should be instrumented. For example, legacy instrumentation doesn't support signed JARs.
+         *
+         * @param file the file/directory to check
+         * @return {@code true} if the file/directory should be instrumented.
+         */
         boolean instrumentFile(File file);
 
+        /**
+         * Processes manifest of the instrumented JAR file. The implementation may return the manifest unprocessed.
+         * If the return value is {@code null}, then the manifest should not be added to the resulting instrumented JAR at all.
+         *
+         * @param source the file/directory that contributes the manifest
+         * @param entry the entry of the manifest
+         * @return the contents of the manifest to put, or {@code null} if the resulting JAR should have no manifest at all
+         * @throws IOException if reading and parsing the manifest fail
+         */
+        @Nullable
+        byte[] processManifest(File source, ClasspathEntryVisitor.Entry entry) throws IOException;
+
+        /**
+         * Checks if the entry should be included into the resulting instrumented JAR
+         *
+         * @param entry the entry to check
+         * @return {@code true} if the entry should be included.
+         */
         boolean includeEntry(ClasspathEntryVisitor.Entry entry);
     }
 
@@ -162,13 +203,18 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 if (!policy.includeEntry(entry)) {
                     return;
                 }
-                if (entry.getName().endsWith(".class")) {
+                if (isClassFile(entry)) {
                     ClassReader reader = new ClassReader(entry.getContent());
                     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
+                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter, new ClassData(reader));
                     reader.accept(chain.right, 0);
                     byte[] bytes = classWriter.toByteArray();
                     builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
+                } else if (isManifest(entry)) {
+                    byte[] processedManifest = policy.processManifest(source, entry);
+                    if (processedManifest != null) {
+                        builder.put(entry.getName(), processedManifest, entry.getCompressionMethod());
+                    }
                 } else {
                     builder.put(entry.getName(), entry.getContent(), entry.getCompressionMethod());
                 }
@@ -210,6 +256,12 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             }
 
             @Override
+            public byte[] processManifest(File source, ClasspathEntryVisitor.Entry entry) throws IOException {
+                // No need to modify manifest, let's put the original as is.
+                return entry.getContent();
+            }
+
+            @Override
             public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
                 // include everything
                 return true;
@@ -221,7 +273,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         return new Policy() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
-                hasher.putInt(1);
+                hasher.putInt(AGENT_INSTRUMENTATION_VERSION);
             }
 
             @Override
@@ -230,10 +282,63 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             }
 
             @Override
+            public byte[] processManifest(File source, ClasspathEntryVisitor.Entry entry) throws IOException {
+                try {
+                    Manifest parsedManifest = new Manifest(new ByteArrayInputStream(entry.getContent()));
+                    if (isMultiReleaseJarManifest(parsedManifest)) {
+                        // We want processed JAR to also be a proper multi-release JAR.
+                        // To do so it must have the "Multi-Release: true" attribute.
+                        // "Manifest-Version" attribute is also required.
+                        // For everything else (classpath, sealed, etc.) classloader will check the original JAR, so no need to copy it.
+                        Manifest processedManifest = new Manifest();
+                        copyManifestMainAttribute(parsedManifest, processedManifest, Attributes.Name.MANIFEST_VERSION);
+                        setManifestMainAttribute(processedManifest, MULTI_RELEASE_ATTRIBUTE, "true");
+                        return toByteArray(processedManifest);
+                    }
+
+                    return null;
+                } catch (IOException e) {
+                    LOGGER.debug("Failed to parse Manifest from JAR " + source);
+                    throw e;
+                }
+            }
+
+            @Nullable
+            private String getManifestMainAttribute(Manifest manifest, String name) {
+                return manifest.getMainAttributes().getValue(name);
+            }
+
+            private void copyManifestMainAttribute(Manifest source, Manifest destination, Attributes.Name name) {
+                destination.getMainAttributes().put(name, source.getMainAttributes().getValue(name));
+            }
+
+            private void setManifestMainAttribute(Manifest manifest, String name, String value) {
+                manifest.getMainAttributes().putValue(name, value);
+            }
+
+            private boolean isMultiReleaseJarManifest(Manifest manifest) {
+                return Boolean.parseBoolean(getManifestMainAttribute(manifest, MULTI_RELEASE_ATTRIBUTE));
+            }
+
+            private byte[] toByteArray(Manifest manifest) throws IOException {
+                ByteArrayOutputStream manifestOutput = new ByteArrayOutputStream(512);
+                manifest.write(manifestOutput);
+                return manifestOutput.toByteArray();
+            }
+
+            @Override
             public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
                 // Only include classes in the result, resources will be loaded from the original JAR by the class loader.
-                return entry.getName().endsWith(".class");
+                return isClassFile(entry) || isManifest(entry);
             }
         };
+    }
+
+    private static boolean isClassFile(ClasspathEntryVisitor.Entry entry) {
+        return entry.getName().endsWith(".class");
+    }
+
+    private static boolean isManifest(ClasspathEntryVisitor.Entry entry) {
+        return entry.getName().equals("META-INF/MANIFEST.MF");
     }
 }

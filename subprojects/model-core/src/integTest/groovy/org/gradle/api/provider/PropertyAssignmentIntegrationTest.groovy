@@ -66,7 +66,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin eager object types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "var input: $inputType? = null"
         kotlinBuildFile(inputDeclaration, inputValue, "=")
 
@@ -87,7 +86,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy object types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, "=")
 
@@ -169,7 +167,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin eager collection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def initValue = inputType.contains("Map<") ? "mutableMapOf<String, MyObject>()" : "mutableListOf<MyObject>()"
         def inputDeclaration = "var input: $inputType = $initValue"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
@@ -196,7 +193,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy collection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 
@@ -251,22 +247,21 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         description                        | operation | inputType                    | inputValue              | expectedResult
-        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt")'        | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'               | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection = Iterable<File>"  | "="       | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection += FileCollection" | "+="      | "ConfigurableFileCollection" | 'files("a.txt")'        | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
+        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt")'        | '[a.txt]'
+        "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'               | unsupportedWithCause("Failed to cast object")
+        "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | unsupportedWithCause("Failed to cast object")
+        "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Failed to cast object")
+        "FileCollection = Iterable<File>"  | "="       | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
+        "FileCollection += FileCollection" | "+="      | "ConfigurableFileCollection" | 'files("a.txt")'        | unsupportedWithCause("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.")
         "FileCollection << FileCollection" | "<<"      | "ConfigurableFileCollection" | 'files("a.txt")'        | unsupportedWithCause("No signature of method")
-        "FileCollection += String"         | "+="      | "ConfigurableFileCollection" | '"a.txt"'               | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection += Object"         | "+="      | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | '["a.txt"]'             | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
-        "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Cannot set the value of read-only property 'input' for task ':myTask' of type MyTask.")
+        "FileCollection += String"         | "+="      | "ConfigurableFileCollection" | '"a.txt"'               | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Object"         | "+="      | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | unsupportedWithCause("Failed to cast object")
+        "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | '["a.txt"]'             | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
     }
 
     def "test Kotlin eager FileCollection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "var input: $inputType = project.files()"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 
@@ -289,7 +284,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy FileCollection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 
@@ -298,7 +292,7 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         description                        | operation | inputType                    | inputValue                         | expectedResult
-        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | '[a.txt]'
         "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Val cannot be reassigned")
         "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Val cannot be reassigned")
         "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")

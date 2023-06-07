@@ -16,14 +16,12 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
@@ -32,14 +30,20 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.JvmConstants;
+import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
+import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.NaggingJavaPluginConvention;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
@@ -58,6 +62,7 @@ import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -86,7 +91,11 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
-    public static final String DOCUMENTATION_GROUP = "documentation";
+
+    /**
+     * Task group name for documentation-related tasks.
+     */
+    public static final String DOCUMENTATION_GROUP = JvmConstants.DOCUMENTATION_GROUP;
 
     /**
      * Set this property to use JARs build from subprojects, instead of the classes folder from these project, on the compile classpath.
@@ -103,11 +112,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
      *
      * @since 5.3
      */
-    public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = ImmutableSet.of(
-        ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
-        ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
-        ArtifactTypeDefinition.DIRECTORY_TYPE
-    );
+    public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = JavaConfigurationVariantMapping.UNPUBLISHABLE_VARIANT_ARTIFACTS;
 
     private final boolean javaClasspathPackaging;
     private final ObjectFactory objectFactory;
@@ -142,8 +147,9 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private DefaultJavaPluginExtension addExtensions(final Project project) {
         DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
+        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec);
+        DeprecationLogger.whileDisabled(() ->
+            project.getConvention().getPlugins().put("java", new NaggingJavaPluginConvention(objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension))));
         return javaPluginExtension;
     }
 
@@ -165,8 +171,21 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureLibraryElements(TaskProvider<JavaCompile> compileTaskProvider, SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
-        Action<ConfigurationInternal> configureLibraryElements = JvmPluginsHelper.configureLibraryElementsAttributeForCompileClasspath(javaClasspathPackaging, sourceSet, compileTaskProvider, objectFactory);
-        ((ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName())).beforeLocking(configureLibraryElements);
+        ConfigurationInternal compileClasspath = (ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        // TODO:configuration-cache this is a callback that affects configuration attributes #23732
+        compileClasspath.beforeLocking(conf -> {
+            AttributeContainerInternal attributes = conf.getAttributes();
+            if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
+                String libraryElements;
+                // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
+                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
+                    libraryElements = LibraryElements.JAR;
+                } else {
+                    libraryElements = LibraryElements.CLASSES;
+                }
+                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryElements));
+            }
+        });
     }
 
     private void configureTargetPlatform(TaskProvider<JavaCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
@@ -241,37 +260,37 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String sourceSetName = sourceSet.toString();
 
         warnIfConfigurationAlreadyExists(configurations, implementationConfigurationName);
-        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.BUCKET, false, false);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
         warnIfConfigurationAlreadyExists(configurations, compileOnlyConfigurationName);
-        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.BUCKET, false, false);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
         warnIfConfigurationAlreadyExists(configurations, compileClasspathConfigurationName);
-        ConfigurationInternal compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE, false, false);
+        Configuration compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
         warnIfConfigurationAlreadyExists(configurations, annotationProcessorConfigurationName);
-        ConfigurationInternal annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET, false, false);
+        Configuration annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_BUCKET, false, false);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
         warnIfConfigurationAlreadyExists(configurations, runtimeOnlyConfigurationName);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.BUCKET, false, false);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
         // TODO: The jmh plugin prevents asserting this role upon creation; if it has been applied, then it will pre-create a runtime classpath configuration
-        // for the jmg sourceset, which is both resolvable and declarable against, so this would fail if we assert the role's usage here.
+        // for the jmg sourceset, which is both resolvable and declarable, so this would fail if we assert the role's usage here.
         warnIfConfigurationAlreadyExists(configurations, runtimeClasspathConfigurationName);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE, false, false);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, false, false);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);

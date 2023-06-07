@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,20 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue {
+public interface ConfigurationInternal extends ResolveContext, DeprecatableConfiguration, FinalizableValue, Configuration {
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
@@ -45,18 +42,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     }
 
     @Override
-    ResolutionStrategyInternal getResolutionStrategy();
-
-    @Override
     AttributeContainerInternal getAttributes();
-
-    String getPath();
-
-    Path getIdentityPath();
-
-    void setReturnAllVariants(boolean returnAllVariants);
-
-    boolean getReturnAllVariants();
 
     /**
      * Runs any registered dependency actions for this Configuration, and any parent Configuration.
@@ -70,11 +56,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     void addMutationValidator(MutationValidator validator);
 
     void removeMutationValidator(MutationValidator validator);
-
-    /**
-     * Converts this configuration to an {@link OutgoingVariant} view. The view may not necessarily be immutable.
-     */
-    OutgoingVariant convertToOutgoingVariant();
 
     /**
      * Visits the variants of this configuration.
@@ -99,29 +80,17 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     List<? extends GradleException> preventFromFurtherMutationLenient();
 
     /**
-     * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.
-     * @return
-     */
-    boolean isIncubating();
-
-    /**
      * Gets the complete set of exclude rules including those contributed by
      * superconfigurations.
      */
     Set<ExcludeRule> getAllExcludeRules();
 
-    ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver();
-
+    /**
+     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
-
-    /**
-     * Decorates a resolve exception with more context. This can be used
-     * to give hints to the user when a resolution error happens.
-     * @param e a resolve exception
-     * @return a decorated resolve exception, or the same exception
-     */
-    ResolveException maybeAddContext(ResolveException e);
 
     /**
      * Test if this configuration can either be declared against or extends another
@@ -129,29 +98,9 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      *
      * @return {@code true} if so; {@code false} otherwise
      */
-    default boolean isDeclarableAgainstByExtension() {
-        return isDeclarableAgainstByExtension(this);
+    default boolean isDeclarableByExtension() {
+        return isDeclarableByExtension(this);
     }
-
-    /**
-     * Configures if a configuration can have dependencies declared upon it.
-     *
-     */
-    void setCanBeDeclaredAgainst(boolean allowed);
-
-    /**
-     * Returns true if it is allowed to declare dependencies upon this configuration.
-     * Defaults to true.
-     * @return true if this configuration can have dependencies declared
-     */
-    boolean isCanBeDeclaredAgainst();
-
-    /**
-     * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
-     * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
-     * to throw an exception.
-     */
-    void preventUsageMutation();
 
     /**
      * Returns the role used to create this configuration and set its initial allowed usage.
@@ -166,13 +115,13 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * @param configuration the configuration to test
      * @return {@code true} if so; {@code false} otherwise
      */
-    static boolean isDeclarableAgainstByExtension(ConfigurationInternal configuration) {
-        if (configuration.isCanBeDeclaredAgainst()) {
+    static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
+        if (configuration.isCanBeDeclared()) {
             return true;
         } else {
             return configuration.getExtendsFrom().stream()
                     .map(ConfigurationInternal.class::cast)
-                    .anyMatch(ci -> ci.isDeclarableAgainstByExtension());
+                    .anyMatch(ci -> ci.isDeclarableByExtension());
         }
     }
 

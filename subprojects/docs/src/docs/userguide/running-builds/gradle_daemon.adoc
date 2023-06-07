@@ -74,7 +74,7 @@ $ gradle <task> --daemon
 This flag overrides any settings that disable the Daemon in your project or user `gradle.properties` files.
 
 To enable the Daemon by default in older Gradle versions, add the following setting to the
-`gradle.properties` file in the project root or your Gradle user home:
+`gradle.properties` file in the project root or your Gradle User Home:
 
 ====
 .gradle.properties
@@ -165,7 +165,7 @@ There's no need to enable it for your environment.
 
 We recommend using the Daemon for both developer machines and Continuous Integration servers.
 
-[[compatibility]]
+[[deamon_compatibility]]
 == Compatibility
 
 Gradle starts a new Daemon if no idle or compatible Daemons exist.
@@ -278,7 +278,7 @@ org.gradle.daemon.performance.enable-monitoring=false
 === Why is there more than one Daemon process on my machine?
 
 Gradle starts a new Daemon process for your build if no idle Daemon exists with a compatible configuration.
-For more information about compability, see <<gradle_daemon.adoc#compatibility,Compatibility>>.
+For more information about compability, see <<gradle_daemon.adoc#deamon_compatibility,Compatibility>>.
 
 [[sec:how_much_memory_does_the_daemon_use_and_can_i_give_it_more]]
 === How much memory does the Daemon use and can I give it more?

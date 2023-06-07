@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
@@ -129,7 +129,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled unrelated work across multiple builds"() {
         def services = new TreeServices(workers)
-        def childBuild = build(services, new DefaultBuildIdentifier("child"))
+        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
         def build = build(services, DefaultBuildIdentifier.ROOT)
         def childNode = new TestNode("child build node")
         def node = new TestNode("main build node")
@@ -157,7 +157,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled related work across multiple builds"() {
         def services = new TreeServices(workers)
-        def childBuild = build(services, new DefaultBuildIdentifier("child"))
+        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
         def build = build(services, DefaultBuildIdentifier.ROOT)
         def childNode = new TestNode("child build node")
         def node = new DelegateNode("main build node", [childNode])
@@ -211,7 +211,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "fails when no further nodes can be selected across multiple builds"() {
         def services = new TreeServices(manyWorkers)
-        def childBuild = build(services, new DefaultBuildIdentifier("child"))
+        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
         def build = build(services, DefaultBuildIdentifier.ROOT)
         def node = new DependenciesStuckNode("main build node")
         def childNode = new DependenciesStuckNode("child build node")
@@ -240,7 +240,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         stdout.stdOut.contains("- main build node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :task (state=SHOULD_RUN")
         stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task (SHOULD_RUN)]")
-        stdout.stdOut.contains("- Build 'child':")
+        stdout.stdOut.contains("- Build ':child':")
         stdout.stdOut.contains("- child build node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :child:task (state=SHOULD_RUN")
         stdout.stdOut.contains("- group 0 entry nodes: [:child:task (SHOULD_RUN)]")
@@ -277,8 +277,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         _ * dependencies.getDependencies(_) >> [dependsOn].toSet()
         _ * task.taskDependencies >> dependencies
         _ * task.project >> project
-        _ * task.identityPath >> Path.path(":${services.identifier.name}:task")
-        _ * task.taskIdentity >> TaskIdentity.create("task", DefaultTask, project)
+        _ * task.identityPath >> Path.path(services.identifier.buildPath).child("task")
+        _ * task.taskIdentity >> TestTaskIdentities.create("task", DefaultTask, project)
         _ * task.destroyables >> Stub(TaskDestroyablesInternal)
         _ * task.localState >> Stub(TaskLocalStateInternal)
         _ * project.gradle >> services.gradle
@@ -340,7 +340,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        void resetLifecycle() {
+        void resetModel() {
         }
 
         @Override
@@ -408,6 +408,16 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
+        ExecutionResult<Void> beforeModelDiscarded(boolean failed) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ExecutionResult<Void> beforeModelReset() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
         ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
             throw new UnsupportedOperationException()
         }
@@ -442,6 +452,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         TreeServices(int workers) {
             def configuration = new DefaultParallelismConfiguration(true, workers)
             workerLeaseService = new DefaultWorkerLeaseService(coordinationService, configuration)
+            workerLeaseService.startProjectExecution(true)
             execFactory = new DefaultExecutorFactory()
             planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService, new DefaultInternalOptions([:]))
             buildTaskGraph = new DefaultIncludedBuildTaskGraph(

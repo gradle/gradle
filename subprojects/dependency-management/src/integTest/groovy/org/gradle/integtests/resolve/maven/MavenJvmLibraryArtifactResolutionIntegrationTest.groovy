@@ -249,7 +249,6 @@ Searched in the following locations:
         checkArtifactsResolvedAndCached()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Exception cause goes missing")
     def "reports on failure to list artifacts and recovers on subsequent resolve"() {
         fixture.requestingSource()
                 .expectComponentResolutionFailure()

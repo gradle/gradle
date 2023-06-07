@@ -44,7 +44,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -97,7 +96,7 @@ abstract class ProjectDelegate : Project {
         delegate.defaultTasks
 
     @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-    override fun getConvention(): Convention =
+    override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention =
         @Suppress("deprecation")
         delegate.convention
 
@@ -163,6 +162,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getPath(): String =
         delegate.path
+
+    override fun getBuildTreePath(): String =
+        delegate.buildTreePath
 
     override fun zipTree(zipPath: Any): FileTree =
         delegate.zipTree(zipPath)
@@ -238,6 +240,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getComponents(): SoftwareComponentContainer =
         delegate.components
+
+    override fun components(configuration: Action<in SoftwareComponentContainer>) =
+        delegate.components(configuration)
 
     override fun setBuildDir(path: File) {
         delegate.buildDir = path

@@ -118,6 +118,11 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
      */
+    GradleExecuter withJavaHome(String userHomeDir);
+
+    /**
+     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
+     */
     GradleExecuter withJavaHome(File userHomeDir);
 
     /**
@@ -197,6 +202,13 @@ public interface GradleExecuter extends Stoppable {
      * @return this executer
      */
     GradleExecuter withBuildCacheEnabled();
+
+    /**
+     * Activates the "Next Gen" build cache
+     *
+     * @return this executer
+     */
+    GradleExecuter withBuildCacheNgEnabled();
 
     /**
      * Don't set native services dir explicitly.
@@ -340,12 +352,20 @@ public interface GradleExecuter extends Stoppable {
      * also switch to the more specific {@link #expectDocumentedDeprecationWarning(String)} if the warning includes a documentation
      * link and you don't want to (ironically) see code testing deprecation appearing as if it itself were deprecated.
      */
-    GradleExecuter expectDeprecationWarning(String warning);
+    default GradleExecuter expectDeprecationWarning(String warning) {
+        return expectDeprecationWarning(new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
      */
-    GradleExecuter expectDocumentedDeprecationWarning(String warning);
+    default GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDocumentedDeprecationWarning(new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during

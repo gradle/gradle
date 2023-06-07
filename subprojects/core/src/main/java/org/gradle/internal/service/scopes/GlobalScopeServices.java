@@ -56,6 +56,8 @@ import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.agents.AgentInitializer;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -115,13 +117,15 @@ import java.util.List;
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     private final GradleBuildEnvironment environment;
+    private final AgentStatus agentStatus;
 
-    public GlobalScopeServices(final boolean longLiving) {
-        this(longLiving, ClassPath.EMPTY);
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus) {
+        this(longLiving, agentStatus, ClassPath.EMPTY);
     }
 
-    public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath) {
         super(additionalModuleClassPath);
+        this.agentStatus = agentStatus;
         this.environment = () -> longLiving;
     }
 
@@ -300,5 +304,13 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     DefaultWorkValidationWarningRecorder createValidationWarningReporter() {
         return new DefaultWorkValidationWarningRecorder();
+    }
+
+    AgentStatus createAgentStatus() {
+        return agentStatus;
+    }
+
+    AgentInitializer createAgentInitializer() {
+        return new AgentInitializer(agentStatus);
     }
 }

@@ -17,17 +17,24 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
 
 
 public class DefaultFileSystemOperations implements FileSystemOperations {
 
+    private final ObjectFactory objectFactory;
+
     private final FileOperations fileOperations;
 
-    public DefaultFileSystemOperations(FileOperations fileOperations) {
+    public DefaultFileSystemOperations(ObjectFactory objectFactory, FileOperations fileOperations) {
+        this.objectFactory = objectFactory;
         this.fileOperations = fileOperations;
     }
 
@@ -44,5 +51,36 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
         return fileOperations.delete(action);
+    }
+
+    @Override
+    public ConfigurableFilePermissions filePermissions(Action<? super ConfigurableFilePermissions> configureAction) {
+        return permissions(false, configureAction);
+    }
+
+    @Override
+    public ConfigurableFilePermissions directoryPermissions(Action<? super ConfigurableFilePermissions> configureAction) {
+        return permissions(true, configureAction);
+    }
+
+    @Override
+    public ConfigurableFilePermissions permissions(String unixNumericOrSymbolic) {
+        return permissions(false, filePermissions -> filePermissions.unix(unixNumericOrSymbolic));
+    }
+
+    @Override
+    public ConfigurableFilePermissions permissions(int unixNumeric) {
+        return permissions(false, filePermissions -> filePermissions.unix(unixNumeric));
+    }
+
+    @Override
+    public Provider<ConfigurableFilePermissions> permissions(Provider<String> permissions) {
+        return permissions.map(SerializableLambdas.transformer(this::permissions));
+    }
+
+    private ConfigurableFilePermissions permissions(boolean directory, Action<? super ConfigurableFilePermissions> configureAction) {
+        ConfigurableFilePermissions permissions = objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(directory));
+        configureAction.execute(permissions);
+        return permissions;
     }
 }

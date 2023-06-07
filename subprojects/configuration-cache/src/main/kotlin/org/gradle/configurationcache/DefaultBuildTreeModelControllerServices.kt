@@ -19,9 +19,12 @@ package org.gradle.configurationcache
 import org.gradle.api.GradleException
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.logging.LogLevel
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
+import org.gradle.configurationcache.initialization.InstrumentedExecutionAccessListenerRegistry
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.DefaultProblemFactory
@@ -31,6 +34,7 @@ import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationE
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.VintageEnvironmentChangeTracker
 import org.gradle.execution.selection.BuildTaskSelector
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
@@ -40,6 +44,7 @@ import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
+import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.util.internal.IncubationLogger
 
@@ -65,22 +70,32 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val isolatedProjects = startParameter.isolatedProjects.get()
-        val parallelToolingActions = (isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled) && options.getOption(parallelBuilding).get()
+        val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
+        val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
+        val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
-            BuildModelParameters(isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions, invalidateCoupledProjects)
+            BuildModelParameters(parallelProjectExecution, isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
         } else {
-            val configurationCache = startParameter.configurationCache.get() || isolatedProjects
-            val configureOnDemand = startParameter.isConfigureOnDemand || isolatedProjects
-            BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects)
+            val configurationCache = isolatedProjects || startParameter.configurationCache.get()
+            val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
+
+            fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
+                logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
+                return BuildModelParameters(parallelProjectExecution, configureOnDemand, false, false, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+            }
+
+            when {
+                configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
+                configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
+                else -> BuildModelParameters(parallelProjectExecution, configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+            }
         }
 
         if (!startParameter.isConfigurationCacheQuiet) {
             if (modelParameters.isIsolatedProjects) {
                 IncubationLogger.incubatingFeatureUsed("Isolated projects")
-            } else if (modelParameters.isConfigurationCache) {
-                IncubationLogger.incubatingFeatureUsed("Configuration cache")
             }
         }
         if (!modelParameters.isIsolatedProjects && modelParameters.isConfigureOnDemand) {
@@ -98,7 +113,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
-            val buildModelParameters = BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true, false, false, false)
+            val buildModelParameters = BuildModelParameters(startParameter.isParallelProjectExecutionEnabled, startParameter.isConfigureOnDemand, false, false, true, false, false, false, LogLevel.LIFECYCLE)
             val requirements = RunTasksRequirements(startParameter)
             registerServices(registration, buildModelParameters, requirements)
         }
@@ -121,11 +136,14 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(BeanStateWriterLookup::class.java)
             registration.add(BeanStateReaderLookup::class.java)
             registration.add(JavaSerializationEncodingLookup::class.java)
+            registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
+            registration.add(ConfigurationCacheFingerprintController::class.java)
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
             registration.add(VintageEnvironmentChangeTracker::class.java)
+            registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
         }
     }

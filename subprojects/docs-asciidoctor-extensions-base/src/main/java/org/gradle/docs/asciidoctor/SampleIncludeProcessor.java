@@ -30,8 +30,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SampleIncludeProcessor extends IncludeProcessor {
+
     private static final String SAMPLE = "sample";
     private static final Map<String, String> FILE_SUFFIX_TO_SYNTAX = initializeSyntaxMap();
+
+    private static final String DOUBLE_WILDCARD_TAG = "**";
+
+    private static final Pattern HTML_XML_SAMPLE_TAG = Pattern.compile("\\s*<!--\\s*(tag|end)::(\\S+)\\[]\\s*-->");
+    private static final Pattern GENERAL_SAMPLE_TAG = Pattern.compile(".*(tag|end)::(\\S+)\\[]\\s*");
 
     // Map file suffixes to syntax highlighting where they differ
     private static Map<String, String> initializeSyntaxMap() {
@@ -43,18 +49,6 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         map.put("sh", "bash");
         map.put("rb", "ruby");
         return Collections.unmodifiableMap(map);
-    }
-
-    // Even though these are unused, these constructors are necessary to prevent
-    // "(ArgumentError) asciidoctor: FAILED: Failed to load AsciiDoc document - wrong number of arguments (1 for 0)"
-    // See https://github.com/asciidoctor/asciidoctorj/issues/451#issuecomment-210914940
-    // This is fixed in asciidoctorj 1.6.0
-    public SampleIncludeProcessor() {
-        super(new HashMap<>());
-    }
-
-    public SampleIncludeProcessor(Map<String, Object> config) {
-        super(config);
     }
 
     @Override
@@ -76,7 +70,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         reader.push_include(sampleContent, target, target, 1, attributes);
     }
 
-    private String getSourceSyntax(String fileName) {
+    private static String getSourceSyntax(String fileName) {
         String syntax = "txt";
         int i = fileName.lastIndexOf('.');
         if (i > 0) {
@@ -86,7 +80,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         return syntax;
     }
 
-    private String getSampleContent(String sampleBaseDir, String sampleDir, List<String> files) {
+    private static String getSampleContent(String sampleBaseDir, String sampleDir, List<String> files) {
         final StringBuilder builder = new StringBuilder(String.format("%n[.testable-sample.multi-language-sample,dir=\"%s\"]%n=====%n", sampleDir));
         for (String fileDeclaration : files) {
             final String sourceRelativeLocation = parseSourceFilePath(fileDeclaration);
@@ -94,9 +88,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
             final String sourceSyntax = getSourceSyntax(sourceRelativeLocation);
             String sourcePath = String.format("%s/%s/%s", sampleBaseDir, sampleDir, sourceRelativeLocation);
             String source = getContent(sourcePath);
-            if (!tags.isEmpty()) {
-                source = filterByTag(source, sourceSyntax, tags);
-            }
+            source = filterByTags(source, sourceSyntax, tags);
             source = trimIndent(source);
             builder.append(String.format(".%s%n[source,%s]%n----%n%s%n----%n", sourceRelativeLocation, sourceSyntax, source));
         }
@@ -105,7 +97,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         return builder.toString();
     }
 
-    private String getContent(String filePath) {
+    private static String getContent(String filePath) {
         try {
             return new String(Files.readAllBytes(Paths.get(filePath)));
         } catch (IOException e) {
@@ -113,11 +105,11 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         }
     }
 
-    protected String parseSourceFilePath(String fileDeclaration) {
+    private static String parseSourceFilePath(String fileDeclaration) {
         return fileDeclaration.replaceAll("\\[[^]]*]", "");
     }
 
-    protected List<String> parseTags(String fileDeclaration) {
+    private static List<String> parseTags(String fileDeclaration) {
         final List<String> tags = new ArrayList<>();
         Pattern pattern = Pattern.compile(".*\\[tags?=(.*)].*");
         Matcher matcher = pattern.matcher(fileDeclaration);
@@ -128,38 +120,32 @@ public class SampleIncludeProcessor extends IncludeProcessor {
     }
 
     /**
-     * Double-wildcard - just drop all the tag:: and end:: lines
+     * When tags are empty or contain a single wildcard tag, the whole sample is returned (with all tag lines removed).
      *
-     * https://docs.asciidoctor.org/asciidoc/latest/directives/include-tagged-regions/#tag-filtering
+     * @see "https://docs.asciidoctor.org/asciidoc/latest/directives/include-tagged-regions/#tag-filtering"
      */
-    private String filterByTag(String source, String syntax, List<String> tags) {
-        String htmlXmlRegex = "\\s*<!--\\s*(tag|end)::(\\S+)\\[]\\s*-->";
-        String allOthersRegex = ".*(tag|end)::(\\S+)\\[]\\s*";
-        String regex;
-
-        if (syntax.equals("html") || syntax.equals("xml")) {
-            regex = htmlXmlRegex;
-        } else {
-            regex = allOthersRegex;
-        }
+    private static String filterByTags(String source, String syntax, List<String> tags) {
+        Pattern sampleTagRegex = syntax.equals("html") || syntax.equals("xml") ? HTML_XML_SAMPLE_TAG : GENERAL_SAMPLE_TAG;
 
         StringBuilder result = new StringBuilder(source.length());
 
-        boolean isDoubleWildcard = tags.size() == 1 && "**".equals(tags.get(0));
+        boolean fullSample = tags.isEmpty() || tags.size() == 1 && DOUBLE_WILDCARD_TAG.equals(tags.get(0));
 
-        if (isDoubleWildcard) {
+        if (fullSample) {
             // filter out lines matching the tagging regex
-            result.append(Pattern.compile("\\R").splitAsStream(source).filter(line -> !line.matches(regex)).collect(Collectors.joining("\n")));
+            String sampleWithoutTags = Pattern.compile("\\R").splitAsStream(source)
+                .filter(line -> !sampleTagRegex.matcher(line).matches())
+                .collect(Collectors.joining("\n"));
+            result.append(sampleWithoutTags);
         } else {
             String activeTag = null;
-            Pattern tagPattern = Pattern.compile(regex);
             try (BufferedReader reader = new BufferedReader(new StringReader(source))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (activeTag != null) {
                         if (line.contains("end::" + activeTag + "[]")) {
                             activeTag = null;
-                        } else if (!tagPattern.matcher(line).matches()) {
+                        } else if (!sampleTagRegex.matcher(line).matches()) {
                             result.append(line).append("\n");
                         }
                     } else {
@@ -174,7 +160,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         return result.toString();
     }
 
-    private String determineActiveTag(String line, List<String> tags) {
+    private static String determineActiveTag(String line, List<String> tags) {
         for (String tag : tags) {
             if (line.contains("tag::" + tag + "[]")) {
                 return tag;

@@ -6,7 +6,6 @@ plugins {
 
 configurations {
     testReportData {
-        canBeResolved = true
         canBeConsumed = false
         attributes {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))

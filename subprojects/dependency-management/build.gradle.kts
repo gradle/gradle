@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.ant)
     implementation(libs.ivy)
     implementation(libs.maven3SettingsBuilder)
+    implementation(libs.fastutil)
 
     testImplementation(project(":process-services"))
     testImplementation(project(":diagnostics"))
@@ -130,9 +131,4 @@ tasks.clean {
             include("**/read-only-cache/**")
         }.visit { this.file.setWritable(true) }
     }
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

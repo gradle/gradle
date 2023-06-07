@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -24,25 +25,25 @@ import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDat
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
 class ComponentMetaDataResolveState {
-    private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult;
+    private final DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> resolveResult;
     private final VersionedComponentChooser versionedComponentChooser;
     private final ComponentOverrideMetadata componentOverrideMetadata;
     private final ModuleComponentIdentifier componentIdentifier;
 
-    final ModuleComponentRepository repository;
+    final ModuleComponentRepository<ModuleComponentGraphResolveState> repository;
 
     private boolean searchedLocally;
     private boolean searchedRemotely;
 
-    public ComponentMetaDataResolveState(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata, ModuleComponentRepository repository, VersionedComponentChooser versionedComponentChooser) {
+    public ComponentMetaDataResolveState(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata, ModuleComponentRepository<ModuleComponentGraphResolveState> repository, VersionedComponentChooser versionedComponentChooser) {
         this.componentOverrideMetadata = componentOverrideMetadata;
         this.componentIdentifier = componentIdentifier;
         this.repository = repository;
         this.versionedComponentChooser = versionedComponentChooser;
-        this.resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
+        this.resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
     }
 
-    BuildableModuleComponentMetaDataResolveResult resolve() {
+    BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> resolve() {
         if (!searchedLocally) {
             searchedLocally = true;
             process(repository.getLocalAccess());
@@ -65,7 +66,7 @@ class ComponentMetaDataResolveState {
         throw new IllegalStateException();
     }
 
-    protected void process(ModuleComponentRepositoryAccess moduleAccess) {
+    protected void process(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> moduleAccess) {
         moduleAccess.resolveComponentMetaData(componentIdentifier, componentOverrideMetadata, resolveResult);
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             RejectedByRuleVersion rejectedComponent = versionedComponentChooser.isRejectedComponent(componentIdentifier, new CachedMetadataProvider(resolveResult));

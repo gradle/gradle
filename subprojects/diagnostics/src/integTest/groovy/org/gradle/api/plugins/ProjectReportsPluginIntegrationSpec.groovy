@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
-            apply plugin: 'project-report'
+        plugins {
+            id 'project-report'
+        }
         """
     }
 
@@ -39,7 +41,12 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
     def "produces report files in custom directory"() {
         given:
         buildFile << """
-            projectReportDirName = "custom"
+            tasks.withType(ConventionReportTask) {
+                projectReportDirectory = project.layout.buildDirectory.dir('reports/custom')
+            }
+            tasks.withType(HtmlDependencyReportTask) {
+                projectReportDirectory = project.layout.buildDirectory.dir('reports/custom')
+            }
         """
 
         when:
@@ -94,5 +101,26 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         !result.getOutput().contains("See the report at:")
+    }
+
+    def "nags users about deprecations"() {
+        given:
+        buildFile << """
+            projectReportDirName = "custom"
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        ).expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.ProjectReportsPluginConvention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#project_report_convention_deprecation"
+        )
+        succeeds("projectReport")
     }
 }

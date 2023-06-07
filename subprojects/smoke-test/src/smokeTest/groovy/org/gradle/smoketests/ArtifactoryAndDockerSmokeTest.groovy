@@ -18,9 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-
-import static org.gradle.util.TestPrecondition.HAS_DOCKER
 
 //@Requires(HAS_DOCKER)
 class ArtifactoryAndDockerSmokeTest extends AbstractPluginValidatingSmokeTest {
@@ -115,11 +112,15 @@ class ArtifactoryAndDockerSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         then:
         def runner = runner('artifactoryPublish')
-        3.times {
+        runner.expectDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION, "https://github.com/jfrog/build-info/issues/711")
+        2.times {
+            runner.expectDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION, "https://github.com/jfrog/build-info/issues/711")
+        }
+        5.times {
             runner.expectLegacyDeprecationWarning(
                 "The org.gradle.util.ConfigureUtil type has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations"
             )
         }
         runner.build()

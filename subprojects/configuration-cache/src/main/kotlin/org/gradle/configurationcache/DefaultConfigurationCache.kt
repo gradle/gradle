@@ -40,6 +40,7 @@ import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -63,6 +64,8 @@ class DefaultConfigurationCache internal constructor(
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
+    private val encryptionService: EncryptionService,
+    private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
@@ -100,7 +103,7 @@ class DefaultConfigurationCache internal constructor(
     val intermediateModels = lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
 
     private
-    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, store) }
+    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store) }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
@@ -121,21 +124,29 @@ class DefaultConfigurationCache internal constructor(
         this.host = host
     }
 
-    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeConfigurationCache.WorkGraphResult {
+    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
-            val finalizedGraph = loadWorkGraph(graph, false)
-            BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, true, false)
+            val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
+            BuildTreeConfigurationCache.WorkGraphResult(
+                finalizedGraph,
+                wasLoadedFromCache = true,
+                entryDiscarded = false
+            )
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
                 saveWorkGraph()
-                BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, false, problems.shouldDiscardEntry)
+                BuildTreeConfigurationCache.WorkGraphResult(
+                    finalizedGraph,
+                    wasLoadedFromCache = false,
+                    entryDiscarded = problems.shouldDiscardEntry
+                )
             }
         }
     }
 
-    override fun loadRequestedTasks(graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
-        return loadWorkGraph(graph, true)
+    override fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
+        return loadWorkGraph(graph, graphBuilder, true)
     }
 
     override fun maybePrepareModel(action: () -> Unit) {
@@ -176,7 +187,7 @@ class DefaultConfigurationCache internal constructor(
             val reusedProjects = mutableSetOf<Path>()
             val updatedProjects = mutableSetOf<Path>()
             intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
-            projectMetadata.value.visitProjects(reusedProjects::add, { })
+            projectMetadata.value.visitProjects(reusedProjects::add) { }
             store.useForStore { layout ->
                 writeConfigurationCacheFingerprint(layout, reusedProjects)
                 cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
@@ -218,15 +229,6 @@ class DefaultConfigurationCache internal constructor(
                 "{} as configuration cache cannot be reused due to {}",
                 buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--update-locks"
-            )
-            ConfigurationCacheAction.STORE
-        }
-
-        startParameter.isWriteDependencyVerifications -> {
-            logBootstrapSummary(
-                "{} as configuration cache cannot be reused due to {}",
-                buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
-                "--write-verification-metadata"
             )
             ConfigurationCacheAction.STORE
         }
@@ -364,9 +366,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun loadWorkGraph(graph: BuildTreeWorkGraph, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
+    fun loadWorkGraph(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         return loadFromCache(StateType.Work) { stateFile ->
-            cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph)
+            cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
         }
     }
 
@@ -419,7 +421,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun startCollectingCacheFingerprint() {
         cacheFingerprintController.maybeStartCollectingFingerprint(store.assignSpoolFile(StateType.BuildFingerprint), store.assignSpoolFile(StateType.ProjectFingerprint)) {
-            cacheFingerprintWriterContextFor(it)
+            cacheFingerprintWriterContextFor(encryptionService.outputStream(it.stateType, it.file::outputStream))
         }
     }
 
@@ -427,7 +429,7 @@ class DefaultConfigurationCache internal constructor(
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream): DefaultWriteContext {
         val (context, codecs) = cacheIO.writerContextFor(outputStream, "fingerprint")
         return context.apply {
-            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
+            push(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec())
         }
     }
 
@@ -488,9 +490,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
-        fingerprintFile.inputStream().use { inputStream ->
+        encryptionService.inputStream(fingerprintFile.stateType, fingerprintFile::inputStream).use { inputStream ->
             cacheIO.withReadContextFor(inputStream) { codecs ->
-                withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec()) {
+                withIsolate(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec()) {
                     action(object : ConfigurationCacheFingerprintController.Host {
                         override val valueSourceProviderFactory: ValueSourceProviderFactory
                             get() = host.service()
@@ -508,7 +510,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(startParameter.settingsDirectory)
+        gradlePropertiesController.loadGradlePropertiesFrom(startParameter.settingsDirectory, true)
     }
 
     private
@@ -528,10 +530,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val configurationCacheLogLevel: LogLevel
-        get() = when (startParameter.isQuiet) {
-            true -> LogLevel.INFO
-            else -> LogLevel.LIFECYCLE
-        }
+        get() = startParameter.configurationCacheLogLevel
 }
 
 
