@@ -2118,12 +2118,11 @@ since users cannot create non-legacy configurations and there is no current publ
         }
     }
 
-    private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        DefaultResolutionHost failureHandler = new DefaultResolutionHost();
+    private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants, ResolutionHost resolutionHost) {
         ResolutionBackedFileCollection files = new ResolutionBackedFileCollection(
-            new SelectedArtifactsProvider(Specs.satisfyAll(), attributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
+            new SelectedArtifactsProvider(Specs.satisfyAll(), attributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, resolutionHost, taskDependencyFactory
         );
-        return new DefaultArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
+        return new DefaultArtifactCollection(files, lenient, resolutionHost, calculatedValueContainerFactory);
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
@@ -2196,7 +2195,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         public ArtifactCollection getArtifacts() {
-            return artifactCollection(configurationAttributes, Specs.satisfyAll(), false, false, false);
+            return artifactCollection(configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost());
         }
 
         @Override
@@ -2273,7 +2272,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return artifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants);
+                return artifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, new ArtifactViewResolutionHost());
             }
 
             @Override
@@ -2287,10 +2286,23 @@ since users cannot create non-legacy configurations and there is no current publ
                 );
             }
 
+            /**
+             * This {@link ResolutionHost} will report either the name of the configuration or the name of the artifact view,
+             * depending on the current failure type.
+             *
+             * This is done because artifact view dependency resolution failures would be failures if the configuration
+             * that the artifact view is created from was resolved directly - so we'll want to report the configuration's
+             * name in those cases.  However, a failure of files or artifacts implies the configuration itself is resolvable,
+             * so we'll (more precisely) report the artifact view as the source of those failures.
+             */
             private final class ArtifactViewResolutionHost extends ContextualizingResolutionHost {
                 @Override
                 public String getDisplayName() {
-                    return ConfigurationArtifactView.this.getDisplayName().get();
+                    if ("dependencies".equals(lastFailureType)) {
+                        return DefaultConfiguration.this.getDisplayName();
+                    } else {
+                        return ConfigurationArtifactView.this.getDisplayName().get();
+                    }
                 }
 
                 @Override
@@ -2508,8 +2520,12 @@ since users cannot create non-legacy configurations and there is no current publ
      * Also consolidates multiple failures into a single {@link DefaultLenientConfiguration.ArtifactResolveException} if necessary.
      */
     private abstract class ContextualizingResolutionHost implements ResolutionHost {
+        protected String lastFailureType;
+
         @Override
         public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
+            lastFailureType = type;
+
             if (failures.isEmpty()) {
                 return Optional.empty();
             }

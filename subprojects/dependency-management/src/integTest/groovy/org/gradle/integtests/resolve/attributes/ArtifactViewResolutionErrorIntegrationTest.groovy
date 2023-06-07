@@ -46,11 +46,7 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         buildKotlinFile << """
             val flavor: Attribute<String> = Attribute.of("flavor", String::class.java)
 
-            configurations {
-                register("consumerConf") {
-                    attributes.attribute(flavor, "cinnamon")
-                }
-            }
+            configurations.register("consumerConf")
 
             dependencies {
                 configurations["consumerConf"](project(":producer"))
@@ -58,55 +54,191 @@ class ArtifactViewResolutionErrorIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    def "artifact view resolution error mentions artifact view with default name"() {
+    def "successful artifact view - no change to attributes"() {
         buildKotlinFile << """
-            tasks.register("verifyFiles") {
-                val artifactViewFiles = configurations.named("consumerConf").get().incoming.artifactView { }.files
+            ${successfulConfiguration()}
+
+            tasks.register("verify") {
+                val artifactViewFiles = ${defaultArtifactView()}.files
 
                 doLast {
-                    artifactViewFiles.forEach { it.exists() } // Force resolution
+                    artifactViewFiles.forEach { println(it.name) }
+                    assert(artifactViewFiles.map { it.name } == listOf("vanilla.jar"))
                 }
             }
         """
 
         expect:
-        fails("verifyFiles")
+        succeeds("verify")
+    }
+
+    def "successful artifact view - change to attributes"() {
+        buildKotlinFile << """
+            ${successfulConfiguration()}
+
+            tasks.register("verify") {
+                val artifactViewFiles = ${successfulArtifactView("custom", "chocolate")}.files
+
+                doLast {
+                    artifactViewFiles.forEach { println(it.name) }
+                    assert(artifactViewFiles.map { it.name } == listOf("chocolate.jar"))
+                }
+            }
+        """
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "failed configuration - artifact view files resolution error"() {
+        buildKotlinFile << """
+            ${failingConfiguration()}
+
+            tasks.register("verify") {
+                val artifactViewFiles = ${successfulArtifactView("custom", "vanilla")}.files
+
+                doLast {
+                    artifactViewFiles.forEach { println(it.name) }
+                    assert(artifactViewFiles.map { it.name } == listOf("vanilla.jar"))
+                }
+            }
+        """
+
+        expect:
+        fails("verify")
+        failureCauseContains("Could not resolve all files for artifact view: 'custom' for configuration ':consumerConf'.")
+        !errorOutput.contains("Could not resolve all files for configuration ':consumerConf'.")
+    }
+
+    def "artifact view files resolution error with default name"() {
+        buildKotlinFile << """
+            tasks.register("verify") {
+                val artifactViewFiles = ${failingArtifactView()}.files
+
+                doLast {
+                    artifactViewFiles.forEach { println(it.name) }
+                    assert(artifactViewFiles.map { it.name } == listOf("vanilla.jar"))
+                }
+            }
+        """
+
+        expect:
+        fails("verify")
         failureCauseContains("Could not resolve all files for artifact view for configuration ':consumerConf'.")
         !errorOutput.contains("Could not resolve all files for configuration ':consumerConf'.")
     }
 
-    def "artifact view resolution error mentions artifact view with custom display name"() {
+    def "artifact view files resolution error with custom name"() {
         buildKotlinFile << """
-            tasks.register("verifyFiles") {
-                val artifactViewFiles = configurations.named("consumerConf").get().incoming.artifactView { displayName = "tasty view" }.files
+            tasks.register("verify") {
+                val artifactViewFiles = ${failingArtifactView("custom")}.files
 
                 doLast {
-                    artifactViewFiles.forEach { it.exists() } // Force resolution
+                    artifactViewFiles.forEach { println(it.name) }
+                    assert(artifactViewFiles.map { it.name } == listOf("vanilla.jar"))
                 }
             }
         """
 
         expect:
-        fails("verifyFiles")
-        failureCauseContains("Could not resolve all files for artifact view: 'tasty view' for configuration ':consumerConf'.")
+        fails("verify")
+        failureCauseContains("Could not resolve all files for artifact view: 'custom' for configuration ':consumerConf'.")
         !errorOutput.contains("Could not resolve all files for configuration ':consumerConf'.")
     }
 
-    def "configuration resolution error does not mention artifact view"() {
+    def "artifact view artifacts resolution error with default name"() {
         buildKotlinFile << """
-            tasks.register("verifyFiles") {
-                val incomingFiles = configurations.named("consumerConf").get().incoming.files
+            tasks.register("verify") {
+                val artifactViewArtifacts = ${failingArtifactView()}.artifacts
 
                 doLast {
-                    incomingFiles.forEach { it.exists() } // Force resolution
+                    artifactViewArtifacts.artifacts.forEach { println(it.file.name) }
+                    assert(artifactViewArtifacts.artifacts.map { it.file.name } == listOf("vanilla.jar"))
                 }
             }
         """
 
         expect:
-        fails("verifyFiles")
-        failureCauseContains("Could not resolve all files for configuration ':consumerConf'.")
-        !errorOutput.contains("Could not resolve all files for artifact view for configuration ':consumerConf'.")
-        !errorOutput.contains("Could not resolve all files for artifact view: 'tasty view' for configuration ':consumerConf'.")
+        fails("verify")
+        failureCauseContains("Could not resolve all artifacts for artifact view for configuration ':consumerConf'.")
+        !errorOutput.contains("Could not resolve all artifacts for configuration ':consumerConf'.")
+    }
+
+    def "artifact view artifacts resolution error with custom name"() {
+        buildKotlinFile << """
+            tasks.register("verify") {
+                val artifactViewArtifacts = ${failingArtifactView("custom")}.artifacts
+
+                doLast {
+                    artifactViewArtifacts.artifacts.forEach { println(it.file.name) }
+                    assert(artifactViewArtifacts.artifacts.map { it.file.name } == listOf("vanilla.jar"))
+                }
+            }
+        """
+
+        expect:
+        fails("verify")
+        failureCauseContains("Could not resolve all artifacts for artifact view: 'custom' for configuration ':consumerConf'.")
+        !errorOutput.contains("Could not resolve all artifacts for configuration ':consumerConf'.")
+    }
+
+    private String successfulConfiguration() {
+        return """
+            configurations.named("consumerConf").configure {
+                ${setSuccessfulFlavor()}
+            }
+        """
+    }
+
+    private String failingConfiguration() {
+        return """
+            configurations.named("consumerConf").configure {
+                ${setFailingFlavor()}
+            }
+        """
+    }
+
+    private String defaultArtifactView(String name = null) {
+        return """configurations.named("consumerConf").get().incoming.artifactView {
+                    ${setName(name)}
+                    withVariantReselection()
+                }"""
+    }
+
+    private String successfulArtifactView(String name = null, String flavor = 'vanilla') {
+        return """configurations.named("consumerConf").get().incoming.artifactView {
+                    ${setName(name)}
+                    ${setSuccessfulFlavor(flavor)}
+                    withVariantReselection()
+                }"""
+    }
+
+    private String failingArtifactView(String name = null) {
+        return """configurations.named("consumerConf").get().incoming.artifactView {
+lenient(false)
+                    ${setName(name)}
+                    ${setFailingFlavor()}
+                    withVariantReselection()
+                }"""
+    }
+
+    private String setSuccessfulFlavor(String flavor = 'vanilla') {
+        return setFlavor(flavor)
+    }
+
+    private String setFailingFlavor() {
+        return setFlavor("cinnamon")
+    }
+
+    private String setFlavor(String name) {
+        return """
+                attributes {
+                    attribute(flavor, "$name")
+                }
+        """
+    }
+
+    private String setName(String name) {
+        return name != null ? 'displayName = "' + name + '"' : ''
     }
 }
