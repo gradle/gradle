@@ -18,8 +18,8 @@ package org.gradle.internal.deprecation;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -66,8 +66,8 @@ public class DeprecationLogger {
 
     private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
 
-    public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        DEPRECATED_FEATURE_HANDLER.init(reporter, warningMode, buildOperationProgressEventEmitter);
+    public synchronized static void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        DEPRECATED_FEATURE_HANDLER.init(problemDiagnosticsFactory, warningMode, buildOperationProgressEventEmitter);
     }
 
     public synchronized static void reset() {

@@ -35,6 +35,7 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.time.Time
 import org.gradle.util.internal.TextUtil
 import spock.lang.Shared
 
@@ -244,7 +245,7 @@ class NextGenBuildCacheBuildOperationsIntegrationTest extends AbstractIntegratio
         def manifestKey = new DefaultBuildCacheKey(HashCode.fromString(packOp.details.cacheKey as String))
 
         // Corrupt cached artifact
-        try (def service = new H2BuildCacheService(localCache.cacheDir.toPath(), 10)) {
+        try (def service = new H2BuildCacheService(localCache.cacheDir.toPath(), 10, 7, Time.clock())) {
             service.open()
 
             BuildCacheKey cacheKeyToCorrupt = null
@@ -326,7 +327,8 @@ class NextGenBuildCacheBuildOperationsIntegrationTest extends AbstractIntegratio
         packOp.result.archiveEntryCount == 2
         remoteStoreOp.details.archiveSize > 0
 
-        operations.orderedSerialSiblings(remoteMissLoadOp, packOp, remoteStoreOp)
+        operations.orderedSerialSiblings(remoteMissLoadOp, packOp)
+        operations.parentsOf(remoteStoreOp).contains(packOp)
     }
 
     def "records ops for remote hit"() {
@@ -378,6 +380,6 @@ class NextGenBuildCacheBuildOperationsIntegrationTest extends AbstractIntegratio
         unpackOp.details.archiveSize > 0
         remoteHitLoadOp.result.archiveSize > 0
 
-        operations.orderedSerialSiblings(remoteHitLoadOp, unpackOp)
+        operations.parentsOf(unpackOp).contains(remoteHitLoadOp)
     }
 }

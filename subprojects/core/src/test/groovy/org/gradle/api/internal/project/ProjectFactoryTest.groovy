@@ -25,6 +25,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.resource.EmptyFileTextResource
+import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -42,7 +43,10 @@ class ProjectFactoryTest extends Specification {
     def buildId = Stub(BuildIdentifier)
     def owner = Stub(BuildState)
     def projectState = Stub(ProjectState)
-    def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader())
+    def scriptResolution = Stub(ProjectScopedScriptResolution) {
+        resolveScriptsForProject(_, _) >> { p, a -> a.get() }
+    }
+    def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), scriptResolution)
     def rootProjectScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
 

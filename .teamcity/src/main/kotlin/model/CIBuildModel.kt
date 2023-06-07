@@ -34,8 +34,7 @@ enum class StageName(val stageName: String, val description: String, val uuid: S
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments", "ReadyforRelease"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL_VFS_RETENTION("Experimental FS Watching", "On demand checks to run tests with file system watching enabled", "ExperimentalVfsRetention"),
-    EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running", "ExperimentalPerformance"),
-    EXPERIMENTAL_BUILD_CACHE_NG("Experimental BuildCacheNG", "Try out new build cache", "ExperimentalBuildCacheNG");
+    EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running", "ExperimentalPerformance");
 
     val id: String
         get() = stageName.replace(" ", "").replace("-", "")
@@ -60,7 +59,7 @@ data class CIBuildModel(
         Stage(
             StageName.QUICK_FEEDBACK_LINUX_ONLY,
             specificBuilds = listOf(
-                SpecificBuild.CompileAll, SpecificBuild.SanityCheck
+                SpecificBuild.CompileAll, SpecificBuild.SanityCheck, SpecificBuild.CompileAllBuildCacheNG
             ),
             functionalTests = listOf(
                 TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
@@ -182,12 +181,6 @@ data class CIBuildModel(
                 PerformanceTestCoverage(12, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true),
                 PerformanceTestCoverage(13, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, withoutDependencies = true)
             )
-        ),
-        Stage(
-            StageName.EXPERIMENTAL_BUILD_CACHE_NG,
-            trigger = Trigger.eachCommit,
-            runsIndependent = true,
-            specificBuilds = listOf(SpecificBuild.CompileAllBuildCacheNG),
         )
     ),
     val subprojects: GradleSubprojectProvider

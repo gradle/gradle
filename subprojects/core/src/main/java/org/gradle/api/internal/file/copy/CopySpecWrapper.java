@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -28,6 +29,7 @@ import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SyncSpec;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -291,6 +293,16 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
+    public Property<ConfigurableFilePermissions> getFilePermissions() {
+        return delegate.getFilePermissions();
+    }
+
+    @Override
+    public CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction) {
+        return delegate.filePermissions(configureAction);
+    }
+
+    @Override
     public Integer getDirMode() {
         return delegate.getDirMode();
     }
@@ -299,6 +311,16 @@ public class CopySpecWrapper implements SyncSpec {
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
         delegate.setDirMode(mode);
         return this;
+    }
+
+    @Override
+    public Property<ConfigurableFilePermissions> getDirPermissions() {
+        return delegate.getDirPermissions();
+    }
+
+    @Override
+    public CopyProcessingSpec dirPermissions(Action<? super ConfigurableFilePermissions> configureAction) {
+        return delegate.dirPermissions(configureAction);
     }
 
     @Override

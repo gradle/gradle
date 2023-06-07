@@ -122,8 +122,8 @@ public class WorkerSharedProjectScopeServices {
                 cacheBuilderFactory);
     }
 
-    protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
-        return instantiator.newInstance(DefaultFileSystemOperations.class, fileOperations);
+    protected FileSystemOperations createFileSystemOperations(ObjectFactory objectFactory, Instantiator instantiator, FileOperations fileOperations) {
+        return instantiator.newInstance(DefaultFileSystemOperations.class, objectFactory, fileOperations);
     }
 
     protected ArchiveOperations createArchiveOperations(Instantiator instantiator, FileOperations fileOperations) {

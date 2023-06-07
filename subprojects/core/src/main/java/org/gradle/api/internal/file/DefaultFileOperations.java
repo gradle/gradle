@@ -75,6 +75,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"})
 public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
+    private final ObjectFactory objectFactory;
     private final Instantiator instantiator;
     private final Deleter deleter;
     private final ResourceHandler resourceHandler;
@@ -108,6 +109,7 @@ public class DefaultFileOperations implements FileOperations {
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
+        this.objectFactory = objectFactory;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.resourceHandler = resourceHandlerFactory.create(this);
@@ -299,7 +301,7 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public CopySpec copySpec() {
-        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, instantiator, patternSetFactory);
+        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, objectFactory, instantiator, patternSetFactory);
     }
 
     @Override

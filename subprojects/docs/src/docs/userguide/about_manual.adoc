@@ -29,7 +29,7 @@ The Gradle User Manual is broken down into the following sections:
 
 == Reference
 
-. Gradle API http://gradle.org/docs/current/javadoc/[Javadocs]
-. Gradle's https://docs.gradle.org/current/dsl/index.html[Groovy DSL]
-. Gradle's https://docs.gradle.org/current/kotlin-dsl/index.html[Kotlin DSL]
+. Gradle API link:{javadocPath}/index.html[Javadocs]
+. Gradle's link:{groovyDslPath}/index.html[Groovy DSL]
+. Gradle's link:{kotlinDslPath}/index.html[Kotlin DSL]
 . Gradle <<plugin_reference#plugin_reference,Core Plugins>>

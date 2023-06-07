@@ -169,23 +169,35 @@ class PathTest extends Specification {
         path("a:b:c").segmentCount() == 3
     }
 
+    def "can remove all segments from absolute path"() {
+        expect:
+        Path.ROOT === Path.path(path).with { it.removeFirstSegments(it.segmentCount()) }
+
+        where:
+        path << [':', ':a', ':a:b']
+    }
+
     def "removes invalid segments"() {
         when:
-        path(":a:b").removeFirstSegments(segmentCount)
+        path(path).removeFirstSegments(segmentCount)
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Cannot remove $segmentCount segments from path :a:b"
+        e.message == "Cannot remove $segmentCount segments from path $path"
 
         where:
-        segmentCount << [-1, 2]
+        path   | segmentCount
+        'a:b'  | -1
+        'a:b'  | 2
+        ':a:b' | -1
+        ':a:b' | 3
     }
 
     def "removes zero segments"() {
         expect:
         ROOT.removeFirstSegments(0) == ROOT
         path(":").removeFirstSegments(0) == path(":")
-        path("a").removeFirstSegments(0) ==  path("a")
+        path("a").removeFirstSegments(0) == path("a")
         path(":a").removeFirstSegments(0) == path(":a")
         path(":a:b").removeFirstSegments(0) == path(":a:b")
         path("a:b").removeFirstSegments(0) == path("a:b")

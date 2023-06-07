@@ -40,7 +40,7 @@ class ConfigurationCacheStableConfigurationCacheIntegrationTest extends Abstract
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem "Build file 'build.gradle': external process started"
+            withProblem "Build file 'build.gradle': line 5: external process started"
         }
     }
 

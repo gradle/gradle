@@ -36,6 +36,10 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     abstract String getJUnitVersionAssertion()
     abstract TestClassExecutionResult assertFailedToExecute(TestExecutionResult testResult, String testClassName)
 
+    String getStableEnvironmentDependencies() {
+        return testFrameworkDependencies
+    }
+
     def "executes tests in the correct environment"() {
         given:
         file('src/test/java/org/gradle/OkTest.java') << """
@@ -84,7 +88,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
 
                         // After, we expect the test runtime classpath.
                         String[] filteredCliClasspath = Arrays.copyOfRange(splitCliClasspath, 1, splitCliClasspath.length);
-                        assertArrayEquals(splitTestRuntimeClasspath, filteredCliClasspath);
+                        java.util.Arrays.equals(splitTestRuntimeClasspath, filteredCliClasspath);
                     } else {
                         List<URL> systemClasspath = Arrays.asList(((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs());
 
@@ -159,7 +163,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                ${testFrameworkDependencies}
+                ${stableEnvironmentDependencies}
                 testImplementation 'ant:ant:1.6.1', 'ant:ant-launcher:1.6.1'
             }
             test {

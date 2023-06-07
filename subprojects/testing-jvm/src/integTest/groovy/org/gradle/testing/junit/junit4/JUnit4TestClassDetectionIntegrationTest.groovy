@@ -17,9 +17,15 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
 
-@TargetCoverage({ JUNIT_4_LATEST })
+@TargetCoverage({ JUNIT_4 })
 class JUnit4TestClassDetectionIntegrationTest extends AbstractJUnit4TestClassDetectionIntegrationTest implements JUnit4MultiVersionTest {
+    @Override
+    boolean isSupportsEmptyClassWithRunner() {
+        // JUnit 4.0 does not support an empty class with a runner (i.e. the test fails)
+        return VersionNumber.parse(version) >= VersionNumber.parse('4.1')
+    }
 }
