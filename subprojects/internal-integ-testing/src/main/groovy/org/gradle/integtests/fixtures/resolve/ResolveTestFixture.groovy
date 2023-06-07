@@ -38,8 +38,6 @@ class ResolveTestFixture {
     private String defaultConfig = "default"
     private boolean buildArtifacts = true
 
-    private boolean configurationCacheEnabled = GradleContextualExecuter.configCache
-
     ResolveTestFixture(TestFile buildFile, String config = "runtimeClasspath") {
         this.config = config
         this.buildFile = buildFile
@@ -105,7 +103,7 @@ allprojects {
         it.lenientArtifactViewArtifacts = configurations.${config}.incoming.artifactView { it.lenient = true }.artifacts
 
         it.buildArtifacts = ${buildArtifacts}
-        ${addConfigurationInputs()}
+        ${registerInputs(config)}
     }
 }
 """
@@ -121,13 +119,15 @@ $END_MARKER
     }
 
     /**
-     * We only want to add the configuration itself as a task input if we're building artifacts.
+     * We only want to add give configuration as a task input if we're building artifacts.
      *
      * Some tests, such as {@link CompositeBuildDependencyCycleIntegrationTest}, have a dependency cycle between two projects, and if we add this input, then
-     * the build will fail because of a circular task dependency.
+     * the build will fail because of a circular task dependency.  These tests are set up to <strong>NOT</strong> build artifacts, and thus avoid this problem.
+     *
+     * @param config the configuration to add as an input
      */
     @SuppressWarnings('GroovyDocCheck')
-    private String addConfigurationInputs() {
+    private String registerInputs(Object config) {
         return buildArtifacts ? "it.inputs.files configurations." + config : ""
     }
 
