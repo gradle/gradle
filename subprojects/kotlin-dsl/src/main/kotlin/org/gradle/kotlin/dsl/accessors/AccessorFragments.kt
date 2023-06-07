@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION", "TYPEALIAS_EXPANSION_DEPRECATION") // todo: should not be necessary in the end
+
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.KmVariance

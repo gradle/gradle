@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("TYPEALIAS_EXPANSION_DEPRECATION") // todo: should not be necessary in the end
+
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder

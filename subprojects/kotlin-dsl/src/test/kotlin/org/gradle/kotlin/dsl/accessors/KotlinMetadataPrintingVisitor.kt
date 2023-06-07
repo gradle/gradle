@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION") // todo: should not be necessary in the end
+@file:OptIn(ExperimentalContracts::class, ExperimentalContracts::class) // todo: should not be necessary in the end
+
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.ClassName
@@ -52,6 +55,7 @@ import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
 import java.io.File
+import kotlin.contracts.ExperimentalContracts
 
 
 internal

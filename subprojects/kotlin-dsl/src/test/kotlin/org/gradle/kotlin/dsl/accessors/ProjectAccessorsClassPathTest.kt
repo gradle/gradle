@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION") // todo: should not be necessary in the end
+
 package org.gradle.kotlin.dsl.accessors
 
 import com.nhaarman.mockito_kotlin.any
