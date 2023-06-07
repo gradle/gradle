@@ -84,7 +84,7 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
                 incomingArtifacts.each {
                     writeArtifact("incoming-artifact", writer, it)
                 }
-                incomingArtifacts.each {
+                incomingArtifacts.artifactFiles.each {
                     writeFile("incoming-artifact-file", writer, it)
                 }
 

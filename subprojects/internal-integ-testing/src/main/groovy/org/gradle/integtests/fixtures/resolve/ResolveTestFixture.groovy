@@ -194,7 +194,7 @@ $END_MARKER
             compare("incoming.artifacts", actualArtifacts, expectedArtifacts)
 
             actualFiles = findLines(configDetails, 'incoming-artifact-file')
-            compare("incoming.artifacts.files", actualFiles, expectedFiles)
+            compare("incoming.artifacts.artifactFiles", actualFiles, expectedFiles)
 
             actualFiles = findLines(configDetails, 'artifact-view-file')
             compare("artifactView.files", actualFiles, expectedFiles)
