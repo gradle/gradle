@@ -20,6 +20,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonGenerator;
@@ -429,10 +430,13 @@ public class BuildOperationTrace implements Stoppable {
         @Override
         public Object convert(Object value, String key) {
             Throwable throwable = (Throwable) value;
-            return ImmutableMap.of(
-                "message", throwable.getMessage(),
-                "stackTrace", Throwables.getStackTraceAsString(throwable)
-            );
+            String message = throwable.getMessage();
+            Builder<Object, Object> builder = ImmutableMap.builder();
+            if (message != null) {
+                builder.put("message", message);
+            }
+            builder.put("stackTrace", Throwables.getStackTraceAsString(throwable));
+            return builder.build();
         }
     }
 }
