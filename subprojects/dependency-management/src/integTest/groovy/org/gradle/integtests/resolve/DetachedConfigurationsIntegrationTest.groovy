@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.resolve
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -28,7 +26,6 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2889")
-    @ToBeFixedForConfigurationCache(because = "ResolutionResult is not serializable")
     def "detached configurations may have separate dependencies"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -38,15 +35,15 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             abstract class CheckDependencies extends DefaultTask {
                 @Internal
-                ResolutionResult result
+                abstract Property<ResolvedComponentResult> getResult()
 
                 @Internal
-                Set<Dependency> declared
+                abstract SetProperty<String> getDeclared()
 
                 @TaskAction
                 void test() {
-                    def resolved = result.root.dependencies
-                    assert declared*.name == resolved*.selected*.moduleVersion*.name
+                    def resolved = result.get().dependencies
+                    assert declared.get() == resolved*.selected*.moduleVersion*.name as Set
                 }
             }
 
@@ -59,9 +56,9 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 tasks.register("checkDependencies", CheckDependencies) {
-                    declared = project.configurations.foo.dependencies
-                    def detached = project.configurations.detachedConfiguration(declared as Dependency[])
-                    result = detached.incoming.resolutionResult
+                    def detached = project.configurations.detachedConfiguration(project.configurations.foo.dependencies as Dependency[])
+                    result = detached.incoming.resolutionResult.rootComponent
+                    declared = provider { project.configurations.foo.dependencies*.name }
                 }
             }
             project(":a") {
@@ -77,10 +74,9 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        run "checkDependencies"
+        run "checkDependencies", "-S"
     }
 
-    @ToBeFixedForConfigurationCache(because = "ResolutionResult is not serializable")
     def "detached configurations may have dependencies on other projects"() {
         given:
         settingsFile << "include 'other'"
@@ -91,14 +87,14 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
             abstract class CheckDependencies extends DefaultTask {
                 @Internal
-                ResolutionResult result
+                abstract Property<ResolvedComponentResult> getResult()
 
                 @Internal
                 ArtifactCollection artifacts
 
                 @TaskAction
                 void test() {
-                    def depModuleNames = result.root.dependencies*.selected*.moduleVersion*.name
+                    def depModuleNames = result.get().dependencies*.selected*.moduleVersion*.name
                     def artifactNames = artifacts.artifacts.collect { it.file.name }
 
                     assert depModuleNames.contains('other')
@@ -110,7 +106,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             detached.dependencies.add(project.dependencies.create(project(':other')))
 
             task checkDependencies(type: CheckDependencies) {
-                result = detached.incoming.resolutionResult
+                result = detached.incoming.resolutionResult.rootComponent
                 artifacts = detached.incoming.artifacts
             }
 
@@ -151,10 +147,12 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             detached.outgoing.artifact(tasks.makeArtifact)
 
             task checkDependencies {
-                def depModuleNames = detached.incoming.resolutionResult.root.dependencies*.selected*.moduleVersion*.name
-                def artifactNames = detached.incoming.artifacts.artifacts.collect { it.file.name }
+                def result = detached.incoming.resolutionResult.rootComponent
+                def artifacts = detached.incoming.artifacts
 
                 doLast {
+                    def depModuleNames = result.get().dependencies*.selected*.moduleVersion*.name
+                    def artifactNames = artifacts.artifacts.collect { it.file.name }
                     assert depModuleNames.contains('test')
                     assert artifactNames.contains("artifact.zip")
                 }

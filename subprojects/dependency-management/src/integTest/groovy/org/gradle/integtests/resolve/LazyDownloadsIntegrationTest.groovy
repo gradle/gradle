@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def module = mavenHttpRepo.module("test", "test", "1.0").publish()
@@ -67,14 +66,13 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("graph")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Uses ResolutionResult which is not serializable")
-    def "downloads only the metadata when all components are queried"() {
+    def "downloads only the metadata when resolved dependencies are queried"() {
         given:
         buildFile << """
             task artifacts {
-                def result = configurations.compile.incoming.resolutionResult
+                def result = configurations.compile.incoming.resolutionResult.rootComponent
                 doLast {
-                    println result.allComponents*.moduleVersion.name
+                    println result.get().dependents
                 }
             }
         """
@@ -87,13 +85,14 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("artifacts")
     }
 
-    def "downloads only the metadata on failure to resolve the graph - #expression"() {
+    def "downloads only the metadata on failure to resolve the graph as files"() {
         given:
         buildFile << """
             task artifacts {
-                def files = configurations.compile.${expression}.each { it }
+                def compile = configurations.compile
                 doLast {
-                    files*.name
+                    // cause resolution
+                    compile.files*.name
                 }
             }
 """
@@ -106,13 +105,27 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         fails("artifacts")
         failure.assertResolutionFailure(":compile")
         failure.assertHasCause("Could not resolve test:test:1.0.")
+    }
 
-        where:
-        expression << [
-            "files",
-            "fileCollection { true }",
-            "resolvedConfiguration.resolvedArtifacts",
-            "incoming.artifacts"
-        ]
+    def "downloads only the metadata on failure to resolve the graph as artifact collection"() {
+        given:
+        buildFile << """
+            task artifacts {
+                def result = configurations.compile.incoming.artifacts
+                doLast {
+                    // cause resolution
+                    result*.id
+                }
+            }
+"""
+
+        when:
+        module.pom.expectGetUnauthorized()
+        module2.pom.expectGet()
+
+        then:
+        fails("artifacts")
+        failure.assertResolutionFailure(":compile")
+        failure.assertHasCause("Could not resolve test:test:1.0.")
     }
 }
