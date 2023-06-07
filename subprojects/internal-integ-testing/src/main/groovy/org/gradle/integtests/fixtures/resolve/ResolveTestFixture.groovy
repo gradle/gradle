@@ -83,14 +83,14 @@ class ResolveTestFixture {
         }
         def buildScriptBlock = """
 buildscript {
-    dependencies.classpath files("${ClasspathUtil.getClasspathForClass(ConfigurationCacheCompatibleGenerateGraphTask).toURI()}")
+    dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
 }
 """
         String generatedContent = ""
         builder.configs.forEach { config, taskName ->
             generatedContent += """
 allprojects {
-    tasks.register("${taskName}", ${ConfigurationCacheCompatibleGenerateGraphTask.name}) {
+    tasks.register("${taskName}", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
         it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
         it.files.from(configurations.${config})

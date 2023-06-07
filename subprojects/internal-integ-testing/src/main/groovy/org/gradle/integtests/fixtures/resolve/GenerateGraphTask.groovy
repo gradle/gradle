@@ -16,18 +16,33 @@
 
 package org.gradle.integtests.fixtures.resolve
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ArtifactCollection
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.util.Path
 
-abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGenerateGraphTask {
+@SuppressWarnings('GrMethodMayBeStatic')
+abstract class GenerateGraphTask extends DefaultTask {
+    @Internal
+    File outputFile
+
+    @Internal
+    boolean buildArtifacts
+
     @Internal
     abstract Property<ResolvedComponentResult> getRootComponent()
 
@@ -51,6 +66,10 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
 
     @Internal
     ArtifactCollection lenientArtifactViewArtifacts
+
+    GenerateGraphTask() {
+        outputs.upToDateWhen { false }
+    }
 
     @TaskAction
     void generateOutput() {
@@ -117,17 +136,6 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
         }
     }
 
-    @SuppressWarnings('GrMethodMayBeStatic')
-    protected void writeFile(String linePrefix, PrintWriter writer, File file) {
-        writer.println("$linePrefix:${file.name}")
-    }
-
-    @SuppressWarnings('GrMethodMayBeStatic')
-    protected void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
-        writer.println("$linePrefix:${artifact.id}")
-    }
-
-    @SuppressWarnings('GrMethodMayBeStatic')
     protected void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
         def queue = [root]
         def seen = new HashSet()
@@ -144,5 +152,61 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
                 }
             } // else, already seen
         }
+    }
+
+    protected void writeRootAndComponentsAndDependencies(PrintWriter writer, ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+        writer.println("root:${formatComponent(root)}")
+        components.each {
+            writer.println("component:${formatComponent(it)}")
+        }
+        dependencies.each {
+            writer.println("dependency:${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]")
+        }
+    }
+
+    protected String formatComponent(ResolvedComponentResult result) {
+        String type
+        if (result.id instanceof ProjectComponentIdentifier) {
+            type = "project:${Path.path(result.id.build.buildPath).append(Path.path(result.id.projectPath))}"
+        } else if (result.id instanceof ModuleComponentIdentifier) {
+            type = "module:${result.id.group}:${result.id.module}:${result.id.version},${result.id.moduleIdentifier.group}:${result.id.moduleIdentifier.name}"
+        } else {
+            type = "other"
+        }
+        String variants = result.variants.collect { variant ->
+            "variant:${formatVariant(variant)}"
+        }.join('@@')
+        "[$type][id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][$variants]"
+    }
+
+    protected String formatVariant(ResolvedVariantResult variant) {
+        return "name:${variant.displayName} attributes:${formatAttributes(variant.attributes)}"
+    }
+
+    protected String formatAttributes(AttributeContainer attributes) {
+        attributes.keySet().collect {
+            "$it.name=${attributes.getAttribute(it)}"
+        }.sort().join(',')
+    }
+
+    protected String formatReason(ComponentSelectionReasonInternal reason) {
+        def reasons = reason.descriptions.collect {
+            def message
+            if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
+                message = "${it.cause.defaultReason}: ${it.description}"
+            } else {
+                message = it.description
+            }
+            message.readLines().join(" ")
+        }.join('!!')
+        return reasons
+    }
+
+    protected void writeFile(String linePrefix, PrintWriter writer, File file) {
+        writer.println("$linePrefix:${file.name}")
+    }
+
+    protected void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
+        writer.println("$linePrefix:${artifact.id}")
     }
 }
