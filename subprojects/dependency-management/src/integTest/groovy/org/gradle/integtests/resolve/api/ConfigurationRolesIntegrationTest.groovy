@@ -235,4 +235,124 @@ This method is only meant to be called on configurations which allow the (non-de
         "dependencies" | "consumable"
         "dependencies" | "resolvable"
     }
+
+    def "withType works for factory methods before declaration in Groovy DSL"() {
+        buildFile << """
+            configurations {
+                withType(ResolvableConfiguration) {
+                    println "Resolvable: " + name
+                }
+                withType(ConsumableConfiguration) {
+                    println "Consumable: " + name
+                }
+                withType(DependenciesConfiguration) {
+                    println "Dependencies: " + name
+                }
+                resolvable("foo")
+                consumable("bar")
+                dependencies("baz")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods after declaration in Groovy DSL"() {
+        buildFile << """
+            configurations {
+                resolvable("foo")
+                consumable("bar")
+                dependencies("baz")
+                withType(ResolvableConfiguration) {
+                    println "Resolvable: " + name
+                }
+                withType(ConsumableConfiguration) {
+                    println "Consumable: " + name
+                }
+                withType(DependenciesConfiguration) {
+                    println "Dependencies: " + name
+                }
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods before declaration in Kotlin DSL"() {
+        buildKotlinFile << """
+            configurations {
+                withType<ResolvableConfiguration> {
+                    println("Resolvable: " + name)
+                }
+                withType<ConsumableConfiguration> {
+                    println("Consumable: " + name)
+                }
+                withType<DependenciesConfiguration> {
+                    println("Dependencies: " + name)
+                }
+                resolvable("foo")
+                consumable("bar")
+                dependencies("baz")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods after declaration in Kotlin DSL"() {
+        buildKotlinFile << """
+            configurations {
+                resolvable("foo")
+                consumable("bar")
+                dependencies("baz")
+                withType<ResolvableConfiguration> {
+                    println("Resolvable: " + name)
+                }
+                withType<ConsumableConfiguration> {
+                    println("Consumable: " + name)
+                }
+                withType<DependenciesConfiguration> {
+                    println("Dependencies: " + name)
+                }
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
 }
