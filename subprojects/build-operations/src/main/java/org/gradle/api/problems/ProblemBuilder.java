@@ -104,16 +104,16 @@ public class ProblemBuilder {
 
     private static void throwPossibleError(Problem problem) {
         if (problem.getSeverity() == Severity.ERROR) {
-//            Throwable t = problem.getCause();
-//            if (t instanceof InterruptedException) {
-//                Thread.currentThread().interrupt();
-//            }
-//            if (t instanceof RuntimeException) {
-//                throw (RuntimeException) t;
-//            }
-//            if (t instanceof Error) {
-//                throw (Error) t;
-//            }
+            Throwable t = problem.getCause();
+            if (t instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
+            if (t instanceof Error) {
+                throw (Error) t;
+            }
             throw new GradleExceptionWithProblem(problem);
         }
     }
