@@ -133,6 +133,12 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
 
         @Nullable
         @Override
+        public Throwable getFailure() {
+            return execution.getFailure().orElse(null);
+        }
+
+        @Nullable
+        @Override
         public String getCachingDisabledReasonMessage() {
             return getCachingDisabledReason()
                 .map(CachingDisabledReason::getMessage)
