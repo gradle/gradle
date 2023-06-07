@@ -24,34 +24,18 @@ import org.gradle.api.Incubating;
  * @since 8.3
  */
 @Incubating
-public interface ProblemId {
+public enum ProblemId {
 
-    String getId();
+    GENERIC("generic"),
+    DEPRECATION("deprecation");
 
-    /**
-     * Known problem id.
-     *
-     * @since 8.3
-     */
-    @Incubating
-    class KnownIds {
-        public static final ProblemId GENERIC = new ProblemId() {
+    private final String id;
 
-            @Override
-            public String getId() {
-                return "generic";
-            }
-        };
+    ProblemId(String id) {
+        this.id = id;
+    }
 
-        public static final ProblemId DEPRECATION = new ProblemId() {
-
-            @Override
-            public String getId() {
-                return "deprecation";
-            }
-        };
-
-        private KnownIds() {
-        }
+    public String getId(){
+        return id;
     }
 }
