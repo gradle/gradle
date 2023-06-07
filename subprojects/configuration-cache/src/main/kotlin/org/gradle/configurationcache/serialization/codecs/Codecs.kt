@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
@@ -36,6 +37,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
@@ -96,7 +98,9 @@ class Codecs(
     propertyFactory: PropertyFactory,
     filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
+    objectFactory: ObjectFactory,
     instantiator: Instantiator,
+    fileSystemOperations: FileSystemOperations,
     listenerManager: ListenerManager,
     val taskNodeFactory: TaskNodeFactory,
     val ordinalGroupFactory: OrdinalGroupFactory,
@@ -172,7 +176,7 @@ class Codecs(
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
 
-            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
+            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, objectFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)

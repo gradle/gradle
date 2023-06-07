@@ -82,4 +82,9 @@ class JUnitJupiterJUnitTestFailureIntegrationTest extends AbstractJUnitTestFailu
     Matcher<? super String>[] getBrokenBeforeAndAfterMatchers() {
         return [equalTo(failureAssertionError('before failed'))]
     }
+
+    @Override
+    boolean hasStableInitializationErrors() {
+        return true
+    }
 }

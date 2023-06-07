@@ -29,10 +29,10 @@ subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt
 subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
 
 # JVM platform
+platforms/jvm/                              @gradle/bt-jvm
 subprojects/code-quality/                   @gradle/bt-jvm
 subprojects/distributions-jvm/              @gradle/bt-jvm
 subprojects/distributions-publishing/       @gradle/bt-jvm
-subprojects/ear/                            @gradle/bt-jvm
 subprojects/jacoco/                         @gradle/bt-jvm
 subprojects/java-compiler-plugin/           @gradle/bt-jvm
 subprojects/jvm-services/                   @gradle/bt-jvm
@@ -106,6 +106,14 @@ subprojects/ide/                  @gradle/bt-ide-experience
 subprojects/tooling-api/          @gradle/bt-ide-experience
 subprojects/tooling-api-builders/ @gradle/bt-ide-experience
 
+
+# Release coordination
+subprojects/distributions-dependencies/ @gradle/bt-support
+subprojects/distributions-full/         @gradle/bt-support
+subprojects/performance/                @gradle/bt-support
+subprojects/smoke-test/                 @gradle/bt-support
+subprojects/soak/                       @gradle/bt-support
+
 # Documentation
 subprojects/docs/src/docs/                                                        @gradle/bt-devrel-education
 subprojects/docs/src/samples/                                                     @gradle/bt-devrel-education
@@ -131,3 +139,4 @@ subprojects/docs/src/docs/userguide/dep-man/                                    
 subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm @gradle/bt-devrel-education
 subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm @gradle/bt-devrel-education
 subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm @gradle/bt-devrel-education
+

@@ -58,6 +58,10 @@ This affected users on Linux systems with FIPS enabled and also Windows users wh
 SSL context creation has been improved to be more aligned with the default implementation and to support these cases.
 Also, error messages related to SSL have been improved, and they should be more visible.
 
+### Reduced memory consumption
+
+TODO - dependency resolution uses less heap
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

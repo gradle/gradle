@@ -76,7 +76,7 @@ If not, then the problem exists within the execution of one or more of the reque
 [[sec:troubleshooting_dependency_resolution]]
 == Debugging dependency resolution
 
-Common dependency resolution issues such as resolving version conflicts are covered in <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Troubleshooting Dependency Resolution>>.
+Common dependency resolution issues such as resolving version conflicts are covered in <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Troubleshooting Dependency Resolution>>.
 
 You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 

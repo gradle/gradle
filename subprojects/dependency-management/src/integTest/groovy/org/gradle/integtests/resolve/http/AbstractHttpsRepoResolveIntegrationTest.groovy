@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.server.http.AuthScheme
 import org.junit.Rule
 
 import static org.gradle.util.Matchers.containsText
+import static org.gradle.util.Matchers.matchesRegexp
 
 abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule TestResources resources = new TestResources(temporaryFolder)
@@ -102,7 +103,8 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertHasCause("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/")
-        failure.assertHasCause("Got socket exception during request. It might be caused by SSL misconfiguration")
+        // exact error might vary depending on JVM version and OS
+        failure.assertThatCause(matchesRegexp("Got (socket|SSL handshake) exception during request. It might be caused by SSL misconfiguration"))
     }
 
     def "build fails when client has invalid ssl configuration and has underlying cause in output"() {
