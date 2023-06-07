@@ -68,7 +68,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         def problems = listener.allProblems
-            problems.size() == 2
+        problems.size() == 2
         problems[0].message.contains('The RepositoryHandler.jcenter() method has been deprecated.')
 //        (problems[0].rawAttributes['doc'] as String).contains('https://docs.gradle.org/')
         problems[0].severity == Severity.WARNING.toString()
