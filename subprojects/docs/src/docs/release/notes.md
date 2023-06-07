@@ -237,7 +237,7 @@ For example, `--no-foo` option is generated for the provided option `--foo`.
 
 See the [task options](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options) user manual section for more information.
 
-### Built init can convert more Maven builds
+### Build init can convert more Maven builds
 
 Using [`gradle init`](userguide/build_init_plugin.html#sec:pom_maven_conversion) to convert a multimodule Maven build previously required the child submodule projects’ POMs to reference their parent POM using:
 
