@@ -70,7 +70,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
-        seenProblems.inverse().remove(buildOperation.getId());
+//        seenProblems.inverse().remove(buildOperation.getId());
         super.finished(buildOperation, result);
     }
 

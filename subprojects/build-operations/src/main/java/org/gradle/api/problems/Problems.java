@@ -39,7 +39,7 @@ public class Problems {
     }
 
     public static void collect(Throwable failure) {
-        new ProblemBuilder(ProblemId.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report();
+        new ProblemBuilder(ProblemId.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report(true);
     }
 
     public static void collect(Problem problem) {

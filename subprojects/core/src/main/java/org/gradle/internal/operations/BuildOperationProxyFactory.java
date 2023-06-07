@@ -18,7 +18,8 @@ package org.gradle.internal.operations;
 
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleExceptionWithProblem;
-import org.gradle.internal.UncheckedException;
+
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class BuildOperationProxyFactory {
     public static RunnableBuildOperation createRunnableProxy(final RunnableBuildOperation runnable) {
@@ -81,6 +82,6 @@ public class BuildOperationProxyFactory {
 
     private static RuntimeException collectAndThrowCause(GradleExceptionWithProblem e) {
         Problems.collect(e.getProblem());
-        throw UncheckedException.throwAsUncheckedException(e.getCause());
+        throw throwAsUncheckedException(e.getCause());
     }
 }
