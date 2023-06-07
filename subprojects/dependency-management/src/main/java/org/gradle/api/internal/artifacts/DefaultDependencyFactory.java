@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -110,7 +109,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
 
     @Override
-    @SuppressWarnings({"rawtypes", "deprecation"})
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     public org.gradle.api.artifacts.ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
         org.gradle.api.artifacts.ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
         if (configureClosure != null) {
@@ -124,9 +124,11 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         return projectDependencyFactory.createFromMap(projectFinder, map);
     }
 
-    @SuppressWarnings({"rawtypes", "deprecation"})
+    @Deprecated
+    @SuppressWarnings("rawtypes")
     private void configureModule(org.gradle.api.artifacts.ClientModule clientModule, Closure configureClosure) {
-        ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, this);
+        org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate moduleFactoryDelegate =
+            new org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate(clientModule, this);
         moduleFactoryDelegate.prepareDelegation(configureClosure);
         configureClosure.call();
     }

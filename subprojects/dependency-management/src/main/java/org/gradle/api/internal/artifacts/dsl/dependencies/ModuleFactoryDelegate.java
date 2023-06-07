@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.util.internal.ConfigureUtil;
 
-@SuppressWarnings("deprecation")
+@Deprecated
 public class ModuleFactoryDelegate {
     private final org.gradle.api.artifacts.ClientModule clientModule;
     private final DependencyFactoryInternal dependencyFactory;

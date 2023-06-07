@@ -44,7 +44,7 @@ public interface DependencyFactoryInternal extends DependencyFactory {
 
     Dependency createDependency(Object dependencyNotation);
     DependencyConstraint createDependencyConstraint(Object dependencyNotation);
-    @SuppressWarnings("deprecation")
+    @Deprecated
     org.gradle.api.artifacts.ClientModule createModule(Object dependencyNotation, Closure configureClosure);
     ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
 }
