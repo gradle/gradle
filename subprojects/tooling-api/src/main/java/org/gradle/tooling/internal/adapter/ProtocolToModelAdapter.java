@@ -47,7 +47,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -151,7 +150,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         // Restrict the decorations to those required to decorate all views reachable from this type
         ViewDecoration decorationsForThisType = decoration.isNoOp() ? decoration : decoration.restrictTo(TYPE_INSPECTOR.getReachableTypes(targetType));
 
-        ViewKey viewKey = new ViewKey(viewType, decorationsForThisType, System.identityHashCode(sourceObject));
+        ViewKey viewKey = new ViewKey(viewType, decorationsForThisType);
         Object view = graphDetails.getViewFor(sourceObject, viewKey);
         if (view != null) {
             return targetType.cast(view);
@@ -326,8 +325,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class ViewGraphDetails implements Serializable {
         // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
-        // In fact, Map<SourceObject, HashMap<ViewKey, Proxy>>
-        private transient Map<Object, HashMap<ViewKey, WeakReference<Object>>> views = new WeakHashMap<>();
+        private transient WeakIdentityHashMap<Object, HashMap<ViewKey, WeakReference<Object>>> views = new WeakIdentityHashMap<>();
         private final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
@@ -335,12 +333,13 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         private void putViewFor(Object sourceObject, ViewKey key, Object proxy) {
-            HashMap<ViewKey, WeakReference<Object>> viewsForSource = views.get(sourceObject);
-
-            if (viewsForSource == null) {
-                viewsForSource = new HashMap<>();
-                views.put(sourceObject, viewsForSource);
-            }
+            HashMap<ViewKey, WeakReference<Object>> viewsForSource = views.computeIfAbsent(sourceObject,
+                new WeakIdentityHashMap.AbsentValueProvider<HashMap<ViewKey, WeakReference<Object>>>() {
+                    @Override
+                    public HashMap<ViewKey, WeakReference<Object>> provide() {
+                        return new HashMap<>();
+                    }
+                });
 
             viewsForSource.put(key, new WeakReference<>(proxy));
         }
@@ -362,30 +361,28 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
-            views = new WeakHashMap<>();
+            views = new WeakIdentityHashMap<>();
         }
     }
 
     private static class ViewKey implements Serializable {
         private final Class<?> type;
         private final ViewDecoration viewDecoration;
-        private final int sourceIdentity;
 
-        ViewKey(Class<?> type, ViewDecoration viewDecoration, int sourceIdentity) {
+        ViewKey(Class<?> type, ViewDecoration viewDecoration) {
             this.type = type;
             this.viewDecoration = viewDecoration;
-            this.sourceIdentity = sourceIdentity;
         }
 
         @Override
         public boolean equals(Object obj) {
             ViewKey other = (ViewKey) obj;
-            return other.type.equals(type) && other.sourceIdentity == sourceIdentity && other.viewDecoration.equals(viewDecoration);
+            return other.type.equals(type) && other.viewDecoration.equals(viewDecoration);
         }
 
         @Override
         public int hashCode() {
-            return type.hashCode() ^ sourceIdentity ^ viewDecoration.hashCode();
+            return type.hashCode() ^ viewDecoration.hashCode();
         }
     }
 
@@ -409,7 +406,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             setup();
-            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration, System.identityHashCode(sourceObject)), proxy);
+            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration), proxy);
         }
 
         private void setup() {
@@ -468,7 +465,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         void attachProxy(Object proxy) {
             this.proxy = proxy;
-            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration, System.identityHashCode(sourceObject)), proxy);
+            graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration), proxy);
         }
     }
 
