@@ -21,7 +21,6 @@ import groovy.transform.Canonical
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
