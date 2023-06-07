@@ -22,11 +22,19 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -131,6 +139,37 @@ public class TypeHierarchyRegistry {
         public void visit(int version, int access, String name, String signature, @Nullable String superName, String[] interfaces) {
             typeRegistry.registerSuperType(name, superName);
             typeRegistry.registerInterfaces(name, interfaces);
+        }
+    }
+
+    @NonNullApi
+    public static class TypeHierarchyReaderWriter {
+
+        public static TypeHierarchyRegistry readFromFile(File file) {
+            try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
+                Properties properties = new Properties();
+                properties.load(inputStream);
+                properties.forEach((k, v) -> {
+                    String[] values = ((String) v).split(",");
+                    for (String value : values) {
+                        typeRegistry.registerSuperType((String) k, value);
+                    }
+                });
+                return typeRegistry;
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        public static void writeToFile(TypeHierarchyRegistry registry, File file) {
+            try (OutputStream outputStream = Files.newOutputStream(file.toPath(), StandardOpenOption.CREATE)) {
+                Properties properties = new Properties();
+                registry.directSuperTypes.forEach((k, v) -> properties.setProperty(k, String.join(",", v)));
+                properties.store(outputStream, null);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 }

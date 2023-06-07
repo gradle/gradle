@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.util.internal.GFileUtils;
 
@@ -50,5 +51,10 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
             GFileUtils.copyFile(source, cachedFile);
         }
         return cachedFile;
+    }
+
+    @Override
+    public HashCode getConfigHash() {
+        return HashCode.fromString("0");
     }
 }

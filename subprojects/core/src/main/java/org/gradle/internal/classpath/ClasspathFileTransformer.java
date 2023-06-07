@@ -16,10 +16,13 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
 
 interface ClasspathFileTransformer {
     File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, TypeHierarchyRegistry typeRegistry);
+
+    HashCode getConfigHash();
 }

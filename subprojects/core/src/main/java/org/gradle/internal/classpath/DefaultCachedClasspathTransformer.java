@@ -34,6 +34,8 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
@@ -56,6 +58,8 @@ import static java.util.Optional.empty;
 import static org.gradle.internal.Either.left;
 import static org.gradle.internal.Either.right;
 import static org.gradle.internal.UncheckedException.unchecked;
+import static org.gradle.internal.classpath.TypeHierarchyRegistry.TypeHierarchyReaderWriter.readFromFile;
+import static org.gradle.internal.classpath.TypeHierarchyRegistry.TypeHierarchyReaderWriter.writeToFile;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
 
@@ -93,7 +97,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
         this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
-        this.typeRegistryProvider = new TypeRegistryProvider(parallelTransformExecutor, classpathWalker, this::snapshotOf);
+        this.typeRegistryProvider = new TypeRegistryProvider(cache, parallelTransformExecutor, classpathWalker, this::snapshotOf);
     }
 
     @Override
@@ -174,7 +178,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
         TypeHierarchyRegistry typeRegistry = transformer instanceof InstrumentingClasspathFileTransformer
-            ? typeRegistryProvider.getFor(urls)
+            ? typeRegistryProvider.getFor(urls, transformer.getConfigHash())
             : new TypeHierarchyRegistry();
         return parallelTransformExecutor.transformAll(
             urls,
@@ -184,7 +188,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
         TypeHierarchyRegistry typeRegistry = transformer instanceof InstrumentingClasspathFileTransformer
-            ? typeRegistryProvider.getFor(classPath.getAsFiles())
+            ? typeRegistryProvider.getFor(classPath.getAsFiles(), transformer.getConfigHash())
             : new TypeHierarchyRegistry();
         return DefaultClassPath.of(
             parallelTransformExecutor.transformAll(
@@ -329,40 +333,55 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
         private static final Logger LOGGER = Logging.getLogger(TypeRegistryProvider.class);
 
+        private final PersistentCache cache;
         private final ParallelTransformExecutor parallelExecutor;
         private final ClasspathWalker classpathWalker;
         private final Function<File, FileSystemLocationSnapshot> snapshotFun;
 
-        public TypeRegistryProvider(ParallelTransformExecutor parallelExecutor, ClasspathWalker classpathWalker, Function<File, FileSystemLocationSnapshot> snapshotFun) {
+        public TypeRegistryProvider(PersistentCache cache, ParallelTransformExecutor parallelExecutor, ClasspathWalker classpathWalker,
+                                    Function<File, FileSystemLocationSnapshot> snapshotFun) {
+            this.cache = cache;
             this.parallelExecutor = parallelExecutor;
             this.classpathWalker = classpathWalker;
             this.snapshotFun = snapshotFun;
         }
 
-        public TypeHierarchyRegistry getFor(Collection<URL> urls) {
+        public TypeHierarchyRegistry getFor(Collection<URL> urls, HashCode configHash) {
             List<File> files = urls.stream()
                 .filter(url -> url.getProtocol().equals("file"))
                 .map(Convert::urlToFile)
                 .collect(Collectors.toList());
-            return getFor(files);
+            return getFor(files, configHash);
         }
 
-        public TypeHierarchyRegistry getFor(List<File> files) {
-            List<TypeHierarchyRegistry> typeRegistries = parallelExecutor.transformAll(files, this::visitClassHierarchyForFile);
+        public TypeHierarchyRegistry getFor(List<File> files, HashCode configHash) {
+            List<TypeHierarchyRegistry> typeRegistries = parallelExecutor.transformAll(files, (File source, Set<HashCode> seen) -> visitClassHierarchyForFile(source, seen, configHash));
             return TypeHierarchyRegistry.of(typeRegistries);
         }
 
-        private Optional<Either<TypeHierarchyRegistry, Callable<TypeHierarchyRegistry>>> visitClassHierarchyForFile(File source, Set<HashCode> seen) {
+        private Optional<Either<TypeHierarchyRegistry, Callable<TypeHierarchyRegistry>>> visitClassHierarchyForFile(File source, Set<HashCode> seen, HashCode configHash) {
             FileSystemLocationSnapshot snapshot = snapshotFun.apply(source.getAbsoluteFile());
             if (snapshot.getType() == FileType.Missing || !seen.add(snapshot.getHash())) {
+                // Don't visit missing files or files that have already been visited
                 return Optional.empty();
             }
-            return Optional.of(Either.right(() -> visitClassHierarchyForFile(source)));
+            return Optional.of(Either.right(() -> visitClassHierarchyForFile(source, snapshot, configHash)));
         }
 
-        private TypeHierarchyRegistry visitClassHierarchyForFile(File source) throws IOException {
+        private TypeHierarchyRegistry visitClassHierarchyForFile(File source, FileSystemLocationSnapshot sourceSnapshot, HashCode configHash) throws IOException {
             TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
             InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
+            String destDirName = hashOf(sourceSnapshot, configHash);
+            File destDir = new File(cache.getBaseDir(), destDirName);
+            if (!destDir.exists()) {
+                destDir.mkdirs();
+            }
+            String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
+            File hierachyFile = new File(destDir, destFileName + ".hierarchy");
+            if (hierachyFile.isFile()) {
+                return readFromFile(hierachyFile);
+            }
+
             try {
                 classpathWalker.visit(source, entry -> {
                     if (!policy.includeEntry(entry)) {
@@ -376,7 +395,17 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 // Badly formed archive, so discard the contents and produce an empty registry
                 LOGGER.debug("Malformed archive '{}'. No type hierarchy to discover.", source.getName(), e);
             }
+            writeToFile(typeRegistry, hierachyFile);
             return typeRegistry;
+        }
+
+        // TODO: Reuse this somehow from InstrumentingClasspathFileTransformer
+        private static String hashOf(FileSystemLocationSnapshot sourceSnapshot, HashCode configHash) {
+            Hasher hasher = Hashing.defaultFunction().newHasher();
+            hasher.putHash(configHash);
+            // TODO - apply runtime classpath normalization?
+            hasher.putHash(sourceSnapshot.getHash());
+            return hasher.hash().toString();
         }
     }
 

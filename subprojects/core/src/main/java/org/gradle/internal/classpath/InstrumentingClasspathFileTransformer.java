@@ -161,6 +161,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
     }
 
+    @Override
+    public HashCode getConfigHash() {
+        return configHash;
+    }
+
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
