@@ -16,19 +16,24 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
     private final BuildOperationIdFactory idFactory;
+    private final BiMap<Throwable, OperationIdentifier> seenProblems = HashBiMap.create(10);
 
     public ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, BuildOperationIdFactory idFactory) {
         super(progressEventConsumer);
@@ -40,6 +45,12 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         Object details = progressEvent.getDetails();
         if (details instanceof Problem) {
             Problem problem = (Problem) details;
+            Throwable problemCause = problem.getCause();
+            if(seenProblems.containsKey(problemCause)) {
+                return;
+            }
+            seenProblems.put(problemCause, buildOperationId);
+
             DefaultProblemDescriptor descriptor = new DefaultProblemDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             ProblemLocation where = problem.getWhere();
             DefaultProblemEvent event = new DefaultProblemEvent(
@@ -52,8 +63,15 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 problem.getDocumentationLink(),
                 problem.getDescription(),
                 problem.getSolutions(),
-                problem.getCause());
+                problemCause);
             eventConsumer.progress(event);
         }
     }
+
+    @Override
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
+        seenProblems.inverse().remove(buildOperation.getId());
+        super.finished(buildOperation, result);
+    }
+
 }
