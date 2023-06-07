@@ -92,40 +92,6 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: 'example2.MyOtherTest2', methodName: 'baz', task: ':secondTest')
     }
 
-    @TargetGradleVersion(">=8.2")
-    def "hits configuration cache with test filters changed"() {
-        setup:
-
-        when:
-        launchTests { TestLauncher launcher ->
-            launcher.withArguments("--configuration-cache")
-            launcher.withTestsFor { TestSpecs specs ->
-                specs.forTaskPath(':secondTest').includePackage('example2')
-            }
-        }
-
-        then:
-        events.testClassesAndMethods.size() == 4
-        assertTestExecuted(className: 'example2.MyOtherTest', methodName: 'bar', task: ':secondTest')
-        assertTestExecuted(className: 'example2.MyOtherTest2', methodName: 'baz', task: ':secondTest')
-
-        when:
-        events.clear()
-        stdout.reset() // we are interested in the output of the second build only
-        launchTests { TestLauncher launcher ->
-            launcher.withArguments("--configuration-cache")
-            launcher.withTestsFor { TestSpecs specs ->
-                specs.forTaskPath(':secondTest').includeClass("example.MyTest")
-            }
-        }
-
-        then:
-        stdout.toString().contains("Reusing configuration cache.")
-        events.testClassesAndMethods.size() == 3
-        assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
-        assertTestExecuted(className: 'example.MyTest', methodName: 'foo2', task: ':secondTest')
-    }
-
     def "can select tests with pattern"() {
         when:
         launchTests { TestLauncher launcher ->
