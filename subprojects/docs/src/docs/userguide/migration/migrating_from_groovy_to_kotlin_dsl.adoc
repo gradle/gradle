@@ -133,34 +133,7 @@ While staying valid Groovy, it is now unambiguous and close to the Kotlin syntax
 
 It is important to note that while Groovy extra properties can be modified using an object's `ext` property, in Kotlin they are modified using the `extra` property. It is important to look at each object and update the build scripts accordingly.
 
-For example,
-[.multi-language-sample]
-====
-.build.gradle
-=====
-[source,groovy]
-----
-ext {
-    springVersion = "3.1.0.RELEASE"
-    emailNotification = "build@master.org"
-}
-----
-=====
-====
-
-becomes:
-
-[.multi-language-sample]
-====
-.build.gradle
-=====
-[source,groovy]
-----
-val springVersion by extra("3.1.0.RELEASE")
-val emailNotification by extra { "build@master.org" }
-----
-=====
-====
+You can find an example in the [userguide](https://docs.gradle.org/current/userguide/kotlin_dsl.html#extra_properties)
 
 == Script file naming
 
