@@ -95,7 +95,7 @@ See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/
 
 Client module dependencies were originally intended to allow builds to override incorrect or
 missing component metadata of external dependencies by defining the metadata locally. This
-functionality has since been replaced by <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>
+functionality has since been replaced by <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
 
 Consider the following client module dependency example:
 
@@ -175,10 +175,10 @@ dependencies {
 ======
 =====
 
-While the updated solution may be more verbose, we decided that
-reducing the number of ways to achieve the same result is worth
-the trade-off. In any case, component metadata rules like this
-should live within build-logic and thus should not clutter up
+While the updated solution may be more verbose, 
+reducing the number of ways to achieve the same result is a worthwhile
+trade-off. Moving forward, component metadata rules
+should live within build-logic and should not clutter up
 the buildscript.
 
 [[changes_8.2]]
