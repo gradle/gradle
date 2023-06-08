@@ -17,7 +17,7 @@
 
 package org.gradle.testing.testng
 
-
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestOutcome
 import org.gradle.testing.DryRunFilteringTest
@@ -33,5 +33,42 @@ class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegr
     @Override
     TestOutcome getFailedTestOutcome() {
         return TestOutcome.PASSED
+    }
+
+    def "dry-run property not preserved across invocations"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test {
+              ${configureTestFramework}
+            }
+        """
+
+        file("src/test/java/FailingTest.java") << """
+            ${testFrameworkImports}
+            public class FailingTest {
+                @Test public void failing() {
+                    throw new RuntimeException("Boo!");
+                }
+            }
+        """
+
+        def testResult = new DefaultTestExecutionResult(testDirectory)
+
+        when:
+        succeeds("test", "--test-dry-run")
+
+        then:
+        testResult.testClass("FailingTest").assertTestOutcomes(getFailedTestOutcome(), "failing")
+
+        when:
+        fails("test")
+
+        then:
+        testResult.testClass("FailingTest").assertTestFailedIgnoreMessages("failing")
     }
 }
