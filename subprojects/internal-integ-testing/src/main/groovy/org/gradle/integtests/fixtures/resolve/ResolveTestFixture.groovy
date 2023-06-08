@@ -198,6 +198,9 @@ $END_MARKER
             actualArtifacts = findLines(configDetails, 'incoming-artifact')
             compare("incoming.artifacts", actualArtifacts, expectedArtifacts)
 
+            actualArtifacts = findLines(configDetails, 'incoming-resolved-artifact')
+            compare("incoming.resolvedArtifacts", actualArtifacts, expectedArtifacts)
+
             actualFiles = findLines(configDetails, 'incoming-artifact-file')
             compare("incoming.artifacts.artifactFiles", actualFiles, expectedFiles)
 
@@ -213,6 +216,12 @@ $END_MARKER
             actualArtifacts = findLines(configDetails, 'artifact-view-artifact-artifact')
             compare("artifactView.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
+            actualArtifacts = findLines(configDetails, 'artifact-view-resolved-artifact')
+            compare("artifactView.resolvedArtifacts", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'artifact-view-artifact-file')
+            compare("artifactView.artifacts.artifactFiles", actualFiles, expectedFiles)
+
             actualFiles = findLines(configDetails, 'lenient-artifact-view-file')
             compare("artifactView.files (lenient)", actualFiles, expectedFiles)
 
@@ -224,6 +233,12 @@ $END_MARKER
 
             actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact-artifact')
             compare("artifactView.artifacts.artifacts (lenient)", actualArtifacts, expectedArtifacts)
+
+            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-resolved-artifact')
+            compare("artifactView.resolvedArtifacts (lenient)", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'lenient-artifact-view-artifact-file')
+            compare("artifactView.artifacts.artifactFiles (lenient)", actualFiles, expectedFiles)
         }
     }
 

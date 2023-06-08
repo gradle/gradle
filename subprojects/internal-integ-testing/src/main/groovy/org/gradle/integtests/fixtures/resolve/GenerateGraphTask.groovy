@@ -115,6 +115,9 @@ abstract class GenerateGraphTask extends DefaultTask {
                 incomingArtifacts.each {
                     writeArtifact("incoming-artifact", writer, it)
                 }
+                incomingArtifacts.resolvedArtifacts.get().each {
+                    writeArtifact("incoming-resolved-artifact", writer, it)
+                }
                 incomingArtifacts.artifactFiles.each {
                     writeFile("incoming-artifact-file", writer, it)
                 }
@@ -131,6 +134,12 @@ abstract class GenerateGraphTask extends DefaultTask {
                 artifactViewArtifacts.artifacts.each {
                     writeArtifact("artifact-view-artifact-artifact", writer, it)
                 }
+                artifactViewArtifacts.resolvedArtifacts.get().each {
+                    writeArtifact("artifact-view-resolved-artifact", writer, it)
+                }
+                artifactViewArtifacts.artifactFiles.each {
+                    writeFile("artifact-view-artifact-file", writer, it)
+                }
 
                 lenientArtifactViewFiles.each {
                     writeFile("lenient-artifact-view-file", writer, it)
@@ -143,6 +152,12 @@ abstract class GenerateGraphTask extends DefaultTask {
                 }
                 lenientArtifactViewArtifacts.artifacts.each {
                     writeArtifact("lenient-artifact-view-artifact-artifact", writer, it)
+                }
+                lenientArtifactViewArtifacts.resolvedArtifacts.get().each {
+                    writeArtifact("lenient-artifact-view-resolved-artifact", writer, it)
+                }
+                lenientArtifactViewArtifacts.artifactFiles.each {
+                    writeFile("lenient-artifact-view-artifact-file", writer, it)
                 }
             }
         }
