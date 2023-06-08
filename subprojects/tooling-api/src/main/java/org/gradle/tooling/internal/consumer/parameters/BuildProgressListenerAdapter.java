@@ -118,10 +118,12 @@ import org.gradle.tooling.events.work.internal.DefaultWorkItemOperationDescripto
 import org.gradle.tooling.events.work.internal.DefaultWorkItemStartEvent;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
+import org.gradle.tooling.internal.consumer.DefaultFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
@@ -804,6 +806,19 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private static Failure toFailure(InternalFailure origFailure) {
         if (origFailure instanceof InternalTestAssertionFailure) {
+            if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
+                InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
+                return new DefaultFileComparisonTestAssertionFailure(assertionFailure.getMessage(),
+                    assertionFailure.getDescription(),
+                    assertionFailure.getExpected(),
+                    assertionFailure.getActual(),
+                    toFailures(origFailure.getCauses()),
+                    ((InternalTestAssertionFailure) origFailure).getClassName(),
+                    ((InternalTestAssertionFailure) origFailure).getStacktrace(),
+                    ((InternalFileComparisonTestAssertionFailure) origFailure).getExpectedContent(),
+                    ((InternalFileComparisonTestAssertionFailure) origFailure).getActualContent()
+                );
+            }
             InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
             return new DefaultTestAssertionFailure(
                 assertionFailure.getMessage(),

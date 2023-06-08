@@ -78,6 +78,14 @@ public abstract class TestFailure {
     }
 
     /**
+     * Todo
+     * @since 8.3
+     */
+    public static TestFailure fromFileComparisonFailure(Throwable failure, String expected, String actual, byte[] expectedContent, byte[] actualContent, List<TestFailure> causes) {
+        return DefaultTestFailure.fromFileComparisonTestAssertionFailure(failure, expected, actual, causes, expectedContent, actualContent);
+    }
+
+    /**
      * Creates a new TestFailure instance from a test framework failure.
      *
      * @param failure the failure

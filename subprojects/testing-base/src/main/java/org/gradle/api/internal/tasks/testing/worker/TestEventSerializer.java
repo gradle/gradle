@@ -184,9 +184,27 @@ public class TestEventSerializer {
             for (int i = 0; i < numOfCauses; i++) {
                 causes.add(read(decoder));
             }
+            boolean isFileComparisonFailure = decoder.readBoolean();
 
+            int expectedContentSize = decoder.readInt();
+            byte[] expectedContent;
+            if (expectedContentSize == -1) {
+                expectedContent = null;
+            } else {
+                expectedContent = new byte[expectedContentSize];
+                decoder.readBytes(expectedContent);
+            }
+
+            int actualContentSize = decoder.readInt();
+            byte[] actualContent;
+            if (actualContentSize == -1) {
+                actualContent = null;
+            } else {
+                actualContent = new byte[actualContentSize];
+                decoder.readBytes(actualContent);
+            }
             Throwable rawFailure = readThrowableCatchingFailure(decoder);
-            return new DefaultTestFailure(rawFailure, new DefaultTestFailureDetails(message, className, stacktrace, isAssertionFailure, expected, actual), causes);
+            return new DefaultTestFailure(rawFailure, new DefaultTestFailureDetails(message, className, stacktrace, isAssertionFailure, isFileComparisonFailure, expected, actual, expectedContent, actualContent), causes);
         }
 
         /**
@@ -215,6 +233,21 @@ public class TestEventSerializer {
             encoder.writeSmallInt(value.getCauses().size());
             for (TestFailure cause : value.getCauses()) {
                 write(encoder, (DefaultTestFailure) cause);
+            }
+            encoder.writeBoolean(value.getDetails().isFileComparisonFailure());
+            byte[] expectedContent = value.getDetails().getExpectedContent();
+            if (expectedContent == null) {
+                encoder.writeInt(-1);
+            } else {
+                encoder.writeInt(expectedContent.length);
+                encoder.writeBytes(expectedContent);
+            }
+            byte[] actualContent = value.getDetails().getActualContent();
+            if (actualContent == null) {
+                encoder.writeInt(-1);
+            } else {
+                encoder.writeInt(actualContent.length);
+                encoder.writeBytes(actualContent);
             }
             writeThrowableWithType(encoder, value, value.getRawFailure());
         }

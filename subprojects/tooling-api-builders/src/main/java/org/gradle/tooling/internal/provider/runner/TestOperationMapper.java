@@ -22,6 +22,7 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractTestResult;
+import org.gradle.internal.build.event.types.DefaultFileComparisonTestAssertionFailure;
 import org.gradle.internal.build.event.types.DefaultTestAssertionFailure;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestFailureResult;
@@ -135,15 +136,29 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         List<InternalFailure> result = new ArrayList<>(failures.size());
         for (TestFailure failure : failures) {
             if (failure.getDetails().isAssertionFailure()) {
-                result.add(DefaultTestAssertionFailure.create(
-                    failure.getRawFailure(),
-                    failure.getDetails().getMessage(),
-                    failure.getDetails().getClassName(),
-                    failure.getDetails().getStacktrace(),
-                    failure.getDetails().getExpected(),
-                    failure.getDetails().getActual(),
-                    convertExceptions(failure.getCauses())
-                ));
+                if (failure.getDetails().isFileComparisonFailure()) {
+                    result.add(DefaultFileComparisonTestAssertionFailure.create(
+                        failure.getRawFailure(),
+                        failure.getDetails().getMessage(),
+                        failure.getDetails().getClassName(),
+                        failure.getDetails().getStacktrace(),
+                        failure.getDetails().getExpected(),
+                        failure.getDetails().getActual(),
+                        convertExceptions(failure.getCauses()),
+                        failure.getDetails().getExpectedContent(),
+                        failure.getDetails().getActualContent()
+                    ));
+                } else {
+                    result.add(DefaultTestAssertionFailure.create(
+                        failure.getRawFailure(),
+                        failure.getDetails().getMessage(),
+                        failure.getDetails().getClassName(),
+                        failure.getDetails().getStacktrace(),
+                        failure.getDetails().getExpected(),
+                        failure.getDetails().getActual(),
+                        convertExceptions(failure.getCauses())
+                    ));
+                }
             } else {
                 result.add(DefaultTestFrameworkFailure.create(
                     failure.getRawFailure(),

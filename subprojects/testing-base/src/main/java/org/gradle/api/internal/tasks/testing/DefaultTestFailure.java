@@ -78,14 +78,20 @@ public class DefaultTestFailure extends TestFailure {
     }
 
     public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, List<TestFailure> causes) {
-        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), true, expected, actual);
+        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), true, false, expected, actual, null, null);
+        return new DefaultTestFailure(failure, details, causes == null ? Collections.<TestFailure>emptyList() : causes);
+    }
+
+    public static TestFailure fromFileComparisonTestAssertionFailure(Throwable failure, String expected, String actual, List<TestFailure> causes, byte[] expectedContent, byte[] actualContent) {
+        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), true, true, expected, actual, expectedContent, actualContent);
         return new DefaultTestFailure(failure, details, causes == null ? Collections.<TestFailure>emptyList() : causes);
     }
 
     public static TestFailure fromTestFrameworkFailure(Throwable failure, List<TestFailure> causes) {
-        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), false, null, null);
+        DefaultTestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure), false, false, null, null, null, null);
         return new DefaultTestFailure(failure, details, causes == null ? Collections.<TestFailure>emptyList() : causes);
     }
+
 
     private static String messageOf(Throwable throwable) {
         try {

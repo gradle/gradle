@@ -134,6 +134,28 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         if (failure instanceof AssertionError) {
             List<Throwable> causes = getFailureListFromMultipleFailuresError(failure);
             List<TestFailure> causeFailures = causes == null ? Collections.emptyList() : causes.stream().map(f -> createFailure(f)).collect(Collectors.toList());
+            if (isAssertionFailedErrorOrSubclass(failure.getClass())) {
+                try {
+                    // TODO cleanup reflective calls
+                    Object expectedValueWrapper =  failure.getClass().getMethod("getExpected").invoke(failure);
+                    Object actualValueWrapper =  failure.getClass().getMethod("getActual").invoke(failure);
+
+                    if (expectedValueWrapper.getClass().getName().equals("org.opentest4j.ValueWrapper") && actualValueWrapper.getClass().getName().equals("org.opentest4j.ValueWrapper")) {
+                        Object expectedValue = expectedValueWrapper.getClass().getMethod("getValue").invoke(expectedValueWrapper);
+                        Object actualValue = actualValueWrapper.getClass().getMethod("getValue").invoke(actualValueWrapper);
+                        if (expectedValue.getClass().getName().equals("org.opentest4j.FileInfo") && actualValue.getClass().getName().equals("org.opentest4j.FileInfo")) {
+                            String expectedPath = (String) expectedValue.getClass().getMethod("getPath").invoke(expectedValue);
+                            byte[] expectedContent = (byte[]) expectedValue.getClass().getMethod("getContents").invoke(expectedValue);
+                            String actualPath = (String) actualValue.getClass().getMethod("getPath").invoke(actualValue);
+                            byte[] actualContent = (byte[]) actualValue.getClass().getMethod("getContents").invoke(actualValue);
+                            return TestFailure.fromFileComparisonFailure(failure,  expectedPath, actualPath, expectedContent, actualContent, causeFailures);
+                        }
+                    }
+                } catch (Exception e) {
+                    // do nothing, fall back to generic solution
+                }
+            }
+
             String expected = reflectivelyReadExpected(failure);
             String actual = reflectivelyReadActual(failure);
             return TestFailure.fromTestAssertionFailure(failure, expected, actual, causeFailures);

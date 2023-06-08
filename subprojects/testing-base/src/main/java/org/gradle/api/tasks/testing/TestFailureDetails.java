@@ -59,6 +59,31 @@ public interface TestFailureDetails {
      */
     boolean isAssertionFailure();
 
+    // TODO can we restructure this to a proper type hierarchy?
+
+    /**
+     * Todo.
+     *
+     * @since 8.3
+     */
+    boolean isFileComparisonFailure();
+
+    /**
+     * Todo.
+     *
+     * @since 8.3
+     */
+    @Nullable
+    byte[] getExpectedContent();
+
+    /**
+     * Todo.
+     *
+     * @since 8.3
+     */
+    @Nullable
+    byte[] getActualContent();
+
     /**
      * Returns a string representation of the expected value for an assertion failure.
      * <p>
