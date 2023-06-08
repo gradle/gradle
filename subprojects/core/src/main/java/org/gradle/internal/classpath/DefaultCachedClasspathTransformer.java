@@ -371,7 +371,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         private TypeHierarchyRegistry visitClassHierarchyForFile(File source, FileSystemLocationSnapshot sourceSnapshot, HashCode configHash) throws IOException {
             TypeHierarchyRegistry typeRegistry = new TypeHierarchyRegistry();
             InstrumentingClasspathFileTransformer.Policy policy = InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader();
-            String destDirName = hashOf(sourceSnapshot, configHash);
+            String destDirName = source.toPath().startsWith(cache.getBaseDir().toPath())
+                ? source.getParentFile().getName()
+                : hashOf(sourceSnapshot, configHash);
             File destDir = new File(cache.getBaseDir(), destDirName);
             if (!destDir.exists()) {
                 destDir.mkdirs();
