@@ -1884,30 +1884,30 @@ All Artifacts:
         _ * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
-                instantiator,
-                metaDataProvider,
-                TestFiles.resolver(),
-                TestFiles.taskDependencyFactory(),
+            instantiator,
+            metaDataProvider,
+            TestFiles.resolver(),
+            TestFiles.taskDependencyFactory(),
         )
         def defaultConfigurationFactory = new DefaultConfigurationFactory(
-                DirectInstantiator.INSTANCE,
-                resolver,
-                listenerManager,
-                metaDataProvider,
-                componentIdentifierFactory,
-                dependencyLockingProvider,
-                domainObjectContext,
-                TestFiles.fileCollectionFactory(),
-                new TestBuildOperationExecutor(),
-                publishArtifactNotationParser,
-                immutableAttributesFactory,
-                new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
-                userCodeApplicationContext,
-                projectStateRegistry,
-                Stub(WorkerThreadRegistry),
-                TestUtil.domainObjectCollectionFactory(),
-                calculatedValueContainerFactory,
-                TestFiles.taskDependencyFactory()
+            DirectInstantiator.INSTANCE,
+            resolver,
+            listenerManager,
+            metaDataProvider,
+            componentIdentifierFactory,
+            dependencyLockingProvider,
+            domainObjectContext,
+            TestFiles.fileCollectionFactory(),
+            new TestBuildOperationExecutor(),
+            publishArtifactNotationParser,
+            immutableAttributesFactory,
+            new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
+            userCodeApplicationContext,
+            projectStateRegistry,
+            Stub(WorkerThreadRegistry),
+            TestUtil.domainObjectCollectionFactory(),
+            calculatedValueContainerFactory,
+            TestFiles.taskDependencyFactory()
         )
         defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role, false)
     }
@@ -1922,13 +1922,13 @@ All Artifacts:
 
     private DefaultPublishArtifact artifact(Map props = [:]) {
         new DefaultPublishArtifact(
-                props.name ?: "artifact",
-                props.extension ?: "artifact",
-                props.type,
-                props.classifier,
-                props.date,
-                props.file,
-                props.tasks ?: []
+            props.name ?: "artifact",
+            props.extension ?: "artifact",
+            props.type,
+            props.classifier,
+            props.date,
+            props.file,
+            props.tasks ?: []
         )
     }
 
