@@ -108,6 +108,9 @@ Consider the following client module dependency example:
 dependencies {
     implementation(module("org:foo:1.0") {
         dependency("org:bar:1.0")
+        module("org:baz:1.0") {
+            dependency("com:example:1.0")
+        }
     })
 }
 ----
@@ -120,6 +123,9 @@ dependencies {
 dependencies {
     implementation module("org:foo:1.0") {
         dependency "org:bar:1.0"
+        module("org:baz:1.0") {
+            dependency "com:example:1.0"
+        }
     }
 }
 ----
@@ -131,19 +137,37 @@ This can be replaced with the following component metadata rule:
 =====
 [.multi-language-sample]
 ======
+.build-logic/src/main/kotlin/my-plugin.gradle.kts
+[source,kotlin]
+----
+@CacheableRule
+abstract class AddDependenciesRule @Inject constructor(val dependencies: List<String>) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        listOf("compile", "runtime").forEach { base ->
+            context.details.withVariant(base) {
+                withDependencies {
+                    dependencies.forEach {
+                        add(it)
+                    }
+                }
+            }
+        }
+    }
+}
+----
 .build.gradle.kts
 [source,kotlin]
 ----
 dependencies {
     components {
-        withModule("org:foo") {
-            listOf("compile", "runtime").forEach { base ->
-                withVariant(base) {
-                    withDependencies {
-                        add("org:bar:1.0")
-                    }
-                }
-            }
+        withModule<AddDependenciesRule>("org:foo") {
+            params(listOf(
+                "org:bar:1.0",
+                "org:baz:1.0"
+            ))
+        }
+        withModule<AddDependenciesRule>("org:baz") {
+            params(listOf("com:example:1.0"))
         }
     }
 
@@ -153,19 +177,46 @@ dependencies {
 ======
 [.multi-language-sample]
 ======
+.build-logic/src/main/groovy/my-plugin.gradle
+[source,groovy]
+----
+@CacheableRule
+abstract class AddDependenciesRule implements ComponentMetadataRule {
+
+    List<String> dependencies
+
+    @Inject
+    AddDependenciesRule(List<String> dependencies) {
+        this.dependencies = dependencies
+    }
+
+    @Override
+    void execute(ComponentMetadataContext context) {
+        ["compile", "runtime"].each { base ->
+            context.details.withVariant(base) {
+                withDependencies {
+                    dependencies.each {
+                        add(it)
+                    }
+                }
+            }
+        }
+    }
+}
+----
 .build.gradle
 [source,groovy]
 ----
 dependencies {
     components {
-        withModule("org:foo") {
-            ["compile", "runtime"].each { base ->
-                withVariant(base) {
-                    withDependencies {
-                        add("org:bar:1.0")
-                    }
-                }
-            }
+        withModule("org:foo", AddDependenciesRule) {
+            params([
+                "org:bar:1.0",
+                "org:baz:1.0"
+            ])
+        }
+        withModule("org:baz", AddDependenciesRule) {
+            params(["com:example:1.0"])
         }
     }
 
@@ -174,12 +225,6 @@ dependencies {
 ----
 ======
 =====
-
-While the updated solution may be more verbose, 
-reducing the number of ways to achieve the same result is a worthwhile
-trade-off. Moving forward, component metadata rules
-should live within build-logic and should not clutter up
-the buildscript.
 
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
