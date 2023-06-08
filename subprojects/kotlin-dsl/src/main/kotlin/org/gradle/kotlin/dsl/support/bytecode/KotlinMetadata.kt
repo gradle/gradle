@@ -20,15 +20,17 @@ package org.gradle.kotlin.dsl.support.bytecode
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
+import kotlinx.metadata.KmClassifier
 import kotlinx.metadata.KmFunction
-import kotlinx.metadata.KmFunctionVisitor
 import kotlinx.metadata.KmPackage
 import kotlinx.metadata.KmProperty
 import kotlinx.metadata.KmType
+import kotlinx.metadata.KmTypeParameter
+import kotlinx.metadata.KmTypeProjection
 import kotlinx.metadata.KmTypeVisitor
+import kotlinx.metadata.KmValueParameter
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
-import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
@@ -144,109 +146,98 @@ fun ClassWriter.visitKotlinMetadataAnnotation(metadata: Metadata) {
 
 
 internal
-inline fun newFunctionOf(
-    receiverType: KmTypeBuilder,
-    nullableReturnType: KmTypeBuilder,
+fun newValueParameterOf(
     name: String,
-    parameterName: String,
-    parameterType: KmTypeBuilder,
-    signature: JvmMethodSignature,
-    functionFlags: Flags = publicFunctionFlags
-): KmFunction = newFunctionOf(
-    receiverType,
-    nullableReturnType,
-    name,
-    signature = signature,
-    parameters = { visitParameter(parameterName, parameterType) },
-    returnTypeFlags = flagsOf(Flag.Type.IS_NULLABLE),
-    functionFlags = functionFlags
-)
-
-
-internal
-fun KmFunctionVisitor.visitOptionalParameter(parameterName: String, parameterType: KmTypeBuilder) {
-    visitParameter(
-        parameterName,
-        parameterType,
-        parameterFlags = flagsOf(Flag.ValueParameter.DECLARES_DEFAULT_VALUE),
-        parameterTypeFlags = flagsOf(Flag.Type.IS_NULLABLE)
-    )
+    type: KmType,
+    flags: Flags = 0
+): KmValueParameter {
+    val kmValueParameter = KmValueParameter(flags, name)
+    kmValueParameter.type = type
+    return kmValueParameter
 }
 
 
 internal
-inline fun KmFunctionVisitor.visitParameter(
-    parameterName: String,
-    parameterType: KmTypeBuilder,
-    parameterFlags: Flags = 0,
-    parameterTypeFlags: Flags = 0
-) {
-    visitValueParameter(parameterFlags, parameterName)!!.run {
-        visitType(parameterTypeFlags).with(parameterType)
-        visitEnd()
-    }
+fun newOptionalValueParameterOf(
+    name: String,
+    type: KmType
+): KmValueParameter =
+    newValueParameterOf(name, nullable(type), flagsOf(Flag.ValueParameter.DECLARES_DEFAULT_VALUE))
+
+
+internal
+fun newTypeParameterOf(
+    flags: Flags = 0,
+    name: String,
+    id: Int = 0,
+    variance: KmVariance,
+    upperBound: KmType,
+): KmTypeParameter {
+    val kmTypeParameter = KmTypeParameter(flags, name, id, variance)
+    kmTypeParameter.upperBounds += upperBound
+    return kmTypeParameter
 }
 
 
 internal
-inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
-    receiverType: KmTypeBuilder,
-    returnType: KmTypeBuilder,
+fun newTypeOf(builder: KmTypeBuilder) = KmType(0).with(builder)
+
+
+internal
+fun nullable(kmType: KmType): KmType = kmType.also { it.flags = flagsOf(Flag.Type.IS_NULLABLE) }
+
+
+internal
+fun newClassTypeOf(
     name: String,
-    parameters: KmFunctionVisitor.() -> Unit,
-    signature: JvmMethodSignature,
-    returnTypeFlags: Flags = 0,
-    functionFlags: Flags = publicFunctionFlags
-) {
-    visitFunction(functionFlags, name)!!.run {
-        visitReceiverParameterType(0).with(receiverType)
-        parameters()
-        visitReturnType(returnTypeFlags).with(returnType)
-        visitSignature(signature)
-        visitEnd()
-    }
+    vararg arguments: KmTypeProjection
+): KmType {
+    val kmType = KmType(0)
+    kmType.classifier = KmClassifier.Class(name)
+    kmType.arguments.addAll(arguments)
+    return kmType
 }
 
 
 internal
-inline fun newFunctionOf(
-    receiverType: KmTypeBuilder,
-    returnType: KmTypeBuilder,
+fun newTypeParameterTypeOf(id: Int): KmType {
+    val kmType = KmType(0)
+    kmType.classifier = KmClassifier.TypeParameter(id)
+    return kmType
+}
+
+
+internal
+fun newFunctionOf(
+    flags: Flags = publicFunctionFlags,
+    receiverType: KmType,
+    returnType: KmType,
     name: String,
-    parameters: KmFunctionVisitor.() -> Unit,
-    signature: JvmMethodSignature,
-    returnTypeFlags: Flags = 0,
-    functionFlags: Flags = publicFunctionFlags
+    valueParameters: Iterable<KmValueParameter> = listOf(),
+    typeParameters: Iterable<KmTypeParameter> = listOf(),
+    signature: JvmMethodSignature
 ): KmFunction {
-    val kmFunction = KmFunction(functionFlags, name)
-    kmFunction.receiverParameterType = KmType(0).with(receiverType)
-    kmFunction.parameters()
-    kmFunction.returnType = KmType(returnTypeFlags).with(returnType)
+    val kmFunction = KmFunction(flags, name)
+    kmFunction.receiverParameterType = receiverType
+    kmFunction.valueParameters.addAll(valueParameters)
+    kmFunction.typeParameters.addAll(typeParameters)
+    kmFunction.returnType = returnType
     kmFunction.signature = signature
     return kmFunction
 }
 
 
 internal
-fun KmFunctionVisitor.visitSignature(genericOverload: JvmMethodSignature) {
-    (visitExtensions(JvmFunctionExtensionVisitor.TYPE) as JvmFunctionExtensionVisitor).run {
-        visit(genericOverload)
-        visitEnd()
-    }
-}
-
-
-internal
 fun newPropertyOf(
-    receiverType: KmTypeBuilder,
-    returnType: KmTypeBuilder,
-    propertyName: String,
-    getterSignature: JvmMethodSignature,
-    getterFlags: Flags = inlineGetterFlags
+    name: String,
+    getterFlags: Flags = inlineGetterFlags,
+    receiverType: KmType,
+    returnType: KmType,
+    getterSignature: JvmMethodSignature
 ): KmProperty {
-    val kmProperty = KmProperty(readOnlyPropertyFlags, propertyName, getterFlags, 6)
-    kmProperty.receiverParameterType = KmType(0).with(receiverType)
-    kmProperty.returnType = KmType(0).with(returnType)
+    val kmProperty = KmProperty(readOnlyPropertyFlags, name, getterFlags, 6)
+    kmProperty.receiverParameterType = receiverType
+    kmProperty.returnType = returnType
     kmProperty.getterSignature = getterSignature
     kmProperty.syntheticMethodForAnnotations = null
     return kmProperty
@@ -264,12 +255,9 @@ inline fun <T : KmTypeVisitor?> T.with(builder: KmTypeBuilder): T {
 
 
 internal
-fun genericTypeOf(genericType: KmTypeBuilder, genericArgument: KmTypeBuilder): KmTypeBuilder = {
-    genericType()
-    visitArgument(0, KmVariance.INVARIANT)!!.run {
-        genericArgument()
-        visitEnd()
-    }
+fun genericTypeOf(genericType: KmType, genericArgument: KmType): KmType {
+    genericType.arguments += KmTypeProjection(KmVariance.INVARIANT, genericArgument)
+    return genericType
 }
 
 
@@ -286,24 +274,18 @@ fun genericTypeOf(genericType: KmTypeBuilder, genericArguments: Iterable<KmTypeB
 
 
 internal
-fun actionTypeOf(parameterType: KmTypeBuilder): KmTypeBuilder = {
-    visitClass("org/gradle/api/Action")
-    visitArgument(0, KmVariance.INVARIANT).with(parameterType)
-}
+fun actionTypeOf(type: KmType): KmType =
+    newClassTypeOf("org/gradle/api/Action", KmTypeProjection(KmVariance.INVARIANT, type))
 
 
 internal
-fun providerOfStar(): KmTypeBuilder = {
-    visitClass("org/gradle/api/provider/Provider")
-    visitStarProjection()
-}
+fun providerOfStar(): KmType =
+    newClassTypeOf("org/gradle/api/provider/Provider", KmTypeProjection.STAR)
 
 
 internal
-fun providerConvertibleOfStar(): KmTypeBuilder = {
-    visitClass("org/gradle/api/provider/ProviderConvertible")
-    visitStarProjection()
-}
+fun providerConvertibleOfStar(): KmType =
+    newClassTypeOf("org/gradle/api/provider/ProviderConvertible", KmTypeProjection.STAR)
 
 
 internal

@@ -159,11 +159,11 @@ fun IO.buildVersionCatalogAccessorsFor(
                 desc = "(L${buildscriptExtension.receiverType.internalName};)L${buildscriptExtension.returnType.internalName};"
             )
             this.properties += newPropertyOf(
-                receiverType = buildscriptExtension.receiverType.builder,
-                returnType = buildscriptExtension.returnType.builder,
-                propertyName = buildscriptExtension.name,
-                getterSignature = buildscriptGetterSignature,
-                getterFlags = nonInlineGetterFlags
+                name = buildscriptExtension.name,
+                getterFlags = nonInlineGetterFlags,
+                receiverType = buildscriptExtension.receiverType.kmType,
+                returnType = buildscriptExtension.returnType.kmType,
+                getterSignature = buildscriptGetterSignature
             )
             buildscriptProperties.add(catalog to buildscriptGetterSignature)
 
@@ -173,11 +173,11 @@ fun IO.buildVersionCatalogAccessorsFor(
                 desc = "(L${pluginsExtension.receiverType.internalName};)L${pluginsExtension.returnType.internalName};"
             )
             this.properties += newPropertyOf(
-                receiverType = pluginsExtension.receiverType.builder,
-                returnType = pluginsExtension.returnType.builder,
-                propertyName = pluginsExtension.name,
-                getterSignature = pluginsGetterSignature,
-                getterFlags = nonInlineGetterFlags
+                name = pluginsExtension.name,
+                getterFlags = nonInlineGetterFlags,
+                receiverType = pluginsExtension.receiverType.kmType,
+                returnType = pluginsExtension.returnType.kmType,
+                getterSignature = pluginsGetterSignature
             )
             pluginsProperties.add(catalog to pluginsGetterSignature)
         }

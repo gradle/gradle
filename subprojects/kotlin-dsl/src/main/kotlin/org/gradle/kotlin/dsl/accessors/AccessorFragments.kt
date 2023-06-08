@@ -18,6 +18,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.KmType
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.reflect.TypeOf
@@ -38,17 +39,20 @@ import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
+import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.newFunctionOf
+import org.gradle.kotlin.dsl.support.bytecode.newOptionalValueParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.providerConvertibleOfStar
-import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
-import org.gradle.kotlin.dsl.support.bytecode.visitOptionalParameter
-import org.gradle.kotlin.dsl.support.bytecode.visitParameter
-import org.gradle.kotlin.dsl.support.bytecode.with
 import org.gradle.kotlin.dsl.support.bytecode.newPropertyOf
+import org.gradle.kotlin.dsl.support.bytecode.newTypeOf
+import org.gradle.kotlin.dsl.support.bytecode.newTypeParameterOf
+import org.gradle.kotlin.dsl.support.bytecode.newValueParameterOf
+import org.gradle.kotlin.dsl.support.bytecode.nullable
+import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
@@ -100,12 +104,13 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionFlags = functionFlags,
+                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
-                    nullableReturnType = GradleType.dependency,
+                    returnType = nullable(GradleType.dependency),
                     name = signature.name,
-                    parameterName = "dependencyNotation",
-                    parameterType = KotlinType.any,
+                    valueParameters = listOf(
+                        newValueParameterOf("dependencyNotation", KotlinType.any),
+                    ),
                     signature = signature
                 )
             },
@@ -150,14 +155,14 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionFlags = functionFlags,
+                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
-                    parameters = {
-                        visitParameter("dependencyNotation", KotlinType.string)
-                        visitParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
-                    },
+                    valueParameters = listOf(
+                        newValueParameterOf("dependencyNotation", KotlinType.string),
+                        newValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
+                    ),
                     signature = signature
                 )
             },
@@ -201,14 +206,14 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionFlags = functionFlags,
+                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.unit,
                     name = propertyName,
-                    parameters = {
-                        visitParameter("dependencyNotation", providerOfStar())
-                        visitParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
-                    },
+                    valueParameters = listOf(
+                        newValueParameterOf("dependencyNotation", providerOfStar()),
+                        newValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
+                    ),
                     signature = signature
                 )
             },
@@ -252,14 +257,14 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionFlags = functionFlags,
+                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.unit,
                     name = propertyName,
-                    parameters = {
-                        visitParameter("dependencyNotation", providerConvertibleOfStar())
-                        visitParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
-                    },
+                    valueParameters = listOf(
+                        newValueParameterOf("dependencyNotation", providerConvertibleOfStar()),
+                        newValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
+                    ),
                     signature = signature
                 )
             },
@@ -340,19 +345,19 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionFlags = functionFlags,
+                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
-                    parameters = {
-                        visitParameter("group", KotlinType.string)
-                        visitParameter("name", KotlinType.string)
-                        visitOptionalParameter("version", KotlinType.string)
-                        visitOptionalParameter("configuration", KotlinType.string)
-                        visitOptionalParameter("classifier", KotlinType.string)
-                        visitOptionalParameter("ext", KotlinType.string)
-                        visitOptionalParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
-                    },
+                    valueParameters = listOf(
+                        newValueParameterOf("group", KotlinType.string),
+                        newValueParameterOf("name", KotlinType.string),
+                        newOptionalValueParameterOf("version", KotlinType.string),
+                        newOptionalValueParameterOf("configuration", KotlinType.string),
+                        newOptionalValueParameterOf("classifier", KotlinType.string),
+                        newOptionalValueParameterOf("ext", KotlinType.string),
+                        newOptionalValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency)),
+                    ),
                     signature = signature
                 )
             },
@@ -393,18 +398,17 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionFlags = functionFlags,
+                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.typeParameter,
                     name = propertyName,
-                    parameters = {
-                        visitParameter("dependency", KotlinType.typeParameter)
-                        visitParameter("action", actionTypeOf(KotlinType.typeParameter))
-                        visitTypeParameter(0, "T", 0, KmVariance.INVARIANT)!!.run {
-                            visitUpperBound(0).with(GradleType.dependency)
-                            visitEnd()
-                        }
-                    },
+                    valueParameters = listOf(
+                        newValueParameterOf("dependency", KotlinType.typeParameter),
+                        newValueParameterOf("action", actionTypeOf(KotlinType.typeParameter))
+                    ),
+                    typeParameters = listOf(
+                        newTypeParameterOf(name = "T", variance = KmVariance.INVARIANT, upperBound = GradleType.dependency)
+                    ),
                     signature = signature
                 )
             },
@@ -444,12 +448,13 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionFlags = functionFlags,
+                    flags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
-                    nullableReturnType = GradleType.dependencyConstraint,
+                    returnType = nullable(GradleType.dependencyConstraint),
                     name = propertyName,
-                    parameterName = "constraintNotation",
-                    parameterType = KotlinType.any,
+                    valueParameters = listOf(
+                        newValueParameterOf("constraintNotation", KotlinType.any),
+                    ),
                     signature = signature
                 )
             },
@@ -487,14 +492,14 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    functionFlags = functionFlags,
+                    flags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
-                    parameters = {
-                        visitParameter("constraintNotation", KotlinType.any)
-                        visitParameter("block", actionTypeOf(GradleType.dependencyConstraint))
-                    },
+                    valueParameters = listOf(
+                        newValueParameterOf("constraintNotation", KotlinType.any),
+                        newValueParameterOf("block", actionTypeOf(GradleType.dependencyConstraint))
+                    ),
                     signature = signature
                 )
             },
@@ -532,10 +537,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     receiverType = GradleType.artifactHandler,
                     returnType = GradleType.publishArtifact,
                     name = propertyName,
-                    functionFlags = publicFunctionFlags,
-                    parameters = {
-                        visitParameter("artifactNotation", KotlinType.any)
-                    },
+                    valueParameters = listOf(
+                        newValueParameterOf("artifactNotation", KotlinType.any),
+                    ),
                     signature = signature
                 )
             },
@@ -578,11 +582,10 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     receiverType = GradleType.artifactHandler,
                     returnType = GradleType.publishArtifact,
                     name = propertyName,
-                    functionFlags = publicFunctionFlags,
-                    parameters = {
-                        visitParameter("artifactNotation", KotlinType.any)
-                        visitParameter("configureAction", actionTypeOf(GradleType.configurablePublishArtifact))
-                    },
+                    valueParameters = listOf(
+                        newValueParameterOf("artifactNotation", KotlinType.any),
+                        newValueParameterOf("configureAction", actionTypeOf(GradleType.configurablePublishArtifact))
+                    ),
                     signature = signature
                 )
             },
@@ -655,9 +658,9 @@ fun fragmentsForContainerElementOf(
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
-                    receiverType = receiverType,
-                    returnType = genericTypeOf(classOf(providerType), kotlinReturnType),
-                    propertyName = propertyName,
+                    name = propertyName,
+                    receiverType = newTypeOf(receiverType),
+                    returnType = genericTypeOf(classOf(providerType), newTypeOf(kotlinReturnType)),
                     getterSignature = signature
                 )
             },
@@ -704,9 +707,9 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
-                    receiverType = receiverType,
-                    returnType = kotlinExtensionType,
-                    propertyName = propertyName,
+                    name = propertyName,
+                    receiverType = newTypeOf(receiverType),
+                    returnType = newTypeOf(kotlinExtensionType),
                     getterSignature = signature
                 )
             }
@@ -739,15 +742,12 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    receiverType = receiverType,
+                    receiverType = newTypeOf(receiverType),
                     returnType = KotlinType.unit,
-                    parameters = {
-                        visitParameter(
-                            "configure",
-                            actionTypeOf(kotlinExtensionType)
-                        )
-                    },
                     name = propertyName,
+                    valueParameters = listOf(
+                        newValueParameterOf("configure", actionTypeOf(newTypeOf(kotlinExtensionType)))
+                    ),
                     signature = signature
                 )
             }
@@ -783,9 +783,9 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
-                    receiverType = receiverType,
-                    returnType = kotlinConventionType,
-                    propertyName = propertyName,
+                    name = propertyName,
+                    receiverType = newTypeOf(receiverType),
+                    returnType = newTypeOf(kotlinConventionType),
                     getterSignature = signature
                 )
             }
@@ -803,12 +803,12 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    receiverType = receiverType,
+                    receiverType = newTypeOf(receiverType),
                     returnType = KotlinType.unit,
-                    parameters = {
-                        visitParameter("configure", actionTypeOf(kotlinConventionType))
-                    },
                     name = propertyName,
+                    valueParameters = listOf(
+                        newValueParameterOf("configure", actionTypeOf(newTypeOf(kotlinConventionType)))
+                    ),
                     signature = signature
                 )
             },
@@ -865,7 +865,7 @@ fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAcces
 private
 fun accessibleTypesFor(typeAccessibility: TypeAccessibility): Pair<KmTypeBuilder, InternalName> = when (typeAccessibility) {
     is TypeAccessibility.Accessible -> typeAccessibility.run { type.builder to internalName() }
-    is TypeAccessibility.Inaccessible -> KotlinType.any to InternalNameOf.javaLangObject
+    is TypeAccessibility.Inaccessible -> KotlinType.any_ to InternalNameOf.javaLangObject
 }
 
 
@@ -878,17 +878,22 @@ private
 val TypeOf<*>.builder: KmTypeBuilder
     get() = when {
         isParameterized -> genericTypeOf(
-            classOf(parameterizedTypeDefinition.concreteClass),
+            classOf_(parameterizedTypeDefinition.concreteClass),
             actualTypeArguments.map { it.builder }
         )
-        isWildcard -> (upperBound ?: lowerBound)?.builder ?: KotlinType.any
-        else -> classOf(concreteClass)
+        isWildcard -> (upperBound ?: lowerBound)?.builder ?: KotlinType.any_
+        else -> classOf_(concreteClass)
     }
 
 
 internal
-inline fun <reified T> classOf(): KmTypeBuilder =
+inline fun <reified T> classOf(): KmType =
     classOf(T::class.java)
+
+
+private
+fun classOf_(`class`: Class<*>) =
+    classOf_(`class`.internalName) // todo: remove
 
 
 private
@@ -897,10 +902,15 @@ fun classOf(`class`: Class<*>) =
 
 
 private
-fun classOf(className: InternalName): KmTypeBuilder =
+fun classOf_(className: InternalName): KmTypeBuilder =
     kotlinNameOf(className).let { kotlinName ->
         { visitClass(kotlinName) }
-    }
+    } // todo: remove
+
+
+private
+fun classOf(className: InternalName): KmType =
+    newClassTypeOf(kotlinNameOf(className))
 
 
 private

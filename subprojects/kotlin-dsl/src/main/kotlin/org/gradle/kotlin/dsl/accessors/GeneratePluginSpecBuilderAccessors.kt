@@ -187,11 +187,11 @@ fun IO.buildPluginDependencySpecAccessorsFor(
             val returnType = extensionSpec.returnType
             val getterSignature = jvmGetterSignatureFor(propertyName, "(L${receiverType.internalName};)L${returnType.internalName};")
             this.properties += newPropertyOf(
-                receiverType = receiverType.builder,
-                returnType = returnType.builder,
-                propertyName = propertyName,
-                getterSignature = getterSignature,
-                getterFlags = nonInlineGetterFlags
+                name = propertyName,
+                getterFlags = nonInlineGetterFlags,
+                receiverType = receiverType.kmType,
+                returnType = returnType.kmType,
+                getterSignature = getterSignature
             )
             properties.add(accessor to getterSignature)
         }
