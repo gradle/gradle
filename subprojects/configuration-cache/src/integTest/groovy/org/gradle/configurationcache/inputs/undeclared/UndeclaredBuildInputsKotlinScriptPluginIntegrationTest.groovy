@@ -15,7 +15,9 @@
  */
 
 package org.gradle.configurationcache.inputs.undeclared
+import com.gradle.enterprise.testing.annotations.LocalOnly
 
+@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3821")
 class UndeclaredBuildInputsKotlinScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     def script = file("plugin.gradle.kts")
 

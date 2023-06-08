@@ -17,7 +17,9 @@
 package org.gradle.configurationcache.inputs.undeclared
 
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
+import com.gradle.enterprise.testing.annotations.LocalOnly
 
+@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3821")
 class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     String getLocation() {
