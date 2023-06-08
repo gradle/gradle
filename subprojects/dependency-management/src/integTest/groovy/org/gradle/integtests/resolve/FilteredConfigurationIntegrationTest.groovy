@@ -70,17 +70,9 @@ task verify {
         println "file-dependencies: " + configurations.compile.files { it instanceof FileCollectionDependency }.collect { it.name }
         println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
         println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
-            }
-}
 
-task verifyViaResolvedConfiguration {
-    doLast {
-        println "file-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof FileCollectionDependency }.collect { it.name }
-        println "file-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof FileCollectionDependency }.collect { it.file.name }
-        println "child1-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
-        println "child1-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.file.name }
-        println "external-dependencies resolved-config: " + configurations.compile.resolvedConfiguration.getFiles { it instanceof ExternalDependency }.collect { it.name }
-        println "external-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ExternalDependency }.collect { it.file.name }
+        configurations.compile.resolvedConfiguration.files == configurations.compile.files
+        configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == configurations.compile.files
     }
 }
 """
@@ -92,17 +84,6 @@ task verifyViaResolvedConfiguration {
         outputContains("file-dependencies: [lib.jar]")
         outputContains("external-dependencies: [test1-1.0.jar]")
         outputContains("child1-dependencies: [child1.jar, child1-lib.jar, test2-1.0.jar]")
-
-        when:
-        run "verifyViaResolvedConfiguration"
-
-        then:
-        outputContains("file-dependencies resolved-config: [lib.jar]")
-        outputContains("file-dependencies artifacts: []")
-        outputContains("child1-dependencies resolved-config: [child1.jar, child1-lib.jar, test2-1.0.jar]")
-        outputContains("child1-dependencies artifacts: [child1.jar, test2-1.0.jar]")
-        outputContains("external-dependencies resolved-config: [test1-1.0.jar]")
-        outputContains("external-dependencies artifacts: [test1-1.0.jar]")
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -147,14 +128,9 @@ task verify {
     doLast {
         println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
         println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
-    }
-}
 
-task verifyViaResolvedConfiguration {
-    doLast {
-        println "external-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ExternalDependency }.collect { it.file.name }
-        println "child1-dependencies artifacts: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getArtifacts { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.file.name }
-     }
+        configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == configurations.compile.files
+    }
 }
 """
 
@@ -164,13 +140,6 @@ task verifyViaResolvedConfiguration {
         then:
         outputContains("external-dependencies: [test1-1.0.jar]")
         outputContains("child1-dependencies: [child1.jar, child1-lib.jar, test2-1.0.jar, main.jar, lib.jar, test1-1.0.jar]")
-
-        when:
-        run "verifyViaResolvedConfiguration"
-
-        then:
-        outputContains("external-dependencies artifacts: [test1-1.0.jar]")
-        outputContains("child1-dependencies artifacts: [child1.jar, test2-1.0.jar, main.jar, test1-1.0.jar]")
     }
 
     // Note: this captures existing behaviour (all files are built) rather than desired behaviour (only those files reachable from selected deps are built)
