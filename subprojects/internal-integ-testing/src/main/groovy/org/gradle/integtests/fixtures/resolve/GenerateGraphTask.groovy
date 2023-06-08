@@ -45,8 +45,8 @@ import org.gradle.util.Path
  *
  * This task intentionally does <strong>NOT</strong> test the {@link org.gradle.api.artifacts.ResolvedConfiguration ResolvedConfiguration} API,
  * which ought to be considered legacy and deprecated for internal use.  That type's behavior will be verified elsewhere.
- * This is meant to be Configuration Cache compatible, so it does not test the {@link org.gradle.api.artifacts.result.ResolutionResult ResolutionResult} API
- * yet - when that type is made CC compatible, this task should be updated to test it as well.
+ * This is meant to be Configuration Cache compatible, so it does not store and test the {@link org.gradle.api.artifacts.result.ResolutionResult ResolutionResult}
+ * directly, but stores the root node of the graph and walks it to compare the components and dependencies instead.
  */
 abstract class GenerateGraphTask extends DefaultTask {
     @Internal
