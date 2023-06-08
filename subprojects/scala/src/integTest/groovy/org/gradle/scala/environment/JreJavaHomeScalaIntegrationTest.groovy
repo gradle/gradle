@@ -55,7 +55,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
                     """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run()
+        executer.withJavaHome(jreJavaHome.absolutePath).withTasks("compileScala").run()
 
         then:
         scalaClassFile("org/test/JavaClazz.class").exists()
