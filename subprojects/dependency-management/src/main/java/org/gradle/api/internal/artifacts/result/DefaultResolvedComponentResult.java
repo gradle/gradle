@@ -155,7 +155,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     /**
      * A recursive function that traverses the dependency graph of a given module and acts on each node and edge encountered.
      *
-     * @param start A ResolvedComponentResult node, which represents the root of the dependency graph to be traversed
+     * @param start A ResolvedComponentResult node, which represents the entry point into the sub-section of the dependency
+     * graph to be traversed
      * @param moduleAction an action to be performed on each node (module) in the graph
      * @param dependencyAction an action to be performed on each edge (dependency) in the graph
      * @param visited tracks the visited nodes during the recursive traversal
