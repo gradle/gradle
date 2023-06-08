@@ -50,13 +50,13 @@ import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
-import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
 import org.gradle.kotlin.dsl.support.useToRun
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.BufferedWriter
 import java.io.File
 import kotlin.reflect.KClass
 import kotlinx.metadata.jvm.JvmMethodSignature
+import org.gradle.kotlin.dsl.support.bytecode.newPropertyOf
 
 
 internal
@@ -158,7 +158,7 @@ fun IO.buildVersionCatalogAccessorsFor(
                 propertyName = buildscriptExtension.name,
                 desc = "(L${buildscriptExtension.receiverType.internalName};)L${buildscriptExtension.returnType.internalName};"
             )
-            writePropertyOf(
+            this.properties += newPropertyOf(
                 receiverType = buildscriptExtension.receiverType.builder,
                 returnType = buildscriptExtension.returnType.builder,
                 propertyName = buildscriptExtension.name,
@@ -172,7 +172,7 @@ fun IO.buildVersionCatalogAccessorsFor(
                 propertyName = pluginsExtension.name,
                 desc = "(L${pluginsExtension.receiverType.internalName};)L${pluginsExtension.returnType.internalName};"
             )
-            writePropertyOf(
+            this.properties += newPropertyOf(
                 receiverType = pluginsExtension.receiverType.builder,
                 returnType = pluginsExtension.returnType.builder,
                 propertyName = pluginsExtension.name,

@@ -52,12 +52,12 @@ import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
+import org.gradle.kotlin.dsl.support.bytecode.newPropertyOf
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
-import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -186,7 +186,7 @@ fun IO.buildPluginDependencySpecAccessorsFor(
             val receiverType = extensionSpec.receiverType
             val returnType = extensionSpec.returnType
             val getterSignature = jvmGetterSignatureFor(propertyName, "(L${receiverType.internalName};)L${returnType.internalName};")
-            writePropertyOf(
+            this.properties += newPropertyOf(
                 receiverType = receiverType.builder,
                 returnType = returnType.builder,
                 propertyName = propertyName,

@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
-import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader_
+import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
-import org.gradle.kotlin.dsl.support.bytecode.closeHeader_
+import org.gradle.kotlin.dsl.support.bytecode.closeHeader
 import org.gradle.kotlin.dsl.support.bytecode.endKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
@@ -94,7 +94,7 @@ fun IO.emitClassFor(
     moduleName: String
 ): InternalName {
 
-    val (simpleClassName, fragments) = fragmentsFor_(accessor)
+    val (simpleClassName, fragments) = fragmentsFor(accessor)
     val className = InternalName("${outputPackage.path}/$simpleClassName")
     val sourceCode = mutableListOf<String>()
 
@@ -136,21 +136,21 @@ private
 fun IO.writeAccessorsBytecodeTo(
     binDir: File,
     className: InternalName,
-    fragments: Sequence<AccessorFragment_>,
+    fragments: Sequence<AccessorFragment>,
     collectSourceFragment: (String) -> Unit,
     moduleName: String
 ) {
 
-    val metadataWriter = beginFileFacadeClassHeader_()
+    val metadataWriter = beginFileFacadeClassHeader()
     val classWriter = beginPublicClass(className)
 
     for ((source, bytecode, metadata, signature) in fragments) {
         collectSourceFragment(source)
-        MetadataFragmentScope_(signature, metadataWriter).run(metadata)
+        MetadataFragmentScope(signature, metadataWriter).run(metadata)
         BytecodeFragmentScope(signature, classWriter).run(bytecode)
     }
 
-    val metadata = metadataWriter.closeHeader_(moduleName)
+    val metadata = metadataWriter.closeHeader(moduleName)
     val classBytes = classWriter.endKotlinClass(metadata)
     val classFile = binDir.resolve("$className.class")
     writeFile(classFile, classBytes)

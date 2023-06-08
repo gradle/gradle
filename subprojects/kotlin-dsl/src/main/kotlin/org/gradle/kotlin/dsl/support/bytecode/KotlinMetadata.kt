@@ -30,8 +30,6 @@ import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
-import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
-import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
 import kotlinx.metadata.jvm.getterSignature
@@ -60,34 +58,19 @@ fun publicKotlinClass(
 internal
 fun writeFileFacadeClassHeader(
     moduleName: String,
-    fileFacadeWriter: KotlinClassMetadata.FileFacade.Writer.() -> Unit
+    kmPackage: KmPackage.() -> Unit
 ) = beginFileFacadeClassHeader().run {
-    fileFacadeWriter()
+    kmPackage()
     closeHeader(moduleName)
 }
 
 
 internal
-fun beginFileFacadeClassHeader() = KotlinClassMetadata.FileFacade.Writer()
+fun beginFileFacadeClassHeader() = KmPackage()
 
 
 internal
-fun beginFileFacadeClassHeader_() = KmPackage()
-
-
-internal
-fun KotlinClassMetadata.FileFacade.Writer.closeHeader(moduleName: String): Metadata {
-    (visitExtensions(JvmPackageExtensionVisitor.TYPE) as JvmPackageExtensionVisitor).run {
-        visitModuleName(moduleName)
-        visitEnd()
-    }
-    visitEnd()
-    return write().annotationData
-}
-
-
-internal
-fun KmPackage.closeHeader_(moduleName: String): Metadata {
+fun KmPackage.closeHeader(moduleName: String): Metadata {
     this.moduleName = moduleName
     return KotlinClassMetadata.writeFileFacade(this).annotationData
 }
@@ -157,28 +140,6 @@ fun ClassWriter.visitKotlinMetadataAnnotation(metadata: Metadata) {
         }
         visitEnd()
     }
-}
-
-
-internal
-inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
-    receiverType: KmTypeBuilder,
-    nullableReturnType: KmTypeBuilder,
-    name: String,
-    parameterName: String,
-    parameterType: KmTypeBuilder,
-    signature: JvmMethodSignature,
-    functionFlags: Flags = publicFunctionFlags
-) {
-    writeFunctionOf(
-        receiverType,
-        nullableReturnType,
-        name,
-        signature = signature,
-        parameters = { visitParameter(parameterName, parameterType) },
-        returnTypeFlags = flagsOf(Flag.Type.IS_NULLABLE),
-        functionFlags = functionFlags
-    )
 }
 
 
@@ -270,27 +231,6 @@ internal
 fun KmFunctionVisitor.visitSignature(genericOverload: JvmMethodSignature) {
     (visitExtensions(JvmFunctionExtensionVisitor.TYPE) as JvmFunctionExtensionVisitor).run {
         visit(genericOverload)
-        visitEnd()
-    }
-}
-
-
-internal
-fun KotlinClassMetadata.FileFacade.Writer.writePropertyOf(
-    receiverType: KmTypeBuilder,
-    returnType: KmTypeBuilder,
-    propertyName: String,
-    getterSignature: JvmMethodSignature,
-    getterFlags: Flags = inlineGetterFlags
-) {
-    visitProperty(readOnlyPropertyFlags, propertyName, getterFlags, 6)!!.run {
-        visitReceiverParameterType(0).with(receiverType)
-        visitReturnType(0).with(returnType)
-        (visitExtensions(JvmPropertyExtensionVisitor.TYPE) as JvmPropertyExtensionVisitor).run {
-            visit(flagsOf(), null, getterSignature, null)
-            visitSyntheticMethodForAnnotations(null)
-            visitEnd()
-        }
         visitEnd()
     }
 }
