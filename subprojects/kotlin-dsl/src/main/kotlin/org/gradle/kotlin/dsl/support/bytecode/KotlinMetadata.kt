@@ -20,7 +20,11 @@ package org.gradle.kotlin.dsl.support.bytecode
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
+import kotlinx.metadata.KmFunction
 import kotlinx.metadata.KmFunctionVisitor
+import kotlinx.metadata.KmPackage
+import kotlinx.metadata.KmProperty
+import kotlinx.metadata.KmType
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
@@ -30,6 +34,10 @@ import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
+import kotlinx.metadata.jvm.getterSignature
+import kotlinx.metadata.jvm.moduleName
+import kotlinx.metadata.jvm.signature
+import kotlinx.metadata.jvm.syntheticMethodForAnnotations
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -64,6 +72,10 @@ fun beginFileFacadeClassHeader() = KotlinClassMetadata.FileFacade.Writer()
 
 
 internal
+fun beginFileFacadeClassHeader_() = KmPackage()
+
+
+internal
 fun KotlinClassMetadata.FileFacade.Writer.closeHeader(moduleName: String): Metadata {
     (visitExtensions(JvmPackageExtensionVisitor.TYPE) as JvmPackageExtensionVisitor).run {
         visitModuleName(moduleName)
@@ -71,6 +83,13 @@ fun KotlinClassMetadata.FileFacade.Writer.closeHeader(moduleName: String): Metad
     }
     visitEnd()
     return write().annotationData
+}
+
+
+internal
+fun KmPackage.closeHeader_(moduleName: String): Metadata {
+    this.moduleName = moduleName
+    return KotlinClassMetadata.writeFileFacade(this).annotationData
 }
 
 
@@ -164,6 +183,26 @@ inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
 
 
 internal
+inline fun newFunctionOf(
+    receiverType: KmTypeBuilder,
+    nullableReturnType: KmTypeBuilder,
+    name: String,
+    parameterName: String,
+    parameterType: KmTypeBuilder,
+    signature: JvmMethodSignature,
+    functionFlags: Flags = publicFunctionFlags
+): KmFunction = newFunctionOf(
+    receiverType,
+    nullableReturnType,
+    name,
+    signature = signature,
+    parameters = { visitParameter(parameterName, parameterType) },
+    returnTypeFlags = flagsOf(Flag.Type.IS_NULLABLE),
+    functionFlags = functionFlags
+)
+
+
+internal
 fun KmFunctionVisitor.visitOptionalParameter(parameterName: String, parameterType: KmTypeBuilder) {
     visitParameter(
         parameterName,
@@ -209,6 +248,25 @@ inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
 
 
 internal
+inline fun newFunctionOf(
+    receiverType: KmTypeBuilder,
+    returnType: KmTypeBuilder,
+    name: String,
+    parameters: KmFunctionVisitor.() -> Unit,
+    signature: JvmMethodSignature,
+    returnTypeFlags: Flags = 0,
+    functionFlags: Flags = publicFunctionFlags
+): KmFunction {
+    val kmFunction = KmFunction(functionFlags, name)
+    kmFunction.receiverParameterType = KmType(0).with(receiverType)
+    kmFunction.parameters()
+    kmFunction.returnType = KmType(returnTypeFlags).with(returnType)
+    kmFunction.signature = signature
+    return kmFunction
+}
+
+
+internal
 fun KmFunctionVisitor.visitSignature(genericOverload: JvmMethodSignature) {
     (visitExtensions(JvmFunctionExtensionVisitor.TYPE) as JvmFunctionExtensionVisitor).run {
         visit(genericOverload)
@@ -239,11 +297,29 @@ fun KotlinClassMetadata.FileFacade.Writer.writePropertyOf(
 
 
 internal
-inline fun KmTypeVisitor?.with(builder: KmTypeBuilder) {
+fun newPropertyOf(
+    receiverType: KmTypeBuilder,
+    returnType: KmTypeBuilder,
+    propertyName: String,
+    getterSignature: JvmMethodSignature,
+    getterFlags: Flags = inlineGetterFlags
+): KmProperty {
+    val kmProperty = KmProperty(readOnlyPropertyFlags, propertyName, getterFlags, 6)
+    kmProperty.receiverParameterType = KmType(0).with(receiverType)
+    kmProperty.returnType = KmType(0).with(returnType)
+    kmProperty.getterSignature = getterSignature
+    kmProperty.syntheticMethodForAnnotations = null
+    return kmProperty
+}
+
+
+internal
+inline fun <T : KmTypeVisitor?> T.with(builder: KmTypeBuilder): T {
     this!!.run {
         builder()
         visitEnd()
     }
+    return this
 }
 
 

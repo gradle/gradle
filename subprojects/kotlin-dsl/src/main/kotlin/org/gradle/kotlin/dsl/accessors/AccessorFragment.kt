@@ -18,6 +18,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.KmPackage
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
@@ -32,6 +33,15 @@ data class AccessorFragment(
     val source: String,
     val bytecode: BytecodeWriter,
     val metadata: MetadataWriter,
+    val signature: JvmMethodSignature
+)
+
+
+internal
+data class AccessorFragment_(
+    val source: String,
+    val bytecode: BytecodeWriter,
+    val metadata: MetadataWriter_,
     val signature: JvmMethodSignature
 )
 
@@ -52,6 +62,10 @@ typealias MetadataWriter = MetadataFragmentScope.() -> Unit
 
 
 internal
+typealias MetadataWriter_ = MetadataFragmentScope_.() -> Unit
+
+
+internal
 data class MetadataFragmentScope(
     val signature: JvmMethodSignature,
     val writer: KotlinClassMetadata.FileFacade.Writer
@@ -59,4 +73,15 @@ data class MetadataFragmentScope(
 
 
 internal
+data class MetadataFragmentScope_(
+    val signature: JvmMethodSignature,
+    val kmPackage: KmPackage
+)
+
+
+internal
 typealias Fragments = Pair<String, Sequence<AccessorFragment>>
+
+
+internal
+typealias Fragments_ = Pair<String, Sequence<AccessorFragment_>>
