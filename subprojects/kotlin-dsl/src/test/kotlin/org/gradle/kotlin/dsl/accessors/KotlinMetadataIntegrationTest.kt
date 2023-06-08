@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
@@ -33,7 +32,7 @@ import org.junit.Test
  * This definition is here so its metadata can be inspected.
  */
 @Suppress("unused_parameter")
-fun <T : Dependency> DependencyHandler.foo(
+fun <T : Dependency> foo(
     dependency: T,
     action: Action<T>
 ): T = TODO()

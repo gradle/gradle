@@ -20,7 +20,6 @@ package org.gradle.kotlin.dsl.support.bytecode
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
-import kotlinx.metadata.KmAnnotation
 import kotlinx.metadata.KmFunctionVisitor
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmVariance
@@ -29,27 +28,23 @@ import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
-import kotlinx.metadata.jvm.JvmTypeExtensionVisitor
-import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
-
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
-
 import java.io.File
 
 
 internal
 fun publicKotlinClass(
     internalClassName: InternalName,
-    header: KotlinClassHeader,
+    metadata: Metadata,
     classBody: ClassWriter.() -> Unit
 ): ByteArray = publicClass(internalClassName) {
-    visitKotlinMetadataAnnotation(header)
+    visitKotlinMetadataAnnotation(metadata)
     classBody()
 }
 
@@ -69,13 +64,13 @@ fun beginFileFacadeClassHeader() = KotlinClassMetadata.FileFacade.Writer()
 
 
 internal
-fun KotlinClassMetadata.FileFacade.Writer.closeHeader(moduleName: String): KotlinClassHeader {
+fun KotlinClassMetadata.FileFacade.Writer.closeHeader(moduleName: String): Metadata {
     (visitExtensions(JvmPackageExtensionVisitor.TYPE) as JvmPackageExtensionVisitor).run {
         visitModuleName(moduleName)
         visitEnd()
     }
     visitEnd()
-    return write().header
+    return write().annotationData
 }
 
 
@@ -119,26 +114,26 @@ fun ClassVisitor.publicStaticSyntheticMethod(
 
 
 internal
-fun ClassWriter.endKotlinClass(classHeader: KotlinClassHeader): ByteArray {
-    visitKotlinMetadataAnnotation(classHeader)
+fun ClassWriter.endKotlinClass(metadata: Metadata): ByteArray {
+    visitKotlinMetadataAnnotation(metadata)
     return endClass()
 }
 
 
 /**
- * Writes the given [header] to the class file as a [kotlin.Metadata] annotation.
+ * Writes the given [metadata] to the class file as a [kotlin.Metadata] annotation.
  **/
 private
-fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
+fun ClassWriter.visitKotlinMetadataAnnotation(metadata: Metadata) {
     visitAnnotation("Lkotlin/Metadata;", true).run {
-        visit("mv", header.metadataVersion)
-        visit("k", header.kind)
+        visit("mv", metadata.metadataVersion)
+        visit("k", metadata.kind)
         visitArray("d1").run {
-            header.data1.forEach { visit(null, it) }
+            metadata.data1.forEach { visit(null, it) }
             visitEnd()
         }
         visitArray("d2").run {
-            header.data2.forEach { visit(null, it) }
+            metadata.data2.forEach { visit(null, it) }
             visitEnd()
         }
         visitEnd()
@@ -292,22 +287,6 @@ internal
 fun providerConvertibleOfStar(): KmTypeBuilder = {
     visitClass("org/gradle/api/provider/ProviderConvertible")
     visitStarProjection()
-}
-
-
-/**
- * [receiverType].() -> [returnType]
- */
-internal
-fun extensionFunctionTypeOf(receiverType: KmTypeBuilder, returnType: KmTypeBuilder): KmTypeBuilder = {
-    visitClass("kotlin/Function1")
-    visitArgument(0, KmVariance.INVARIANT).with(receiverType)
-    visitArgument(0, KmVariance.INVARIANT).with(returnType)
-    (visitExtensions(JvmTypeExtensionVisitor.TYPE) as JvmTypeExtensionVisitor).run {
-        visit(false)
-        visitAnnotation(KmAnnotation(className = "kotlin/ExtensionFunctionType", arguments = emptyMap()))
-        visitEnd()
-    }
 }
 
 

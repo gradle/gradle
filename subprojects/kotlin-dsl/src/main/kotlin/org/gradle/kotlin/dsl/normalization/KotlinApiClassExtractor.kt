@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.normalization
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.KmDeclarationContainer
-import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.signature
 import org.gradle.api.GradleException
@@ -78,7 +77,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                 is KotlinClassMetadata.SyntheticClass -> {
                 }
                 is KotlinClassMetadata.Unknown -> {
-                    throw CompileAvoidanceException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
+                    throw CompileAvoidanceException("Unknown Kotlin metadata with kind: ${kotlinMetadata.annotationData.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
                 }
                 null -> Unit
             }
@@ -124,14 +123,14 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
     }
 
     private
-    fun parseKotlinClassHeader(kotlinMetadataAnnotation: AnnotationMember): KotlinClassHeader {
-        var kind: Int? = null
-        var metadataVersion: IntArray? = null
-        var data1: Array<String>? = null
-        var data2: Array<String>? = null
-        var extraString: String? = null
-        var packageName: String? = null
-        var extraInt: Int? = null
+    fun parseKotlinClassHeader(kotlinMetadataAnnotation: AnnotationMember): Metadata {
+        var kind = 0
+        var metadataVersion = IntArray(0)
+        var data1 = arrayOf<String>()
+        var data2 = arrayOf<String>()
+        var extraString = ""
+        var packageName = ""
+        var extraInt = 0
         kotlinMetadataAnnotation.values.forEach {
             // see Metadata.kt
             when (it) {
@@ -150,7 +149,15 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                     }
             }
         }
-        return KotlinClassHeader(kind, metadataVersion, data1, data2, extraString, packageName, extraInt)
+        return Metadata(
+            kind = kind,
+            metadataVersion = metadataVersion,
+            data1 = data1,
+            data2 = data2,
+            extraString = extraString,
+            packageName = packageName,
+            extraInt = extraInt
+        )
     }
 
     private

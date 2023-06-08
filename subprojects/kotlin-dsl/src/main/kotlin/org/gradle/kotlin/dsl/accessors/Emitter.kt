@@ -153,8 +153,8 @@ fun IO.writeAccessorsBytecodeTo(
         BytecodeFragmentScope(signature, classWriter).run(bytecode)
     }
 
-    val classHeader = metadataWriter.closeHeader(moduleName)
-    val classBytes = classWriter.endKotlinClass(classHeader)
+    val metadata = metadataWriter.closeHeader(moduleName)
+    val classBytes = classWriter.endKotlinClass(metadata)
     val classFile = binDir.resolve("$className.class")
     writeFile(classFile, classBytes)
 }
