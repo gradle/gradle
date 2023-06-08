@@ -258,6 +258,9 @@ import java.util.Map;
  *
  * <h3>Client module dependencies</h3>
  *
+ * <strong>Client module dependencies are deprecated and will be removed in Gradle 9.0.
+ * Use component metadata rules instead.</strong>
+ *
  * <p>To add a client module to a configuration you can use the notation:</p>
  *
  * <pre>

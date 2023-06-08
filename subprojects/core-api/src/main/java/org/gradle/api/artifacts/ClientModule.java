@@ -24,6 +24,8 @@ import java.util.Set;
  * remote repository.
  *
  * <p>Client modules dependencies are deprecated and will be removed in Gradle 9.0. Use component metadata rules instead.</p>
+ *
+ * @see org.gradle.api.artifacts.dsl.DependencyHandler
  */
 @Deprecated
 public interface ClientModule extends ExternalModuleDependency {
