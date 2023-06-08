@@ -86,6 +86,101 @@ Some builds may have worked around this by also putting the additional attribute
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22].
 See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
 
+
+=== Deprecations
+
+==== Deprecated `ClientModule` dependencies
+
+`ClientModule` dependencies are deprecated and will be removed in Gradle 9.0.
+
+Client module dependencies were originally intended to allow builds to override incorrect or
+missing component metadata of external dependencies by defining the metadata locally. This
+functionality has since been replaced by <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>
+
+Consider the following client module dependency example:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation(module("org:foo:1.0") {
+        dependency("org:bar:1.0")
+    })
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation module("org:foo:1.0") {
+        dependency "org:bar:1.0"
+    }
+}
+----
+======
+=====
+
+This can be replaced with the following component metadata rule:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    components {
+        withModule("org:foo") {
+            listOf("compile", "runtime").forEach { base ->
+                withVariant(base) {
+                    withDependencies {
+                        add("org:bar:1.0")
+                    }
+                }
+            }
+        }
+    }
+
+    implementation("org:foo:1.0")
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    components {
+        withModule("org:foo") {
+            ["compile", "runtime"].each { base ->
+                withVariant(base) {
+                    withDependencies {
+                        add("org:bar:1.0")
+                    }
+                }
+            }
+        }
+    }
+
+    implementation "org:foo:1.0"
+}
+----
+======
+=====
+
+While the updated solution may be more verbose, we decided that
+reducing the number of ways to achieve the same result is worth
+the trade-off. In any case, component metadata rules like this
+should live within build-logic and thus should not clutter up
+the buildscript.
+
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
