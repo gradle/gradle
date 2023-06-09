@@ -363,8 +363,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     val convention: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = this
                 }
 
-                val k: DependencyConstraint? = dependencies.constraints.api("direct:accessor:1.0")
-                val l: DependencyConstraint? = dependencies.constraints.api("direct:accessor-with-action") {
+                val k: DependencyConstraint = dependencies.constraints.api("direct:accessor:1.0")
+                val l: DependencyConstraint = dependencies.constraints.api("direct:accessor-with-action") {
                     val constraint: DependencyConstraint = this
                 }
 

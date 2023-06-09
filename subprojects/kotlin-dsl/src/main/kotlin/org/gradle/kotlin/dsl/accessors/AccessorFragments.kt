@@ -433,7 +433,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      *
                      * @see [DependencyConstraintHandler.add]
                      */$deprecationBlock
-                    fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any): DependencyConstraint? =
+                    fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any): DependencyConstraint =
                         add("$stringLiteral", constraintNotation)
                 """
             },
@@ -450,7 +450,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 kmPackage.functions += newFunctionOf(
                     flags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
-                    returnType = nullable(GradleType.dependencyConstraint),
+                    returnType = GradleType.dependencyConstraint,
                     name = propertyName,
                     valueParameters = listOf(
                         newValueParameterOf("constraintNotation", KotlinType.any),
@@ -476,7 +476,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      *
                      * @see [DependencyConstraintHandler.add]
                      */$deprecationBlock
-                    fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
+                    fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint =
                         add("$stringLiteral", constraintNotation, block)
                 """
             },
