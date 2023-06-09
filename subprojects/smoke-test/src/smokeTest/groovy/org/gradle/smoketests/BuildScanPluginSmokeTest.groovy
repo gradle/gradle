@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
