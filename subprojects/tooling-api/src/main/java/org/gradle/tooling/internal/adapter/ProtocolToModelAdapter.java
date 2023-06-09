@@ -117,7 +117,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
      * Adapts the source object to a view object.
      */
     @Override
-    public <T> T adapt(Class<T> targetType, Object sourceObject) {
+    public <T> T adapt(Class<T> targetType, @Nullable Object sourceObject) {
         if (sourceObject == null) {
             return null;
         }
@@ -132,7 +132,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         return new DefaultViewBuilder<T>(viewType);
     }
 
-    private static <T> T createView(Class<T> targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
+    @Nullable
+    private static <T> T createView(Class<T> targetType, @Nullable Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
         if (sourceObject == null) {
             return null;
         }
@@ -207,6 +208,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         );
     }
 
+    @Nullable
     private static <T extends Enum<T>> T findEnumValue(Class<? extends T> enumType, final String literal) {
         for (T ec : enumType.getEnumConstants()) {
             if (ec.name().equalsIgnoreCase(literal)) {
@@ -216,7 +218,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         return null;
     }
 
-    public static String toWords(CharSequence string, char separator) {
+    @Nullable
+    public static String toWords(@Nullable CharSequence string, char separator) {
         if (string == null) {
             return null;
         }
@@ -253,6 +256,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         return builder.toString();
     }
 
+    @Nullable
     private static Object convert(Type targetType, Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
         if (targetType instanceof ParameterizedType) {
             ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
@@ -589,6 +593,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
         }
 
+        @Nullable
         public Method get(MethodInvocation invocation) {
             Class<?> owner = invocation.getDelegate().getClass();
             String name = invocation.getName();
@@ -703,6 +708,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             invocation.setResult(returnValue);
         }
 
+        @Nullable
         private Method locateMethod(MethodInvocation invocation) {
             return lookupCache.get(invocation);
         }
