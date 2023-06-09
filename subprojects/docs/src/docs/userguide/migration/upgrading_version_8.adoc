@@ -95,7 +95,7 @@ The following methods on `Task` are deprecated:
 - link:{javadocPath}/org/gradle/api/Task.html#getDidWork--[getDidWork]
 
 For some tasks, `Task.getDidWork` returns false even if the task executed and the output(s)
-did not change (aka "up-to-date after-the-fact"). This is unexpected, because although the
+did not change (aka "up-to-date after-the-fact"). Although the
 task was executed and took time, the output of the task is `UP-TO-DATE`. This will change in
 the future, and as a step in that direction, `Task.didWork` was deprecated. You can check if
 the task was "up-to-date up front" by using
