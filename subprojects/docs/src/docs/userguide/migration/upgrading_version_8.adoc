@@ -98,7 +98,7 @@ For some tasks, `Task.getDidWork` returns false even if the task executed and th
 did not change (aka "up-to-date after-the-fact"). Although the
 task executed and took time, the outcome label of the task is `UP-TO-DATE`. 
 This output is unexpected.
-the future, and as a step in that direction, `Task.didWork` was deprecated. You can check if
+As part of ongoing remediation efforts, `Task.didWork` was deprecated. 
 the task was "up-to-date up front" by using
 `task.getState().getExecuted() && !task.getState().getSkipped()`.
 
