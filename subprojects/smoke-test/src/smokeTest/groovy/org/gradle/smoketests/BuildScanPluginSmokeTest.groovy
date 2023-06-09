@@ -16,16 +16,58 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
-import spock.lang.IgnoreIf
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
 
 // https://plugins.gradle.org/plugin/com.gradle.enterprise
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
+
+    enum CI {
+        TeamCity(
+            "v0.33",
+            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/build-scan-init.gradle",
+            "teamCityBuildScanPlugin"
+        ),
+        Jenkins(
+            "gradle-2.8",
+            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle",
+            "jenkinsGradlePlugin"
+        ),
+        Bamboo(
+            "gradle-enterprise-bamboo-plugin-1.1.0",
+            "https://raw.githubusercontent.com/gradle/gradle-enterprise-bamboo-plugin/%s/src/main/resources/gradle-enterprise/gradle/gradle-enterprise-init-script.gradle",
+            "ge-plugin"
+        );
+
+        String gitRef
+        String urlTemplate
+        String propPrefix
+
+        CI(String gitRef, String urlTemplate, String propPrefix) {
+            this.gitRef = gitRef
+            this.urlTemplate = urlTemplate
+            this.propPrefix = propPrefix
+        }
+
+        String getUrl() {
+            return String.format(urlTemplate, gitRef)
+        }
+    }
+
+    private static final Map<CI, String> CI_INJECTION_SCRIPT_CONTENTS = new ConcurrentHashMap<>()
+
+    private static String getCiInjectionScriptContent(CI ci) {
+        return CI_INJECTION_SCRIPT_CONTENTS.computeIfAbsent(ci) { new URL(it.getUrl()).getText(StandardCharsets.UTF_8.name()) }
+    }
 
     private static final List<String> UNSUPPORTED = [
         "2.4.2",
@@ -92,11 +134,15 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.13.3"
     ]
 
+    // Current injection scripts support Gradle Enterprise plugin 3.3 and above
+    private static final List<String> SUPPORTED_BY_CI_INJECTION = SUPPORTED
+        .findAll { VersionNumber.parse("3.3") <= VersionNumber.parse(it) }
+
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
     private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
 
-    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.IsConfigCached)
     def "can use plugin #version with Gradle 8 configuration cache"() {
         given:
         def versionNumber = VersionNumber.parse(version)
@@ -118,7 +164,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         version << SUPPORTED
     }
 
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "can use plugin #version"() {
         given:
         def versionNumber = VersionNumber.parse(version)
@@ -156,17 +202,17 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         version << UNSUPPORTED
     }
 
-    @IgnoreIf({ GradleContextualExecuter.configCache })
-    def "can inject plugin #version"() {
-        def versionNumber = VersionNumber.parse(version)
+    @Requires(IntegTestPreconditions.NotConfigCached)
+    def "can inject plugin #pluginVersion in #ci using '#ciScriptVersion' script version"() {
+        def versionNumber = VersionNumber.parse(pluginVersion)
         def initScript = "init-script.gradle"
-        writeInjectionScript(initScript)
+        file(initScript) << getCiInjectionScriptContent(ci)
 
         // URL is not relevant as long as it's valid due to the `-Dscan.dump` parameter
         file("gradle.properties") << """
-            systemProp.teamCityBuildScanPlugin.gradle-enterprise.plugin.version=$version
-            systemProp.teamCityBuildScanPlugin.init-script.name=$initScript
-            systemProp.teamCityBuildScanPlugin.gradle-enterprise.url=http://localhost:5086
+            systemProp.${ci.propPrefix}.gradle-enterprise.plugin.version=$pluginVersion
+            systemProp.${ci.propPrefix}.init-script.name=$initScript
+            systemProp.${ci.propPrefix}.gradle-enterprise.url=http://localhost:5086
         """.stripIndent()
 
         setupJavaProject()
@@ -182,9 +228,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .build().output.contains("Build scan written to")
 
         where:
-        // Current injection scripts support Gradle Enterprise plugin 3.3 and above
-        version << SUPPORTED
-            .findAll { VersionNumber.parse("3.3") <= VersionNumber.parse(it) }
+        [ci, pluginVersion] << [CI.values(), SUPPORTED_BY_CI_INJECTION].combinations()
+        ciScriptVersion = ci.gitRef
     }
 
     BuildResult build(String... args) {
@@ -252,249 +297,5 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                }
             }
         """
-    }
-
-    private writeInjectionScript(String initScriptFile) {
-        // Should be kept in sync with the external injection script:
-        // https://github.com/etiennestuder/teamcity-build-scan-plugin/blob/1b69acdd97b2d37c3b34d9c29787626f7b80ecbd/agent/src/main/resources/build-scan-init.gradle
-        file(initScriptFile) << '''
-import org.gradle.util.GradleVersion
-
-// note that there is no mechanism to share code between the initscript{} block and the main script, so some logic is duplicated
-
-// conditionally apply the GE / Build Scan plugin to the classpath so it can be applied to the build further down in this script
-initscript {
-    def isTopLevelBuild = !gradle.parent
-    if (!isTopLevelBuild) {
-        return
-    }
-
-    def getInputParam = { String name ->
-        def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
-        return System.getProperty(name) ?: System.getenv(envVarName)
-    }
-
-    def requestedInitScriptName = getInputParam('teamCityBuildScanPlugin.init-script.name')
-    def initScriptName = buildscript.sourceFile.name
-    if (requestedInitScriptName != initScriptName) {
-        return
-    }
-
-    def pluginRepositoryUrl = getInputParam('teamCityBuildScanPlugin.gradle.plugin-repository.url')
-    def gePluginVersion = getInputParam('teamCityBuildScanPlugin.gradle-enterprise.plugin.version')
-    def ccudPluginVersion = getInputParam('teamCityBuildScanPlugin.ccud.plugin.version')
-
-    def atLeastGradle5 = GradleVersion.current() >= GradleVersion.version('5.0')
-    def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
-
-    if (gePluginVersion || ccudPluginVersion && atLeastGradle4) {
-        pluginRepositoryUrl = pluginRepositoryUrl ?: 'https://plugins.gradle.org/m2'
-        logger.quiet("Gradle Enterprise plugins resolution: $pluginRepositoryUrl")
-
-        repositories {
-            maven { url pluginRepositoryUrl }
-        }
-    }
-
-    dependencies {
-        if (gePluginVersion) {
-            classpath atLeastGradle5 ?
-                    "com.gradle:gradle-enterprise-gradle-plugin:$gePluginVersion" :
-                    "com.gradle:build-scan-plugin:1.16"
-        }
-
-        if (ccudPluginVersion && atLeastGradle4) {
-            classpath "com.gradle:common-custom-user-data-gradle-plugin:$ccudPluginVersion"
-        }
-    }
-}
-
-def BUILD_SCAN_PLUGIN_ID = 'com.gradle.build-scan'
-def BUILD_SCAN_PLUGIN_CLASS = 'com.gradle.scan.plugin.BuildScanPlugin'
-
-def GRADLE_ENTERPRISE_PLUGIN_ID = 'com.gradle.enterprise'
-def GRADLE_ENTERPRISE_PLUGIN_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin'
-def GRADLE_ENTERPRISE_EXTENSION_CLASS = 'com.gradle.enterprise.gradleplugin.GradleEnterpriseExtension'
-
-def CCUD_PLUGIN_ID = 'com.gradle.common-custom-user-data-gradle-plugin'
-def CCUD_PLUGIN_CLASS = 'com.gradle.CommonCustomUserDataGradlePlugin'
-
-def isTopLevelBuild = !gradle.parent
-if (!isTopLevelBuild) {
-    return
-}
-
-def getInputParam = { String name ->
-    def envVarName = name.toUpperCase().replace('.', '_').replace('-', '_')
-    return System.getProperty(name) ?: System.getenv(envVarName)
-}
-
-def requestedInitScriptName = getInputParam('teamCityBuildScanPlugin.init-script.name')
-def initScriptName = buildscript.sourceFile.name
-if (requestedInitScriptName != initScriptName) {
-    logger.quiet("Ignoring init script '${initScriptName}' as requested name '${requestedInitScriptName}' does not match")
-    return
-}
-
-def geUrl = getInputParam('teamCityBuildScanPlugin.gradle-enterprise.url')
-def geAllowUntrustedServer = Boolean.parseBoolean(getInputParam('teamCityBuildScanPlugin.gradle-enterprise.allow-untrusted-server'))
-def geEnforceUrl = Boolean.parseBoolean(getInputParam('teamCityBuildScanPlugin.gradle-enterprise.enforce-url'))
-def gePluginVersion = getInputParam('teamCityBuildScanPlugin.gradle-enterprise.plugin.version')
-def ccudPluginVersion = getInputParam('teamCityBuildScanPlugin.ccud.plugin.version')
-
-def atLeastGradle4 = GradleVersion.current() >= GradleVersion.version('4.0')
-
-// finish early if configuration parameters passed in via system properties are not valid/supported
-if (ccudPluginVersion && isNotAtLeast(ccudPluginVersion, '1.7')) {
-    logger.warn("Common Custom User Data Gradle plugin must be at least 1.7. Configured version is $ccudPluginVersion.")
-    return
-}
-
-// log via helper class to be Configuration Cache compatible when logging is required from callback function
-def buildScanLifeCycleLogger = new BuildScanLifeCycleLogger(logger)
-
-// send a message to the server that the build has started
-buildScanLifeCycleLogger.log('BUILD_STARTED')
-
-// define a buildScanPublished listener that captures the build scan URL and sends it in a message to the server
-def buildScanPublishedAction = { def buildScan ->
-    if (buildScan.metaClass.respondsTo(buildScan, 'buildScanPublished', Action)) {
-        buildScan.buildScanPublished { scan ->
-            buildScanLifeCycleLogger.log("BUILD_SCAN_URL:${scan.buildScanUri.toString()}")
-        }
-    }
-}
-
-// register buildScanPublished listener and optionally apply the GE / Build Scan plugin
-if (GradleVersion.current() < GradleVersion.version('6.0')) {
-    //noinspection GroovyAssignabilityCheck
-    rootProject {
-        buildscript.configurations.getByName("classpath").incoming.afterResolve { ResolvableDependencies incoming ->
-            def resolutionResult = incoming.resolutionResult
-
-            if (gePluginVersion) {
-                def scanPluginComponent = resolutionResult.allComponents.find {
-                    it.moduleVersion.with { group == "com.gradle" && (name == "build-scan-plugin" || name == "gradle-enterprise-gradle-plugin") }
-                }
-
-                if (!scanPluginComponent) {
-                    logger.quiet("Applying $BUILD_SCAN_PLUGIN_CLASS via init script")
-                    logger.quiet("Connection to Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
-                    pluginManager.apply(initscript.classLoader.loadClass(BUILD_SCAN_PLUGIN_CLASS))
-                    buildScan.server = geUrl
-                    buildScan.allowUntrustedServer = geAllowUntrustedServer
-                    buildScan.publishAlways()
-                    if (buildScan.metaClass.respondsTo(buildScan, 'setUploadInBackground', Boolean)) buildScan.uploadInBackground = false  // uploadInBackground not available for build-scan-plugin 1.16
-                    buildScan.value 'CI auto injection', 'TeamCity'
-                }
-
-                if (geUrl && geEnforceUrl) {
-                    pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
-                        afterEvaluate {
-                            logger.quiet("Enforcing Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
-                            buildScan.server = geUrl
-                            buildScan.allowUntrustedServer = geAllowUntrustedServer
-                        }
-                    }
-                }
-            }
-
-            if (ccudPluginVersion && atLeastGradle4) {
-                def ccudPluginComponent = resolutionResult.allComponents.find {
-                    it.moduleVersion.with { group == "com.gradle" && name == "common-custom-user-data-gradle-plugin" }
-                }
-
-                if (!ccudPluginComponent) {
-                    logger.quiet("Applying $CCUD_PLUGIN_CLASS via init script")
-                    pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
-                }
-            }
-        }
-
-        pluginManager.withPlugin(BUILD_SCAN_PLUGIN_ID) {
-            buildScanPublishedAction(buildScan)
-        }
-    }
-} else {
-    gradle.settingsEvaluated { settings ->
-        if (gePluginVersion) {
-            if (!settings.pluginManager.hasPlugin(GRADLE_ENTERPRISE_PLUGIN_ID)) {
-                logger.quiet("Applying $GRADLE_ENTERPRISE_PLUGIN_CLASS via init script")
-                logger.quiet("Connection to Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
-                settings.pluginManager.apply(initscript.classLoader.loadClass(GRADLE_ENTERPRISE_PLUGIN_CLASS))
-                extensionsWithPublicType(settings, GRADLE_ENTERPRISE_EXTENSION_CLASS).collect { settings[it.name] }.each { ext ->
-                    ext.server = geUrl
-                    ext.allowUntrustedServer = geAllowUntrustedServer
-                    ext.buildScan.publishAlways()
-                    ext.buildScan.uploadInBackground = false
-                    ext.buildScan.value 'CI auto injection', 'TeamCity'
-                }
-            }
-
-            if (geUrl && geEnforceUrl) {
-                extensionsWithPublicType(settings, GRADLE_ENTERPRISE_EXTENSION_CLASS).collect { settings[it.name] }.each { ext ->
-                    logger.quiet("Enforcing Gradle Enterprise: $geUrl, allowUntrustedServer: $geAllowUntrustedServer")
-                    ext.server = geUrl
-                    ext.allowUntrustedServer = geAllowUntrustedServer
-                }
-            }
-        }
-
-        if (ccudPluginVersion) {
-            if (!settings.pluginManager.hasPlugin(CCUD_PLUGIN_ID)) {
-                logger.quiet("Applying $CCUD_PLUGIN_CLASS via init script")
-                settings.pluginManager.apply(initscript.classLoader.loadClass(CCUD_PLUGIN_CLASS))
-            }
-        }
-
-        extensionsWithPublicType(settings, GRADLE_ENTERPRISE_EXTENSION_CLASS).collect { settings[it.name] }.each { ext ->
-            buildScanPublishedAction(ext.buildScan)
-        }
-    }
-}
-
-static def extensionsWithPublicType(def container, String publicType) {
-    container.extensions.extensionsSchema.elements.findAll { it.publicType.concreteClass.name == publicType }
-}
-
-static boolean isNotAtLeast(String versionUnderTest, String referenceVersion) {
-    GradleVersion.version(versionUnderTest) < GradleVersion.version(referenceVersion)
-}
-
-class BuildScanLifeCycleLogger {
-
-    def logger
-
-    BuildScanLifeCycleLogger(logger) {
-        this.logger = logger
-    }
-
-    void log(String message) {
-        logger.quiet(generateBuildScanLifeCycleMessage(message))
-    }
-
-    private static String generateBuildScanLifeCycleMessage(def attribute) {
-        return "##teamcity[nu.studer.teamcity.buildscan.buildScanLifeCycle '${escape(attribute as String)}']" as String
-    }
-
-    private static String escape(String value) {
-        return value?.toCharArray()?.collect { ch -> escapeChar(ch) }?.join()
-    }
-
-    private static String escapeChar(char ch) {
-        String escapeCharacter = "|"
-        switch (ch) {
-            case '\\n': return escapeCharacter + "n"
-            case '\\r': return escapeCharacter + "r"
-            case '|': return escapeCharacter + "|"
-            case '\\'': return escapeCharacter + "\\'"
-            case '[': return escapeCharacter + "["
-            case ']': return escapeCharacter + "]"
-            default: return ch < 128 ? ch as String : escapeCharacter + String.format("0x%04x", (int) ch)
-        }
-    }
-
-}
-'''
     }
 }
