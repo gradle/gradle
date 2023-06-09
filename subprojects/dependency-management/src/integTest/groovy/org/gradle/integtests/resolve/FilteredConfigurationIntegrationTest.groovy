@@ -72,7 +72,7 @@ task verify {
         println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
 
         assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
-        assert configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == configurations.compile.files
+        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
     }
 }
 """
@@ -129,7 +129,8 @@ task verify {
         println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
         println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
 
-        assert configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts.collect { it.file.name } == configurations.compile.files
+        assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
+        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
     }
 }
 """
