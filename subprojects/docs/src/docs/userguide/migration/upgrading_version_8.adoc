@@ -84,7 +84,7 @@ Some builds may have worked around this by also putting the additional attribute
 ==== Upgrade to Kotlin 1.8.22
 
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22].
-See also release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
+See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
 
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
