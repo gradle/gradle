@@ -89,7 +89,7 @@ The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin
 [[deprecated_task_did_work]]
 ==== Deprecated Task.didWork
 
-The following methods on `Task` are deprecated
+The following methods on `Task` are deprecated:
 
 - link:{javadocPath}/org/gradle/api/Task.html#setDidWork-boolean-[setDidWork]
 - link:{javadocPath}/org/gradle/api/Task.html#getDidWork--[getDidWork]
