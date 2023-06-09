@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION", "TYPEALIAS_EXPANSION_DEPRECATION") // todo: should not be necessary in the end
+@file:Suppress("DEPRECATION") // todo: should not be necessary in the end
 
 package org.gradle.kotlin.dsl.support.bytecode
 
@@ -27,7 +27,6 @@ import kotlinx.metadata.KmProperty
 import kotlinx.metadata.KmType
 import kotlinx.metadata.KmTypeParameter
 import kotlinx.metadata.KmTypeProjection
-import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmValueParameter
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
@@ -180,10 +179,6 @@ fun newTypeParameterOf(
 
 
 internal
-fun newTypeOf(builder: KmTypeBuilder) = KmType(0).with(builder)
-
-
-internal
 fun nullable(kmType: KmType): KmType = kmType.also { it.flags = flagsOf(Flag.Type.IS_NULLABLE) }
 
 
@@ -245,31 +240,16 @@ fun newPropertyOf(
 
 
 internal
-inline fun <T : KmTypeVisitor?> T.with(builder: KmTypeBuilder): T {
-    this!!.run {
-        builder()
-        visitEnd()
-    }
-    return this
+fun genericTypeOf(type: KmType, argument: KmType): KmType {
+    type.arguments += KmTypeProjection(KmVariance.INVARIANT, argument)
+    return type
 }
 
 
 internal
-fun genericTypeOf(genericType: KmType, genericArgument: KmType): KmType {
-    genericType.arguments += KmTypeProjection(KmVariance.INVARIANT, genericArgument)
-    return genericType
-}
-
-
-internal
-fun genericTypeOf(genericType: KmTypeBuilder, genericArguments: Iterable<KmTypeBuilder>): KmTypeBuilder = {
-    genericType()
-    genericArguments.forEach { argument ->
-        visitArgument(0, KmVariance.INVARIANT)!!.run {
-            argument()
-            visitEnd()
-        }
-    }
+fun genericTypeOf(type: KmType, arguments: Iterable<KmType>): KmType {
+    arguments.forEach { genericTypeOf(type, it) }
+    return type
 }
 
 
@@ -286,10 +266,6 @@ fun providerOfStar(): KmType =
 internal
 fun providerConvertibleOfStar(): KmType =
     newClassTypeOf("org/gradle/api/provider/ProviderConvertible", KmTypeProjection.STAR)
-
-
-internal
-typealias KmTypeBuilder = KmTypeVisitor.() -> Unit
 
 
 internal

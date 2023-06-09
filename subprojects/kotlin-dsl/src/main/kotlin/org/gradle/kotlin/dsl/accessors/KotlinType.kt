@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-@file:Suppress("TYPEALIAS_EXPANSION_DEPRECATION") // todo: should not be necessary in the end
-
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.KmType
-import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.newTypeParameterTypeOf
 
@@ -30,8 +27,6 @@ object KotlinType {
     val string: KmType = newClassTypeOf("kotlin/String")
 
     val unit: KmType = newClassTypeOf("kotlin/Unit")
-
-    val any_: KmTypeBuilder = { visitClass("kotlin/Any") } // todo: remove
 
     val any: KmType = newClassTypeOf("kotlin/Any")
 

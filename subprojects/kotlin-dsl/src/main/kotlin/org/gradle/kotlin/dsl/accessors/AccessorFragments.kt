@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("TYPEALIAS_EXPANSION_DEPRECATION") // todo: should not be necessary in the end
-
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.KmType
@@ -31,7 +29,6 @@ import org.gradle.kotlin.dsl.support.bytecode.INVOKEINTERFACE
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESTATIC
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.InternalNameOf
-import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
@@ -48,7 +45,6 @@ import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
 import org.gradle.kotlin.dsl.support.bytecode.newPropertyOf
-import org.gradle.kotlin.dsl.support.bytecode.newTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.newTypeParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.newValueParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.nullable
@@ -640,7 +636,7 @@ fun fragmentsForContainerElementOf(
     val className = internalNameForAccessorClassOf(accessorSpec)
     val (accessibleReceiverType, name, returnType) = accessorSpec
     val propertyName = name.kotlinIdentifier
-    val receiverType = accessibleReceiverType.type.builder
+    val receiverType = accessibleReceiverType.type.kmType
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
 
@@ -659,8 +655,8 @@ fun fragmentsForContainerElementOf(
             metadata = {
                 kmPackage.properties += newPropertyOf(
                     name = propertyName,
-                    receiverType = newTypeOf(receiverType),
-                    returnType = genericTypeOf(classOf(providerType), newTypeOf(kotlinReturnType)),
+                    receiverType = receiverType,
+                    returnType = genericTypeOf(classOf(providerType), kotlinReturnType),
                     getterSignature = signature
                 )
             },
@@ -680,7 +676,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
     val className = internalNameForAccessorClassOf(accessorSpec)
     val (accessibleReceiverType, name, extensionType) = accessorSpec
     val propertyName = name.kotlinIdentifier
-    val receiverType = accessibleReceiverType.type.builder
+    val receiverType = accessibleReceiverType.type.kmType
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinExtensionType, jvmExtensionType) = accessibleTypesFor(extensionType)
 
@@ -708,8 +704,8 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             metadata = {
                 kmPackage.properties += newPropertyOf(
                     name = propertyName,
-                    receiverType = newTypeOf(receiverType),
-                    returnType = newTypeOf(kotlinExtensionType),
+                    receiverType = receiverType,
+                    returnType = kotlinExtensionType,
                     getterSignature = signature
                 )
             }
@@ -742,11 +738,11 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    receiverType = newTypeOf(receiverType),
+                    receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
                     valueParameters = listOf(
-                        newValueParameterOf("configure", actionTypeOf(newTypeOf(kotlinExtensionType)))
+                        newValueParameterOf("configure", actionTypeOf(kotlinExtensionType))
                     ),
                     signature = signature
                 )
@@ -762,7 +758,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
     val accessorSpec = accessor.spec
     val className = internalNameForAccessorClassOf(accessorSpec)
     val (accessibleReceiverType, name, conventionType) = accessorSpec
-    val receiverType = accessibleReceiverType.type.builder
+    val receiverType = accessibleReceiverType.type.kmType
     val propertyName = name.kotlinIdentifier
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinConventionType, jvmConventionType) = accessibleTypesFor(conventionType)
@@ -784,8 +780,8 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             metadata = {
                 kmPackage.properties += newPropertyOf(
                     name = propertyName,
-                    receiverType = newTypeOf(receiverType),
-                    returnType = newTypeOf(kotlinConventionType),
+                    receiverType = receiverType,
+                    returnType = kotlinConventionType,
                     getterSignature = signature
                 )
             }
@@ -803,11 +799,11 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    receiverType = newTypeOf(receiverType),
+                    receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
                     valueParameters = listOf(
-                        newValueParameterOf("configure", actionTypeOf(newTypeOf(kotlinConventionType)))
+                        newValueParameterOf("configure", actionTypeOf(kotlinConventionType))
                     ),
                     signature = signature
                 )
@@ -863,26 +859,26 @@ fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAcces
 
 
 private
-fun accessibleTypesFor(typeAccessibility: TypeAccessibility): Pair<KmTypeBuilder, InternalName> = when (typeAccessibility) {
-    is TypeAccessibility.Accessible -> typeAccessibility.run { type.builder to internalName() }
-    is TypeAccessibility.Inaccessible -> KotlinType.any_ to InternalNameOf.javaLangObject
+fun accessibleTypesFor(typeAccessibility: TypeAccessibility): Pair<KmType, InternalName> = when (typeAccessibility) {
+    is TypeAccessibility.Accessible -> typeAccessibility.run { type.kmType to internalName() }
+    is TypeAccessibility.Inaccessible -> KotlinType.any to InternalNameOf.javaLangObject
 }
 
 
 private
-val SchemaType.builder: KmTypeBuilder
-    get() = value.builder
+val SchemaType.kmType: KmType
+    get() = value.kmType
 
 
 private
-val TypeOf<*>.builder: KmTypeBuilder
+val TypeOf<*>.kmType: KmType
     get() = when {
         isParameterized -> genericTypeOf(
-            classOf_(parameterizedTypeDefinition.concreteClass),
-            actualTypeArguments.map { it.builder }
+            classOf(parameterizedTypeDefinition.concreteClass),
+            actualTypeArguments.map { it.kmType }
         )
-        isWildcard -> (upperBound ?: lowerBound)?.builder ?: KotlinType.any_
-        else -> classOf_(concreteClass)
+        isWildcard -> (upperBound ?: lowerBound)?.kmType ?: KotlinType.any
+        else -> classOf(concreteClass)
     }
 
 
@@ -892,20 +888,8 @@ inline fun <reified T> classOf(): KmType =
 
 
 private
-fun classOf_(`class`: Class<*>) =
-    classOf_(`class`.internalName) // todo: remove
-
-
-private
 fun classOf(`class`: Class<*>) =
     classOf(`class`.internalName)
-
-
-private
-fun classOf_(className: InternalName): KmTypeBuilder =
-    kotlinNameOf(className).let { kotlinName ->
-        { visitClass(kotlinName) }
-    } // todo: remove
 
 
 private
