@@ -99,7 +99,7 @@ did not change (aka "up-to-date after-the-fact"). Although the
 task executed and took time, the outcome label of the task is `UP-TO-DATE`. 
 This output is unexpected.
 As part of ongoing remediation efforts, `Task.didWork` was deprecated. 
-the task was "up-to-date up front" by using
+You can check if a task is "up-to-date up front" by using
 `task.getState().getExecuted() && !task.getState().getSkipped()`.
 
 [[changes_8.2]]
