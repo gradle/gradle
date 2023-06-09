@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestOutcome
 import org.gradle.testing.DryRunFilteringTest
 import org.gradle.testing.fixture.TestNGCoverage
+import org.hamcrest.text.IsEmptyString
+import org.gradle.util.Matchers
 
 @TargetCoverage({ TestNGCoverage.SUPPORTS_DRY_RUN })
 class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegrationTest implements DryRunFilteringTest {
@@ -35,40 +37,69 @@ class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegr
         return TestOutcome.PASSED
     }
 
-    def "dry-run property not preserved across invocations"() {
-        given:
+    def "dry-run property is not preserved across invocations"() {
         buildFile << """
             apply plugin: 'java'
+
             ${mavenCentralRepository()}
+
             dependencies {
                 ${testFrameworkDependencies}
             }
-            test {
-              ${configureTestFramework}
-            }
-        """
 
-        file("src/test/java/FailingTest.java") << """
-            ${testFrameworkImports}
-            public class FailingTest {
-                @Test public void failing() {
-                    throw new RuntimeException("Boo!");
+            testing {
+                suites {
+                    dryRunTest(JvmTestSuite) {
+                        ${configureTestFramework}
+
+                        targets {
+                            all {
+                                testTask.configure {
+                                    dryRun.set(true)
+                                }
+                            }
+                        }
+                    }
+                    test {
+                        ${configureTestFramework}
+
+                        targets {
+                            all {
+                                testTask.configure {
+                                    mustRunAfter(dryRunTest)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         """
 
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
+            public class FooTest {
+                @Test public void foo() {
+                    System.err.println("Run foo!");
+                }
+            }
+        """
+
+        file("src/dryRunTest/java/BarTest.java") << """
+            ${testFrameworkImports}
+            public class BarTest {
+                @Test public void bar() {
+                    System.err.println("Run bar!");
+                }
+            }
+        """
+
+        when:
         def testResult = new DefaultTestExecutionResult(testDirectory)
-
-        when:
-        succeeds("test", "--test-dry-run")
-
-        then:
-        testResult.testClass("FailingTest").assertTestOutcomes(getFailedTestOutcome(), "failing")
-
-        when:
-        fails("test")
+        def dryRunTestResult = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'dryRunTest')
+        run "dryRunTest", "test"
 
         then:
-        testResult.testClass("FailingTest").assertTestFailedIgnoreMessages("failing")
+        testResult.testClass("FooTest").assertStderr(Matchers.containsText("Run foo!"))
+        dryRunTestResult.testClass("BarTest").assertStderr(IsEmptyString.emptyString())
     }
 }
