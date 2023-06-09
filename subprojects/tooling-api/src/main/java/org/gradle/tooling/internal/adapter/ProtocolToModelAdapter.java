@@ -344,6 +344,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             viewsForSource.put(key, new WeakReference<>(proxy));
         }
 
+        @Nullable
         private Object getViewFor(Object sourceObject, ViewKey key) {
             HashMap<ViewKey, WeakReference<Object>> viewsForSource = views.get(sourceObject);
 
@@ -523,7 +524,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             private final SoftReference<Class<?>[]> parameterTypes;
             private final int hashCode;
 
-            private MethodInvocationKey(Class<?> lookupClass, String methodName, Class<?>[] parameterTypes) {
+            private MethodInvocationKey(@Nullable Class<?> lookupClass, @Nullable String methodName, Class<?>[] parameterTypes) {
                 this.lookupClass = new SoftReference<Class<?>>(lookupClass);
                 this.methodName = methodName;
                 this.parameterTypes = new SoftReference<Class<?>[]>(parameterTypes);

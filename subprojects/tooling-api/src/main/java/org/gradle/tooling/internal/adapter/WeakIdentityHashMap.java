@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.internal.adapter;
 
+import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Set;
 
 /**
- * A specialized map implementation, that uses weak references for keys and stores
+ * A specialized map wrapper, that uses weak references for keys and stores
  * values as strong references. It allows the garbage collector to collect keys when they are no longer in use.
  *
  * Keys are stored wrapped in {@code WeakIdentityHashMap.WeakKey} weak reference implementation, that uses {@code System.identityHashCode}
@@ -34,6 +35,7 @@ class WeakIdentityHashMap<K, V> {
         map.put(new WeakKey<>(key), value);
     }
 
+    @Nullable
     V get(K key) {
         return map.get(new WeakKey<>(key));
     }
