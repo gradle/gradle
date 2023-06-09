@@ -31,17 +31,17 @@ import java.util.concurrent.ConcurrentHashMap
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
-        TeamCity(
+        TEAM_CITY(
             "v0.33",
             "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/build-scan-init.gradle",
             "teamCityBuildScanPlugin"
         ),
-        Jenkins(
+        JENKINS(
             "gradle-2.8",
             "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle",
             "jenkinsGradlePlugin"
         ),
-        Bamboo(
+        BAMBOO(
             "gradle-enterprise-bamboo-plugin-1.1.0",
             "https://raw.githubusercontent.com/gradle/gradle-enterprise-bamboo-plugin/%s/src/main/resources/gradle-enterprise/gradle/gradle-enterprise-init-script.gradle",
             "ge-plugin"
