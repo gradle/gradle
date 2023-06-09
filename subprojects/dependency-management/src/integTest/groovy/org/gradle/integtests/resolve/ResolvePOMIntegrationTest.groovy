@@ -86,23 +86,6 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not find lib.pom (project :included-logging:lib)")
     }
 
-    def "resolving a @pom artifact from an included build replacing an external library does not fail the build with a lenient artifact view"() {
-        given:
-        mainProjectDir.file("app/build.gradle") << """
-            tasks.register("resolve", Resolve) {
-                artifactFiles.from {
-                    ArtifactView lenientView = configurations.getByName("compileClasspath").getIncoming().artifactView(view -> {
-                        view.setLenient(true)
-                    })
-                    lenientView.files.files
-                }
-            }
-        """
-
-        expect:
-        succeeds "resolve"
-    }
-
     def "resolving a @pom artifact from an included build replacing an external library does not fail the build with a lenient configuration"() {
         given:
         mainProjectDir.file("app/build.gradle") << """
@@ -112,6 +95,20 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
                         .getLenientConfiguration()
                         .getFiles()
                 }
+            }
+        """
+
+        expect:
+        succeeds "resolve"
+    }
+
+    def "resolving a @pom artifact from an included build replacing an external library does not fail the build with a lenient artifact view"() {
+        given:
+        mainProjectDir.file("app/build.gradle") << """
+            tasks.register("resolve", Resolve) {
+                artifactFiles.from(configurations.getByName("compileClasspath").incoming.artifactView {
+                    lenient = true
+                }.getFiles())
             }
         """
 
