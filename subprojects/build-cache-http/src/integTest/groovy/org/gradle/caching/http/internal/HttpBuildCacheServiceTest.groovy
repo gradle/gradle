@@ -356,7 +356,7 @@ class HttpBuildCacheServiceTest extends Specification {
 
     }
 
-    static class Writer implements NextGenBuildCacheService.NextGenWriter {
+    static class Writer implements NextGenBuildCacheService.EntryWriter {
         private final byte[] content
         private int writeCount = 0
 

@@ -24,7 +24,6 @@ import org.gradle.internal.file.BufferProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -57,8 +56,8 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         delegate.store(entries, new DelegatingStoreHandler<T>(handler) {
             @Override
-            public NextGenBuildCacheService.NextGenWriter createWriter(T payload) {
-                NextGenBuildCacheService.NextGenWriter delegateWriter = handler.createWriter(payload);
+            public NextGenBuildCacheService.EntryWriter createWriter(T payload) {
+                NextGenBuildCacheService.EntryWriter delegateWriter = handler.createWriter(payload);
                 // TODO Make this more performant for large files
                 UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
                 try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
@@ -69,15 +68,10 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                     throw new UncheckedIOException(e);
                 }
 
-                return new NextGenBuildCacheService.NextGenWriter() {
+                return new NextGenBuildCacheService.EntryWriter() {
                     @Override
                     public InputStream openStream() {
                         return compressed.toInputStream();
-                    }
-
-                    @Override
-                    public void writeTo(OutputStream output) throws IOException {
-                        compressed.writeTo(output);
                     }
 
                     @Override

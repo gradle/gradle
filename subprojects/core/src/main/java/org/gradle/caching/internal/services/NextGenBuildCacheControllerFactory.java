@@ -16,15 +16,17 @@
 
 package org.gradle.caching.internal.services;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.internal.NextGenBuildCacheService;
+import org.gradle.caching.internal.NextGenBuildCacheServiceFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.GZipNextGenBuildCacheAccess;
@@ -33,6 +35,7 @@ import org.gradle.caching.internal.controller.RemoteNextGenBuildCacheServiceHand
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.H2BuildCacheService;
+import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
@@ -46,8 +49,10 @@ import org.slf4j.helpers.NOPLogger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2BuildCacheService> {
+public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2BuildCacheService, NextGenBuildCacheService> {
 
     private final Deleter deleter;
     private final BuildInvocationScopeId buildInvocationScopeId;
@@ -78,9 +83,14 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     }
 
     @Override
+    protected <C extends BuildCache, S> S instantiateBuildCacheService(C configuration, BuildCacheServiceFactory<C> factory, BuildCacheServiceFactory.Describer describer) {
+        return Cast.uncheckedNonnullCast(makeCompatible(factory).createNextGenBuildCacheService(configuration, describer));
+    }
+
+    @Override
     protected BuildCacheController doCreateController(
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, H2BuildCacheService> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
+        @Nullable DescribedBuildCacheService<BuildCache, NextGenBuildCacheService> remoteDescribedService
     ) {
         IncubationLogger.incubatingFeatureUsed("Next generation build cache");
 
@@ -115,43 +125,59 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         );
     }
 
-    private static RemoteNextGenBuildCacheServiceHandler resolveRemoteService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends BuildCacheService> describedService) {
+    private static RemoteNextGenBuildCacheServiceHandler resolveRemoteService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends NextGenBuildCacheService> describedService) {
         return describedService != null && describedService.config.isEnabled()
-            ? new DefaultRemoteNextGenBuildCacheServiceHandler(makeCompatible(describedService.service), describedService.config.isPush())
+            ? new DefaultRemoteNextGenBuildCacheServiceHandler(describedService.service, describedService.config.isPush())
             : DISABLED_BUILD_CACHE_SERVICE_HANDLER;
     }
 
-    /**
-     * Wraps a legacy {@link BuildCacheService} in a {@link NextGenBuildCacheService}.
-     */
-    private static NextGenBuildCacheService makeCompatible(BuildCacheService service) {
-        if (service instanceof NextGenBuildCacheService) {
-            return (NextGenBuildCacheService) service;
+    private <T extends BuildCache> NextGenBuildCacheServiceFactory<T> makeCompatible(BuildCacheServiceFactory<T> factory) {
+        if (factory instanceof NextGenBuildCacheServiceFactory) {
+            return (NextGenBuildCacheServiceFactory<T>) factory;
         }
-        return new NextGenBuildCacheService() {
+        return new NextGenBuildCacheServiceFactory<T>() {
+
             @Override
-            public boolean contains(BuildCacheKey key) {
-                return load(key, __ -> {});
+            public BuildCacheService createBuildCacheService(T configuration, Describer describer) {
+                return factory.createBuildCacheService(configuration, describer);
             }
 
             @Override
-            public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-                return service.load(key, reader);
-            }
+            public NextGenBuildCacheService createNextGenBuildCacheService(T configuration, Describer describer) {
+                BuildCacheService legacyService = factory.createBuildCacheService(configuration, describer);
+                return new NextGenBuildCacheService() {
+                    @Override
+                    public boolean contains(BuildCacheKey key) {
+                        return load(key, __ -> {});
+                    }
 
-            @Override
-            public void store(BuildCacheKey key, BuildCacheEntryWriter legacyWriter) throws BuildCacheException {
-                service.store(key, legacyWriter);
-            }
+                    @Override
+                    public boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException {
+                        return legacyService.load(key, reader::readFrom);
+                    }
 
-            @Override
-            public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
-                service.store(key, writer);
-            }
+                    @Override
+                    public void store(BuildCacheKey key, EntryWriter writer) throws BuildCacheException {
+                        legacyService.store(key, new BuildCacheEntryWriter() {
+                            @Override
+                            public void writeTo(OutputStream output) throws IOException {
+                                try (InputStream input = writer.openStream()) {
+                                    IOUtils.copyLarge(input, output, bufferProvider.getBuffer());
+                                }
+                            }
 
-            @Override
-            public void close() throws IOException {
-                service.close();
+                            @Override
+                            public long getSize() {
+                                return writer.getSize();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void close() throws IOException {
+                        legacyService.close();
+                    }
+                };
             }
         };
     }
@@ -178,12 +204,12 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
 
         @Override
-        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+        public boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException {
             return false;
         }
 
         @Override
-        public void store(BuildCacheKey key, NextGenBuildCacheService.NextGenWriter writer) throws BuildCacheException {
+        public void store(BuildCacheKey key, EntryWriter writer) throws BuildCacheException {
         }
 
         @Override
@@ -222,12 +248,12 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
 
         @Override
-        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+        public boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException {
             return canLoad() && service.load(key, reader);
         }
 
         @Override
-        public void store(BuildCacheKey key, NextGenBuildCacheService.NextGenWriter writer) throws BuildCacheException {
+        public void store(BuildCacheKey key, EntryWriter writer) throws BuildCacheException {
             if (canStore()) {
                 service.store(key, writer);
             }

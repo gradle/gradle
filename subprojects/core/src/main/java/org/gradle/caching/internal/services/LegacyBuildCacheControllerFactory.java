@@ -21,6 +21,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultBuildCacheController;
@@ -29,12 +30,13 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheService;
+import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
 
-public class LegacyBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<DirectoryBuildCacheService> {
+public class LegacyBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<DirectoryBuildCacheService, BuildCacheService> {
 
     private final TemporaryFileProvider temporaryFileProvider;
     private final BuildCacheEntryPacker packer;
@@ -57,6 +59,11 @@ public class LegacyBuildCacheControllerFactory extends AbstractBuildCacheControl
         );
         this.temporaryFileProvider = temporaryFileProvider;
         this.packer = packer;
+    }
+
+    @Override
+    protected <C extends BuildCache, S> S instantiateBuildCacheService(C configuration, BuildCacheServiceFactory<C> factory, BuildCacheServiceFactory.Describer describer) {
+        return Cast.uncheckedNonnullCast(factory.createBuildCacheService(configuration, describer));
     }
 
     @Override

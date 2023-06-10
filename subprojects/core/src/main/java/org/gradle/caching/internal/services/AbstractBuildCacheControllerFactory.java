@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
@@ -48,7 +47,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheService> implements BuildCacheControllerFactory {
+public abstract class AbstractBuildCacheControllerFactory<L, R> implements BuildCacheControllerFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBuildCacheControllerFactory.class);
     protected final StartParameter startParameter;
@@ -81,7 +80,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
 
     abstract protected BuildCacheController doCreateController(
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
+        @Nullable DescribedBuildCacheService<BuildCache, R> remoteDescribedService
     );
 
     @Override
@@ -112,7 +111,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
                     ? createBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, buildCacheConfiguration, instanceGenerator)
                     : null;
 
-                DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService = remoteEnabled
+                DescribedBuildCacheService<BuildCache, R> remoteDescribedService = remoteEnabled
                     ? createBuildCacheService(remote, BuildCacheServiceRole.REMOTE, buildIdentityPath, buildCacheConfiguration, instanceGenerator)
                     : null;
 
@@ -140,7 +139,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         });
     }
 
-    private static <C extends BuildCache, S> DescribedBuildCacheService<C, S> createBuildCacheService(
+    private <C extends BuildCache, S> DescribedBuildCacheService<C, S> createBuildCacheService(
         C configuration,
         BuildCacheServiceRole role,
         Path buildIdentityPath,
@@ -153,7 +152,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
 
         BuildCacheServiceFactory<C> factory = instantiator.newInstance(castFactoryType);
         Describer describer = new Describer();
-        S service = Cast.uncheckedNonnullCast(factory.createBuildCacheService(configuration, describer));
+        S service = instantiateBuildCacheService(configuration, factory, describer);
         ImmutableSortedMap<String, String> config = ImmutableSortedMap.copyOf(describer.configParams);
         BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, config);
 
@@ -161,6 +160,8 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
 
         return new DescribedBuildCacheService<>(configuration, service, description);
     }
+
+    abstract protected <C extends BuildCache, S> S instantiateBuildCacheService(C configuration, BuildCacheServiceFactory<C> factory, BuildCacheServiceFactory.Describer describer);
 
     private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescription description) {
         if (LOGGER.isInfoEnabled()) {

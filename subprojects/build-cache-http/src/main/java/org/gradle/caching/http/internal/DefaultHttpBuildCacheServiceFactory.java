@@ -20,11 +20,13 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.caching.http.HttpBuildCacheCredentials;
+import org.gradle.caching.internal.NextGenBuildCacheService;
+import org.gradle.caching.internal.NextGenBuildCacheServiceFactory;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpSettings;
@@ -41,23 +43,45 @@ import java.util.Collections;
 /**
  * Build cache factory for HTTP backend.
  */
-public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
+public class DefaultHttpBuildCacheServiceFactory implements NextGenBuildCacheServiceFactory<HttpBuildCache> {
 
     private static final int MAX_REDIRECTS = Integer.getInteger("org.gradle.cache.http.max-redirects", 10);
 
     private final SslContextFactory sslContextFactory;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
     private final HttpClientHelper.Factory httpClientHelperFactory;
+    private final BufferProvider bufferProvider;
 
     @Inject
-    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientHelper.Factory httpClientHelperFactory) {
+    public DefaultHttpBuildCacheServiceFactory(
+        SslContextFactory sslContextFactory,
+        HttpBuildCacheRequestCustomizer requestCustomizer,
+        HttpClientHelper.Factory httpClientHelperFactory,
+        BufferProvider bufferProvider
+    ) {
         this.sslContextFactory = sslContextFactory;
         this.requestCustomizer = requestCustomizer;
         this.httpClientHelperFactory = httpClientHelperFactory;
+        this.bufferProvider = bufferProvider;
+    }
+
+    private interface ServiceCreator<T> {
+        T createService(URI url, boolean useExpectContinue, HttpClientHelper httpClientHelper);
     }
 
     @Override
     public BuildCacheService createBuildCacheService(HttpBuildCache configuration, Describer describer) {
+        return createService(configuration, describer, (url, useExpectContinue, httpClientHelper) ->
+            new HttpBuildCacheService(url, useExpectContinue, httpClientHelper, requestCustomizer));
+    }
+
+    @Override
+    public NextGenBuildCacheService createNextGenBuildCacheService(HttpBuildCache configuration, Describer describer) {
+        return createService(configuration, describer, (url, useExpectContinue, httpClientHelper) ->
+            new NextGenHttpBuildCacheService(url, useExpectContinue, httpClientHelper, requestCustomizer, bufferProvider));
+    }
+
+    private <T> T createService(HttpBuildCache configuration, Describer describer, ServiceCreator<T> serviceCreator) {
         URI url = configuration.getUrl();
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");
@@ -74,7 +98,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             DefaultBasicAuthentication basicAuthentication = new DefaultBasicAuthentication("basic");
             basicAuthentication.setCredentials(credentials);
             basicAuthentication.addHost(url.getHost(), url.getPort());
-            authentications = Collections.<Authentication>singleton(basicAuthentication);
+            authentications = Collections.singleton(basicAuthentication);
         }
 
         boolean authenticated = !authentications.isEmpty();
@@ -104,10 +128,10 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol))
             .config("useExpectContinue", Boolean.toString(useExpectContinue));
 
-        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer, useExpectContinue);
+        return serviceCreator.createService(noUserInfoUrl, useExpectContinue, httpClientHelper);
     }
 
-    private HttpRedirectVerifier createRedirectVerifier(URI url, boolean allowInsecureProtocol) {
+    private static HttpRedirectVerifier createRedirectVerifier(URI url, boolean allowInsecureProtocol) {
         return HttpRedirectVerifierFactory
             .create(
                 url,

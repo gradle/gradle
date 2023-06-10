@@ -26,8 +26,6 @@ import org.gradle.cache.internal.AbstractCrossProcessCacheAccess;
 import org.gradle.cache.internal.LockOnDemandCrossProcessCacheAccess;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
@@ -109,15 +107,7 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter legacyWriter) throws BuildCacheException {
-        crossProcessCacheAccess.withFileLock(() -> {
-            delegate.store(key, legacyWriter);
-            return null;
-        });
-    }
-
-    @Override
-    public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
+    public void store(BuildCacheKey key, EntryWriter writer) throws BuildCacheException {
         crossProcessCacheAccess.withFileLock(() -> {
             delegate.store(key, writer);
             return null;
@@ -125,7 +115,7 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
     }
 
     @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+    public boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException {
         return crossProcessCacheAccess.withFileLock(() -> delegate.load(key, reader));
     }
 

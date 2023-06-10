@@ -94,7 +94,7 @@ public interface NextGenBuildCacheAccess extends Closeable {
          * @param payload optional payload belonging to this entry (see {@link #store(Map, StoreHandler)}).
          * @return the writer that can produce the content for this entry.
          */
-        NextGenBuildCacheService.NextGenWriter createWriter(T payload);
+        NextGenBuildCacheService.EntryWriter createWriter(T payload);
 
         /**
          * Starts the legacy {@link BuildCacheRemoteStoreBuildOperationType} build operation when the first upload starts.

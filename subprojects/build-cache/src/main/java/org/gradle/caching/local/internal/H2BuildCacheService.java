@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.gradle.cache.HasCleanupAction;
-import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.NextGenBuildCacheService;
@@ -99,7 +98,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
     }
 
     @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+    public boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
                 "select entry_content from filestore.catalog where entry_key = ?;" +
@@ -125,7 +124,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
     }
 
     @Override
-    public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
+    public void store(BuildCacheKey key, EntryWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
                 "insert ignore into filestore.lru(entry_key, entry_accessed) values (?, ?);" +

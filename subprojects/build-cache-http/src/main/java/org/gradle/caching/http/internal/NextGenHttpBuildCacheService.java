@@ -17,20 +17,21 @@
 package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.protocol.HTTP;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.NextGenBuildCacheService;
+import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpClientResponse;
 import org.slf4j.Logger;
@@ -45,8 +46,8 @@ import java.util.Set;
 /**
  * Build cache implementation that delegates to a service accessible via HTTP.
  */
-public class HttpBuildCacheService extends AbstractHttpBuildCacheService implements BuildCacheService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
+public class NextGenHttpBuildCacheService extends AbstractHttpBuildCacheService implements NextGenBuildCacheService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NextGenHttpBuildCacheService.class);
     static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v1";
 
     private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
@@ -60,12 +61,46 @@ public class HttpBuildCacheService extends AbstractHttpBuildCacheService impleme
         511 // network authentication required
     );
 
-    public HttpBuildCacheService(URI url, boolean useExpectContinue, HttpClientHelper httpClientHelper, HttpBuildCacheRequestCustomizer requestCustomizer) {
+    private final BufferProvider bufferProvider;
+
+    public NextGenHttpBuildCacheService(
+        URI url,
+        boolean useExpectContinue,
+        HttpClientHelper httpClientHelper,
+        HttpBuildCacheRequestCustomizer requestCustomizer,
+        BufferProvider bufferProvider
+    ) {
         super(url, useExpectContinue, httpClientHelper, requestCustomizer);
+        this.bufferProvider = bufferProvider;
     }
 
     @Override
-    public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+    public boolean contains(BuildCacheKey key) {
+        final URI uri = root.resolve("./" + key.getHashCode());
+        HttpHead httpHead = new HttpHead(uri);
+        requestCustomizer.customize(httpHead);
+
+        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpHead)) {
+            StatusLine statusLine = response.getStatusLine();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Response for HEAD {}: {}", safeUri(uri), statusLine);
+            }
+            int statusCode = statusLine.getStatusCode();
+            if (isHttpSuccess(statusCode)) {
+                return true;
+            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                return false;
+            } else {
+                String defaultMessage = String.format("Checking entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                return throwHttpStatusCodeException(statusCode, defaultMessage);
+            }
+        } catch (IOException e) {
+            throw wrap(e);
+        }
+    }
+
+    @Override
+    public boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException {
         final URI uri = root.resolve("./" + key.getHashCode());
         HttpGet httpGet = new HttpGet(uri);
         httpGet.addHeader(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
@@ -92,7 +127,7 @@ public class HttpBuildCacheService extends AbstractHttpBuildCacheService impleme
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+    public void store(BuildCacheKey key, EntryWriter writer) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
         if (useExpectContinue) {
@@ -113,13 +148,15 @@ public class HttpBuildCacheService extends AbstractHttpBuildCacheService impleme
             }
 
             @Override
-            public InputStream getContent() {
-                throw new UnsupportedOperationException();
+            public InputStream getContent() throws IOException {
+                return writer.openStream();
             }
 
             @Override
             public void writeTo(OutputStream output) throws IOException {
-                writer.writeTo(output);
+                try (InputStream input = writer.openStream()) {
+                    IOUtils.copyLarge(input, output, bufferProvider.getBuffer());
+                }
             }
 
             @Override

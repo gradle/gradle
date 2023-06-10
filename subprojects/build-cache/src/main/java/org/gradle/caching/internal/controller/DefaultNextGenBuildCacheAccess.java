@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -209,15 +208,10 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 size.set(data.size());
 
                 // Mirror data in local cache
-                local.store(key, new NextGenBuildCacheService.NextGenWriter() {
+                local.store(key, new NextGenBuildCacheService.EntryWriter() {
                     @Override
                     public InputStream openStream() {
                         return data.toInputStream();
-                    }
-
-                    @Override
-                    public void writeTo(OutputStream output) throws IOException {
-                        data.writeTo(output);
                     }
 
                     @Override
@@ -274,16 +268,11 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
         private boolean storeInner(UnsynchronizedByteArrayOutputStream data) {
             AtomicBoolean stored = new AtomicBoolean(false);
-            remote.store(key, new NextGenBuildCacheService.NextGenWriter() {
+            remote.store(key, new NextGenBuildCacheService.EntryWriter() {
                 @Override
                 public InputStream openStream() {
-                    return data.toInputStream();
-                }
-
-                @Override
-                public void writeTo(OutputStream output) throws IOException {
-                    data.writeTo(output);
                     stored.set(true);
+                    return data.toInputStream();
                 }
 
                 @Override

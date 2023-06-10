@@ -592,10 +592,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 .progressDisplayName("Packing build cache entry"));
         }
 
-        public <T> NextGenBuildCacheAccess.StoreHandler<T> create(Function<T, NextGenBuildCacheService.NextGenWriter> delegate) {
+        public <T> NextGenBuildCacheAccess.StoreHandler<T> create(Function<T, NextGenBuildCacheService.EntryWriter> delegate) {
             return new NextGenBuildCacheAccess.StoreHandler<T>() {
                 @Override
-                public NextGenBuildCacheService.NextGenWriter createWriter(T payload) {
+                public NextGenBuildCacheService.EntryWriter createWriter(T payload) {
                     return delegate.apply(payload);
                 }
 
@@ -634,7 +634,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         }
     }
 
-    private static abstract class CountingWriter implements NextGenBuildCacheService.NextGenWriter {
+    private static abstract class CountingWriter implements NextGenBuildCacheService.EntryWriter {
         private final AtomicLong entryCount;
         private final AtomicLong totalSize;
 
@@ -645,24 +645,12 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         @Override
         public final InputStream openStream() throws IOException {
-            markStored();
+            entryCount.incrementAndGet();
+            totalSize.addAndGet(getSize());
             return doOpenStream();
         }
 
-        @Override
-        public final void writeTo(OutputStream output) throws IOException {
-            markStored();
-            doWriteTo(output);
-        }
-
         protected abstract InputStream doOpenStream() throws IOException;
-
-        protected abstract void doWriteTo(OutputStream output) throws IOException;
-
-        private void markStored() {
-            entryCount.incrementAndGet();
-            totalSize.addAndGet(getSize());
-        }
     }
 
     private void storeInner(BuildCacheKey manifestKey, CacheableEntity entity, CacheManifest manifest, byte[] manifestBytes, OperationFiringStoreHandlerFactory handlerFactory) {
@@ -679,17 +667,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
             cacheAccess.store(manifestIndex, handlerFactory.create(manifestEntry -> new CountingWriter(handlerFactory.packEntryCount, handlerFactory.totalPackSize) {
                 @Override
                 protected InputStream doOpenStream() throws IOException {
-                    // TODO Replace with "Files.newInputStream()" as it seems to be more efficient
-                    //      Might be a good idea to pass `root` as `Path` instead of `File` then
                     //noinspection IOStreamConstructor
                     return new FileInputStream(new File(root, manifestEntry.getRelativePath()));
-                }
-
-                @Override
-                protected void doWriteTo(OutputStream output) throws IOException {
-                    try (InputStream input = openStream()) {
-                        IOUtils.copyLarge(input, output, bufferProvider.getBuffer());
-                    }
                 }
 
                 @Override
@@ -703,11 +682,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
             @Override
             protected InputStream doOpenStream() {
                 return new UnsynchronizedByteArrayInputStream(manifestBytes);
-            }
-
-            @Override
-            protected void doWriteTo(OutputStream output) throws IOException {
-                output.write(manifestBytes);
             }
 
             @Override

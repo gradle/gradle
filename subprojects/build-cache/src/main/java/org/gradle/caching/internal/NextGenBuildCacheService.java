@@ -16,13 +16,12 @@
 
 package org.gradle.caching.internal;
 
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.api.Incubating;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,7 +30,7 @@ import java.io.OutputStream;
  * Build cache service with additional features for next-generation build cache implementation.
  */
 @Incubating
-public interface NextGenBuildCacheService extends BuildCacheService  {
+public interface NextGenBuildCacheService extends Closeable {
     /**
      * Returns whether the given entry exists in the cache.
      *
@@ -40,42 +39,33 @@ public interface NextGenBuildCacheService extends BuildCacheService  {
      */
     boolean contains(BuildCacheKey key);
 
-    @Override
-    default void store(BuildCacheKey key, BuildCacheEntryWriter legacyWriter) throws BuildCacheException {
-        NextGenWriter writer;
-        if (legacyWriter instanceof NextGenWriter) {
-            writer = (NextGenWriter) legacyWriter;
-        } else {
-            writer = new NextGenWriter() {
-                @Override
-                public InputStream openStream() throws IOException {
-                    UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
-                    writeTo(data);
-                    return data.toInputStream();
-                }
+    /**
+     * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
+     *
+     * @param key the cache key.
+     * @param reader the reader to read the data corresponding to the cache key.
+     * @return {@code true} if an entry was found, {@code false} otherwise.
+     * @throws BuildCacheException if the cache fails to load a cache entry for the given key
+     */
+    boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException;
 
-                @Override
-                public void writeTo(OutputStream output) throws IOException {
-                    legacyWriter.writeTo(output);
-                }
+    void store(BuildCacheKey key, EntryWriter writer) throws BuildCacheException;
 
-                @Override
-                public long getSize() {
-                    return legacyWriter.getSize();
-                }
-            };
-        }
-        store(key, writer);
+    interface EntryReader {
+        void readFrom(InputStream input) throws IOException;
     }
-
-    void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException;
 
     /**
      * A {@link BuildCacheEntryWriter} that can open an {@link InputStream} to the data instead of writing it to an {@link OutputStream}.
      *
      * In some backend implementations this results in better performance.
      */
-    interface NextGenWriter extends BuildCacheEntryWriter {
+    interface EntryWriter {
         InputStream openStream() throws IOException;
+
+        long getSize();
     }
+
+    @Override
+    void close() throws IOException;
 }

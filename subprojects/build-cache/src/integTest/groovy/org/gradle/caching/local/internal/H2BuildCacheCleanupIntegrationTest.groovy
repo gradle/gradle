@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.time.Time
 
-import java.nio.file.Files
-
 class H2BuildCacheCleanupIntegrationTest extends AbstractBuildCacheCleanupIntegrationTest {
     @Override
     String getBuildCacheName() {
@@ -34,15 +32,10 @@ class H2BuildCacheCleanupIntegrationTest extends AbstractBuildCacheCleanupIntegr
     void createBuildCacheEntry(String key, File value, long timestamp) {
         try (H2BuildCacheService cacheService = new H2BuildCacheService(cacheDir.toPath(), 10, Integer.MAX_VALUE, { timestamp })) {
             cacheService.open()
-            cacheService.store(new DefaultBuildCacheKey(HashCode.fromString(key)), new NextGenBuildCacheService.NextGenWriter() {
+            cacheService.store(new DefaultBuildCacheKey(HashCode.fromString(key)), new NextGenBuildCacheService.EntryWriter() {
                 @Override
                 InputStream openStream() throws IOException {
                     return new FileInputStream(value)
-                }
-
-                @Override
-                void writeTo(OutputStream output) throws IOException {
-                    Files.copy(value.toPath(), output)
                 }
 
                 @Override

@@ -15,6 +15,7 @@ dependencies {
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
+    implementation(libs.commonsIo)
     implementation(libs.commonsHttpclient)
     implementation(libs.inject)
 

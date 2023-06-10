@@ -27,7 +27,8 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.internal.NextGenBuildCacheService;
+import org.gradle.caching.internal.NextGenBuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.file.PathToFileResolver;
@@ -40,7 +41,7 @@ import java.util.function.Function;
 import static org.gradle.cache.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
+public class H2BuildCacheServiceFactory implements NextGenBuildCacheServiceFactory<DirectoryBuildCache> {
     private static final String BUILD_CACHE_VERSION = "2";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
     private static final String H2_BUILD_CACHE_TYPE = "h2";
@@ -71,6 +72,11 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
 
     @Override
     public BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, Describer describer) {
+        throw new UnsupportedOperationException("H2 cache does not support the tar.gz protocol");
+    }
+
+    @Override
+    public NextGenBuildCacheService createNextGenBuildCacheService(DirectoryBuildCache configuration, Describer describer) {
         Object cacheDirectory = configuration.getDirectory();
         File target;
         if (cacheDirectory != null) {
