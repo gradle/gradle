@@ -22,6 +22,7 @@ object ArtifactTypes {
     const val relocatedClassesType = "relocatedClasses"
     const val entryPointsType = "entryPoints"
     const val classTreesType = "classTrees"
+    const val classHierarchy = "classHierarchy"
     const val manifestsType = "manifests"
     const val buildReceiptType = "buildReceipt"
 }

@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.packaging")
+    id("gradlebuild.classes-hierarchy")
 }
 
 description = "The collector project for the 'core' portion of the Gradle distribution"
