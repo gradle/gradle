@@ -301,6 +301,10 @@ For multi-project builds, the dependencies declared with a project's `buildscrip
 
 Build script dependencies may be Gradle plugins. Please consult <<plugins.adoc#plugins,Using Gradle Plugins>> for more information on Gradle plugins.
 
+NOTE: Gradle instruments the bytecode on the build script classpath to provide backward compatibility and improved usability.
+Some libraries may fail integrity self-checks because of this.
+In this case, the use of such libraries should be <<configuration_cache#config_cache:requirements:bytecode_modifications_and_isolation,isolated>>.
+
 Every project automatically has a `buildEnvironment` task of type link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask] that can be invoked to report on the resolution of the build script dependencies.
 
 == Further Reading

@@ -37,6 +37,7 @@ dependencies {
     smokeTestImplementation(libs.jgit)
     smokeTestImplementation(libs.spock)
     smokeTestImplementation(libs.junitPlatform)
+    smokeTestImplementation(libs.jacksonDatabind)
 
     smokeTestImplementation(testFixtures(project(":core")))
     smokeTestImplementation(testFixtures(project(":plugin-development")))
@@ -134,6 +135,7 @@ tasks {
         description = "Runs Smoke tests against the Gradle build"
         configureForSmokeTest(gradleBuildCurrent.map {
             project.fileTree(it.outputDirectory) {
+                exclude("platforms/*/*/src/**")
                 exclude("subprojects/*/src/**")
                 exclude(".idea/**")
                 exclude(".github/**")

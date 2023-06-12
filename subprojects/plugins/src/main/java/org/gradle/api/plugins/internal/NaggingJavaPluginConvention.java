@@ -29,9 +29,9 @@ import java.io.File;
 
 @org.gradle.api.NonNullApi
 public class NaggingJavaPluginConvention extends JavaPluginConvention {
-    private final JavaPluginConvention delegate;
+    private final DefaultJavaPluginConvention delegate;
 
-    public NaggingJavaPluginConvention(JavaPluginConvention delegate) {
+    public NaggingJavaPluginConvention(DefaultJavaPluginConvention delegate) {
         this.delegate = delegate;
     }
 
@@ -171,6 +171,11 @@ public class NaggingJavaPluginConvention extends JavaPluginConvention {
     public boolean getAutoTargetJvmDisabled() {
         logDeprecation();
         return delegate.getAutoTargetJvmDisabled();
+    }
+
+    File getReportsDir() {
+        logDeprecation();
+        return delegate.getReportsDir();
     }
 
     private static void logDeprecation() {
