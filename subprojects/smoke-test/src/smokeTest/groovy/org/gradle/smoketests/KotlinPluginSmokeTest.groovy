@@ -407,7 +407,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 // Register validation failure for plugin itself (or jvm plugin respectively)
                 if (testedPluginId in ['org.jetbrains.kotlin.kapt', 'org.jetbrains.kotlin.plugin.scripting']) {
                     onPlugins(['org.jetbrains.kotlin.jvm']) { registerValidationFailure(delegate) }
-                } else if (testedPluginId !in ['org.jetbrains.kotlin.android', 'org.jetbrains.kotlin.android.extensions']) {
+                } else {
                     onPlugin(testedPluginId) { registerValidationFailure(delegate) }
                 }
                 // Register validation failures for plugins brought in by this plugin
@@ -415,7 +415,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     onPlugins(['com.android.application',
                                'com.android.build.gradle.api.AndroidBasePlugin',
                                'com.android.internal.application',
-                               'com.android.internal.version-check']) { registerValidationFailure(delegate) }
+                               'com.android.internal.version-check']) { alwaysPasses() }
                 }
                 if (testedPluginId == 'org.jetbrains.kotlin.jvm'
                     || testedPluginId == 'org.jetbrains.kotlin.multiplatform'
