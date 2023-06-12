@@ -50,7 +50,7 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                 .details(new ExecuteWorkDetails(work)));
     }
 
-    private class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
+    private static class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
 
         private final UnitOfWork work;
 
