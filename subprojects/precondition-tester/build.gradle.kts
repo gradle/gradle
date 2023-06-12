@@ -81,7 +81,3 @@ tasks {
         outputs.upToDateWhen { false }
     }
 }
-
-afterEvaluate {
-    configurations.forEach(::println)
-}
