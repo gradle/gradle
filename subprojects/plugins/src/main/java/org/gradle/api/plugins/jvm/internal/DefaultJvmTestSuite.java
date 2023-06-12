@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.HashMultimap;
 import groovy.lang.GroovySystem;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
@@ -159,7 +160,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         }
     }
 
-    private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
+    private final DefaultJvmTargetMatrixAxes targetAxes;
+    private final DefaultJvmTargetMatrix targets;
     private final SourceSet sourceSet;
     private final String name;
     private final JvmComponentDependencies dependencies;
@@ -176,8 +178,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+        this.targetAxes = getObjectFactory().newInstance(DefaultJvmTargetMatrixAxes.class);
+        this.targets = getObjectFactory().newInstance(DefaultJvmTargetMatrix.class);
 
         this.dependencies = getObjectFactory().newInstance(
                 DefaultJvmComponentDependencies.class,

@@ -24,30 +24,27 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.testing.base.MatrixCoordinatesInternal;
 import org.gradle.util.internal.GUtil;
 
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, Buildable {
-    private final String name;
+    private final MatrixCoordinatesInternal coords;
     private final TaskProvider<Test> testTask;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
-        this.name = name;
+    public DefaultJvmTestSuiteTarget(String suiteName, MatrixCoordinatesInternal coords, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
+        this.coords = coords;
 
+        String name = suiteName + "_" + coords.toTaskNamePart();
         // Might not always want Test type here?
         this.testTask = tasks.register(name, Test.class, t -> {
-            t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
+            t.setDescription("Runs the " + GUtil.toWords(suiteName) + " suite's " + coords.toTaskNamePart() + " target.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         });
         this.taskDependencyFactory = taskDependencyFactory;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     public TaskProvider<Test> getTestTask() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.base;
+package org.gradle.api.plugins.jvm;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.testing.base.MatrixContainer;
 
-/**
- * Base test suite target.
- *
- * A test suite target is a collection of tests that run in a particular context (operating system, Java runtime, etc).
- *
- * @since 7.3
- */
-@Incubating
-public interface TestSuiteTarget extends MatrixContainer.MatrixValue {
+public interface JvmTargetMatrix extends MatrixContainer<JvmTargetSpec, JvmTestSuiteTarget> {
 }

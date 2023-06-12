@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,10 @@
 
 package org.gradle.testing.base;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-
-/**
- * Base test suite target.
- *
- * A test suite target is a collection of tests that run in a particular context (operating system, Java runtime, etc).
- *
- * @since 7.3
- */
-@Incubating
-public interface TestSuiteTarget extends MatrixContainer.MatrixValue {
+public interface MatrixCoordinatesInternal extends MatrixContainer.MatrixCoordinates {
+    /**
+     * Converts the coordinates to a task name part. This essentially appends the key-value pairs to form something
+     * that can be used as a task name.
+     */
+    String toTaskNamePart();
 }
