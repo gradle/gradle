@@ -18,20 +18,28 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.interfaces.Problem;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Represents some chunk of work.
  *
  * @since 8.3
  */
 public class GradleExceptionWithProblem extends RuntimeException {
-    private final Problem problem;
+    private final List<Problem> problems;
 
     public GradleExceptionWithProblem(Problem problem) {
         super(problem.getCause());
-        this.problem = problem;
+        this.problems = Collections.singletonList(problem);
     }
 
-    public Problem getProblem() {
-        return problem;
+    public GradleExceptionWithProblem(List<Problem> problems, Throwable cause) {
+        super(cause);
+        this.problems = Collections.unmodifiableList(problems);
+    }
+
+    public List<Problem> getProblems() {
+        return problems;
     }
 }

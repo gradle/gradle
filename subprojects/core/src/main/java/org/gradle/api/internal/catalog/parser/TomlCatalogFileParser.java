@@ -25,6 +25,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.interfaces.ProblemId;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlInvalidTypeException;
@@ -45,6 +48,7 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
@@ -95,11 +99,13 @@ public class TomlCatalogFileParser {
             TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
             Sets.SetView<String> unknownTle = Sets.difference(result.keySet(), TOP_LEVEL_ELEMENTS);
             if (!unknownTle.isEmpty()) {
-                throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
-                    spec.withShortDescription(() -> "Unknown top level elements " + unknownTle)
-                        .happensBecause(() -> "TOML file contains an unexpected top-level element")
-                        .addSolution(() -> "Make sure the top-level elements of your TOML file is one of " + oxfordListOf(TOP_LEVEL_ELEMENTS, "or"))
-                        .documented());
+                Problem problem = Problems.createError(ProblemId.VERSION_CATALOG, "Problem: In version catalog libs, unknown top level elements " + unknownTle)
+                    .description("TOML file contains an unexpected top-level element")
+                    .solution("Make sure the top-level elements of your TOML file is one of " + oxfordListOf(TOP_LEVEL_ELEMENTS, "or"))
+                    .documentedAt("https://TODO/#version_catalog_problems")
+                    .build();
+
+                throw throwVersionCatalogProblem(problem);
             }
             parseLibraries(librariesTable, builder, strictVersionParser);
             parsePlugins(pluginsTable, builder, strictVersionParser);
@@ -551,4 +557,8 @@ public class TomlCatalogFileParser {
         return null;
     }
 
+
+    private static RuntimeException throwVersionCatalogProblem(Problem problem) {
+        throw throwErrorWithNewProblemsApi("Invalid TOML catalog definition", ImmutableList.of(problem));
+    }
 }

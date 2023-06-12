@@ -76,6 +76,23 @@ public class TypeValidationProblemRenderer {
         }
     }
 
+    public static void renderSolutionsWithNewProblemsApi(TreeFormatter formatter, List<String> possibleSolutions) {
+        int solutionCount = possibleSolutions.size();
+        if (solutionCount > 0) {
+            formatter.blankLine();
+            if (solutionCount == 1) {
+                formatter.node("Possible solution: " + capitalize(endLineWithDot(possibleSolutions.get(0))));
+            } else {
+                formatter.node("Possible solutions");
+                formatter.startNumberedChildren();
+                possibleSolutions.forEach(solution ->
+                    formatter.node(capitalize(endLineWithDot(solution)))
+                );
+                formatter.endChildren();
+            }
+        }
+    }
+
     /**
      * This is an adhoc reformatting tool which should go away as soon as we have
      * a better way to display multiline deprecation warnings
