@@ -135,6 +135,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
             executionTimeoutMin = timeout
         }
         testFailure = false
+        supportTestRetry = true
         add {
             failOnText {
                 conditionType = BuildFailureOnText.ConditionType.CONTAINS

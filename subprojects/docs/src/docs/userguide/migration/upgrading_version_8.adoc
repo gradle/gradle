@@ -73,16 +73,18 @@ configurations {
 
 ----
 =====
+====
 
 The `inputFiles` property of `myTask` uses an artifact view to select a different type of artifact from the configuration `classpath`.
 Since the artifact view was created before the attributes were added to the configuration, Gradle was not able to select the correct artifact.
 
 Some builds may have worked around this by also putting the additional attributes into the artifact view. This is no longer necessary.
 
-[[kotlin_1_8.20]]
-==== Upgrade to Kotlin 1.8.21
+[[kotlin_1_8.21]]
+==== Upgrade to Kotlin 1.8.22
 
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.22[Kotlin 1.8.22].
+See the release notes for link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.21[Kotlin 1.8.21].
 
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier

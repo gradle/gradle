@@ -16,19 +16,22 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.Action
 
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ValueSupplier
 
 class SortedSetElementSourceTest extends ElementSourceSpec {
+
+    def provider1 = Mock(ProviderInternal)
+    def provider2 = Mock(ProviderInternal)
+    def provider3 = Mock(ProviderInternal)
+
     ElementSource source = new SortedSetElementSource<CharSequence>()
 
     def setup() {
-        source.onRealize(new Action<CharSequence>() {
-            @Override
-            void execute(CharSequence t) {
-                source.addRealized(t)
-            }
-        })
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of("provider1")
+        _ * provider2.calculateValue(_) >> ValueSupplier.Value.of("provider2")
+        _ * provider3.calculateValue(_) >> ValueSupplier.Value.of("provider3")
     }
 
     def "can remove elements using iteratorNoFlush"() {
@@ -166,6 +169,71 @@ class SortedSetElementSourceTest extends ElementSourceSpec {
         then:
         source.iterator().collect() == []
     }
+
+    def "realizes pending elements on flush"() {
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.realizePending()
+
+        then:
+        source.iteratorNoFlush().collect() == ["provider1", "provider2", "provider3"]
+    }
+
+    def "realizes only pending elements with a given type"() {
+        given:
+        _ * provider1.getType() >> SomeType.class
+        _ * provider2.getType() >> SomeOtherType.class
+        _ * provider3.getType() >> SomeType.class
+
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.realizePending(SomeType.class)
+
+        then:
+        source.iteratorNoFlush().collect() == ["provider1", "provider3"]
+    }
+
+    def "can remove pending elements"() {
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.removePending(provider1)
+
+        then:
+        source.size() == 2
+
+        when:
+        source.realizePending()
+
+        then:
+        source.iteratorNoFlush().collect() == ["provider2", "provider3"]
+    }
+
+    def "can clear pending elements"() {
+        when:
+        source.addPending(provider1)
+        source.addPending(provider2)
+        source.addPending(provider3)
+        source.clear()
+
+        then:
+        source.isEmpty()
+
+        when:
+        source.realizePending()
+
+        then:
+        source.iterator().collect() == []
+    }
+
+    class BaseType {}
+    class SomeType extends BaseType {}
+    class SomeOtherType extends BaseType {}
 
     @Override
     List<CharSequence> iterationOrder(CharSequence... values) {

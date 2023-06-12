@@ -32,9 +32,6 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
     }
-    buildFeatures {
-        viewBinding = true
-    }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false

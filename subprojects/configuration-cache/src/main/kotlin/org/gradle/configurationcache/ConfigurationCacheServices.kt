@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
@@ -64,7 +63,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
-            add(ConfigurationCacheFingerprintController::class.java)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
         }

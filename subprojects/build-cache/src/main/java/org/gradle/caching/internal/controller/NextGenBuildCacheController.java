@@ -76,7 +76,6 @@ import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
@@ -148,8 +147,6 @@ import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirecto
  */
 public class NextGenBuildCacheController implements BuildCacheController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NextGenBuildCacheController.class);
-
     public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
 
     private final BufferProvider bufferProvider;
@@ -157,12 +154,14 @@ public class NextGenBuildCacheController implements BuildCacheController {
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
     private final String buildInvocationId;
+    private final Logger logger;
     private final Deleter deleter;
     private final StringInterner stringInterner;
     private final Gson gson;
 
     public NextGenBuildCacheController(
         String buildInvocationId,
+        Logger logger,
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         BufferProvider bufferProvider,
@@ -171,6 +170,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         NextGenBuildCacheAccess cacheAccess
     ) {
         this.buildInvocationId = buildInvocationId;
+        this.logger = logger;
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.bufferProvider = bufferProvider;
@@ -179,7 +179,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         this.stringInterner = stringInterner;
         this.gson = createGson();
 
-        LOGGER.warn("Creating next-generation build cache controller");
+        logger.warn("Creating next-generation build cache controller");
     }
 
     @VisibleForTesting
@@ -739,7 +739,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     @Override
     public void close() throws IOException {
-        LOGGER.warn("Closing next-generation build cache controller");
+        logger.warn("Closing next-generation build cache controller");
         cacheAccess.close();
     }
 

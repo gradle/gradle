@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -27,8 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
-    WorkerExecutorFixture fixture = new WorkerExecutorFixture(temporaryFolder)
-
     def setup() {
         buildFile << """
             import org.gradle.workers.WorkerExecutor
