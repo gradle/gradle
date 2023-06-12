@@ -21,7 +21,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.DependenciesConfiguration;
+import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
@@ -30,9 +32,6 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -67,8 +66,8 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("jvm-ecosystem");
         project.getPluginManager().apply("jacoco");
 
-        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
-        NamedDomainObjectProvider<Configuration> jacocoAggregation = configurations.dependenciesUnlocked(JACOCO_AGGREGATION_CONFIGURATION_NAME, conf -> {
+        ConfigurationContainer configurations = project.getConfigurations();
+        NamedDomainObjectProvider<DependenciesConfiguration> jacocoAggregation = configurations.dependencies(JACOCO_AGGREGATION_CONFIGURATION_NAME, conf -> {
             conf.setDescription("Collects project dependencies for purposes of JaCoCo coverage report aggregation");
             conf.setVisible(false);
 
@@ -80,7 +79,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         });
 
         ObjectFactory objects = project.getObjects();
-        NamedDomainObjectProvider<Configuration> codeCoverageResultsConf = configurations.migratingUnlocked("aggregateCodeCoverageReportResults", ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE, conf -> {
+        NamedDomainObjectProvider<ResolvableConfiguration> codeCoverageResultsConf = configurations.resolvable("aggregateCodeCoverageReportResults", conf -> {
             conf.setDescription("Graph needed for the aggregated JaCoCo coverage report.");
             conf.extendsFrom(jacocoAggregation.get());
             conf.setVisible(false);
