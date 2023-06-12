@@ -23,7 +23,7 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConsumableConfiguration;
-import org.gradle.api.artifacts.DependenciesConfiguration;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
@@ -192,40 +192,40 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public NamedDomainObjectProvider<DependenciesConfiguration> dependencies(String name) {
-        assertMutable("dependencies(String)");
-        return registerDependenciesConfiguration(name, Actions.doNothing());
+    public NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name) {
+        assertMutable("dependencyScope(String)");
+        return registerDependencyScopeConfiguration(name, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<DependenciesConfiguration> dependencies(String name, Action<? super DependenciesConfiguration> action) {
-        assertMutable("dependencies(String, Action)");
-        return registerDependenciesConfiguration(name, action);
+    public NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action) {
+        assertMutable("dependencyScope(String, Action)");
+        return registerDependencyScopeConfiguration(name, action);
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> dependenciesUnlocked(String name) {
-        assertMutable("dependenciesUnlocked(String)");
+    public NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name) {
+        assertMutable("dependencyScopeUnlocked(String)");
         return registerUnlockedConfiguration(name, ConfigurationRoles.BUCKET, Actions.doNothing());
     }
 
     @Override
-    public NamedDomainObjectProvider<Configuration> dependenciesUnlocked(String name, Action<? super Configuration> action) {
-        assertMutable("dependenciesUnlocked(String, Action)");
+    public NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name, Action<? super Configuration> action) {
+        assertMutable("dependencyScopeUnlocked(String, Action)");
         return registerUnlockedConfiguration(name, ConfigurationRoles.BUCKET, action);
     }
 
     @Override
     @Deprecated
-    public NamedDomainObjectProvider<Configuration> resolvableDependenciesUnlocked(String name) {
-        assertMutable("resolvableDependenciesUnlocked(String)");
+    public NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name) {
+        assertMutable("resolvableDependencyScopeUnlocked(String)");
         return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_BUCKET, Actions.doNothing());
     }
 
     @Override
     @Deprecated
-    public NamedDomainObjectProvider<Configuration> resolvableDependenciesUnlocked(String name, Action<? super Configuration> action) {
-        assertMutable("resolvableDependenciesUnlocked(String, Action)");
+    public NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
+        assertMutable("resolvableDependencyScopeUnlocked(String, Action)");
         return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_BUCKET, action);
     }
 
@@ -266,14 +266,14 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependenciesUnlocked(String name, Action<? super Configuration> action) {
-        return maybeRegisterDependenciesUnlocked(name, true, action);
+    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
+        return maybeRegisterDependencyScopeUnlocked(name, true, action);
     }
 
     @Override
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependenciesUnlocked(String name, boolean warnOnDuplicate, Action<? super Configuration> action) {
+    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name, boolean warnOnDuplicate, Action<? super Configuration> action) {
         if (!hasWithName(name)) {
-            return dependenciesUnlocked(name, action);
+            return dependencyScopeUnlocked(name, action);
         }
 
         if (warnOnDuplicate) {
@@ -294,9 +294,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     @Deprecated
-    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableDependenciesUnlocked(String name, Action<? super Configuration> action) {
+    public NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
         if (!hasWithName(name)) {
-            return resolvableDependenciesUnlocked(name, action);
+            return resolvableDependencyScopeUnlocked(name, action);
         }
 
         emitConfigurationExistsDeprecation(name);
@@ -315,9 +315,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         );
     }
 
-    private NamedDomainObjectProvider<DependenciesConfiguration> registerDependenciesConfiguration(String name, Action<? super DependenciesConfiguration> configureAction) {
-        return registerConfiguration(name, configureAction, DependenciesConfiguration.class, n ->
-            defaultConfigurationFactory.createDependencies(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
+    private NamedDomainObjectProvider<DependencyScopeConfiguration> registerDependencyScopeConfiguration(String name, Action<? super DependencyScopeConfiguration> configureAction) {
+        return registerConfiguration(name, configureAction, DependencyScopeConfiguration.class, n ->
+            defaultConfigurationFactory.createDependencyScope(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
         );
     }
 

@@ -227,13 +227,13 @@ This method is only meant to be called on configurations which allow the (non-de
         failureHasCause("Cannot add a configuration with name 'foo' as a configuration with that name already exists.")
 
         where:
-        first          | second
-        "consumable"   | "resolvable"
-        "consumable"   | "dependencies"
-        "resolvable"   | "consumable"
-        "resolvable"   | "dependencies"
-        "dependencies" | "consumable"
-        "dependencies" | "resolvable"
+        first             | second
+        "consumable"      | "resolvable"
+        "consumable"      | "dependencyScope"
+        "resolvable"      | "consumable"
+        "resolvable"      | "dependencyScope"
+        "dependencyScope" | "consumable"
+        "dependencyScope" | "resolvable"
     }
 
     def "withType works for factory methods before declaration in Groovy DSL"() {
@@ -245,12 +245,12 @@ This method is only meant to be called on configurations which allow the (non-de
                 withType(ConsumableConfiguration) {
                     println "Consumable: " + name
                 }
-                withType(DependenciesConfiguration) {
+                withType(DependencyScopeConfiguration) {
                     println "Dependencies: " + name
                 }
                 resolvable("foo")
                 consumable("bar")
-                dependencies("baz")
+                dependencyScope("baz")
             }
         """
 
@@ -271,14 +271,14 @@ This method is only meant to be called on configurations which allow the (non-de
             configurations {
                 resolvable("foo")
                 consumable("bar")
-                dependencies("baz")
+                dependencyScope("baz")
                 withType(ResolvableConfiguration) {
                     println "Resolvable: " + name
                 }
                 withType(ConsumableConfiguration) {
                     println "Consumable: " + name
                 }
-                withType(DependenciesConfiguration) {
+                withType(DependencyScopeConfiguration) {
                     println "Dependencies: " + name
                 }
             }
@@ -305,12 +305,12 @@ This method is only meant to be called on configurations which allow the (non-de
                 withType<ConsumableConfiguration> {
                     println("Consumable: " + name)
                 }
-                withType<DependenciesConfiguration> {
+                withType<DependencyScopeConfiguration> {
                     println("Dependencies: " + name)
                 }
                 resolvable("foo")
                 consumable("bar")
-                dependencies("baz")
+                dependencyScope("baz")
             }
         """
 
@@ -331,14 +331,14 @@ This method is only meant to be called on configurations which allow the (non-de
             configurations {
                 resolvable("foo")
                 consumable("bar")
-                dependencies("baz")
+                dependencyScope("baz")
                 withType<ResolvableConfiguration> {
                     println("Resolvable: " + name)
                 }
                 withType<ConsumableConfiguration> {
                     println("Consumable: " + name)
                 }
-                withType<DependenciesConfiguration> {
+                withType<DependencyScopeConfiguration> {
                     println("Dependencies: " + name)
                 }
             }
@@ -363,7 +363,7 @@ This method is only meant to be called on configurations which allow the (non-de
             import org.gradle.api.artifacts.Configuration;
             import org.gradle.api.artifacts.ResolvableConfiguration;
             import org.gradle.api.artifacts.ConsumableConfiguration;
-            import org.gradle.api.artifacts.DependenciesConfiguration;
+            import org.gradle.api.artifacts.DependencyScopeConfiguration;
 
             public class MyPlugin implements Plugin<Project> {
                 @Override
@@ -374,12 +374,12 @@ This method is only meant to be called on configurations which allow the (non-de
                     project.getConfigurations().withType(ConsumableConfiguration.class, configuration -> {
                         System.out.println("Consumable: " + configuration.getName());
                     });
-                    project.getConfigurations().withType(DependenciesConfiguration.class, configuration -> {
+                    project.getConfigurations().withType(DependencyScopeConfiguration.class, configuration -> {
                         System.out.println("Dependencies: " + configuration.getName());
                     });
                     project.getConfigurations().resolvable("foo");
                     project.getConfigurations().consumable("bar");
-                    project.getConfigurations().dependencies("baz");
+                    project.getConfigurations().dependencyScope("baz");
                 }
             }
         """

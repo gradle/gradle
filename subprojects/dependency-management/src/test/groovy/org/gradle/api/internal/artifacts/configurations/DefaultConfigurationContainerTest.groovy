@@ -21,7 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConsumableConfiguration
-import org.gradle.api.artifacts.DependenciesConfiguration
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -188,7 +188,7 @@ class DefaultConfigurationContainerTest extends Specification {
         then:
         !(legacy instanceof ResolvableConfiguration)
         !(legacy instanceof ConsumableConfiguration)
-        !(legacy instanceof DependenciesConfiguration)
+        !(legacy instanceof DependencyScopeConfiguration)
         legacy.isCanBeResolved()
         legacy.isCanBeConsumed()
         legacy.isCanBeDeclared()
@@ -240,38 +240,38 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
 
-    def "#name creates dependencies configuration"() {
+    def "#name creates dependency scope configuration"() {
         expect:
         verifyRole(ConfigurationRoles.BUCKET, "a") {
-            dependencies("a")
+            dependencyScope("a")
         }
         verifyRole(ConfigurationRoles.BUCKET, "b") {
-            dependencies("b", {})
+            dependencyScope("b", {})
         }
         verifyUnlocked(ConfigurationRoles.BUCKET, "c") {
-            dependenciesUnlocked("c")
+            dependencyScopeUnlocked("c")
         }
         verifyUnlocked(ConfigurationRoles.BUCKET, "d") {
-            dependenciesUnlocked("d", {})
+            dependencyScopeUnlocked("d", {})
         }
         verifyUnlocked(ConfigurationRoles.BUCKET, "e") {
-            maybeRegisterDependenciesUnlocked("e", {})
+            maybeRegisterDependencyScopeUnlocked("e", {})
         }
         verifyUnlocked(ConfigurationRoles.BUCKET, "f") {
-            maybeRegisterDependenciesUnlocked("f", false, {})
+            maybeRegisterDependencyScopeUnlocked("f", false, {})
         }
     }
 
-    def "#name creates resolvable dependencies configuration"() {
+    def "#name creates resolvable dependency scope configuration"() {
         expect:
         verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "a") {
-            resolvableDependenciesUnlocked("a")
+            resolvableDependencyScopeUnlocked("a")
         }
         verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "b") {
-            resolvableDependenciesUnlocked("b", {})
+            resolvableDependencyScopeUnlocked("b", {})
         }
         verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "c") {
-            maybeRegisterResolvableDependenciesUnlocked("c", {})
+            maybeRegisterResolvableDependencyScopeUnlocked("c", {})
         }
     }
 
@@ -340,18 +340,18 @@ class DefaultConfigurationContainerTest extends Specification {
         del == value
 
         where:
-        name                                                           | action
-        "consumable(String, Action)"                                   | { consumable("foo", it) }
-        "resolvable(String, Action)"                                   | { resolvable("foo", it) }
-        "dependencies(String, Action)"                                 | { dependencies("foo", it) }
-        "consumableUnlocked(String, Action)"                           | { consumableUnlocked("foo", it) }
-        "resolvableUnlocked(String, Action)"                           | { resolvableUnlocked("foo", it) }
-        "dependenciesUnlocked(String, Action)"                         | { dependenciesUnlocked("foo", it) }
-        "resolvableDependenciesUnlocked(String, Action)"               | { resolvableDependenciesUnlocked("foo", it) }
-        "maybeRegisterConsumableUnlocked(String, Action)"              | { maybeRegisterConsumableUnlocked("foo", it) }
-        "maybeRegisterResolvableUnlocked(String, Action)"              | { maybeRegisterResolvableUnlocked("foo", it) }
-        "maybeRegisterDependenciesUnlocked(String, Action)"            | { maybeRegisterDependenciesUnlocked("foo", it) }
-        "maybeRegisterResolvableDependenciesUnlocked(String, Action)"  | { maybeRegisterResolvableDependenciesUnlocked("foo", it) }
+        name                                                             | action
+        "consumable(String, Action)"                                     | { consumable("foo", it) }
+        "resolvable(String, Action)"                                     | { resolvable("foo", it) }
+        "dependencyScope(String, Action)"                                | { dependencyScope("foo", it) }
+        "consumableUnlocked(String, Action)"                             | { consumableUnlocked("foo", it) }
+        "resolvableUnlocked(String, Action)"                             | { resolvableUnlocked("foo", it) }
+        "dependencyScopeUnlocked(String, Action)"                        | { dependencyScopeUnlocked("foo", it) }
+        "resolvableDependencyScopeUnlocked(String, Action)"              | { resolvableDependencyScopeUnlocked("foo", it) }
+        "maybeRegisterConsumableUnlocked(String, Action)"                | { maybeRegisterConsumableUnlocked("foo", it) }
+        "maybeRegisterResolvableUnlocked(String, Action)"                | { maybeRegisterResolvableUnlocked("foo", it) }
+        "maybeRegisterDependencyScopeUnlocked(String, Action)"           | { maybeRegisterDependencyScopeUnlocked("foo", it) }
+        "maybeRegisterResolvableDependencyScopeUnlocked(String, Action)" | { maybeRegisterResolvableDependencyScopeUnlocked("foo", it) }
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements
@@ -367,7 +367,7 @@ class DefaultConfigurationContainerTest extends Specification {
     def verifyRole(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
         verifyConfiguration(name, producer) {
             assert role.resolvable == it instanceof ResolvableConfiguration
-            assert role.declarable == it instanceof DependenciesConfiguration
+            assert role.declarable == it instanceof DependencyScopeConfiguration
             assert role.consumable == it instanceof ConsumableConfiguration
             assert role.resolvable == it.isCanBeResolved()
             assert role.declarable == it.isCanBeDeclared()
@@ -378,7 +378,7 @@ class DefaultConfigurationContainerTest extends Specification {
     def verifyUnlocked(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
         verifyConfiguration(name, producer) {
             assert !(it instanceof ResolvableConfiguration)
-            assert !(it instanceof DependenciesConfiguration)
+            assert !(it instanceof DependencyScopeConfiguration)
             assert !(it instanceof ConsumableConfiguration)
             assert role.resolvable == it.isCanBeResolved()
             assert role.declarable == it.isCanBeDeclared()

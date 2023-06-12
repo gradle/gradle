@@ -60,7 +60,7 @@ public final class ConfigurationRoles {
      * These situations should be updated to use a separate bucket configuration for declaring dependencies and extend it with a separate resolvable configuration.
      */
     @Deprecated
-    public static final ConfigurationRole RESOLVABLE_BUCKET = createNonDeprecatedRole("Resolvable Dependencies", false, true, true);
+    public static final ConfigurationRole RESOLVABLE_BUCKET = createNonDeprecatedRole("Resolvable Dependency Scope", false, true, true);
 
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a consumable configuration.
@@ -68,14 +68,14 @@ public final class ConfigurationRoles {
      * This <strong>SHOULD NOT</strong> be necessary, and is a symptom of an over-permissive configuration.
      */
     @Deprecated
-    public static final ConfigurationRole CONSUMABLE_BUCKET = createNonDeprecatedRole("Consumable Dependencies", true, false, true);
+    public static final ConfigurationRole CONSUMABLE_BUCKET = createNonDeprecatedRole("Consumable Dependency Scope", true, false, true);
 
     /**
      * Meant to be used only for declaring dependencies.
      *
      * AKA {@code DECLARABLE}.
      */
-    public static final ConfigurationRole BUCKET = createNonDeprecatedRole("Dependencies", false, false, true);
+    public static final ConfigurationRole BUCKET = createNonDeprecatedRole("Dependency Scope", false, false, true);
 
     /**
      * Creates a new role which is not deprecated for any usage.

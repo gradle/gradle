@@ -124,12 +124,12 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     private void configureConfigurations(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
         DependencyHandler dependencyHandler = project.getDependencies();
 
-        project.getConfigurations().resolvableDependenciesUnlocked(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME, plugins -> {
+        project.getConfigurations().resolvableDependencyScopeUnlocked(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME, plugins -> {
             plugins.setTransitive(false);
             jvmEcosystemUtilities.configureAsRuntimeClasspath(plugins);
         });
 
-        project.getConfigurations().resolvableDependenciesUnlocked(ZINC_CONFIGURATION_NAME, zinc -> {
+        project.getConfigurations().resolvableDependencyScopeUnlocked(ZINC_CONFIGURATION_NAME, zinc -> {
             zinc.setVisible(false);
             zinc.setDescription("The Zinc incremental compiler to be used for this Scala project.");
 
