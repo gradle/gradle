@@ -16,18 +16,18 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
+/**
+ * A step that executes a unit of work and wraps it into a {@link ExecuteWorkBuildOperationType} build operation.
+ */
 public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R extends CachingResult> extends BuildOperationStep<C, R> implements Step<C, R> {
 
     private final Step<? super C, R> delegate;
