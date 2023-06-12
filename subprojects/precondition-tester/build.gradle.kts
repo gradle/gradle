@@ -20,39 +20,23 @@ plugins {
 
 description = "Internal project testing and collecting information about all the test preconditions."
 
-// Special configuration containing all the precondition classes
-val precondition by configurations.creating {
-    description = "Configuration for all TestPrecondition classes dynamically loaded by the precondition tester"
-    isCanBeResolved = false
-    isCanBeConsumed = true
-}
-
-configurations {
-    // All test runtime configurations should extend from the "precondition" configuration
-    listOf(testRuntimeOnly, integTestRuntimeOnly, archTestRuntimeOnly, crossVersionTestRuntimeOnly).forEach {
-        it.configure {
-            extendsFrom(precondition)
-        }
-    }
-}
-
 dependencies {
     // ========================================================================
     // All subprojects, which has their own preconditions.
     // These projects should have their preconditions in the "src/testFixtures" sourceSet
     // ========================================================================
     // This whole project is for test support, i.e. it's "main" source set is used
-    precondition(project(":internal-testing"))
+    testFixtures(project(":internal-testing"))
     // This whole project is for test support, i.e. it's "main" source set is used
-    precondition(project(":internal-integ-testing"))
-    precondition(testFixtures(project(":plugins")))
-    precondition(testFixtures(project(":signing")))
-    precondition(testFixtures(project(":test-kit")))
-    precondition(testFixtures(project(":smoke-test")))
+    testFixtures(project(":internal-integ-testing"))
+    testFixtures(testFixtures(project(":plugins")))
+    testFixtures(testFixtures(project(":signing")))
+    testFixtures(testFixtures(project(":test-kit")))
+    testFixtures(testFixtures(project(":smoke-test")))
 
     // This is a special dependency, as some of the preconditions might need a distribution.
     // E.g. see "IntegTestPreconditions.groovy"
-    precondition(project(":distributions-core")) {
+    testFixtures(project(":distributions-core")) {
         because("Some preconditions might need a distribution to run against")
     }
 
