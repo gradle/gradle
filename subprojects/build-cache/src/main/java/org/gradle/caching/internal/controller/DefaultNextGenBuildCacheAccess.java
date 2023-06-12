@@ -104,13 +104,11 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             .flatMap(entry -> {
                 BuildCacheKey key = entry.getKey();
                 T payload = entry.getValue();
-                if (!local.contains(key)) {
-                    try {
-                        local.store(key, handler.createWriter(payload));
-                    } catch (Exception e) {
-                        handler.recordPackFailure(key, e);
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
+                try {
+                    local.store(key, handler.createWriter(payload));
+                } catch (Exception e) {
+                    handler.recordPackFailure(key, e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 // TODO Improve error handling
                 if (remote.canStore()) {
@@ -236,12 +234,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
         @Override
         public void run() {
-            // TODO Check contains only above a threshold
-            if (remote.contains(key)) {
-                logger.warn("Not storing {} in remote", key);
-                return;
-            }
-
             // TODO Use a buffer fit for large files
             UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
             boolean foundLocally = local.load(key, input -> IOUtils.copyLarge(input, data, bufferProvider.getBuffer()));

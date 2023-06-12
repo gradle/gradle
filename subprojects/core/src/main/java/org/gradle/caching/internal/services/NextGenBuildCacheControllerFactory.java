@@ -147,11 +147,6 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
                 BuildCacheService legacyService = factory.createBuildCacheService(configuration, describer);
                 return new NextGenBuildCacheService() {
                     @Override
-                    public boolean contains(BuildCacheKey key) {
-                        return load(key, __ -> {});
-                    }
-
-                    @Override
                     public boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException {
                         return legacyService.load(key, reader::readFrom);
                     }
@@ -199,11 +194,6 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
 
         @Override
-        public boolean contains(BuildCacheKey key) {
-            return false;
-        }
-
-        @Override
         public boolean load(BuildCacheKey key, EntryReader reader) throws BuildCacheException {
             return false;
         }
@@ -240,11 +230,6 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         @Override
         public void disableOnError() {
             this.disabledOnError = true;
-        }
-
-        @Override
-        public boolean contains(BuildCacheKey key) {
-            return canLoad() && service.contains(key);
         }
 
         @Override

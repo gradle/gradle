@@ -102,11 +102,6 @@ public class LockOnDemandCrossProcessBuildCacheService implements NextGenBuildCa
     }
 
     @Override
-    public boolean contains(BuildCacheKey key) {
-        return crossProcessCacheAccess.withFileLock(() -> delegate.contains(key));
-    }
-
-    @Override
     public void store(BuildCacheKey key, EntryWriter writer) throws BuildCacheException {
         crossProcessCacheAccess.withFileLock(() -> {
             delegate.store(key, writer);

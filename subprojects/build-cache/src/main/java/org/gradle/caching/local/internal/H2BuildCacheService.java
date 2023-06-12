@@ -83,7 +83,7 @@ public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNe
         return String.format("jdbc:h2:file:%s;%s;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve(DATABASE_NAME), configuration);
     }
 
-    @Override
+    @VisibleForTesting
     public boolean contains(BuildCacheKey key) {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("select entry_key from filestore.catalog where entry_key = ?")) {

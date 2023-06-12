@@ -32,14 +32,6 @@ import java.io.OutputStream;
 @Incubating
 public interface NextGenBuildCacheService extends Closeable {
     /**
-     * Returns whether the given entry exists in the cache.
-     *
-     * @param key the cache key.
-     * @return {code true} if the entry exists in the cache.
-     */
-    boolean contains(BuildCacheKey key);
-
-    /**
      * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
      *
      * @param key the cache key.
