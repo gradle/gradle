@@ -19,6 +19,7 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.problems.internal.GradleExceptionWithProblem;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
@@ -37,7 +38,7 @@ import java.util.List;
 @Incubating
 public class ProblemBuilder {
     private final ProblemId problemId;
-    private final String message;
+    private String message;
     private final Severity severity;
     private String path;
     private Integer line;
@@ -50,6 +51,27 @@ public class ProblemBuilder {
         this.problemId = problemId;
         this.message = message;
         this.severity = severity;
+    }
+
+    public ProblemBuilder(ProblemId problemId, Throwable cause, Severity severity) {
+        this.problemId = problemId;
+        this.cause = cause;
+        this.severity = severity;
+    }
+
+   public ProblemBuilder(Problem problem) {
+        this.problemId = problem.getProblemId();
+        this.severity = problem.getSeverity();
+        this.message = problem.getMessage();
+       ProblemLocation where = problem.getWhere();
+       if(where != null) {
+           this.path = where.getPath();
+           this.line = where.getLine();
+       }
+       this.documentationUrl = problem.getDocumentationLink();
+       for (String solution : problem.getSolutions()) {
+           this.solution(solution);
+       }
     }
 
     public ProblemBuilder location(String path, Integer line) {
@@ -81,7 +103,7 @@ public class ProblemBuilder {
         return this;
     }
 
-    private Problem build() {
+    public Problem build() {
         return new DefaultProblem(
             problemId,
             message,
@@ -100,28 +122,40 @@ public class ProblemBuilder {
     public ProblemThrower report(boolean reportNow) {
         Problem problem = build();
         if (reportNow || problem.getSeverity() == Severity.WARNING) {
-            ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+            report(problem);
         }
         return new ProblemThrower(problem);
     }
 
-    private static void throwPossibleError(Problem problem) {
+    public RuntimeException throwIt() {
+        throw throwError(build());
+    }
+
+    protected static void throwPossibleError(Problem problem) {
         if (problem.getSeverity() == Severity.ERROR) {
-            Throwable t = problem.getCause();
-            if (t instanceof InterruptedException) {
-                ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
-                Thread.currentThread().interrupt();
-            }
-            if (t instanceof RuntimeException) {
-                ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
-                throw (RuntimeException) t;
-            }
-            if (t instanceof Error) {
-                ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
-                throw (Error) t;
-            }
-            throw new GradleExceptionWithProblem(problem);
+            throw throwError(problem);
         }
+    }
+
+    public static RuntimeException throwError(Problem problem) {
+        Throwable t = problem.getCause();
+        if (t instanceof InterruptedException) {
+            report(problem);
+            Thread.currentThread().interrupt();
+        }
+        if (t instanceof RuntimeException) {
+            report(problem);
+            throw (RuntimeException) t;
+        }
+        if (t instanceof Error) {
+            report(problem);
+            throw (Error) t;
+        }
+        throw new GradleExceptionWithProblem(problem);
+    }
+
+    private static void report(Problem problem) {
+        ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
     }
 
 
@@ -132,7 +166,7 @@ public class ProblemBuilder {
      */
     @Incubating
     public static class ProblemThrower {
-        private final Problem problem;
+        protected final Problem problem;
 
         public ProblemThrower(Problem problem) {
             this.problem = problem;

@@ -81,7 +81,7 @@ public class BuildOperationProxyFactory {
     }
 
     private static RuntimeException collectAndThrowCause(GradleExceptionWithProblem e) {
-        Problems.collect(e.getProblem());
+        e.getProblems().forEach(Problems::collect);
         throw throwAsUncheckedException(e.getCause());
     }
 }

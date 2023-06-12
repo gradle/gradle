@@ -22,6 +22,8 @@ import org.gradle.api.problems.interfaces.ProblemId;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
+import java.util.List;
+
 /**
  * Prototype Problems API.
  *
@@ -34,9 +36,13 @@ public class Problems {
         return new ProblemBuilder(problemId, message, severity);
     }
 
-    public static ProblemBuilder throwing(Exception e, ProblemId problemId) { // TODO should be a different builder; that throws as a terminal operation
-        return new ProblemBuilder(problemId, e.getMessage(), Severity.ERROR);
+    public static ProblemBuilder createError(ProblemId problemId, String message) {
+        return new ProblemBuilder(problemId, message, Severity.ERROR);
     }
+
+//    public static ProblemBuilder throwing(Exception e, ProblemId problemId) { // TODO should be a different builder; that throws as a terminal operation
+//        return new ProblemBuilder(problemId, e.getMessage(), Severity.ERROR);
+//    }
 
     public static void collect(Throwable failure) {
         new ProblemBuilder(ProblemId.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report(true);
@@ -44,5 +50,12 @@ public class Problems {
 
     public static void collect(Problem problem) {
         ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+    }
+
+    public static RuntimeException throwing(List<Problem> problems, RuntimeException cause) {
+        for (Problem problem : problems){
+            ProblemsProgressEventEmitterHolder.get().emitNowIfCurrent(problem);
+        }
+        throw cause;
     }
 }

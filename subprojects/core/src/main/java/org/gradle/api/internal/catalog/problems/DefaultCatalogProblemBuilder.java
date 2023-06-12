@@ -18,6 +18,8 @@ package org.gradle.api.internal.catalog.problems;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.problems.Solution;
 import org.gradle.problems.StandardSeverity;
@@ -27,6 +29,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutionsWithNewProblemsApi;
+import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilder,
     VersionCatalogProblemBuilder.ProblemWithId,
@@ -65,6 +70,34 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
             formatter.endChildren();
             throw new InvalidUserDataException(formatter.toString());
         }
+    }
+
+    public static RuntimeException throwErrorWithNewProblemsApi(String error, List<Problem> problems) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node(error);
+        formatter.startChildren();
+        for (Problem problem : problems) {
+            reportInto(formatter, problem);
+        }
+        formatter.endChildren();
+        throw Problems.throwing(problems, new InvalidUserDataException(formatter.toString()));
+//            throw new InvalidUserDataException(formatter.toString());
+    }
+
+    private static void reportInto(TreeFormatter output, Problem problem) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node(problem.getMessage());
+        if (problem.getDescription() != null) {
+            formatter.blankLine();
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDescription())));
+        }
+
+        renderSolutionsWithNewProblemsApi(formatter, problem.getSolutions());
+        if (problem.getDocumentationLink() != null) {
+            formatter.blankLine();
+            formatter.node(problem.getDocumentationLink());
+        }
+        output.node(formatter.toString());
     }
 
     @Override

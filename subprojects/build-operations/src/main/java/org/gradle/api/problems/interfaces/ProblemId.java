@@ -27,7 +27,8 @@ import org.gradle.api.Incubating;
 public enum ProblemId {
 
     GENERIC("generic"),
-    DEPRECATION("deprecation");
+    DEPRECATION("deprecation"),
+    VERSION_CATALOG("version_catalog");
 
     private final String id;
 

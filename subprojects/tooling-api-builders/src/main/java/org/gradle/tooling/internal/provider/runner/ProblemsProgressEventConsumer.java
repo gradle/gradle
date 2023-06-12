@@ -70,6 +70,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
+        //TODO: this might be solved using DefaultBuildOperationAncestryTracker
 //        seenProblems.inverse().remove(buildOperation.getId());
         super.finished(buildOperation, result);
     }
