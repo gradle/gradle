@@ -53,7 +53,7 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET) >> Providers.ofNamed(configuration)
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> Providers.ofNamed(configuration)
         1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
@@ -67,7 +67,7 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET) >> Providers.ofNamed(configuration)
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> Providers.ofNamed(configuration)
         1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
@@ -98,7 +98,7 @@ class DefaultScriptHandlerTest extends Specification {
         and:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET) >> Providers.ofNamed(configuration)
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> Providers.ofNamed(configuration)
         1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         1 * classpathResolver.resolveClassPath(configuration) >> classpath
     }
@@ -134,7 +134,7 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
-        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET) >> Providers.ofNamed(configuration)
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> Providers.ofNamed(configuration)
         1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         1 * dependencyHandler.add('config', 'dep')
     }

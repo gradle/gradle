@@ -41,7 +41,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
- * Extends a {@link DefaultConfiguration} to expose it as a {@link ResolvableConfiguration}.
+ * A concrete resolvable {@link DefaultConfiguration} that cannot change roles.
  */
 public class DefaultResolvableConfiguration extends DefaultConfiguration implements ResolvableConfiguration {
 

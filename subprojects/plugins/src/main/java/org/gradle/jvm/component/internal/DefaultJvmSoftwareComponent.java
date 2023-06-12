@@ -57,7 +57,7 @@ import java.util.Collections;
  * The software component created by the Java plugin. This component owns the main {@link JvmFeatureInternal} which itself
  * is responsible for compiling and packaging the main production jar. Therefore, this component transitively owns the
  * corresponding source set and any domain objects which are created by the {@link BasePlugin} on the source set's behalf.
- * This includes the source set's resolvable configurations and buckets, as well as any associated tasks.
+ * This includes the source set's resolvable configurations and dependency scopes, as well as any associated tasks.
  */
 public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
 

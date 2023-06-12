@@ -66,7 +66,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        configuration << ["legacy", "consumable", "resolvable", "resolvableBucket", "consumableBucket", "bucket"]
+        configuration << ["legacy", "consumable", "resolvable", "consumableUnlocked", "resolvableUnlocked", "dependencyScopeUnlocked"]
     }
 
     def "can prevent usage mutation of roleless configurations"() {
@@ -113,7 +113,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         given:
         buildFile << """
             configurations {
-                migratingUnlocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE) {
+                migratingUnlocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) {
                     addDeclarationAlternatives("anotherConf")
                 }
             }
@@ -349,11 +349,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             configurations {
                 consumable('consumable1')
                 resolvable('resolvable1')
-                dependencyScope('bucket1')
+                dependencyScope('dependencyScope1')
 
                 consumable('consumable2') { }
                 resolvable('resolvable2') { }
-                dependencyScope('bucket2') { }
+                dependencyScope('dependencyScope2') { }
             }
         """
 

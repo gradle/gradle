@@ -44,7 +44,7 @@ public final class ConfigurationRolesForMigration {
      * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
      */
     @Deprecated
-    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_BUCKET = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_BUCKET);
+    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
 
     /**
      * A legacy configuration that will become a consumable configuration in the next major version.
@@ -56,22 +56,22 @@ public final class ConfigurationRolesForMigration {
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
-    public static final ConfigurationRole RESOLVABLE_BUCKET_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.RESOLVABLE);
+    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE);
 
     /**
      * A consumable dependency scope that will become a consumable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
-    public static final ConfigurationRole CONSUMABLE_BUCKET_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE);
+    public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRoles.CONSUMABLE);
 
     /**
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
-        LEGACY_TO_RESOLVABLE_BUCKET,
+        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
         LEGACY_TO_CONSUMABLE,
-        RESOLVABLE_BUCKET_TO_RESOLVABLE,
-        CONSUMABLE_BUCKET_TO_CONSUMABLE
+        RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+        CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
     );
 
     /**

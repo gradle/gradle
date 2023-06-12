@@ -492,7 +492,7 @@ task resolveChildFirst {
         role                      | code
         'consume or publish only' | 'configurations.a.canBeResolved = false'
         'query or resolve only'   | 'configurations.a.canBeConsumed = false'
-        'bucket'                  | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
+        'dependency scope'        | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
 
     }
 }

@@ -41,7 +41,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
- * Extends a {@link DefaultConfiguration} to expose it as a {@link DependencyScopeConfiguration}.
+ * A concrete dependency scope {@link DefaultConfiguration} that cannot change roles.
  */
 public class DefaultDependencyScopeConfiguration extends DefaultConfiguration implements DependencyScopeConfiguration {
 
@@ -98,7 +98,7 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
             calculatedValueContainerFactory,
             defaultConfigurationFactory,
             taskDependencyFactory,
-            ConfigurationRoles.BUCKET,
+            ConfigurationRoles.DEPENDENCY_SCOPE,
             true
         );
     }

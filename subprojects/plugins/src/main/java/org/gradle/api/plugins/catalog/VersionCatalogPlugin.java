@@ -61,7 +61,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, conf -> {
+        Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, conf -> {
             conf.setDescription("Artifacts for the version catalog");
             conf.getOutgoing().artifact(generator);
             conf.attributes(attrs -> {

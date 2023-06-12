@@ -153,7 +153,7 @@ This method is only meant to be called on configurations which allow the usage(s
         given:
         buildFile << """
             configurations {
-                migratingUnlocked('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET)
+                migratingUnlocked('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE)
                 foo.attributes {
                     attribute(Attribute.of('foo', String), 'bar')
                 }

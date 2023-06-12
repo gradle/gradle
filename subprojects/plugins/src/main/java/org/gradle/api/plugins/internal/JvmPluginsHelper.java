@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -128,7 +127,7 @@ public class JvmPluginsHelper {
         }
     }
 
-    public static NamedDomainObjectProvider<Configuration> createDocumentationVariantWithArtifact(
+    public static NamedDomainObjectProvider<? extends Configuration> createDocumentationVariantWithArtifact(
         String variantName,
         @Nullable String featureName,
         String docsType,
@@ -137,7 +136,7 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        Action<Configuration> action = variant -> {
+        return project.getConfigurations().maybeRegisterMigratingUnlocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, variant -> {
             variant.setVisible(false);
             variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 
@@ -165,15 +164,7 @@ public class JvmPluginsHelper {
 
             TaskProvider<Jar> jar = tasks.named(jarTaskName, Jar.class);
             variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));
-        };
-
-        Configuration variant = project.getConfigurations().findByName(variantName);
-        if (variant == null) {
-            return project.getConfigurations().migratingUnlocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, action);
-        } else {
-            // TODO: Deprecate & warn the user. They should not be creating Gradle-managed configurations on their own.
-            return project.getConfigurations().named(variantName, action);
-        }
+        });
     }
 
 }
