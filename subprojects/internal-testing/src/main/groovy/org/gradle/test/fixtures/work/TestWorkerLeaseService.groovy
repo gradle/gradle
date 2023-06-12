@@ -35,7 +35,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
 
     @Override
     WorkerLeaseCompletion startWorker() {
-        throw new UnsupportedOperationException()
+        return new WorkerLeaseCompletion() {
+            @Override
+            void leaseFinish() {
+            }
+        }
     }
 
     @Override

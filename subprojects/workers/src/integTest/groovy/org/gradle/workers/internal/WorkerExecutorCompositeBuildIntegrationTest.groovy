@@ -16,12 +16,9 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Issue
 
-class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
-    WorkerExecutorFixture fixture = new WorkerExecutorFixture(temporaryFolder)
+class WorkerExecutorCompositeBuildIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     def plugin = testDirectory.createDir("plugin")
     def lib = testDirectory.createDir("lib")
 
