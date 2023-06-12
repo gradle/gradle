@@ -792,8 +792,8 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         where:
         baseRole << [
             ConfigurationRoles.LEGACY,
-            ConfigurationRoles.RESOLVABLE_BUCKET,
-            ConfigurationRoles.CONSUMABLE_BUCKET
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
+            ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE
         ] + ConfigurationRolesForMigration.ALL
     }
 

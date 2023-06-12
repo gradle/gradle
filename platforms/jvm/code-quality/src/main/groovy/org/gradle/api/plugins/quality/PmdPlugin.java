@@ -218,7 +218,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Configuration pmdAdditionalAuxDepsConfiguration = configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
 
         // TODO: Consider checking if the resolution consistency is enabled for compile/runtime.
-        NamedDomainObjectProvider<Configuration> pmdAuxClasspath = configurations.migratingUnlocked(sourceSet.getName() + "PmdAuxClasspath", ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE, auxClasspath -> {
+        NamedDomainObjectProvider<Configuration> pmdAuxClasspath = configurations.migratingUnlocked(sourceSet.getName() + "PmdAuxClasspath", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE, auxClasspath -> {
             auxClasspath.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
             auxClasspath.setVisible(false);
             // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.

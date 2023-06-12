@@ -144,11 +144,11 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name);
 
     /**
-     * Registers a {@link ResolvableConfiguration} via {@link #resolvable(String)} and then executes
-     * the provided action against it.
+     * Registers a {@link ResolvableConfiguration} via {@link #resolvable(String)} and then
+     * configures it with the provided action.
      *
      * @param name The name of the configuration to register.
-     * @param action The action to execute against the new configuration.
+     * @param action The action to apply to the configuration.
      *
      * @return A provider which creates a new resolvable configuration.
      *
@@ -175,11 +175,11 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name);
 
     /**
-     * Registers a {@link ConsumableConfiguration} via {@link #consumable(String)} and then executes
-     * the provided action against it.
+     * Registers a {@link ConsumableConfiguration} via {@link #consumable(String)} and then
+     * configures it with the provided action.
      *
      * @param name The name of the configuration to register.
-     * @param action The action to execute against the new configuration.
+     * @param action The action to apply to the configuration.
      *
      * @return A provider which creates a new consumable configuration.
      *
@@ -207,11 +207,11 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name);
 
     /**
-     * Registers a {@link DependencyScopeConfiguration} via {@link #dependencyScope(String)} and then executes
-     * the provided action against it.
+     * Registers a {@link DependencyScopeConfiguration} via {@link #dependencyScope(String)} and then
+     * configures it with the provided action.
      *
      * @param name The name of the configuration to register.
-     * @param action The action to execute against the new configuration.
+     * @param action The action to apply to the configuration.
      *
      * @return A provider which creates a new dependency scope configuration.
      *

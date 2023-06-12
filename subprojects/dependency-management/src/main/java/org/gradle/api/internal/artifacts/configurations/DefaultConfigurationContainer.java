@@ -124,7 +124,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             detachedConfigurationsProvider,
             resolutionStrategyFactory,
             componentMetadataBuilder,
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
         );
 
         copyAllTo(detachedConfiguration, dependencies);
@@ -206,27 +206,27 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name) {
         assertMutable("dependencyScopeUnlocked(String)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.BUCKET, Actions.doNothing());
+        return registerUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("dependencyScopeUnlocked(String, Action)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.BUCKET, action);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
     }
 
     @Override
     @Deprecated
     public NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name) {
         assertMutable("resolvableDependencyScopeUnlocked(String)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_BUCKET, Actions.doNothing());
+        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
     @Deprecated
     public NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
         assertMutable("resolvableDependencyScopeUnlocked(String, Action)");
-        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_BUCKET, action);
+        return registerUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
     }
 
     public NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role) {

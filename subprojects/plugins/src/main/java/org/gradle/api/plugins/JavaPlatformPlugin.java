@@ -57,7 +57,7 @@ import java.util.Set;
  * @see <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html">Java Platform plugin reference</a>
  */
 public abstract class JavaPlatformPlugin implements Plugin<Project> {
-    // Buckets of dependencies
+    // Dependency scopes
     public static final String API_CONFIGURATION_NAME = "api";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
 
@@ -120,7 +120,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         NamedDomainObjectProvider<Configuration> runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptyList());
         createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singletonList(enforcedCapability));
 
-        configurations.migratingUnlocked(CLASSPATH_CONFIGURATION_NAME, ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE, conf -> {
+        configurations.migratingUnlocked(CLASSPATH_CONFIGURATION_NAME, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE, conf -> {
             conf.extendsFrom(runtimeElements.get());
             declareConfigurationUsage(project.getObjects(), conf, Usage.JAVA_RUNTIME, LibraryElements.JAR);
         });
@@ -129,7 +129,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private NamedDomainObjectProvider<Configuration> createConsumableRuntime(ProjectInternal project, NamedDomainObjectProvider<? extends Configuration> runtime, String name, String platformKind, List<Capability> capabilities) {
-        return project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, runtimeElements -> {
+        return project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, runtimeElements -> {
             runtimeElements.extendsFrom(runtime.get());
             declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
             declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
@@ -138,7 +138,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private NamedDomainObjectProvider<Configuration> createConsumableApi(ProjectInternal project, NamedDomainObjectProvider<? extends Configuration> api, String name, String platformKind, List<Capability> capabilities) {
-        return project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, apiElements -> {
+        return project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, apiElements -> {
             apiElements.extendsFrom(api.get());
             declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
             declareConfigurationCategory(project.getObjects(), apiElements, platformKind);

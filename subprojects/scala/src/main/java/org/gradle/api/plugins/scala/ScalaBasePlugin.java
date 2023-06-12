@@ -161,7 +161,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             })));
         });
 
-        project.getConfigurations().migratingUnlocked("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, incrementalAnalysisElements -> {
+        project.getConfigurations().migratingUnlocked("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, incrementalAnalysisElements -> {
             incrementalAnalysisElements.setVisible(false);
             incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
             incrementalAnalysisElements.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
@@ -212,7 +212,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private static NamedDomainObjectProvider<Configuration> createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        return configurations.migratingUnlocked("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE, incrementalAnalysis -> {
+        return configurations.migratingUnlocked("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE, incrementalAnalysis -> {
             incrementalAnalysis.setVisible(false);
             incrementalAnalysis.setDescription("Incremental compilation analysis files for " + ((DefaultSourceSet) sourceSet).getDisplayName());
             incrementalAnalysis.extendsFrom(classpath);

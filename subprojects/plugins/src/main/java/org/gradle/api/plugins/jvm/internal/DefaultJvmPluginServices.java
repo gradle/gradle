@@ -145,15 +145,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         builder.build();
     }
 
-    @Override
-    public Provider<Configuration> registerDependencyBucket(String name, String description) {
-        return project.getConfigurations().register(name, cnf -> {
-            cnf.setCanBeResolved(false);
-            cnf.setCanBeConsumed(false);
-            cnf.setDescription(description);
-        });
-    }
-
     private void clearArtifacts(Configuration outgoingConfiguration) {
         outgoingConfiguration.getOutgoing().getArtifacts().clear();
         for (Configuration configuration : outgoingConfiguration.getExtendsFrom()) {

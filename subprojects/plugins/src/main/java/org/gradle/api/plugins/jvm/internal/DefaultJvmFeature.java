@@ -57,7 +57,7 @@ import static org.gradle.api.attributes.DocsType.SOURCES;
  * or any other consumable JVM feature.</p>
  *
  * <p>This feature can conditionally be configured to instead "extend" the production code. In that case, this
- * feature creates additional dependency configurations which live adjacent to the main source set's buckets,
+ * feature creates additional dependency configurations which live adjacent to the main source set's dependency scopes,
  * which allow users to declare optional dependencies that the production code will compile and test against.
  * These extra dependencies are not published as part of the production variants, but as separate apiElements
  * and runtimeElements variants as defined by this feature. Then, users can declare a dependency on this
@@ -140,11 +140,11 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         this.jar = registerOrGetJarTask(sourceSet, tasks);
 
         // If extendProductionCode=false, the source set has already created these configurations.
-        // If extendProductionCode=true, then we create new buckets and later update the main and
-        // test source sets to extend from these buckets.
-        this.implementation = bucket("Implementation", JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, extendProductionCode, false);
-        this.compileOnly = bucket("Compile-only", JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
-        this.runtimeOnly = bucket("Runtime-only", JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
+        // If extendProductionCode=true, then we create new dependency scopes and later update the main and
+        // test source sets to extend from them.
+        this.implementation = dependencyScope("Implementation", JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, extendProductionCode, false);
+        this.compileOnly = dependencyScope("Compile-only", JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
+        this.runtimeOnly = dependencyScope("Runtime-only", JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
 
         this.runtimeClasspath = configurations.named(sourceSet.getRuntimeClasspathConfigurationName());
         this.compileClasspath = configurations.named(sourceSet.getCompileClasspathConfigurationName());
@@ -187,10 +187,10 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         SourceSet mainSourceSet = project.getExtensions().findByType(JavaPluginExtension.class)
             .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        // Update the main feature's source set to extend our "extension" feature's buckets.
+        // Update the main feature's source set to extend our "extension" feature's dependency scopes.
         configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation.get(), compileOnly.get());
         configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation.get(), runtimeOnly.get());
-        // Update the default test suite's source set to extend our "extension" feature's buckets.
+        // Update the default test suite's source set to extend our "extension" feature's dependency scopes.
         configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation.get());
         configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation.get(), runtimeOnly.get());
     }
@@ -263,7 +263,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         Action<? super Configuration> action
     ) {
         if (useMigrationRoleForElementsConfigurations) {
-            return configurations.maybeRegisterMigratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE, action);
+            return configurations.maybeRegisterMigratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, action);
         } else {
             return configurations.maybeRegisterConsumableUnlocked(name, action);
         }
@@ -276,8 +276,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         // plugin was subsequently applied we'd get a warning that the API configuration was created twice.
         // * If Kotlin is always creating libraries then it should always apply the java-library plugin.
         // * Otherwise, if it could create an application, it should not automatically create the api configuration.
-        this.api = bucket("API", JvmConstants.API_CONFIGURATION_NAME, true, false);
-        this.compileOnlyApi = bucket("Compile-only API", JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME, true, true);
+        this.api = dependencyScope("API", JvmConstants.API_CONFIGURATION_NAME, true, false);
+        this.compileOnlyApi = dependencyScope("Compile-only API", JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME, true, true);
 
         this.apiElements.configure(it -> {
             it.extendsFrom(api.get(), compileOnlyApi.get());
@@ -328,7 +328,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         );
     }
 
-    private NamedDomainObjectProvider<? extends Configuration> bucket(String kind, String suffix, boolean create, boolean warnOnDuplicate) {
+    private NamedDomainObjectProvider<? extends Configuration> dependencyScope(String kind, String suffix, boolean create, boolean warnOnDuplicate) {
         Action<? super Configuration> action = configuration -> {
             configuration.setDescription(kind + " dependencies for the '" + name + "' feature.");
             configuration.setVisible(false);

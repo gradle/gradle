@@ -32,8 +32,8 @@ class ConfigurationRolesSpec extends Specification {
         true        | true          | true              || ConfigurationRoles.LEGACY
         true        | false         | false             || ConfigurationRoles.CONSUMABLE
         false       | true          | false             || ConfigurationRoles.RESOLVABLE
-        false       | true          | true              || ConfigurationRoles.RESOLVABLE_BUCKET
-        false       | false         | true              || ConfigurationRoles.BUCKET
+        false       | true          | true              || ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+        false       | false         | true              || ConfigurationRoles.DEPENDENCY_SCOPE
     }
 
     def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarable=#declarable"() {
@@ -52,10 +52,10 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         role                                            || name
-        ConfigurationRoles.BUCKET                       || "Dependency Scope"
+        ConfigurationRoles.DEPENDENCY_SCOPE             || "Dependency Scope"
         ConfigurationRoles.CONSUMABLE                   || "Consumable"
         ConfigurationRoles.RESOLVABLE                   || "Resolvable"
-        ConfigurationRoles.RESOLVABLE_BUCKET            || "Resolvable Dependency Scope"
+        ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE  || "Resolvable Dependency Scope"
         ConfigurationRoles.LEGACY                       || "Legacy"
     }
 }

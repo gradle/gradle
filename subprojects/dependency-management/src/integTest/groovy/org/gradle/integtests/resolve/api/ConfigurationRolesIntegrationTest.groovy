@@ -53,7 +53,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         where:
         role                      | code
         'consume or publish only' | 'canBeResolved = false'
-        'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'        | 'canBeResolved = false; canBeConsumed = false'
 
     }
 
@@ -84,7 +84,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         where:
         role                      | code
         'consume or publish only' | 'canBeResolved = false'
-        'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'        | 'canBeResolved = false; canBeConsumed = false'
     }
 
     @ToBeFixedForConfigurationCache(because = "Uses Configuration API")
@@ -170,7 +170,7 @@ This method is only meant to be called on configurations which allow the (non-de
         where:
         role                    | code
         'query or resolve only' | 'canBeConsumed = false'
-        'bucket'                | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'      | 'canBeResolved = false; canBeConsumed = false'
     }
 
     def "cannot depend on default configuration if it's not consumable (#role)"() {
@@ -209,7 +209,7 @@ This method is only meant to be called on configurations which allow the (non-de
         where:
         role                    | code
         'query or resolve only' | 'canBeConsumed = false'
-        'bucket'                | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'      | 'canBeResolved = false; canBeConsumed = false'
     }
 
     def "cannot create #first and #second configuration with the same name"() {

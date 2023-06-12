@@ -41,7 +41,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
- * Extends a {@link DefaultConfiguration} to expose it as a {@link ConsumableConfiguration}.
+ * A concrete consumable {@link DefaultConfiguration} that cannot change roles.
  */
 public class DefaultConsumableConfiguration extends DefaultConfiguration implements ConsumableConfiguration {
 
