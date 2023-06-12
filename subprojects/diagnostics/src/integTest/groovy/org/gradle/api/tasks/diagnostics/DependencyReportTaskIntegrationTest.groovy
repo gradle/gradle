@@ -1086,38 +1086,38 @@ compileClasspath - Compile classpath for source set 'main'.
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                migratingUnlocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
-                implementation.extendsFrom compileOnly
+                migratingUnlocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
+                implementation.extendsFrom variant
             }
             dependencies {
-                compileOnly 'foo:foo:1.0'
+                variant 'foo:foo:1.0'
                 implementation 'foo:bar:2.0'
             }
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
         run ":dependencies"
 
         then:
         output.contains """
-compileOnly (n)
-\\--- foo:foo:1.0 (n)
-
 implementation
-+--- foo:foo:1.0
-\\--- foo:bar:2.0
++--- foo:bar:2.0
+\\--- foo:foo:1.0
+
+variant (n)
+\\--- foo:foo:1.0 (n)
 
 (n) - A dependency or dependency configuration that cannot be resolved.
 """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-        run ":dependencies", "--configuration", "compileOnly"
+        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        run ":dependencies", "--configuration", "variant"
 
         then:
         output.contains """
-compileOnly (n)
+variant (n)
 \\--- foo:foo:1.0 (n)
 
 (n) - A dependency or dependency configuration that cannot be resolved.
