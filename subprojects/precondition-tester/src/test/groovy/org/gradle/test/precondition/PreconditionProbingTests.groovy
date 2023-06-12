@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Assumptions
 abstract class PreconditionProbingTests extends Specification {
 
     Class<? extends TestPrecondition> loadClass(String className) {
-        println(System.getProperty("java.class.path"))
         try {
             return Class.forName(className) as Class<? extends TestPrecondition>
         } catch (ClassNotFoundException ex) {
