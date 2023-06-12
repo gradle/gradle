@@ -33,7 +33,7 @@
                 <td>resolvable</td>
             </tr>
             <tr>
-                <td>dependencies</td>
+                <td>dependencyScope</td>
             </tr>
         </table>
     </section>

@@ -245,9 +245,9 @@ public class DefaultConfigurationFactory {
     }
 
     /**
-     * Creates a new locked dependencies configuration instance.
+     * Creates a new locked dependency scope configuration instance.
      */
-    DefaultDependenciesConfiguration createDependencies(
+    DefaultDependencyScopeConfiguration createDependencyScope(
         String name,
         ConfigurationsProvider configurationsProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
@@ -255,8 +255,8 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultDependenciesConfiguration instance = instantiator.newInstance(
-            DefaultDependenciesConfiguration.class,
+        DefaultDependencyScopeConfiguration instance = instantiator.newInstance(
+            DefaultDependencyScopeConfiguration.class,
             domainObjectContext,
             name,
             configurationsProvider,

@@ -65,7 +65,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
 
         ConfigurationContainer configurations = ((ProjectInternal) project).getConfigurations();
-        Configuration jacocoAggregation = configurations.dependencies(JACOCO_AGGREGATION_CONFIGURATION_NAME).get();
+        Configuration jacocoAggregation = configurations.dependencyScope(JACOCO_AGGREGATION_CONFIGURATION_NAME).get();
         jacocoAggregation.setDescription("Collects project dependencies for purposes of JaCoCo coverage report aggregation");
         jacocoAggregation.setVisible(false);
 

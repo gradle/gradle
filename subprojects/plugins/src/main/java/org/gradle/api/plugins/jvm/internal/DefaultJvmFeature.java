@@ -335,7 +335,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         };
         String configName = getConfigurationName(suffix);
         return create
-            ? project.getConfigurations().maybeRegisterDependenciesUnlocked(configName, warnOnDuplicate, action)
+            ? project.getConfigurations().maybeRegisterDependencyScopeUnlocked(configName, warnOnDuplicate, action)
             : project.getConfigurations().named(configName, action);
     }
 

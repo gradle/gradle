@@ -112,7 +112,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void createConfigurations() {
         super.createConfigurations();
-        project.getConfigurations().dependenciesUnlocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, auxClasspath -> {
+        project.getConfigurations().dependencyScopeUnlocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, auxClasspath -> {
             auxClasspath.setDescription("The additional libraries that are available for type resolution during analysis");
             auxClasspath.setVisible(false);
             getJvmPluginServices().configureAsRuntimeClasspath(auxClasspath);

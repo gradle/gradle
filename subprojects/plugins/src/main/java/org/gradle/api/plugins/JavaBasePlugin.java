@@ -264,12 +264,12 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        NamedDomainObjectProvider<? extends Configuration> implementationConfiguration = configurations.maybeRegisterDependenciesUnlocked(implementationConfigurationName, conf -> {
+        NamedDomainObjectProvider<? extends Configuration> implementationConfiguration = configurations.maybeRegisterDependencyScopeUnlocked(implementationConfigurationName, conf -> {
             conf.setVisible(false);
             conf.setDescription("Implementation only dependencies for " + sourceSetName + ".");
         });
 
-        NamedDomainObjectProvider<? extends Configuration> compileOnlyConfiguration = configurations.maybeRegisterDependenciesUnlocked(compileOnlyConfigurationName, conf -> {
+        NamedDomainObjectProvider<? extends Configuration> compileOnlyConfiguration = configurations.maybeRegisterDependencyScopeUnlocked(compileOnlyConfigurationName, conf -> {
             conf.setVisible(false);
             conf.setDescription("Compile only dependencies for " + sourceSetName + ".");
         });
@@ -282,13 +282,13 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         });
 
         @SuppressWarnings("deprecation")
-        NamedDomainObjectProvider<? extends Configuration> annotationProcessorConfiguration = configurations.maybeRegisterResolvableDependenciesUnlocked(annotationProcessorConfigurationName, conf -> {
+        NamedDomainObjectProvider<? extends Configuration> annotationProcessorConfiguration = configurations.maybeRegisterResolvableDependencyScopeUnlocked(annotationProcessorConfigurationName, conf -> {
             conf.setVisible(false);
             conf.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
             jvmPluginServices.configureAsRuntimeClasspath(conf);
         });
 
-        NamedDomainObjectProvider<? extends Configuration> runtimeOnlyConfiguration = configurations.maybeRegisterDependenciesUnlocked(runtimeOnlyConfigurationName, conf -> {
+        NamedDomainObjectProvider<? extends Configuration> runtimeOnlyConfiguration = configurations.maybeRegisterDependencyScopeUnlocked(runtimeOnlyConfigurationName, conf -> {
             conf.setVisible(false);
             conf.setDescription("Runtime only dependencies for " + sourceSetName + ".");
         });

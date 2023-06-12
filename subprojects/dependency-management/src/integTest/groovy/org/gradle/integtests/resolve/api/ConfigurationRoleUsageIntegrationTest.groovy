@@ -288,7 +288,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         role                    | customRoleBasedConf               || consumable  | resolvable    | declarable | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
         'consumable'            | "consumable('custom')"            || true        | false         | false             | false                 | false                 | false
         'resolvable'            | "resolvable('custom')"            || false       | true          | false             | false                 | false                 | false
-        'dependencies'          | "dependencies('custom')"          || false       | false         | true              | false                 | false                 | false
+        'dependencyScope'       | "dependencyScope('custom')"       || false       | false         | true              | false                 | false                 | false
     }
 
     def "can prevent usage mutation of role-based configuration #configuration added by java plugin meant for consumption"() {
@@ -338,7 +338,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         role                    | customRoleBasedConf               | displayName
         'consumable'            | "consumable('custom')"            | 'Consumable'
         'resolvable'            | "resolvable('custom')"            | 'Resolvable'
-        'dependencies'          | "dependencies('custom')"          | 'Dependencies'
+        'dependencyScope'       | "dependencyScope('custom')"       | 'Dependency Scope'
     }
 
     def "exhaustively try all new role-based creation syntax"() {
@@ -349,11 +349,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             configurations {
                 consumable('consumable1')
                 resolvable('resolvable1')
-                dependencies('bucket1')
+                dependencyScope('bucket1')
 
                 consumable('consumable2') { }
                 resolvable('resolvable2') { }
-                dependencies('bucket2') { }
+                dependencyScope('bucket2') { }
             }
         """
 
@@ -407,13 +407,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         assertUsageLockedFailure('conf', type)
 
         where:
-        createCode                  | type
-        "consumable('conf')"        | 'Consumable'
-        "consumable('conf') { }"    | 'Consumable'
-        "resolvable('conf')"        | 'Resolvable'
-        "resolvable('conf') { }"    | 'Resolvable'
-        "dependencies('conf')"      | 'Dependencies'
-        "dependencies('conf') { }"  | 'Dependencies'
+        createCode                     | type
+        "consumable('conf')"           | 'Consumable'
+        "consumable('conf') { }"       | 'Consumable'
+        "resolvable('conf')"           | 'Resolvable'
+        "resolvable('conf') { }"       | 'Resolvable'
+        "dependencyScope('conf')"      | 'Dependency Scope'
+        "dependencyScope('conf') { }"  | 'Dependency Scope'
 
     }
     // endregion Role-Based Configurations
@@ -581,10 +581,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        desc                                           | confCreationCode         | usage                | isSetMethod                   | setMethod
-        "using consumable to make a configuration"     | "consumable('test')"     | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
-        "using resolvable to make a configuration"     | "resolvable('test')"     | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using dependencies to make a configuration"   | "dependencies('test')"   | "declarable"         | "isCanBeDeclared()"           | "setCanBeDeclared(true)"
+        desc                                              | confCreationCode         | usage                | isSetMethod                   | setMethod
+        "using consumable to make a configuration"        | "consumable('test')"     | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
+        "using resolvable to make a configuration"        | "resolvable('test')"     | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using dependencyScope to make a configuration"   | "dependencyScope('test')"   | "declarable"         | "isCanBeDeclared()"           | "setCanBeDeclared(true)"
     }
 
     def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {
