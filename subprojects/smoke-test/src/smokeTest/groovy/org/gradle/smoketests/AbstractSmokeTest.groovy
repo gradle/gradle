@@ -55,6 +55,9 @@ abstract class AbstractSmokeTest extends Specification {
          * @see BuildScanPluginSmokeTest
          */
 
+        // https://github.com/bndtools/bnd/tree/master/gradle-plugins
+        static bnd = "6.4.0"
+
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
         static nebulaDependencyRecommender = "12.2.0"
 
