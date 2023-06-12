@@ -455,7 +455,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             }
 
             configurations {
-                $configuration {
+                "$configuration" {
                     assert canBeConsumed
                     canBeConsumed = false
                 }
@@ -472,7 +472,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         configuration           || allowed
         'apiElements'           || true
         'runtimeElements'       || true
-        'mainSourceElements'    || false
+        'default'               || false
         'archives'              || false
     }
 

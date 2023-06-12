@@ -355,4 +355,62 @@ This method is only meant to be called on configurations which allow the (non-de
             """.stripIndent()
         )
     }
+
+    def "withType works for factory methods in Java"() {
+        file("buildSrc/src/main/java/MyPlugin.java") << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.Configuration;
+            import org.gradle.api.artifacts.ResolvableConfiguration;
+            import org.gradle.api.artifacts.ConsumableConfiguration;
+            import org.gradle.api.artifacts.DependenciesConfiguration;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getConfigurations().withType(ResolvableConfiguration.class, configuration -> {
+                        System.out.println("Resolvable: " + configuration.getName());
+                    });
+                    project.getConfigurations().withType(ConsumableConfiguration.class, configuration -> {
+                        System.out.println("Consumable: " + configuration.getName());
+                    });
+                    project.getConfigurations().withType(DependenciesConfiguration.class, configuration -> {
+                        System.out.println("Dependencies: " + configuration.getName());
+                    });
+                    project.getConfigurations().resolvable("foo");
+                    project.getConfigurations().consumable("bar");
+                    project.getConfigurations().dependencies("baz");
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    broken {
+                        id = "my-plugin"
+                        implementationClass = "MyPlugin"
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                id("my-plugin")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
 }
