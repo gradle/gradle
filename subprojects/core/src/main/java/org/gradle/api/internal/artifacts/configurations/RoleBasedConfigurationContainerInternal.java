@@ -34,42 +34,40 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer {
 
     /**
-     * Creates a consumable configuration which can change roles.
+     * Registers a consumable configuration which can change roles.
      */
     NamedDomainObjectProvider<Configuration> consumableUnlocked(String name);
 
     /**
-     * Creates a consumable configuration which can change roles and executes the provided
+     * Registers a consumable configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
     NamedDomainObjectProvider<Configuration> consumableUnlocked(String name, Action<? super Configuration> action);
 
     /**
-     * Creates a resolvable configuration which can change roles and executes the provided
-     * {@code action} against the configuration.
+     * Registers a resolvable configuration which can change roles.
      */
     NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name);
 
     /**
-     * Creates a resolvable configuration which can change roles and executes the provided
+     * Registers a resolvable configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
     NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name, Action<? super Configuration> action);
 
     /**
-     * Creates a dependency scope configuration which can change roles and executes the provided
-     * {@code action} against the configuration.
+     * Registers a dependency scope configuration which can change roles.
      */
     NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name);
 
     /**
-     * Creates a dependency scope configuration which can change role and executes the provided
+     * Registers a dependency scope configuration which can change role and executes the provided
      * {@code action} against the configuration.
      */
     NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name, Action<? super Configuration> action);
 
     /**
-     * Creates a new configuration, which can change roles, with initial role {@code role}.
+     * Registers a new configuration, which can change roles, with initial role {@code role}.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
@@ -77,7 +75,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role);
 
     /**
-     * Creates a new configuration, which can change roles, with initial role {@code role},
+     * Registers a new configuration, which can change roles, with initial role {@code role},
      * and executes the provided {@code action} against the configuration.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
@@ -86,7 +84,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action);
 
     /**
-     * Creates a resolvable + dependency scope configuration which can change roles.
+     * Registers a resolvable + dependency scope configuration which can change roles.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
@@ -96,7 +94,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name);
 
     /**
-     * Creates a resolvable + dependency scope configuration which can change rolesand executes the provided
+     * Registers a resolvable + dependency scope configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist

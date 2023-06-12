@@ -176,14 +176,14 @@ public abstract class EarPlugin implements Plugin<Project> {
 
         // Once these configurations become non-consumable, we can use
         // 'jvmPluginServices.configureAsRuntimeClasspath()' to configure the configurations.
-        NamedDomainObjectProvider<Configuration> deployConfiguration = configurations.migratingUnlocked(DEPLOY_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET, conf -> {
+        NamedDomainObjectProvider<Configuration> deployConfiguration = configurations.migratingUnlocked(DEPLOY_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE, conf -> {
             conf.setVisible(false);
             conf.setTransitive(false);
             conf.setDescription("Classpath for deployable modules, not transitive.");
             jvmPluginServices.configureAttributes(conf, details -> details.library().runtimeUsage().withExternalDependencies());
         });
 
-        NamedDomainObjectProvider<Configuration> earlibConfiguration = configurations.migratingUnlocked(EARLIB_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET, conf -> {
+        NamedDomainObjectProvider<Configuration> earlibConfiguration = configurations.migratingUnlocked(EARLIB_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE, conf -> {
             conf.setVisible(false);
             conf.setDescription("Classpath for module dependencies.");
             jvmPluginServices.configureAttributes(conf, details -> details.library().runtimeUsage().withExternalDependencies());

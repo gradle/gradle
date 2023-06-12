@@ -240,37 +240,37 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
 
-    def "#name creates dependency scope configuration"() {
+    def "creates dependency scope configuration"() {
         expect:
-        verifyRole(ConfigurationRoles.BUCKET, "a") {
+        verifyRole(ConfigurationRoles.DEPENDENCY_SCOPE, "a") {
             dependencyScope("a")
         }
-        verifyRole(ConfigurationRoles.BUCKET, "b") {
+        verifyRole(ConfigurationRoles.DEPENDENCY_SCOPE, "b") {
             dependencyScope("b", {})
         }
-        verifyUnlocked(ConfigurationRoles.BUCKET, "c") {
+        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "c") {
             dependencyScopeUnlocked("c")
         }
-        verifyUnlocked(ConfigurationRoles.BUCKET, "d") {
+        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "d") {
             dependencyScopeUnlocked("d", {})
         }
-        verifyUnlocked(ConfigurationRoles.BUCKET, "e") {
+        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "e") {
             maybeRegisterDependencyScopeUnlocked("e", {})
         }
-        verifyUnlocked(ConfigurationRoles.BUCKET, "f") {
+        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "f") {
             maybeRegisterDependencyScopeUnlocked("f", false, {})
         }
     }
 
-    def "#name creates resolvable dependency scope configuration"() {
+    def "creates resolvable dependency scope configuration"() {
         expect:
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "a") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "a") {
             resolvableDependencyScopeUnlocked("a")
         }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "b") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "b") {
             resolvableDependencyScopeUnlocked("b", {})
         }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE_BUCKET, "c") {
+        verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "c") {
             maybeRegisterResolvableDependencyScopeUnlocked("c", {})
         }
     }
@@ -289,10 +289,10 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         role << [
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_BUCKET,
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
             ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE,
-            ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE,
-            ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE,
+            ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+            ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE,
         ]
     }
 
@@ -320,8 +320,8 @@ class DefaultConfigurationContainerTest extends Specification {
             ConfigurationRoles.LEGACY,
             ConfigurationRoles.RESOLVABLE,
             ConfigurationRoles.CONSUMABLE,
-            ConfigurationRoles.CONSUMABLE_BUCKET,
-            ConfigurationRoles.RESOLVABLE_BUCKET
+            ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE,
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
         ]
     }
 
