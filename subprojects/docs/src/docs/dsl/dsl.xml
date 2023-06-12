@@ -160,6 +160,15 @@
                 <td>org.gradle.api.artifacts.Configuration</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.ConsumableConfiguration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.ResolvableConfiguration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.DependenciesConfiguration</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.ResolutionStrategy</td>
             </tr>
             <tr>
