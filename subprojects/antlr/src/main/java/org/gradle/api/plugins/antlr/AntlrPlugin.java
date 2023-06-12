@@ -56,7 +56,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
         @SuppressWarnings("deprecation")
-        final NamedDomainObjectProvider<Configuration> antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependenciesUnlocked(ANTLR_CONFIGURATION_NAME, conf -> {
+        final NamedDomainObjectProvider<Configuration> antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeUnlocked(ANTLR_CONFIGURATION_NAME, conf -> {
             conf.setVisible(false);
             conf.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
         });

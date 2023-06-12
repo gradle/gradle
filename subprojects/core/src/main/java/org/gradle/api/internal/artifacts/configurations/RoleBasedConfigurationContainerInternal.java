@@ -57,16 +57,16 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     NamedDomainObjectProvider<Configuration> resolvableUnlocked(String name, Action<? super Configuration> action);
 
     /**
-     * Creates a dependencies configuration which can change roles and executes the provided
+     * Creates a dependency scope configuration which can change roles and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<Configuration> dependenciesUnlocked(String name);
+    NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name);
 
     /**
-     * Creates a dependencies configuration which can change role and executes the provided
+     * Creates a dependency scope configuration which can change role and executes the provided
      * {@code action} against the configuration.
      */
-    NamedDomainObjectProvider<Configuration> dependenciesUnlocked(String name, Action<? super Configuration> action);
+    NamedDomainObjectProvider<Configuration> dependencyScopeUnlocked(String name, Action<? super Configuration> action);
 
     /**
      * Creates a new configuration, which can change roles, with initial role {@code role}.
@@ -86,25 +86,25 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     NamedDomainObjectProvider<Configuration> migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action);
 
     /**
-     * Creates a resolvable + dependencies configuration which can change roles.
+     * Creates a resolvable + dependency scope configuration which can change roles.
      *
-     * @deprecated Whether concept of a resolvable + dependencies configuration should exist
+     * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
-     * have this role into separate resolvable and dependencies configurations.
+     * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    NamedDomainObjectProvider<Configuration> resolvableDependenciesUnlocked(String name);
+    NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name);
 
     /**
-     * Creates a resolvable + dependencies configuration which can change rolesand executes the provided
+     * Creates a resolvable + dependency scope configuration which can change rolesand executes the provided
      * {@code action} against the configuration.
      *
-     * @deprecated Whether concept of a resolvable + dependencies configuration should exist
+     * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
-     * have this role into separate resolvable and dependencies configurations.
+     * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    NamedDomainObjectProvider<Configuration> resolvableDependenciesUnlocked(String name, Action<? super Configuration> action);
+    NamedDomainObjectProvider<Configuration> resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
 
     /**
      * If a configuration with the given name already exists, configure it with the given action and return it.
@@ -120,18 +120,18 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
     /**
      * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new dependencies configuration with the given name and configure it with the given action.
+     * Otherwise, register a new dependency scope configuration with the given name and configure it with the given action.
      */
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependenciesUnlocked(String name, Action<? super Configuration> action);
+    NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name, Action<? super Configuration> action);
 
     /**
      * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new dependencies configuration with the given name and configure it with the given action.
+     * Otherwise, register a new dependency scope configuration with the given name and configure it with the given action.
      *
      * <p>If {@code warnOnDuplicate} is false, the normal deprecation warning will not be emitted. Setting this to false
      * should be avoided except in edge cases where it may emit deprecation warnings affecting large third-party plugins.</p>
      */
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependenciesUnlocked(String name, boolean warnOnDuplicate, Action<? super Configuration> action);
+    NamedDomainObjectProvider<? extends Configuration> maybeRegisterDependencyScopeUnlocked(String name, boolean warnOnDuplicate, Action<? super Configuration> action);
 
     /**
      * If a configuration with the given name already exists, configure it with the given action and return it.
@@ -144,12 +144,12 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
     /**
      * If a configuration with the given name already exists, configure it with the given action and return it.
-     * Otherwise, register a new resolvable + dependencies configuration with the given name and configure it with the given action.
+     * Otherwise, register a new resolvable + dependency scope configuration with the given name and configure it with the given action.
      *
-     * @deprecated Whether concept of a resolvable + dependencies configuration should exist
+     * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
-     * have this role into separate resolvable and dependencies configurations.
+     * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableDependenciesUnlocked(String name, Action<? super Configuration> action);
+    NamedDomainObjectProvider<? extends Configuration> maybeRegisterResolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
 }

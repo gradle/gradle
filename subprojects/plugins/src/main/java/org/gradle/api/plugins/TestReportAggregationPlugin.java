@@ -22,7 +22,7 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.DependenciesConfiguration;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
@@ -63,7 +63,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("org.gradle.reporting-base");
 
         ConfigurationContainer configurations = project.getConfigurations();
-        NamedDomainObjectProvider<DependenciesConfiguration> testAggregation = configurations.dependencies(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, conf -> {
+        NamedDomainObjectProvider<DependencyScopeConfiguration> testAggregation = configurations.dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, conf -> {
             conf.setDescription("A configuration to collect test execution results");
             conf.setVisible(false);
 

@@ -28,7 +28,7 @@ import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ConsumableConfiguration
-import org.gradle.api.artifacts.DependenciesConfiguration
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.kotlin.dsl.support.delegates.NamedDomainObjectContainerDelegate
@@ -117,9 +117,9 @@ private constructor(
     override fun consumable(name: String, action: Action<in ConsumableConfiguration>): NamedDomainObjectProvider<ConsumableConfiguration> =
         delegate.consumable(name, action)
 
-    override fun dependencies(name: String): NamedDomainObjectProvider<DependenciesConfiguration> =
-        delegate.dependencies(name)
+    override fun dependencyScope(name: String): NamedDomainObjectProvider<DependencyScopeConfiguration> =
+        delegate.dependencyScope(name)
 
-    override fun dependencies(name: String, action: Action<in DependenciesConfiguration>): NamedDomainObjectProvider<DependenciesConfiguration> =
-        delegate.dependencies(name, action)
+    override fun dependencyScope(name: String, action: Action<in DependencyScopeConfiguration>): NamedDomainObjectProvider<DependencyScopeConfiguration> =
+        delegate.dependencyScope(name, action)
 }

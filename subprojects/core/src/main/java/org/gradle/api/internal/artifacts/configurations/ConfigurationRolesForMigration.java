@@ -41,7 +41,7 @@ public final class ConfigurationRolesForMigration {
     }
 
     /**
-     * A legacy configuration that will become a resolvable dependencies configuration in the next major version.
+     * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
      */
     @Deprecated
     public static final ConfigurationRole LEGACY_TO_RESOLVABLE_BUCKET = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_BUCKET);
@@ -53,13 +53,13 @@ public final class ConfigurationRolesForMigration {
     public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE);
 
     /**
-     * A resolvable bucket that will become a resolvable configuration in the next major version.
+     * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
     public static final ConfigurationRole RESOLVABLE_BUCKET_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_BUCKET, ConfigurationRoles.RESOLVABLE);
 
     /**
-     * A consumable bucket that will become a consumable configuration in the next major version.
+     * A consumable dependency scope that will become a consumable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
     public static final ConfigurationRole CONSUMABLE_BUCKET_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_BUCKET, ConfigurationRoles.CONSUMABLE);

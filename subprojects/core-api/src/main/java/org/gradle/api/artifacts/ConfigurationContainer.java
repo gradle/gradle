@@ -191,35 +191,35 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action);
 
     /**
-     * Registers a new {@link DependenciesConfiguration} with an immutable role. Dependency configurations
+     * Registers a new {@link DependencyScopeConfiguration} with an immutable role. Dependency scope configurations
      * collect dependencies, dependency constraints, and exclude rules to be used by both resolvable
      * and consumable configurations.
      *
      * @param name The name of the configuration to register.
      *
-     * @return A provider which creates a new dependencies configuration.
+     * @return A provider which creates a new dependency scope configuration.
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
      *
      * @since 8.3
      */
     @Incubating
-    NamedDomainObjectProvider<DependenciesConfiguration> dependencies(String name);
+    NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name);
 
     /**
-     * Registers a {@link DependenciesConfiguration} via {@link #dependencies(String)} and then executes
+     * Registers a {@link DependencyScopeConfiguration} via {@link #dependencyScope(String)} and then executes
      * the provided action against it.
      *
      * @param name The name of the configuration to register.
      * @param action The action to execute against the new configuration.
      *
-     * @return A provider which creates a new dependencies configuration.
+     * @return A provider which creates a new dependency scope configuration.
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
      *
      * @since 8.3
      */
     @Incubating
-    NamedDomainObjectProvider<DependenciesConfiguration> dependencies(String name, Action<? super DependenciesConfiguration> action);
+    NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action);
 
 }

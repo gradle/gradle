@@ -109,11 +109,11 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         Capability enforcedCapability = new ShadowedImmutableCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
 
-        NamedDomainObjectProvider<Configuration> api = configurations.dependenciesUnlocked(API_CONFIGURATION_NAME);
+        NamedDomainObjectProvider<Configuration> api = configurations.dependencyScopeUnlocked(API_CONFIGURATION_NAME);
         NamedDomainObjectProvider<Configuration> apiElements = createConsumableApi(project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptyList());
         createConsumableApi(project, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singletonList(enforcedCapability));
 
-        NamedDomainObjectProvider<Configuration> runtime = project.getConfigurations().dependenciesUnlocked(RUNTIME_CONFIGURATION_NAME, conf -> {
+        NamedDomainObjectProvider<Configuration> runtime = project.getConfigurations().dependencyScopeUnlocked(RUNTIME_CONFIGURATION_NAME, conf -> {
             conf.extendsFrom(api.get());
         });
 

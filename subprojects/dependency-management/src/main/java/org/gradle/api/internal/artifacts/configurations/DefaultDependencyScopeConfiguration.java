@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
-import org.gradle.api.artifacts.DependenciesConfiguration;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
@@ -41,11 +41,11 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
- * Extends a {@link DefaultConfiguration} to expose it as a {@link DependenciesConfiguration}.
+ * Extends a {@link DefaultConfiguration} to expose it as a {@link DependencyScopeConfiguration}.
  */
-public class DefaultDependenciesConfiguration extends DefaultConfiguration implements DependenciesConfiguration {
+public class DefaultDependencyScopeConfiguration extends DefaultConfiguration implements DependencyScopeConfiguration {
 
-    public DefaultDependenciesConfiguration(
+    public DefaultDependencyScopeConfiguration(
         DomainObjectContext domainObjectContext,
         String name,
         ConfigurationsProvider configurationsProvider,

@@ -166,7 +166,7 @@
                 <td>org.gradle.api.artifacts.ResolvableConfiguration</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.DependenciesConfiguration</td>
+                <td>org.gradle.api.artifacts.DependencyScopeConfiguration</td>
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.ResolutionStrategy</td>

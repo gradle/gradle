@@ -24,5 +24,5 @@ import org.gradle.api.Incubating;
  * @since 8.3
  */
 @Incubating
-public interface DependenciesConfiguration extends Configuration {
+public interface DependencyScopeConfiguration extends Configuration {
 }

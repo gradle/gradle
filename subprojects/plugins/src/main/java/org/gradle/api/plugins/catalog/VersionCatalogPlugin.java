@@ -76,7 +76,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private NamedDomainObjectProvider<Configuration> createDependenciesConfiguration(ProjectInternal project) {
-        return project.getConfigurations().dependenciesUnlocked(GRADLE_PLATFORM_DEPENDENCIES, conf -> {
+        return project.getConfigurations().dependencyScopeUnlocked(GRADLE_PLATFORM_DEPENDENCIES, conf -> {
             conf.setVisible(false);
         });
     }

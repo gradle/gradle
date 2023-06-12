@@ -144,13 +144,13 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     private void addJacocoConfigurations() {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
 
-        configurations.resolvableDependenciesUnlocked(AGENT_CONFIGURATION_NAME, agentConf -> {
+        configurations.resolvableDependencyScopeUnlocked(AGENT_CONFIGURATION_NAME, agentConf -> {
             agentConf.setVisible(false);
             agentConf.setTransitive(true);
             agentConf.setDescription("The Jacoco agent to use to get coverage data.");
         });
 
-        configurations.resolvableDependenciesUnlocked(ANT_CONFIGURATION_NAME, antConf -> {
+        configurations.resolvableDependencyScopeUnlocked(ANT_CONFIGURATION_NAME, antConf -> {
             antConf.setVisible(false);
             antConf.setTransitive(true);
             antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
