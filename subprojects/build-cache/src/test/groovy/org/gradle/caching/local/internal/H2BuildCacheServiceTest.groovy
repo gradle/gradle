@@ -16,9 +16,8 @@
 
 package org.gradle.caching.local.internal
 
-import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
-import org.gradle.caching.internal.controller.service.StoreTarget
+import org.gradle.caching.internal.NextGenBuildCacheService
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -69,12 +68,9 @@ class H2BuildCacheServiceTest extends Specification {
         service.store(key, new StoreTarget(tmpFile))
 
         expect:
-        service.load(key, new BuildCacheEntryReader() {
-            @Override
-            void readFrom(InputStream input) throws IOException {
-                assert input.text == "Hello world"
-            }
-        })
+        service.load(key) { input ->
+            assert input.text == "Hello world"
+        }
     }
 
     def "can write to h2 and stop the service and read from h2 with a new service"() {
@@ -88,12 +84,9 @@ class H2BuildCacheServiceTest extends Specification {
         expect:
         def newService = new H2BuildCacheService(dbDir.toPath(), 20, 7, Time.clock())
         newService.open()
-        newService.load(key, new BuildCacheEntryReader() {
-            @Override
-            void readFrom(InputStream input) throws IOException {
-                assert input.text == "Hello world"
-            }
-        })
+        newService.load(key) { input ->
+            assert input.text == "Hello world"
+        }
 
         cleanup:
         newService.close()
@@ -111,12 +104,9 @@ class H2BuildCacheServiceTest extends Specification {
         service.store(key, new StoreTarget(secondFile))
 
         then:
-        service.load(key, new BuildCacheEntryReader() {
-            @Override
-            void readFrom(InputStream input) throws IOException {
-                assert input.text == "Hello world"
-            }
-        })
+        service.load(key) { input ->
+            assert input.text == "Hello world"
+        }
     }
 
     def "does a cleanup of old entries over a moving period of time"() {
@@ -167,5 +157,23 @@ class H2BuildCacheServiceTest extends Specification {
         }
         service = new H2BuildCacheService(dbDir.toPath(), 20, REMOVE_UNUSED_ENTRIES_AFTER_7_DAYS, clock)
         service.open()
+    }
+
+    private static class StoreTarget implements NextGenBuildCacheService.EntryWriter {
+        private final File content
+
+        StoreTarget(File content) {
+            this.content = content
+        }
+
+        @Override
+        InputStream openStream() throws IOException {
+            return content.newInputStream()
+        }
+
+        @Override
+        long getSize() {
+            return content.length()
+        }
     }
 }
