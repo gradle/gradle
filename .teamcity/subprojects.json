@@ -654,8 +654,8 @@
     "name": "precondition-tester",
     "path": "subprojects/precondition-tester",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
+    "functionalTests": true,
+    "crossVersionTests": true
   },
   {
     "name": "problems",
