@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Assumptions
  *     </li>
  * </ul>
  */
-abstract class PreconditionProbingTests extends Specification {
+abstract class PreconditionProbingTest extends Specification {
 
     private static Class<? extends TestPrecondition> loadClass(String className) {
         try {

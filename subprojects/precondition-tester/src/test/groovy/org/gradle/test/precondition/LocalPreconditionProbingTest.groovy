@@ -16,9 +16,8 @@
 
 package org.gradle.test.precondition
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 
-import com.gradle.enterprise.testing.annotations.RemoteOnly
-
-@RemoteOnly
-class RemotePreconditionProbingTests extends PreconditionProbingTests {
+@LocalOnly
+class LocalPreconditionProbingTest extends PreconditionProbingTest {
 }
