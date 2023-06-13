@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gradlebuild.shade.transforms
+package gradlebuild.instrumentation.transforms
 
 import gradlebuild.basics.classanalysis.getClassSuperTypes
 import org.gradle.api.artifacts.transform.CacheableTransform
@@ -24,10 +24,8 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileType
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CompileClasspath
-import org.gradle.api.tasks.Internal
 import org.gradle.work.ChangeType.ADDED
 import org.gradle.work.ChangeType.MODIFIED
 import org.gradle.work.ChangeType.REMOVED
@@ -37,11 +35,10 @@ import javax.inject.Inject
 
 
 @CacheableTransform
-abstract class ClassSuperTypesCollector : TransformAction<ClassSuperTypesCollector.Parameters> {
+abstract class CollectDirectClassSuperTypesTransform : TransformAction<TransformParameters.None> {
 
-    interface Parameters : TransformParameters {
-        @get:Internal
-        val rootDir: Property<String>
+    companion object {
+        const val DIRECT_SUPER_TYPES = "directSuperTypes"
     }
 
     @get:Inject
@@ -53,7 +50,7 @@ abstract class ClassSuperTypesCollector : TransformAction<ClassSuperTypesCollect
 
     override fun transform(outputs: TransformOutputs) {
         val properties = Properties()
-        val outputFile = outputs.file("super-types.properties")
+        val outputFile = outputs.file("direct-super-types.properties")
         if (outputFile.exists()) {
             outputFile.inputStream().use { properties.load(it) }
         }

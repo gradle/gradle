@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gradlebuild.shade.tasks
+package gradlebuild.instrumentation.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -32,11 +32,11 @@ import java.util.Properties
 import java.util.Queue
 
 @CacheableTask
-abstract class InstrumentationMergeSuperTypesTask : DefaultTask() {
+abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val superTypesFiles: ConfigurableFileCollection
+    abstract val directSuperTypesFiles: ConfigurableFileCollection
 
     @get:Input
     abstract val instrumentedClasses: SetProperty<String>
@@ -54,7 +54,7 @@ abstract class InstrumentationMergeSuperTypesTask : DefaultTask() {
     private fun mergeSuperTypes(): Map<String, Set<String>> {
         // Merge all super types files into a single map
         val directSuperTypes = mutableMapOf<String, MutableSet<String>>()
-        superTypesFiles.forEach { file ->
+        directSuperTypesFiles.forEach { file ->
             val properties = Properties()
             file.inputStream().use { properties.load(it) }
             properties.forEach { key, value ->

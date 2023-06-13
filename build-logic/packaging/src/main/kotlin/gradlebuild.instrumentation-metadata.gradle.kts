@@ -15,33 +15,33 @@
  */
 
 import gradlebuild.basics.classanalysis.Attributes
-import gradlebuild.shade.ArtifactTypes
-import gradlebuild.shade.tasks.InstrumentationMergeSuperTypesTask
-import gradlebuild.shade.transforms.ClassSuperTypesCollector
+import gradlebuild.instrumentation.tasks.FindInstrumentedSuperTypesTask
+import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform
+import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.DIRECT_SUPER_TYPES
 
+/**
+ * A plugin that configures tasks to generate metadata that is needed for code instrumentation.
+ */
 dependencies {
-    registerTransform(ClassSuperTypesCollector::class) {
+    registerTransform(CollectDirectClassSuperTypesTransform::class) {
         from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JVM_CLASS_DIRECTORY)
-        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypes.classHierarchy)
-        parameters {
-            rootDir = project.rootDir.absolutePath
-        }
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, DIRECT_SUPER_TYPES)
     }
 }
 
-val configuration = configurations.create("classesHierarchy") {
-    attributes.attribute(Attributes.artifactType, ArtifactTypes.classHierarchy)
+val directSuperTypes = configurations.create("directSuperTypes") {
+    attributes.attribute(Attributes.artifactType, DIRECT_SUPER_TYPES)
     isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(configurations.getByName("runtimeClasspath"))
 }
 
-tasks.register<InstrumentationMergeSuperTypesTask>("classesHierarchy") {
-    superTypesFiles.from(configuration.artifactView())
+tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
+    directSuperTypesFiles = directSuperTypes.projectsOnlyView()
     instrumentedClasses = listOf("org/gradle/api/Task")
-    instrumentedSuperTypes = layout.buildDirectory.file("instrumentation/classes-super-types.properties")
+    instrumentedSuperTypes = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
 }
 
-fun Configuration.artifactView() = incoming.artifactView {
+fun Configuration.projectsOnlyView() = incoming.artifactView {
     componentFilter { id -> id is ProjectComponentIdentifier }
 }.files
