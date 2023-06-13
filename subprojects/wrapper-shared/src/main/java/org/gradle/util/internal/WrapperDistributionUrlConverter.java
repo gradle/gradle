@@ -27,12 +27,23 @@ import java.net.URISyntaxException;
  */
 @NonNullApi
 public class WrapperDistributionUrlConverter {
-    public static URI toUri(File uriRoot, String distributionUrl) throws URISyntaxException {
+    /**
+     * Converts the given distribution url to a URI.
+     * <p>
+     * If the url is relative, it is resolved against the given file root.
+     * Otherwise, the URI is created from the url.
+     *
+     * @param distributionUrl The distribution url.
+     * @param fileRoot The root directory to resolve relative urls against.
+     * @return The URI.
+     * @throws URISyntaxException If the url is not a valid URI.
+     */
+    public static URI convertDistributionUrl(String distributionUrl, File fileRoot) throws URISyntaxException {
         URI source = new URI(distributionUrl);
         if (source.getScheme() == null) {
             //  No scheme means someone passed a relative url.
             //  In our context only file relative urls make sense.
-            return new File(uriRoot, source.getSchemeSpecificPart()).toURI();
+            return new File(fileRoot, source.getSchemeSpecificPart()).toURI();
         } else {
             return source;
         }

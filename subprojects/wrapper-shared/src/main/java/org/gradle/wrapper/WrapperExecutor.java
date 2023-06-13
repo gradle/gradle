@@ -54,7 +54,7 @@ public class WrapperExecutor {
         if (propertiesFile.exists()) {
             try {
                 loadProperties(propertiesFile, properties);
-                config.setDistribution(WrapperDistributionUrlConverter.toUri(propertiesFile.getParentFile(), readDistroUrl()));
+                config.setDistribution(WrapperDistributionUrlConverter.convertDistributionUrl(readDistroUrl(), propertiesFile.getParentFile()));
                 config.setDistributionBase(getProperty(DISTRIBUTION_BASE_PROPERTY, config.getDistributionBase()));
                 config.setDistributionPath(getProperty(DISTRIBUTION_PATH_PROPERTY, config.getDistributionPath()));
                 config.setDistributionSha256Sum(getProperty(DISTRIBUTION_SHA_256_SUM, config.getDistributionSha256Sum(), false));
