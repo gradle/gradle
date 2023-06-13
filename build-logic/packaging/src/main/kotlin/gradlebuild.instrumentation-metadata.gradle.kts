@@ -29,16 +29,24 @@ dependencies {
     }
 }
 
-val directSuperTypes = configurations.create("directSuperTypes") {
+val runtimeDirectSuperTypes = configurations.create("runtimeDirectSuperTypes") {
     attributes.attribute(Attributes.artifactType, DIRECT_SUPER_TYPES)
     isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(configurations.getByName("runtimeClasspath"))
 }
 
+val runtimeProjectResources = configurations.create("runtimeProjectResources") {
+    attributes.attribute(Attributes.artifactType, ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY)
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    extendsFrom(configurations.getByName("runtimeClasspath"))
+}
+
+
 tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
-    directSuperTypesFiles = directSuperTypes.projectsOnlyView()
-    instrumentedClasses = listOf("org/gradle/api/Task")
+    directSuperTypesFiles = runtimeDirectSuperTypes.projectsOnlyView()
+    projectResourceDirs = runtimeProjectResources.projectsOnlyView()
     instrumentedSuperTypes = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
 }
 

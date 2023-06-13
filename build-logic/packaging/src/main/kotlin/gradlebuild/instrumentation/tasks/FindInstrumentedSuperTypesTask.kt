@@ -19,14 +19,13 @@ package gradlebuild.instrumentation.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 import java.util.ArrayDeque
 import java.util.Properties
 import java.util.Queue
@@ -38,17 +37,23 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val directSuperTypesFiles: ConfigurableFileCollection
 
-    @get:Input
-    abstract val instrumentedClasses: SetProperty<String>
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val projectResourceDirs: ConfigurableFileCollection
 
     @get:OutputFile
     abstract val instrumentedSuperTypes: RegularFileProperty
 
     @TaskAction
     fun run() {
-        val superTypes = mergeSuperTypes()
-        val onlyInstrumentedSuperTypes = keepOnlyInstrumentedSuperTypes(superTypes)
-        writeOutput(onlyInstrumentedSuperTypes)
+        val instrumentedClasses = findInstrumentedClasses(projectResourceDirs.files)
+        if (instrumentedClasses.isEmpty()) {
+            instrumentedSuperTypes.asFile.get().toEmptyFile()
+        } else {
+            val superTypes = mergeSuperTypes()
+            val onlyInstrumentedSuperTypes = keepOnlyInstrumentedSuperTypes(superTypes, instrumentedClasses)
+            writeOutput(onlyInstrumentedSuperTypes)
+        }
     }
 
     private fun mergeSuperTypes(): Map<String, Set<String>> {
@@ -71,6 +76,21 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
         }.toMap()
     }
 
+    /**
+     * Finds all instrumented classes from `instrumented-classes.properties` file.
+     * That file is created by instrumentation annotation processor. See :internal-instrumentation-processor project.
+     */
+    private fun findInstrumentedClasses(projectResourceDirs: Set<File>): Set<String> {
+        return projectResourceDirs
+                .map { File(it, "instrumentation/instrumented-classes.properties") }
+                .filter { it.exists() }
+                .flatMap { file ->
+                    val properties = Properties()
+                    file.inputStream().use { properties.load(it) }
+                    properties.keys.map { it as String }
+                }.toSet()
+    }
+
     private fun computeAllSuperTypes(className: String, directSuperTypes: Map<String, Set<String>>): Set<String> {
         val superTypes: Queue<String> = ArrayDeque(directSuperTypes[className] ?: emptySet())
         val collected = mutableSetOf<String>()
@@ -84,8 +104,7 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
         return collected
     }
 
-    private fun keepOnlyInstrumentedSuperTypes(superTypes: Map<String, Set<String>>): Map<String, Set<String>> {
-        val instrumentedClasses = instrumentedClasses.get()
+    private fun keepOnlyInstrumentedSuperTypes(superTypes: Map<String, Set<String>>, instrumentedClasses: Set<String>): Map<String, Set<String>> {
         return superTypes.mapValues {
             it.value.filter { superType -> instrumentedClasses.contains(superType) }.toSet()
         }.filter { it.value.isNotEmpty() }
@@ -95,8 +114,7 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
         val outputFile = instrumentedSuperTypes.asFile.get()
         if (onlyInstrumentedSuperTypes.isEmpty()) {
             // If there is no instrumented types just create an empty file
-            outputFile.delete()
-            outputFile.createNewFile()
+            outputFile.toEmptyFile()
         } else {
             val properties = Properties()
             onlyInstrumentedSuperTypes.forEach { (className, superTypes) ->
@@ -104,5 +122,10 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
             }
             outputFile.outputStream().use { properties.store(it, null) }
         }
+    }
+
+    private fun File.toEmptyFile() {
+        this.delete()
+        this.createNewFile()
     }
 }
