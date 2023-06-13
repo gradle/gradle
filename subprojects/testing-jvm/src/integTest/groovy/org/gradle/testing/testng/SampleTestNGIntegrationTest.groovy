@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestNGExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Before
 import org.junit.Rule
@@ -34,7 +33,6 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         executer.withRepositoryMirrors()
     }
 
-    @ToBeFixedForConfigurationCache(because = "load-after-store")
     @Test
     @UsesSample('testing/testng-suitexmlbuilder')
      void suiteXmlBuilder() {
