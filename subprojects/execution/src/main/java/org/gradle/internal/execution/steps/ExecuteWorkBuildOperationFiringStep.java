@@ -46,7 +46,7 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                 return result;
             },
             BuildOperationDescriptor
-                .displayName("Execute Unit of Work")
+                .displayName("Execute unit of work")
                 .details(new ExecuteWorkDetails(work)));
     }
 
