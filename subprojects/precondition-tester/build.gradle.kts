@@ -26,17 +26,17 @@ dependencies {
     // These projects should have their preconditions in the "src/testFixtures" sourceSet
     // ========================================================================
     // This whole project is for test support, i.e. it's "main" source set is used
-    testFixtures(project(":internal-testing"))
+    testImplementation(project(":internal-testing"))
     // This whole project is for test support, i.e. it's "main" source set is used
-    testFixtures(project(":internal-integ-testing"))
-    testFixtures(testFixtures(project(":plugins")))
-    testFixtures(testFixtures(project(":signing")))
-    testFixtures(testFixtures(project(":test-kit")))
-    testFixtures(testFixtures(project(":smoke-test")))
+    testImplementation(testFixtures(project(":internal-integ-testing")))
+    testImplementation(testFixtures(project(":plugins")))
+    testImplementation(testFixtures(project(":signing")))
+    testImplementation(testFixtures(project(":test-kit")))
+    testImplementation(testFixtures(project(":smoke-test")))
 
     // This is a special dependency, as some of the preconditions might need a distribution.
     // E.g. see "IntegTestPreconditions.groovy"
-    testFixtures(project(":distributions-core")) {
+    testImplementation(project(":distributions-core")) {
         because("Some preconditions might need a distribution to run against")
     }
 
