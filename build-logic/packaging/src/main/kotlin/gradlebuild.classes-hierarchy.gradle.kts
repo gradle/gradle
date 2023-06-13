@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.classanalysis.Attributes
 import gradlebuild.shade.ArtifactTypes
+import gradlebuild.shade.tasks.InstrumentationMergeSuperTypesTask
 import gradlebuild.shade.transforms.ClassSuperTypesCollector
 
 dependencies {
@@ -35,10 +36,10 @@ val configuration = configurations.create("classesHierarchy") {
     extendsFrom(configurations.getByName("runtimeClasspath"))
 }
 
-tasks.register<Sync>("classesHierarchy") {
-    from(configuration.artifactView())
-    into(layout.buildDirectory.dir("classesHierarchy"))
-    duplicatesStrategy = DuplicatesStrategy.WARN
+tasks.register<InstrumentationMergeSuperTypesTask>("classesHierarchy") {
+    superTypesFiles.from(configuration.artifactView())
+    instrumentedClasses = listOf("org/gradle/api/Task")
+    instrumentedSuperTypes = layout.buildDirectory.file("instrumentation/classes-super-types.properties")
 }
 
 fun Configuration.artifactView() = incoming.artifactView {

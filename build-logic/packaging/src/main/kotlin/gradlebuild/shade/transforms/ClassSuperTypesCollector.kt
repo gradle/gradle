@@ -52,16 +52,8 @@ abstract class ClassSuperTypesCollector : TransformAction<ClassSuperTypesCollect
     abstract val classesDir: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        if (!classesDir.get().asFile.exists()) {
-            return
-        }
-
         val properties = Properties()
-        val path = classesDir.get().asFile.path
-            .replace(parameters.rootDir.get(), "")
-            .replace("/", ".")
-            .removePrefix(".subprojects.")
-        val outputFile = outputs.file("$path.supertypes.properties")
+        val outputFile = outputs.file("super-types.properties")
         if (outputFile.exists()) {
             outputFile.inputStream().use { properties.load(it) }
         }
