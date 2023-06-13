@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -30,7 +31,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.function.Predicate
 
-class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
+class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
     @EqualsAndHashCode
     static class TypedNodeId {
@@ -1125,6 +1126,75 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
+    def "project transform execution can be up-to-date or from build cache"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorTransform(buildFile)
+        buildFile << """
+            @CacheableTransform
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                @PathSensitive(PathSensitivity.RELATIVE)
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+        """
+
+        when:
+        withBuildCache().run ":consumer:resolve", "-DproducerContent=initial"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        result.groupedOutput.transform("MakeGreen")
+            .assertOutputContains("processing [producer.jar]")
+
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), [null])
+
+        when:
+        withBuildCache().run ":consumer:resolve", "-DproducerContent=initial"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        outputDoesNotContain("processing [producer.jar]")
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["UP-TO-DATE"])
+
+        when:
+        withBuildCache().run ":consumer:resolve", "-DproducerContent=changed"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        result.groupedOutput.transform("MakeGreen")
+            .assertOutputContains("processing [producer.jar]")
+
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), [null])
+
+        when:
+        withBuildCache().run ":consumer:resolve", "-DproducerContent=initial"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        outputDoesNotContain("processing [producer.jar]")
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["FROM-CACHE"])
+    }
+
     void checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {
         Map<TypedNodeId, List<String>> expectedDependencyNodeIdsByTypedNodeId = [:]
         Map<TypedNodeId, String> nodeIdByTypedNodeId = [:]
@@ -1263,13 +1333,24 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    void checkExecuteTransformWorkOperations(BuildOperationRecord executePlannedTransformStep, int expectOperationsCount) {
-        def executeWorkOps = buildOperations.children(executePlannedTransformStep, ExecuteWorkBuildOperationType)
+    void checkExecuteTransformWorkOperations(BuildOperationRecord parent, int expectOperationsCount) {
+        def executeWorkOps = buildOperations.children(parent, ExecuteWorkBuildOperationType)
         assert executeWorkOps.size() == expectOperationsCount
         executeWorkOps.every {
             verifyAll(it) {
                 details.workType == "TRANSFORM"
                 result.skipMessage == null
+            }
+        }
+    }
+
+    void checkExecuteTransformWorkOperations(BuildOperationRecord parent, List<String> skipMessages) {
+        def executeWorkOps = buildOperations.children(parent, ExecuteWorkBuildOperationType)
+        assert executeWorkOps.size() == skipMessages.size()
+        [executeWorkOps, skipMessages].transpose().every { op, skipMessage ->
+            verifyAll(op) {
+                details.workType == "TRANSFORM"
+                result.skipMessage == skipMessage
             }
         }
     }
