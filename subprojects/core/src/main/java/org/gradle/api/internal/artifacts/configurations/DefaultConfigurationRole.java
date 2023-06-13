@@ -98,8 +98,7 @@ public final class DefaultConfigurationRole implements ConfigurationRole {
             declarable == that.declarable &&
             consumptionDeprecated == that.consumptionDeprecated &&
             resolutionDeprecated == that.resolutionDeprecated &&
-            declarationDeprecated == that.declarationDeprecated &&
-            name.equals(that.name);
+            declarationDeprecated == that.declarationDeprecated;
     }
 
     @Override

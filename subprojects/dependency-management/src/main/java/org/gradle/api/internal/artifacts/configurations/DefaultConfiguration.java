@@ -444,6 +444,30 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                     "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
                     configuration, configuration.getHierarchy()));
             }
+
+            ConfigurationRole roleAtCreation = ((ConfigurationInternal) configuration).getRoleAtCreation();
+
+            // The default configuration 'becomes' another consumable configuration by extending it.
+            // This includes the regular inheritance of dependencies, but also artifacts as well.
+            // We should get rid of the default configuration altogether.
+            boolean isDefaultConfiguration = getName().equals(Dependency.DEFAULT_CONFIGURATION);
+
+            boolean isCurrentlyOrWillBeStrictlyDependencyScopeInGradle9 = roleAtCreation.equals(ConfigurationRoles.DEPENDENCY_SCOPE);
+            @SuppressWarnings("deprecation")
+            boolean isLegacyDependencyScope = roleAtCreation.equals(ConfigurationRoles.LEGACY) &&
+                configuration.isCanBeDeclared() && !configuration.isCanBeConsumed() && !configuration.isCanBeResolved();
+
+            if (!isDefaultConfiguration &&
+                !isCurrentlyOrWillBeStrictlyDependencyScopeInGradle9 &&
+                !isLegacyDependencyScope
+            ) {
+                DeprecationLogger.deprecate("Extending from Resolvable or Consumable Configurations")
+                    .withAdvice(this + " should not extend " + configuration + ". Extend from a Configuration created from the `dependencyScope` factory method instead.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "extending_from_resolvable_and_consumable_configurations")
+                    .nagUser();
+            }
+
             if (this.extendsFrom.add(configuration)) {
                 if (inheritedArtifacts != null) {
                     inheritedArtifacts.addCollection(configuration.getAllArtifacts());
@@ -1294,12 +1318,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         boolean deprecateConsumption = !canBeConsumed || consumptionDeprecated;
         boolean deprecateResolution = !canBeResolved || resolutionDeprecated;
         boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationDeprecated;
+
+        @SuppressWarnings("deprecation")
         ConfigurationRole adjustedCurrentUsage = new DefaultConfigurationRole(
-            "adjusted current usage with deprecations",
+            ConfigurationRoles.LEGACY.getName(),
             true, true, true,
             deprecateConsumption, deprecateResolution, deprecateDeclarationAgainst
         );
-
 
         DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
