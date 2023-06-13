@@ -311,11 +311,11 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
             }
 
             tasks.register('verifyTestOptions') {
-                def categoryOrTagExcludes = provider {
+                def testOption = provider {
                     tasks.getByName("test").getOptions().${buildScriptConfiguration.excludeCategoryOrTagConfigurationElement}
                 }
                 doLast {
-                    assert categoryOrTagExcludes.get().contains("MyTest\\\$Slow")
+                    assert testOption.get().contains("MyTest\\\$Slow")
                 }
             }
         """.stripIndent()
