@@ -24,13 +24,13 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileType
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Internal
-import org.gradle.work.ChangeType
+import org.gradle.work.ChangeType.ADDED
+import org.gradle.work.ChangeType.MODIFIED
+import org.gradle.work.ChangeType.REMOVED
 import org.gradle.work.InputChanges
 import java.util.Properties
 import javax.inject.Inject
@@ -38,10 +38,6 @@ import javax.inject.Inject
 
 @CacheableTransform
 abstract class ClassSuperTypesCollector : TransformAction<ClassSuperTypesCollector.Parameters> {
-
-    companion object {
-        val logging: Logger = Logging.getLogger(ClassSuperTypesCollector::class.java)
-    }
 
     interface Parameters : TransformParameters {
         @get:Internal
@@ -51,39 +47,43 @@ abstract class ClassSuperTypesCollector : TransformAction<ClassSuperTypesCollect
     @get:Inject
     abstract val inputChanges: InputChanges
 
-    @get:Classpath
+    @get:CompileClasspath
     @get:InputArtifact
     abstract val classesDir: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
+        if (!classesDir.get().asFile.exists()) {
+            return
+        }
+
+        val properties = Properties()
         val path = classesDir.get().asFile.path
             .replace(parameters.rootDir.get(), "")
             .replace("/", ".")
-            .removePrefix(".subprojects")
-            .removePrefix(".")
-        val outputFile = outputs.file("$path.classes.properties")
-        val properties = Properties()
+            .removePrefix(".subprojects.")
+        val outputFile = outputs.file("$path.supertypes.properties")
         if (outputFile.exists()) {
-            outputFile.inputStream().use {  properties.load(it) }
-        } else {
-            outputFile.createNewFile()
+            outputFile.inputStream().use { properties.load(it) }
         }
-        inputChanges.getFileChanges(classesDir).forEach { change ->
-            if (change.fileType != FileType.FILE || !change.normalizedPath.endsWith(".class")) {
-                return@forEach
-            }
-            val className = change.normalizedPath.removeSuffix(".class")
-            when (change.changeType) {
-                ChangeType.ADDED, ChangeType.MODIFIED -> {
-                    val superTypes = getClassSuperTypes(change.file.toPath()).filter { it.startsWith("org/gradle") }
-                    if (superTypes.isNotEmpty()) {
-                        properties.setProperty(className, superTypes.joinToString(","))
-                    }
-                }
-                ChangeType.REMOVED -> properties.remove(className)
-                else -> {}
-            }
-        }
+        findChanges(properties)
         outputFile.outputStream().use { properties.store(it, null) }
+    }
+
+    private fun findChanges(properties: Properties) {
+        inputChanges.getFileChanges(classesDir)
+            .filter { change -> change.fileType == FileType.FILE && change.normalizedPath.endsWith(".class") }
+            .forEach { change ->
+                val className = change.normalizedPath.removeSuffix(".class")
+                when (change.changeType) {
+                    ADDED, MODIFIED -> {
+                        val superTypes = change.file.getClassSuperTypes().filter { it.startsWith("org/gradle") }
+                        when {
+                            superTypes.isEmpty() -> properties.remove(className)
+                            else -> properties.setProperty(className, superTypes.joinToString(","))
+                        }
+                    }
+                    REMOVED -> properties.remove(className)
+                }
+            }
     }
 }
