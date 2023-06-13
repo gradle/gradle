@@ -152,10 +152,6 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
         broadcast.visitListeners(visitor);
     }
 
-    public void visitListenersUntyped(Action<Object> visitor) {
-        broadcast.visitListenersUntyped(visitor);
-    }
-
     /**
      * Returns a new {@link ListenerBroadcast} with the same {@link BroadcastDispatch} as this class.
      */
