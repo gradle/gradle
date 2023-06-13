@@ -58,9 +58,10 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
             this.work = work;
         }
 
+        @Nullable
         @Override
         public String getWorkType() {
-            return work.getWorkType();
+            return work.getBuildOperationWorkType().orElse(null);
         }
 
     }

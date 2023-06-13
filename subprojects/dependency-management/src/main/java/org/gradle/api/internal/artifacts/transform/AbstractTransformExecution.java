@@ -93,8 +93,8 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
-    public String getWorkType() {
-        return "TRANSFORM";
+    public Optional<String> getBuildOperationWorkType() {
+        return Optional.of("TRANSFORM");
     }
 
     @Override

@@ -39,11 +39,13 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
         /**
          * Type of work being executed.
          * <p>
-         * Values can potentially be arbitrary, but the following are expected:
+         * Expected values are:
          * <ul>
+         *     <li>{@code null} - work type is not classified</li>
          *     <li>{@code TRANSFORM} - execution of an artifact transform</li>
          * </ul>
          */
+        @Nullable
         String getWorkType();
     }
 

@@ -49,8 +49,8 @@ public interface UnitOfWork extends Describable {
      * <p>
      * This is used, so we don't need to use the class name to distinguish between different types of work.
      */
-    default String getWorkType() {
-        return getClass().getName();
+    default Optional<String> getBuildOperationWorkType() {
+        return Optional.empty();
     }
 
     /**
