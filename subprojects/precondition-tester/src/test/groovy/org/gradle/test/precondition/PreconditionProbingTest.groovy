@@ -53,7 +53,7 @@ abstract class PreconditionProbingTest extends Specification {
 
     def "Preconditions #classNames"() {
         given:
-        def classes = classNames.collect { loadClass(it) }
+        def classes = classNames.collect(PreconditionProbingTest::loadClass)
 
         expect:
         for (def precondition : classes) {
