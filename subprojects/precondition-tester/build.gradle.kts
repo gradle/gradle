@@ -50,6 +50,11 @@ dependencies {
 
 tasks {
     withType(Test::class) {
+        // We skip archTests, as they don't need preconditions
+        if (this.name == "archTest") {
+            return@withType
+        }
+
         // We only want to execute our special tests,
         // so we override what classes are going to run
         testClassesDirs = sourceSets.test.get().output.classesDirs
