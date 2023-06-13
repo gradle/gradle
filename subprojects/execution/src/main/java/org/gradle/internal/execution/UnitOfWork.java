@@ -45,9 +45,9 @@ import java.util.function.Supplier;
 public interface UnitOfWork extends Describable {
 
     /**
-     * String that identifies the type of the work.
+     * Identifier of the type of the work used in build operations.
      * <p>
-     * This is used, so we don't need to use the class name to distinguish between different types of work.
+     * Values returned here become part of the contract of related build operations.
      */
     default Optional<String> getBuildOperationWorkType() {
         return Optional.empty();
