@@ -325,13 +325,10 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register('checkConfiguration') {
-                def deps = provider {
-                    configurations.${suiteName}CompileClasspath
-                        .allDependencies.withType(ProjectDependency)
-                        *.reason
-                }
                 doLast {
-                    assert deps.get() == ['for testing purposes']
+                    def deps = configurations.${suiteName}CompileClasspath.allDependencies.withType(ProjectDependency)
+                    assert deps.size() == 1
+                    assert deps*.reason == ['for testing purposes']
                 }
             }
         """
@@ -557,7 +554,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         succeeds 'checkConfiguration'
-    }
+   }
 
     def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using #desc'() {
         given:
@@ -790,9 +787,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
 
         where:
-        desc         | dependencyNotation
-        'GAV string' | "'commons-beanutils:commons-beanutils:1.9.4'"
-        'GAV map'    | "module(group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4')"
+        desc                | dependencyNotation
+        'GAV string'        | "'commons-beanutils:commons-beanutils:1.9.4'"
+        'GAV map'           | "module(group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4')"
     }
 
     def "can add dependencies using a non-String CharSequence: #type"() {
@@ -1056,7 +1053,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
     // region dependencies - dependency objects
     def 'can add dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1095,12 +1092,12 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
         """
 
-        expect:
-        succeeds 'checkConfiguration'
-    }
+            expect:
+            succeeds 'checkConfiguration'
+        }
 
     def 'can add dependency objects with actions (using exclude) to #suiteDesc'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1144,7 +1141,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     def 'can add dependency objects with actions (using because) to #suiteDesc'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1168,14 +1165,10 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register('checkConfiguration') {
                 dependsOn $suiteName
-                def deps = provider {
-                    configurations.${suiteName}CompileClasspath
-                        .allDependencies.withType(ModuleDependency)
-                        .matching { it.group == 'commons-beanutils' }
-                        *.reason
-                }
                 doLast {
-                    assert deps.get() == ['for testing purposes']
+                    def deps = configurations.${suiteName}CompileClasspath.allDependencies.withType(ModuleDependency).matching { it.group == 'commons-beanutils' }
+                    assert deps.size() == 1
+                    assert deps*.reason == ['for testing purposes']
                 }
             }
         """
@@ -1192,7 +1185,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
     // region dependencies - dependency providers
     def 'can add dependency providers which provide dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1237,7 +1230,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     def 'can NOT add dependency providers which provide GAVs to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1283,7 +1276,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     def 'can add dependency providers which provide dependency objects with actions (using exclude) to #suiteDesc'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1327,7 +1320,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     def 'can add dependency providers which provide dependency objects with actions (using because) to #suiteDesc'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1350,14 +1343,10 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register('checkConfiguration') {
-                def deps = provider {
-                    configurations.${suiteName}CompileClasspath
-                        .allDependencies.withType(ModuleDependency)
-                        .matching { it.group == 'commons-beanutils' }
-                        *.reason
-                }
                 doLast {
-                    assert deps.get() == ['for testing purposes']
+                    def deps = configurations.${suiteName}CompileClasspath.allDependencies.withType(ModuleDependency).matching { it.group == 'commons-beanutils' }
+                    assert deps.size() == 1
+                    assert deps*.reason == ['for testing purposes']
                 }
             }
         """
@@ -1372,7 +1361,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     def 'can NOT add dependency providers which provide GAVs with actions (using excludes) to #suiteDesc'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1418,7 +1407,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     def 'can NOT add dependency providers which provide GAVs with actions (using because) to #suiteDesc'() {
-        given:
+        given :
         buildFile << """
             plugins {
               id 'java-library'
@@ -1441,14 +1430,10 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register('checkConfiguration') {
-                def deps = provider {
-                    configurations.${suiteName}CompileClasspath
-                        .allDependencies.withType(ModuleDependency)
-                        .matching { it.group == 'commons-beanutils' }
-                        *.reason
-                }
                 doLast {
-                    assert deps.get() == ['for testing purposes']
+                    def deps = configurations.${suiteName}CompileClasspath.allDependencies.withType(ModuleDependency).matching { it.group == 'commons-beanutils' }
+                    assert deps.size() == 1
+                    assert deps*.reason == ['for testing purposes']
                 }
             }
         """
@@ -1598,14 +1583,10 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         }
 
         tasks.register('checkConfiguration') {
-            def deps = provider {
-                configurations.${suiteName}CompileClasspath
-                    .allDependencies.withType(ModuleDependency)
-                    .matching { it.group == 'commons-beanutils' }
-                    *.reason
-            }
             doLast {
-                assert deps.get() == ['for testing purposes']
+                def deps = configurations.${suiteName}CompileClasspath.allDependencies.withType(ModuleDependency).matching { it.group == 'commons-beanutils' }
+                assert deps.size() == 1
+                assert deps*.reason == ['for testing purposes']
             }
         }
         """
@@ -2281,7 +2262,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         """
 
         expect: "test runs successfully"
-        succeeds(":consumer:integrationTest")
+        succeeds( ":consumer:integrationTest")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -2334,7 +2315,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         """
 
         expect: "test runs successfully"
-        succeeds(":integrationTest")
+        succeeds( ":integrationTest")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
