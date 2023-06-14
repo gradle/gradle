@@ -23,16 +23,27 @@ description = "Internal project testing and collecting information about all the
 dependencies {
     // ========================================================================
     // All subprojects, which has their own preconditions.
-    // These projects should have their preconditions in the "src/testFixtures" sourceSet
+    // These projects should have their preconditions in the "src/testFixtures" sourceSet,
+    // except test-support projects (i.e. internal-testing, internal-integ-testing)
     // ========================================================================
-    // This whole project is for test support, i.e. it's "main" source set is used
-    testImplementation(project(":internal-testing"))
-    // This whole project is for test support, i.e. it's "main" source set is used
-    testImplementation(testFixtures(project(":internal-integ-testing")))
-    testImplementation(testFixtures(project(":plugins")))
-    testImplementation(testFixtures(project(":signing")))
-    testImplementation(testFixtures(project(":test-kit")))
-    testImplementation(testFixtures(project(":smoke-test")))
+    testImplementation(project(":internal-testing")) {
+        because("Basic precondition framework and unit test preconditions are coming from here")
+    }
+    testImplementation(testFixtures(project(":internal-integ-testing"))) {
+        because("Integration testing preconditions are coming from here")
+    }
+    testImplementation(testFixtures(project(":plugins"))) {
+        because("Plugin testing preconditions are coming from here")
+    }
+    testImplementation(testFixtures(project(":signing"))) {
+        because("Signing preconditions are coming from here")
+    }
+    testImplementation(testFixtures(project(":test-kit"))) {
+        because("Test kit preconditions are coming from here")
+    }
+    testImplementation(testFixtures(project(":smoke-test"))) {
+        because("Smoke test preconditions are coming from here")
+    }
 
     // This is a special dependency, as some of the preconditions might need a distribution.
     // E.g. see "IntegTestPreconditions.groovy"
