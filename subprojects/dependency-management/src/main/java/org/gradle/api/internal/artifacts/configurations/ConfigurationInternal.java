@@ -64,14 +64,12 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     boolean isCanBeMutated();
 
     /**
-     * Locks the configuration for mutation
-     * <p>
-     * Any invalid state at this point will be added to the returned list of exceptions.
-     * Handling these becomes the responsibility of the caller.
-     *
-     * @return a list of validation failures when not empty
+     * Returns an exception if this configuration has the same attributes
+     * and capabilities as another configuration in the same
+     * {@code ConfigurationsProvider}. Returns null otherwise.
      */
-    List<? extends GradleException> preventFromFurtherMutationLenient();
+    @Nullable
+    GradleException getDuplicateConfigurationsFailure();
 
     /**
      * Gets the complete set of exclude rules including those contributed by

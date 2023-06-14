@@ -223,6 +223,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     @Override
     public Collection<? extends Capability> getCapabilities() {
+        // TODO: Why does this not return the project-derived capability when `capabilities` == null?
         return capabilities == null ? Collections.emptyList() : ImmutableList.copyOf(capabilities);
     }
 

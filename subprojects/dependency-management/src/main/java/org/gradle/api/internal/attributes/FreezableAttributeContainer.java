@@ -24,13 +24,24 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
-public class ImmutableAttributeContainerWithErrorMessage implements AttributeContainerInternal {
-    private final AttributeContainerInternal delegate;
+/**
+ * An attribute container which can be frozen in order to avoid subsequent mutations.
+ */
+public class FreezableAttributeContainer implements AttributeContainerInternal {
+
     private final Describable owner;
 
-    public ImmutableAttributeContainerWithErrorMessage(AttributeContainerInternal delegate, Describable owner) {
+    private AttributeContainerInternal delegate;
+    private boolean frozen = false;
+
+    public FreezableAttributeContainer(AttributeContainerInternal delegate, Describable owner) {
         this.delegate = delegate;
         this.owner = owner;
+    }
+
+    public void freeze() {
+        this.delegate = delegate.asImmutable();
+        this.frozen = true;
     }
 
     @Override
@@ -40,7 +51,9 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
 
     @Override
     public ImmutableAttributes asImmutable() {
-        return delegate.asImmutable();
+        ImmutableAttributes frozen = delegate.asImmutable();
+        this.delegate = frozen;
+        return frozen;
     }
 
     @Override
@@ -55,12 +68,20 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        throw new IllegalArgumentException(String.format("Cannot change attributes of dependency %s after it has been resolved", owner.getDisplayName()));
+        if (frozen) {
+            throw new IllegalArgumentException(String.format("Cannot change attributes of dependency %s after it has been resolved", owner.getDisplayName()));
+        }
+        delegate.attribute(key, value);
+        return this;
     }
 
     @Override
     public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
-        throw new IllegalArgumentException(String.format("Cannot change attributes of dependency %s after it has been resolved", owner.getDisplayName()));
+        if (frozen) {
+            throw new IllegalArgumentException(String.format("Cannot change attributes of dependency %s after it has been resolved", owner.getDisplayName()));
+        }
+        delegate.attributeProvider(key, provider);
+        return this;
     }
 
     @Nullable
@@ -81,6 +102,6 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
 
     @Override
     public AttributeContainer getAttributes() {
-        return delegate.getAttributes();
+        return this;
     }
 }
