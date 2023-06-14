@@ -19,6 +19,8 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
@@ -29,6 +31,8 @@ import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
+
+import javax.annotation.Nonnull;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
@@ -60,12 +64,21 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 problem.getSeverity().toString(),
                 where == null ? null : where.getPath(),
                 where == null ? null : where.getLine(),
-                problem.getDocumentationLink(),
+                getDocumentationFor(problem),
                 problem.getDescription(),
                 problem.getSolutions(),
                 problemCause);
             eventConsumer.progress(event);
         }
+    }
+
+    @Nonnull
+    private static String getDocumentationFor(Problem problem) {
+        DocLink docLink = problem.getDocumentationLink();
+        if(docLink == null) {
+            return "";
+        }
+        return new DocumentationRegistry().getDocumentationFor(docLink.getPage(), docLink.getSection());
     }
 
     @Override

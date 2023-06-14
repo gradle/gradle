@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
+package org.gradle.api.problems.interfaces;
+
+
+import org.gradle.api.Incubating;
 
 /**
- * Represents some chunk of work.
+ * A link to a documentation page.
+ *
+ * @since 8.3
  */
-@NonNullApi
-package org.gradle.api.problems;
+@Incubating
+public interface DocLink {
+    String getPage();
 
-import org.gradle.api.NonNullApi;
+    String getSection();
+}

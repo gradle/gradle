@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems;
+package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Severity;
 
@@ -30,17 +31,17 @@ import java.util.List;
 @NonNullApi
 public class DefaultProblem implements Problem {
 
-    private final ProblemId problemId;
+    private final ProblemGroup problemGroup;
     private final String message;
     private final Severity severity;
     private final ProblemLocation where;
-    private final String documentationLink;
+    private final DocLink documentationLink;
     private final String description;
     private final List<String> solutions;
     private final Throwable cause;
 
-    public DefaultProblem(ProblemId problemId, String message, Severity severity, @Nullable ProblemLocation location, @Nullable String documentationUrl, @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause) {
-        this.problemId = problemId;
+    public DefaultProblem(ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl, @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause) {
+        this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;
         this.where = location;
@@ -51,8 +52,8 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public ProblemId getProblemId() {
-        return problemId;
+    public ProblemGroup getProblemId() {
+        return problemGroup;
     }
 
     @Override
@@ -72,7 +73,7 @@ public class DefaultProblem implements Problem {
 
     @Nullable
     @Override
-    public String getDocumentationLink() {
+    public DocLink getDocumentationLink() {
         return documentationLink;
     }
 
@@ -104,7 +105,7 @@ public class DefaultProblem implements Problem {
             return false;
         }
         DefaultProblem that = (DefaultProblem) o;
-        return equals(problemId, that.problemId) &&
+        return equals(problemGroup, that.problemGroup) &&
             equals(message, that.message) &&
             severity == that.severity &&
             equals(where, that.where) &&
@@ -116,6 +117,6 @@ public class DefaultProblem implements Problem {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{problemId, message, severity, where, documentationLink, description, solutions, cause});
+        return Arrays.hashCode(new Object[]{problemGroup, message, severity, where, documentationLink, description, solutions, cause});
     }
 }

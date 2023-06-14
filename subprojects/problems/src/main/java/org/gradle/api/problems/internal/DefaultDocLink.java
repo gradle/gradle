@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.interfaces.DocLink;
 
 /**
- * Problem id.
+ * A link to a documentation page.
  *
  * @since 8.3
  */
-@Incubating
-public enum ProblemId {
+public class DefaultDocLink implements DocLink {
+    private final String page;
+    private final String section;
 
-    GENERIC("generic"),
-    DEPRECATION("deprecation"),
-    VERSION_CATALOG("version_catalog");
-
-    private final String id;
-
-    ProblemId(String id) {
-        this.id = id;
+    public DefaultDocLink(String page, String section) {
+        this.page = page;
+        this.section = section;
     }
 
-    public String getId(){
-        return id;
+    @Override
+    public String getPage() {
+        return page;
+    }
+
+    @Override
+    public String getSection() {
+        return section;
     }
 }

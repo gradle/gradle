@@ -14,38 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.interfaces;
-
-import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
-import java.util.List;
-
 /**
- * Problem description.
- *
- * @since 8.3
+ * new Problems API
  */
-@Incubating
-public interface Problem {
 
-    ProblemId getProblemId();
+@NonNullApi
+package org.gradle.api.problems;
 
-    String getMessage();
-
-    Severity getSeverity();
-
-    @Nullable
-    ProblemLocation getWhere();
-
-    @Nullable
-    String getDocumentationLink();
-
-    @Nullable
-    String getDescription();
-
-    List<String> getSolutions();
-
-    @Nullable
-    Throwable getCause();
-}
+import org.gradle.api.NonNullApi;
