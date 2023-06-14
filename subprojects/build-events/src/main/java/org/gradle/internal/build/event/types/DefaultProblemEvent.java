@@ -35,6 +35,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     private Throwable cause;
     private Integer line;
     private String path;
+    private String problemType;
 
     public DefaultProblemEvent(
         InternalProblemDescriptor descriptor,
@@ -46,7 +47,8 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         @Nullable String docLink,
         @Nullable String description,
         List<String> solutions,
-        @Nullable Throwable cause
+        @Nullable Throwable cause,
+        String problemType
     ) {
         super(System.currentTimeMillis(), descriptor);
         this.problemId = problemId;
@@ -58,6 +60,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         this.description = description;
         this.solutions = solutions;
         this.cause = cause;
+        this.problemType = problemType;
     }
 
 
@@ -67,7 +70,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     }
 
     @Override
-    public String getProblemId() {
+    public String getProblemGroup() {
         return problemId;
     }
 
@@ -114,5 +117,10 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
     @Override
     public Throwable getCause() {
         return cause;
+    }
+
+    @Override
+    public String getProblemType() {
+        return problemType;
     }
 }

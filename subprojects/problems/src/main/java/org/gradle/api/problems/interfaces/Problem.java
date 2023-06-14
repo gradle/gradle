@@ -29,7 +29,7 @@ import java.util.List;
 @Incubating
 public interface Problem {
 
-    ProblemGroup getProblemId();
+    ProblemGroup getProblemGroup();
 
     String getMessage();
 
@@ -48,4 +48,6 @@ public interface Problem {
 
     @Nullable
     Throwable getCause();
+
+    String getProblemType();
 }

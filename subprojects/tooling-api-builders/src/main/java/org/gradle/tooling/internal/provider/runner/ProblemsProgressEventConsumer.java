@@ -59,7 +59,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             ProblemLocation where = problem.getWhere();
             DefaultProblemEvent event = new DefaultProblemEvent(
                 descriptor,
-                problem.getProblemId().toString(),
+                problem.getProblemGroup().toString(),
                 problem.getMessage(),
                 problem.getSeverity().toString(),
                 where == null ? null : where.getPath(),
@@ -67,7 +67,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 getDocumentationFor(problem),
                 problem.getDescription(),
                 problem.getSolutions(),
-                problemCause);
+                problemCause, problem.getProblemType());
             eventConsumer.progress(event);
         }
     }

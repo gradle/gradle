@@ -87,6 +87,21 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
 //            throw new InvalidUserDataException(formatter.toString());
     }
 
+//    public void reportInto(TreeFormatter output) {
+//        TreeFormatter formatter = new TreeFormatter();
+//        formatter.node("Problem: In " + uncapitalize(getWhere()) + ", " + endLineWithDot(uncapitalize(getShortDescription())));
+//        getWhy().ifPresent(reason -> {
+//            formatter.blankLine();
+//            formatter.node("Reason: " + capitalize(endLineWithDot(reason)));
+//        });
+//        renderSolutions(formatter, getPossibleSolutions());
+//        getDocumentationLink().ifPresent(docLink -> {
+//            formatter.blankLine();
+//            formatter.node(docLink);
+//        });
+//        output.node(formatter.toString());
+//    }
+
     private static void reportInto(TreeFormatter output, Problem problem) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(problem.getMessage());

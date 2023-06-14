@@ -27,7 +27,7 @@ import java.util.List;
 
 @NonNullApi
 public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
-    private final String problemId;
+    private final String problemGroup;
     private final String severity;
     private final String message;
     private final String description;
@@ -38,6 +38,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     private final Integer line;
     private final String documentationLink;
     private final Throwable cause;
+    private final String problemType;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
@@ -50,10 +51,11 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         @Nullable String path,
         @Nullable Integer line,
         @Nullable String documentationLink,
-        @Nullable Throwable cause
+        @Nullable Throwable cause,
+        String problemType
     ) {
         super(internalDescriptor, parent);
-        this.problemId = problemId;
+        this.problemGroup = problemId;
         this.severity = severity;
         this.message = message;
         this.description = description;
@@ -62,11 +64,12 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.line = line;
         this.documentationLink = documentationLink;
         this.cause = cause;
+        this.problemType = problemType;
     }
 
     @Override
-    public String getProblemId() {
-        return problemId;
+    public String getProblemGroup() {
+        return problemGroup;
     }
 
     @Override
@@ -100,6 +103,11 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     @Override
     public Throwable getCause() {
         return cause;
+    }
+
+    @Override
+    public String getProblemType() {
+        return problemType;
     }
 
     @Nullable

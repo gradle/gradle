@@ -48,6 +48,7 @@ public class ProblemBuilder {
     private DocLink documentationUrl;
     private List<String> solution;
     private Throwable cause;
+    private String problemType;
 
     public ProblemBuilder(ProblemGroup problemGroup, String message, Severity severity) {
         this.problemGroup = problemGroup;
@@ -62,7 +63,7 @@ public class ProblemBuilder {
     }
 
    public ProblemBuilder(Problem problem) {
-        this.problemGroup = problem.getProblemId();
+        this.problemGroup = problem.getProblemGroup();
         this.severity = problem.getSeverity();
         this.message = problem.getMessage();
        ProblemLocation where = problem.getWhere();
@@ -87,16 +88,15 @@ public class ProblemBuilder {
         return this;
     }
 
-//    public ProblemBuilder documentedAt(@Nullable String documentationUrl) {
-//        this.documentationUrl = documentationUrl;
-//        return this;
-//    }
-
     public ProblemBuilder documentedAt(String page, String section) {
         this.documentationUrl = new DefaultDocLink(page, section);
         return this;
     }
 
+    public ProblemBuilder type(String problemType) {
+        this.problemType = problemType;
+        return this;
+    }
 
     public ProblemBuilder solution(@Nullable String solution) {
         if (this.solution == null) {
@@ -120,8 +120,8 @@ public class ProblemBuilder {
             documentationUrl,
             description,
             solution,
-            cause
-        );
+            cause,
+            problemType);
     }
 
     public ProblemThrower report() {
