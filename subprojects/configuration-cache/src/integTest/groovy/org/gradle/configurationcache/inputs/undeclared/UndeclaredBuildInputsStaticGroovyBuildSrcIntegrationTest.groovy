@@ -16,9 +16,6 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
-
-@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3821")
 class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     String getLocation() {

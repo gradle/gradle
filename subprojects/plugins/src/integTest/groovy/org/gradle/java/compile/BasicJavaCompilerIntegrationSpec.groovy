@@ -315,8 +315,8 @@ compileJava {
     doFirst {
         assert apiElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
         assert runtimeElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert !compileClasspathAttributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
-        assert !runtimeClasspathAttributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+        assert compileClasspathAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
+        assert runtimeClasspathAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == Integer.MAX_VALUE
     }
 }
 """

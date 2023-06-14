@@ -24,12 +24,23 @@ import java.io.File;
  */
 public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider {
     public TestNameTestDirectoryProvider(Class<?> klass) {
-        // NOTE: the space in the directory name is intentional
-        super(new TestFile(new File("build/tmp/test files")), klass);
+        super(new TestFile(new File("build/tmp/" + determineTestDirectoryName(klass))), klass);
     }
 
     public TestNameTestDirectoryProvider(TestFile root, Class<?> klass) {
         super(root, klass);
+    }
+
+    private static String determineTestDirectoryName(Class<?> klass) {
+        // NOTE: the space in the directory name is intentional to shake out problems with paths that contain spaces
+        // NOTE: and so is the "s with comma below" character (U+0219), to shake out problems with non-ASCII folder names
+        return supportsNonAsciiPaths(klass)
+            ? "teșt files"
+            : "test files";
+    }
+
+    private static boolean supportsNonAsciiPaths(Class<?> klass) {
+        return klass.isAnnotationPresent(SupportsNonAsciiPaths.class);
     }
 
     public static TestNameTestDirectoryProvider forFatDrive(Class<?> klass) {

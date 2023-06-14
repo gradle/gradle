@@ -25,6 +25,7 @@ import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
+import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import static org.junit.Assume.assumeFalse
@@ -383,7 +384,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     }
                 """
             }
-            alwaysPasses()
             if (testedPluginId == 'org.jetbrains.kotlin.js') {
                 buildFile << """
                     kotlin { js(IR) { browser() } }
@@ -397,6 +397,48 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     }
                 """
             }
+
+            /*
+             * Register validation failures due to unsupported nested types
+             * The issue picked up by validation was fixed in Kotlin 1.7.2,
+             * see https://youtrack.jetbrains.com/issue/KT-51532
+             */
+            if (version == '1.7.0') {
+                // Register validation failure for plugin itself (or jvm plugin respectively)
+                if (testedPluginId in ['org.jetbrains.kotlin.kapt', 'org.jetbrains.kotlin.plugin.scripting']) {
+                    onPlugins(['org.jetbrains.kotlin.jvm']) { registerValidationFailure(delegate) }
+                } else {
+                    onPlugin(testedPluginId) { registerValidationFailure(delegate) }
+                }
+                // Register validation failures for plugins brought in by this plugin
+                if (testedPluginId in ['org.jetbrains.kotlin.android', 'org.jetbrains.kotlin.android.extensions']) {
+                    onPlugins(['com.android.application',
+                               'com.android.build.gradle.api.AndroidBasePlugin',
+                               'com.android.internal.application',
+                               'com.android.internal.version-check']) { alwaysPasses() }
+                }
+                if (testedPluginId == 'org.jetbrains.kotlin.jvm'
+                    || testedPluginId == 'org.jetbrains.kotlin.multiplatform'
+                    || testedPluginId == 'org.jetbrains.kotlin.kapt'
+                    || testedPluginId == 'org.jetbrains.kotlin.plugin.scripting') {
+                    onPlugins(['org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin',
+                               'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin',
+                    ]) { registerValidationFailure(delegate) }
+                }
+                if (testedPluginId == 'org.jetbrains.kotlin.js'
+                    || testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
+                    onPlugins(['org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin',
+                               'org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolverPlugin',
+                               'org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin'
+                    ]) { registerValidationFailure(delegate) }
+                }
+                if (testedPluginId == 'org.jetbrains.kotlin.kapt') {
+                    onPlugin('kotlin-kapt') { registerValidationFailure(delegate) }
+                }
+            } else {
+                alwaysPasses()
+            }
+
             settingsFile << """
                 pluginManagement {
                     repositories {
@@ -406,6 +448,16 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 }
             """
         }
+    }
+
+    def registerValidationFailure(PluginValidation pluginValidation) {
+        pluginValidation.failsWith(nestedTypeUnsupported {
+            type('org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest')
+                .property('environment')
+                .annotatedType('java.lang.String')
+                .reason('Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input')
+                .includeLink()
+        }, WARNING)
     }
 
     static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, String... tasks) {

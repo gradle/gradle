@@ -432,6 +432,17 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_TYPE_UNSUPPORTED
+    )
+    String nestedTypeUnsupported(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NestedTypeUnsupported, "unsupported_nested_type", spec)
+        config.description("with nested type '${config.annotatedType}' is not supported.")
+            .reason("Nested types are expected to either declare some annotated properties or some behaviour that requires capturing the type as input.")
+            .solution("Declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input.")
+            .render()
+    }
+
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
                                                                    String docId = "incremental_build",
@@ -970,6 +981,20 @@ trait ValidationMessageChecker {
 
         NestedMapUnsupportedKeyType keyType(String keyType) {
             this.keyType = keyType
+            this
+        }
+    }
+
+    static class NestedTypeUnsupported extends ValidationMessageDisplayConfiguration<NestedTypeUnsupported> {
+
+        String annotatedType
+
+        NestedTypeUnsupported(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NestedTypeUnsupported annotatedType(String annotatedType) {
+            this.annotatedType = annotatedType
             this
         }
     }

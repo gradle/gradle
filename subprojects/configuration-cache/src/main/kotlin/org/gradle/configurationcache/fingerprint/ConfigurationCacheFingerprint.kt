@@ -104,7 +104,7 @@ sealed class ConfigurationCacheFingerprint {
             get() = "cached artifact information for $displayName has expired"
     }
 
-    class SystemPropertiesPrefixedBy(
+    data class SystemPropertiesPrefixedBy(
         val prefix: String,
         val snapshot: Map<String, Any?>
     ) : ConfigurationCacheFingerprint() {
@@ -124,7 +124,7 @@ sealed class ConfigurationCacheFingerprint {
         }
     }
 
-    class EnvironmentVariablesPrefixedBy(
+    data class EnvironmentVariablesPrefixedBy(
         val prefix: String,
         val snapshot: Map<String, String?>
     ) : ConfigurationCacheFingerprint()
