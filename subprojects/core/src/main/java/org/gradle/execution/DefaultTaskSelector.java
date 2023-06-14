@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
 
@@ -90,7 +90,7 @@ public class DefaultTaskSelector implements TaskSelector {
             } else {
                 String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
                     matcher.formatErrorMessage("task", searchContext));
-                throw Problems.createError(ProblemId.GENERIC, message)
+                throw Problems.createError(ProblemGroup.GENERIC, message)
                     .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
                     .cause(new TaskSelectionException(message))
                     .throwIt();

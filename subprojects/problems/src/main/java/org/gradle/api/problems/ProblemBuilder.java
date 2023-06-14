@@ -17,14 +17,16 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.ProblemLocation;
 import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.internal.DefaultDocLink;
+import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.internal.DefaultProblemLocation;
 import org.gradle.api.problems.internal.GradleExceptionWithProblem;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
-import org.gradle.internal.problems.DefaultProblem;
-import org.gradle.internal.problems.DefaultProblemLocation;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -37,30 +39,30 @@ import java.util.List;
  */
 @Incubating
 public class ProblemBuilder {
-    private final ProblemId problemId;
+    private final ProblemGroup problemGroup;
     private String message;
     private final Severity severity;
     private String path;
     private Integer line;
     private String description;
-    private String documentationUrl;
+    private DocLink documentationUrl;
     private List<String> solution;
     private Throwable cause;
 
-    public ProblemBuilder(ProblemId problemId, String message, Severity severity) {
-        this.problemId = problemId;
+    public ProblemBuilder(ProblemGroup problemGroup, String message, Severity severity) {
+        this.problemGroup = problemGroup;
         this.message = message;
         this.severity = severity;
     }
 
-    public ProblemBuilder(ProblemId problemId, Throwable cause, Severity severity) {
-        this.problemId = problemId;
+    public ProblemBuilder(ProblemGroup problemGroup, Throwable cause, Severity severity) {
+        this.problemGroup = problemGroup;
         this.cause = cause;
         this.severity = severity;
     }
 
    public ProblemBuilder(Problem problem) {
-        this.problemId = problem.getProblemId();
+        this.problemGroup = problem.getProblemId();
         this.severity = problem.getSeverity();
         this.message = problem.getMessage();
        ProblemLocation where = problem.getWhere();
@@ -85,10 +87,16 @@ public class ProblemBuilder {
         return this;
     }
 
-    public ProblemBuilder documentedAt(@Nullable String documentationUrl) {
-        this.documentationUrl = documentationUrl;
+//    public ProblemBuilder documentedAt(@Nullable String documentationUrl) {
+//        this.documentationUrl = documentationUrl;
+//        return this;
+//    }
+
+    public ProblemBuilder documentedAt(String page, String section) {
+        this.documentationUrl = new DefaultDocLink(page, section);
         return this;
     }
+
 
     public ProblemBuilder solution(@Nullable String solution) {
         if (this.solution == null) {
@@ -105,7 +113,7 @@ public class ProblemBuilder {
 
     public Problem build() {
         return new DefaultProblem(
-            problemId,
+            problemGroup,
             message,
             severity,
             path == null ? null : new DefaultProblemLocation(path, line),

@@ -34,7 +34,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
@@ -202,7 +202,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
 //        throw new ScriptCompilationException(message, e, source, lineNumber);
-        Problems.createNew(ProblemId.GENERIC, message, Severity.ERROR)
+        Problems.createNew(ProblemGroup.GENERIC, message, Severity.ERROR)
             .location(source.getFileName(), lineNumber)
             .cause(new ScriptCompilationException(message, e, source, lineNumber))
             .report()

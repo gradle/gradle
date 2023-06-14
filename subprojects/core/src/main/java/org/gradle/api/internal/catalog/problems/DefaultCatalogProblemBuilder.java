@@ -19,7 +19,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.interfaces.DocLink;
 import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.internal.DefaultDocLink;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.problems.Solution;
 import org.gradle.problems.StandardSeverity;
@@ -39,6 +41,7 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
     VersionCatalogProblemBuilder.DescribedProblemWithCause {
 
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
+    public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
     private final VersionCatalogProblemId id;
     private Supplier<String> context;
@@ -47,7 +50,7 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
     private Supplier<String> reason;
     private StandardSeverity severity = StandardSeverity.ERROR;
     private final List<Supplier<String>> solutions = Lists.newArrayListWithExpectedSize(1);
-    private DocLink docLink;
+    private DefaultDocLink docLink;
 
     private DefaultCatalogProblemBuilder(VersionCatalogProblemId id) {
         this.id = id;
@@ -93,9 +96,10 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
         }
 
         renderSolutionsWithNewProblemsApi(formatter, problem.getSolutions());
-        if (problem.getDocumentationLink() != null) {
+        DocLink documentationLink = problem.getDocumentationLink();
+        if (documentationLink != null) {
             formatter.blankLine();
-            formatter.node(problem.getDocumentationLink());
+            formatter.node(DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", documentationLink.getPage(), documentationLink.getSection()));
         }
         output.node(formatter.toString());
     }
@@ -132,13 +136,13 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
 
     @Override
     public DescribedProblemWithCause documentedAt(String page, String section) {
-        this.docLink = new DocLink(page, section);
+        this.docLink = new DefaultDocLink(page, section);
         return this;
     }
 
     @Override
     public DescribedProblemWithCause documented() {
-        return documentedAt("version_catalog_problems", id.name().toLowerCase());
+        return documentedAt(VERSION_CATALOG_PROBLEMS, id.name().toLowerCase());
     }
 
     @Override
@@ -167,23 +171,15 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
             shortDescription,
             longDescription,
             reason,
-            () -> docLink == null ? null : DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", docLink.page, docLink.section),
-            solutions.stream().map(this::toSolution).collect(toList())
+            () -> docLink == null ? null : DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", docLink.getPage(), docLink.getSection()),
+            solutions.stream()
+                .map(DefaultCatalogProblemBuilder::toSolution)
+                .collect(toList())
         );
     }
 
-    private Supplier<Solution> toSolution(Supplier<String> solutionText) {
+    private static Supplier<Solution> toSolution(Supplier<String> solutionText) {
         return () -> new SimpleSolution(solutionText);
-    }
-
-    private static class DocLink {
-        private final String page;
-        private final String section;
-
-        private DocLink(String page, String section) {
-            this.page = page;
-            this.section = section;
-        }
     }
 
     private static class SimpleSolution implements Solution {

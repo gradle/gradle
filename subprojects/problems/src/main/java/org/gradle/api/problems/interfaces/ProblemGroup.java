@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems;
+package org.gradle.api.problems.interfaces;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.ProblemLocation;
+import org.gradle.api.Incubating;
 
-@NonNullApi
-public class DefaultProblemLocation implements ProblemLocation {
+/**
+ * Problem id.
+ *
+ * @since 8.3
+ */
+@Incubating
+public enum ProblemGroup {
 
-    private final String path;
-    private final Integer line;
+    GENERIC("generic"),
+    DEPRECATION("deprecation"),
+    VERSION_CATALOG("version_catalog");
 
-    public DefaultProblemLocation(String path, Integer line) {
-        this.path = path;
-        this.line = line;
+    private final String id;
+
+    ProblemGroup(String id) {
+        this.id = id;
     }
 
-    @Override
-    public String getPath() {
-        return path;
-    }
-
-    @Override
-    public Integer getLine() {
-        return line;
+    public String getId(){
+        return id;
     }
 }

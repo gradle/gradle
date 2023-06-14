@@ -18,7 +18,7 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemId;
+import org.gradle.api.problems.interfaces.ProblemGroup;
 import org.gradle.api.problems.interfaces.Severity;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
@@ -32,12 +32,12 @@ import java.util.List;
 @Incubating
 public class Problems {
 
-    public static ProblemBuilder createNew(ProblemId problemId, String message, Severity severity) {
-        return new ProblemBuilder(problemId, message, severity);
+    public static ProblemBuilder createNew(ProblemGroup problemGroup, String message, Severity severity) {
+        return new ProblemBuilder(problemGroup, message, severity);
     }
 
-    public static ProblemBuilder createError(ProblemId problemId, String message) {
-        return new ProblemBuilder(problemId, message, Severity.ERROR);
+    public static ProblemBuilder createError(ProblemGroup problemGroup, String message) {
+        return new ProblemBuilder(problemGroup, message, Severity.ERROR);
     }
 
 //    public static ProblemBuilder throwing(Exception e, ProblemId problemId) { // TODO should be a different builder; that throws as a terminal operation
@@ -45,7 +45,7 @@ public class Problems {
 //    }
 
     public static void collect(Throwable failure) {
-        new ProblemBuilder(ProblemId.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report(true);
+        new ProblemBuilder(ProblemGroup.GENERIC, failure.getMessage(), Severity.ERROR).cause(failure).report(true);
     }
 
     public static void collect(Problem problem) {
